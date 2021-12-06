@@ -1,22 +1,24 @@
 //! Minecraft calls it a "friendly byte buffer".
 
 use byteorder::{BigEndian, WriteBytesExt};
-// use std::io::Write;
 
-const MAX_VARINT_SIZE: u32 = 5;
-const MAX_VARLONG_SIZE: u32 = 10;
-const DEFAULT_NBT_QUOTA: u32 = 2097152;
+// const MAX_VARINT_SIZE: u32 = 5;
+// const MAX_VARLONG_SIZE: u32 = 10;
+// const DEFAULT_NBT_QUOTA: u32 = 2097152;
 const MAX_STRING_LENGTH: u16 = 32767;
-const MAX_COMPONENT_STRING_LENGTH: u32 = 262144;
+// const MAX_COMPONENT_STRING_LENGTH: u32 = 262144;
 
 pub struct FriendlyByteBuf<'a> {
     source: &'a mut Vec<u8>,
 }
 
-impl FriendlyByteBuf<'_> {
+impl<'a> FriendlyByteBuf<'a> {
+    pub fn new(source: &'a mut Vec<u8>) -> FriendlyByteBuf<'a> {
+        FriendlyByteBuf { source }
+    }
+
     pub fn write_byte(&mut self, n: u8) {
         self.source.write_u8(n).unwrap();
-        println!("write_byte: {}", n);
     }
 
     pub fn write_bytes(&mut self, bytes: &[u8]) {

@@ -1,6 +1,7 @@
-pub mod client_intention_packet;
-
-use std::collections::HashMap;
+mod client_intention_packet;
+pub use client_intention_packet::ClientIntentionPacket;
+mod serverbound_status_request_packet;
+pub use serverbound_status_request_packet::ServerboundStatusRequestPacket;
 
 use crate::friendly_byte_buf::FriendlyByteBuf;
 
@@ -13,9 +14,8 @@ pub enum ConnectionProtocol {
 }
 
 pub trait Packet {
-    /// The id of the packet, this is always a byte in vanilla.
-    /// This might be bigger than a u8 if using modpacks with lots of custom packets?
-    const ID: u8;
- 
+    /// Get the id of the packet, this is always a byte.
+    fn get_id(&self) -> u8;
+
     fn write(&self, friendly_byte_buf: &mut FriendlyByteBuf) -> ();
 }
