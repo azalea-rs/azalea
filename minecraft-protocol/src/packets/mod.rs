@@ -3,8 +3,6 @@ pub use client_intention_packet::ClientIntentionPacket;
 mod serverbound_status_request_packet;
 pub use serverbound_status_request_packet::ServerboundStatusRequestPacket;
 
-use crate::mc_buf;
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ConnectionProtocol {
     Handshaking = -1,

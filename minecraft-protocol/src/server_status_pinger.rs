@@ -1,9 +1,10 @@
 use crate::{
     connection::Connection,
+    mc_buf,
     packets::{ClientIntentionPacket, ConnectionProtocol, ServerboundStatusRequestPacket},
     resolver, ServerAddress,
 };
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::AsyncReadExt;
 
 pub async fn ping_server(address: &ServerAddress) -> Result<(), String> {
     let resolved_address = resolver::resolve_address(&address).await?;
@@ -21,6 +22,9 @@ pub async fn ping_server(address: &ServerAddress) -> Result<(), String> {
     })
     .await;
     conn.send_packet(&ServerboundStatusRequestPacket {}).await;
+
+    let data = mc_buf::read_varint(conn.stream);
+    println!("data {}", data);
 
     // log what the server sends back
     loop {

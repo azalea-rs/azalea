@@ -1,7 +1,7 @@
 use crate::{mc_buf, packets::Packet, ServerIpAddress};
 use bytes::BytesMut;
 use tokio::{
-    io::{AsyncWriteExt, BufWriter},
+    io::{AsyncReadExt, AsyncWriteExt, BufReader, BufWriter},
     net::TcpStream,
 };
 
@@ -12,9 +12,8 @@ pub enum PacketFlow {
 
 pub struct Connection {
     pub flow: PacketFlow,
-    pub stream: BufWriter<TcpStream>,
-    /// The read buffer
-    pub buffer: BytesMut,
+    /// The buffered writer
+    pub stream: TcpStream,
 }
 
 impl Connection {
@@ -33,10 +32,15 @@ impl Connection {
 
         Ok(Connection {
             flow: PacketFlow::ClientToServer,
-            stream: BufWriter::new(stream),
-            // 4mb read buffer
-            buffer: BytesMut::with_capacity(4 * 1024 * 1024),
+            stream,
         })
+    }
+
+    pub async fn read_packet(&mut self) {
+        // the first thing minecraft sends us is the length as a varint, which can be up to 5 bytes
+        let mut buf = Vec::new();
+        self.stream.read_buf(&mut buf).await;
+        mc_buf::read_varint(buf)
     }
 
     /// Write a packet to the server
