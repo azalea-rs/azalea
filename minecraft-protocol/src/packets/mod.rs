@@ -1,8 +1,10 @@
 pub mod client_intention_packet;
 
+use std::collections::HashMap;
+
 use crate::friendly_byte_buf::FriendlyByteBuf;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ConnectionProtocol {
     Handshaking = -1,
     Play = 0,
@@ -11,17 +13,9 @@ pub enum ConnectionProtocol {
 }
 
 pub trait Packet {
+    /// The id of the packet, this is always a byte in vanilla.
+    /// This might be bigger than a u8 if using modpacks with lots of custom packets?
+    const ID: u8;
+ 
     fn write(&self, friendly_byte_buf: &mut FriendlyByteBuf) -> ();
 }
-
-struct PacketSet<'a> {
-    pub packets: Vec<&'a dyn Packet>,
-}
-
-impl<'a> PacketSet<'a> {
-    fn add_packet(&mut self, packet: &'a dyn Packet) {
-        self.packets.push(packet);
-    }
-}
-
-// PacketSet
