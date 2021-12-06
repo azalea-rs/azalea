@@ -5,7 +5,7 @@ use std::str::FromStr;
 use tokio::runtime::Runtime;
 
 pub mod connection;
-pub mod friendly_byte_buf;
+pub mod mc_buf;
 pub mod packets;
 pub mod resolver;
 pub mod server_status_pinger;

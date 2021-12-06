@@ -1,4 +1,8 @@
-use crate::{connection::Connection, resolver, ServerAddress, packets::{ClientIntentionPacket, ServerboundStatusRequestPacket, ConnectionProtocol}};
+use crate::{
+    connection::Connection,
+    packets::{ClientIntentionPacket, ConnectionProtocol, ServerboundStatusRequestPacket},
+    resolver, ServerAddress,
+};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 pub async fn ping_server(address: &ServerAddress) -> Result<(), String> {
@@ -14,9 +18,9 @@ pub async fn ping_server(address: &ServerAddress) -> Result<(), String> {
         hostname: &address.host,
         port: address.port,
         intention: ConnectionProtocol::Status,
-    }).await;
+    })
+    .await;
     conn.send_packet(&ServerboundStatusRequestPacket {}).await;
-
 
     // log what the server sends back
     loop {

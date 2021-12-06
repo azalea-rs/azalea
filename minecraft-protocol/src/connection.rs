@@ -1,4 +1,4 @@
-use crate::{friendly_byte_buf::FriendlyByteBuf, packets::Packet, ServerIpAddress};
+use crate::{mc_buf, packets::Packet, ServerIpAddress};
 use bytes::BytesMut;
 use tokio::{
     io::{AsyncWriteExt, BufWriter},
@@ -44,20 +44,16 @@ impl Connection {
         // packet structure:
         // length + id + data
 
-        // Is this efficient? I have no idea, probably not.
-        // getting rid of the FriendlyByteBuffer struct might help
-
         // write the packet id
         let mut id_and_data_buf = vec![packet.get_id()];
 
         // write the packet data
-        let mut id_and_data_friendly_buf = FriendlyByteBuf::new(&mut id_and_data_buf);
-        packet.write(&mut id_and_data_friendly_buf);
+        packet.write(&mut id_and_data_buf);
 
-        // add the packet length to the beginning
+        // make a new buffer that has the length at the beginning
+        // and id+data at the end
         let mut complete_buf: Vec<u8> = Vec::new();
-        let mut complete_friendly_buf = FriendlyByteBuf::new(&mut complete_buf);
-        complete_friendly_buf.write_varint(id_and_data_buf.len() as u32);
+        mc_buf::write_varint(&mut complete_buf, id_and_data_buf.len() as u32);
         complete_buf.append(&mut id_and_data_buf);
 
         // finally, write and flush to the stream

@@ -3,7 +3,7 @@ pub use client_intention_packet::ClientIntentionPacket;
 mod serverbound_status_request_packet;
 pub use serverbound_status_request_packet::ServerboundStatusRequestPacket;
 
-use crate::friendly_byte_buf::FriendlyByteBuf;
+use crate::mc_buf;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ConnectionProtocol {
@@ -17,5 +17,5 @@ pub trait Packet {
     /// Get the id of the packet, this is always a byte.
     fn get_id(&self) -> u8;
 
-    fn write(&self, friendly_byte_buf: &mut FriendlyByteBuf) -> ();
+    fn write(&self, friendly_byte_buf: &mut Vec<u8>) -> ();
 }

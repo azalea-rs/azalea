@@ -1,6 +1,6 @@
 use std::hash::Hash;
 
-use crate::friendly_byte_buf::FriendlyByteBuf;
+use crate::mc_buf;
 
 use super::{ConnectionProtocol, Packet};
 
@@ -20,10 +20,10 @@ impl<'a> Packet for ClientIntentionPacket<'a> {
     }
 
     // implement "from_reader" for "ClientIntentionPacket"
-    fn write(&self, buf: &mut FriendlyByteBuf) {
-        buf.write_varint(self.protocol_version);
-        buf.write_utf(&self.hostname);
-        buf.write_short(self.port);
-        buf.write_varint(self.intention.clone() as u32);
+    fn write(&self, buf: &mut Vec<u8>) {
+        mc_buf::write_varint(buf, self.protocol_version);
+        mc_buf::write_utf(buf, &self.hostname);
+        mc_buf::write_short(buf, self.port);
+        mc_buf::write_varint(buf, self.intention.clone() as u32);
     }
 }
