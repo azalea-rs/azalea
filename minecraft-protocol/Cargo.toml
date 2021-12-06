@@ -1,0 +1,15 @@
+[package]
+edition = "2021"
+name = "minecraft-protocol"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-recursion = "^0.3.2"
+byteorder = "^1.4.3"
+bytes = "^1.1.0"
+thiserror = "^1.0.30"
+tokio = {version = "^1.14.0", features = ["io-util"]}
+tokio-util = "^0.6.9"
+trust-dns-resolver = "^0.20.3"

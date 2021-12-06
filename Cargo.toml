@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "bot",
+    "minecraft-client",
+    "minecraft-protocol",
+]
