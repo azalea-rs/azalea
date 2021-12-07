@@ -1,4 +1,4 @@
-//! Handle sending and receiving packets with a server.
+//! parse sending and receiving packets with a server.
 
 use crate::packets::ConnectionProtocol;
 use crate::{mc_buf, packets::Packet, ServerIpAddress};
@@ -41,6 +41,10 @@ impl Connection {
         })
     }
 
+    pub fn switch_state(&mut self, state: ConnectionProtocol) {
+        self.state = state;
+    }
+
     pub async fn read_packet(&mut self) -> Result<(), String> {
         // what this does:
         // 1. reads the first 5 bytes, probably only some of this will be used to get the packet length
@@ -68,7 +72,7 @@ impl Connection {
     }
 
     /// Write a packet to the server
-    pub async fn send_packet(&mut self, packet: &dyn Packet) {
+    pub async fn send_packet(&mut self, packet: &impl Packet) {
         // TODO: implement compression
 
         // packet structure:

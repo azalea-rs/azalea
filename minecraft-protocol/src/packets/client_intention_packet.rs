@@ -26,4 +26,6 @@ impl<'a> Packet for ClientIntentionPacket<'a> {
         mc_buf::write_short(buf, self.port);
         mc_buf::write_varint(buf, self.intention.clone() as u32);
     }
+
+    fn parse<T: tokio::io::AsyncRead + std::marker::Unpin>(&self, buf: T) -> () {}
 }

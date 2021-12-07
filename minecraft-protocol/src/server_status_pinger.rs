@@ -13,6 +13,7 @@ pub async fn ping_server(address: &ServerAddress) -> Result<(), String> {
     println!("resolved_address {}", &resolved_address.ip);
     println!("writing intention packet {}", address.host);
 
+    // send the client intention packet and switch to the status state
     conn.send_packet(&ClientIntentionPacket {
         protocol_version: 757,
         hostname: &address.host,
@@ -20,6 +21,9 @@ pub async fn ping_server(address: &ServerAddress) -> Result<(), String> {
         intention: ConnectionProtocol::Status,
     })
     .await;
+    conn.switch_state(ConnectionProtocol::Status);
+
+    // send the empty status request packet
     conn.send_packet(&ServerboundStatusRequestPacket {}).await;
 
     conn.read_packet().await.unwrap();
