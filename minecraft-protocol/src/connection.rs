@@ -1,9 +1,9 @@
 use crate::{mc_buf, packets::Packet, ServerIpAddress};
 use bytes::BytesMut;
-use std::io::{Cursor, Read, Seek, SeekFrom, Write};
+use std::io::{Cursor, Read, Write};
 use tokio::io::AsyncWriteExt;
 use tokio::{
-    io::{AsyncReadExt, BufReader, BufWriter},
+    io::{AsyncReadExt, BufReader, BufWriter, SeekFrom, AsyncSeek, AsyncSeekExt},
     net::TcpStream,
 };
 
@@ -46,21 +46,23 @@ impl Connection {
 
         // the first thing minecraft sends us is the length as a varint, which can be up to 5 bytes long
         let mut buf = BufReader::with_capacity(5 * 1024, &mut self.stream);
-
-        let packet_size = mc_buf::read_varint(&mut buf).await?;
-
-        println!("packet size from varint: {}", packet_size);
-
+        let (packet_size, packet_size_varint_size) = mc_buf::read_varint(&mut buf).await?;
+        // then, minecraft tells us the packet id as a single byte
         let packet_id = mc_buf::read_byte(&mut buf).await?;
 
         // read the rest of the packet
-        let mut packet_data = Vec::with_capacity(packet_size as usize);
+        let mut packet_data = Vec::with_capacity(
+            (
+                packet_size // the total size of the packet
+                - 1 // we just read the packet id, so we don't read that byte again
+            ) as usize);
         buf.read_buf(&mut packet_data).await.unwrap();
-        println!(
-            "packet id {}: {}",
-            packet_id,
-            String::from_utf8(packet_data.clone()).unwrap()
-        );
+        println!("packet {}", packet_id);
+        // println!(
+        //     "packet id {}: {}",
+        //     packet_id,
+        //     String::from_utf8(packet_data.clone()).unwrap()
+        // );
 
         Ok(())
     }

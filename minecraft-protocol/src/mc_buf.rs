@@ -11,6 +11,7 @@ use tokio::io::{AsyncRead, AsyncReadExt, BufReader};
 const MAX_STRING_LENGTH: u16 = 32767;
 // const MAX_COMPONENT_STRING_LENGTH: u32 = 262144;
 
+/// Read a single byte from the reader
 pub async fn read_byte<T: AsyncRead + std::marker::Unpin>(
     buf: &mut BufReader<T>,
 ) -> Result<u8, String> {
@@ -29,9 +30,10 @@ pub fn write_bytes(buf: &mut Vec<u8>, bytes: &[u8]) {
 }
 
 // fast varints stolen from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
+/// Read a single varint from the reader and return the value, along with the number of bytes read
 pub async fn read_varint<T: AsyncRead + std::marker::Unpin>(
     buf: &mut BufReader<T>,
-) -> Result<u32, String> {
+) -> Result<(u32, u8), String> {
     let mut buffer = [0];
     let mut ans = 0;
     for i in 0..4 {
@@ -40,10 +42,10 @@ pub async fn read_varint<T: AsyncRead + std::marker::Unpin>(
             .or_else(|_| Err("Invalid VarInt".to_string()))?;
         ans |= ((buffer[0] & 0b0111_1111) as u32) << 7 * i;
         if buffer[0] & 0b1000_0000 == 0 {
-            break;
+            return Ok((ans, i + 1));
         }
     }
-    Ok(ans)
+    Ok((ans, 5))
 }
 
 pub fn write_varint(buf: &mut Vec<u8>, mut value: u32) {
@@ -71,13 +73,13 @@ mod tests {
     #[tokio::test]
     async fn test_read_varint() {
         let mut buf = BufReader::new(Cursor::new(vec![192, 196, 7]));
-        assert_eq!(read_varint(&mut buf).await.unwrap(), 123456);
+        assert_eq!(read_varint(&mut buf).await.unwrap(), (123456, 3));
     }
 
     #[tokio::test]
     async fn test_read_varint_longer() {
         let mut buf = BufReader::new(Cursor::new(vec![138, 56, 0, 135, 56, 123]));
-        assert_eq!(read_varint(&mut buf).await.unwrap(), 7178);
+        assert_eq!(read_varint(&mut buf).await.unwrap(), (7178, 2));
     }
 }
 
