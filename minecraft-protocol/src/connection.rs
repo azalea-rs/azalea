@@ -1,9 +1,10 @@
+//! Handle sending and receiving packets with a server.
+
+use crate::packets::ConnectionProtocol;
 use crate::{mc_buf, packets::Packet, ServerIpAddress};
-use bytes::BytesMut;
-use std::io::{Cursor, Read, Write};
 use tokio::io::AsyncWriteExt;
 use tokio::{
-    io::{AsyncReadExt, BufReader, BufWriter, SeekFrom, AsyncSeek, AsyncSeekExt},
+    io::{AsyncReadExt, BufReader},
     net::TcpStream,
 };
 
@@ -13,6 +14,7 @@ pub enum PacketFlow {
 }
 
 pub struct Connection {
+    pub state: ConnectionProtocol,
     pub flow: PacketFlow,
     /// The buffered writer
     pub stream: TcpStream,
@@ -33,6 +35,7 @@ impl Connection {
             .expect("Error enabling tcp_nodelay");
 
         Ok(Connection {
+            state: ConnectionProtocol::Handshaking,
             flow: PacketFlow::ClientToServer,
             stream,
         })
@@ -45,38 +48,38 @@ impl Connection {
         // 3. read the rest of the packet and add it to the cursor
 
         // the first thing minecraft sends us is the length as a varint, which can be up to 5 bytes long
-        let mut buf = BufReader::with_capacity(5 * 1024, &mut self.stream);
+        let mut buf = BufReader::with_capacity(4 * 1024 * 1024, &mut self.stream);
+        println!("reading length varint");
         let (packet_size, packet_size_varint_size) = mc_buf::read_varint(&mut buf).await?;
-        // then, minecraft tells us the packet id as a single byte
-        let packet_id = mc_buf::read_byte(&mut buf).await?;
+        // then, minecraft tells us the packet id as a varint
+        println!("reading id varint");
+        let (packet_id, packet_id_size) = mc_buf::read_varint(&mut buf).await?;
 
-        // read the rest of the packet
-        let mut packet_data = Vec::with_capacity(
-            (
-                packet_size // the total size of the packet
-                - 1 // we just read the packet id, so we don't read that byte again
-            ) as usize);
+        // if we recognize the packet id, parse it
+
+        // TODO
+
+        // otherwise, read the rest of the packet and throw it away
+        let mut packet_data = Vec::with_capacity((packet_size - packet_id_size as u32) as usize);
         buf.read_buf(&mut packet_data).await.unwrap();
-        println!("packet {}", packet_id);
-        // println!(
-        //     "packet id {}: {}",
-        //     packet_id,
-        //     String::from_utf8(packet_data.clone()).unwrap()
-        // );
+        println!("packet {:?}", packet_data);
 
         Ok(())
     }
 
     /// Write a packet to the server
     pub async fn send_packet(&mut self, packet: &dyn Packet) {
+        // TODO: implement compression
+
         // packet structure:
-        // length + id + data
+        // length (varint) + id (varint) + data
 
         // write the packet id
-        let mut id_and_data_buf = vec![packet.get_id()];
+        let mut id_and_data_buf = vec![];
+        mc_buf::write_varint(&mut id_and_data_buf, packet.get_id());
+        packet.write(&mut id_and_data_buf);
 
         // write the packet data
-        packet.write(&mut id_and_data_buf);
 
         // make a new buffer that has the length at the beginning
         // and id+data at the end

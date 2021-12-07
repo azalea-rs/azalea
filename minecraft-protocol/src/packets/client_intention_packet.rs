@@ -15,7 +15,7 @@ pub struct ClientIntentionPacket<'a> {
 
 // implement "Packet" for "ClientIntentionPacket"
 impl<'a> Packet for ClientIntentionPacket<'a> {
-    fn get_id(&self) -> u8 {
+    fn get_id(&self) -> u32 {
         0x00
     }
 

@@ -13,7 +13,7 @@ pub enum ConnectionProtocol {
 
 pub trait Packet {
     /// Get the id of the packet, this is always a byte.
-    fn get_id(&self) -> u8;
+    fn get_id(&self) -> u32;
 
     fn write(&self, friendly_byte_buf: &mut Vec<u8>) -> ();
 }

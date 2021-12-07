@@ -50,6 +50,9 @@ pub async fn read_varint<T: AsyncRead + std::marker::Unpin>(
 
 pub fn write_varint(buf: &mut Vec<u8>, mut value: u32) {
     let mut buffer = [0];
+    if value == 0 {
+        buf.write(&buffer).unwrap();
+    }
     while value != 0 {
         buffer[0] = (value & 0b0111_1111) as u8;
         value = (value >> 7) & (u32::max_value() >> 6);
@@ -68,12 +71,22 @@ mod tests {
         let mut buf = Vec::new();
         write_varint(&mut buf, 123456);
         assert_eq!(buf, vec![192, 196, 7]);
+
+        let mut buf = Vec::new();
+        write_varint(&mut buf, 0);
+        assert_eq!(buf, vec![0]);
     }
 
     #[tokio::test]
     async fn test_read_varint() {
         let mut buf = BufReader::new(Cursor::new(vec![192, 196, 7]));
         assert_eq!(read_varint(&mut buf).await.unwrap(), (123456, 3));
+
+        let mut buf = BufReader::new(Cursor::new(vec![0]));
+        assert_eq!(read_varint(&mut buf).await.unwrap(), (0, 1));
+
+        let mut buf = BufReader::new(Cursor::new(vec![1]));
+        assert_eq!(read_varint(&mut buf).await.unwrap(), (1, 1));
     }
 
     #[tokio::test]

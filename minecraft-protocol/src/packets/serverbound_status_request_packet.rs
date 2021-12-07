@@ -7,7 +7,7 @@ pub struct ServerboundStatusRequestPacket {}
 
 // implement "Packet" for "ClientIntentionPacket"
 impl Packet for ServerboundStatusRequestPacket {
-    fn get_id(&self) -> u8 {
+    fn get_id(&self) -> u32 {
         0x00
     }
 
