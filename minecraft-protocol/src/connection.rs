@@ -1,7 +1,9 @@
 use crate::{mc_buf, packets::Packet, ServerIpAddress};
 use bytes::BytesMut;
+use std::io::{Cursor, Read, Seek, SeekFrom, Write};
+use tokio::io::AsyncWriteExt;
 use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt, BufReader, BufWriter},
+    io::{AsyncReadExt, BufReader, BufWriter},
     net::TcpStream,
 };
 
@@ -36,11 +38,31 @@ impl Connection {
         })
     }
 
-    pub async fn read_packet(&mut self) {
-        // the first thing minecraft sends us is the length as a varint, which can be up to 5 bytes
-        let mut buf = Vec::new();
-        self.stream.read_buf(&mut buf).await;
-        mc_buf::read_varint(buf)
+    pub async fn read_packet(&mut self) -> Result<(), String> {
+        // what this does:
+        // 1. reads the first 5 bytes, probably only some of this will be used to get the packet length
+        // 2. how much we should read = packet length - 5
+        // 3. read the rest of the packet and add it to the cursor
+
+        // the first thing minecraft sends us is the length as a varint, which can be up to 5 bytes long
+        let mut buf = BufReader::with_capacity(5 * 1024, &mut self.stream);
+
+        let packet_size = mc_buf::read_varint(&mut buf).await?;
+
+        println!("packet size from varint: {}", packet_size);
+
+        let packet_id = mc_buf::read_byte(&mut buf).await?;
+
+        // read the rest of the packet
+        let mut packet_data = Vec::with_capacity(packet_size as usize);
+        buf.read_buf(&mut packet_data).await.unwrap();
+        println!(
+            "packet id {}: {}",
+            packet_id,
+            String::from_utf8(packet_data.clone()).unwrap()
+        );
+
+        Ok(())
     }
 
     /// Write a packet to the server

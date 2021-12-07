@@ -1,9 +1,9 @@
 //! Utilities for reading and writing for the Minecraft protocol
 
-use std::io::Cursor;
+use std::io::{Cursor, Write};
 
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use tokio::io::AsyncReadExt;
+use tokio::io::{AsyncRead, AsyncReadExt, BufReader};
 
 // const MAX_VARINT_SIZE: u32 = 5;
 // const MAX_VARLONG_SIZE: u32 = 10;
@@ -11,7 +11,9 @@ use tokio::io::AsyncReadExt;
 const MAX_STRING_LENGTH: u16 = 32767;
 // const MAX_COMPONENT_STRING_LENGTH: u32 = 262144;
 
-pub async fn read_byte(buf: &mut Cursor<Vec<u8>>) -> Result<u8, String> {
+pub async fn read_byte<T: AsyncRead + std::marker::Unpin>(
+    buf: &mut BufReader<T>,
+) -> Result<u8, String> {
     match AsyncReadExt::read_u8(buf).await {
         Ok(r) => Ok(r),
         Err(_) => Err("Error reading byte".to_string()),
@@ -19,41 +21,63 @@ pub async fn read_byte(buf: &mut Cursor<Vec<u8>>) -> Result<u8, String> {
 }
 
 pub fn write_byte(buf: &mut Vec<u8>, n: u8) {
-    buf.write_u8(n).unwrap();
+    WriteBytesExt::write_u8(buf, n).unwrap();
 }
 
 pub fn write_bytes(buf: &mut Vec<u8>, bytes: &[u8]) {
     buf.extend_from_slice(bytes);
 }
 
-pub async fn read_varint(buf: &mut Cursor<Vec<u8>>) -> Result<u32, String> {
-    let mut value: u32 = 0;
-    let mut length: u32 = 0;
-    let mut current_byte: u8;
-
-    loop {
-        current_byte = read_byte(buf).await?;
-        value |= ((current_byte & 0x7F) as u32) << (length * 7);
-
-        length += 1;
-        if length > 5 {
-            return Err("VarInt too big".to_string());
+// fast varints stolen from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
+pub async fn read_varint<T: AsyncRead + std::marker::Unpin>(
+    buf: &mut BufReader<T>,
+) -> Result<u32, String> {
+    let mut buffer = [0];
+    let mut ans = 0;
+    for i in 0..4 {
+        buf.read_exact(&mut buffer)
+            .await
+            .or_else(|_| Err("Invalid VarInt".to_string()))?;
+        ans |= ((buffer[0] & 0b0111_1111) as u32) << 7 * i;
+        if buffer[0] & 0b1000_0000 == 0 {
+            break;
         }
+    }
+    Ok(ans)
+}
 
-        if (value & 0x80) != 0x80 {
-            return Ok(value);
+pub fn write_varint(buf: &mut Vec<u8>, mut value: u32) {
+    let mut buffer = [0];
+    while value != 0 {
+        buffer[0] = (value & 0b0111_1111) as u8;
+        value = (value >> 7) & (u32::max_value() >> 6);
+        if value != 0 {
+            buffer[0] |= 0b1000_0000;
         }
+        buf.write(&buffer).unwrap();
     }
 }
 
-pub fn write_varint(buf: &mut Vec<u8>, mut n: u32) {
-    loop {
-        if (n & 0xFFFFFF80) == 0 {
-            write_byte(buf, n as u8);
-            return ();
-        }
-        write_byte(buf, (n & 0x7F | 0x80) as u8);
-        n >>= 7;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_write_varint() {
+        let mut buf = Vec::new();
+        write_varint(&mut buf, 123456);
+        assert_eq!(buf, vec![192, 196, 7]);
+    }
+
+    #[tokio::test]
+    async fn test_read_varint() {
+        let mut buf = BufReader::new(Cursor::new(vec![192, 196, 7]));
+        assert_eq!(read_varint(&mut buf).await.unwrap(), 123456);
+    }
+
+    #[tokio::test]
+    async fn test_read_varint_longer() {
+        let mut buf = BufReader::new(Cursor::new(vec![138, 56, 0, 135, 56, 123]));
+        assert_eq!(read_varint(&mut buf).await.unwrap(), 7178);
     }
 }
 
@@ -74,5 +98,5 @@ pub fn write_utf(buf: &mut Vec<u8>, string: &String) {
 }
 
 pub fn write_short(buf: &mut Vec<u8>, n: u16) {
-    buf.write_u16::<BigEndian>(n).unwrap();
+    WriteBytesExt::write_u16::<BigEndian>(buf, n).unwrap();
 }
