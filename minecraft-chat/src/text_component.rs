@@ -1,13 +1,16 @@
-use crate::base_component::BaseComponent;
+use crate::{base_component::BaseComponent, mutable_component::MutableComponent};
 
+#[derive(Clone)]
 pub struct TextComponent {
+    pub base: BaseComponent,
     pub text: String,
 }
 
-impl TextComponent {
-    pub fn new(text: &str) -> TextComponent {
-        TextComponent {
-            text: text.to_string(),
+impl<'a> TextComponent {
+    pub fn new(text: String) -> Self {
+        Self {
+            text: text,
+            base: BaseComponent::new(),
         }
     }
 
