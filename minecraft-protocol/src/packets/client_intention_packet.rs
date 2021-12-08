@@ -21,10 +21,10 @@ impl<'a> Packet for ClientIntentionPacket<'a> {
 
     // implement "from_reader" for "ClientIntentionPacket"
     fn write(&self, buf: &mut Vec<u8>) {
-        mc_buf::write_varint(buf, self.protocol_version);
+        mc_buf::write_varint(buf, self.protocol_version as i32);
         mc_buf::write_utf(buf, &self.hostname);
         mc_buf::write_short(buf, self.port);
-        mc_buf::write_varint(buf, self.intention.clone() as u32);
+        mc_buf::write_varint(buf, self.intention.clone() as i32);
     }
 
     fn parse<T: tokio::io::AsyncRead + std::marker::Unpin>(&self, buf: T) -> () {}

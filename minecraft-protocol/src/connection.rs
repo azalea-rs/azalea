@@ -64,7 +64,7 @@ impl Connection {
         // TODO
 
         // otherwise, read the rest of the packet and throw it away
-        let mut packet_data = Vec::with_capacity((packet_size - packet_id_size as u32) as usize);
+        let mut packet_data = Vec::with_capacity((packet_size - packet_id_size as i32) as usize);
         buf.read_buf(&mut packet_data).await.unwrap();
         println!("packet {:?}", packet_data);
 
@@ -80,7 +80,7 @@ impl Connection {
 
         // write the packet id
         let mut id_and_data_buf = vec![];
-        mc_buf::write_varint(&mut id_and_data_buf, packet.get_id());
+        mc_buf::write_varint(&mut id_and_data_buf, packet.get_id() as i32);
         packet.write(&mut id_and_data_buf);
 
         // write the packet data
@@ -88,7 +88,7 @@ impl Connection {
         // make a new buffer that has the length at the beginning
         // and id+data at the end
         let mut complete_buf: Vec<u8> = Vec::new();
-        mc_buf::write_varint(&mut complete_buf, id_and_data_buf.len() as u32);
+        mc_buf::write_varint(&mut complete_buf, id_and_data_buf.len() as i32);
         complete_buf.append(&mut id_and_data_buf);
 
         // finally, write and flush to the stream
