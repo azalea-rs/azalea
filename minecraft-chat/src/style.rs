@@ -1,11 +1,63 @@
+use std::collections::HashMap;
+
+use serde_json::Value;
+
 #[derive(Clone, PartialEq)]
 struct TextColor {
     value: u32,
     name: Option<String>,
 }
 
+impl TextColor {
+    pub fn parse(value: String) -> Result<TextColor, String> {
+        // if (string.startsWith("#")) {
+        //     try {
+        //         int n = Integer.parseInt(string.substring(1), 16);
+        //         return TextColor.fromRgb(n);
+        //     }
+        //     catch (NumberFormatException numberFormatException) {
+        //         return null;
+        //     }
+        // }
+        // return NAMED_COLORS.get(string);
+        if value.starts_with("#") {
+            let n = value.chars().skip(1).collect::<String>();
+            let n = u32::from_str_radix(&n, 16).unwrap();
+            return Ok(TextColor::from_rgb(n));
+        }
+        // private static final Map<ChatFormatting, TextColor> LEGACY_FORMAT_TO_COLOR = (Map)Stream.of(ChatFormatting.values()).filter(ChatFormatting::isColor).collect(ImmutableMap.toImmutableMap(Function.identity(), chatFormatting -> new TextColor(chatFormatting.getColor(), chatFormatting.getName())));
+        // private static final Map<String, TextColor> NAMED_COLORS = (Map)LEGACY_FORMAT_TO_COLOR.values().stream().collect(ImmutableMap.toImmutableMap(textColor -> textColor.name, Function.identity()));
+        let mut LEGACY_FORMAT_TO_COLOR = HashMap::new();
+        let mut NAMED_COLORS = HashMap::new();
+        for i in ChatFormatting::FORMATTERS {
+            if i.is_format && i != ChatFormatting::RESET {
+                LEGACY_FORMAT_TO_COLOR.insert(
+                    i,
+                    TextColor {
+                        value: i.color.unwrap(),
+                        name: Some(i.name.to_string()),
+                    },
+                );
+            }
+        }
+        for i in LEGACY_FORMAT_TO_COLOR.values() {
+            NAMED_COLORS.insert(i.name.unwrap(), i.clone());
+        }
+        let color = NAMED_COLORS.get(&value);
+        if color.is_some() {
+            return Ok(color.unwrap().clone());
+        }
+        Err(format!("Invalid color {}", value))
+    }
+
+    fn from_rgb(value: u32) -> TextColor {
+        TextColor { value, name: None }
+    }
+}
+
 const PREFIX_CODE: char = '\u{00a7}';
 
+#[derive(Clone, PartialEq, Eq, Hash)]
 struct ChatFormatting<'a> {
     name: &'a str,
     code: char,
@@ -142,6 +194,39 @@ impl Style {
             underlined: None,
             strikethrough: None,
             obfuscated: None,
+        }
+    }
+
+    fn deserialize(json: Value) {
+        // if (jsonElement.isJsonObject()) {
+        //     JsonObject jsonObject = jsonElement.getAsJsonObject();
+        //     if (jsonObject == null) {
+        //         return null;
+        //     }
+        //     Boolean bl = Serializer.getOptionalFlag(jsonObject, "bold");
+        //     Boolean bl2 = Serializer.getOptionalFlag(jsonObject, "italic");
+        //     Boolean bl3 = Serializer.getOptionalFlag(jsonObject, "underlined");
+        //     Boolean bl4 = Serializer.getOptionalFlag(jsonObject, "strikethrough");
+        //     Boolean bl5 = Serializer.getOptionalFlag(jsonObject, "obfuscated");
+        //     TextColor textColor = Serializer.getTextColor(jsonObject);
+        //     String string = Serializer.getInsertion(jsonObject);
+        //     ClickEvent clickEvent = Serializer.getClickEvent(jsonObject);
+        //     HoverEvent hoverEvent = Serializer.getHoverEvent(jsonObject);
+        //     ResourceLocation resourceLocation = Serializer.getFont(jsonObject);
+        //     return new Style(textColor, bl, bl2, bl3, bl4, bl5, clickEvent, hoverEvent, string, resourceLocation);
+        // }
+        // return null;
+        if json.is_object() {
+            let json_object = json.as_object().unwrap();
+            let bold = json_object.get("bold").and_then(|v| v.as_bool());
+            let italic = json_object.get("italic").and_then(|v| v.as_bool());
+            let underlined = json_object.get("underlined").and_then(|v| v.as_bool());
+            let strikethrough = json_object.get("strikethrough").and_then(|v| v.as_bool());
+            let obfuscated = json_object.get("obfuscated").and_then(|v| v.as_bool());
+            let color = json_object
+                .get("color")
+                .and_then(|v| v.as_string())
+                .and_then(|v| TextColor::parse(v));
         }
     }
 
