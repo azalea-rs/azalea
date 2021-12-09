@@ -96,19 +96,7 @@ mod tests {
     }
 }
 
-pub fn write_utf_with_len(buf: &mut Vec<u8>, string: &String, len: usize) {
-    if string.len() > len {
-        panic!(
-            "String too big (was {} bytes encoded, max {})",
-            string.len(),
-            len
-        );
-    }
-    write_varint(buf, string.len() as i32);
-    write_bytes(buf, string.as_bytes());
-}
-
-pub async fn read_utf<T: AsyncRead + std::marker::Unpin>(
+pub async fn read_utf_with_len<T: AsyncRead + std::marker::Unpin>(
     buf: &mut BufReader<T>,
     max_length: u32,
 ) -> Result<String, String> {
@@ -146,8 +134,24 @@ pub async fn read_utf<T: AsyncRead + std::marker::Unpin>(
     Ok(string)
 }
 
+pub fn write_utf_with_len(buf: &mut Vec<u8>, string: &String, len: usize) {
+    if string.len() > len {
+        panic!(
+            "String too big (was {} bytes encoded, max {})",
+            string.len(),
+            len
+        );
+    }
+    write_varint(buf, string.len() as i32);
+    write_bytes(buf, string.as_bytes());
+}
+
+pub async fn read_utf<T: AsyncRead + std::marker::Unpin>(buf: &mut T) -> Result<String, String> {
+    read_utf_with_len(buf, MAX_STRING_LENGTH.into()).await
+}
+
 pub fn write_utf(buf: &mut Vec<u8>, string: &String) {
-    write_utf_with_len(buf, string, MAX_STRING_LENGTH as usize);
+    write_utf_with_len(buf, string, MAX_STRING_LENGTH.into());
 }
 
 pub fn write_short(buf: &mut Vec<u8>, n: u16) {

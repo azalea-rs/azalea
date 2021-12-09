@@ -13,3 +13,4 @@ thiserror = "^1.0.30"
 tokio = {version = "^1.14.0", features = ["io-util", "net", "macros"]}
 tokio-util = "^0.6.9"
 trust-dns-resolver = "^0.20.3"
+async-trait = "0.1.51"

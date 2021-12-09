@@ -1,21 +1,39 @@
-mod client_intention_packet;
-pub use client_intention_packet::ClientIntentionPacket;
-mod serverbound_status_request_packet;
-pub use serverbound_status_request_packet::ServerboundStatusRequestPacket;
+mod game;
+mod handshake;
+mod login;
+mod status;
+
+use async_trait::async_trait;
 use tokio::io::AsyncRead;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ConnectionProtocol {
-    Handshaking = -1,
-    Play = 0,
+    Handshake = -1,
+    Game = 0,
     Status = 1,
     Login = 2,
 }
 
-pub trait Packet {
-    /// Get the id of the packet, this is always a byte.
-    fn get_id(&self) -> u32;
+pub enum Packet<'a> {
+    // game
+    // handshake
+    ClientIntentionPacket(&'a handshake::client_intention_packet::ClientIntentionPacket<'a>),
+    // login
+    // status
+    ServerboundStatusRequestPacket(
+        &'a status::serverbound_status_request_packet::ServerboundStatusRequestPacket,
+    ),
+    ClientboundStatusRequestPacket(
+        &'a status::clientbound_status_response_packet::ClientboundStatusRequestPacket,
+    ),
+}
 
+pub trait PacketTrait {
+    /// Return a version of the packet that you can actually use for stuff
+    fn get(&self) -> Packet;
     fn write(&self, buf: &mut Vec<u8>) -> ();
-    fn parse<T: AsyncRead + std::marker::Unpin>(&self, buf: T) -> ();
+    fn parse<T: AsyncRead + std::marker::Unpin>(
+        buf: &mut T,
+        // is using a static lifetime here a good idea? idk
+    ) -> Result<Packet<'_>, String>;
 }

@@ -72,7 +72,7 @@ impl Connection {
     }
 
     /// Write a packet to the server
-    pub async fn send_packet(&mut self, packet: &impl Packet) {
+    pub async fn send_packet(&mut self, packet: Packet<'_>) {
         // TODO: implement compression
 
         // packet structure:
