@@ -300,23 +300,23 @@ impl Style {
         };
 
         // if bold used to be false/default and now it's true, set bold
-        if before.bold.unwrap_or(false) && !after.bold.unwrap_or(false) {
+        if !before.bold.unwrap_or(false) && after.bold.unwrap_or(false) {
             ansi_codes.push_str("\x1b[1m");
         }
         // if italic used to be false/default and now it's true, set italic
-        if before.italic.unwrap_or(false) && !after.italic.unwrap_or(false) {
+        if !before.italic.unwrap_or(false) && after.italic.unwrap_or(false) {
             ansi_codes.push_str("\x1b[3m");
         }
         // if underlined used to be false/default and now it's true, set underlined
-        if before.underlined.unwrap_or(false) && !after.underlined.unwrap_or(false) {
+        if !before.underlined.unwrap_or(false) && after.underlined.unwrap_or(false) {
             ansi_codes.push_str("\x1b[4m");
         }
         // if strikethrough used to be false/default and now it's true, set strikethrough
-        if before.strikethrough.unwrap_or(false) && !after.strikethrough.unwrap_or(false) {
+        if !before.strikethrough.unwrap_or(false) && after.strikethrough.unwrap_or(false) {
             ansi_codes.push_str("\x1b[9m");
         }
         // if obfuscated used to be false/default and now it's true, set obfuscated
-        if before.obfuscated.unwrap_or(false) && !after.obfuscated.unwrap_or(false) {
+        if !before.obfuscated.unwrap_or(false) && after.obfuscated.unwrap_or(false) {
             ansi_codes.push_str("\x1b[8m");
         }
 

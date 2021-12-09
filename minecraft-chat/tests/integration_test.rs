@@ -12,5 +12,5 @@ fn test() {
     )
     .unwrap();
     let component = Component::new(&j).unwrap();
-    assert_eq!(component.to_ansi(None), "\x1b[38;2;255;85;85mhello\x1b[m");
+    assert_eq!(component.to_ansi(None), "\x1b[1m\x1b[38;2;255;85;85mhello\x1b[m");
 }
