@@ -4,34 +4,17 @@ use serde_json::Value;
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct TextColor {
-    value: u32,
-    name: Option<String>,
+    pub value: u32,
+    pub name: Option<String>,
 }
 
 impl TextColor {
-    pub fn parse(value: String) -> Result<TextColor, String> {
-        // if (string.startsWith("#")) {
-        //     try {
-        //         int n = Integer.parseInt(string.substring(1), 16);
-        //         return TextColor.fromRgb(n);
-        //     }
-        //     catch (NumberFormatException numberFormatException) {
-        //         return null;
-        //     }
-        // }
-        // return NAMED_COLORS.get(string);
-        if value.starts_with("#") {
-            let n = value.chars().skip(1).collect::<String>();
-            let n = u32::from_str_radix(&n, 16).unwrap();
-            return Ok(TextColor::from_rgb(n));
-        }
-        // private static final Map<ChatFormatting, TextColor> LEGACY_FORMAT_TO_COLOR = (Map)Stream.of(ChatFormatting.values()).filter(ChatFormatting::isColor).collect(ImmutableMap.toImmutableMap(Function.identity(), chatFormatting -> new TextColor(chatFormatting.getColor(), chatFormatting.getName())));
-        // private static final Map<String, TextColor> NAMED_COLORS = (Map)LEGACY_FORMAT_TO_COLOR.values().stream().collect(ImmutableMap.toImmutableMap(textColor -> textColor.name, Function.identity()));
-        let mut LEGACY_FORMAT_TO_COLOR = HashMap::new();
-        let mut NAMED_COLORS = HashMap::new();
+    // hopefully rust/llvm optimizes this so it's just calculated once
+    fn calculate_legacy_format_to_color() -> HashMap<&'static ChatFormatting<'static>, TextColor> {
+        let mut legacy_format_to_color = HashMap::new();
         for formatter in &ChatFormatting::FORMATTERS {
             if !formatter.is_format && *formatter != ChatFormatting::RESET {
-                LEGACY_FORMAT_TO_COLOR.insert(
+                legacy_format_to_color.insert(
                     formatter,
                     TextColor {
                         value: formatter.color.unwrap(),
@@ -40,10 +23,26 @@ impl TextColor {
                 );
             }
         }
-        for color in LEGACY_FORMAT_TO_COLOR.values() {
-            NAMED_COLORS.insert(color.name.as_ref().unwrap(), color.clone());
+        legacy_format_to_color
+    }
+
+    fn calculate_named_colors() -> HashMap<String, TextColor> {
+        let legacy_format_to_color = Self::calculate_legacy_format_to_color();
+        let mut named_colors = HashMap::new();
+        for color in legacy_format_to_color.values() {
+            named_colors.insert(color.name.clone().unwrap(), color.clone());
         }
-        let color = NAMED_COLORS.get(&value.to_ascii_uppercase());
+        named_colors
+    }
+
+    pub fn parse(value: String) -> Result<TextColor, String> {
+        if value.starts_with("#") {
+            let n = value.chars().skip(1).collect::<String>();
+            let n = u32::from_str_radix(&n, 16).unwrap();
+            return Ok(TextColor::from_rgb(n));
+        }
+        let named_colors = Self::calculate_named_colors();
+        let color = named_colors.get(&value.to_ascii_uppercase());
         if color.is_some() {
             return Ok(color.unwrap().clone());
         }
@@ -71,48 +70,70 @@ mod tests {
 const PREFIX_CODE: char = '\u{00a7}';
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
-struct ChatFormatting<'a> {
-    name: &'a str,
-    code: char,
-    is_format: bool,
-    id: i32,
-    color: Option<u32>,
+pub struct ChatFormatting<'a> {
+    pub name: &'a str,
+    pub code: char,
+    pub is_format: bool,
+    pub id: i32,
+    pub color: Option<u32>,
+}
+
+pub struct Ansi {}
+impl Ansi {
+    pub const BOLD: &'static str = "\x1b[1m";
+    pub const ITALIC: &'static str = "\x1b[3m";
+    pub const UNDERLINED: &'static str = "\x1b[4m";
+    pub const STRIKETHROUGH: &'static str = "\x1b[9m";
+    pub const OBFUSCATED: &'static str = "\x1b[8m";
+    pub const RESET: &'static str = "\x1b[m";
+
+    pub fn rgb(value: u32) -> String {
+        format!(
+            "\x1b[38;2;{};{};{}m",
+            (value >> 16) & 0xFF,
+            (value >> 8) & 0xFF,
+            value & 0xFF
+        )
+    }
 }
 
 impl<'a> ChatFormatting<'a> {
-    const BLACK: ChatFormatting<'a> = ChatFormatting::new("BLACK", '0', false, 0, Some(0));
-    const DARK_BLUE: ChatFormatting<'a> =
+    pub const BLACK: ChatFormatting<'a> = ChatFormatting::new("BLACK", '0', false, 0, Some(0));
+    pub const DARK_BLUE: ChatFormatting<'a> =
         ChatFormatting::new("DARK_BLUE", '1', false, 1, Some(170));
-    const DARK_GREEN: ChatFormatting<'a> =
+    pub const DARK_GREEN: ChatFormatting<'a> =
         ChatFormatting::new("DARK_GREEN", '2', false, 2, Some(43520));
-    const DARK_AQUA: ChatFormatting<'a> =
+    pub const DARK_AQUA: ChatFormatting<'a> =
         ChatFormatting::new("DARK_AQUA", '3', false, 3, Some(43690));
-    const DARK_RED: ChatFormatting<'a> =
+    pub const DARK_RED: ChatFormatting<'a> =
         ChatFormatting::new("DARK_RED", '4', false, 4, Some(1114112));
-    const DARK_PURPLE: ChatFormatting<'a> =
+    pub const DARK_PURPLE: ChatFormatting<'a> =
         ChatFormatting::new("DARK_PURPLE", '5', false, 5, Some(11141290));
-    const GOLD: ChatFormatting<'a> = ChatFormatting::new("GOLD", '6', false, 6, Some(16755200));
-    const GRAY: ChatFormatting<'a> = ChatFormatting::new("GRAY", '7', false, 7, Some(11184810));
-    const DARK_GRAY: ChatFormatting<'a> =
+    pub const GOLD: ChatFormatting<'a> = ChatFormatting::new("GOLD", '6', false, 6, Some(16755200));
+    pub const GRAY: ChatFormatting<'a> = ChatFormatting::new("GRAY", '7', false, 7, Some(11184810));
+    pub const DARK_GRAY: ChatFormatting<'a> =
         ChatFormatting::new("DARK_GRAY", '8', false, 8, Some(5592405));
-    const BLUE: ChatFormatting<'a> = ChatFormatting::new("BLUE", '9', false, 9, Some(5592575));
-    const GREEN: ChatFormatting<'a> = ChatFormatting::new("GREEN", 'a', false, 10, Some(5635925));
-    const AQUA: ChatFormatting<'a> = ChatFormatting::new("AQUA", 'b', false, 11, Some(5636095));
-    const RED: ChatFormatting<'a> = ChatFormatting::new("RED", 'c', false, 12, Some(16733525));
-    const LIGHT_PURPLE: ChatFormatting<'a> =
+    pub const BLUE: ChatFormatting<'a> = ChatFormatting::new("BLUE", '9', false, 9, Some(5592575));
+    pub const GREEN: ChatFormatting<'a> =
+        ChatFormatting::new("GREEN", 'a', false, 10, Some(5635925));
+    pub const AQUA: ChatFormatting<'a> = ChatFormatting::new("AQUA", 'b', false, 11, Some(5636095));
+    pub const RED: ChatFormatting<'a> = ChatFormatting::new("RED", 'c', false, 12, Some(16733525));
+    pub const LIGHT_PURPLE: ChatFormatting<'a> =
         ChatFormatting::new("LIGHT_PURPLE", 'd', false, 13, Some(16733695));
-    const YELLOW: ChatFormatting<'a> =
+    pub const YELLOW: ChatFormatting<'a> =
         ChatFormatting::new("YELLOW", 'e', false, 14, Some(16777045));
-    const WHITE: ChatFormatting<'a> = ChatFormatting::new("WHITE", 'f', false, 15, Some(16777215));
-    const OBFUSCATED: ChatFormatting<'a> = ChatFormatting::new("OBFUSCATED", 'k', true, -1, None);
-    const STRIKETHROUGH: ChatFormatting<'a> =
+    pub const WHITE: ChatFormatting<'a> =
+        ChatFormatting::new("WHITE", 'f', false, 15, Some(16777215));
+    pub const OBFUSCATED: ChatFormatting<'a> =
+        ChatFormatting::new("OBFUSCATED", 'k', true, -1, None);
+    pub const STRIKETHROUGH: ChatFormatting<'a> =
         ChatFormatting::new("STRIKETHROUGH", 'm', true, -1, None);
-    const BOLD: ChatFormatting<'a> = ChatFormatting::new("BOLD", 'l', true, -1, None);
-    const UNDERLINE: ChatFormatting<'a> = ChatFormatting::new("UNDERLINE", 'n', true, -1, None);
-    const ITALIC: ChatFormatting<'a> = ChatFormatting::new("ITALIC", 'o', true, -1, None);
-    const RESET: ChatFormatting<'a> = ChatFormatting::new("RESET", 'r', true, -1, None);
+    pub const BOLD: ChatFormatting<'a> = ChatFormatting::new("BOLD", 'l', true, -1, None);
+    pub const UNDERLINE: ChatFormatting<'a> = ChatFormatting::new("UNDERLINE", 'n', true, -1, None);
+    pub const ITALIC: ChatFormatting<'a> = ChatFormatting::new("ITALIC", 'o', true, -1, None);
+    pub const RESET: ChatFormatting<'a> = ChatFormatting::new("RESET", 'r', true, -1, None);
 
-    pub const FORMATTERS: [ChatFormatting<'a>; 16] = [
+    pub const FORMATTERS: [ChatFormatting<'a>; 22] = [
         ChatFormatting::BLACK,
         ChatFormatting::DARK_BLUE,
         ChatFormatting::DARK_GREEN,
@@ -129,6 +150,12 @@ impl<'a> ChatFormatting<'a> {
         ChatFormatting::LIGHT_PURPLE,
         ChatFormatting::YELLOW,
         ChatFormatting::WHITE,
+        ChatFormatting::OBFUSCATED,
+        ChatFormatting::STRIKETHROUGH,
+        ChatFormatting::BOLD,
+        ChatFormatting::UNDERLINE,
+        ChatFormatting::ITALIC,
+        ChatFormatting::RESET,
     ];
 
     const fn new(
@@ -211,24 +238,6 @@ impl Style {
     }
 
     pub fn deserialize(json: &Value) -> Style {
-        // if (jsonElement.isJsonObject()) {
-        //     JsonObject jsonObject = jsonElement.getAsJsonObject();
-        //     if (jsonObject == null) {
-        //         return null;
-        //     }
-        //     Boolean bl = Serializer.getOptionalFlag(jsonObject, "bold");
-        //     Boolean bl2 = Serializer.getOptionalFlag(jsonObject, "italic");
-        //     Boolean bl3 = Serializer.getOptionalFlag(jsonObject, "underlined");
-        //     Boolean bl4 = Serializer.getOptionalFlag(jsonObject, "strikethrough");
-        //     Boolean bl5 = Serializer.getOptionalFlag(jsonObject, "obfuscated");
-        //     TextColor textColor = Serializer.getTextColor(jsonObject);
-        //     String string = Serializer.getInsertion(jsonObject);
-        //     ClickEvent clickEvent = Serializer.getClickEvent(jsonObject);
-        //     HoverEvent hoverEvent = Serializer.getHoverEvent(jsonObject);
-        //     ResourceLocation resourceLocation = Serializer.getFont(jsonObject);
-        //     return new Style(textColor, bl, bl2, bl3, bl4, bl5, clickEvent, hoverEvent, string, resourceLocation);
-        // }
-        // return null;
         return if json.is_object() {
             let json_object = json.as_object().unwrap();
             let bold = json_object.get("bold").and_then(|v| v.as_bool());
@@ -293,7 +302,7 @@ impl Style {
         let mut ansi_codes = String::new();
 
         let before = if should_reset {
-            ansi_codes.push_str("\x1b[m");
+            ansi_codes.push_str(Ansi::RESET);
             Style::new()
         } else {
             self.clone()
@@ -301,23 +310,23 @@ impl Style {
 
         // if bold used to be false/default and now it's true, set bold
         if !before.bold.unwrap_or(false) && after.bold.unwrap_or(false) {
-            ansi_codes.push_str("\x1b[1m");
+            ansi_codes.push_str(Ansi::BOLD);
         }
         // if italic used to be false/default and now it's true, set italic
         if !before.italic.unwrap_or(false) && after.italic.unwrap_or(false) {
-            ansi_codes.push_str("\x1b[3m");
+            ansi_codes.push_str(Ansi::ITALIC);
         }
         // if underlined used to be false/default and now it's true, set underlined
         if !before.underlined.unwrap_or(false) && after.underlined.unwrap_or(false) {
-            ansi_codes.push_str("\x1b[4m");
+            ansi_codes.push_str(Ansi::UNDERLINED);
         }
         // if strikethrough used to be false/default and now it's true, set strikethrough
         if !before.strikethrough.unwrap_or(false) && after.strikethrough.unwrap_or(false) {
-            ansi_codes.push_str("\x1b[9m");
+            ansi_codes.push_str(Ansi::STRIKETHROUGH);
         }
         // if obfuscated used to be false/default and now it's true, set obfuscated
         if !before.obfuscated.unwrap_or(false) && after.obfuscated.unwrap_or(false) {
-            ansi_codes.push_str("\x1b[8m");
+            ansi_codes.push_str(Ansi::OBFUSCATED);
         }
 
         // if the new color is different and not none, set color
@@ -333,15 +342,7 @@ impl Style {
 
         if color_changed {
             let after_color = after.color.as_ref().unwrap();
-            ansi_codes.push_str(&format!(
-                "\x1b[38;2;{};{};{}m",
-                // r
-                (after_color.value >> 16) & 0xFF,
-                // g
-                (after_color.value >> 8) & 0xFF,
-                // b
-                after_color.value & 0xFF
-            ));
+            ansi_codes.push_str(&Ansi::rgb(after_color.value));
         }
 
         ansi_codes
