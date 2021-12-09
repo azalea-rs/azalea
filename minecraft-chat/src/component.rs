@@ -1,14 +1,13 @@
+use std::borrow::BorrowMut;
+
 use serde_json;
 
 use crate::{
     base_component::BaseComponent,
+    style::Style,
     text_component::TextComponent,
     translatable_component::{StringOrComponent, TranslatableComponent},
 };
-
-// pub struct Component {
-//     base: BaseComponent,
-// }
 
 #[derive(Clone)]
 pub enum Component {
@@ -149,12 +148,16 @@ impl Component {
         Ok(component)
     }
 
+    pub fn get_base(&mut self) -> &mut BaseComponent {
+        match self {
+            Self::TextComponent(c) => &mut c.base,
+            Self::TranslatableComponent(c) => &mut c.base,
+        }
+    }
+
     /// Add a component as a sibling of this one
     fn append(&mut self, sibling: Component) {
-        match self {
-            Self::TextComponent(c) => c.base.siblings.push(sibling),
-            Self::TranslatableComponent(c) => c.base.siblings.push(sibling),
-        }
+        self.get_base().siblings.push(sibling);
     }
 
     /// Get the "separator" component from the json
@@ -165,5 +168,38 @@ impl Component {
         Ok(None)
     }
 
-    fn to_ansi(&self) {}
+    /// Convert this component into an ansi string, using parent_style as the running style.
+    pub fn to_ansi(&self, parent_style: Option<&mut Style>) -> String {
+        // the siblings of this component
+        let base;
+        let mut text;
+        match self {
+            Self::TextComponent(c) => {
+                base = &c.base;
+                text = c.text.clone();
+            }
+            Self::TranslatableComponent(c) => {
+                base = &c.base;
+                text = c.key.clone();
+            }
+        };
+
+        // we'll fall back to this if there's no parent style
+        let default_style = &mut Style::new();
+
+        // apply the style of this component to the current style
+        let current_style: &mut Style = parent_style.unwrap_or(default_style);
+        let new_style = &base.style;
+        current_style.apply(new_style);
+
+        let ansi_text = base.style.compare_ansi(&new_style);
+
+        text.push_str(&ansi_text);
+
+        for sibling in &base.siblings {
+            text.push_str(&sibling.to_ansi(Some(current_style)));
+        }
+
+        text.clone()
+    }
 }

@@ -5,9 +5,11 @@ use serde_json::{Result, Value};
 fn test() {
     let j: Value = serde_json::from_str(
         r#"{
-        "text":"hello"
+        "text": "hello",
+        "color": "red"
     }"#,
     )
     .unwrap();
     let component = Component::new(&j).unwrap();
+    println!("println: {}", component.to_ansi(None));
 }

@@ -6,7 +6,6 @@ pub enum StringOrComponent {
     Component(Component),
 }
 
-// extends BaseComponent implements ContextAwareComponent
 #[derive(Clone)]
 pub struct TranslatableComponent {
     pub base: BaseComponent,

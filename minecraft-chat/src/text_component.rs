@@ -1,4 +1,4 @@
-use crate::{base_component::BaseComponent, mutable_component::MutableComponent};
+use crate::{base_component::BaseComponent, component::Component};
 
 #[derive(Clone)]
 pub struct TextComponent {
