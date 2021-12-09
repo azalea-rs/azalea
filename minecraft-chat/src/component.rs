@@ -23,12 +23,14 @@ impl Component {
 
         // if it's primitive, make it a text component
         if !json.is_array() && !json.is_object() {
-            component = Component::TextComponent(TextComponent::new(json.to_string()));
+            component = Component::TextComponent(TextComponent::new(
+                json.as_str().unwrap_or("").to_string(),
+            ));
         }
         // if it's an object, do things with { text } and stuff
         else if json.is_object() {
             if json.get("text").is_some() {
-                let text = json.get("text").unwrap().to_string();
+                let text = json.get("text").unwrap().as_str().unwrap_or("").to_string();
                 component = Component::TextComponent(TextComponent::new(text));
             } else if json.get("translate").is_some() {
                 let translate = json.get("translate").unwrap().to_string();
@@ -133,6 +135,11 @@ impl Component {
                 }
             }
 
+            // var5_17.setStyle((Style)jsonDeserializationContext.deserialize(jsonElement, Style.class));
+            let style = Style::deserialize(json);
+            println!("set style to {:?}", style);
+            component.get_base().style = style;
+
             return Ok(component);
         }
         // ok so it's not an object, if it's an array deserialize every item
@@ -172,34 +179,42 @@ impl Component {
     pub fn to_ansi(&self, parent_style: Option<&mut Style>) -> String {
         // the siblings of this component
         let base;
-        let mut text;
+        let component_text: String;
+        let mut styled_component = String::new();
         match self {
             Self::TextComponent(c) => {
                 base = &c.base;
-                text = c.text.clone();
+                component_text = c.text.clone();
             }
             Self::TranslatableComponent(c) => {
                 base = &c.base;
-                text = c.key.clone();
+                component_text = c.key.clone();
             }
         };
 
         // we'll fall back to this if there's no parent style
         let default_style = &mut Style::new();
 
-        // apply the style of this component to the current style
+        // if it's the base style, that means we add a style reset at the end
+        let is_base_style = parent_style.is_none();
+
         let current_style: &mut Style = parent_style.unwrap_or(default_style);
-        let new_style = &base.style;
-        current_style.apply(new_style);
 
-        let ansi_text = base.style.compare_ansi(&new_style);
+        // the old style is current_style and the new style is the base.style
+        let ansi_text = current_style.compare_ansi(&base.style);
+        current_style.apply(&base.style);
 
-        text.push_str(&ansi_text);
+        styled_component.push_str(&ansi_text);
+        styled_component.push_str(&component_text);
 
         for sibling in &base.siblings {
-            text.push_str(&sibling.to_ansi(Some(current_style)));
+            styled_component.push_str(&sibling.to_ansi(Some(current_style)));
         }
 
-        text.clone()
+        if is_base_style {
+            styled_component.push_str("\x1b[m");
+        }
+
+        styled_component.clone()
     }
 }

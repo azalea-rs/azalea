@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use serde_json::Value;
 
-#[derive(Clone, PartialEq)]
-struct TextColor {
+#[derive(Clone, PartialEq, Debug)]
+pub struct TextColor {
     value: u32,
     name: Option<String>,
 }
@@ -29,21 +29,21 @@ impl TextColor {
         // private static final Map<String, TextColor> NAMED_COLORS = (Map)LEGACY_FORMAT_TO_COLOR.values().stream().collect(ImmutableMap.toImmutableMap(textColor -> textColor.name, Function.identity()));
         let mut LEGACY_FORMAT_TO_COLOR = HashMap::new();
         let mut NAMED_COLORS = HashMap::new();
-        for i in ChatFormatting::FORMATTERS {
-            if i.is_format && i != ChatFormatting::RESET {
+        for formatter in &ChatFormatting::FORMATTERS {
+            if !formatter.is_format && *formatter != ChatFormatting::RESET {
                 LEGACY_FORMAT_TO_COLOR.insert(
-                    i,
+                    formatter,
                     TextColor {
-                        value: i.color.unwrap(),
-                        name: Some(i.name.to_string()),
+                        value: formatter.color.unwrap(),
+                        name: Some(formatter.name.to_string()),
                     },
                 );
             }
         }
-        for i in LEGACY_FORMAT_TO_COLOR.values() {
-            NAMED_COLORS.insert(i.name.unwrap(), i.clone());
+        for color in LEGACY_FORMAT_TO_COLOR.values() {
+            NAMED_COLORS.insert(color.name.as_ref().unwrap(), color.clone());
         }
-        let color = NAMED_COLORS.get(&value);
+        let color = NAMED_COLORS.get(&value.to_ascii_uppercase());
         if color.is_some() {
             return Ok(color.unwrap().clone());
         }
@@ -55,9 +55,22 @@ impl TextColor {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn text_color_named_colors() {
+        assert_eq!(
+            TextColor::parse("red".to_string()).unwrap().value,
+            16733525u32
+        );
+    }
+}
+
 const PREFIX_CODE: char = '\u{00a7}';
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 struct ChatFormatting<'a> {
     name: &'a str,
     code: char,
@@ -140,11 +153,11 @@ impl TextColor {
         Self { value, name }
     }
 
-    fn format(&self) -> String {
+    pub fn format(&self) -> String {
         format!("#{:06X}", self.value)
     }
 
-    fn to_string(&self) -> String {
+    pub fn to_string(&self) -> String {
         if let Some(name) = &self.name {
             name.clone()
         } else {
@@ -153,7 +166,7 @@ impl TextColor {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Style {
     // @Nullable
     // final TextColor color;
@@ -177,12 +190,12 @@ pub struct Style {
     // final ResourceLocation font;
 
     // these are options instead of just bools because None is different than false in this case
-    color: Option<TextColor>,
-    bold: Option<bool>,
-    italic: Option<bool>,
-    underlined: Option<bool>,
-    strikethrough: Option<bool>,
-    obfuscated: Option<bool>,
+    pub color: Option<TextColor>,
+    pub bold: Option<bool>,
+    pub italic: Option<bool>,
+    pub underlined: Option<bool>,
+    pub strikethrough: Option<bool>,
+    pub obfuscated: Option<bool>,
 }
 
 impl Style {
@@ -197,7 +210,7 @@ impl Style {
         }
     }
 
-    fn deserialize(json: Value) {
+    pub fn deserialize(json: &Value) -> Style {
         // if (jsonElement.isJsonObject()) {
         //     JsonObject jsonObject = jsonElement.getAsJsonObject();
         //     if (jsonObject == null) {
@@ -216,18 +229,28 @@ impl Style {
         //     return new Style(textColor, bl, bl2, bl3, bl4, bl5, clickEvent, hoverEvent, string, resourceLocation);
         // }
         // return null;
-        if json.is_object() {
+        return if json.is_object() {
             let json_object = json.as_object().unwrap();
             let bold = json_object.get("bold").and_then(|v| v.as_bool());
             let italic = json_object.get("italic").and_then(|v| v.as_bool());
             let underlined = json_object.get("underlined").and_then(|v| v.as_bool());
             let strikethrough = json_object.get("strikethrough").and_then(|v| v.as_bool());
             let obfuscated = json_object.get("obfuscated").and_then(|v| v.as_bool());
-            let color = json_object
+            let color: Option<TextColor> = json_object
                 .get("color")
-                .and_then(|v| v.as_string())
-                .and_then(|v| TextColor::parse(v));
-        }
+                .and_then(|v| v.as_str())
+                .and_then(|v| TextColor::parse(v.to_string()).ok());
+            Style {
+                color,
+                bold,
+                italic,
+                underlined,
+                strikethrough,
+                obfuscated,
+            }
+        } else {
+            Style::new()
+        };
     }
 
     /// Check if a style has no attributes set
@@ -270,7 +293,7 @@ impl Style {
         let mut ansi_codes = String::new();
 
         let before = if should_reset {
-            ansi_codes.push_str("\x1b[0m");
+            ansi_codes.push_str("\x1b[m");
             Style::new()
         } else {
             self.clone()
@@ -321,7 +344,7 @@ impl Style {
             ));
         }
 
-        return "".to_string();
+        ansi_codes
     }
 
     /// Apply another style to this one
