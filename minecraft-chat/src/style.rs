@@ -54,19 +54,7 @@ impl TextColor {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn text_color_named_colors() {
-        assert_eq!(
-            TextColor::parse("red".to_string()).unwrap().value,
-            16733525u32
-        );
-    }
-}
-
+/// The weird S character Minecraft used to use for chat formatting
 const PREFIX_CODE: char = '\u{00a7}';
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
@@ -276,23 +264,20 @@ impl Style {
     pub fn compare_ansi(&self, after: &Style) -> String {
         let should_reset = {
             // if it used to be bold and now it's not, reset
-            if self.bold.unwrap_or(false) && !after.bold.unwrap_or(false) {
+            if self.bold.unwrap_or(false) && !after.bold.unwrap_or(true) {
                 true
             }
             // if it used to be italic and now it's not, reset
-            else if self.italic.unwrap_or(false) && !after.italic.unwrap_or(false) {
+            else if self.italic.unwrap_or(false) && !after.italic.unwrap_or(true) {
                 true
             // if it used to be underlined and now it's not, reset
-            } else if self.underlined.unwrap_or(false) && !after.underlined.unwrap_or(false) {
+            } else if self.underlined.unwrap_or(false) && !after.underlined.unwrap_or(true) {
                 true
             // if it used to be strikethrough and now it's not, reset
-            } else if self.strikethrough.unwrap_or(false) && !after.strikethrough.unwrap_or(false) {
+            } else if self.strikethrough.unwrap_or(false) && !after.strikethrough.unwrap_or(true) {
                 true
             // if it used to be obfuscated and now it's not, reset
-            } else if self.obfuscated.unwrap_or(false) && !after.obfuscated.unwrap_or(false) {
-                true
-            // if it used to have a color and now it doesn't, reset
-            } else if self.color.is_some() && after.color.is_none() {
+            } else if self.obfuscated.unwrap_or(false) && !after.obfuscated.unwrap_or(true) {
                 true
             } else {
                 false
@@ -301,12 +286,19 @@ impl Style {
 
         let mut ansi_codes = String::new();
 
-        let before = if should_reset {
+        let (before, after) = if should_reset {
+            // if it's true before and none after, make it true after
+            // if it's false before and none after, make it false after
+            // we should apply after into before and use that as after
             ansi_codes.push_str(Ansi::RESET);
-            Style::new()
+            let mut updated_after = self.clone();
+            updated_after.apply(&after);
+            (Style::new(), updated_after)
         } else {
-            self.clone()
+            (self.clone(), after.clone())
         };
+
+        println!("should_reset {:?}", should_reset);
 
         // if bold used to be false/default and now it's true, set bold
         if !before.bold.unwrap_or(false) && after.bold.unwrap_or(false) {
@@ -368,5 +360,72 @@ impl Style {
         if let Some(obfuscated) = &style.obfuscated {
             self.obfuscated = Some(*obfuscated);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn text_color_named_colors() {
+        assert_eq!(TextColor::parse("red".to_string()).unwrap().value, 16733525);
+    }
+    #[test]
+    fn text_color_hex_colors() {
+        assert_eq!(
+            TextColor::parse("#a1b2c3".to_string()).unwrap().value,
+            10597059
+        );
+    }
+
+    #[test]
+    fn ansi_difference_should_reset() {
+        let style_a = Style {
+            color: None,
+            bold: Some(true),
+            italic: Some(true),
+            underlined: None,
+            strikethrough: None,
+            obfuscated: None,
+        };
+        let style_b = Style {
+            color: None,
+            bold: Some(false),
+            italic: None,
+            underlined: None,
+            strikethrough: None,
+            obfuscated: None,
+        };
+        let ansi_difference = style_a.compare_ansi(&style_b);
+        assert_eq!(
+            ansi_difference,
+            format!(
+                "{reset}{italic}",
+                reset = Ansi::RESET,
+                italic = Ansi::ITALIC
+            )
+        )
+    }
+    #[test]
+    fn ansi_difference_shouldnt_reset() {
+        let style_a = Style {
+            color: None,
+            bold: Some(true),
+            italic: None,
+            underlined: None,
+            strikethrough: None,
+            obfuscated: None,
+        };
+        let style_b = Style {
+            color: None,
+            bold: None,
+            italic: Some(true),
+            underlined: None,
+            strikethrough: None,
+            obfuscated: None,
+        };
+        let ansi_difference = style_a.compare_ansi(&style_b);
+        assert_eq!(ansi_difference, Ansi::ITALIC)
     }
 }

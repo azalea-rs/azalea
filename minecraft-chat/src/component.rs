@@ -130,14 +130,12 @@ impl Component {
                 if extra.len() == 0 {
                     return Err("Unexpected empty array of components".to_string());
                 }
-                for i in 0..extra.len() {
-                    component.append(Component::new(extra.get(i).unwrap())?);
+                for extra_component in extra {
+                    component.append(Component::new(extra_component)?);
                 }
             }
 
-            // var5_17.setStyle((Style)jsonDeserializationContext.deserialize(jsonElement, Style.class));
             let style = Style::deserialize(json);
-            println!("set style to {:?}", style);
             component.get_base().style = style;
 
             return Ok(component);
@@ -202,7 +200,9 @@ impl Component {
 
         // the old style is current_style and the new style is the base.style
         let ansi_text = current_style.compare_ansi(&base.style);
+
         current_style.apply(&base.style);
+        println!("\nset style to {:?}", current_style);
 
         styled_component.push_str(&ansi_text);
         styled_component.push_str(&component_text);

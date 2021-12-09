@@ -54,7 +54,7 @@ fn complex_ansi_test() {
     assert_eq!(
         component.to_ansi(None),
         format!(
-            "{bold}{italic}{underlined}{red}hello{reset}{bold}{italic} {reset}{italic}{strikethrough}{abcdef}world{reset} asdf{bold}!{reset}",
+            "{bold}{italic}{underlined}{red}hello{reset}{bold}{italic}{red} {reset}{italic}{strikethrough}{abcdef}world{reset}{abcdef} asdf{bold}!{reset}",
             bold = Ansi::BOLD,
             italic = Ansi::ITALIC,
             underlined = Ansi::UNDERLINED,
