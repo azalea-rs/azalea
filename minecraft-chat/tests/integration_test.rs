@@ -16,7 +16,7 @@ fn basic_ansi_test() {
     .unwrap();
     let component = Component::new(&j).unwrap();
     assert_eq!(
-        component.to_ansi(None),
+        component.to_ansi(),
         "\x1b[1m\x1b[38;2;255;85;85mhello\x1b[m"
     );
 }
@@ -52,7 +52,7 @@ fn complex_ansi_test() {
     .unwrap();
     let component = Component::new(&j).unwrap();
     assert_eq!(
-        component.to_ansi(None),
+        component.to_ansi(),
         format!(
             "{bold}{italic}{underlined}{red}hello{reset}{bold}{italic}{red} {reset}{italic}{strikethrough}{abcdef}world{reset}{abcdef} asdf{bold}!{reset}",
             bold = Ansi::BOLD,
@@ -70,5 +70,5 @@ fn complex_ansi_test() {
 fn component_from_string() {
     let j: Value = serde_json::from_str("\"foo\"").unwrap();
     let component = Component::new(&j).unwrap();
-    assert_eq!(component.to_ansi(None), "foo");
+    assert_eq!(component.to_ansi(), "foo");
 }

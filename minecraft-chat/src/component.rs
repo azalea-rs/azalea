@@ -195,8 +195,8 @@ impl Component {
             .for_each(|s| Component::visit(s, f));
     }
 
-    /// Convert this component into an ansi string, using parent_style as the running style.
-    pub fn to_ansi(&self, _: Option<()>) -> String {
+    /// Convert this component into an ansi string
+    pub fn to_ansi(&self) -> String {
         // this contains the final string will all the ansi escape codes
         let mut built_string = String::new();
         // this style will update as we visit components
