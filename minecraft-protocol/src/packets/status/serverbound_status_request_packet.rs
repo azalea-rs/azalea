@@ -7,7 +7,7 @@ use crate::{
     packets::{Packet, PacketTrait},
 };
 
-#[derive(Hash, Clone)]
+#[derive(Hash, Clone, Debug)]
 pub struct ServerboundStatusRequestPacket {}
 
 #[async_trait]

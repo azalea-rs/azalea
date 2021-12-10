@@ -16,7 +16,7 @@ pub enum ConnectionProtocol {
     Login = 2,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Packet {
     // game
 
@@ -55,8 +55,8 @@ impl Packet {
     /// Read a packet by its id, ConnectionProtocol, and flow
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         id: u32,
-        protocol: ConnectionProtocol,
-        flow: PacketFlow,
+        protocol: &ConnectionProtocol,
+        flow: &PacketFlow,
         buf: &mut BufReader<T>,
     ) -> Result<Packet, String> {
         match protocol {

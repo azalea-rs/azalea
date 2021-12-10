@@ -8,7 +8,7 @@ use crate::{
     packets::{ConnectionProtocol, Packet, PacketTrait},
 };
 
-#[derive(Hash, Clone)]
+#[derive(Hash, Clone, Debug)]
 pub struct ClientIntentionPacket {
     pub protocol_version: u32,
     pub hostname: String,

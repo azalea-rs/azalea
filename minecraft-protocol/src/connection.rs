@@ -36,7 +36,7 @@ impl Connection {
 
         Ok(Connection {
             state: ConnectionProtocol::Handshake,
-            flow: PacketFlow::ClientToServer,
+            flow: PacketFlow::ServerToClient,
             stream,
         })
     }
@@ -61,12 +61,15 @@ impl Connection {
 
         // if we recognize the packet id, parse it
 
-        // TODO
+        let packet = Packet::read(
+            packet_id.try_into().unwrap(),
+            &self.state,
+            &self.flow,
+            &mut buf,
+        )
+        .await?;
 
-        // otherwise, read the rest of the packet and throw it away
-        let mut packet_data = Vec::with_capacity((packet_size - packet_id_size as i32) as usize);
-        buf.read_buf(&mut packet_data).await.unwrap();
-        println!("packet {:?}", packet_data);
+        println!("packet: {:?}", packet);
 
         Ok(())
     }
