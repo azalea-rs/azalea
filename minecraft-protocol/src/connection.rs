@@ -35,7 +35,7 @@ impl Connection {
             .expect("Error enabling tcp_nodelay");
 
         Ok(Connection {
-            state: ConnectionProtocol::Handshaking,
+            state: ConnectionProtocol::Handshake,
             flow: PacketFlow::ClientToServer,
             stream,
         })
@@ -80,7 +80,7 @@ impl Connection {
 
         // write the packet id
         let mut id_and_data_buf = vec![];
-        mc_buf::write_varint(&mut id_and_data_buf, packet.get_id() as i32);
+        mc_buf::write_varint(&mut id_and_data_buf, packet.id() as i32);
         packet.write(&mut id_and_data_buf);
 
         // write the packet data

@@ -146,7 +146,9 @@ pub fn write_utf_with_len(buf: &mut Vec<u8>, string: &String, len: usize) {
     write_bytes(buf, string.as_bytes());
 }
 
-pub async fn read_utf<T: AsyncRead + std::marker::Unpin>(buf: &mut T) -> Result<String, String> {
+pub async fn read_utf<T: AsyncRead + std::marker::Unpin>(
+    buf: &mut BufReader<T>,
+) -> Result<String, String> {
     read_utf_with_len(buf, MAX_STRING_LENGTH.into()).await
 }
 

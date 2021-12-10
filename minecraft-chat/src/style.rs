@@ -9,8 +9,26 @@ pub struct TextColor {
 }
 
 impl TextColor {
-    // hopefully rust/llvm optimizes this so it's just calculated once
-    fn calculate_legacy_format_to_color() -> HashMap<&'static ChatFormatting<'static>, TextColor> {
+    pub fn parse(value: String) -> Result<TextColor, String> {
+        if value.starts_with("#") {
+            let n = value.chars().skip(1).collect::<String>();
+            let n = u32::from_str_radix(&n, 16).unwrap();
+            return Ok(TextColor::from_rgb(n));
+        }
+        let color = NAMED_COLORS.get(&value.to_ascii_uppercase());
+        if color.is_some() {
+            return Ok(color.unwrap().clone());
+        }
+        Err(format!("Invalid color {}", value))
+    }
+
+    fn from_rgb(value: u32) -> TextColor {
+        TextColor { value, name: None }
+    }
+}
+
+lazy_static! {
+    static ref LEGACY_FORMAT_TO_COLOR: HashMap<&'static ChatFormatting<'static>, TextColor> = {
         let mut legacy_format_to_color = HashMap::new();
         for formatter in &ChatFormatting::FORMATTERS {
             if !formatter.is_format && *formatter != ChatFormatting::RESET {
@@ -24,34 +42,14 @@ impl TextColor {
             }
         }
         legacy_format_to_color
-    }
-
-    fn calculate_named_colors() -> HashMap<String, TextColor> {
-        let legacy_format_to_color = Self::calculate_legacy_format_to_color();
+    };
+    static ref NAMED_COLORS: HashMap<String, TextColor> = {
         let mut named_colors = HashMap::new();
-        for color in legacy_format_to_color.values() {
+        for color in LEGACY_FORMAT_TO_COLOR.values() {
             named_colors.insert(color.name.clone().unwrap(), color.clone());
         }
         named_colors
-    }
-
-    pub fn parse(value: String) -> Result<TextColor, String> {
-        if value.starts_with("#") {
-            let n = value.chars().skip(1).collect::<String>();
-            let n = u32::from_str_radix(&n, 16).unwrap();
-            return Ok(TextColor::from_rgb(n));
-        }
-        let named_colors = Self::calculate_named_colors();
-        let color = named_colors.get(&value.to_ascii_uppercase());
-        if color.is_some() {
-            return Ok(color.unwrap().clone());
-        }
-        Err(format!("Invalid color {}", value))
-    }
-
-    fn from_rgb(value: u32) -> TextColor {
-        TextColor { value, name: None }
-    }
+    };
 }
 
 /// The weird S character Minecraft used to use for chat formatting

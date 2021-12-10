@@ -1,5 +1,8 @@
 use std::hash::Hash;
 
+use async_trait::async_trait;
+use tokio::io::BufReader;
+
 use crate::{
     mc_buf,
     packets::{ConnectionProtocol, Packet, PacketTrait},
@@ -14,9 +17,10 @@ pub struct ClientIntentionPacket<'a> {
     pub intention: ConnectionProtocol,
 }
 
+#[async_trait]
 impl<'a> PacketTrait for ClientIntentionPacket<'a> {
     fn get(&self) -> Packet {
-        Packet::ClientIntentionPacket(self)
+        Packet::ClientIntentionPacket(*self)
     }
 
     fn write(&self, buf: &mut Vec<u8>) {
@@ -26,5 +30,10 @@ impl<'a> PacketTrait for ClientIntentionPacket<'a> {
         mc_buf::write_varint(buf, self.intention.clone() as i32);
     }
 
-    fn parse<T: tokio::io::AsyncRead + std::marker::Unpin>(&self, buf: T) -> () {}
+    async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
+        buf: &mut BufReader<T>,
+    ) -> Result<Packet<'_>, String> {
+        Err("ClientIntentionPacket::parse not implemented".to_string())
+        // Ok(ClientIntentionPacket {}.get())
+    }
 }

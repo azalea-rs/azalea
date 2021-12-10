@@ -1,4 +1,8 @@
-//! Things for working with Minecraft chat messages, inspired by the Minecraft source code and prismarine-chat.
+//! Things for working with Minecraft chat messages.
+//! This was inspired by Minecraft and prismarine-chat.
+
+#[macro_use]
+extern crate lazy_static;
 
 pub mod base_component;
 pub mod component;

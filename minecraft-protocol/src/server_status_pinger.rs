@@ -1,7 +1,10 @@
 use crate::{
     connection::Connection,
-    mc_buf,
-    packets::{ClientIntentionPacket, ConnectionProtocol, ServerboundStatusRequestPacket},
+    packets::{
+        handshake::client_intention_packet::ClientIntentionPacket,
+        status::serverbound_status_request_packet::ServerboundStatusRequestPacket,
+        ConnectionProtocol, PacketTrait,
+    },
     resolver, ServerAddress,
 };
 
@@ -14,17 +17,21 @@ pub async fn ping_server(address: &ServerAddress) -> Result<(), String> {
     println!("writing intention packet {}", address.host);
 
     // send the client intention packet and switch to the status state
-    conn.send_packet(&ClientIntentionPacket {
-        protocol_version: 757,
-        hostname: &address.host,
-        port: address.port,
-        intention: ConnectionProtocol::Status,
-    })
+    conn.send_packet(
+        ClientIntentionPacket {
+            protocol_version: 757,
+            hostname: &address.host,
+            port: address.port,
+            intention: ConnectionProtocol::Status,
+        }
+        .get(),
+    )
     .await;
     conn.switch_state(ConnectionProtocol::Status);
 
     // send the empty status request packet
-    conn.send_packet(&ServerboundStatusRequestPacket {}).await;
+    conn.send_packet(ServerboundStatusRequestPacket {}.get())
+        .await;
 
     conn.read_packet().await.unwrap();
 
