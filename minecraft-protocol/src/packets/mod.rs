@@ -16,11 +16,12 @@ pub enum ConnectionProtocol {
     Login = 2,
 }
 
-pub enum Packet<'a> {
+#[derive(Clone)]
+pub enum Packet {
     // game
 
     // handshake
-    ClientIntentionPacket(handshake::client_intention_packet::ClientIntentionPacket<'a>),
+    ClientIntentionPacket(handshake::client_intention_packet::ClientIntentionPacket),
 
     // login
 
@@ -34,7 +35,7 @@ pub enum Packet<'a> {
 }
 
 // TODO: do all this with macros so it's less repetitive
-impl Packet<'_> {
+impl Packet {
     fn get_inner_packet(&self) -> &dyn PacketTrait {
         match self {
             Packet::ClientIntentionPacket(packet) => packet,
@@ -57,7 +58,7 @@ impl Packet<'_> {
         protocol: ConnectionProtocol,
         flow: PacketFlow,
         buf: &mut BufReader<T>,
-    ) -> Result<Packet<'_>, String> {
+    ) -> Result<Packet, String> {
         match protocol {
             ConnectionProtocol::Handshake => match id {
                 0x00 => Ok(
@@ -96,11 +97,11 @@ impl Packet<'_> {
 #[async_trait]
 pub trait PacketTrait {
     /// Return a version of the packet that you can actually use for stuff
-    fn get(&self) -> Packet;
+    fn get(self) -> Packet;
     fn write(&self, buf: &mut Vec<u8>) -> ();
     async fn read<T: AsyncRead + std::marker::Unpin + std::marker::Send>(
         buf: &mut BufReader<T>,
-    ) -> Result<Packet<'_>, String>
+    ) -> Result<Packet, String>
     where
         Self: Sized;
 }

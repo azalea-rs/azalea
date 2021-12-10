@@ -7,19 +7,19 @@ use crate::{
     packets::{Packet, PacketTrait},
 };
 
-#[derive(Hash)]
+#[derive(Hash, Clone)]
 pub struct ServerboundStatusRequestPacket {}
 
 #[async_trait]
 impl PacketTrait for ServerboundStatusRequestPacket {
-    fn get(&self) -> Packet {
-        Packet::ServerboundStatusRequestPacket(*self)
+    fn get(self) -> Packet {
+        Packet::ServerboundStatusRequestPacket(self)
     }
     fn write(&self, _buf: &mut Vec<u8>) {}
 
     async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         buf: &mut BufReader<T>,
-    ) -> Result<Packet<'_>, String> {
+    ) -> Result<Packet, String> {
         Err("ServerboundStatusRequestPacket::read not implemented".to_string())
     }
 }

@@ -20,7 +20,7 @@ pub async fn ping_server(address: &ServerAddress) -> Result<(), String> {
     conn.send_packet(
         ClientIntentionPacket {
             protocol_version: 757,
-            hostname: &address.host,
+            hostname: address.host.clone(),
             port: address.port,
             intention: ConnectionProtocol::Status,
         }
