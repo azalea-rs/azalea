@@ -1,12 +1,12 @@
 use crate::{base_component::BaseComponent, component::Component};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum StringOrComponent {
     String(String),
     Component(Component),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct TranslatableComponent {
     pub base: BaseComponent,
     pub key: String,

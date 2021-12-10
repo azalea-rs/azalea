@@ -1,6 +1,6 @@
 use crate::{component::Component, style::Style};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct BaseComponent {
     // implements mutablecomponent
     pub siblings: Vec<Component>,

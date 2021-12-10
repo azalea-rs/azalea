@@ -307,6 +307,8 @@ dependencies = [
  "async-trait",
  "byteorder",
  "bytes",
+ "minecraft-chat",
+ "serde_json",
  "thiserror",
  "tokio",
  "tokio-util",

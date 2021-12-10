@@ -65,3 +65,10 @@ fn complex_ansi_test() {
         )
     );
 }
+
+#[test]
+fn component_from_string() {
+    let j: Value = serde_json::from_str("\"foo\"").unwrap();
+    let component = Component::new(&j).unwrap();
+    assert_eq!(component.to_ansi(None), "foo");
+}

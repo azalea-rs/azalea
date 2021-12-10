@@ -9,7 +9,7 @@ use crate::{
     translatable_component::{StringOrComponent, TranslatableComponent},
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Component {
     TextComponent(TextComponent),
     TranslatableComponent(TranslatableComponent),
@@ -23,9 +23,9 @@ impl Component {
 
         // if it's primitive, make it a text component
         if !json.is_array() && !json.is_object() {
-            component = Component::TextComponent(TextComponent::new(
+            return Ok(Component::TextComponent(TextComponent::new(
                 json.as_str().unwrap_or("").to_string(),
-            ));
+            )));
         }
         // if it's an object, do things with { text } and stuff
         else if json.is_object() {
@@ -41,11 +41,11 @@ impl Component {
                         // if it's a string component with no styling and no siblings, just add a string to with_array
                         // otherwise add the component to the array
                         let c = Component::new(&with[i])?;
-                        if let Component::TextComponent(textComponent) = c {
-                            if textComponent.base.siblings.len() == 0
-                                && textComponent.base.style.is_empty()
+                        if let Component::TextComponent(text_component) = c {
+                            if text_component.base.siblings.len() == 0
+                                && text_component.base.style.is_empty()
                             {
-                                with_array.push(StringOrComponent::String(textComponent.text));
+                                with_array.push(StringOrComponent::String(text_component.text));
                                 break;
                             }
                         }
@@ -141,7 +141,7 @@ impl Component {
             return Ok(component);
         }
         // ok so it's not an object, if it's an array deserialize every item
-        if !json.is_array() {
+        else if !json.is_array() {
             return Err(format!("Don't know how to turn {} into a Component", json));
         }
         let json_array = json.as_array().unwrap();
@@ -211,7 +211,7 @@ impl Component {
             styled_component.push_str(&sibling.to_ansi(Some(current_style)));
         }
 
-        if is_base_style {
+        if is_base_style && ansi_text.len() > 0 {
             styled_component.push_str("\x1b[m");
         }
 

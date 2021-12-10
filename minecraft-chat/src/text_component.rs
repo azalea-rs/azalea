@@ -1,6 +1,6 @@
 use crate::{base_component::BaseComponent, component::Component};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct TextComponent {
     pub base: BaseComponent,
     pub text: String,
