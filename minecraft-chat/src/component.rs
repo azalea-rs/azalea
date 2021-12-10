@@ -136,7 +136,7 @@ impl Component {
             }
 
             let style = Style::deserialize(json);
-            component.get_base().style = style;
+            component.get_base_mut().style = style;
 
             return Ok(component);
         }
@@ -153,16 +153,25 @@ impl Component {
         Ok(component)
     }
 
-    pub fn get_base(&mut self) -> &mut BaseComponent {
+    // TODO: is it possible to use a macro so this doesn't have to be duplicated?
+
+    pub fn get_base_mut(&mut self) -> &mut BaseComponent {
         match self {
             Self::TextComponent(c) => &mut c.base,
             Self::TranslatableComponent(c) => &mut c.base,
         }
     }
 
+    pub fn get_base(&self) -> &BaseComponent {
+        match self {
+            Self::TextComponent(c) => &c.base,
+            Self::TranslatableComponent(c) => &c.base,
+        }
+    }
+
     /// Add a component as a sibling of this one
     fn append(&mut self, sibling: Component) {
-        self.get_base().siblings.push(sibling);
+        self.get_base_mut().siblings.push(sibling);
     }
 
     /// Get the "separator" component from the json
@@ -173,48 +182,44 @@ impl Component {
         Ok(None)
     }
 
+    /// Recursively call the function for every component in this component
+    pub fn visit<F>(&self, f: &mut F) -> ()
+    where
+        // The closure takes an `i32` and returns an `i32`.
+        F: FnMut(&Component) -> (),
+    {
+        f(self);
+        self.get_base()
+            .siblings
+            .iter()
+            .for_each(|s| Component::visit(s, f));
+    }
+
     /// Convert this component into an ansi string, using parent_style as the running style.
-    pub fn to_ansi(&self, parent_style: Option<&mut Style>) -> String {
-        // the siblings of this component
-        let base;
-        let component_text: String;
-        let mut styled_component = String::new();
-        match self {
-            Self::TextComponent(c) => {
-                base = &c.base;
-                component_text = c.text.clone();
-            }
-            Self::TranslatableComponent(c) => {
-                base = &c.base;
-                component_text = c.key.clone();
-            }
-        };
+    pub fn to_ansi(&self, _: Option<()>) -> String {
+        // this contains the final string will all the ansi escape codes
+        let mut built_string = String::new();
+        // this style will update as we visit components
+        let mut running_style = Style::new();
 
-        // we'll fall back to this if there's no parent style
-        let default_style = &mut Style::new();
+        self.visit(&mut |component| {
+            let component_text = match component {
+                Self::TextComponent(c) => &c.text,
+                Self::TranslatableComponent(c) => &c.key,
+            };
+            let component_style = &component.get_base().style;
 
-        // if it's the base style, that means we add a style reset at the end
-        let is_base_style = parent_style.is_none();
+            let ansi_text = running_style.compare_ansi(component_style);
+            built_string.push_str(&ansi_text);
+            built_string.push_str(&component_text);
 
-        let current_style: &mut Style = parent_style.unwrap_or(default_style);
+            running_style.apply(&component_style);
+        });
 
-        // the old style is current_style and the new style is the base.style
-        let ansi_text = current_style.compare_ansi(&base.style);
-
-        current_style.apply(&base.style);
-        println!("\nset style to {:?}", current_style);
-
-        styled_component.push_str(&ansi_text);
-        styled_component.push_str(&component_text);
-
-        for sibling in &base.siblings {
-            styled_component.push_str(&sibling.to_ansi(Some(current_style)));
+        if !running_style.is_empty() {
+            built_string.push_str("\x1b[m");
         }
 
-        if is_base_style && ansi_text.len() > 0 {
-            styled_component.push_str("\x1b[m");
-        }
-
-        styled_component.clone()
+        built_string
     }
 }

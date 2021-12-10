@@ -1,4 +1,4 @@
-use crate::{base_component::BaseComponent, component::Component};
+use crate::base_component::BaseComponent;
 
 #[derive(Clone, Debug)]
 pub struct TextComponent {
@@ -9,8 +9,8 @@ pub struct TextComponent {
 impl<'a> TextComponent {
     pub fn new(text: String) -> Self {
         Self {
-            text: text,
             base: BaseComponent::new(),
+            text,
         }
     }
 
