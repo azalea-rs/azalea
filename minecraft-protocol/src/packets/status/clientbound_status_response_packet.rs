@@ -52,7 +52,7 @@ impl PacketTrait for ClientboundStatusResponsePacket {
         // this.status = GsonHelper.fromJson(GSON, friendlyByteBuf.readUtf(32767), ServerStatus.class);
         Ok(ClientboundStatusResponsePacket {
             // version: status_json.get("version"),
-            description: Component::new(&description_string)?,
+            description: Component::new(description_string)?,
         }
         .get())
     }

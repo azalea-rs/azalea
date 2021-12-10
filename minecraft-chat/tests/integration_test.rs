@@ -2,7 +2,7 @@ use minecraft_chat::{
     component::Component,
     style::{Ansi, ChatFormatting, TextColor},
 };
-use serde_json::{Result, Value};
+use serde_json::{Value};
 
 #[test]
 fn basic_ansi_test() {

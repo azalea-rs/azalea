@@ -31,7 +31,7 @@ impl PacketTrait for ClientIntentionPacket {
     }
 
     async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        buf: &mut BufReader<T>,
+        _buf: &mut BufReader<T>,
     ) -> Result<Packet, String> {
         Err("ClientIntentionPacket::parse not implemented".to_string())
         // Ok(ClientIntentionPacket {}.get())

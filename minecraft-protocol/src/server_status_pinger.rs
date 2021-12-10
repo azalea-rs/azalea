@@ -9,7 +9,7 @@ use crate::{
 };
 
 pub async fn ping_server(address: &ServerAddress) -> Result<(), String> {
-    let resolved_address = resolver::resolve_address(&address).await?;
+    let resolved_address = resolver::resolve_address(address).await?;
 
     let mut conn = Connection::new(&resolved_address).await?;
 

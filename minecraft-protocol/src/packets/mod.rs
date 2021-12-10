@@ -46,9 +46,9 @@ impl Packet {
 
     pub fn id(&self) -> u32 {
         match self {
-            Packet::ClientIntentionPacket(packet) => 0x00,
-            Packet::ServerboundStatusRequestPacket(packet) => 0x00,
-            Packet::ClientboundStatusResponsePacket(packet) => 0x00,
+            Packet::ClientIntentionPacket(_packet) => 0x00,
+            Packet::ServerboundStatusRequestPacket(_packet) => 0x00,
+            Packet::ClientboundStatusResponsePacket(_packet) => 0x00,
         }
     }
 
@@ -98,7 +98,7 @@ impl Packet {
 pub trait PacketTrait {
     /// Return a version of the packet that you can actually use for stuff
     fn get(self) -> Packet;
-    fn write(&self, buf: &mut Vec<u8>) -> ();
+    fn write(&self, buf: &mut Vec<u8>);
     async fn read<T: AsyncRead + std::marker::Unpin + std::marker::Send>(
         buf: &mut BufReader<T>,
     ) -> Result<Packet, String>

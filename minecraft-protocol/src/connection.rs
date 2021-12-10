@@ -54,10 +54,10 @@ impl Connection {
         // the first thing minecraft sends us is the length as a varint, which can be up to 5 bytes long
         let mut buf = BufReader::with_capacity(4 * 1024 * 1024, &mut self.stream);
         println!("reading length varint");
-        let (packet_size, packet_size_varint_size) = mc_buf::read_varint(&mut buf).await?;
+        let (_packet_size, _packet_size_varint_size) = mc_buf::read_varint(&mut buf).await?;
         // then, minecraft tells us the packet id as a varint
         println!("reading id varint");
-        let (packet_id, packet_id_size) = mc_buf::read_varint(&mut buf).await?;
+        let (packet_id, _packet_id_size) = mc_buf::read_varint(&mut buf).await?;
 
         // if we recognize the packet id, parse it
 

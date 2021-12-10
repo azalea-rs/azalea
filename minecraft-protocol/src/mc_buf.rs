@@ -1,8 +1,8 @@
 //! Utilities for reading and writing for the Minecraft protocol
 
-use std::io::{Cursor, Write};
+use std::io::Write;
 
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::{BigEndian, WriteBytesExt};
 use tokio::io::{AsyncRead, AsyncReadExt, BufReader};
 
 // const DEFAULT_NBT_QUOTA: u32 = 2097152;
@@ -37,8 +37,8 @@ pub async fn read_varint<T: AsyncRead + std::marker::Unpin>(
     for i in 0..4 {
         buf.read_exact(&mut buffer)
             .await
-            .or_else(|_| Err("Invalid VarInt".to_string()))?;
-        ans |= ((buffer[0] & 0b0111_1111) as i32) << 7 * i;
+            .map_err(|_| "Invalid VarInt".to_string())?;
+        ans |= ((buffer[0] & 0b0111_1111) as i32) << (7 * i);
         if buffer[0] & 0b1000_0000 == 0 {
             return Ok((ans, i + 1));
         }
@@ -64,6 +64,8 @@ pub fn write_varint(buf: &mut Vec<u8>, mut value: i32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Cursor;
+
     #[test]
     fn test_write_varint() {
         let mut buf = Vec::new();
@@ -98,7 +100,7 @@ pub async fn read_utf_with_len<T: AsyncRead + std::marker::Unpin>(
     buf: &mut BufReader<T>,
     max_length: u32,
 ) -> Result<String, String> {
-    let (length, length_varint_length) = read_varint(buf).await?;
+    let (length, _length_varint_length) = read_varint(buf).await?;
     // i don't know why it's multiplied by 4 but it's like that in mojang's code so
     if length < 0 {
         return Err(
@@ -119,7 +121,7 @@ pub async fn read_utf_with_len<T: AsyncRead + std::marker::Unpin>(
     let mut buffer = vec![0; length as usize];
     buf.read_exact(&mut buffer)
         .await
-        .or_else(|_| Err("Invalid UTF-8".to_string()))?;
+        .map_err(|_| "Invalid UTF-8".to_string())?;
 
     string.push_str(std::str::from_utf8(&buffer).unwrap());
     if string.len() > length as usize {

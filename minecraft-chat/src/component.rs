@@ -1,4 +1,4 @@
-use std::borrow::BorrowMut;
+
 
 use serde_json;
 
@@ -42,7 +42,7 @@ impl Component {
                         // otherwise add the component to the array
                         let c = Component::new(&with[i])?;
                         if let Component::TextComponent(text_component) = c {
-                            if text_component.base.siblings.len() == 0
+                            if text_component.base.siblings.is_empty()
                                 && text_component.base.style.is_empty()
                             {
                                 with_array.push(StringOrComponent::String(text_component.text));
@@ -91,11 +91,11 @@ impl Component {
                     return Err(format!("Don't know how to turn {} into a Component", json));
                 }
                 //         object = GsonHelper.getAsString(jsonObject, "nbt");
-                let nbt = json.get("nbt").unwrap().to_string();
+                let _nbt = json.get("nbt").unwrap().to_string();
                 //         Optional<Component> optional = this.parseSeparator(type, jsonDeserializationContext, jsonObject);
-                let separator = Component::parse_separator(json)?;
+                let _separator = Component::parse_separator(json)?;
 
-                let interpret = match json.get("interpret") {
+                let _interpret = match json.get("interpret") {
                     Some(v) => v.as_bool().ok_or(Some(false)).unwrap(),
                     None => false,
                 };
@@ -127,7 +127,7 @@ impl Component {
                     Some(r) => r,
                     None => return Err("Extra isn't an array".to_string()),
                 };
-                if extra.len() == 0 {
+                if extra.is_empty() {
                     return Err("Unexpected empty array of components".to_string());
                 }
                 for extra_component in extra {
@@ -183,10 +183,10 @@ impl Component {
     }
 
     /// Recursively call the function for every component in this component
-    pub fn visit<F>(&self, f: &mut F) -> ()
+    pub fn visit<F>(&self, f: &mut F)
     where
         // The closure takes an `i32` and returns an `i32`.
-        F: FnMut(&Component) -> (),
+        F: FnMut(&Component),
     {
         f(self);
         self.get_base()
@@ -211,9 +211,9 @@ impl Component {
 
             let ansi_text = running_style.compare_ansi(component_style);
             built_string.push_str(&ansi_text);
-            built_string.push_str(&component_text);
+            built_string.push_str(component_text);
 
-            running_style.apply(&component_style);
+            running_style.apply(component_style);
         });
 
         if !running_style.is_empty() {

@@ -14,7 +14,7 @@ pub async fn resolve_address(address: &ServerAddress) -> Result<ServerIpAddress,
     // If the address.host is already in the format of an ip address, return it.
     if let Ok(ip) = address.host.parse::<IpAddr>() {
         return Ok(ServerIpAddress {
-            ip: ip,
+            ip,
             port: address.port,
         });
     }

@@ -3,7 +3,6 @@ use std::hash::Hash;
 use tokio::io::BufReader;
 
 use crate::{
-    mc_buf,
     packets::{Packet, PacketTrait},
 };
 
@@ -18,7 +17,7 @@ impl PacketTrait for ServerboundStatusRequestPacket {
     fn write(&self, _buf: &mut Vec<u8>) {}
 
     async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        buf: &mut BufReader<T>,
+        _buf: &mut BufReader<T>,
     ) -> Result<Packet, String> {
         Err("ServerboundStatusRequestPacket::read not implemented".to_string())
     }

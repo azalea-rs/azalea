@@ -10,7 +10,7 @@ pub struct TextColor {
 
 impl TextColor {
     pub fn parse(value: String) -> Result<TextColor, String> {
-        if value.starts_with("#") {
+        if value.starts_with('#') {
             let n = value.chars().skip(1).collect::<String>();
             let n = u32::from_str_radix(&n, 16).unwrap();
             return Ok(TextColor::from_rgb(n));
@@ -152,7 +152,7 @@ impl<'a> ChatFormatting<'a> {
         color: Option<u32>,
     ) -> ChatFormatting {
         ChatFormatting {
-            name: name,
+            name,
             code,
             is_format,
             id,
@@ -275,11 +275,7 @@ impl Style {
             } else if self.strikethrough.unwrap_or(false) && !after.strikethrough.unwrap_or(true) {
                 true
             // if it used to be obfuscated and now it's not, reset
-            } else if self.obfuscated.unwrap_or(false) && !after.obfuscated.unwrap_or(true) {
-                true
-            } else {
-                false
-            }
+            } else { self.obfuscated.unwrap_or(false) && !after.obfuscated.unwrap_or(true) }
         };
 
         let mut ansi_codes = String::new();
@@ -290,7 +286,7 @@ impl Style {
             // we should apply after into before and use that as after
             ansi_codes.push_str(Ansi::RESET);
             let mut updated_after = self.clone();
-            updated_after.apply(&after);
+            updated_after.apply(after);
             (Style::new(), updated_after)
         } else {
             (self.clone(), after.clone())
