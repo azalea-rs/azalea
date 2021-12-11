@@ -2,7 +2,7 @@ use minecraft_chat::{
     component::Component,
     style::{Ansi, ChatFormatting, TextColor},
 };
-use serde_json::{Value};
+use serde_json::Value;
 
 #[test]
 fn basic_ansi_test() {
@@ -17,7 +17,7 @@ fn basic_ansi_test() {
     let component = Component::new(&j).unwrap();
     assert_eq!(
         component.to_ansi(),
-        "\x1b[1m\x1b[38;2;255;85;85mhello\x1b[m"
+        "\u{1b}[1m\u{1b}[38;2;255;85;85mhello\u{1b}[m"
     );
 }
 

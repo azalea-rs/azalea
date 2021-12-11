@@ -1,5 +1,3 @@
-
-
 use serde_json;
 
 use crate::{
@@ -11,8 +9,8 @@ use crate::{
 
 #[derive(Clone, Debug)]
 pub enum Component {
-    TextComponent(TextComponent),
-    TranslatableComponent(TranslatableComponent),
+    Text(TextComponent),
+    Translatable(TranslatableComponent),
 }
 
 /// A chat component
@@ -23,7 +21,7 @@ impl Component {
 
         // if it's primitive, make it a text component
         if !json.is_array() && !json.is_object() {
-            return Ok(Component::TextComponent(TextComponent::new(
+            return Ok(Component::Text(TextComponent::new(
                 json.as_str().unwrap_or("").to_string(),
             )));
         }
@@ -31,7 +29,7 @@ impl Component {
         else if json.is_object() {
             if json.get("text").is_some() {
                 let text = json.get("text").unwrap().as_str().unwrap_or("").to_string();
-                component = Component::TextComponent(TextComponent::new(text));
+                component = Component::Text(TextComponent::new(text));
             } else if json.get("translate").is_some() {
                 let translate = json.get("translate").unwrap().to_string();
                 if json.get("with").is_some() {
@@ -41,7 +39,7 @@ impl Component {
                         // if it's a string component with no styling and no siblings, just add a string to with_array
                         // otherwise add the component to the array
                         let c = Component::new(&with[i])?;
-                        if let Component::TextComponent(text_component) = c {
+                        if let Component::Text(text_component) = c {
                             if text_component.base.siblings.is_empty()
                                 && text_component.base.style.is_empty()
                             {
@@ -51,15 +49,12 @@ impl Component {
                         }
                         with_array.push(StringOrComponent::Component(Component::new(&with[i])?));
                     }
-                    component = Component::TranslatableComponent(TranslatableComponent::new(
-                        translate, with_array,
-                    ));
+                    component =
+                        Component::Translatable(TranslatableComponent::new(translate, with_array));
                 } else {
                     // if it doesn't have a "with", just have the with_array be empty
-                    component = Component::TranslatableComponent(TranslatableComponent::new(
-                        translate,
-                        Vec::new(),
-                    ));
+                    component =
+                        Component::Translatable(TranslatableComponent::new(translate, Vec::new()));
                 }
             } else if json.get("score").is_some() {
                 // object = GsonHelper.getAsJsonObject(jsonObject, "score");
@@ -157,15 +152,15 @@ impl Component {
 
     pub fn get_base_mut(&mut self) -> &mut BaseComponent {
         match self {
-            Self::TextComponent(c) => &mut c.base,
-            Self::TranslatableComponent(c) => &mut c.base,
+            Self::Text(c) => &mut c.base,
+            Self::Translatable(c) => &mut c.base,
         }
     }
 
     pub fn get_base(&self) -> &BaseComponent {
         match self {
-            Self::TextComponent(c) => &c.base,
-            Self::TranslatableComponent(c) => &c.base,
+            Self::Text(c) => &c.base,
+            Self::Translatable(c) => &c.base,
         }
     }
 
@@ -182,30 +177,17 @@ impl Component {
         Ok(None)
     }
 
-    /// Recursively call the function for every component in this component
-    pub fn visit<F>(&self, f: &mut F)
-    where
-        // The closure takes an `i32` and returns an `i32`.
-        F: FnMut(&Component),
-    {
-        f(self);
-        self.get_base()
-            .siblings
-            .iter()
-            .for_each(|s| Component::visit(s, f));
-    }
-
     /// Convert this component into an ansi string
     pub fn to_ansi(&self) -> String {
         // this contains the final string will all the ansi escape codes
         let mut built_string = String::new();
         // this style will update as we visit components
-        let mut running_style = Style::new();
+        let mut running_style = Style::default();
 
-        self.visit(&mut |component| {
-            let component_text = match component {
-                Self::TextComponent(c) => &c.text,
-                Self::TranslatableComponent(c) => &c.key,
+        for component in self.clone().into_iter() {
+            let component_text = match &component {
+                Self::Text(c) => &c.text,
+                Self::Translatable(c) => &c.key,
             };
             let component_style = &component.get_base().style;
 
@@ -214,12 +196,30 @@ impl Component {
             built_string.push_str(component_text);
 
             running_style.apply(component_style);
-        });
+        }
 
         if !running_style.is_empty() {
-            built_string.push_str("\x1b[m");
+            built_string.push_str("\u{1b}[m");
         }
 
         built_string
     }
+}
+
+impl IntoIterator for Component {
+    /// Recursively call the function for every component in this component
+    fn into_iter(self) -> Self::IntoIter {
+        let base = self.get_base();
+        let siblings = base.siblings.clone();
+        let mut v: Vec<Component> = Vec::with_capacity(siblings.len() + 1);
+        v.push(self);
+        for sibling in siblings {
+            v.extend(sibling.into_iter());
+        }
+
+        v.into_iter()
+    }
+
+    type Item = Component;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
 }

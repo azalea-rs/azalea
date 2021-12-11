@@ -11,7 +11,7 @@ impl BaseComponent {
     pub fn new() -> Self {
         Self {
             siblings: Vec::new(),
-            style: Style::new(),
+            style: Style::default(),
         }
     }
 }

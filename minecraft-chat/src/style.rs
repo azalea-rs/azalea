@@ -66,16 +66,16 @@ pub struct ChatFormatting<'a> {
 
 pub struct Ansi {}
 impl Ansi {
-    pub const BOLD: &'static str = "\x1b[1m";
-    pub const ITALIC: &'static str = "\x1b[3m";
-    pub const UNDERLINED: &'static str = "\x1b[4m";
-    pub const STRIKETHROUGH: &'static str = "\x1b[9m";
-    pub const OBFUSCATED: &'static str = "\x1b[8m";
-    pub const RESET: &'static str = "\x1b[m";
+    pub const BOLD: &'static str = "\u{1b}[1m";
+    pub const ITALIC: &'static str = "\u{1b}[3m";
+    pub const UNDERLINED: &'static str = "\u{1b}[4m";
+    pub const STRIKETHROUGH: &'static str = "\u{1b}[9m";
+    pub const OBFUSCATED: &'static str = "\u{1b}[8m";
+    pub const RESET: &'static str = "\u{1b}[m";
 
     pub fn rgb(value: u32) -> String {
         format!(
-            "\x1b[38;2;{};{};{}m",
+            "\u{1b}[38;2;{};{};{}m",
             (value >> 16) & 0xFF,
             (value >> 8) & 0xFF,
             value & 0xFF
@@ -159,6 +159,15 @@ impl<'a> ChatFormatting<'a> {
             color,
         }
     }
+
+    pub fn from_code(code: char) -> Result<&'static ChatFormatting<'static>, String> {
+        for formatter in &ChatFormatting::FORMATTERS {
+            if formatter.code == code {
+                return Ok(formatter);
+            }
+        }
+        Err(format!("Invalid formatting code {}", code))
+    }
 }
 
 impl TextColor {
@@ -212,7 +221,7 @@ pub struct Style {
 }
 
 impl Style {
-    pub fn new() -> Style {
+    pub fn default() -> Style {
         Style {
             color: None,
             bold: None,
@@ -244,7 +253,7 @@ impl Style {
                 obfuscated,
             }
         } else {
-            Style::new()
+            Style::default()
         };
     }
 
@@ -275,7 +284,9 @@ impl Style {
             } else if self.strikethrough.unwrap_or(false) && !after.strikethrough.unwrap_or(true) {
                 true
             // if it used to be obfuscated and now it's not, reset
-            } else { self.obfuscated.unwrap_or(false) && !after.obfuscated.unwrap_or(true) }
+            } else {
+                self.obfuscated.unwrap_or(false) && !after.obfuscated.unwrap_or(true)
+            }
         };
 
         let mut ansi_codes = String::new();
@@ -287,7 +298,7 @@ impl Style {
             ansi_codes.push_str(Ansi::RESET);
             let mut updated_after = self.clone();
             updated_after.apply(after);
-            (Style::new(), updated_after)
+            (Style::default(), updated_after)
         } else {
             (self.clone(), after.clone())
         };
@@ -353,6 +364,37 @@ impl Style {
         }
         if let Some(obfuscated) = &style.obfuscated {
             self.obfuscated = Some(*obfuscated);
+        }
+    }
+
+    /// Apply a ChatFormatting to this style
+    pub fn apply_formatting(&mut self, formatting: &ChatFormatting) {
+        match formatting {
+            &ChatFormatting::BOLD => self.bold = Some(true),
+            &ChatFormatting::ITALIC => self.italic = Some(true),
+            &ChatFormatting::UNDERLINE => self.underlined = Some(true),
+            &ChatFormatting::STRIKETHROUGH => self.strikethrough = Some(true),
+            &ChatFormatting::OBFUSCATED => self.obfuscated = Some(true),
+            &ChatFormatting::RESET => {
+                self.color = None;
+                self.bold = None;
+                self.italic = None;
+                self.underlined = None;
+                self.strikethrough = None;
+                self.obfuscated = None;
+            }
+            &ChatFormatting {
+                name: _,
+                code: _,
+                is_format: _,
+                id: _,
+                color,
+            } => {
+                // if it's a color, set it
+                if let Some(color) = color {
+                    self.color = Some(TextColor::from_rgb(color));
+                }
+            }
         }
     }
 }
@@ -421,5 +463,21 @@ mod tests {
         };
         let ansi_difference = style_a.compare_ansi(&style_b);
         assert_eq!(ansi_difference, Ansi::ITALIC)
+    }
+
+    #[test]
+    fn test_from_code() {
+        assert_eq!(
+            ChatFormatting::from_code('a').unwrap(),
+            &ChatFormatting::GREEN
+        );
+    }
+
+    #[test]
+    fn test_apply_formatting() {
+        let mut style = Style::default();
+        style.apply_formatting(&ChatFormatting::BOLD);
+        style.apply_formatting(&ChatFormatting::RED);
+        assert_eq!(style.color, Some(TextColor::from_rgb(16733525)));
     }
 }
