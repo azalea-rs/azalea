@@ -188,29 +188,21 @@ impl TextColor {
     }
 }
 
+// from ChatFormatting to TextColor
+impl TryFrom<ChatFormatting<'_>> for TextColor {
+    type Error = String;
+
+    fn try_from(formatter: ChatFormatting<'_>) -> Result<Self, Self::Error> {
+        if formatter.is_format {
+            return Err(format!("{} is not a color", formatter.name));
+        }
+        let color = formatter.color.unwrap_or(0);
+        Ok(Self::new(color, Some(formatter.name.to_string())))
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Style {
-    // @Nullable
-    // final TextColor color;
-    // @Nullable
-    // final Boolean bold;
-    // @Nullable
-    // final Boolean italic;
-    // @Nullable
-    // final Boolean underlined;
-    // @Nullable
-    // final Boolean strikethrough;
-    // @Nullable
-    // final Boolean obfuscated;
-    // @Nullable
-    // final ClickEvent clickEvent;
-    // @Nullable
-    // final HoverEvent hoverEvent;
-    // @Nullable
-    // final String insertion;
-    // @Nullable
-    // final ResourceLocation font;
-
     // these are options instead of just bools because None is different than false in this case
     pub color: Option<TextColor>,
     pub bold: Option<bool>,
@@ -218,17 +210,24 @@ pub struct Style {
     pub underlined: Option<bool>,
     pub strikethrough: Option<bool>,
     pub obfuscated: Option<bool>,
+    /// Whether it should reset the formatting before applying these styles
+    pub reset: bool,
 }
 
 impl Style {
-    pub fn default() -> Style {
-        Style {
+    pub fn default() -> Self {
+        Self::empty()
+    }
+
+    pub fn empty() -> Self {
+        Self {
             color: None,
             bold: None,
             italic: None,
             underlined: None,
             strikethrough: None,
             obfuscated: None,
+            reset: false,
         }
     }
 
@@ -251,6 +250,7 @@ impl Style {
                 underlined,
                 strikethrough,
                 obfuscated,
+                ..Style::default()
             }
         } else {
             Style::default()
@@ -268,42 +268,35 @@ impl Style {
     }
 
     /// find the necessary ansi code to get from this style to another
-    pub fn compare_ansi(&self, after: &Style) -> String {
-        let should_reset = {
+    pub fn compare_ansi(&self, after: &Style, default_style: &Style) -> String {
+        let should_reset = after.reset ||
             // if it used to be bold and now it's not, reset
-            if self.bold.unwrap_or(false) && !after.bold.unwrap_or(true) {
-                true
-            }
+            (self.bold.unwrap_or(false) && !after.bold.unwrap_or(true)) ||
             // if it used to be italic and now it's not, reset
-            else if self.italic.unwrap_or(false) && !after.italic.unwrap_or(true) {
-                true
+            (self.italic.unwrap_or(false) && !after.italic.unwrap_or(true)) ||
             // if it used to be underlined and now it's not, reset
-            } else if self.underlined.unwrap_or(false) && !after.underlined.unwrap_or(true) {
-                true
+            (self.underlined.unwrap_or(false) && !after.underlined.unwrap_or(true)) ||
             // if it used to be strikethrough and now it's not, reset
-            } else if self.strikethrough.unwrap_or(false) && !after.strikethrough.unwrap_or(true) {
-                true
+            (self.strikethrough.unwrap_or(false) && !after.strikethrough.unwrap_or(true)) ||
             // if it used to be obfuscated and now it's not, reset
-            } else {
-                self.obfuscated.unwrap_or(false) && !after.obfuscated.unwrap_or(true)
-            }
-        };
+            (self.obfuscated.unwrap_or(false) && !after.obfuscated.unwrap_or(true));
 
         let mut ansi_codes = String::new();
 
-        let (before, after) = if should_reset {
-            // if it's true before and none after, make it true after
-            // if it's false before and none after, make it false after
-            // we should apply after into before and use that as after
-            ansi_codes.push_str(Ansi::RESET);
-            let mut updated_after = self.clone();
-            updated_after.apply(after);
-            (Style::default(), updated_after)
-        } else {
-            (self.clone(), after.clone())
-        };
+        let empty_style = Style::empty();
 
-        println!("should_reset {:?}", should_reset);
+        let (before, after) = if should_reset {
+            ansi_codes.push_str(Ansi::RESET);
+            let mut updated_after = if after.reset {
+                default_style.clone()
+            } else {
+                self.clone()
+            };
+            updated_after.apply(after);
+            (&empty_style, updated_after)
+        } else {
+            (self, after.clone())
+        };
 
         // if bold used to be false/default and now it's true, set bold
         if !before.bold.unwrap_or(false) && after.bold.unwrap_or(false) {
@@ -331,7 +324,7 @@ impl Style {
             if before.color.is_none() && after.color.is_some() {
                 true
             } else if before.color.is_some() && after.color.is_some() {
-                before.color.unwrap().value != after.color.as_ref().unwrap().value
+                before.color.clone().unwrap().value != after.color.as_ref().unwrap().value
             } else {
                 false
             }
@@ -369,21 +362,14 @@ impl Style {
 
     /// Apply a ChatFormatting to this style
     pub fn apply_formatting(&mut self, formatting: &ChatFormatting) {
-        match formatting {
-            &ChatFormatting::BOLD => self.bold = Some(true),
-            &ChatFormatting::ITALIC => self.italic = Some(true),
-            &ChatFormatting::UNDERLINE => self.underlined = Some(true),
-            &ChatFormatting::STRIKETHROUGH => self.strikethrough = Some(true),
-            &ChatFormatting::OBFUSCATED => self.obfuscated = Some(true),
-            &ChatFormatting::RESET => {
-                self.color = None;
-                self.bold = None;
-                self.italic = None;
-                self.underlined = None;
-                self.strikethrough = None;
-                self.obfuscated = None;
-            }
-            &ChatFormatting {
+        match *formatting {
+            ChatFormatting::BOLD => self.bold = Some(true),
+            ChatFormatting::ITALIC => self.italic = Some(true),
+            ChatFormatting::UNDERLINE => self.underlined = Some(true),
+            ChatFormatting::STRIKETHROUGH => self.strikethrough = Some(true),
+            ChatFormatting::OBFUSCATED => self.obfuscated = Some(true),
+            ChatFormatting::RESET => self.reset = true,
+            ChatFormatting {
                 name: _,
                 code: _,
                 is_format: _,
@@ -401,6 +387,8 @@ impl Style {
 
 #[cfg(test)]
 mod tests {
+    use crate::component::DEFAULT_STYLE;
+
     use super::*;
 
     #[test]
@@ -418,22 +406,15 @@ mod tests {
     #[test]
     fn ansi_difference_should_reset() {
         let style_a = Style {
-            color: None,
             bold: Some(true),
             italic: Some(true),
-            underlined: None,
-            strikethrough: None,
-            obfuscated: None,
+            ..Style::default()
         };
         let style_b = Style {
-            color: None,
             bold: Some(false),
-            italic: None,
-            underlined: None,
-            strikethrough: None,
-            obfuscated: None,
+            ..Style::default()
         };
-        let ansi_difference = style_a.compare_ansi(&style_b);
+        let ansi_difference = style_a.compare_ansi(&style_b, &Style::default());
         assert_eq!(
             ansi_difference,
             format!(
@@ -446,23 +427,38 @@ mod tests {
     #[test]
     fn ansi_difference_shouldnt_reset() {
         let style_a = Style {
-            color: None,
             bold: Some(true),
-            italic: None,
-            underlined: None,
-            strikethrough: None,
-            obfuscated: None,
+            ..Style::default()
         };
         let style_b = Style {
-            color: None,
-            bold: None,
             italic: Some(true),
-            underlined: None,
-            strikethrough: None,
-            obfuscated: None,
+            ..Style::default()
         };
-        let ansi_difference = style_a.compare_ansi(&style_b);
+        let ansi_difference = style_a.compare_ansi(&style_b, &Style::default());
         assert_eq!(ansi_difference, Ansi::ITALIC)
+    }
+
+    #[test]
+    fn ansi_difference_explicit_reset() {
+        let style_a = Style {
+            bold: Some(true),
+            ..Style::empty()
+        };
+        let style_b = Style {
+            italic: Some(true),
+            reset: true,
+            ..Style::empty()
+        };
+        let ansi_difference = style_a.compare_ansi(&style_b, &DEFAULT_STYLE);
+        assert_eq!(
+            ansi_difference,
+            format!(
+                "{reset}{italic}{white}",
+                reset = Ansi::RESET,
+                white = Ansi::rgb(ChatFormatting::WHITE.color.unwrap()),
+                italic = Ansi::ITALIC
+            )
+        )
     }
 
     #[test]

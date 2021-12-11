@@ -45,7 +45,7 @@ impl Connection {
         self.state = state;
     }
 
-    pub async fn read_packet(&mut self) -> Result<(), String> {
+    pub async fn read_packet(&mut self) -> Result<Packet, String> {
         // what this does:
         // 1. reads the first 5 bytes, probably only some of this will be used to get the packet length
         // 2. how much we should read = packet length - 5
@@ -69,9 +69,7 @@ impl Connection {
         )
         .await?;
 
-        println!("packet: {:?}", packet);
-
-        Ok(())
+        Ok(packet)
     }
 
     /// Write a packet to the server

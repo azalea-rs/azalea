@@ -1,4 +1,3 @@
-use minecraft_client;
 use minecraft_protocol::ServerAddress;
 use tokio::runtime::Runtime;
 

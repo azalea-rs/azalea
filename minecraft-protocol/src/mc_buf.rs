@@ -49,7 +49,7 @@ pub async fn read_varint<T: AsyncRead + std::marker::Unpin>(
 pub fn write_varint(buf: &mut Vec<u8>, mut value: i32) {
     let mut buffer = [0];
     if value == 0 {
-        buf.write(&buffer).unwrap();
+        buf.write_all(&buffer).unwrap();
     }
     while value != 0 {
         buffer[0] = (value & 0b0111_1111) as u8;
@@ -57,7 +57,7 @@ pub fn write_varint(buf: &mut Vec<u8>, mut value: i32) {
         if value != 0 {
             buffer[0] |= 0b1000_0000;
         }
-        buf.write(&buffer).unwrap();
+        buf.write_all(&buffer).unwrap();
     }
 }
 
@@ -134,7 +134,7 @@ pub async fn read_utf_with_len<T: AsyncRead + std::marker::Unpin>(
     Ok(string)
 }
 
-pub fn write_utf_with_len(buf: &mut Vec<u8>, string: &String, len: usize) {
+pub fn write_utf_with_len(buf: &mut Vec<u8>, string: &str, len: usize) {
     if string.len() > len {
         panic!(
             "String too big (was {} bytes encoded, max {})",
@@ -152,7 +152,7 @@ pub async fn read_utf<T: AsyncRead + std::marker::Unpin>(
     read_utf_with_len(buf, MAX_STRING_LENGTH.into()).await
 }
 
-pub fn write_utf(buf: &mut Vec<u8>, string: &String) {
+pub fn write_utf(buf: &mut Vec<u8>, string: &str) {
     write_utf_with_len(buf, string, MAX_STRING_LENGTH.into());
 }
 

@@ -23,7 +23,7 @@ pub struct ServerIpAddress {
 
 impl ServerAddress {
     /// Convert a Minecraft server address (host:port, the port is optional) to a ServerAddress
-    pub fn parse(string: &String) -> Result<ServerAddress, String> {
+    pub fn parse(string: &str) -> Result<ServerAddress, String> {
         if string.is_empty() {
             return Err("Empty string".to_string());
         }

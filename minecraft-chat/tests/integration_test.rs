@@ -2,6 +2,7 @@ use minecraft_chat::{
     component::Component,
     style::{Ansi, ChatFormatting, TextColor},
 };
+use serde::Deserialize;
 use serde_json::Value;
 
 #[test]
@@ -14,9 +15,9 @@ fn basic_ansi_test() {
 }"#,
     )
     .unwrap();
-    let component = Component::new(&j).unwrap();
+    let component = Component::deserialize(&j).unwrap();
     assert_eq!(
-        component.to_ansi(),
+        component.to_ansi(None),
         "\u{1b}[1m\u{1b}[38;2;255;85;85mhello\u{1b}[m"
     );
 }
@@ -50,9 +51,9 @@ fn complex_ansi_test() {
 ]"##,
     )
     .unwrap();
-    let component = Component::new(&j).unwrap();
+    let component = Component::deserialize(&j).unwrap();
     assert_eq!(
-        component.to_ansi(),
+        component.to_ansi(None),
         format!(
             "{bold}{italic}{underlined}{red}hello{reset}{bold}{italic}{red} {reset}{italic}{strikethrough}{abcdef}world{reset}{abcdef} asdf{bold}!{reset}",
             bold = Ansi::BOLD,
@@ -69,6 +70,6 @@ fn complex_ansi_test() {
 #[test]
 fn component_from_string() {
     let j: Value = serde_json::from_str("\"foo\"").unwrap();
-    let component = Component::new(&j).unwrap();
-    assert_eq!(component.to_ansi(), "foo");
+    let component = Component::deserialize(&j).unwrap();
+    assert_eq!(component.to_ansi(None), "foo");
 }

@@ -3,7 +3,7 @@ use crate::{
     packets::{
         handshake::client_intention_packet::ClientIntentionPacket,
         status::serverbound_status_request_packet::ServerboundStatusRequestPacket,
-        ConnectionProtocol, PacketTrait,
+        ConnectionProtocol, Packet, PacketTrait,
     },
     resolver, ServerAddress,
 };
@@ -33,7 +33,17 @@ pub async fn ping_server(address: &ServerAddress) -> Result<(), String> {
     conn.send_packet(ServerboundStatusRequestPacket {}.get())
         .await;
 
-    conn.read_packet().await.unwrap();
+    let packet = conn.read_packet().await.unwrap();
+
+    match packet {
+        Packet::ClientboundStatusResponsePacket(p) => {
+            println!("{:?}", p);
+            println!("{}", p.description.to_ansi(None));
+        }
+        _ => {
+            println!("unexpected packet {:?}", packet);
+        }
+    }
 
     Ok(())
 

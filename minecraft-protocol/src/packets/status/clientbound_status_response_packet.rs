@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use minecraft_chat::component::Component;
+use serde::{Deserialize, Deserializer};
 use serde_json::Value;
 use tokio::io::BufReader;
 
@@ -8,29 +9,29 @@ use crate::{
     packets::{Packet, PacketTrait},
 };
 
-#[derive(Clone, Debug)]
-struct Version {
-    name: String,
-    protocol: u32,
+#[derive(Clone, Debug, Deserialize)]
+pub struct Version {
+    pub name: String,
+    pub protocol: u32,
 }
 
-#[derive(Clone, Debug)]
-struct SamplePlayer {
-    id: String,
-    name: String,
+#[derive(Clone, Debug, Deserialize)]
+pub struct SamplePlayer {
+    pub id: String,
+    pub name: String,
 }
 
-#[derive(Clone, Debug)]
-struct Players {
-    max: u32,
-    online: u32,
-    sample: Vec<SamplePlayer>,
+#[derive(Clone, Debug, Deserialize)]
+pub struct Players {
+    pub max: u32,
+    pub online: u32,
+    pub sample: Vec<SamplePlayer>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct ClientboundStatusResponsePacket {
-    // version: Version,
-    description: Component,
+    pub version: Version,
+    pub description: Component,
 }
 
 #[async_trait]
@@ -47,13 +48,9 @@ impl PacketTrait for ClientboundStatusResponsePacket {
         let status_string = mc_buf::read_utf(buf).await?;
         let status_json: Value =
             serde_json::from_str(status_string.as_str()).expect("Server status isn't valid JSON");
-        let description_string: &Value = status_json.get("description").unwrap();
 
-        // this.status = GsonHelper.fromJson(GSON, friendlyByteBuf.readUtf(32767), ServerStatus.class);
-        Ok(ClientboundStatusResponsePacket {
-            // version: status_json.get("version"),
-            description: Component::new(description_string)?,
-        }
-        .get())
+        Ok(ClientboundStatusResponsePacket::deserialize(status_json)
+            .map_err(|e| e.to_string())?
+            .get())
     }
 }

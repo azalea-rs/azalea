@@ -29,8 +29,7 @@ pub async fn resolve_address(address: &ServerAddress) -> Result<ServerIpAddress,
         .await;
 
     // if it resolves that means it's a redirect so we call resolve_address again with the new host
-    if srv_redirect_result.is_ok() {
-        let redirect_result = srv_redirect_result.unwrap();
+    if let Ok(redirect_result) = srv_redirect_result {
         let redirect_srv = redirect_result
             .iter()
             .next()
