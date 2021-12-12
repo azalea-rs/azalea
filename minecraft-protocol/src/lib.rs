@@ -7,7 +7,6 @@ pub mod connection;
 pub mod mc_buf;
 pub mod packets;
 pub mod resolver;
-pub mod server_status_pinger;
 
 #[derive(Debug)]
 pub struct ServerAddress {

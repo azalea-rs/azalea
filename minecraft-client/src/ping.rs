@@ -1,4 +1,6 @@
-use crate::{
+///! Ping Minecraft servers.
+
+use minecraft_protocol::{
     connection::Connection,
     packets::{
         handshake::client_intention_packet::ClientIntentionPacket,

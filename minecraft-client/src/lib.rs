@@ -1,4 +1,4 @@
-
+pub mod ping;
 
 #[cfg(test)]
 mod tests {
