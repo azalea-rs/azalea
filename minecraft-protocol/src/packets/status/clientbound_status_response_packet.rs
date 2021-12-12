@@ -28,6 +28,7 @@ pub struct Players {
     pub sample: Vec<SamplePlayer>,
 }
 
+// the entire packet is just json, which is why it has deserialize
 #[derive(Clone, Debug, Deserialize)]
 pub struct ClientboundStatusResponsePacket {
     pub version: Version,

@@ -111,9 +111,7 @@ impl<'de> Deserialize<'de> for Component {
     where
         D: Deserializer<'de>,
     {
-        println!("deserializing component");
         let json: serde_json::Value = serde::Deserialize::deserialize(de)?;
-        println!("made json");
 
         // we create a component that we might add siblings to
         let mut component: Component;
