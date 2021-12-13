@@ -1,11 +1,11 @@
-use minecraft_client::ping;
-use minecraft_protocol::ServerAddress;
+use minecraft_client::{connect::join_server, ping::ping_server};
 use tokio::runtime::Runtime;
 
 async fn bot() {
-    let address = ServerAddress::parse(&"mc.hypixel.net".to_string()).unwrap();
-    let response = ping::ping_server(&address).await.unwrap();
-    println!("{}", response.description.to_ansi(None));
+    let address = "localhost:63425";
+    let response = join_server(&address.try_into().unwrap()).await.unwrap();
+    // println!("{}", response.description.to_ansi(None));
+    println!("connected");
 }
 
 fn main() {

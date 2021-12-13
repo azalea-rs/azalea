@@ -9,9 +9,11 @@ use crate::{
     packets::{Packet, PacketTrait},
 };
 
+use super::StatusPacket;
+
 #[derive(Clone, Debug, Deserialize)]
 pub struct Version {
-    pub name: String,
+    pub name: Component,
     pub protocol: u32,
 }
 
@@ -31,14 +33,16 @@ pub struct Players {
 // the entire packet is just json, which is why it has deserialize
 #[derive(Clone, Debug, Deserialize)]
 pub struct ClientboundStatusResponsePacket {
-    pub version: Version,
     pub description: Component,
+    pub favicon: Option<String>,
+    pub players: Players,
+    pub version: Version,
 }
 
 #[async_trait]
 impl PacketTrait for ClientboundStatusResponsePacket {
-    fn get(self) -> Packet {
-        Packet::ClientboundStatusResponsePacket(self)
+    fn get(self) -> StatusPacket {
+        StatusPacket::ClientboundStatusResponsePacket(self)
     }
 
     fn write(&self, _buf: &mut Vec<u8>) {}

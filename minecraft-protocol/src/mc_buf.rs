@@ -23,6 +23,17 @@ pub fn write_byte(buf: &mut Vec<u8>, n: u8) {
     WriteBytesExt::write_u8(buf, n).unwrap();
 }
 
+pub async fn read_bytes<T: AsyncRead + std::marker::Unpin>(
+    buf: &mut BufReader<T>,
+    n: usize,
+) -> Result<Vec<u8>, String> {
+    let mut bytes = vec![0; n];
+    match AsyncReadExt::read_exact(buf, &mut bytes).await {
+        Ok(_) => Ok(bytes),
+        Err(_) => Err("Error reading bytes".to_string()),
+    }
+}
+
 pub fn write_bytes(buf: &mut Vec<u8>, bytes: &[u8]) {
     buf.extend_from_slice(bytes);
 }
@@ -158,4 +169,16 @@ pub fn write_utf(buf: &mut Vec<u8>, string: &str) {
 
 pub fn write_short(buf: &mut Vec<u8>, n: u16) {
     WriteBytesExt::write_u16::<BigEndian>(buf, n).unwrap();
+}
+
+pub async fn read_byte_array<T: AsyncRead + std::marker::Unpin>(
+    buf: &mut BufReader<T>,
+) -> Result<Vec<u8>, String> {
+    let length = read_varint(buf).await?.0 as usize;
+    Ok(read_bytes(buf, length).await?)
+}
+
+pub fn write_byte_array(buf: &mut Vec<u8>, bytes: &[u8]) {
+    write_varint(buf, bytes.len() as i32);
+    write_bytes(buf, bytes);
 }

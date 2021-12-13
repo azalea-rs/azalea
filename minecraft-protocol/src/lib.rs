@@ -3,7 +3,7 @@
 use std::net::IpAddr;
 use std::str::FromStr;
 
-pub mod connection;
+pub mod connect;
 pub mod mc_buf;
 pub mod packets;
 pub mod resolver;
@@ -20,9 +20,12 @@ pub struct ServerIpAddress {
     pub port: u16,
 }
 
-impl ServerAddress {
+// impl try_from for ServerAddress
+impl<'a> TryFrom<&'a str> for ServerAddress {
+    type Error = String;
+
     /// Convert a Minecraft server address (host:port, the port is optional) to a ServerAddress
-    pub fn parse(string: &str) -> Result<ServerAddress, String> {
+    fn try_from(string: &str) -> Result<Self, Self::Error> {
         if string.is_empty() {
             return Err("Empty string".to_string());
         }

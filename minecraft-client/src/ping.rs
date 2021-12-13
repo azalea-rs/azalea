@@ -1,14 +1,13 @@
 ///! Ping Minecraft servers.
-
 use minecraft_protocol::{
-    connection::Connection,
+    connect::Connection,
     packets::{
         handshake::client_intention_packet::ClientIntentionPacket,
         status::{
             clientbound_status_response_packet::ClientboundStatusResponsePacket,
             serverbound_status_request_packet::ServerboundStatusRequestPacket,
         },
-        ConnectionProtocol, Packet, PacketTrait,
+        ConnectionProtocol, Packet, PacketTrait, PROTOCOL_VERSION,
     },
     resolver, ServerAddress,
 };
@@ -23,7 +22,7 @@ pub async fn ping_server(
     // send the client intention packet and switch to the status state
     conn.send_packet(
         ClientIntentionPacket {
-            protocol_version: 757,
+            protocol_version: PROTOCOL_VERSION,
             hostname: address.host.clone(),
             port: address.port,
             intention: ConnectionProtocol::Status,

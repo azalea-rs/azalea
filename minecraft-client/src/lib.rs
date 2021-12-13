@@ -1,3 +1,6 @@
+//! Significantly abstract minecraft-protocol so it's actually useable for bots.
+
+pub mod connect;
 pub mod ping;
 
 #[cfg(test)]

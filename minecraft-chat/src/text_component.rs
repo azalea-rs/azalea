@@ -27,9 +27,7 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
         if legacy_color_code.chars().nth(i).unwrap() == LEGACY_FORMATTING_CODE_SYMBOL {
             let formatting_code = legacy_color_code.chars().nth(i + 1).unwrap();
             if let Ok(formatter) = ChatFormatting::from_code(formatting_code) {
-                if components.is_empty() {
-                    components.push(TextComponent::new("".to_string()));
-                } else if !components.last().unwrap().text.is_empty() {
+                if components.is_empty() || !components.last().unwrap().text.is_empty() {
                     components.push(TextComponent::new("".to_string()));
                 }
 
