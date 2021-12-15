@@ -13,22 +13,16 @@ where
 #[async_trait]
 impl ProtocolPacket for GamePacket {
     fn id(&self) -> u32 {
-        match self {
-            _ => 0x00,
-        }
+        0x00
     }
 
-    fn write(&self, buf: &mut Vec<u8>) {
-        match self {
-            _ => (),
-        }
-    }
+    fn write(&self, _buf: &mut Vec<u8>) {}
 
     /// Read a packet by its id, ConnectionProtocol, and flow
     async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        id: u32,
+        _id: u32,
         flow: &PacketFlow,
-        buf: &mut BufReader<T>,
+        _buf: &mut BufReader<T>,
     ) -> Result<GamePacket, String>
     where
         Self: Sized,

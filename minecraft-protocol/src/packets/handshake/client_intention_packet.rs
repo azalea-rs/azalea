@@ -1,12 +1,8 @@
 use std::hash::Hash;
 
-use async_trait::async_trait;
 use tokio::io::BufReader;
 
-use crate::{
-    mc_buf,
-    packets::{ConnectionProtocol, Packet},
-};
+use crate::{mc_buf, packets::ConnectionProtocol};
 
 use super::HandshakePacket;
 
@@ -32,7 +28,7 @@ impl ClientIntentionPacket {
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        buf: &mut BufReader<T>,
+        _buf: &mut BufReader<T>,
     ) -> Result<HandshakePacket, String> {
         Err("ClientIntentionPacket::parse not implemented".to_string())
         // Ok(ClientIntentionPacket {}.get())

@@ -1,8 +1,7 @@
-use async_trait::async_trait;
 use std::hash::Hash;
 use tokio::io::BufReader;
 
-use crate::{mc_buf, packets::Packet};
+use crate::mc_buf;
 
 use super::LoginPacket;
 
@@ -21,7 +20,7 @@ impl ServerboundHelloPacket {
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        buf: &mut BufReader<T>,
+        _buf: &mut BufReader<T>,
     ) -> Result<LoginPacket, String> {
         Err("ServerboundHelloPacket::read not implemented".to_string())
     }

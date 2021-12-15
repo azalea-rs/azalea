@@ -1,9 +1,9 @@
-use minecraft_client::{connect::join_server, ping::ping_server};
+use minecraft_client::connect::join_server;
 use tokio::runtime::Runtime;
 
 async fn bot() {
-    let address = "localhost:63425";
-    let response = join_server(&address.try_into().unwrap()).await.unwrap();
+    let address = "localhost:62072";
+    let _response = join_server(&address.try_into().unwrap()).await.unwrap();
     // println!("{}", response.description.to_ansi(None));
     println!("connected");
 }

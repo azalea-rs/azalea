@@ -17,7 +17,7 @@ where
         serverbound_status_request_packet::ServerboundStatusRequestPacket,
     ),
     ClientboundStatusResponsePacket(
-        clientbound_status_response_packet::ClientboundStatusResponsePacket,
+        Box<clientbound_status_response_packet::ClientboundStatusResponsePacket>,
     ),
 }
 

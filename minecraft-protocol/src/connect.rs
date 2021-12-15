@@ -4,15 +4,10 @@ use crate::packets::game::GamePacket;
 use crate::packets::handshake::HandshakePacket;
 use crate::packets::login::LoginPacket;
 use crate::packets::status::StatusPacket;
-use crate::packets::{ConnectionProtocol, ProtocolPacket};
 use crate::read::read_packet;
 use crate::write::write_packet;
-use crate::{mc_buf, packets::Packet, ServerIpAddress};
-use tokio::io::AsyncWriteExt;
-use tokio::{
-    io::{AsyncReadExt, BufReader},
-    net::TcpStream,
-};
+use crate::ServerIpAddress;
+use tokio::net::TcpStream;
 
 pub enum PacketFlow {
     ClientToServer,

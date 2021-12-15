@@ -1,10 +1,6 @@
 use std::fmt;
 
-use crate::{
-    base_component::BaseComponent,
-    component::Component,
-    style::{ChatFormatting, Style, TextColor},
-};
+use crate::{base_component::BaseComponent, component::Component, style::ChatFormatting};
 
 #[derive(Clone, Debug)]
 pub struct TextComponent {

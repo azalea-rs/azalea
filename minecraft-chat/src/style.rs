@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 
 use serde_json::Value;
 
@@ -15,9 +15,9 @@ impl TextColor {
             let n = u32::from_str_radix(&n, 16).unwrap();
             return Ok(TextColor::from_rgb(n));
         }
-        let color = NAMED_COLORS.get(&value.to_ascii_uppercase());
-        if color.is_some() {
-            return Ok(color.unwrap().clone());
+        let color_option = NAMED_COLORS.get(&value.to_ascii_uppercase());
+        if let Some(color) = color_option {
+            return Ok(color.clone());
         }
         Err(format!("Invalid color {}", value))
     }
@@ -51,9 +51,6 @@ lazy_static! {
         named_colors
     };
 }
-
-/// The weird S character Minecraft used to use for chat formatting
-const PREFIX_CODE: char = '\u{00a7}';
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct ChatFormatting<'a> {
@@ -178,12 +175,14 @@ impl TextColor {
     pub fn format(&self) -> String {
         format!("#{:06X}", self.value)
     }
+}
 
-    pub fn to_string(&self) -> String {
+impl fmt::Display for TextColor {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let Some(name) = &self.name {
-            name.clone()
+            write!(f, "{}", name.clone())
         } else {
-            self.format()
+            write!(f, "{}", self.format())
         }
     }
 }

@@ -4,7 +4,7 @@ pub mod login;
 pub mod status;
 
 use async_trait::async_trait;
-use tokio::io::{AsyncRead, BufReader};
+use tokio::io::BufReader;
 
 use crate::connect::PacketFlow;
 
@@ -23,7 +23,7 @@ pub enum Packet {
     Game(game::GamePacket),
     Handshake(handshake::HandshakePacket),
     Login(login::LoginPacket),
-    Status(status::StatusPacket),
+    Status(Box<status::StatusPacket>),
 }
 
 /// An enum of packets for a certain protocol

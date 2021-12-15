@@ -22,7 +22,7 @@ pub async fn read_packet<P: ProtocolPacket>(
 
     // if we recognize the packet id, parse it
 
-    let packet = P::read(packet_id.try_into().unwrap(), &flow, &mut buf).await?;
+    let packet = P::read(packet_id.try_into().unwrap(), flow, &mut buf).await?;
 
     Ok(packet)
 }

@@ -1,7 +1,4 @@
-use serde::{
-    de::{self, Error},
-    Deserialize, Deserializer,
-};
+use serde::{de, Deserialize, Deserializer};
 
 use crate::{
     base_component::BaseComponent,
@@ -59,7 +56,7 @@ impl Component {
     /// Convert this component into an ansi string
     pub fn to_ansi(&self, default_style: Option<&Style>) -> String {
         // default the default_style to white if it's not set
-        let default_style: &Style = default_style.unwrap_or_else(|| &DEFAULT_STYLE);
+        let default_style: &Style = default_style.unwrap_or(&DEFAULT_STYLE);
 
         // this contains the final string will all the ansi escape codes
         let mut built_string = String::new();
@@ -132,10 +129,10 @@ impl<'de> Deserialize<'de> for Component {
                 if json.get("with").is_some() {
                     let with = json.get("with").unwrap().as_array().unwrap();
                     let mut with_array = Vec::with_capacity(with.len());
-                    for i in 0..with.len() {
+                    for item in with {
                         // if it's a string component with no styling and no siblings, just add a string to with_array
                         // otherwise add the component to the array
-                        let c = Component::deserialize(&with[i]).map_err(de::Error::custom)?;
+                        let c = Component::deserialize(item).map_err(de::Error::custom)?;
                         if let Component::Text(text_component) = c {
                             if text_component.base.siblings.is_empty()
                                 && text_component.base.style.is_empty()
@@ -145,7 +142,7 @@ impl<'de> Deserialize<'de> for Component {
                             }
                         }
                         with_array.push(StringOrComponent::Component(
-                            Component::deserialize(&with[i]).map_err(de::Error::custom)?,
+                            Component::deserialize(item).map_err(de::Error::custom)?,
                         ));
                     }
                     component =

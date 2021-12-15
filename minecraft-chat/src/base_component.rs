@@ -15,3 +15,9 @@ impl BaseComponent {
         }
     }
 }
+
+impl Default for BaseComponent {
+    fn default() -> Self {
+        Self::new()
+    }
+}

@@ -1,10 +1,9 @@
-use async_trait::async_trait;
 use minecraft_chat::component::Component;
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 use serde_json::Value;
 use tokio::io::BufReader;
 
-use crate::{mc_buf, packets::Packet};
+use crate::mc_buf;
 
 use super::StatusPacket;
 
@@ -38,7 +37,7 @@ pub struct ClientboundStatusResponsePacket {
 
 impl ClientboundStatusResponsePacket {
     pub fn get(self) -> StatusPacket {
-        StatusPacket::ClientboundStatusResponsePacket(self)
+        StatusPacket::ClientboundStatusResponsePacket(Box::new(self))
     }
 
     pub fn write(&self, _buf: &mut Vec<u8>) {}
