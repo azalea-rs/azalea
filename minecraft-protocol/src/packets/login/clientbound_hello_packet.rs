@@ -4,6 +4,8 @@ use tokio::io::BufReader;
 
 use crate::{mc_buf, packets::Packet};
 
+use super::LoginPacket;
+
 #[derive(Hash, Clone, Debug)]
 pub struct ClientboundHelloPacket {
     pub server_id: String,
@@ -12,16 +14,17 @@ pub struct ClientboundHelloPacket {
 }
 
 impl ClientboundHelloPacket {
-    fn get(self) -> Packet {
-        Packet::ClientboundHelloPacket(self)
+    pub fn get(self) -> LoginPacket {
+        LoginPacket::ClientboundHelloPacket(self)
     }
-    fn write(&self, _buf: &mut Vec<u8>) {
+
+    pub fn write(&self, _buf: &mut Vec<u8>) {
         panic!("ClientboundHelloPacket::write not implemented")
     }
 
-    async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
+    pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         buf: &mut BufReader<T>,
-    ) -> Result<Packet, String> {
+    ) -> Result<LoginPacket, String> {
         let server_id = mc_buf::read_utf_with_len(buf, 20).await?;
         let public_key = mc_buf::read_byte_array(buf).await?;
         let nonce = mc_buf::read_byte_array(buf).await?;

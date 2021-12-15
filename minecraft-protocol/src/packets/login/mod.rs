@@ -21,15 +21,15 @@ where
 impl ProtocolPacket for LoginPacket {
     fn id(&self) -> u32 {
         match self {
-            LoginPacket::ServerboundStatusRequestPacket(_packet) => 0x00,
-            LoginPacket::ClientboundStatusResponsePacket(_packet) => 0x00,
+            LoginPacket::ServerboundHelloPacket(_packet) => 0x00,
+            LoginPacket::ClientboundHelloPacket(_packet) => 0x01,
         }
     }
 
     fn write(&self, buf: &mut Vec<u8>) {
         match self {
-            LoginPacket::ServerboundStatusRequestPacket(packet) => packet.write(buf),
-            LoginPacket::ClientboundStatusResponsePacket(packet) => packet.write(buf),
+            LoginPacket::ServerboundHelloPacket(packet) => packet.write(buf),
+            LoginPacket::ClientboundHelloPacket(packet) => packet.write(buf),
         }
     }
 
@@ -44,17 +44,11 @@ impl ProtocolPacket for LoginPacket {
     {
         match flow {
             PacketFlow::ServerToClient => match id {
-                0x00 => Ok(
-                    clientbound_status_response_packet::ClientboundStatusResponsePacket::read(buf)
-                        .await?,
-                ),
+                0x01 => Ok(clientbound_hello_packet::ClientboundHelloPacket::read(buf).await?),
                 _ => Err(format!("Unknown ServerToClient status packet id: {}", id)),
             },
             PacketFlow::ClientToServer => match id {
-                0x00 => Ok(
-                    serverbound_status_request_packet::ServerboundStatusRequestPacket::read(buf)
-                        .await?,
-                ),
+                0x00 => Ok(serverbound_hello_packet::ServerboundHelloPacket::read(buf).await?),
                 _ => Err(format!("Unknown ClientToServer status packet id: {}", id)),
             },
         }

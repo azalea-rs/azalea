@@ -6,7 +6,7 @@ use tokio::io::BufReader;
 
 use crate::connect::PacketFlow;
 
-use super::{ProtocolPacket};
+use super::ProtocolPacket;
 
 #[derive(Clone, Debug)]
 pub enum StatusPacket

@@ -8,6 +8,8 @@ use crate::{
     packets::{ConnectionProtocol, Packet},
 };
 
+use super::HandshakePacket;
+
 #[derive(Hash, Clone, Debug)]
 pub struct ClientIntentionPacket {
     pub protocol_version: u32,
@@ -17,22 +19,21 @@ pub struct ClientIntentionPacket {
     pub intention: ConnectionProtocol,
 }
 
-#[async_trait]
 impl ClientIntentionPacket {
-    fn get(self) -> Packet {
-        Packet::ClientIntentionPacket(self)
+    pub fn get(self) -> HandshakePacket {
+        HandshakePacket::ClientIntentionPacket(self)
     }
 
-    fn write(&self, buf: &mut Vec<u8>) {
+    pub fn write(&self, buf: &mut Vec<u8>) {
         mc_buf::write_varint(buf, self.protocol_version as i32);
         mc_buf::write_utf(buf, &self.hostname);
         mc_buf::write_short(buf, self.port);
         mc_buf::write_varint(buf, self.intention.clone() as i32);
     }
 
-    async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        _buf: &mut BufReader<T>,
-    ) -> Result<Packet, String> {
+    pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
+        buf: &mut BufReader<T>,
+    ) -> Result<HandshakePacket, String> {
         Err("ClientIntentionPacket::parse not implemented".to_string())
         // Ok(ClientIntentionPacket {}.get())
     }
