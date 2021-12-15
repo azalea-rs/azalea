@@ -1,7 +1,5 @@
 pub mod client_intention_packet;
 
-use std::f32::consts::E;
-
 use async_trait::async_trait;
 use tokio::io::BufReader;
 

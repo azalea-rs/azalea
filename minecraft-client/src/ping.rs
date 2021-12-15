@@ -1,13 +1,13 @@
 ///! Ping Minecraft servers.
 use minecraft_protocol::{
-    connect::Connection,
+    connect::HandshakeConnection,
     packets::{
         handshake::client_intention_packet::ClientIntentionPacket,
         status::{
             clientbound_status_response_packet::ClientboundStatusResponsePacket,
-            serverbound_status_request_packet::ServerboundStatusRequestPacket,
+            serverbound_status_request_packet::ServerboundStatusRequestPacket, StatusPacket,
         },
-        ConnectionProtocol, Packet, PROTOCOL_VERSION,
+        ConnectionProtocol, PROTOCOL_VERSION,
     },
     resolver, ServerAddress,
 };
@@ -17,10 +17,10 @@ pub async fn ping_server(
 ) -> Result<ClientboundStatusResponsePacket, String> {
     let resolved_address = resolver::resolve_address(address).await?;
 
-    let mut conn = Connection::new(&resolved_address).await?;
+    let mut conn = HandshakeConnection::new(&resolved_address).await?;
 
     // send the client intention packet and switch to the status state
-    conn.send_packet(
+    conn.write(
         ClientIntentionPacket {
             protocol_version: PROTOCOL_VERSION,
             hostname: address.host.clone(),
@@ -30,16 +30,15 @@ pub async fn ping_server(
         .get(),
     )
     .await;
-    conn.switch_state(ConnectionProtocol::Status);
+    let mut conn = conn.status();
 
     // send the empty status request packet
-    conn.send_packet(ServerboundStatusRequestPacket {}.get())
-        .await;
+    conn.write(ServerboundStatusRequestPacket {}.get()).await;
 
-    let packet = conn.read_packet().await.unwrap();
+    let packet = conn.read().await.unwrap();
 
     Ok(match packet {
-        Packet::ClientboundStatusResponsePacket(p) => p,
+        StatusPacket::ClientboundStatusResponsePacket(p) => p,
         _ => Err("Invalid packet type".to_string())?,
     })
 }

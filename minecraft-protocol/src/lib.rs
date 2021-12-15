@@ -6,7 +6,9 @@ use std::str::FromStr;
 pub mod connect;
 pub mod mc_buf;
 pub mod packets;
+pub mod read;
 pub mod resolver;
+pub mod write;
 
 #[derive(Debug)]
 pub struct ServerAddress {

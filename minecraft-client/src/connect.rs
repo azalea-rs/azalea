@@ -1,11 +1,10 @@
 ///! Connect to Minecraft servers.
 use minecraft_protocol::{
-    connect::Connection,
+    connect::HandshakeConnection,
     packets::{
         handshake::client_intention_packet::ClientIntentionPacket,
-        login::serverbound_hello_packet::ServerboundHelloPacket,
-        status::clientbound_status_response_packet::ClientboundStatusResponsePacket,
-        ConnectionProtocol, Packet, PROTOCOL_VERSION,
+        login::{serverbound_hello_packet::ServerboundHelloPacket, LoginPacket},
+        ConnectionProtocol, PROTOCOL_VERSION,
     },
     resolver, ServerAddress,
 };
@@ -15,10 +14,10 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
 
     let resolved_address = resolver::resolve_address(address).await?;
 
-    let mut conn = Connection::new(&resolved_address).await?;
+    let mut conn = HandshakeConnection::new(&resolved_address).await?;
 
     // handshake
-    conn.send_packet(
+    conn.write(
         ClientIntentionPacket {
             protocol_version: PROTOCOL_VERSION,
             hostname: address.host.clone(),
@@ -28,16 +27,15 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
         .get(),
     )
     .await;
-    conn.switch_state(ConnectionProtocol::Login);
+    let mut conn = conn.login();
 
     // login start
-    conn.send_packet(ServerboundHelloPacket { username }.get())
-        .await;
+    conn.write(ServerboundHelloPacket { username }.get()).await;
 
     // encryption request
-    let packet = conn.read_packet().await.unwrap();
+    let packet = conn.read().await.unwrap();
     let encryption_request_packet = match packet {
-        Packet::ClientboundHelloPacket(p) => p,
+        LoginPacket::ClientboundHelloPacket(p) => p,
         _ => Err(format!("Invalid packet type: {:?}", packet))?,
     };
 
