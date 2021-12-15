@@ -6,10 +6,13 @@ use tokio::io::BufReader;
 
 use crate::connect::PacketFlow;
 
-use super::{ConnectionProtocol, PacketTrait, ProtocolPacket};
+use super::{ProtocolPacket};
 
 #[derive(Clone, Debug)]
-pub enum StatusPacket {
+pub enum StatusPacket
+where
+    Self: Sized,
+{
     ServerboundStatusRequestPacket(
         serverbound_status_request_packet::ServerboundStatusRequestPacket,
     ),
@@ -18,22 +21,8 @@ pub enum StatusPacket {
     ),
 }
 
-// #[async_trait]
-// impl ProtocolPacket for StatusPacket {
-impl StatusPacket {
-    fn get_inner(self) -> impl PacketTrait {
-        match self {
-            StatusPacket::ServerboundStatusRequestPacket(packet) => packet,
-            StatusPacket::ClientboundStatusResponsePacket(packet) => packet,
-        }
-    }
-    // fn get_inner(&self) -> StatusPacket {
-    //     match self {
-    //         StatusPacket::ServerboundStatusRequestPacket(packet) => packet,
-    //         StatusPacket::ClientboundStatusResponsePacket(packet) => packet,
-    //     }
-    // }
-
+#[async_trait]
+impl ProtocolPacket for StatusPacket {
     fn id(&self) -> u32 {
         match self {
             StatusPacket::ServerboundStatusRequestPacket(_packet) => 0x00,
@@ -49,14 +38,11 @@ impl StatusPacket {
     }
 
     /// Read a packet by its id, ConnectionProtocol, and flow
-    async fn read<
-        T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send,
-        P: ProtocolPacket,
-    >(
+    async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         id: u32,
         flow: &PacketFlow,
         buf: &mut BufReader<T>,
-    ) -> Result<P, String>
+    ) -> Result<StatusPacket, String>
     where
         Self: Sized,
     {

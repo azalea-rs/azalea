@@ -5,7 +5,7 @@ use tokio::io::BufReader;
 
 use crate::{
     mc_buf,
-    packets::{ConnectionProtocol, Packet, PacketTrait},
+    packets::{ConnectionProtocol, Packet},
 };
 
 #[derive(Hash, Clone, Debug)]
@@ -18,7 +18,7 @@ pub struct ClientIntentionPacket {
 }
 
 #[async_trait]
-impl PacketTrait for ClientIntentionPacket {
+impl ClientIntentionPacket {
     fn get(self) -> Packet {
         Packet::ClientIntentionPacket(self)
     }

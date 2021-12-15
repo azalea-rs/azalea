@@ -2,10 +2,7 @@ use async_trait::async_trait;
 use std::hash::Hash;
 use tokio::io::BufReader;
 
-use crate::{
-    mc_buf,
-    packets::{Packet, PacketTrait},
-};
+use crate::{mc_buf, packets::Packet};
 
 #[derive(Hash, Clone, Debug)]
 pub struct ServerboundHelloPacket {
@@ -13,7 +10,7 @@ pub struct ServerboundHelloPacket {
 }
 
 #[async_trait]
-impl PacketTrait for ServerboundHelloPacket {
+impl ServerboundHelloPacket {
     fn get(self) -> Packet {
         Packet::ServerboundHelloPacket(self)
     }

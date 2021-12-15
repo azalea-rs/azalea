@@ -26,21 +26,20 @@ pub enum Packet {
     Status(status::StatusPacket),
 }
 
+/// An enum of packets for a certain protocol
 #[async_trait]
-pub trait ProtocolPacket {
-    fn get_inner<P: PacketTrait>(&self) -> &P;
-
+pub trait ProtocolPacket
+where
+    Self: Sized,
+{
     fn id(&self) -> u32;
 
     /// Read a packet by its id, ConnectionProtocol, and flow
-    async fn read<
-        T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send,
-        P: ProtocolPacket,
-    >(
+    async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         id: u32,
         flow: &PacketFlow,
         buf: &mut BufReader<T>,
-    ) -> Result<P, String>
+    ) -> Result<Self, String>
     where
         Self: Sized;
 
@@ -129,14 +128,19 @@ pub trait ProtocolPacket {
 //     }
 // }
 
-#[async_trait]
-pub trait PacketTrait {
-    /// Return a version of the packet that you can actually use for stuff
-    fn get<P: ProtocolPacket>(self) -> P;
-    fn write(&self, buf: &mut Vec<u8>);
-    async fn read<T: AsyncRead + std::marker::Unpin + std::marker::Send, P: ProtocolPacket>(
-        buf: &mut BufReader<T>,
-    ) -> Result<P, String>
-    where
-        Self: Sized;
-}
+// #[async_trait]
+// pub trait PacketTrait
+// where
+//     Self: Sized,
+// {
+//     /// Return a version of the packet that you can actually use for stuff
+//     fn get(self) -> dyn ProtocolPacket;
+
+//     fn write(&self, buf: &mut Vec<u8>);
+
+//     async fn read<T: AsyncRead + std::marker::Unpin + std::marker::Send, P: ProtocolPacket>(
+//         buf: &mut BufReader<T>,
+//     ) -> Result<P, String>
+//     where
+//         Self: Sized;
+// }

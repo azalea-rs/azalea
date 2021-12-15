@@ -4,10 +4,7 @@ use serde::{Deserialize, Deserializer};
 use serde_json::Value;
 use tokio::io::BufReader;
 
-use crate::{
-    mc_buf,
-    packets::{Packet, PacketTrait},
-};
+use crate::{mc_buf, packets::Packet};
 
 use super::StatusPacket;
 
@@ -39,23 +36,24 @@ pub struct ClientboundStatusResponsePacket {
     pub version: Version,
 }
 
-#[async_trait]
-impl PacketTrait for ClientboundStatusResponsePacket {
-    fn get(self) -> StatusPacket {
+impl ClientboundStatusResponsePacket {
+    pub fn get(self) -> StatusPacket {
         StatusPacket::ClientboundStatusResponsePacket(self)
     }
 
-    fn write(&self, _buf: &mut Vec<u8>) {}
+    pub fn write(&self, _buf: &mut Vec<u8>) {}
 
-    async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
+    pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         buf: &mut BufReader<T>,
-    ) -> Result<Packet, String> {
+    ) -> Result<StatusPacket, String> {
         let status_string = mc_buf::read_utf(buf).await?;
         let status_json: Value =
             serde_json::from_str(status_string.as_str()).expect("Server status isn't valid JSON");
 
-        Ok(ClientboundStatusResponsePacket::deserialize(status_json)
+        let packet = ClientboundStatusResponsePacket::deserialize(status_json)
             .map_err(|e| e.to_string())?
-            .get())
+            .get();
+
+        Ok(packet)
     }
 }

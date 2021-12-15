@@ -7,7 +7,7 @@ use minecraft_protocol::{
             clientbound_status_response_packet::ClientboundStatusResponsePacket,
             serverbound_status_request_packet::ServerboundStatusRequestPacket,
         },
-        ConnectionProtocol, Packet, PacketTrait, PROTOCOL_VERSION,
+        ConnectionProtocol, Packet, PROTOCOL_VERSION,
     },
     resolver, ServerAddress,
 };

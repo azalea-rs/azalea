@@ -5,7 +5,7 @@ use minecraft_protocol::{
         handshake::client_intention_packet::ClientIntentionPacket,
         login::serverbound_hello_packet::ServerboundHelloPacket,
         status::clientbound_status_response_packet::ClientboundStatusResponsePacket,
-        ConnectionProtocol, Packet, PacketTrait, PROTOCOL_VERSION,
+        ConnectionProtocol, Packet, PROTOCOL_VERSION,
     },
     resolver, ServerAddress,
 };
