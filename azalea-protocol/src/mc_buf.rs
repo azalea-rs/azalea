@@ -12,14 +12,11 @@ const MAX_STRING_LENGTH: u16 = 32767;
 
 #[async_trait]
 pub trait Writable {
-    fn write_collection<F, T>(
-        &mut self,
-        collection: Vec<T>,
-        writer: F,
-    ) -> Result<(), std::io::Error>
+    fn write_list<F, T>(&mut self, list: Vec<T>, writer: F) -> Result<(), std::io::Error>
     where
         F: FnOnce(&mut Self, T) -> Result<(), std::io::Error> + Copy,
         Self: Sized;
+    fn write_int_id_list(&mut self, list: Vec<i32>) -> Result<(), std::io::Error>;
     fn write_byte(&mut self, n: u8) -> Result<(), std::io::Error>;
     fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), std::io::Error>;
     fn write_varint(&mut self, value: i32) -> Result<(), std::io::Error>;
@@ -31,20 +28,20 @@ pub trait Writable {
 
 #[async_trait]
 impl Writable for Vec<u8> {
-    fn write_collection<F, T>(
-        &mut self,
-        collection: Vec<T>,
-        writer: F,
-    ) -> Result<(), std::io::Error>
+    fn write_list<F, T>(&mut self, list: Vec<T>, writer: F) -> Result<(), std::io::Error>
     where
         F: FnOnce(&mut Self, T) -> Result<(), std::io::Error> + Copy,
         Self: Sized,
     {
-        self.write_varint(collection.len() as i32)?;
-        for item in collection {
+        self.write_varint(list.len() as i32)?;
+        for item in list {
             writer(self, item)?;
         }
         Ok(())
+    }
+
+    fn write_int_id_list(&mut self, list: Vec<i32>) -> Result<(), std::io::Error> {
+        self.write_list(list, Self::write_varint)
     }
 
     fn write_byte(&mut self, n: u8) -> Result<(), std::io::Error> {
@@ -79,7 +76,7 @@ impl Writable for Vec<u8> {
                 len
             );
         }
-        self.write_varint(string.len() as i32);
+        self.write_varint(string.len() as i32)?;
         self.write_bytes(string.as_bytes())
     }
 
@@ -92,13 +89,14 @@ impl Writable for Vec<u8> {
     }
 
     fn write_byte_array(&mut self, bytes: &[u8]) -> Result<(), std::io::Error> {
-        self.write_varint(bytes.len() as i32);
+        self.write_varint(bytes.len() as i32)?;
         self.write_bytes(bytes)
     }
 }
 
 #[async_trait]
 pub trait Readable {
+    async fn read_int_id_list(&mut self) -> Result<Vec<i32>, String>;
     async fn read_varint(&mut self) -> Result<(i32, u8), String>;
     async fn read_byte_array(&mut self) -> Result<Vec<u8>, String>;
     async fn read_bytes(&mut self, n: usize) -> Result<Vec<u8>, String>;
@@ -112,6 +110,15 @@ impl<R> Readable for R
 where
     R: AsyncRead + std::marker::Unpin + std::marker::Send,
 {
+    async fn read_int_id_list(&mut self) -> Result<Vec<i32>, String> {
+        let len = self.read_varint().await?.0;
+        let mut list = Vec::with_capacity(len as usize);
+        for _ in 0..len {
+            list.push(self.read_varint().await?.0);
+        }
+        Ok(list)
+    }
+
     // fast varints stolen from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
     /// Read a single varint from the reader and return the value, along with the number of bytes read
     async fn read_varint(&mut self) -> Result<(i32, u8), String> {
@@ -224,13 +231,14 @@ mod tests {
         let mut buf = BufReader::new(Cursor::new(vec![138, 56, 0, 135, 56, 123]));
         assert_eq!(buf.read_varint().await.unwrap(), (7178, 2));
     }
+
     #[tokio::test]
-    async fn test_collection() {
+    async fn test_list() {
         let mut buf = Vec::new();
-        buf.write_collection(vec!["a", "bc", "def"], Vec::write_utf)
+        buf.write_list(vec!["a", "bc", "def"], Vec::write_utf)
             .unwrap();
 
-        // there's no read_collection because idk how to do it in rust
+        // there's no read_list because idk how to do it in rust
         let mut buf = BufReader::new(Cursor::new(buf));
 
         let mut result = Vec::new();
@@ -240,5 +248,16 @@ mod tests {
         }
 
         assert_eq!(result, vec!["a", "bc", "def"]);
+    }
+
+    #[tokio::test]
+    async fn test_int_id_list() {
+        let mut buf = Vec::new();
+        buf.write_list(vec![1, 2, 3], Vec::write_varint).unwrap();
+
+        let mut buf = BufReader::new(Cursor::new(buf));
+
+        let result = buf.read_int_id_list().await.unwrap();
+        assert_eq!(result, vec![1, 2, 3]);
     }
 }
