@@ -1,3 +1,4 @@
+pub mod clientbound_custom_query_packet;
 pub mod clientbound_hello_packet;
 pub mod serverbound_hello_packet;
 
@@ -13,6 +14,7 @@ pub enum LoginPacket
 where
     Self: Sized,
 {
+    ClientboundCustomQueryPacket(clientbound_custom_query_packet::ClientboundCustomQueryPacket),
     ServerboundHelloPacket(serverbound_hello_packet::ServerboundHelloPacket),
     ClientboundHelloPacket(clientbound_hello_packet::ClientboundHelloPacket),
 }
@@ -21,6 +23,7 @@ where
 impl ProtocolPacket for LoginPacket {
     fn id(&self) -> u32 {
         match self {
+            LoginPacket::ClientboundCustomQueryPacket(_packet) => 0x04,
             LoginPacket::ServerboundHelloPacket(_packet) => 0x00,
             LoginPacket::ClientboundHelloPacket(_packet) => 0x01,
         }
@@ -28,6 +31,7 @@ impl ProtocolPacket for LoginPacket {
 
     fn write(&self, buf: &mut Vec<u8>) {
         match self {
+            LoginPacket::ClientboundCustomQueryPacket(packet) => packet.write(buf),
             LoginPacket::ServerboundHelloPacket(packet) => packet.write(buf),
             LoginPacket::ClientboundHelloPacket(packet) => packet.write(buf),
         }
@@ -42,15 +46,18 @@ impl ProtocolPacket for LoginPacket {
     where
         Self: Sized,
     {
-        match flow {
+        Ok(match flow {
             PacketFlow::ServerToClient => match id {
-                0x01 => Ok(clientbound_hello_packet::ClientboundHelloPacket::read(buf).await?),
-                _ => Err(format!("Unknown ServerToClient status packet id: {}", id)),
+                0x01 => clientbound_hello_packet::ClientboundHelloPacket::read(buf).await?,
+                0x04 => {
+                    clientbound_custom_query_packet::ClientboundCustomQueryPacket::read(buf).await?
+                }
+                _ => return Err(format!("Unknown ServerToClient status packet id: {}", id)),
             },
             PacketFlow::ClientToServer => match id {
-                0x00 => Ok(serverbound_hello_packet::ServerboundHelloPacket::read(buf).await?),
-                _ => Err(format!("Unknown ClientToServer status packet id: {}", id)),
+                0x00 => serverbound_hello_packet::ServerboundHelloPacket::read(buf).await?,
+                _ => return Err(format!("Unknown ClientToServer status packet id: {}", id)),
             },
-        }
+        })
     }
 }

@@ -1,39 +1,41 @@
 use std::hash::Hash;
 use tokio::io::BufReader;
 
-use crate::mc_buf;
+use crate::mc_buf::{self, Readable, Writable};
 
 use super::LoginPacket;
 
 #[derive(Hash, Clone, Debug)]
 pub struct ClientboundCustomQueryPacket {
-    pub transacton_id: u32,
-	// TODO: this should be a resource location
-	pub identifier: String,
-	pub data: Vec<u8>,
+    pub transaction_id: u32,
+    // TODO: this should be a resource location
+    pub identifier: String,
+    pub data: Vec<u8>,
 }
 
-impl ClientboundHelloPacket {
+impl ClientboundCustomQueryPacket {
     pub fn get(self) -> LoginPacket {
-        LoginPacket::ClientboundHelloPacket(self)
+        LoginPacket::ClientboundCustomQueryPacket(self)
     }
 
-    pub fn write(&self, _buf: &mut Vec<u8>) {
-        panic!("ClientboundHelloPacket::write not implemented")
+    pub fn write(&self, buf: &mut Vec<u8>) {
+        buf.write_varint(self.transaction_id as i32).unwrap();
+        buf.write_utf(&self.identifier).unwrap();
+        buf.write_bytes(&self.data).unwrap();
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         buf: &mut BufReader<T>,
     ) -> Result<LoginPacket, String> {
-        // let server_id = mc_buf::read_utf_with_len(buf, 20).await?;
-        // let public_key = mc_buf::read_byte_array(buf).await?;
-        // let nonce = mc_buf::read_byte_array(buf).await?;
-
-        // Ok(ClientboundHelloPacket {
-        //     server_id,
-        //     public_key,
-        //     nonce,
-        // }
-        // .get())
+        let transaction_id = buf.read_varint().await?.0 as u32;
+        // TODO: this should be a resource location
+        let identifier = buf.read_utf().await?;
+        let data = buf.read_bytes(1048576).await?;
+        Ok(ClientboundCustomQueryPacket {
+            transaction_id,
+            identifier,
+            data,
+        }
+        .get())
     }
 }

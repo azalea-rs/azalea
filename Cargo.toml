@@ -1,8 +1,9 @@
 [workspace]
 
 members = [
-    "bot",
-    "minecraft-client",
-    "minecraft-protocol",
-    "minecraft-chat",
+  "bot",
+  "minecraft-client",
+  "minecraft-protocol",
+  "minecraft-chat",
+  "minecraft-core",
 ]

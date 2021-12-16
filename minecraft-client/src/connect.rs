@@ -34,8 +34,7 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
 
     // encryption request
     loop {
-        let packet = conn.read().await.unwrap();
-        match packet {
+        match conn.read().await.unwrap() {
             LoginPacket::ClientboundHelloPacket(encryption_request_packet) => {
                 println!(
                     "Got encryption request {:?} {:?}",
