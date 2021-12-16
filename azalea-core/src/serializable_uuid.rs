@@ -5,10 +5,6 @@ pub trait SerializableUuid {
     fn from_int_array(array: [u32; 4]) -> Self;
 }
 
-// private static int[] leastMostToIntArray(long l, long l2) {
-// 	return new int[]{(int)(l >> 32), (int)l, (int)(l2 >> 32), (int)l2};
-// }
-
 fn least_most_to_int_array(most: u64, least: u64) -> [u32; 4] {
     [
         (most >> 32) as u32,
@@ -34,6 +30,7 @@ impl SerializableUuid for Uuid {
     }
 }
 
+#[cfg(tests)]
 mod tests {
     use super::*;
 

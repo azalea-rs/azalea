@@ -1,7 +1,7 @@
 use std::hash::Hash;
 use tokio::io::BufReader;
 
-use crate::mc_buf::{self, Readable, Writable};
+use crate::mc_buf::{Readable, Writable};
 
 use super::LoginPacket;
 

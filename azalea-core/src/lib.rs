@@ -1,6 +1,7 @@
-//! Random miscellaneous things like UUIDs
+//! Random miscellaneous things like UUIDs that don't deserve their own crate.
 
-mod serializable_uuid;
+pub mod resource_location;
+pub mod serializable_uuid;
 
 #[cfg(test)]
 mod tests {
