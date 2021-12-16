@@ -8,7 +8,9 @@ version = "0.1.0"
 [dependencies]
 async-recursion = "^0.3.2"
 async-trait = "0.1.51"
+azalea-auth = {path = "../azalea-auth"}
 azalea-chat = {path = "../azalea-chat"}
+azalea-core = {path = "../azalea-core"}
 byteorder = "^1.4.3"
 bytes = "^1.1.0"
 serde = {version = "1.0.130", features = ["serde_derive"]}

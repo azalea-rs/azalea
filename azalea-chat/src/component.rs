@@ -22,8 +22,6 @@ lazy_static! {
 
 /// A chat component
 impl Component {
-    // TODO: is it possible to use a macro so this doesn't have to be duplicated?
-
     pub fn get_base_mut(&mut self) -> &mut BaseComponent {
         match self {
             Self::Text(c) => &mut c.base,

@@ -6,4 +6,5 @@ members = [
   "azalea-protocol",
   "azalea-chat",
   "azalea-core",
+  "azalea-auth",
 ]

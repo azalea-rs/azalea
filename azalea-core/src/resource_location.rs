@@ -1,14 +1,15 @@
 //! A resource, like minecraft:stone
 
-pub struct ResourceLocation<'a> {
-    pub namespace: &'a str,
-    pub path: &'a str,
+#[derive(Hash, Clone, Debug)]
+pub struct ResourceLocation {
+    pub namespace: String,
+    pub path: String,
 }
 
 static DEFAULT_NAMESPACE: &str = "minecraft";
 // static REALMS_NAMESPACE: &str = "realms";
 
-impl<'a> ResourceLocation<'a> {
+impl ResourceLocation {
     pub fn new(resource_string: &str) -> Result<ResourceLocation, String> {
         let sep_byte_position_option = resource_string.chars().position(|c| c == ':');
         let (namespace, path) = if let Some(sep_byte_position) = sep_byte_position_option {
@@ -23,7 +24,16 @@ impl<'a> ResourceLocation<'a> {
         } else {
             (DEFAULT_NAMESPACE, resource_string)
         };
-        Ok(ResourceLocation { namespace, path })
+        Ok(ResourceLocation {
+            namespace: namespace.to_string(),
+            path: path.to_string(),
+        })
+    }
+}
+
+impl std::fmt::Display for ResourceLocation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.namespace, self.path)
     }
 }
 

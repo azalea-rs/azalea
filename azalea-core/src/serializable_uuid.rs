@@ -26,7 +26,7 @@ impl SerializableUuid for Uuid {
         let most = ((array[0] as u64) << 32) | ((array[1] as u64) & 0xFFFFFFFF);
         let least = ((array[2] as u64) << 32) | ((array[3] as u64) & 0xFFFFFFFF);
 
-        Uuid::from_u128((((most as u128) << 64) | least as u128).into())
+        Uuid::from_u128(((most as u128) << 64) | least as u128)
     }
 }
 

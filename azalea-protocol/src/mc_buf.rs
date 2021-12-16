@@ -1,6 +1,6 @@
 //! Utilities for reading and writing for the Minecraft protocol
 
-use std::{future::Future, io::Write};
+use std::io::Write;
 
 use async_trait::async_trait;
 use byteorder::{BigEndian, WriteBytesExt};
@@ -35,6 +35,7 @@ pub trait Writable {
     fn write_utf(&mut self, string: &str) -> Result<(), std::io::Error>;
     fn write_short(&mut self, n: u16) -> Result<(), std::io::Error>;
     fn write_byte_array(&mut self, bytes: &[u8]) -> Result<(), std::io::Error>;
+    fn write_int(&mut self, n: i32) -> Result<(), std::io::Error>;
 }
 
 #[async_trait]
@@ -79,7 +80,8 @@ impl Writable for Vec<u8> {
     }
 
     fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), std::io::Error> {
-        Ok(self.extend_from_slice(bytes))
+        self.extend_from_slice(bytes);
+        Ok(())
     }
 
     fn write_varint(&mut self, mut value: i32) -> Result<(), std::io::Error> {
@@ -122,6 +124,10 @@ impl Writable for Vec<u8> {
         self.write_varint(bytes.len() as i32)?;
         self.write_bytes(bytes)
     }
+
+    fn write_int(&mut self, n: i32) -> Result<(), std::io::Error> {
+        WriteBytesExt::write_i32::<BigEndian>(self, n)
+    }
 }
 
 #[async_trait]
@@ -133,6 +139,7 @@ pub trait Readable {
     async fn read_utf(&mut self) -> Result<String, String>;
     async fn read_utf_with_len(&mut self, max_length: u32) -> Result<String, String>;
     async fn read_byte(&mut self) -> Result<u8, String>;
+    async fn read_int(&mut self) -> Result<i32, String>;
 }
 
 #[async_trait]
@@ -223,6 +230,13 @@ where
         match AsyncReadExt::read_u8(self).await {
             Ok(r) => Ok(r),
             Err(_) => Err("Error reading byte".to_string()),
+        }
+    }
+
+    async fn read_int(&mut self) -> Result<i32, String> {
+        match AsyncReadExt::read_i32(self).await {
+            Ok(r) => Ok(r),
+            Err(_) => Err("Error reading int".to_string()),
         }
     }
 }
