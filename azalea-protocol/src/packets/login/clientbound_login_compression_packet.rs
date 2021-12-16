@@ -1,7 +1,7 @@
 use std::hash::Hash;
 use tokio::io::BufReader;
 
-use crate::mc_buf::Readable;
+use crate::mc_buf::{Readable, Writable};
 
 use super::LoginPacket;
 
@@ -25,7 +25,7 @@ impl ClientboundLoginCompressionPacket {
         let compression_threshold = buf.read_varint().await?;
 
         Ok(ClientboundLoginCompressionPacket {
-            compression_threshold
+            compression_threshold,
         }
         .get())
     }

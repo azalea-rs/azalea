@@ -1,11 +1,11 @@
 use super::LoginPacket;
 use crate::mc_buf::{Readable, Writable};
 use azalea_auth::game_profile::GameProfile;
-use azalea_core::{resource_location::ResourceLocation, serializable_uuid::SerializableUuid};
-use std::hash::Hash;
+use azalea_core::serializable_uuid::SerializableUuid;
 use tokio::io::BufReader;
+use uuid::Uuid;
 
-#[derive(Hash, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct ClientboundGameProfilePacket {
     pub game_profile: GameProfile,
 }
@@ -25,15 +25,16 @@ impl ClientboundGameProfilePacket {
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         buf: &mut BufReader<T>,
     ) -> Result<LoginPacket, String> {
-        let uuid = SerializableUuid::from_int_array(
-            buf.read_int().await?,
-            buf.read_int().await?,
-            buf.read_int().await?,
-            buf.read_int().await?,
-        );
-        let name = buf.read_utf(16).await?;
-        ClientboundGameProfilePacket {
+        let uuid = Uuid::from_int_array([
+            buf.read_int().await? as u32,
+            buf.read_int().await? as u32,
+            buf.read_int().await? as u32,
+            buf.read_int().await? as u32,
+        ]);
+        let name = buf.read_utf_with_len(16).await?;
+        Ok(ClientboundGameProfilePacket {
             game_profile: GameProfile::new(uuid, name),
         }
+        .get())
     }
 }

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use uuid::Uuid;
 
-#[derive(Hash, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct GameProfile {
     pub uuid: Uuid,
     pub name: String,
