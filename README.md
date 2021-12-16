@@ -10,6 +10,6 @@ This project was heavily inspired by PrismarineJS.
 
 - Bypass all anticheats
 - Only support the latest Minecraft version
-
+- Do everything a vanilla client can do
 
 

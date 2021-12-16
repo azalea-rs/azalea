@@ -107,22 +107,6 @@ pub trait Readable {
     async fn read_byte(&mut self) -> Result<u8, String>;
 }
 
-// unfortunately we can't put this in Readable since rust gets mad
-pub async fn read_collection<R, T, F, Fut>(buf: &mut R, reader: F) -> Result<Vec<T>, String>
-where
-    R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    T: Send,
-    F: FnOnce(&mut R) -> Fut + Send + Copy,
-    Fut: Future<Output = Result<T, String>> + Send,
-{
-    let mut v: Vec<T> = Vec::new();
-    let length = buf.read_varint().await?.0;
-    for _ in 0..length {
-        v.push(reader(buf).await?);
-    }
-    Ok(v)
-}
-
 #[async_trait]
 impl<R> Readable for R
 where
@@ -240,19 +224,21 @@ mod tests {
         let mut buf = BufReader::new(Cursor::new(vec![138, 56, 0, 135, 56, 123]));
         assert_eq!(buf.read_varint().await.unwrap(), (7178, 2));
     }
-
-    async fn readutf(r: &mut BufReader<Cursor<Vec<u8>>>) -> Result<String, String> {
-        r.read_utf().await
-    }
-
     #[tokio::test]
     async fn test_collection() {
         let mut buf = Vec::new();
         buf.write_collection(vec!["a", "bc", "def"], Vec::write_utf)
             .unwrap();
 
+        // there's no read_collection because idk how to do it in rust
         let mut buf = BufReader::new(Cursor::new(buf));
-        let result = read_collection(&mut buf, readutf).await.unwrap();
+
+        let mut result = Vec::new();
+        let length = buf.read_varint().await.unwrap().0;
+        for _ in 0..length {
+            result.push(buf.read_utf().await.unwrap());
+        }
+
         assert_eq!(result, vec!["a", "bc", "def"]);
     }
 }
