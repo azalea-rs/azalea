@@ -3,7 +3,7 @@ use serde::Deserialize;
 use serde_json::Value;
 use tokio::io::BufReader;
 
-use crate::mc_buf;
+use crate::mc_buf::Readable;
 
 use super::StatusPacket;
 
@@ -45,7 +45,7 @@ impl ClientboundStatusResponsePacket {
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         buf: &mut BufReader<T>,
     ) -> Result<StatusPacket, String> {
-        let status_string = mc_buf::read_utf(buf).await?;
+        let status_string = buf.read_utf().await?;
         let status_json: Value =
             serde_json::from_str(status_string.as_str()).expect("Server status isn't valid JSON");
 

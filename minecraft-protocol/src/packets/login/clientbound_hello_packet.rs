@@ -1,7 +1,7 @@
 use std::hash::Hash;
 use tokio::io::BufReader;
 
-use crate::mc_buf;
+use crate::mc_buf::Readable;
 
 use super::LoginPacket;
 
@@ -24,9 +24,9 @@ impl ClientboundHelloPacket {
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         buf: &mut BufReader<T>,
     ) -> Result<LoginPacket, String> {
-        let server_id = mc_buf::read_utf_with_len(buf, 20).await?;
-        let public_key = mc_buf::read_byte_array(buf).await?;
-        let nonce = mc_buf::read_byte_array(buf).await?;
+        let server_id = buf.read_utf_with_len(20).await?;
+        let public_key = buf.read_byte_array().await?;
+        let nonce = buf.read_byte_array().await?;
 
         Ok(ClientboundHelloPacket {
             server_id,

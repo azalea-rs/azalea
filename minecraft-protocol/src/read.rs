@@ -1,6 +1,6 @@
 use tokio::{io::BufReader, net::TcpStream};
 
-use crate::{connect::PacketFlow, mc_buf, packets::ProtocolPacket};
+use crate::{connect::PacketFlow, mc_buf::Readable, packets::ProtocolPacket};
 
 pub async fn read_packet<P: ProtocolPacket>(
     flow: &PacketFlow,
@@ -15,10 +15,10 @@ pub async fn read_packet<P: ProtocolPacket>(
     // the first thing minecraft sends us is the length as a varint, which can be up to 5 bytes long
     let mut buf = BufReader::with_capacity(4 * 1024 * 1024, stream);
 
-    let (_packet_size, _packet_size_varint_size) = mc_buf::read_varint(&mut buf).await?;
+    let (_packet_size, _packet_size_varint_size) = buf.read_varint().await?;
 
     // then, minecraft tells us the packet id as a varint
-    let (packet_id, _packet_id_size) = mc_buf::read_varint(&mut buf).await?;
+    let (packet_id, _packet_id_size) = buf.read_varint().await?;
 
     // if we recognize the packet id, parse it
 
