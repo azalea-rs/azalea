@@ -2,7 +2,7 @@ use std::hash::Hash;
 
 use tokio::io::BufReader;
 
-use crate::{mc_buf, packets::ConnectionProtocol};
+use crate::{mc_buf::Writable, packets::ConnectionProtocol};
 
 use super::HandshakePacket;
 
@@ -21,10 +21,10 @@ impl ClientIntentionPacket {
     }
 
     pub fn write(&self, buf: &mut Vec<u8>) {
-        mc_buf::write_varint(buf, self.protocol_version as i32);
-        mc_buf::write_utf(buf, &self.hostname);
-        mc_buf::write_short(buf, self.port);
-        mc_buf::write_varint(buf, self.intention.clone() as i32);
+        buf.write_varint(self.protocol_version as i32).unwrap();
+        buf.write_utf(&self.hostname).unwrap();
+        buf.write_short(self.port).unwrap();
+        buf.write_varint(self.intention.clone() as i32).unwrap();
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(

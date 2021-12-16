@@ -10,51 +10,67 @@ use tokio::io::{AsyncRead, AsyncReadExt};
 const MAX_STRING_LENGTH: u16 = 32767;
 // const MAX_COMPONENT_STRING_LENGTH: u32 = 262144;
 
-pub fn write_byte(buf: &mut Vec<u8>, n: u8) {
-    WriteBytesExt::write_u8(buf, n).unwrap();
+#[async_trait]
+pub trait Writable {
+    fn write_byte(&mut self, n: u8) -> Result<(), std::io::Error>;
+    fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), std::io::Error>;
+    fn write_varint(&mut self, value: i32) -> Result<(), std::io::Error>;
+    fn write_utf_with_len(&mut self, string: &str, len: usize) -> Result<(), std::io::Error>;
+    fn write_utf(&mut self, string: &str) -> Result<(), std::io::Error>;
+    fn write_short(&mut self, n: u16) -> Result<(), std::io::Error>;
+    fn write_byte_array(&mut self, bytes: &[u8]) -> Result<(), std::io::Error>;
 }
 
-pub fn write_bytes(buf: &mut Vec<u8>, bytes: &[u8]) {
-    buf.extend_from_slice(bytes);
-}
-
-pub fn write_varint(buf: &mut Vec<u8>, mut value: i32) {
-    let mut buffer = [0];
-    if value == 0 {
-        buf.write_all(&buffer).unwrap();
+#[async_trait]
+impl Writable for Vec<u8> {
+    fn write_byte(&mut self, n: u8) -> Result<(), std::io::Error> {
+        WriteBytesExt::write_u8(self, n)
     }
-    while value != 0 {
-        buffer[0] = (value & 0b0111_1111) as u8;
-        value = (value >> 7) & (i32::max_value() >> 6);
-        if value != 0 {
-            buffer[0] |= 0b1000_0000;
+
+    fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), std::io::Error> {
+        Ok(self.extend_from_slice(bytes))
+    }
+
+    fn write_varint(&mut self, mut value: i32) -> Result<(), std::io::Error> {
+        let mut buffer = [0];
+        if value == 0 {
+            self.write_all(&buffer).unwrap();
         }
-        buf.write_all(&buffer).unwrap();
+        while value != 0 {
+            buffer[0] = (value & 0b0111_1111) as u8;
+            value = (value >> 7) & (i32::max_value() >> 6);
+            if value != 0 {
+                buffer[0] |= 0b1000_0000;
+            }
+            self.write_all(&buffer)?;
+        }
+        Ok(())
     }
-}
 
-pub fn write_utf_with_len(buf: &mut Vec<u8>, string: &str, len: usize) {
-    if string.len() > len {
-        panic!(
-            "String too big (was {} bytes encoded, max {})",
-            string.len(),
-            len
-        );
+    fn write_utf_with_len(&mut self, string: &str, len: usize) -> Result<(), std::io::Error> {
+        if string.len() > len {
+            panic!(
+                "String too big (was {} bytes encoded, max {})",
+                string.len(),
+                len
+            );
+        }
+        self.write_varint(string.len() as i32);
+        self.write_bytes(string.as_bytes())
     }
-    write_varint(buf, string.len() as i32);
-    write_bytes(buf, string.as_bytes());
-}
-pub fn write_utf(buf: &mut Vec<u8>, string: &str) {
-    write_utf_with_len(buf, string, MAX_STRING_LENGTH.into());
-}
 
-pub fn write_short(buf: &mut Vec<u8>, n: u16) {
-    WriteBytesExt::write_u16::<BigEndian>(buf, n).unwrap();
-}
+    fn write_utf(&mut self, string: &str) -> Result<(), std::io::Error> {
+        self.write_utf_with_len(string, MAX_STRING_LENGTH.into())
+    }
 
-pub fn write_byte_array(buf: &mut Vec<u8>, bytes: &[u8]) {
-    write_varint(buf, bytes.len() as i32);
-    write_bytes(buf, bytes);
+    fn write_short(&mut self, n: u16) -> Result<(), std::io::Error> {
+        WriteBytesExt::write_u16::<BigEndian>(self, n)
+    }
+
+    fn write_byte_array(&mut self, bytes: &[u8]) -> Result<(), std::io::Error> {
+        self.write_varint(bytes.len() as i32);
+        self.write_bytes(bytes)
+    }
 }
 
 #[async_trait]
@@ -159,11 +175,11 @@ mod tests {
     #[test]
     fn test_write_varint() {
         let mut buf = Vec::new();
-        write_varint(&mut buf, 123456);
+        buf.write_varint(123456);
         assert_eq!(buf, vec![192, 196, 7]);
 
         let mut buf = Vec::new();
-        write_varint(&mut buf, 0);
+        buf.write_varint(0);
         assert_eq!(buf, vec![0]);
     }
 

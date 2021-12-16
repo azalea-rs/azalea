@@ -1,7 +1,7 @@
 use std::hash::Hash;
 use tokio::io::BufReader;
 
-use crate::mc_buf;
+use crate::mc_buf::Writable;
 
 use super::LoginPacket;
 
@@ -16,7 +16,7 @@ impl ServerboundHelloPacket {
     }
 
     pub fn write(&self, buf: &mut Vec<u8>) {
-        mc_buf::write_utf(buf, &self.username);
+        buf.write_utf(&self.username).unwrap();
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
