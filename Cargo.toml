@@ -2,8 +2,8 @@
 
 members = [
   "bot",
-  "minecraft-client",
-  "minecraft-protocol",
-  "minecraft-chat",
-  "minecraft-core",
+  "azalea-client",
+  "azalea-protocol",
+  "azalea-chat",
+  "azalea-core",
 ]

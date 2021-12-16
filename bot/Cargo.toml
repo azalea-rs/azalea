@@ -1,11 +1,11 @@
 [package]
+edition = "2021"
 name = "bot"
 version = "0.1.0"
-edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-minecraft-client = { path = "../minecraft-client" }
-minecraft-protocol = { path = "../minecraft-protocol" }
+azalea-client = {path = "../azalea-client"}
+azalea-protocol = {path = "../azalea-protocol"}
 tokio = "^1.14.0"

@@ -1,4 +1,4 @@
-use minecraft_chat::{
+use azalea_chat::{
     component::Component,
     style::{Ansi, ChatFormatting, TextColor},
 };

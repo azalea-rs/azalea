@@ -1,4 +1,4 @@
-use minecraft_client::connect::join_server;
+use azalea_client::connect::join_server;
 use tokio::runtime::Runtime;
 
 async fn bot() {

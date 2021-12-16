@@ -1,5 +1,5 @@
 ///! Connect to Minecraft servers.
-use minecraft_protocol::{
+use azalea_protocol::{
     connect::HandshakeConnection,
     packets::{
         handshake::client_intention_packet::ClientIntentionPacket,

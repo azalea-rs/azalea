@@ -1,4 +1,4 @@
-use minecraft_chat::component::Component;
+use azalea_chat::component::Component;
 use serde::Deserialize;
 use serde_json::Value;
 use tokio::io::BufReader;
