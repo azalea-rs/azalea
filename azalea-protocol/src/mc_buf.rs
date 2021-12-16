@@ -17,6 +17,17 @@ pub trait Writable {
         F: FnOnce(&mut Self, T) -> Result<(), std::io::Error> + Copy,
         Self: Sized;
     fn write_int_id_list(&mut self, list: Vec<i32>) -> Result<(), std::io::Error>;
+    fn write_map<KF, VF, KT, VT>(
+        &mut self,
+        map: Vec<(KT, VT)>,
+        key_writer: KF,
+        value_writer: VF,
+    ) -> Result<(), std::io::Error>
+    where
+        KF: Fn(&mut Self, KT) -> Result<(), std::io::Error> + Copy,
+        VF: Fn(&mut Self, VT) -> Result<(), std::io::Error> + Copy,
+        Self: Sized;
+
     fn write_byte(&mut self, n: u8) -> Result<(), std::io::Error>;
     fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), std::io::Error>;
     fn write_varint(&mut self, value: i32) -> Result<(), std::io::Error>;
@@ -42,6 +53,25 @@ impl Writable for Vec<u8> {
 
     fn write_int_id_list(&mut self, list: Vec<i32>) -> Result<(), std::io::Error> {
         self.write_list(list, Self::write_varint)
+    }
+
+    fn write_map<KF, VF, KT, VT>(
+        &mut self,
+        map: Vec<(KT, VT)>,
+        key_writer: KF,
+        value_writer: VF,
+    ) -> Result<(), std::io::Error>
+    where
+        KF: Fn(&mut Self, KT) -> Result<(), std::io::Error> + Copy,
+        VF: Fn(&mut Self, VT) -> Result<(), std::io::Error> + Copy,
+        Self: Sized,
+    {
+        self.write_varint(map.len() as i32)?;
+        for (key, value) in map {
+            key_writer(self, key)?;
+            value_writer(self, value)?;
+        }
+        Ok(())
     }
 
     fn write_byte(&mut self, n: u8) -> Result<(), std::io::Error> {
@@ -97,7 +127,7 @@ impl Writable for Vec<u8> {
 #[async_trait]
 pub trait Readable {
     async fn read_int_id_list(&mut self) -> Result<Vec<i32>, String>;
-    async fn read_varint(&mut self) -> Result<(i32, u8), String>;
+    async fn read_varint(&mut self) -> Result<i32, String>;
     async fn read_byte_array(&mut self) -> Result<Vec<u8>, String>;
     async fn read_bytes(&mut self, n: usize) -> Result<Vec<u8>, String>;
     async fn read_utf(&mut self) -> Result<String, String>;
@@ -111,17 +141,17 @@ where
     R: AsyncRead + std::marker::Unpin + std::marker::Send,
 {
     async fn read_int_id_list(&mut self) -> Result<Vec<i32>, String> {
-        let len = self.read_varint().await?.0;
+        let len = self.read_varint().await?;
         let mut list = Vec::with_capacity(len as usize);
         for _ in 0..len {
-            list.push(self.read_varint().await?.0);
+            list.push(self.read_varint().await?);
         }
         Ok(list)
     }
 
     // fast varints stolen from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
     /// Read a single varint from the reader and return the value, along with the number of bytes read
-    async fn read_varint(&mut self) -> Result<(i32, u8), String> {
+    async fn read_varint(&mut self) -> Result<i32, String> {
         let mut buffer = [0];
         let mut ans = 0;
         for i in 0..4 {
@@ -130,14 +160,14 @@ where
                 .map_err(|_| "Invalid VarInt".to_string())?;
             ans |= ((buffer[0] & 0b0111_1111) as i32) << (7 * i);
             if buffer[0] & 0b1000_0000 == 0 {
-                return Ok((ans, i + 1));
+                return Ok(ans);
             }
         }
-        Ok((ans, 5))
+        Ok(ans)
     }
 
     async fn read_byte_array(&mut self) -> Result<Vec<u8>, String> {
-        let length = self.read_varint().await?.0 as usize;
+        let length = self.read_varint().await? as usize;
         Ok(self.read_bytes(length).await?)
     }
 
@@ -154,7 +184,7 @@ where
     }
 
     async fn read_utf_with_len(&mut self, max_length: u32) -> Result<String, String> {
-        let (length, _length_varint_length) = self.read_varint().await?;
+        let length = self.read_varint().await?;
         // i don't know why it's multiplied by 4 but it's like that in mojang's code so
         if length < 0 {
             return Err(
@@ -217,19 +247,19 @@ mod tests {
     #[tokio::test]
     async fn test_read_varint() {
         let mut buf = BufReader::new(Cursor::new(vec![192, 196, 7]));
-        assert_eq!(buf.read_varint().await.unwrap(), (123456, 3));
+        assert_eq!(buf.read_varint().await.unwrap(), 123456);
 
         let mut buf = BufReader::new(Cursor::new(vec![0]));
-        assert_eq!(buf.read_varint().await.unwrap(), (0, 1));
+        assert_eq!(buf.read_varint().await.unwrap(), 0);
 
         let mut buf = BufReader::new(Cursor::new(vec![1]));
-        assert_eq!(buf.read_varint().await.unwrap(), (1, 1));
+        assert_eq!(buf.read_varint().await.unwrap(), 1);
     }
 
     #[tokio::test]
     async fn test_read_varint_longer() {
         let mut buf = BufReader::new(Cursor::new(vec![138, 56, 0, 135, 56, 123]));
-        assert_eq!(buf.read_varint().await.unwrap(), (7178, 2));
+        assert_eq!(buf.read_varint().await.unwrap(), 7178);
     }
 
     #[tokio::test]
@@ -242,7 +272,7 @@ mod tests {
         let mut buf = BufReader::new(Cursor::new(buf));
 
         let mut result = Vec::new();
-        let length = buf.read_varint().await.unwrap().0;
+        let length = buf.read_varint().await.unwrap();
         for _ in 0..length {
             result.push(buf.read_utf().await.unwrap());
         }
@@ -259,5 +289,36 @@ mod tests {
 
         let result = buf.read_int_id_list().await.unwrap();
         assert_eq!(result, vec![1, 2, 3]);
+    }
+
+    #[tokio::test]
+    async fn test_map() {
+        let mut buf = Vec::new();
+        buf.write_map(
+            vec![("a", 1), ("bc", 23), ("def", 456)],
+            Vec::write_utf,
+            Vec::write_varint,
+        )
+        .unwrap();
+
+        let mut buf = BufReader::new(Cursor::new(buf));
+
+        let mut result = Vec::new();
+        let length = buf.read_varint().await.unwrap();
+        for _ in 0..length {
+            result.push((
+                buf.read_utf().await.unwrap(),
+                buf.read_varint().await.unwrap(),
+            ));
+        }
+
+        assert_eq!(
+            result,
+            vec![
+                ("a".to_string(), 1),
+                ("bc".to_string(), 23),
+                ("def".to_string(), 456)
+            ]
+        );
     }
 }
