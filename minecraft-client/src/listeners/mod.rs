@@ -1,3 +1,0 @@
-trait PacketListener {
-	handle(Packet)
-}

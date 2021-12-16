@@ -33,11 +33,18 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
     conn.write(ServerboundHelloPacket { username }.get()).await;
 
     // encryption request
-    let packet = conn.read().await.unwrap();
-    let _encryption_request_packet = match packet {
-        LoginPacket::ClientboundHelloPacket(p) => p,
-        _ => return Err(format!("Invalid packet type: {:?}", packet)),
-    };
+    loop {
+        let packet = conn.read().await.unwrap();
+        match packet {
+            LoginPacket::ClientboundHelloPacket(encryption_request_packet) => {
+                println!(
+                    "Got encryption request {:?} {:?}",
+                    encryption_request_packet.nonce, encryption_request_packet.public_key
+                );
+            }
+            _ => (),
+        }
+    }
 
     // TODO: client auth
 
