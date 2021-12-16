@@ -1,6 +1,6 @@
 //! Utilities for reading and writing for the Minecraft protocol
 
-use std::io::Write;
+use std::{future::Future, io::Write};
 
 use async_trait::async_trait;
 use byteorder::{BigEndian, WriteBytesExt};
@@ -12,6 +12,14 @@ const MAX_STRING_LENGTH: u16 = 32767;
 
 #[async_trait]
 pub trait Writable {
+    fn write_collection<F, T>(
+        &mut self,
+        collection: Vec<T>,
+        writer: F,
+    ) -> Result<(), std::io::Error>
+    where
+        F: FnOnce(&mut Self, T) -> Result<(), std::io::Error> + Copy,
+        Self: Sized;
     fn write_byte(&mut self, n: u8) -> Result<(), std::io::Error>;
     fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), std::io::Error>;
     fn write_varint(&mut self, value: i32) -> Result<(), std::io::Error>;
@@ -23,6 +31,22 @@ pub trait Writable {
 
 #[async_trait]
 impl Writable for Vec<u8> {
+    fn write_collection<F, T>(
+        &mut self,
+        collection: Vec<T>,
+        writer: F,
+    ) -> Result<(), std::io::Error>
+    where
+        F: FnOnce(&mut Self, T) -> Result<(), std::io::Error> + Copy,
+        Self: Sized,
+    {
+        self.write_varint(collection.len() as i32)?;
+        for item in collection {
+            writer(self, item)?;
+        }
+        Ok(())
+    }
+
     fn write_byte(&mut self, n: u8) -> Result<(), std::io::Error> {
         WriteBytesExt::write_u8(self, n)
     }
@@ -81,6 +105,22 @@ pub trait Readable {
     async fn read_utf(&mut self) -> Result<String, String>;
     async fn read_utf_with_len(&mut self, max_length: u32) -> Result<String, String>;
     async fn read_byte(&mut self) -> Result<u8, String>;
+}
+
+// unfortunately we can't put this in Readable since rust gets mad
+pub async fn read_collection<R, T, F, Fut>(buf: &mut R, reader: F) -> Result<Vec<T>, String>
+where
+    R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    T: Send,
+    F: FnOnce(&mut R) -> Fut + Send + Copy,
+    Fut: Future<Output = Result<T, String>> + Send,
+{
+    let mut v: Vec<T> = Vec::new();
+    let length = buf.read_varint().await?.0;
+    for _ in 0..length {
+        v.push(reader(buf).await?);
+    }
+    Ok(v)
 }
 
 #[async_trait]
@@ -175,11 +215,11 @@ mod tests {
     #[test]
     fn test_write_varint() {
         let mut buf = Vec::new();
-        buf.write_varint(123456);
+        buf.write_varint(123456).unwrap();
         assert_eq!(buf, vec![192, 196, 7]);
 
         let mut buf = Vec::new();
-        buf.write_varint(0);
+        buf.write_varint(0).unwrap();
         assert_eq!(buf, vec![0]);
     }
 
@@ -199,5 +239,20 @@ mod tests {
     async fn test_read_varint_longer() {
         let mut buf = BufReader::new(Cursor::new(vec![138, 56, 0, 135, 56, 123]));
         assert_eq!(buf.read_varint().await.unwrap(), (7178, 2));
+    }
+
+    async fn readutf(r: &mut BufReader<Cursor<Vec<u8>>>) -> Result<String, String> {
+        r.read_utf().await
+    }
+
+    #[tokio::test]
+    async fn test_collection() {
+        let mut buf = Vec::new();
+        buf.write_collection(vec!["a", "bc", "def"], Vec::write_utf)
+            .unwrap();
+
+        let mut buf = BufReader::new(Cursor::new(buf));
+        let result = read_collection(&mut buf, readutf).await.unwrap();
+        assert_eq!(result, vec!["a", "bc", "def"]);
     }
 }
