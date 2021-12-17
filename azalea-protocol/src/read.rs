@@ -1,82 +1,111 @@
+use std::io::Cursor;
+
 use crate::{connect::PacketFlow, mc_buf::Readable, packets::ProtocolPacket};
 use async_compression::tokio::bufread::ZlibDecoder;
-use tokio::{
-    io::{AsyncReadExt, BufReader},
-    net::TcpStream,
-};
+use tokio::io::{AsyncRead, AsyncReadExt, BufReader};
 
-pub async fn read_packet<P: ProtocolPacket>(
-    flow: &PacketFlow,
-    stream: &mut TcpStream,
-    compression_threshold: Option<u32>,
-) -> Result<P, String> {
-    // what this does:
-    // 1. reads the first 5 bytes, probably only some of this will be used to get the packet length
-    // 2. how much we should read = packet length - 5
-    // 3. read the rest of the packet and add it to the cursor
-    // 4. figure out what packet this is and parse it
-
-    // the first thing minecraft sends us is the length as a varint, which can be up to 5 bytes long
-    let mut buf = BufReader::with_capacity(4 * 1024 * 1024, stream);
-
+async fn frame_splitter<R>(stream: &mut R) -> Result<Vec<u8>, String>
+where
+    R: AsyncRead + std::marker::Unpin + std::marker::Send,
+{
     // Packet Length
-    let packet_size = buf.read_varint().await?;
+    let length_result = stream.read_varint().await;
+    match length_result {
+        Ok(length) => {
+            let mut buf = vec![0; length as usize];
 
-    // if there's no compression, we can just read the rest of the packet normally
-    if compression_threshold.is_none() {
-        // then, minecraft tells us the packet id as a varint
-        let packet_id = buf.read_varint().await?;
+            stream
+                .read_exact(&mut buf)
+                .await
+                .map_err(|e| e.to_string())?;
 
-        // if we recognize the packet id, parse it
-
-        println!("reading uncompressed packet id: {}", packet_id);
-        let packet = P::read(packet_id.try_into().unwrap(), flow, &mut buf).await?;
-
-        return Ok(packet);
+            Ok(buf)
+        }
+        Err(e) => Err("length wider than 21-bit".to_string()),
     }
+}
 
-    println!("compressed packet size: {}", packet_size);
-
-    // there's compression
-    // Data Length
-    let data_size = buf.read_varint().await?;
-    println!("data size: {}", data_size);
-
-    // this packet has no compression
-    if data_size == 0 {
-        // Packet ID
-        let packet_id = buf.read_varint().await?;
-        println!(
-            "reading compressed packet without compression packet id: {}",
-            packet_id
-        );
-        let packet = P::read(packet_id.try_into().unwrap(), flow, &mut buf).await?;
-        return Ok(packet);
-    }
-
-    // this packet has compression
-    let packet_size_varint_size = buf.get_varint_size(packet_size);
-
-    let mut compressed_data = vec![0; packet_size as usize - packet_size_varint_size as usize];
-    buf.read_exact(compressed_data.as_mut_slice())
-        .await
-        .expect("Not enough compressed data");
-
-    let mut z = ZlibDecoder::new(compressed_data.as_slice());
-
+async fn packet_decoder<P: ProtocolPacket, R>(
+    stream: &mut R,
+    flow: &PacketFlow,
+) -> Result<P, String>
+where
+    R: AsyncRead + std::marker::Unpin + std::marker::Send,
+{
     // Packet ID
-    let packet_id = z.read_varint().await.unwrap();
-    println!("reading compressed packet id: {}", packet_id);
+    let packet_id = stream.read_varint().await?;
+    Ok(P::read(packet_id.try_into().unwrap(), flow, stream).await?)
+}
 
-    if let Ok(packet) = P::read(packet_id as u32, flow, &mut z).await {
-        Ok(packet)
-    } else {
-        // read the rest of the bytes
-        let packet_id_varint_size = z.get_varint_size(packet_id);
-        let mut buf = vec![0; packet_size as usize - packet_id_varint_size as usize];
-        z.read_exact(buf.as_mut_slice()).await.unwrap();
-        println!("{:?}", buf);
+// this is always true in multiplayer, false in singleplayer
+static VALIDATE_DECOMPRESSED: bool = true;
 
-        Err(format!("Error on packet id: {}", packet_id))
+static MAXIMUM_UNCOMPRESSED_LENGTH: u32 = 8388608;
+
+async fn compression_decoder<R>(
+    stream: &mut R,
+    compression_threshold: u32,
+) -> Result<Vec<u8>, String>
+where
+    R: AsyncRead + std::marker::Unpin + std::marker::Send,
+{
+    // Data Length
+    let n: u32 = stream.read_varint().await?.try_into().unwrap();
+    if n == 0 {
+        // no data size, no compression
+        let mut buf = vec![];
+        stream
+            .read_to_end(&mut buf)
+            .await
+            .map_err(|e| e.to_string())?;
+        return Ok(buf);
     }
+
+    if VALIDATE_DECOMPRESSED {
+        if n < compression_threshold {
+            return Err(format!(
+                "Badly compressed packet - size of {} is below server threshold of {}",
+                n, compression_threshold
+            ));
+        }
+        if n > MAXIMUM_UNCOMPRESSED_LENGTH.into() {
+            return Err(format!(
+                "Badly compressed packet - size of {} is larger than protocol maximum of {}",
+                n, MAXIMUM_UNCOMPRESSED_LENGTH
+            ));
+        }
+    }
+
+    let mut buf = vec![];
+    stream
+        .read_to_end(&mut buf)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let mut decoded_buf = vec![];
+    let mut decoder = ZlibDecoder::new(buf.as_slice());
+    decoder
+        .read_to_end(&mut decoded_buf)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(decoded_buf)
+}
+
+pub async fn read_packet<P: ProtocolPacket, R>(
+    flow: &PacketFlow,
+    stream: &mut R,
+    compression_threshold: Option<u32>,
+) -> Result<P, String>
+where
+    R: AsyncRead + std::marker::Unpin + std::marker::Send,
+{
+    let mut buf = frame_splitter(stream).await?;
+    if let Some(compression_threshold) = compression_threshold {
+        println!("compression_decoder");
+        buf = compression_decoder(&mut buf.as_slice(), compression_threshold).await?;
+    }
+    let packet = packet_decoder(&mut buf.as_slice(), flow).await?;
+
+    return Ok(packet);
 }

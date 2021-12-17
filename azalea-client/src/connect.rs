@@ -33,19 +33,25 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
     conn.write(ServerboundHelloPacket { username }.get()).await;
 
     let mut conn = loop {
-        match conn.read().await.unwrap() {
-            LoginPacket::ClientboundHelloPacket(p) => {
-                println!("Got encryption request {:?} {:?}", p.nonce, p.public_key);
+        let packet_result = conn.read().await;
+        match packet_result {
+            Ok(packet) => match packet {
+                LoginPacket::ClientboundHelloPacket(p) => {
+                    println!("Got encryption request {:?} {:?}", p.nonce, p.public_key);
+                }
+                LoginPacket::ClientboundLoginCompressionPacket(p) => {
+                    println!("Got compression request {:?}", p.compression_threshold);
+                    conn.set_compression_threshold(p.compression_threshold);
+                }
+                LoginPacket::ClientboundGameProfilePacket(p) => {
+                    println!("Got profile {:?}", p.game_profile);
+                    break conn.game();
+                }
+                _ => panic!("unhandled packet"),
+            },
+            Err(e) => {
+                println!("Error: {:?}", e);
             }
-            LoginPacket::ClientboundLoginCompressionPacket(p) => {
-                println!("Got compression request {:?}", p.compression_threshold);
-                conn.set_compression_threshold(p.compression_threshold);
-            }
-            LoginPacket::ClientboundGameProfilePacket(p) => {
-                println!("Got profile {:?}", p.game_profile);
-                break conn.game();
-            }
-            _ => panic!("unhandled packet"),
         }
     };
 

@@ -76,7 +76,7 @@ impl HandshakeConnection {
     }
 
     pub async fn read(&mut self) -> Result<HandshakePacket, String> {
-        read_packet::<HandshakePacket>(&self.flow, &mut self.stream, None).await
+        read_packet::<HandshakePacket, _>(&self.flow, &mut self.stream, None).await
     }
 
     /// Write a packet to the server
@@ -87,7 +87,7 @@ impl HandshakeConnection {
 
 impl GameConnection {
     pub async fn read(&mut self) -> Result<GamePacket, String> {
-        read_packet::<GamePacket>(&self.flow, &mut self.stream, self.compression_threshold).await
+        read_packet::<GamePacket, _>(&self.flow, &mut self.stream, self.compression_threshold).await
     }
 
     /// Write a packet to the server
@@ -98,7 +98,7 @@ impl GameConnection {
 
 impl StatusConnection {
     pub async fn read(&mut self) -> Result<StatusPacket, String> {
-        read_packet::<StatusPacket>(&self.flow, &mut self.stream, None).await
+        read_packet::<StatusPacket, _>(&self.flow, &mut self.stream, None).await
     }
 
     /// Write a packet to the server
@@ -109,7 +109,8 @@ impl StatusConnection {
 
 impl LoginConnection {
     pub async fn read(&mut self) -> Result<LoginPacket, String> {
-        read_packet::<LoginPacket>(&self.flow, &mut self.stream, self.compression_threshold).await
+        read_packet::<LoginPacket, _>(&self.flow, &mut self.stream, self.compression_threshold)
+            .await
     }
 
     /// Write a packet to the server
