@@ -24,6 +24,7 @@ pub struct GameConnection {
     pub flow: PacketFlow,
     /// The buffered writer
     pub stream: TcpStream,
+    pub compression_threshold: Option<u32>,
 }
 
 pub struct StatusConnection {
@@ -36,6 +37,7 @@ pub struct LoginConnection {
     pub flow: PacketFlow,
     /// The buffered writer
     pub stream: TcpStream,
+    pub compression_threshold: Option<u32>,
 }
 
 impl HandshakeConnection {
@@ -62,6 +64,7 @@ impl HandshakeConnection {
         LoginConnection {
             flow: self.flow,
             stream: self.stream,
+            compression_threshold: None,
         }
     }
 
@@ -73,7 +76,7 @@ impl HandshakeConnection {
     }
 
     pub async fn read(&mut self) -> Result<HandshakePacket, String> {
-        read_packet::<HandshakePacket>(&self.flow, &mut self.stream).await
+        read_packet::<HandshakePacket>(&self.flow, &mut self.stream, None).await
     }
 
     /// Write a packet to the server
@@ -84,7 +87,7 @@ impl HandshakeConnection {
 
 impl GameConnection {
     pub async fn read(&mut self) -> Result<GamePacket, String> {
-        read_packet::<GamePacket>(&self.flow, &mut self.stream).await
+        read_packet::<GamePacket>(&self.flow, &mut self.stream, self.compression_threshold).await
     }
 
     /// Write a packet to the server
@@ -95,7 +98,7 @@ impl GameConnection {
 
 impl StatusConnection {
     pub async fn read(&mut self) -> Result<StatusPacket, String> {
-        read_packet::<StatusPacket>(&self.flow, &mut self.stream).await
+        read_packet::<StatusPacket>(&self.flow, &mut self.stream, None).await
     }
 
     /// Write a packet to the server
@@ -106,11 +109,28 @@ impl StatusConnection {
 
 impl LoginConnection {
     pub async fn read(&mut self) -> Result<LoginPacket, String> {
-        read_packet::<LoginPacket>(&self.flow, &mut self.stream).await
+        read_packet::<LoginPacket>(&self.flow, &mut self.stream, self.compression_threshold).await
     }
 
     /// Write a packet to the server
     pub async fn write(&mut self, packet: LoginPacket) {
         write_packet(packet, &mut self.stream).await;
+    }
+
+    pub fn set_compression_threshold(&mut self, threshold: i32) {
+        // if you pass a threshold of 0 or less, compression is disabled
+        if threshold > 0 {
+            self.compression_threshold = Some(threshold as u32);
+        } else {
+            self.compression_threshold = None;
+        }
+    }
+
+    pub fn game(self) -> GameConnection {
+        GameConnection {
+            flow: self.flow,
+            stream: self.stream,
+            compression_threshold: self.compression_threshold,
+        }
     }
 }

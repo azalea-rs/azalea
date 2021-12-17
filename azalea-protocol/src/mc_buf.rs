@@ -134,6 +134,8 @@ impl Writable for Vec<u8> {
 pub trait Readable {
     async fn read_int_id_list(&mut self) -> Result<Vec<i32>, String>;
     async fn read_varint(&mut self) -> Result<i32, String>;
+    fn get_varint_size(&mut self, value: i32) -> u8;
+    fn get_varlong_size(&mut self, value: i32) -> u8;
     async fn read_byte_array(&mut self) -> Result<Vec<u8>, String>;
     async fn read_bytes(&mut self, n: usize) -> Result<Vec<u8>, String>;
     async fn read_utf(&mut self) -> Result<String, String>;
@@ -171,6 +173,26 @@ where
             }
         }
         Ok(ans)
+    }
+
+    fn get_varint_size(&mut self, value: i32) -> u8 {
+        for i in 1..5 {
+            if (value & -1 << i * 7) != 0 {
+                continue;
+            }
+            return i;
+        }
+        return 5;
+    }
+
+    fn get_varlong_size(&mut self, value: i32) -> u8 {
+        for i in 1..10 {
+            if (value & -1 << i * 7) != 0 {
+                continue;
+            }
+            return i;
+        }
+        return 10;
     }
 
     async fn read_byte_array(&mut self) -> Result<Vec<u8>, String> {

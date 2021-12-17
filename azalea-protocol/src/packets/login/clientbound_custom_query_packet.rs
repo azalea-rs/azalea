@@ -23,7 +23,7 @@ impl ClientboundCustomQueryPacket {
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        buf: &mut BufReader<T>,
+        buf: &mut T,
     ) -> Result<LoginPacket, String> {
         let transaction_id = buf.read_varint().await? as u32;
         let identifier = ResourceLocation::new(&buf.read_utf().await?)?;

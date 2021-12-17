@@ -16,7 +16,7 @@ impl ServerboundStatusRequestPacket {
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        _buf: &mut BufReader<T>,
+        _buf: &mut T,
     ) -> Result<StatusPacket, String> {
         Err("ServerboundStatusRequestPacket::read not implemented".to_string())
     }

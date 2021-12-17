@@ -33,7 +33,7 @@ impl ProtocolPacket for HandshakePacket {
     async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         id: u32,
         flow: &PacketFlow,
-        buf: &mut BufReader<T>,
+        buf: &mut T,
     ) -> Result<HandshakePacket, String>
     where
         Self: Sized,

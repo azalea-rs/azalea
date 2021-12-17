@@ -41,7 +41,7 @@ impl ProtocolPacket for StatusPacket {
     async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         id: u32,
         flow: &PacketFlow,
-        buf: &mut BufReader<T>,
+        buf: &mut T,
     ) -> Result<StatusPacket, String>
     where
         Self: Sized,

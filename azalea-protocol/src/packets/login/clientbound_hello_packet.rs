@@ -22,7 +22,7 @@ impl ClientboundHelloPacket {
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        buf: &mut BufReader<T>,
+        buf: &mut T,
     ) -> Result<LoginPacket, String> {
         let server_id = buf.read_utf_with_len(20).await?;
         let public_key = buf.read_byte_array().await?;

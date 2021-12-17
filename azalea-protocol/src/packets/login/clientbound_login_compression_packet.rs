@@ -20,7 +20,7 @@ impl ClientboundLoginCompressionPacket {
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        buf: &mut BufReader<T>,
+        buf: &mut T,
     ) -> Result<LoginPacket, String> {
         let compression_threshold = buf.read_varint().await?;
 

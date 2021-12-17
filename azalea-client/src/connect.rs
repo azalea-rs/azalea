@@ -29,25 +29,28 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
     .await;
     let mut conn = conn.login();
 
-    // login start
+    // login
     conn.write(ServerboundHelloPacket { username }.get()).await;
 
-    // encryption request
-    loop {
+    let mut conn = loop {
         match conn.read().await.unwrap() {
-            LoginPacket::ClientboundHelloPacket(encryption_request_packet) => {
-                println!(
-                    "Got encryption request {:?} {:?}",
-                    encryption_request_packet.nonce, encryption_request_packet.public_key
-                );
+            LoginPacket::ClientboundHelloPacket(p) => {
+                println!("Got encryption request {:?} {:?}", p.nonce, p.public_key);
             }
-            _ => (),
+            LoginPacket::ClientboundLoginCompressionPacket(p) => {
+                println!("Got compression request {:?}", p.compression_threshold);
+                conn.set_compression_threshold(p.compression_threshold);
+            }
+            LoginPacket::ClientboundGameProfilePacket(p) => {
+                println!("Got profile {:?}", p.game_profile);
+                break conn.game();
+            }
+            _ => panic!("unhandled packet"),
         }
-    }
+    };
 
-    // TODO: client auth
-
-    // TODO: encryption response
+    // game
+    panic!("ok i haven't implemented game yet");
 
     Ok(())
 }

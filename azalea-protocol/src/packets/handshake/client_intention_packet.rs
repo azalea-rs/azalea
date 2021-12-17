@@ -28,7 +28,7 @@ impl ClientIntentionPacket {
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        _buf: &mut BufReader<T>,
+        _buf: &mut T,
     ) -> Result<HandshakePacket, String> {
         Err("ClientIntentionPacket::parse not implemented".to_string())
         // Ok(ClientIntentionPacket {}.get())

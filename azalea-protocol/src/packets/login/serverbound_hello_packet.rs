@@ -20,7 +20,7 @@ impl ServerboundHelloPacket {
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        _buf: &mut BufReader<T>,
+        _buf: &mut T,
     ) -> Result<LoginPacket, String> {
         Err("ServerboundHelloPacket::read not implemented".to_string())
     }

@@ -22,7 +22,7 @@ impl ProtocolPacket for GamePacket {
     async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         _id: u32,
         flow: &PacketFlow,
-        _buf: &mut BufReader<T>,
+        _buf: &mut T,
     ) -> Result<GamePacket, String>
     where
         Self: Sized,

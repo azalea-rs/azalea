@@ -43,7 +43,7 @@ impl ClientboundStatusResponsePacket {
     pub fn write(&self, _buf: &mut Vec<u8>) {}
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        buf: &mut BufReader<T>,
+        buf: &mut T,
     ) -> Result<StatusPacket, String> {
         let status_string = buf.read_utf().await?;
         let status_json: Value =

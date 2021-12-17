@@ -5,6 +5,7 @@ async fn main() {
     println!("Hello, world!");
 
     let address = "95.111.249.143:10000";
+    // let address = "localhost:63482";
     let _response = join_server(&address.try_into().unwrap()).await.unwrap();
     // println!("{}", response.description.to_ansi(None));
     println!("connected");

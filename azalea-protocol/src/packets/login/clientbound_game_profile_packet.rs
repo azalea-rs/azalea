@@ -23,7 +23,7 @@ impl ClientboundGameProfilePacket {
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        buf: &mut BufReader<T>,
+        buf: &mut T,
     ) -> Result<LoginPacket, String> {
         let uuid = Uuid::from_int_array([
             buf.read_int().await? as u32,
