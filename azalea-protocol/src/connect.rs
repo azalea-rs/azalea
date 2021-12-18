@@ -81,7 +81,7 @@ impl HandshakeConnection {
 
     /// Write a packet to the server
     pub async fn write(&mut self, packet: HandshakePacket) {
-        write_packet(packet, &mut self.stream).await;
+        write_packet(packet, &mut self.stream, None).await;
     }
 }
 
@@ -92,7 +92,7 @@ impl GameConnection {
 
     /// Write a packet to the server
     pub async fn write(&mut self, packet: GamePacket) {
-        write_packet(packet, &mut self.stream).await;
+        write_packet(packet, &mut self.stream, self.compression_threshold).await;
     }
 }
 
@@ -103,7 +103,7 @@ impl StatusConnection {
 
     /// Write a packet to the server
     pub async fn write(&mut self, packet: StatusPacket) {
-        write_packet(packet, &mut self.stream).await;
+        write_packet(packet, &mut self.stream, None).await;
     }
 }
 
@@ -115,7 +115,7 @@ impl LoginConnection {
 
     /// Write a packet to the server
     pub async fn write(&mut self, packet: LoginPacket) {
-        write_packet(packet, &mut self.stream).await;
+        write_packet(packet, &mut self.stream, self.compression_threshold).await;
     }
 
     pub fn set_compression_threshold(&mut self, threshold: i32) {

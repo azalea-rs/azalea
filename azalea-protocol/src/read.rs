@@ -40,7 +40,7 @@ where
 // this is always true in multiplayer, false in singleplayer
 static VALIDATE_DECOMPRESSED: bool = true;
 
-static MAXIMUM_UNCOMPRESSED_LENGTH: u32 = 8388608;
+pub static MAXIMUM_UNCOMPRESSED_LENGTH: u32 = 8388608;
 
 async fn compression_decoder<R>(
     stream: &mut R,
@@ -102,7 +102,6 @@ where
 {
     let mut buf = frame_splitter(stream).await?;
     if let Some(compression_threshold) = compression_threshold {
-        println!("compression_decoder");
         buf = compression_decoder(&mut buf.as_slice(), compression_threshold).await?;
     }
     let packet = packet_decoder(&mut buf.as_slice(), flow).await?;
