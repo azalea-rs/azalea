@@ -8,7 +8,10 @@ use tokio::io::BufReader;
 #[derive(Clone, Debug)]
 pub enum GamePacket
 where
-    Self: Sized, {}
+    Self: Sized,
+{
+    ClientboundLoginPacket(clientbound_login_packet::ClientboundLoginPacket),
+}
 
 #[async_trait]
 impl ProtocolPacket for GamePacket {

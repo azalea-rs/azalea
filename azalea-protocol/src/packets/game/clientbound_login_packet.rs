@@ -27,7 +27,7 @@ pub struct ClientboundLoginPacket {
     pub game_type: GameType,
     pub previous_game_type: Option<GameType>,
     pub levels: Vec<ResourceLocation>,
-    pub registry_holder: azalea_core::registry::RegistryAccess,
+    // pub registry_holder: azalea_core::registry::RegistryAccess,
 }
 
 impl ClientboundLoginPacket {
@@ -37,7 +37,7 @@ impl ClientboundLoginPacket {
 
     pub fn write(&self, buf: &mut Vec<u8>) {
         buf.write_int(self.player_id);
-        buf.write_bool(self.hardcore);
+        // buf.write_bool(self.hardcore);
         // buf.write_byte(self.game_type.
     }
 
@@ -47,11 +47,12 @@ impl ClientboundLoginPacket {
         let transaction_id = buf.read_varint().await? as u32;
         let identifier = ResourceLocation::new(&buf.read_utf().await?)?;
         let data = buf.read_bytes(1048576).await?;
-        Ok(ClientboundLoginPacket {
-            transaction_id,
-            identifier,
-            data,
-        }
-        .get())
+        panic!("not implemented");
+        // Ok(ClientboundLoginPacket {
+        //     transaction_id,
+        //     identifier,
+        //     data,
+        // }
+        // .get())
     }
 }
