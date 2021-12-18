@@ -2,7 +2,6 @@ use super::LoginPacket;
 use crate::mc_buf::{Readable, Writable};
 use azalea_core::resource_location::ResourceLocation;
 use std::hash::Hash;
-use tokio::io::BufReader;
 
 #[derive(Hash, Clone, Debug)]
 pub struct ClientboundCustomQueryPacket {

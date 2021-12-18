@@ -1,12 +1,11 @@
 use super::GamePacket;
 use crate::mc_buf::{Readable, Writable};
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::{game_type::GameType, resource_location::ResourceLocation};
 use std::hash::Hash;
-use tokio::io::BufReader;
 
 #[derive(Hash, Clone, Debug)]
 pub struct ClientboundLoginPacket {
-	// private final int playerId;
+    // private final int playerId;
     // private final boolean hardcore;
     // private final GameType gameType;
     // @Nullable
@@ -23,7 +22,12 @@ pub struct ClientboundLoginPacket {
     // private final boolean showDeathScreen;
     // private final boolean isDebug;
     // private final boolean isFlat;
-	
+    pub player_id: i32,
+    pub hardcore: bool,
+    pub game_type: GameType,
+    pub previous_game_type: Option<GameType>,
+    pub levels: Vec<ResourceLocation>,
+    pub registry_holder: azalea_core::registry::RegistryAccess,
 }
 
 impl ClientboundLoginPacket {
@@ -32,9 +36,9 @@ impl ClientboundLoginPacket {
     }
 
     pub fn write(&self, buf: &mut Vec<u8>) {
-        buf.write_varint(self.transaction_id as i32).unwrap();
-        buf.write_utf(self.identifier.to_string().as_str()).unwrap();
-        buf.write_bytes(&self.data).unwrap();
+        buf.write_int(self.player_id);
+        buf.write_bool(self.hardcore);
+        // buf.write_byte(self.game_type.
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(

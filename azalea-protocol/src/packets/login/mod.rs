@@ -4,12 +4,9 @@ pub mod clientbound_hello_packet;
 pub mod clientbound_login_compression_packet;
 pub mod serverbound_hello_packet;
 
-use async_trait::async_trait;
-use tokio::io::BufReader;
-
-use crate::connect::PacketFlow;
-
 use super::ProtocolPacket;
+use crate::connect::PacketFlow;
+use async_trait::async_trait;
 
 #[derive(Clone, Debug)]
 pub enum LoginPacket

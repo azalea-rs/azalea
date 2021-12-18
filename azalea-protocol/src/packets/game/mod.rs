@@ -1,9 +1,9 @@
-use async_trait::async_trait;
-use tokio::io::BufReader;
-
-use crate::connect::PacketFlow;
+pub mod clientbound_login_packet;
 
 use super::ProtocolPacket;
+use crate::connect::PacketFlow;
+use async_trait::async_trait;
+use tokio::io::BufReader;
 
 #[derive(Clone, Debug)]
 pub enum GamePacket
@@ -13,7 +13,9 @@ where
 #[async_trait]
 impl ProtocolPacket for GamePacket {
     fn id(&self) -> u32 {
-        0x00
+        match self {
+            GamePacket::ClientboundLoginPacket(_packet) => 0x00,
+        }
     }
 
     fn write(&self, _buf: &mut Vec<u8>) {}

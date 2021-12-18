@@ -56,7 +56,23 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
     };
 
     // game
-    panic!("ok i haven't implemented game yet");
+    loop {
+        let packet_result = conn.read().await;
+        match packet_result {
+            Ok(packet) => match packet {
+                GamePacket::ClientboundKeepAlivePacket(p) => {
+                    println!("Got keep alive packet {:?}", p.keep_alive_id);
+                }
+                GamePacket::ClientboundChatMessagePacket(p) => {
+                    println!("Got chat message packet {:?}", p.message);
+                }
+                _ => panic!("unhandled packet"),
+            },
+            Err(e) => {
+                println!("Error: {:?}", e);
+            }
+        }
+    }
 
     Ok(())
 }
