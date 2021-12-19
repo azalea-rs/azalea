@@ -1,117 +1,112 @@
-use byteorder::{ReadBytesExt, BE};
-use error::Error;
-use std::{collections::HashMap, io::Read};
-use tag::Tag;
+use crate::Error;
+use crate::Tag;
+use byteorder::{WriteBytesExt, BE};
+use flate2::write::{GzEncoder, ZlibEncoder};
+use std::io::Write;
 
 impl Tag {
-    fn write(&self, stream: &mut impl Read) -> Result<(), Error> {
-        println!("read_known: id={}", id);
-        let tag = match id {
-            // Signifies the end of a TAG_Compound. It is only ever used inside
-            // a TAG_Compound, and is not named despite being in a TAG_Compound
-            0 => Tag::End,
-            // A single signed byte
-            1 => Tag::Byte(stream.read_i8().map_err(|_| Error::InvalidTag)?),
-            // A single signed, big endian 16 bit integer
-            2 => Tag::Short(stream.read_i16::<BE>().map_err(|_| Error::InvalidTag)?),
-            // A single signed, big endian 32 bit integer
-            3 => Tag::Int(stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?),
-            // A single signed, big endian 64 bit integer
-            4 => Tag::Long(stream.read_i64::<BE>().map_err(|_| Error::InvalidTag)?),
-            // A single, big endian IEEE-754 single-precision floating point
-            // number (NaN possible)
-            5 => Tag::Float(stream.read_f32::<BE>().map_err(|_| Error::InvalidTag)?),
-            // A single, big endian IEEE-754 double-precision floating point
-            // number (NaN possible)
-            6 => Tag::Double(stream.read_f64::<BE>().map_err(|_| Error::InvalidTag)?),
-            // A length-prefixed array of signed bytes. The prefix is a signed
-            // integer (thus 4 bytes)
-            7 => {
-                let length = stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?;
-                let mut bytes = Vec::new();
-                for _ in 0..length {
-                    bytes.push(stream.read_i8().map_err(|_| Error::InvalidTag)?);
+    pub fn write_without_end(&self, writer: &mut dyn Write) -> Result<(), Error> {
+        match self {
+            Tag::End => {}
+            Tag::Byte(value) => writer.write_i8(*value).map_err(|_| Error::WriteError)?,
+            Tag::Short(value) => writer
+                .write_i16::<BE>(*value)
+                .map_err(|_| Error::WriteError)?,
+            Tag::Int(value) => writer
+                .write_i32::<BE>(*value)
+                .map_err(|_| Error::WriteError)?,
+            Tag::Long(value) => writer
+                .write_i64::<BE>(*value)
+                .map_err(|_| Error::WriteError)?,
+            Tag::Float(value) => writer
+                .write_f32::<BE>(*value)
+                .map_err(|_| Error::WriteError)?,
+            Tag::Double(value) => writer
+                .write_f64::<BE>(*value)
+                .map_err(|_| Error::WriteError)?,
+            Tag::ByteArray(value) => {
+                writer
+                    .write_i32::<BE>(value.len() as i32)
+                    .map_err(|_| Error::WriteError)?;
+                for byte in value {
+                    writer.write_i8(*byte).map_err(|_| Error::WriteError)?;
                 }
-                Tag::ByteArray(bytes)
             }
-            // A length-prefixed modified UTF-8 string. The prefix is an
-            // unsigned short (thus 2 bytes) signifying the length of the
-            // string in bytes
-            8 => {
-                let length = stream.read_u16::<BE>().map_err(|_| Error::InvalidTag)?;
-                let mut bytes = Vec::new();
-                for _ in 0..length {
-                    bytes.push(stream.read_u8().map_err(|_| Error::InvalidTag)?);
+            Tag::String(value) => {
+                writer
+                    .write_i16::<BE>(value.len() as i16)
+                    .map_err(|_| Error::WriteError)?;
+                writer
+                    .write_all(value.as_bytes())
+                    .map_err(|_| Error::WriteError)?;
+            }
+            Tag::List(value) => {
+                // we just get the type from the first item, or default the type to END
+                let type_id = value.first().and_then(|f| Some(f.id())).unwrap_or(0);
+                writer.write_u8(type_id).map_err(|_| Error::WriteError)?;
+                writer
+                    .write_i32::<BE>(value.len() as i32)
+                    .map_err(|_| Error::WriteError)?;
+                for tag in value {
+                    tag.write_without_end(writer)?;
                 }
-                Tag::String(String::from_utf8(bytes).map_err(|_| Error::InvalidTag)?)
             }
-            // A list of nameless tags, all of the same type. The list is
-            // prefixed with the Type ID of the items it contains (thus 1
-            // byte), and the length of the list as a signed integer (a further
-            // 4 bytes). If the length of the list is 0 or negative, the type
-            // may be 0 (TAG_End) but otherwise it must be any other type. (The
-            // notchian implementation uses TAG_End in that situation, but
-            // another reference implementation by Mojang uses 1 instead;
-            // parsers should accept any type if the length is <= 0).
-            9 => {
-                let type_id = stream.read_u8().map_err(|_| Error::InvalidTag)?;
-                let length = stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?;
-                let mut list = Vec::new();
-                for _ in 0..length {
-                    list.push(Tag::read_known(stream, type_id)?);
+            Tag::Compound(value) => {
+                for (key, tag) in value {
+                    writer.write_u8(tag.id()).map_err(|_| Error::WriteError)?;
+                    Tag::String(key.clone()).write_without_end(writer)?;
+                    tag.write_without_end(writer)?;
                 }
-                Tag::List(list)
+                writer
+                    .write_u8(Tag::End.id())
+                    .map_err(|_| Error::WriteError)?;
             }
-            // Effectively a list of a named tags. Order is not guaranteed.
-            10 => {
-                println!("reading compound {{");
-                let mut map = HashMap::new();
-                loop {
-                    let tag_id = stream.read_u8().unwrap_or(0);
-                    println!("compound tag id: {}", tag_id);
-                    if tag_id == 0 {
-                        break;
-                    }
-                    let name = match Tag::read_known(stream, 8)? {
-                        Tag::String(name) => name,
-                        _ => panic!("Expected a string tag"),
-                    };
-                    println!("compound name: {}", name);
-                    let tag = Tag::read_known(stream, tag_id).map_err(|_| Error::InvalidTag)?;
-                    println!("aight read tag: {:?}", tag);
-                    map.insert(name, tag);
+            Tag::IntArray(value) => {
+                writer
+                    .write_i32::<BE>(value.len() as i32)
+                    .map_err(|_| Error::WriteError)?;
+                for int in value {
+                    writer
+                        .write_i32::<BE>(*int)
+                        .map_err(|_| Error::WriteError)?;
                 }
-                println!("}} compound map: {:?}", map);
-                Tag::Compound(map)
             }
-            // A length-prefixed array of signed integers. The prefix is a
-            // signed integer (thus 4 bytes) and indicates the number of 4 byte
-            // integers.
-            11 => {
-                let length = stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?;
-                let mut ints = Vec::new();
-                for _ in 0..length {
-                    ints.push(stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?);
+            Tag::LongArray(value) => {
+                writer
+                    .write_i32::<BE>(value.len() as i32)
+                    .map_err(|_| Error::WriteError)?;
+                for long in value {
+                    writer
+                        .write_i64::<BE>(*long)
+                        .map_err(|_| Error::WriteError)?;
                 }
-                Tag::IntArray(ints)
             }
-            // A length-prefixed array of signed longs. The prefix is a signed
-            // integer (thus 4 bytes) and indicates the number of 8 byte longs.
-            12 => {
-                let length = stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?;
-                let mut longs = Vec::new();
-                for _ in 0..length {
-                    longs.push(stream.read_i64::<BE>().map_err(|_| Error::InvalidTag)?);
-                }
-                Tag::LongArray(longs)
-            }
-            _ => return Err(Error::InvalidTagType(id)),
-        };
-        Ok(tag)
+        }
+
+        Ok(())
     }
 
-    pub fn read(stream: &mut impl Read) -> Result<Tag, Error> {
-        // default to compound tag
-        Tag::read_known(stream, 10)
+    pub fn write(&self, writer: &mut impl Write) -> Result<(), Error> {
+        match self {
+            Tag::Compound(value) => {
+                for (key, tag) in value {
+                    writer.write_u8(tag.id()).map_err(|_| Error::WriteError)?;
+                    Tag::String(key.clone()).write_without_end(writer)?;
+                    tag.write_without_end(writer)?;
+                }
+                Ok(())
+            }
+            _ => Err(Error::InvalidTag),
+        }
+    }
+
+    pub fn write_zlib(&self, writer: &mut impl Write) -> Result<(), Error> {
+        let mut encoder = ZlibEncoder::new(writer, flate2::Compression::default());
+        self.write(&mut encoder)
+    }
+
+    pub fn write_gzip(&self, writer: &mut impl Write) -> Result<(), Error> {
+        let mut encoder = GzEncoder::new(writer, flate2::Compression::default());
+        self.write(&mut encoder)
     }
 }

@@ -1,8 +1,6 @@
-use std::io::Cursor;
-
 use crate::{connect::PacketFlow, mc_buf::Readable, packets::ProtocolPacket};
 use async_compression::tokio::bufread::ZlibDecoder;
-use tokio::io::{AsyncRead, AsyncReadExt, BufReader};
+use tokio::io::{AsyncRead, AsyncReadExt};
 
 async fn frame_splitter<R>(stream: &mut R) -> Result<Vec<u8>, String>
 where

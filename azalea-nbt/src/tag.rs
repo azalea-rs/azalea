@@ -16,3 +16,23 @@ pub enum Tag {
     IntArray(Vec<i32>),             // 11
     LongArray(Vec<i64>),            // 12
 }
+
+impl Tag {
+    pub fn id(&self) -> u8 {
+        match self {
+            Tag::End => 0,
+            Tag::Byte(value) => 1,
+            Tag::Short(value) => 2,
+            Tag::Int(value) => 3,
+            Tag::Long(value) => 4,
+            Tag::Float(value) => 5,
+            Tag::Double(value) => 6,
+            Tag::ByteArray(value) => 7,
+            Tag::String(value) => 8,
+            Tag::List(value) => 9,
+            Tag::Compound(value) => 10,
+            Tag::IntArray(value) => 11,
+            Tag::LongArray(value) => 12,
+        }
+    }
+}

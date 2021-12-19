@@ -1,10 +1,12 @@
 use crate::Error;
 use crate::Tag;
 use byteorder::{ReadBytesExt, BE};
+use flate2::read::{GzDecoder, ZlibDecoder};
 use std::{collections::HashMap, io::Read};
 
 impl Tag {
     fn read_known(stream: &mut impl Read, id: u8) -> Result<Tag, Error> {
+        println!("read_known: id={}", id);
         let tag = match id {
             // Signifies the end of a TAG_Compound. It is only ever used inside
             // a TAG_Compound, and is not named despite being in a TAG_Compound
@@ -65,7 +67,9 @@ impl Tag {
             10 => {
                 let mut map = HashMap::new();
                 loop {
+                    println!("compound loop");
                     let tag_id = stream.read_u8().unwrap_or(0);
+                    println!("compound loop tag_id={}", tag_id);
                     if tag_id == 0 {
                         break;
                     }
@@ -107,5 +111,15 @@ impl Tag {
     pub fn read(stream: &mut impl Read) -> Result<Tag, Error> {
         // default to compound tag
         Tag::read_known(stream, 10)
+    }
+
+    pub fn read_zlib(stream: &mut impl Read) -> Result<Tag, Error> {
+        let mut gz = ZlibDecoder::new(stream);
+        Tag::read(&mut gz)
+    }
+
+    pub fn read_gzip(stream: &mut impl Read) -> Result<Tag, Error> {
+        let mut gz = GzDecoder::new(stream);
+        Tag::read(&mut gz)
     }
 }
