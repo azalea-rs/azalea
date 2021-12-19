@@ -2,6 +2,7 @@
 use azalea_protocol::{
     connect::HandshakeConnection,
     packets::{
+        game::GamePacket,
         handshake::client_intention_packet::ClientIntentionPacket,
         login::{serverbound_hello_packet::ServerboundHelloPacket, LoginPacket},
         ConnectionProtocol, PROTOCOL_VERSION,
@@ -56,23 +57,23 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
     };
 
     // game
-    loop {
-        let packet_result = conn.read().await;
-        match packet_result {
-            Ok(packet) => match packet {
-                GamePacket::ClientboundKeepAlivePacket(p) => {
-                    println!("Got keep alive packet {:?}", p.keep_alive_id);
-                }
-                GamePacket::ClientboundChatMessagePacket(p) => {
-                    println!("Got chat message packet {:?}", p.message);
-                }
-                _ => panic!("unhandled packet"),
-            },
-            Err(e) => {
-                println!("Error: {:?}", e);
-            }
-        }
-    }
+    // loop {
+    //     let packet_result = conn.read().await;
+    //     match packet_result {
+    //         Ok(packet) => match packet {
+    //             GamePacket::ClientboundKeepAlivePacket(p) => {
+    //                 println!("Got keep alive packet {:?}", p.keep_alive_id);
+    //             }
+    //             GamePacket::ClientboundChatMessagePacket(p) => {
+    //                 println!("Got chat message packet {:?}", p.message);
+    //             }
+    //             _ => panic!("unhandled packet"),
+    //         },
+    //         Err(e) => {
+    //             println!("Error: {:?}", e);
+    //         }
+    //     }
+    // }
 
     Ok(())
 }

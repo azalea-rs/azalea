@@ -42,7 +42,7 @@ impl Tag {
             }
             Tag::List(value) => {
                 // we just get the type from the first item, or default the type to END
-                let type_id = value.first().and_then(|f| Some(f.id())).unwrap_or(0);
+                let type_id = value.first().map(|f| f.id()).unwrap_or(0);
                 writer.write_u8(type_id).map_err(|_| Error::WriteError)?;
                 writer
                     .write_i32::<BE>(value.len() as i32)

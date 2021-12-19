@@ -21,18 +21,18 @@ impl Tag {
     pub fn id(&self) -> u8 {
         match self {
             Tag::End => 0,
-            Tag::Byte(value) => 1,
-            Tag::Short(value) => 2,
-            Tag::Int(value) => 3,
-            Tag::Long(value) => 4,
-            Tag::Float(value) => 5,
-            Tag::Double(value) => 6,
-            Tag::ByteArray(value) => 7,
-            Tag::String(value) => 8,
-            Tag::List(value) => 9,
-            Tag::Compound(value) => 10,
-            Tag::IntArray(value) => 11,
-            Tag::LongArray(value) => 12,
+            Tag::Byte(_) => 1,
+            Tag::Short(_) => 2,
+            Tag::Int(_) => 3,
+            Tag::Long(_) => 4,
+            Tag::Float(_) => 5,
+            Tag::Double(_) => 6,
+            Tag::ByteArray(_) => 7,
+            Tag::String(_) => 8,
+            Tag::List(_) => 9,
+            Tag::Compound(_) => 10,
+            Tag::IntArray(_) => 11,
+            Tag::LongArray(_) => 12,
         }
     }
 }

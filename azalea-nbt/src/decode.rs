@@ -6,7 +6,6 @@ use std::{collections::HashMap, io::Read};
 
 impl Tag {
     fn read_known(stream: &mut impl Read, id: u8) -> Result<Tag, Error> {
-        println!("read_known: id={}", id);
         let tag = match id {
             // Signifies the end of a TAG_Compound. It is only ever used inside
             // a TAG_Compound, and is not named despite being in a TAG_Compound
@@ -67,9 +66,7 @@ impl Tag {
             10 => {
                 let mut map = HashMap::new();
                 loop {
-                    println!("compound loop");
                     let tag_id = stream.read_u8().unwrap_or(0);
-                    println!("compound loop tag_id={}", tag_id);
                     if tag_id == 0 {
                         break;
                     }
