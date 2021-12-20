@@ -1,54 +1,63 @@
 use crate::Error;
 use crate::Tag;
-use byteorder::{ReadBytesExt, BE};
-use flate2::read::{GzDecoder, ZlibDecoder};
-use std::{collections::HashMap, io::Read};
+use async_compression::tokio::bufread::{GzipDecoder, ZlibDecoder};
+use async_recursion::async_recursion;
+use std::collections::HashMap;
+use tokio::io::AsyncBufRead;
+use tokio::io::{AsyncRead, AsyncReadExt};
 
 #[inline]
-fn read_string(stream: &mut impl Read) -> Result<String, Error> {
-    let length = stream.read_u16::<BE>().map_err(|_| Error::InvalidTag)?;
+async fn read_string<R>(stream: &mut R) -> Result<String, Error>
+where
+    R: AsyncRead + std::marker::Unpin,
+{
+    let length = stream.read_u16().await.map_err(|_| Error::InvalidTag)?;
 
     let mut buf = Vec::with_capacity(length as usize);
     for _ in 0..length {
-        buf.push(stream.read_u8().map_err(|_| Error::InvalidTag)?);
+        buf.push(stream.read_u8().await.map_err(|_| Error::InvalidTag)?);
     }
     String::from_utf8(buf).map_err(|_| Error::InvalidTag)
 }
 
 impl Tag {
-    fn read_known(stream: &mut impl Read, id: u8) -> Result<Tag, Error> {
+    #[async_recursion]
+    async fn read_known<R>(stream: &mut R, id: u8) -> Result<Tag, Error>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
         let tag = match id {
             // Signifies the end of a TAG_Compound. It is only ever used inside
             // a TAG_Compound, and is not named despite being in a TAG_Compound
             0 => Tag::End,
             // A single signed byte
-            1 => Tag::Byte(stream.read_i8().map_err(|_| Error::InvalidTag)?),
+            1 => Tag::Byte(stream.read_i8().await.map_err(|_| Error::InvalidTag)?),
             // A single signed, big endian 16 bit integer
-            2 => Tag::Short(stream.read_i16::<BE>().map_err(|_| Error::InvalidTag)?),
+            2 => Tag::Short(stream.read_i16().await.map_err(|_| Error::InvalidTag)?),
             // A single signed, big endian 32 bit integer
-            3 => Tag::Int(stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?),
+            3 => Tag::Int(stream.read_i32().await.map_err(|_| Error::InvalidTag)?),
             // A single signed, big endian 64 bit integer
-            4 => Tag::Long(stream.read_i64::<BE>().map_err(|_| Error::InvalidTag)?),
+            4 => Tag::Long(stream.read_i64().await.map_err(|_| Error::InvalidTag)?),
             // A single, big endian IEEE-754 single-precision floating point
             // number (NaN possible)
-            5 => Tag::Float(stream.read_f32::<BE>().map_err(|_| Error::InvalidTag)?),
+            5 => Tag::Float(stream.read_f32().await.map_err(|_| Error::InvalidTag)?),
             // A single, big endian IEEE-754 double-precision floating point
             // number (NaN possible)
-            6 => Tag::Double(stream.read_f64::<BE>().map_err(|_| Error::InvalidTag)?),
+            6 => Tag::Double(stream.read_f64().await.map_err(|_| Error::InvalidTag)?),
             // A length-prefixed array of signed bytes. The prefix is a signed
             // integer (thus 4 bytes)
             7 => {
-                let length = stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?;
+                let length = stream.read_i32().await.map_err(|_| Error::InvalidTag)?;
                 let mut bytes = Vec::with_capacity(length as usize);
                 for _ in 0..length {
-                    bytes.push(stream.read_i8().map_err(|_| Error::InvalidTag)?);
+                    bytes.push(stream.read_i8().await.map_err(|_| Error::InvalidTag)?);
                 }
                 Tag::ByteArray(bytes)
             }
             // A length-prefixed modified UTF-8 string. The prefix is an
             // unsigned short (thus 2 bytes) signifying the length of the
             // string in bytes
-            8 => Tag::String(read_string(stream)?),
+            8 => Tag::String(read_string(stream).await?),
             // A list of nameless tags, all of the same type. The list is
             // prefixed with the Type ID of the items it contains (thus 1
             // byte), and the length of the list as a signed integer (a further
@@ -58,11 +67,11 @@ impl Tag {
             // another reference implementation by Mojang uses 1 instead;
             // parsers should accept any type if the length is <= 0).
             9 => {
-                let type_id = stream.read_u8().map_err(|_| Error::InvalidTag)?;
-                let length = stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?;
+                let type_id = stream.read_u8().await.map_err(|_| Error::InvalidTag)?;
+                let length = stream.read_i32().await.map_err(|_| Error::InvalidTag)?;
                 let mut list = Vec::with_capacity(length as usize);
                 for _ in 0..length {
-                    list.push(Tag::read_known(stream, type_id)?);
+                    list.push(Tag::read_known(stream, type_id).await?);
                 }
                 Tag::List(list)
             }
@@ -71,12 +80,12 @@ impl Tag {
                 // we default to capacity 4 because it'll probably not be empty
                 let mut map = HashMap::with_capacity(4);
                 loop {
-                    let tag_id = stream.read_u8().unwrap_or(0);
+                    let tag_id = stream.read_u8().await.unwrap_or(0);
                     if tag_id == 0 {
                         break;
                     }
-                    let name = read_string(stream)?;
-                    let tag = Tag::read_known(stream, tag_id)?;
+                    let name = read_string(stream).await?;
+                    let tag = Tag::read_known(stream, tag_id).await?;
                     map.insert(name, tag);
                 }
                 Tag::Compound(map)
@@ -85,20 +94,20 @@ impl Tag {
             // signed integer (thus 4 bytes) and indicates the number of 4 byte
             // integers.
             11 => {
-                let length = stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?;
+                let length = stream.read_i32().await.map_err(|_| Error::InvalidTag)?;
                 let mut ints = Vec::with_capacity(length as usize);
                 for _ in 0..length {
-                    ints.push(stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?);
+                    ints.push(stream.read_i32().await.map_err(|_| Error::InvalidTag)?);
                 }
                 Tag::IntArray(ints)
             }
             // A length-prefixed array of signed longs. The prefix is a signed
             // integer (thus 4 bytes) and indicates the number of 8 byte longs.
             12 => {
-                let length = stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?;
+                let length = stream.read_i32().await.map_err(|_| Error::InvalidTag)?;
                 let mut longs = Vec::with_capacity(length as usize);
                 for _ in 0..length {
-                    longs.push(stream.read_i64::<BE>().map_err(|_| Error::InvalidTag)?);
+                    longs.push(stream.read_i64().await.map_err(|_| Error::InvalidTag)?);
                 }
                 Tag::LongArray(longs)
             }
@@ -107,18 +116,27 @@ impl Tag {
         Ok(tag)
     }
 
-    pub fn read(stream: &mut impl Read) -> Result<Tag, Error> {
+    pub async fn read<R>(stream: &mut R) -> Result<Tag, Error>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
         // default to compound tag
-        Tag::read_known(stream, 10)
+        Tag::read_known(stream, 10).await
     }
 
-    pub fn read_zlib(stream: &mut impl Read) -> Result<Tag, Error> {
+    pub async fn read_zlib<R>(stream: &mut R) -> Result<Tag, Error>
+    where
+        R: AsyncBufRead + std::marker::Unpin + std::marker::Send,
+    {
         let mut gz = ZlibDecoder::new(stream);
-        Tag::read(&mut gz)
+        Tag::read(&mut gz).await
     }
 
-    pub fn read_gzip(stream: &mut impl Read) -> Result<Tag, Error> {
-        let mut gz = GzDecoder::new(stream);
-        Tag::read(&mut gz)
+    pub async fn read_gzip<R>(stream: &mut R) -> Result<Tag, Error>
+    where
+        R: AsyncBufRead + std::marker::Unpin + std::marker::Send,
+    {
+        let mut gz = GzipDecoder::new(stream);
+        Tag::read(&mut gz).await
     }
 }

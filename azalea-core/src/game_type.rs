@@ -9,7 +9,7 @@ pub enum GameType {
 }
 
 impl GameType {
-    fn to_id(&self) -> u8 {
+    pub fn to_id(&self) -> u8 {
         match self {
             GameType::SURVIVAL => 0,
             GameType::CREATIVE => 1,
@@ -18,7 +18,15 @@ impl GameType {
         }
     }
 
-    fn from_id(id: u8) -> GameType {
+    /// Get the id of the game type, but return -1 if the game type is invalid.
+    pub fn to_optional_id(game_type: &Option<GameType>) -> i8 {
+        match game_type {
+            Some(game_type) => game_type.to_id() as i8,
+            None => -1,
+        }
+    }
+
+    pub fn from_id(id: u8) -> GameType {
         match id {
             0 => GameType::SURVIVAL,
             1 => GameType::CREATIVE,
@@ -28,7 +36,7 @@ impl GameType {
         }
     }
 
-    fn short_name(&self) -> &'static str {
+    pub fn short_name(&self) -> &'static str {
         // TODO: these should be translated TranslatableComponent("selectWorld.gameMode." + string2)
         match self {
             GameType::SURVIVAL => "Survival",
@@ -38,7 +46,7 @@ impl GameType {
         }
     }
 
-    fn long_name(&self) -> &'static str {
+    pub fn long_name(&self) -> &'static str {
         // TODO: These should be translated TranslatableComponent("gameMode." + string2);
         match self {
             GameType::SURVIVAL => "Survival Mode",
@@ -48,7 +56,7 @@ impl GameType {
         }
     }
 
-    fn from_name(name: &str) -> GameType {
+    pub fn from_name(name: &str) -> GameType {
         match name {
             "survival" => GameType::SURVIVAL,
             "creative" => GameType::CREATIVE,

@@ -12,9 +12,10 @@ const MAX_STRING_LENGTH: u16 = 32767;
 
 #[async_trait]
 pub trait Writable {
-    fn write_list<F, T>(&mut self, list: Vec<T>, writer: F) -> Result<(), std::io::Error>
+    fn write_list<F, T>(&mut self, list: &Vec<T>, writer: F) -> Result<(), std::io::Error>
     where
-        F: FnOnce(&mut Self, T) -> Result<(), std::io::Error> + Copy,
+        F: FnOnce(&mut Self, &T) -> Result<(), std::io::Error> + Copy,
+        T: Sized,
         Self: Sized;
     fn write_int_id_list(&mut self, list: Vec<i32>) -> Result<(), std::io::Error>;
     fn write_map<KF, VF, KT, VT>(
@@ -36,13 +37,15 @@ pub trait Writable {
     fn write_short(&mut self, n: u16) -> Result<(), std::io::Error>;
     fn write_byte_array(&mut self, bytes: &[u8]) -> Result<(), std::io::Error>;
     fn write_int(&mut self, n: i32) -> Result<(), std::io::Error>;
+    fn write_boolean(&mut self, b: bool) -> Result<(), std::io::Error>;
+    fn write_nbt(&mut self, nbt: &azalea_nbt::Tag) -> Result<(), std::io::Error>;
 }
 
 #[async_trait]
 impl Writable for Vec<u8> {
-    fn write_list<F, T>(&mut self, list: Vec<T>, writer: F) -> Result<(), std::io::Error>
+    fn write_list<F, T>(&mut self, list: &Vec<T>, writer: F) -> Result<(), std::io::Error>
     where
-        F: FnOnce(&mut Self, T) -> Result<(), std::io::Error> + Copy,
+        F: FnOnce(&mut Self, &T) -> Result<(), std::io::Error> + Copy,
         Self: Sized,
     {
         self.write_varint(list.len() as i32)?;
@@ -53,7 +56,7 @@ impl Writable for Vec<u8> {
     }
 
     fn write_int_id_list(&mut self, list: Vec<i32>) -> Result<(), std::io::Error> {
-        self.write_list(list, Self::write_varint)
+        self.write_list(&list, |buf, n| buf.write_varint(*n))
     }
 
     fn write_map<KF, VF, KT, VT>(
@@ -128,6 +131,15 @@ impl Writable for Vec<u8> {
     fn write_int(&mut self, n: i32) -> Result<(), std::io::Error> {
         WriteBytesExt::write_i32::<BigEndian>(self, n)
     }
+
+    fn write_boolean(&mut self, b: bool) -> Result<(), std::io::Error> {
+        self.write_byte(if b { 1 } else { 0 })
+    }
+
+    fn write_nbt(&mut self, nbt: &azalea_nbt::Tag) -> Result<(), std::io::Error> {
+        nbt.write(self)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
+    }
 }
 
 #[async_trait]
@@ -142,6 +154,8 @@ pub trait Readable {
     async fn read_utf_with_len(&mut self, max_length: u32) -> Result<String, String>;
     async fn read_byte(&mut self) -> Result<u8, String>;
     async fn read_int(&mut self) -> Result<i32, String>;
+    async fn read_boolean(&mut self) -> Result<bool, String>;
+    async fn read_nbt(&mut self) -> Result<azalea_nbt::Tag, String>;
 }
 
 #[async_trait]
@@ -261,6 +275,19 @@ where
             Err(_) => Err("Error reading int".to_string()),
         }
     }
+
+    async fn read_boolean(&mut self) -> Result<bool, String> {
+        match self.read_byte().await {
+            Ok(0) => Ok(false),
+            Ok(1) => Ok(true),
+            _ => Err("Error reading boolean".to_string()),
+        }
+    }
+
+    async fn read_nbt(&mut self) -> Result<azalea_nbt::Tag, String> {
+        self.peek();
+        Ok(azalea_nbt::Tag::read(self).unwrap())
+    }
 }
 
 #[cfg(test)]
@@ -301,7 +328,7 @@ mod tests {
     #[tokio::test]
     async fn test_list() {
         let mut buf = Vec::new();
-        buf.write_list(vec!["a", "bc", "def"], Vec::write_utf)
+        buf.write_list(&vec!["a", "bc", "def"], |buf, s| buf.write_utf(s))
             .unwrap();
 
         // there's no read_list because idk how to do it in rust
@@ -319,7 +346,8 @@ mod tests {
     #[tokio::test]
     async fn test_int_id_list() {
         let mut buf = Vec::new();
-        buf.write_list(vec![1, 2, 3], Vec::write_varint).unwrap();
+        buf.write_list(&vec![1, 2, 3], |buf, i| buf.write_varint(*i))
+            .unwrap();
 
         let mut buf = BufReader::new(Cursor::new(buf));
 
