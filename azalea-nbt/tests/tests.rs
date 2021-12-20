@@ -1,8 +1,4 @@
 use azalea_nbt::Tag;
-use flate2::{
-    read::{GzDecoder, ZlibDecoder},
-    write::{GzEncoder, ZlibEncoder},
-};
 use std::{
     collections::HashMap,
     io::{Cursor, Read},

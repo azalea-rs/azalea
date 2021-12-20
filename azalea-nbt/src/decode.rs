@@ -28,7 +28,7 @@ impl Tag {
             // integer (thus 4 bytes)
             7 => {
                 let length = stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?;
-                let mut bytes = Vec::new();
+                let mut bytes = Vec::with_capacity(length as usize);
                 for _ in 0..length {
                     bytes.push(stream.read_i8().map_err(|_| Error::InvalidTag)?);
                 }
@@ -39,7 +39,7 @@ impl Tag {
             // string in bytes
             8 => {
                 let length = stream.read_u16::<BE>().map_err(|_| Error::InvalidTag)?;
-                let mut bytes = Vec::new();
+                let mut bytes = Vec::with_capacity(length as usize);
                 for _ in 0..length {
                     bytes.push(stream.read_u8().map_err(|_| Error::InvalidTag)?);
                 }
@@ -56,7 +56,7 @@ impl Tag {
             9 => {
                 let type_id = stream.read_u8().map_err(|_| Error::InvalidTag)?;
                 let length = stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?;
-                let mut list = Vec::new();
+                let mut list = Vec::with_capacity(length as usize);
                 for _ in 0..length {
                     list.push(Tag::read_known(stream, type_id)?);
                 }
@@ -64,7 +64,8 @@ impl Tag {
             }
             // Effectively a list of a named tags. Order is not guaranteed.
             10 => {
-                let mut map = HashMap::new();
+                // we default to capacity 4 because it'll probably not be empty
+                let mut map = HashMap::with_capacity(4);
                 loop {
                     let tag_id = stream.read_u8().unwrap_or(0);
                     if tag_id == 0 {
@@ -84,7 +85,7 @@ impl Tag {
             // integers.
             11 => {
                 let length = stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?;
-                let mut ints = Vec::new();
+                let mut ints = Vec::with_capacity(length as usize);
                 for _ in 0..length {
                     ints.push(stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?);
                 }
@@ -94,7 +95,7 @@ impl Tag {
             // integer (thus 4 bytes) and indicates the number of 8 byte longs.
             12 => {
                 let length = stream.read_i32::<BE>().map_err(|_| Error::InvalidTag)?;
-                let mut longs = Vec::new();
+                let mut longs = Vec::with_capacity(length as usize);
                 for _ in 0..length {
                     longs.push(stream.read_i64::<BE>().map_err(|_| Error::InvalidTag)?);
                 }
