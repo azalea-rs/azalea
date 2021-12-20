@@ -4,6 +4,17 @@ use byteorder::{ReadBytesExt, BE};
 use flate2::read::{GzDecoder, ZlibDecoder};
 use std::{collections::HashMap, io::Read};
 
+#[inline]
+fn read_string(stream: &mut impl Read) -> Result<String, Error> {
+    let length = stream.read_u16::<BE>().map_err(|_| Error::InvalidTag)?;
+
+    let mut buf = Vec::with_capacity(length as usize);
+    for _ in 0..length {
+        buf.push(stream.read_u8().map_err(|_| Error::InvalidTag)?);
+    }
+    String::from_utf8(buf).map_err(|_| Error::InvalidTag)
+}
+
 impl Tag {
     fn read_known(stream: &mut impl Read, id: u8) -> Result<Tag, Error> {
         let tag = match id {
@@ -37,14 +48,7 @@ impl Tag {
             // A length-prefixed modified UTF-8 string. The prefix is an
             // unsigned short (thus 2 bytes) signifying the length of the
             // string in bytes
-            8 => {
-                let length = stream.read_u16::<BE>().map_err(|_| Error::InvalidTag)?;
-                let mut bytes = Vec::with_capacity(length as usize);
-                for _ in 0..length {
-                    bytes.push(stream.read_u8().map_err(|_| Error::InvalidTag)?);
-                }
-                Tag::String(String::from_utf8(bytes).map_err(|_| Error::InvalidTag)?)
-            }
+            8 => Tag::String(read_string(stream)?),
             // A list of nameless tags, all of the same type. The list is
             // prefixed with the Type ID of the items it contains (thus 1
             // byte), and the length of the list as a signed integer (a further
@@ -71,10 +75,7 @@ impl Tag {
                     if tag_id == 0 {
                         break;
                     }
-                    let name = match Tag::read_known(stream, 8)? {
-                        Tag::String(name) => name,
-                        _ => panic!("Expected a string tag"),
-                    };
+                    let name = read_string(stream)?;
                     let tag = Tag::read_known(stream, tag_id).map_err(|_| Error::InvalidTag)?;
                     map.insert(name, tag);
                 }

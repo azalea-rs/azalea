@@ -18,6 +18,7 @@ pub enum Tag {
 }
 
 impl Tag {
+    #[inline]
     pub fn id(&self) -> u8 {
         match self {
             Tag::End => 0,

@@ -38,7 +38,7 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
 }
 
 fn bench(c: &mut Criterion) {
-    bench_serialize("tests/bigtest.nbt", c);
+    // bench_serialize("tests/bigtest.nbt", c);
     // bench_serialize("tests/simple_player.dat", c);
     // bench_serialize("tests/complex_player.dat", c);
     bench_serialize("tests/level.dat", c);
