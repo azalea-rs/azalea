@@ -16,13 +16,13 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
     let mut decoded_src_decoder = GzDecoder::new(&mut src);
     let mut decoded_src = Vec::new();
     decoded_src_decoder.read_to_end(&mut decoded_src).unwrap();
-    let mut decoded_src_stream = std::io::Cursor::new(decoded_src);
+    let mut decoded_src_stream = std::io::Cursor::new(decoded_src.clone());
 
     file.seek(SeekFrom::Start(0)).unwrap();
     let nbt = Tag::read_gzip(&mut file).unwrap();
 
     let mut group = c.benchmark_group(filename);
-    group.throughput(Throughput::Bytes(contents.len() as u64));
+    group.throughput(Throughput::Bytes(decoded_src.len() as u64));
     group.bench_function("Decode", |b| {
         b.iter(|| {
             decoded_src_stream.seek(SeekFrom::Start(0)).unwrap();
@@ -38,7 +38,7 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
 }
 
 fn bench(c: &mut Criterion) {
-    // bench_serialize("tests/bigtest.nbt", c);
+    bench_serialize("tests/bigtest.nbt", c);
     // bench_serialize("tests/simple_player.dat", c);
     // bench_serialize("tests/complex_player.dat", c);
     bench_serialize("tests/level.dat", c);

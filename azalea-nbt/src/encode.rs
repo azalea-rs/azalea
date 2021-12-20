@@ -40,8 +40,8 @@ impl Tag {
                 writer
                     .write_i32::<BE>(value.len() as i32)
                     .map_err(|_| Error::WriteError)?;
-                for byte in value {
-                    writer.write_i8(*byte).map_err(|_| Error::WriteError)?;
+                for &byte in value {
+                    writer.write_i8(byte).map_err(|_| Error::WriteError)?;
                 }
             }
             Tag::String(value) => {
@@ -77,19 +77,17 @@ impl Tag {
                 writer
                     .write_i32::<BE>(value.len() as i32)
                     .map_err(|_| Error::WriteError)?;
-                for int in value {
-                    writer
-                        .write_i32::<BE>(*int)
-                        .map_err(|_| Error::WriteError)?;
+                for &int in value {
+                    writer.write_i32::<BE>(int).map_err(|_| Error::WriteError)?;
                 }
             }
             Tag::LongArray(value) => {
                 writer
                     .write_i32::<BE>(value.len() as i32)
                     .map_err(|_| Error::WriteError)?;
-                for long in value {
+                for &long in value {
                     writer
-                        .write_i64::<BE>(*long)
+                        .write_i64::<BE>(long)
                         .map_err(|_| Error::WriteError)?;
                 }
             }
