@@ -4,6 +4,18 @@ use byteorder::{WriteBytesExt, BE};
 use flate2::write::{GzEncoder, ZlibEncoder};
 use std::io::Write;
 
+#[inline]
+fn write_string(writer: &mut dyn Write, string: &str) -> Result<(), Error> {
+    writer
+        .write_i16::<BE>(string.len() as i16)
+        .map_err(|_| Error::WriteError)?;
+    writer
+        .write_all(string.as_bytes())
+        .map_err(|_| Error::WriteError)?;
+
+    Ok(())
+}
+
 impl Tag {
     pub fn write_without_end(&self, writer: &mut dyn Write) -> Result<(), Error> {
         match self {
@@ -33,28 +45,28 @@ impl Tag {
                 }
             }
             Tag::String(value) => {
-                writer
-                    .write_i16::<BE>(value.len() as i16)
-                    .map_err(|_| Error::WriteError)?;
-                writer
-                    .write_all(value.as_bytes())
-                    .map_err(|_| Error::WriteError)?;
+                write_string(writer, value)?;
             }
             Tag::List(value) => {
                 // we just get the type from the first item, or default the type to END
-                let type_id = value.first().map(|f| f.id()).unwrap_or(0);
-                writer.write_u8(type_id).map_err(|_| Error::WriteError)?;
-                writer
-                    .write_i32::<BE>(value.len() as i32)
-                    .map_err(|_| Error::WriteError)?;
-                for tag in value {
-                    tag.write_without_end(writer)?;
+                if value.is_empty() {
+                    writer.write_i8(0).map_err(|_| Error::WriteError)?;
+                    writer.write_i32::<BE>(0).map_err(|_| Error::WriteError)?;
+                } else {
+                    let type_id = value[0].id();
+                    writer.write_u8(type_id).map_err(|_| Error::WriteError)?;
+                    writer
+                        .write_i32::<BE>(value.len() as i32)
+                        .map_err(|_| Error::WriteError)?;
+                    for tag in value {
+                        tag.write_without_end(writer)?;
+                    }
                 }
             }
             Tag::Compound(value) => {
                 for (key, tag) in value {
                     writer.write_u8(tag.id()).map_err(|_| Error::WriteError)?;
-                    Tag::String(key.clone()).write_without_end(writer)?;
+                    write_string(writer, key)?;
                     tag.write_without_end(writer)?;
                 }
                 writer
@@ -91,7 +103,7 @@ impl Tag {
             Tag::Compound(value) => {
                 for (key, tag) in value {
                     writer.write_u8(tag.id()).map_err(|_| Error::WriteError)?;
-                    Tag::String(key.clone()).write_without_end(writer)?;
+                    write_string(writer, key)?;
                     tag.write_without_end(writer)?;
                 }
                 Ok(())

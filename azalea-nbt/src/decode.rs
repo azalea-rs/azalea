@@ -76,7 +76,7 @@ impl Tag {
                         break;
                     }
                     let name = read_string(stream)?;
-                    let tag = Tag::read_known(stream, tag_id).map_err(|_| Error::InvalidTag)?;
+                    let tag = Tag::read_known(stream, tag_id)?;
                     map.insert(name, tag);
                 }
                 Tag::Compound(map)
