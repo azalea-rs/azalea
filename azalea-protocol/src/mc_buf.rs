@@ -191,7 +191,7 @@ where
 
     fn get_varint_size(&mut self, value: i32) -> u8 {
         for i in 1..5 {
-            if (value & -1 << i * 7) != 0 {
+            if (value & -1 << (i * 7)) != 0 {
                 continue;
             }
             return i;
@@ -201,7 +201,7 @@ where
 
     fn get_varlong_size(&mut self, value: i32) -> u8 {
         for i in 1..10 {
-            if (value & -1 << i * 7) != 0 {
+            if (value & -1 << (i * 7)) != 0 {
                 continue;
             }
             return i;
@@ -285,8 +285,7 @@ where
     }
 
     async fn read_nbt(&mut self) -> Result<azalea_nbt::Tag, String> {
-        self.peek();
-        Ok(azalea_nbt::Tag::read(self).unwrap())
+        Ok(azalea_nbt::Tag::read(self).await.unwrap())
     }
 }
 
@@ -311,12 +310,15 @@ mod tests {
     async fn test_read_varint() {
         let mut buf = BufReader::new(Cursor::new(vec![192, 196, 7]));
         assert_eq!(buf.read_varint().await.unwrap(), 123456);
+        assert_eq!(buf.get_varint_size(123456), 3);
 
         let mut buf = BufReader::new(Cursor::new(vec![0]));
         assert_eq!(buf.read_varint().await.unwrap(), 0);
+        assert_eq!(buf.get_varint_size(0), 1);
 
         let mut buf = BufReader::new(Cursor::new(vec![1]));
         assert_eq!(buf.read_varint().await.unwrap(), 1);
+        assert_eq!(buf.get_varint_size(1), 1);
     }
 
     #[tokio::test]
