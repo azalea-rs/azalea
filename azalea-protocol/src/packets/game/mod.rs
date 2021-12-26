@@ -25,16 +25,23 @@ impl ProtocolPacket for GamePacket {
 
     /// Read a packet by its id, ConnectionProtocol, and flow
     async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        _id: u32,
+        id: u32,
         flow: &PacketFlow,
-        _buf: &mut T,
+        buf: &mut T,
     ) -> Result<GamePacket, String>
     where
         Self: Sized,
     {
-        match flow {
-            PacketFlow::ServerToClient => Err("HandshakePacket::read not implemented".to_string()),
-            PacketFlow::ClientToServer => Err("HandshakePacket::read not implemented".to_string()),
-        }
+        Ok(match flow {
+            PacketFlow::ServerToClient => match id {
+                0x26 => clientbound_login_packet::ClientboundLoginPacket::read(buf).await?,
+
+                _ => return Err(format!("Unknown ServerToClient game packet id: {}", id)),
+            },
+            PacketFlow::ClientToServer => match id {
+                // 0x00 => serverbound_hello_packet::ServerboundHelloPacket::read(buf).await?,
+                _ => return Err(format!("Unknown ClientToServer game packet id: {}", id)),
+            },
+        })
     }
 }

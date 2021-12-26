@@ -3,6 +3,7 @@
 use std::io::Write;
 
 use async_trait::async_trait;
+use azalea_core::resource_location::ResourceLocation;
 use byteorder::{BigEndian, WriteBytesExt};
 use tokio::io::{AsyncRead, AsyncReadExt};
 
@@ -39,6 +40,11 @@ pub trait Writable {
     fn write_int(&mut self, n: i32) -> Result<(), std::io::Error>;
     fn write_boolean(&mut self, b: bool) -> Result<(), std::io::Error>;
     fn write_nbt(&mut self, nbt: &azalea_nbt::Tag) -> Result<(), std::io::Error>;
+    fn write_long(&mut self, n: i64) -> Result<(), std::io::Error>;
+    fn write_resource_location(
+        &mut self,
+        location: &ResourceLocation,
+    ) -> Result<(), std::io::Error>;
 }
 
 #[async_trait]
@@ -140,6 +146,17 @@ impl Writable for Vec<u8> {
         nbt.write(self)
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
     }
+
+    fn write_long(&mut self, n: i64) -> Result<(), std::io::Error> {
+        WriteBytesExt::write_i64::<BigEndian>(self, n)
+    }
+
+    fn write_resource_location(
+        &mut self,
+        location: &ResourceLocation,
+    ) -> Result<(), std::io::Error> {
+        self.write_utf(&location.to_string())
+    }
 }
 
 #[async_trait]
@@ -156,6 +173,8 @@ pub trait Readable {
     async fn read_int(&mut self) -> Result<i32, String>;
     async fn read_boolean(&mut self) -> Result<bool, String>;
     async fn read_nbt(&mut self) -> Result<azalea_nbt::Tag, String>;
+    async fn read_long(&mut self) -> Result<i64, String>;
+    async fn read_resource_location(&mut self) -> Result<ResourceLocation, String>;
 }
 
 #[async_trait]
@@ -285,14 +304,32 @@ where
     }
 
     async fn read_nbt(&mut self) -> Result<azalea_nbt::Tag, String> {
-        Ok(azalea_nbt::Tag::read(self).await.unwrap())
+        match azalea_nbt::Tag::read(self).await {
+            Ok(r) => Ok(r),
+            // Err(e) => Err(e.to_string()),
+            Err(e) => Err(e.to_string()).unwrap(),
+        }
+    }
+
+    async fn read_long(&mut self) -> Result<i64, String> {
+        match AsyncReadExt::read_i64(self).await {
+            Ok(r) => Ok(r),
+            Err(_) => Err("Error reading long".to_string()),
+        }
+    }
+
+    async fn read_resource_location(&mut self) -> Result<ResourceLocation, String> {
+        // get the resource location from the string
+        let location_string = self.read_utf().await?;
+        let location = ResourceLocation::new(&location_string)?;
+        Ok(location)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Cursor;
+    use std::{collections::HashMap, io::Cursor};
     use tokio::io::BufReader;
 
     #[test]
@@ -385,6 +422,57 @@ mod tests {
                 ("bc".to_string(), 23),
                 ("def".to_string(), 456)
             ]
+        );
+    }
+
+    #[tokio::test]
+    async fn test_nbt() {
+        let mut buf = Vec::new();
+        buf.write_nbt(&azalea_nbt::Tag::Compound(HashMap::from_iter(vec![(
+            "hello world".to_string(),
+            azalea_nbt::Tag::Compound(HashMap::from_iter(vec![(
+                "name".to_string(),
+                azalea_nbt::Tag::String("Bananrama".to_string()),
+            )])),
+        )])))
+        .unwrap();
+
+        let mut buf = BufReader::new(Cursor::new(buf));
+
+        let result = buf.read_nbt().await.unwrap();
+        assert_eq!(
+            result,
+            azalea_nbt::Tag::Compound(HashMap::from_iter(vec![(
+                "hello world".to_string(),
+                azalea_nbt::Tag::Compound(HashMap::from_iter(vec![(
+                    "name".to_string(),
+                    azalea_nbt::Tag::String("Bananrama".to_string()),
+                )])),
+            )]))
+        );
+    }
+
+    #[tokio::test]
+    async fn test_long() {
+        let mut buf = Vec::new();
+        buf.write_long(123456).unwrap();
+
+        let mut buf = BufReader::new(Cursor::new(buf));
+
+        assert_eq!(buf.read_long().await.unwrap(), 123456);
+    }
+
+    #[tokio::test]
+    async fn test_resource_location() {
+        let mut buf = Vec::new();
+        buf.write_resource_location(&ResourceLocation::new("minecraft:dirt").unwrap())
+            .unwrap();
+
+        let mut buf = BufReader::new(Cursor::new(buf));
+
+        assert_eq!(
+            buf.read_resource_location().await.unwrap(),
+            ResourceLocation::new("minecraft:dirt").unwrap()
         );
     }
 }

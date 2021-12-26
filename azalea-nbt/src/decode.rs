@@ -121,7 +121,18 @@ impl Tag {
         R: AsyncRead + std::marker::Unpin + std::marker::Send,
     {
         // default to compound tag
-        Tag::read_known(stream, 10).await
+
+        // the parent compound only ever has one item
+        let tag_id = stream.read_u8().await.unwrap_or(0);
+        if tag_id == 0 {
+            return Ok(Tag::End);
+        }
+        let name = read_string(stream).await?;
+        let tag = Tag::read_known(stream, tag_id).await?;
+        let mut map = HashMap::with_capacity(1);
+        map.insert(name, tag);
+
+        Ok(Tag::Compound(map))
     }
 
     pub async fn read_zlib<R>(stream: &mut R) -> Result<Tag, Error>

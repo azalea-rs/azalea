@@ -1,6 +1,6 @@
 //! A resource, like minecraft:stone
 
-#[derive(Hash, Clone, Debug)]
+#[derive(Hash, Clone, Debug, PartialEq, Eq)]
 pub struct ResourceLocation {
     pub namespace: String,
     pub path: String,

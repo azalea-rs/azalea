@@ -26,14 +26,21 @@ impl GameType {
         }
     }
 
-    pub fn from_id(id: u8) -> GameType {
-        match id {
+    pub fn from_id(id: u8) -> Result<GameType, String> {
+        Ok(match id {
             0 => GameType::SURVIVAL,
             1 => GameType::CREATIVE,
             2 => GameType::ADVENTURE,
             3 => GameType::SPECTATOR,
-            _ => panic!("Unknown game type id: {}", id),
-        }
+            _ => return Err(format!("Unknown game type id: {}", id)),
+        })
+    }
+
+    pub fn from_optional_id(id: i8) -> Result<Option<GameType>, String> {
+        Ok(match id {
+            -1 => None,
+            id => Some(GameType::from_id(id as u8)?),
+        })
     }
 
     pub fn short_name(&self) -> &'static str {

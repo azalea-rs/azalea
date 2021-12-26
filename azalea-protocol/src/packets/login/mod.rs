@@ -68,11 +68,11 @@ impl ProtocolPacket for LoginPacket {
                     )
                     .await?
                 }
-                _ => return Err(format!("Unknown ServerToClient status packet id: {}", id)),
+                _ => return Err(format!("Unknown ServerToClient login packet id: {}", id)),
             },
             PacketFlow::ClientToServer => match id {
                 0x00 => serverbound_hello_packet::ServerboundHelloPacket::read(buf).await?,
-                _ => return Err(format!("Unknown ClientToServer status packet id: {}", id)),
+                _ => return Err(format!("Unknown ClientToServer login packet id: {}", id)),
             },
         })
     }
