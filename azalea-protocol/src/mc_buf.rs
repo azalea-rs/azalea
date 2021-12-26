@@ -13,7 +13,7 @@ const MAX_STRING_LENGTH: u16 = 32767;
 
 #[async_trait]
 pub trait Writable {
-    fn write_list<F, T>(&mut self, list: &Vec<T>, writer: F) -> Result<(), std::io::Error>
+    fn write_list<F, T>(&mut self, list: &[T], writer: F) -> Result<(), std::io::Error>
     where
         F: FnOnce(&mut Self, &T) -> Result<(), std::io::Error> + Copy,
         T: Sized,
@@ -49,7 +49,7 @@ pub trait Writable {
 
 #[async_trait]
 impl Writable for Vec<u8> {
-    fn write_list<F, T>(&mut self, list: &Vec<T>, writer: F) -> Result<(), std::io::Error>
+    fn write_list<F, T>(&mut self, list: &[T], writer: F) -> Result<(), std::io::Error>
     where
         F: FnOnce(&mut Self, &T) -> Result<(), std::io::Error> + Copy,
         Self: Sized,
@@ -215,7 +215,7 @@ where
             }
             return i;
         }
-        return 5;
+        5
     }
 
     fn get_varlong_size(&mut self, value: i32) -> u8 {
@@ -225,7 +225,7 @@ where
             }
             return i;
         }
-        return 10;
+        10
     }
 
     async fn read_byte_array(&mut self) -> Result<Vec<u8>, String> {

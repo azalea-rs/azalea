@@ -19,7 +19,7 @@ where
 
             Ok(buf)
         }
-        Err(e) => Err("length wider than 21-bit".to_string()),
+        Err(_) => Err("length wider than 21-bit".to_string()),
     }
 }
 
@@ -66,7 +66,7 @@ where
                 n, compression_threshold
             ));
         }
-        if n > MAXIMUM_UNCOMPRESSED_LENGTH.into() {
+        if n > MAXIMUM_UNCOMPRESSED_LENGTH {
             return Err(format!(
                 "Badly compressed packet - size of {} is larger than protocol maximum of {}",
                 n, MAXIMUM_UNCOMPRESSED_LENGTH
@@ -104,5 +104,5 @@ where
     }
     let packet = packet_decoder(&mut buf.as_slice(), flow).await?;
 
-    return Ok(packet);
+    Ok(packet)
 }

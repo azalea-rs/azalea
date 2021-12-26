@@ -2,7 +2,6 @@ use super::LoginPacket;
 use crate::mc_buf::{Readable, Writable};
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::serializable_uuid::SerializableUuid;
-use tokio::io::BufReader;
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]

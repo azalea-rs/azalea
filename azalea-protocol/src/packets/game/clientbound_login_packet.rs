@@ -1,7 +1,6 @@
 use super::GamePacket;
 use crate::mc_buf::{Readable, Writable};
 use azalea_core::{game_type::GameType, resource_location::ResourceLocation};
-use tokio::io::AsyncReadExt;
 
 #[derive(Clone, Debug)]
 pub struct ClientboundLoginPacket {

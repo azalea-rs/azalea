@@ -1,5 +1,4 @@
 use std::hash::Hash;
-use tokio::io::BufReader;
 
 use super::StatusPacket;
 

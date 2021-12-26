@@ -3,7 +3,6 @@ pub mod clientbound_login_packet;
 use super::ProtocolPacket;
 use crate::connect::PacketFlow;
 use async_trait::async_trait;
-use tokio::io::BufReader;
 
 #[derive(Clone, Debug)]
 pub enum GamePacket

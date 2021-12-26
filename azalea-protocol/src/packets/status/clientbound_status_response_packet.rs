@@ -1,7 +1,6 @@
 use azalea_chat::component::Component;
 use serde::Deserialize;
 use serde_json::Value;
-use tokio::io::BufReader;
 
 use crate::mc_buf::Readable;
 

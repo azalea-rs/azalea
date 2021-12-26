@@ -2,7 +2,6 @@ pub mod clientbound_status_response_packet;
 pub mod serverbound_status_request_packet;
 
 use async_trait::async_trait;
-use tokio::io::BufReader;
 
 use crate::connect::PacketFlow;
 
