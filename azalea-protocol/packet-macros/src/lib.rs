@@ -1,5 +1,5 @@
-use quote::{quote, quote_spanned, ToTokens};
-use syn::{self, parse_macro_input, spanned::Spanned, DeriveInput, FieldsNamed};
+use quote::{quote, ToTokens};
+use syn::{self, parse_macro_input, DeriveInput, FieldsNamed};
 
 fn as_packet_derive(
     input: proc_macro::TokenStream,
