@@ -265,14 +265,14 @@ impl McBufWritable for GameType {
 // Option<GameType>
 impl McBufWritable for Option<GameType> {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        buf.write_byte(GameType::to_optional_id(&self) as u8)
+        buf.write_byte(GameType::to_optional_id(self) as u8)
     }
 }
 
 // Vec<ResourceLocation>
 impl McBufWritable for Vec<ResourceLocation> {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        buf.write_list(&self, |buf, resource_location| {
+        buf.write_list(self, |buf, resource_location| {
             buf.write_resource_location(resource_location)
         })
     }

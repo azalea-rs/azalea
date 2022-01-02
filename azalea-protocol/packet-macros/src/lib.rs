@@ -24,7 +24,7 @@ fn as_packet_derive(
             // do a different buf.write_* for each field depending on the type
             // if it's a string, use buf.write_string
             match field_type {
-                syn::Type::Path(syn::TypePath { path, .. }) => {
+                syn::Type::Path(_) => {
                     if f.attrs.iter().any(|attr| attr.path.is_ident("varint")) {
                         quote! {
                             crate::mc_buf::McBufVarintWritable::varint_write_into(&self.#field_name, buf)?;
@@ -52,7 +52,7 @@ fn as_packet_derive(
             // do a different buf.write_* for each field depending on the type
             // if it's a string, use buf.write_string
             match field_type {
-                syn::Type::Path(syn::TypePath { path, .. }) => {
+                syn::Type::Path(_) => {
                         if f.attrs.iter().any(|a| a.path.is_ident("varint")) {
                             quote! {
                                 let #field_name = crate::mc_buf::McBufVarintReadable::varint_read_into(buf).await?;

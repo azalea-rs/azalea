@@ -1,5 +1,3 @@
-use azalea_chat;
-
 #[derive(Hash, Clone, Debug)]
 pub enum GameType {
     SURVIVAL,

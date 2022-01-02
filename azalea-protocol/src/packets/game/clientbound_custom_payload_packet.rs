@@ -1,4 +1,3 @@
-use crate::mc_buf::{Readable, Writable};
 use azalea_core::resource_location::ResourceLocation;
 use packet_macros::GamePacket;
 

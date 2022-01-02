@@ -17,7 +17,7 @@ fn packet_encoder<P: ProtocolPacket + std::fmt::Debug>(packet: &P) -> Result<Vec
     let mut buf = Vec::new();
     buf.write_varint(packet.id() as i32)
         .map_err(|e| e.to_string())?;
-    packet.write(&mut buf);
+    packet.write(&mut buf).map_err(|e| e.to_string())?;
     if buf.len() > MAXIMUM_UNCOMPRESSED_LENGTH as usize {
         return Err(format!(
             "Packet too big (is {} bytes, should be less than {}): {:?}",

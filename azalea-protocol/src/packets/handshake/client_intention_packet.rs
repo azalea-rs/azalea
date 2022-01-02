@@ -1,8 +1,4 @@
-use crate::{
-    mc_buf::{Readable, Writable},
-    packets::ConnectionProtocol,
-};
-use num_traits::FromPrimitive;
+use crate::packets::ConnectionProtocol;
 use packet_macros::HandshakePacket;
 use std::hash::Hash;
 
