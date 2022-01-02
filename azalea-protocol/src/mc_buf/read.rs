@@ -228,3 +228,13 @@ impl McBufVarintReadable for i32 {
         buf.read_varint().await
     }
 }
+
+#[async_trait]
+impl McBufReadable for Vec<u8> {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_bytes().await
+    }
+}

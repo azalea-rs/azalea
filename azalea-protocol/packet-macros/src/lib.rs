@@ -29,9 +29,6 @@ fn as_packet_derive(
                         quote! { buf.write_utf(&self.#field_name)?; }
                     } else if path.is_ident("ResourceLocation") {
                         quote! { buf.write_resource_location(&self.#field_name)?; }
-                    // i don't know how to do this in a way that isn't terrible
-                    } else if path.to_token_stream().to_string() == "Vec < u8 >" {
-                        quote! { buf.write_bytes(&self.#field_name)?; }
                     } else if path.is_ident("u32") {
                         if f.attrs.iter().any(|attr| attr.path.is_ident("varint")) {
                             quote! { buf.write_varint(self.#field_name as i32)?; }
@@ -49,7 +46,7 @@ fn as_packet_derive(
                             }
                         } else {
                             quote! {
-                                crate::mc_buf::McBufVarintWritable::write_into(&self.#field_name, buf)?;
+                                crate::mc_buf::McBufWritable::write_into(&self.#field_name, buf)?;
                             }
                         }
 
@@ -77,8 +74,6 @@ fn as_packet_derive(
                         quote! { let #field_name = buf.read_utf().await?; }
                     } else if path.is_ident("ResourceLocation") {
                         quote! { let #field_name = buf.read_resource_location().await?; }
-                    } else if path.to_token_stream().to_string() == "Vec < u8 >" {
-                        quote! { let #field_name = buf.read_bytes().await?; }
                     } else if path.is_ident("u32") {
                         if f.attrs.iter().any(|a| a.path.is_ident("varint")) {
                             quote! { let #field_name = buf.read_varint().await? as u32; }

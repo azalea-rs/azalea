@@ -178,3 +178,9 @@ impl McBufVarintWritable for i32 {
         buf.write_varint(*self)
     }
 }
+
+impl McBufWritable for Vec<u8> {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_bytes(self)
+    }
+}
