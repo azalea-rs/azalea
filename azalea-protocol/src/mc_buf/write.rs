@@ -184,3 +184,45 @@ impl McBufWritable for Vec<u8> {
         buf.write_bytes(self)
     }
 }
+
+// string
+impl McBufWritable for String {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_utf(self)
+    }
+}
+
+// ResourceLocation
+impl McBufWritable for ResourceLocation {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_resource_location(self)
+    }
+}
+
+// u32
+impl McBufWritable for u32 {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_varint(*self as i32)
+    }
+}
+
+// u32 varint
+impl McBufVarintWritable for u32 {
+    fn varint_write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_varint(*self as i32)
+    }
+}
+
+// u16
+impl McBufWritable for u16 {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_varint(*self as i32)
+    }
+}
+
+// u16 varint
+impl McBufVarintWritable for u16 {
+    fn varint_write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_varint(*self as i32)
+    }
+}

@@ -238,3 +238,69 @@ impl McBufReadable for Vec<u8> {
         buf.read_bytes().await
     }
 }
+
+// string
+#[async_trait]
+impl McBufReadable for String {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_utf().await
+    }
+}
+
+// ResourceLocation
+#[async_trait]
+impl McBufReadable for ResourceLocation {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_resource_location().await
+    }
+}
+
+// u32
+#[async_trait]
+impl McBufReadable for u32 {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_int().await.map(|i| i as u32)
+    }
+}
+
+// u32 varint
+#[async_trait]
+impl McBufVarintReadable for u32 {
+    async fn varint_read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_varint().await.map(|i| i as u32)
+    }
+}
+
+// u16
+#[async_trait]
+impl McBufReadable for u16 {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_short().await.map(|i| i as u16)
+    }
+}
+
+// u16 varint
+#[async_trait]
+impl McBufVarintReadable for u16 {
+    async fn varint_read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_varint().await.map(|i| i as u16)
+    }
+}

@@ -25,31 +25,14 @@ fn as_packet_derive(
             // if it's a string, use buf.write_string
             match field_type {
                 syn::Type::Path(syn::TypePath { path, .. }) => {
-                    if path.is_ident("String") {
-                        quote! { buf.write_utf(&self.#field_name)?; }
-                    } else if path.is_ident("ResourceLocation") {
-                        quote! { buf.write_resource_location(&self.#field_name)?; }
-                    } else if path.is_ident("u32") {
-                        if f.attrs.iter().any(|attr| attr.path.is_ident("varint")) {
-                            quote! { buf.write_varint(self.#field_name as i32)?; }
-                        } else {
-                            quote! { buf.write_u32(self.#field_name)?; }
+                    if f.attrs.iter().any(|attr| attr.path.is_ident("varint")) {
+                        quote! {
+                            crate::mc_buf::McBufVarintWritable::varint_write_into(&self.#field_name, buf)?;
                         }
-                    } else if path.is_ident("u16") {
-                        quote! { buf.write_short(self.#field_name as i16)?; }
-                    } else if path.is_ident("ConnectionProtocol") {
-                        quote! { buf.write_varint(self.#field_name.clone() as i32)?; }
                     } else {
-                        if f.attrs.iter().any(|attr| attr.path.is_ident("varint")) {
-                            quote! {
-                                crate::mc_buf::McBufVarintWritable::varint_write_into(&self.#field_name, buf)?;
-                            }
-                        } else {
-                            quote! {
-                                crate::mc_buf::McBufWritable::write_into(&self.#field_name, buf)?;
-                            }
+                        quote! {
+                            crate::mc_buf::McBufWritable::write_into(&self.#field_name, buf)?;
                         }
-
                     }
                 }
                 _ => panic!(
@@ -70,24 +53,6 @@ fn as_packet_derive(
             // if it's a string, use buf.write_string
             match field_type {
                 syn::Type::Path(syn::TypePath { path, .. }) => {
-                    if path.is_ident("String") {
-                        quote! { let #field_name = buf.read_utf().await?; }
-                    } else if path.is_ident("ResourceLocation") {
-                        quote! { let #field_name = buf.read_resource_location().await?; }
-                    } else if path.is_ident("u32") {
-                        if f.attrs.iter().any(|a| a.path.is_ident("varint")) {
-                            quote! { let #field_name = buf.read_varint().await? as u32; }
-                        } else {
-                            quote! { let #field_name = buf.read_u32().await?; }
-                        }
-                    } else if path.is_ident("u16") {
-                        quote! { let #field_name = buf.read_short().await? as u16; }
-                    } else if path.is_ident("ConnectionProtocol") {
-                        quote! {
-                            let #field_name = ConnectionProtocol::from_i32(buf.read_varint().await?)
-                                .ok_or_else(|| "Invalid intention".to_string())?;
-                        }
-                    } else {
                         if f.attrs.iter().any(|a| a.path.is_ident("varint")) {
                             quote! {
                                 let #field_name = crate::mc_buf::McBufVarintReadable::varint_read_into(buf).await?;
@@ -96,7 +61,6 @@ fn as_packet_derive(
                             quote! {
                                 let #field_name = crate::mc_buf::McBufReadable::read_into(buf).await?;
                             }
-                        }
                     }
                 }
                 _ => panic!(
