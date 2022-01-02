@@ -39,6 +39,7 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
             Ok(packet) => match packet {
                 LoginPacket::ClientboundHelloPacket(p) => {
                     println!("Got encryption request {:?} {:?}", p.nonce, p.public_key);
+                    panic!("");
                 }
                 LoginPacket::ClientboundLoginCompressionPacket(p) => {
                     println!("Got compression request {:?}", p.compression_threshold);
@@ -73,7 +74,7 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 _ => panic!("unhandled packet"),
             },
             Err(e) => {
-                println!("Error: {:?}", e);
+                panic!("Error: {:?}", e);
             }
         }
     }
