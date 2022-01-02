@@ -26,7 +26,7 @@ impl ClientboundCustomQueryPacket {
     ) -> Result<LoginPacket, String> {
         let transaction_id = buf.read_varint().await? as u32;
         let identifier = ResourceLocation::new(&buf.read_utf().await?)?;
-        let data = buf.read_bytes(1048576).await?;
+        let data = buf.read_bytes_with_len(1048576).await?;
         Ok(ClientboundCustomQueryPacket {
             transaction_id,
             identifier,

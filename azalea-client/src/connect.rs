@@ -64,6 +64,12 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 GamePacket::ClientboundLoginPacket(p) => {
                     println!("Got login packet {:?}", p);
                 }
+                GamePacket::ClientboundUpdateViewDistancePacket(p) => {
+                    println!("Got view distance packet {:?}", p);
+                }
+                GamePacket::ClientboundCustomPayloadPacket(p) => {
+                    println!("Got custom payload packet {:?}", p);
+                }
                 // GamePacket::ClientboundKeepAlivePacket(p) => {
                 //     println!("Got keep alive packet {:?}", p.keep_alive_id);
                 // }

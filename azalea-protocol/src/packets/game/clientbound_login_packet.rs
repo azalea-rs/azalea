@@ -4,23 +4,6 @@ use azalea_core::{game_type::GameType, resource_location::ResourceLocation};
 
 #[derive(Clone, Debug)]
 pub struct ClientboundLoginPacket {
-    // private final int playerId;
-    // private final boolean hardcore;
-    // private final GameType gameType;
-    // @Nullable
-    // private final GameType previousGameType;
-    // private final Set<ResourceKey<Level>> levels;
-    // private final RegistryAccess.RegistryHolder registryHolder;
-    // private final DimensionType dimensionType;
-    // private final ResourceKey<Level> dimension;
-    // private final long seed;
-    // private final int maxPlayers;
-    // private final int chunkRadius;
-    // private final int simulationDistance;
-    // private final boolean reducedDebugInfo;
-    // private final boolean showDeathScreen;
-    // private final boolean isDebug;
-    // private final boolean isFlat;
     pub player_id: i32,
     pub hardcore: bool,
     pub game_type: GameType,

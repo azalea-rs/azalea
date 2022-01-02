@@ -166,7 +166,8 @@ pub trait Readable {
     fn get_varint_size(&mut self, value: i32) -> u8;
     fn get_varlong_size(&mut self, value: i32) -> u8;
     async fn read_byte_array(&mut self) -> Result<Vec<u8>, String>;
-    async fn read_bytes(&mut self, n: usize) -> Result<Vec<u8>, String>;
+    async fn read_bytes_with_len(&mut self, n: usize) -> Result<Vec<u8>, String>;
+    async fn read_bytes(&mut self) -> Result<Vec<u8>, String>;
     async fn read_utf(&mut self) -> Result<String, String>;
     async fn read_utf_with_len(&mut self, max_length: u32) -> Result<String, String>;
     async fn read_byte(&mut self) -> Result<u8, String>;
@@ -230,15 +231,24 @@ where
 
     async fn read_byte_array(&mut self) -> Result<Vec<u8>, String> {
         let length = self.read_varint().await? as usize;
-        Ok(self.read_bytes(length).await?)
+        Ok(self.read_bytes_with_len(length).await?)
     }
 
-    async fn read_bytes(&mut self, n: usize) -> Result<Vec<u8>, String> {
+    async fn read_bytes_with_len(&mut self, n: usize) -> Result<Vec<u8>, String> {
         let mut bytes = vec![0; n];
         match AsyncReadExt::read_exact(self, &mut bytes).await {
             Ok(_) => Ok(bytes),
             Err(_) => Err("Error reading bytes".to_string()),
         }
+    }
+
+    async fn read_bytes(&mut self) -> Result<Vec<u8>, String> {
+        // read to end of the buffer
+        let mut bytes = vec![];
+        AsyncReadExt::read_to_end(self, &mut bytes)
+            .await
+            .map_err(|_| "Error reading bytes".to_string())?;
+        Ok(bytes)
     }
 
     async fn read_utf(&mut self) -> Result<String, String> {
