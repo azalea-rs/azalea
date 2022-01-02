@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::{game_type::GameType, resource_location::ResourceLocation};
 use tokio::io::{AsyncRead, AsyncReadExt};
 
 use super::MAX_STRING_LENGTH;
@@ -302,5 +302,87 @@ impl McBufVarintReadable for u16 {
         R: AsyncRead + std::marker::Unpin + std::marker::Send,
     {
         buf.read_varint().await.map(|i| i as u16)
+    }
+}
+
+// i64
+#[async_trait]
+impl McBufReadable for i64 {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_long().await
+    }
+}
+
+// u64
+#[async_trait]
+impl McBufReadable for u64 {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        i64::read_into(buf).await.map(|i| i as u64)
+    }
+}
+
+// bool
+#[async_trait]
+impl McBufReadable for bool {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_boolean().await
+    }
+}
+
+// GameType
+#[async_trait]
+impl McBufReadable for GameType {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        GameType::from_id(buf.read_byte().await?)
+    }
+}
+
+// Option<GameType>
+#[async_trait]
+impl McBufReadable for Option<GameType> {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        GameType::from_optional_id(buf.read_byte().await? as i8)
+    }
+}
+
+// Vec<ResourceLocation>
+#[async_trait]
+impl McBufReadable for Vec<ResourceLocation> {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        let mut vec = Vec::new();
+        let length = buf.read_varint().await?;
+        for _ in 0..length {
+            vec.push(buf.read_resource_location().await?);
+        }
+        Ok(vec)
+    }
+}
+
+// azalea_nbt::Tag
+#[async_trait]
+impl McBufReadable for azalea_nbt::Tag {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_nbt().await
     }
 }

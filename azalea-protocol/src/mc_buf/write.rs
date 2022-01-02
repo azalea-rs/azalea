@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::{game_type::GameType, resource_location::ResourceLocation};
 use byteorder::{BigEndian, WriteBytesExt};
 use std::io::Write;
 
@@ -202,27 +202,85 @@ impl McBufWritable for ResourceLocation {
 // u32
 impl McBufWritable for u32 {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        buf.write_varint(*self as i32)
+        i32::varint_write_into(&(*self as i32), buf)
     }
 }
 
 // u32 varint
 impl McBufVarintWritable for u32 {
     fn varint_write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        buf.write_varint(*self as i32)
+        i32::varint_write_into(&(*self as i32), buf)
     }
 }
 
 // u16
 impl McBufWritable for u16 {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        buf.write_varint(*self as i32)
+        i32::varint_write_into(&(*self as i32), buf)
     }
 }
 
 // u16 varint
 impl McBufVarintWritable for u16 {
     fn varint_write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        buf.write_varint(*self as i32)
+        i32::varint_write_into(&(*self as i32), buf)
+    }
+}
+
+// u8
+impl McBufWritable for u8 {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_byte(*self)
+    }
+}
+
+// i64
+impl McBufWritable for i64 {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        Writable::write_long(buf, *self)
+    }
+}
+
+// u64
+impl McBufWritable for u64 {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        i64::write_into(&(*self as i64), buf)
+    }
+}
+
+// bool
+impl McBufWritable for bool {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_boolean(*self)
+    }
+}
+
+// GameType
+impl McBufWritable for GameType {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        u8::write_into(&self.to_id(), buf)
+    }
+}
+
+// Option<GameType>
+impl McBufWritable for Option<GameType> {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_byte(GameType::to_optional_id(&self) as u8)
+    }
+}
+
+// Vec<ResourceLocation>
+impl McBufWritable for Vec<ResourceLocation> {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_list(&self, |buf, resource_location| {
+            buf.write_resource_location(resource_location)
+        })
+    }
+}
+
+// azalea_nbt::Tag
+impl McBufWritable for azalea_nbt::Tag {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_nbt(self)
     }
 }
