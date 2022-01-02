@@ -32,13 +32,6 @@ fn as_packet_derive(
                     // i don't know how to do this in a way that isn't terrible
                     } else if path.to_token_stream().to_string() == "Vec < u8 >" {
                         quote! { buf.write_bytes(&self.#field_name)?; }
-                    } else if path.is_ident("i32") {
-                        // only treat it as a varint if it has the varint attribute
-                        if f.attrs.iter().any(|attr| attr.path.is_ident("varint")) {
-                            quote! { buf.write_varint(self.#field_name)?; }
-                        } else {
-                            quote! { buf.write_i32(self.#field_name)?; }
-                        }
                     } else if path.is_ident("u32") {
                         if f.attrs.iter().any(|attr| attr.path.is_ident("varint")) {
                             quote! { buf.write_varint(self.#field_name as i32)?; }
@@ -50,10 +43,16 @@ fn as_packet_derive(
                     } else if path.is_ident("ConnectionProtocol") {
                         quote! { buf.write_varint(self.#field_name.clone() as i32)?; }
                     } else {
-                        panic!(
-                            "#[derive(*Packet)] doesn't know how to write {}",
-                            path.to_token_stream()
-                        );
+                        if f.attrs.iter().any(|attr| attr.path.is_ident("varint")) {
+                            quote! {
+                                crate::mc_buf::McBufVarintWritable::varint_write_into(&self.#field_name, buf)?;
+                            }
+                        } else {
+                            quote! {
+                                crate::mc_buf::McBufVarintWritable::write_into(&self.#field_name, buf)?;
+                            }
+                        }
+
                     }
                 }
                 _ => panic!(
@@ -78,16 +77,8 @@ fn as_packet_derive(
                         quote! { let #field_name = buf.read_utf().await?; }
                     } else if path.is_ident("ResourceLocation") {
                         quote! { let #field_name = buf.read_resource_location().await?; }
-                    // i don't know how to do this in a way that isn't terrible
                     } else if path.to_token_stream().to_string() == "Vec < u8 >" {
                         quote! { let #field_name = buf.read_bytes().await?; }
-                    } else if path.is_ident("i32") {
-                        // only treat it as a varint if it has the varint attribute
-                        if f.attrs.iter().any(|a| a.path.is_ident("varint")) {
-                            quote! { let #field_name = buf.read_varint().await?; }
-                        } else {
-                            quote! { let #field_name = buf.read_i32().await?; }
-                        }
                     } else if path.is_ident("u32") {
                         if f.attrs.iter().any(|a| a.path.is_ident("varint")) {
                             quote! { let #field_name = buf.read_varint().await? as u32; }
@@ -102,10 +93,15 @@ fn as_packet_derive(
                                 .ok_or_else(|| "Invalid intention".to_string())?;
                         }
                     } else {
-                        panic!(
-                            "#[derive(*Packet)] doesn't know how to read {}",
-                            path.to_token_stream()
-                        );
+                        if f.attrs.iter().any(|a| a.path.is_ident("varint")) {
+                            quote! {
+                                let #field_name = crate::mc_buf::McBufVarintReadable::varint_read_into(buf).await?;
+                            }
+                        } else {
+                            quote! {
+                                let #field_name = crate::mc_buf::McBufReadable::read_into(buf).await?;
+                            }
+                        }
                     }
                 }
                 _ => panic!(
