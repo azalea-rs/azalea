@@ -29,7 +29,7 @@ impl ProtocolPacket for StatusPacket {
         }
     }
 
-    fn write(&self, buf: &mut Vec<u8>) {
+    fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         match self {
             StatusPacket::ServerboundStatusRequestPacket(packet) => packet.write(buf),
             StatusPacket::ClientboundStatusResponsePacket(packet) => packet.write(buf),

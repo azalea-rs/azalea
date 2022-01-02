@@ -30,7 +30,9 @@ impl ProtocolPacket for GamePacket {
         }
     }
 
-    fn write(&self, _buf: &mut Vec<u8>) {}
+    fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        Ok(())
+    }
 
     /// Read a packet by its id, ConnectionProtocol, and flow
     async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
@@ -48,7 +50,8 @@ impl ProtocolPacket for GamePacket {
                 0x4a => clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket
                     ::read(buf)
                     .await?,
-                _ => return Err(format!("Unknown ServerToClient game packet id: {}", id)),
+                // _ => return Err(format!("Unknown ServerToClient game packet id: {}", id)),
+                _ => panic!("Unknown ServerToClient game packet id: {}", id),
             },
             PacketFlow::ClientToServer => match id {
                 // 0x00 => serverbound_hello_packet::ServerboundHelloPacket::read(buf).await?,

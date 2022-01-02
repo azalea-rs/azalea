@@ -14,8 +14,9 @@ impl ServerboundHelloPacket {
         LoginPacket::ServerboundHelloPacket(self)
     }
 
-    pub fn write(&self, buf: &mut Vec<u8>) {
+    pub fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         buf.write_utf(&self.username).unwrap();
+        Ok(())
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(

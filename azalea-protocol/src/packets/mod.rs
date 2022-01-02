@@ -3,13 +3,13 @@ pub mod handshake;
 pub mod login;
 pub mod status;
 
-use async_trait::async_trait;
-
 use crate::connect::PacketFlow;
+use async_trait::async_trait;
+use num_derive::FromPrimitive;
 
 pub const PROTOCOL_VERSION: u32 = 757;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, FromPrimitive)]
 pub enum ConnectionProtocol {
     Handshake = -1,
     Game = 0,
@@ -42,5 +42,5 @@ where
     where
         Self: Sized;
 
-    fn write(&self, buf: &mut Vec<u8>);
+    fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error>;
 }

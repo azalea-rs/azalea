@@ -39,7 +39,9 @@ impl ClientboundStatusResponsePacket {
         StatusPacket::ClientboundStatusResponsePacket(Box::new(self))
     }
 
-    pub fn write(&self, _buf: &mut Vec<u8>) {}
+    pub fn write(&self, _buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        Ok(())
+    }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         buf: &mut T,

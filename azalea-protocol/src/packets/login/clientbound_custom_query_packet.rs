@@ -15,10 +15,11 @@ impl ClientboundCustomQueryPacket {
         LoginPacket::ClientboundCustomQueryPacket(self)
     }
 
-    pub fn write(&self, buf: &mut Vec<u8>) {
+    pub fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         buf.write_varint(self.transaction_id as i32).unwrap();
         buf.write_utf(self.identifier.to_string().as_str()).unwrap();
         buf.write_bytes(&self.data).unwrap();
+        Ok(())
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(

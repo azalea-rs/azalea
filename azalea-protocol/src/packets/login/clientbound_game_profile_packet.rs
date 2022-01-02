@@ -14,11 +14,12 @@ impl ClientboundGameProfilePacket {
         LoginPacket::ClientboundGameProfilePacket(self)
     }
 
-    pub fn write(&self, buf: &mut Vec<u8>) {
+    pub fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         for n in self.game_profile.uuid.to_int_array() {
             buf.write_int(n as i32).unwrap();
         }
         buf.write_utf(self.game_profile.name.as_str()).unwrap();
+        Ok(())
     }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(

@@ -34,7 +34,7 @@ impl ProtocolPacket for LoginPacket {
         }
     }
 
-    fn write(&self, buf: &mut Vec<u8>) {
+    fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         match self {
             LoginPacket::ClientboundCustomQueryPacket(packet) => packet.write(buf),
             LoginPacket::ClientboundGameProfilePacket(packet) => packet.write(buf),

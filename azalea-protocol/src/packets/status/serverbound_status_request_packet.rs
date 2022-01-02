@@ -10,7 +10,7 @@ impl ServerboundStatusRequestPacket {
         StatusPacket::ServerboundStatusRequestPacket(self)
     }
 
-    pub fn write(&self, _buf: &mut Vec<u8>) {
+    pub fn write(&self, _buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         panic!("ServerboundStatusRequestPacket::write not implemented")
     }
 

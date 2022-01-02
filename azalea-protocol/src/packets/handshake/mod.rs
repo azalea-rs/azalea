@@ -22,7 +22,7 @@ impl ProtocolPacket for HandshakePacket {
         }
     }
 
-    fn write(&self, buf: &mut Vec<u8>) {
+    fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         match self {
             HandshakePacket::ClientIntentionPacket(packet) => packet.write(buf),
         }

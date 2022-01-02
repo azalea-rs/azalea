@@ -35,7 +35,7 @@ pub trait Writable {
     fn write_varint(&mut self, value: i32) -> Result<(), std::io::Error>;
     fn write_utf_with_len(&mut self, string: &str, len: usize) -> Result<(), std::io::Error>;
     fn write_utf(&mut self, string: &str) -> Result<(), std::io::Error>;
-    fn write_short(&mut self, n: u16) -> Result<(), std::io::Error>;
+    fn write_short(&mut self, n: i16) -> Result<(), std::io::Error>;
     fn write_byte_array(&mut self, bytes: &[u8]) -> Result<(), std::io::Error>;
     fn write_int(&mut self, n: i32) -> Result<(), std::io::Error>;
     fn write_boolean(&mut self, b: bool) -> Result<(), std::io::Error>;
@@ -125,8 +125,8 @@ impl Writable for Vec<u8> {
         self.write_utf_with_len(string, MAX_STRING_LENGTH.into())
     }
 
-    fn write_short(&mut self, n: u16) -> Result<(), std::io::Error> {
-        WriteBytesExt::write_u16::<BigEndian>(self, n)
+    fn write_short(&mut self, n: i16) -> Result<(), std::io::Error> {
+        WriteBytesExt::write_i16::<BigEndian>(self, n)
     }
 
     fn write_byte_array(&mut self, bytes: &[u8]) -> Result<(), std::io::Error> {
@@ -176,6 +176,7 @@ pub trait Readable {
     async fn read_nbt(&mut self) -> Result<azalea_nbt::Tag, String>;
     async fn read_long(&mut self) -> Result<i64, String>;
     async fn read_resource_location(&mut self) -> Result<ResourceLocation, String>;
+    async fn read_short(&mut self) -> Result<i16, String>;
 }
 
 #[async_trait]
@@ -333,6 +334,13 @@ where
         let location_string = self.read_utf().await?;
         let location = ResourceLocation::new(&location_string)?;
         Ok(location)
+    }
+
+    async fn read_short(&mut self) -> Result<i16, String> {
+        match AsyncReadExt::read_i16(self).await {
+            Ok(r) => Ok(r),
+            Err(_) => Err("Error reading short".to_string()),
+        }
     }
 }
 
