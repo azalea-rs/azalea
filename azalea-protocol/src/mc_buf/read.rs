@@ -1,5 +1,8 @@
 use async_trait::async_trait;
-use azalea_core::{game_type::GameType, resource_location::ResourceLocation};
+use azalea_core::{
+    difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
+};
+use num_traits::FromPrimitive;
 use tokio::io::{AsyncRead, AsyncReadExt};
 
 use super::MAX_STRING_LENGTH;
@@ -338,6 +341,28 @@ impl McBufReadable for bool {
     }
 }
 
+// u8
+#[async_trait]
+impl McBufReadable for u8 {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_byte().await
+    }
+}
+
+// i8
+#[async_trait]
+impl McBufReadable for i8 {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_byte().await.map(|i| i as i8)
+    }
+}
+
 // GameType
 #[async_trait]
 impl McBufReadable for GameType {
@@ -384,5 +409,16 @@ impl McBufReadable for azalea_nbt::Tag {
         R: AsyncRead + std::marker::Unpin + std::marker::Send,
     {
         buf.read_nbt().await
+    }
+}
+
+// Difficulty
+#[async_trait]
+impl McBufReadable for Difficulty {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        Ok(Difficulty::by_id(u8::read_into(buf).await?))
     }
 }

@@ -1,3 +1,4 @@
+pub mod clientbound_change_difficulty_packet;
 pub mod clientbound_custom_payload_packet;
 pub mod clientbound_login_packet;
 pub mod clientbound_update_view_distance_packet;
@@ -18,12 +19,16 @@ where
     ClientboundCustomPayloadPacket(
         clientbound_custom_payload_packet::ClientboundCustomPayloadPacket,
     ),
+    ClientboundChangeDifficultyPacket(
+        clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
+    ),
 }
 
 #[async_trait]
 impl ProtocolPacket for GamePacket {
     fn id(&self) -> u32 {
         match self {
+            GamePacket::ClientboundChangeDifficultyPacket(_packet) => 0x0e,
             GamePacket::ClientboundCustomPayloadPacket(_packet) => 0x18,
             GamePacket::ClientboundLoginPacket(_packet) => 0x26,
             GamePacket::ClientboundUpdateViewDistancePacket(_packet) => 0x4a,
@@ -31,7 +36,12 @@ impl ProtocolPacket for GamePacket {
     }
 
     fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        Ok(())
+        match self {
+            GamePacket::ClientboundChangeDifficultyPacket(packet) => packet.write(buf),
+            GamePacket::ClientboundCustomPayloadPacket(packet) => packet.write(buf),
+            GamePacket::ClientboundLoginPacket(packet) => packet.write(buf),
+            GamePacket::ClientboundUpdateViewDistancePacket(packet) => packet.write(buf),
+        }
     }
 
     /// Read a packet by its id, ConnectionProtocol, and flow
@@ -45,6 +55,9 @@ impl ProtocolPacket for GamePacket {
     {
         Ok(match flow {
             PacketFlow::ServerToClient => match id {
+                0x0e => clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket
+                    ::read(buf)
+                    .await?,
                 0x18 => clientbound_custom_payload_packet::ClientboundCustomPayloadPacket::read(buf).await?,
                 0x26 => clientbound_login_packet::ClientboundLoginPacket::read(buf).await?,
                 0x4a => clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket

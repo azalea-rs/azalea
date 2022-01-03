@@ -70,6 +70,9 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 GamePacket::ClientboundCustomPayloadPacket(p) => {
                     println!("Got custom payload packet {:?}", p);
                 }
+                GamePacket::ClientboundChangeDifficultyPacket(p) => {
+                    println!("Got difficulty packet {:?}", p);
+                }
             },
             Err(e) => {
                 println!("Error: {:?}", e);

@@ -1,6 +1,9 @@
 use async_trait::async_trait;
-use azalea_core::{game_type::GameType, resource_location::ResourceLocation};
+use azalea_core::{
+    difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
+};
 use byteorder::{BigEndian, WriteBytesExt};
+use num_traits::FromPrimitive;
 use std::io::Write;
 
 use super::MAX_STRING_LENGTH;
@@ -255,6 +258,13 @@ impl McBufWritable for bool {
     }
 }
 
+// i8
+impl McBufWritable for i8 {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_byte(*self as u8)
+    }
+}
+
 // GameType
 impl McBufWritable for GameType {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
@@ -282,5 +292,12 @@ impl McBufWritable for Vec<ResourceLocation> {
 impl McBufWritable for azalea_nbt::Tag {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         buf.write_nbt(self)
+    }
+}
+
+// Difficulty
+impl McBufWritable for Difficulty {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        u8::write_into(&self.id(), buf)
     }
 }
