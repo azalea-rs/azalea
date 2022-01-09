@@ -1,3 +1,10 @@
+use crate::{
+    context::command_context::CommandContext,
+    exceptions::command_syntax_exception::CommandSyntaxException,
+    string_reader::StringReader,
+    suggestion::{suggestions::Suggestions, suggestions_builder::SuggestionsBuilder},
+};
+
 pub trait ArgumentType<T> {
     // T parse(StringReader reader) throws CommandSyntaxException;
 
@@ -9,12 +16,12 @@ pub trait ArgumentType<T> {
     //     return Collections.emptyList();
     // }
 
-    fn parse(reader: &mut StringReader) -> Result<T, CommandSyntaxError>;
+    fn parse(reader: &mut StringReader) -> Result<T, CommandSyntaxException>;
 
     fn list_suggestions<S>(
         context: &CommandContext<S>,
         builder: &mut SuggestionsBuilder,
-    ) -> Result<Suggestions, CommandSyntaxError>;
+    ) -> Result<Suggestions, CommandSyntaxException>;
 
     fn get_examples() -> Vec<String>;
 }

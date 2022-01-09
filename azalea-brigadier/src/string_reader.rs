@@ -1,23 +1,34 @@
-use crate::immutable_string_reader::ImmutableStringReader;
+use crate::{
+    exceptions::{
+        builtin_exceptions::BuiltInExceptions, command_syntax_exception::CommandSyntaxException,
+    },
+    immutable_string_reader::ImmutableStringReader,
+};
 use std::str::FromStr;
 
 #[derive(Clone)]
-struct StringReader<'a> {
-    pub string: &'a str,
-    pub cursor: usize,
+pub struct StringReader<'a> {
+    string: &'a str,
+    cursor: usize,
 }
 
 const SYNTAX_ESCAPE: char = '\\';
 const SYNTAX_DOUBLE_QUOTE: char = '"';
 const SYNTAX_SINGLE_QUOTE: char = '\'';
 
-impl<'a> From<&'a str> for &StringReader<'a> {
-    fn from(string: &'a str) -> &StringReader<'a> {
-        &StringReader { string, cursor: 0 }
+// impl<'a> From<&'a str> for &StringReader<'a> {}
+
+impl StringReader<'_> {
+    fn from(string: &str) -> StringReader {
+        StringReader { string, cursor: 0 }
     }
 }
 
 impl ImmutableStringReader for StringReader<'_> {
+    fn string(&self) -> &str {
+        self.string
+    }
+
     fn remaining_length(&self) -> usize {
         self.string.len() - self.cursor
     }
@@ -27,7 +38,7 @@ impl ImmutableStringReader for StringReader<'_> {
     }
 
     fn get_read(&self) -> &str {
-        &self.string[self.cursor..]
+        &self.string[..self.cursor]
     }
 
     fn remaining(&self) -> &str {
@@ -49,122 +60,122 @@ impl ImmutableStringReader for StringReader<'_> {
     fn peek_offset(&self, offset: usize) -> char {
         self.string.chars().nth(self.cursor + offset).unwrap()
     }
+
+    fn cursor(&self) -> usize {
+        self.cursor
+    }
 }
 
 impl StringReader<'_> {
-    fn read(&mut self) -> char {
+    pub fn read(&mut self) -> char {
         let c = self.peek();
         self.cursor += 1;
         c
     }
 
-    fn skip(&mut self) {
+    pub fn skip(&mut self) {
         self.cursor += 1;
     }
 
-    fn is_allowed_number(c: char) -> bool {
+    pub fn is_allowed_number(c: char) -> bool {
         c >= '0' && c <= '9' || c == '.' || c == '-'
     }
 
-    fn is_quoted_string_start(c: char) -> bool {
+    pub fn is_quoted_string_start(c: char) -> bool {
         c == SYNTAX_DOUBLE_QUOTE || c == SYNTAX_SINGLE_QUOTE
     }
 
-    fn skip_whitespace(&mut self) {
+    pub fn skip_whitespace(&mut self) {
         while self.can_read() && self.peek().is_whitespace() {
             self.skip();
         }
     }
 
-    fn read_int(&self) -> Result<(), CommandSyntaxException> {
+    pub fn read_int(&mut self) -> Result<(), CommandSyntaxException> {
         let start = self.cursor;
         while self.can_read() && StringReader::<'_>::is_allowed_number(self.peek()) {
             self.skip();
         }
         let number = &self.string[start..self.cursor];
         if number.is_empty() {
-            return Err(CommandSyntaxException::BUILT_IN_EXCEPTIONS
-                .reader_expected_int()
-                .create_with_context(self));
+            return Err(BuiltInExceptions::ReaderExpectedInt.create_with_context(self));
         }
         let result = i32::from_str(number);
         if result.is_err() {
             self.cursor = start;
-            return Err(CommandSyntaxException::BUILT_IN_EXCEPTIONS
-                .reader_invalid_int()
-                .create_with_context(self, number));
+            return Err(BuiltInExceptions::ReaderInvalidInt {
+                value: number.to_string(),
+            }
+            .create_with_context(self));
         }
 
         Ok(())
     }
 
-    fn read_long(&self) -> Result<(), CommandSyntaxException> {
+    pub fn read_long(&mut self) -> Result<(), CommandSyntaxException> {
         let start = self.cursor;
         while self.can_read() && StringReader::<'_>::is_allowed_number(self.peek()) {
             self.skip();
         }
         let number = &self.string[start..self.cursor];
         if number.is_empty() {
-            return Err(CommandSyntaxException::BUILT_IN_EXCEPTIONS
-                .reader_expected_long()
-                .create_with_context(self));
+            return Err(BuiltInExceptions::ReaderExpectedLong.create_with_context(self));
         }
         let result = i64::from_str(number);
         if result.is_err() {
             self.cursor = start;
-            return Err(CommandSyntaxException::BUILT_IN_EXCEPTIONS
-                .reader_invalid_long()
-                .create_with_context(self, number));
+            return Err(BuiltInExceptions::ReaderInvalidLong {
+                value: number.to_string(),
+            }
+            .create_with_context(self));
         }
 
         Ok(())
     }
 
-    fn read_double(&self) -> Result<(), CommandSyntaxException> {
+    pub fn read_double(&mut self) -> Result<(), CommandSyntaxException> {
         let start = self.cursor;
         while self.can_read() && StringReader::<'_>::is_allowed_number(self.peek()) {
             self.skip();
         }
         let number = &self.string[start..self.cursor];
         if number.is_empty() {
-            return Err(CommandSyntaxException::BUILT_IN_EXCEPTIONS
-                .reader_expected_double()
-                .create_with_context(self));
+            return Err(BuiltInExceptions::ReaderExpectedDouble.create_with_context(self));
         }
         let result = f64::from_str(number);
         if result.is_err() {
             self.cursor = start;
-            return Err(CommandSyntaxException::BUILT_IN_EXCEPTIONS
-                .reader_invalid_double()
-                .create_with_context(self, number));
+            return Err(BuiltInExceptions::ReaderInvalidDouble {
+                value: number.to_string(),
+            }
+            .create_with_context(self));
         }
 
         Ok(())
     }
 
-    fn read_float(&self) -> Result<(), CommandSyntaxException> {
+    pub fn read_float(&mut self) -> Result<(), CommandSyntaxException> {
         let start = self.cursor;
         while self.can_read() && StringReader::<'_>::is_allowed_number(self.peek()) {
             self.skip();
         }
         let number = &self.string[start..self.cursor];
         if number.is_empty() {
-            return Err(CommandSyntaxException::BUILT_IN_EXCEPTIONS
-                .reader_expected_float()
-                .create_with_context(self));
+            return Err(BuiltInExceptions::ReaderExpectedFloat.create_with_context(self));
         }
         let result = f32::from_str(number);
         if result.is_err() {
             self.cursor = start;
-            return Err(CommandSyntaxException::BUILT_IN_EXCEPTIONS
-                .reader_invalid_float()
-                .create_with_context(self, number));
+            return Err(BuiltInExceptions::ReaderInvalidFloat {
+                value: number.to_string(),
+            }
+            .create_with_context(self));
         }
 
         Ok(())
     }
 
-    fn is_allowed_in_unquoted_string(c: char) -> bool {
+    pub fn is_allowed_in_unquoted_string(c: char) -> bool {
         c >= '0' && c <= '9'
             || c >= 'A' && c <= 'Z'
             || c >= 'a' && c <= 'z'
@@ -174,7 +185,7 @@ impl StringReader<'_> {
             || c == '+'
     }
 
-    fn read_unquoted_string(&self) -> &str {
+    pub fn read_unquoted_string(&mut self) -> &str {
         let start = self.cursor;
         while self.can_read() && StringReader::<'_>::is_allowed_in_unquoted_string(self.peek()) {
             self.skip();
@@ -182,22 +193,23 @@ impl StringReader<'_> {
         &self.string[start..self.cursor]
     }
 
-    fn read_quoted_string(&self) -> Result<&str, CommandSyntaxException> {
+    pub fn read_quoted_string(&mut self) -> Result<String, CommandSyntaxException> {
         if !self.can_read() {
-            return "";
+            return Ok(String::new());
         }
         let next = self.peek();
         if !StringReader::<'_>::is_quoted_string_start(next) {
-            return Err(CommandSyntaxException::BUILT_IN_EXCEPTIONS
-                .reader_expected_start_of_quote()
-                .create_with_context(self));
+            return Err(BuiltInExceptions::ReaderExpectedStartOfQuote.create_with_context(self));
         }
         self.skip();
         self.read_string_until(next)
     }
 
-    fn read_string_until(&self, terminator: char) -> Result<String, CommandSynatxException> {
-        let result = String::new();
+    pub fn read_string_until(
+        &mut self,
+        terminator: char,
+    ) -> Result<String, CommandSyntaxException> {
+        let mut result = String::new();
         let mut escaped = false;
         while self.can_read() {
             let c = self.read();
@@ -207,9 +219,8 @@ impl StringReader<'_> {
                     escaped = false;
                 } else {
                     self.cursor -= 1;
-                    return Err(CommandSyntaxException::BUILT_IN_EXCEPTIONS
-                        .reader_invalid_escape()
-                        .create_with_context(self, c));
+                    return Err(BuiltInExceptions::ReaderInvalidEscape { character: c }
+                        .create_with_context(self));
                 }
             } else if c == SYNTAX_ESCAPE {
                 escaped = true;
@@ -220,21 +231,10 @@ impl StringReader<'_> {
             }
         }
 
-        Err(CommandSyntaxException::BUILT_IN_EXCEPTIONS
-            .reader_expected_end_of_quote()
-            .create_with_context(self))
+        return Err(BuiltInExceptions::ReaderExpectedEndOfQuote.create_with_context(self));
     }
 
-    fn read_string(&self) -> Result<String, CommandSyntaxException> {
-        // if (!canRead()) {
-        //     return "";
-        // }
-        // final char next = peek();
-        // if (isQuotedStringStart(next)) {
-        //     skip();
-        //     return readStringUntil(next);
-        // }
-        // return readUnquotedString();
+    pub fn read_string(&mut self) -> Result<String, CommandSyntaxException> {
         if !self.can_read() {
             return Ok(String::new());
         }
@@ -246,32 +246,179 @@ impl StringReader<'_> {
         Ok(self.read_unquoted_string().to_string())
     }
 
-	fn read_boolean(&self) -> Result<bool, CommandSyntaxException> {
-		let start = self.cursor;
-		let value = self.read_string()?;
-		if value.is_empty() {
-			return Err(CommandSyntaxException::BUILT_IN_EXCEPTIONS
-				.reader_expected_bool()
-				.create_with_context(self));
-		}
+    pub fn read_boolean(&mut self) -> Result<bool, CommandSyntaxException> {
+        let start = self.cursor;
+        let value = self.read_string()?;
+        if value.is_empty() {
+            return Err(BuiltInExceptions::ReaderExpectedBool.create_with_context(self));
+        }
 
-		if value == "true" {
-			return Ok(true);
-		} else if value == "false" {
-			return Ok(false);
-		} else {
-			self.cursor = start;
-			return Err(CommandSyntaxException::BUILT_IN_EXCEPTIONS
-				.reader_invalid_bool()
-				.create_with_context(self, value));
-		}
-	}
+        if value == "true" {
+            return Ok(true);
+        } else if value == "false" {
+            return Ok(false);
+        } else {
+            self.cursor = start;
+            return Err(BuiltInExceptions::ReaderInvalidBool { value }.create_with_context(self));
+        }
+    }
 
-	fn expect(&self, c: char) -> Result<(), CommandSyntaxException> {
-		if !self.can_read() || self.peek() != c {
-			return Err(CommandSyntaxException::BUILT_IN_EXCEPTIONS
-				.reader_expected_symbol()
-				.create_with_context(self, c));
-		}
-		self.skip();
-	}
+    pub fn expect(&mut self, c: char) -> Result<(), CommandSyntaxException> {
+        if !self.can_read() || self.peek() != c {
+            return Err(
+                BuiltInExceptions::ReaderExpectedSymbol { symbol: c }.create_with_context(self)
+            );
+        }
+        self.skip();
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn can_read() {
+        let mut reader = StringReader::from("abc");
+        assert_eq!(reader.can_read(), true);
+        reader.skip(); // 'a'
+        assert_eq!(reader.can_read(), true);
+        reader.skip(); // 'b'
+        assert_eq!(reader.can_read(), true);
+        reader.skip(); // 'c'
+        assert_eq!(reader.can_read(), false);
+    }
+
+    #[test]
+    fn get_remaining_length() {
+        let mut reader = StringReader::from("abc");
+        assert_eq!(reader.remaining_length(), 3);
+        reader.cursor = 1;
+        assert_eq!(reader.remaining_length(), 2);
+        reader.cursor = 2;
+        assert_eq!(reader.remaining_length(), 1);
+        reader.cursor = 3;
+        assert_eq!(reader.remaining_length(), 0);
+    }
+
+    #[test]
+    fn can_read_length() {
+        let reader = StringReader::from("abc");
+        assert_eq!(reader.can_read_length(1), true);
+        assert_eq!(reader.can_read_length(2), true);
+        assert_eq!(reader.can_read_length(3), true);
+        assert_eq!(reader.can_read_length(4), false);
+        assert_eq!(reader.can_read_length(5), false);
+    }
+
+    #[test]
+    fn peek() {
+        let mut reader = StringReader::from("abc");
+        assert_eq!(reader.peek(), 'a');
+        assert_eq!(reader.cursor(), 0);
+        reader.cursor = 2;
+        assert_eq!(reader.peek(), 'c');
+        assert_eq!(reader.cursor(), 2);
+    }
+
+    #[test]
+    fn peek_length() {
+        let mut reader = StringReader::from("abc");
+        assert_eq!(reader.peek_offset(0), 'a');
+        assert_eq!(reader.peek_offset(2), 'c');
+        assert_eq!(reader.cursor(), 0);
+        reader.cursor = 1;
+        assert_eq!(reader.peek_offset(1), 'c');
+        assert_eq!(reader.cursor(), 1);
+    }
+
+    #[test]
+    fn read() {
+        let mut reader = StringReader::from("abc");
+        assert_eq!(reader.read(), 'a');
+        assert_eq!(reader.read(), 'b');
+        assert_eq!(reader.read(), 'c');
+        assert_eq!(reader.cursor(), 3);
+    }
+
+    #[test]
+    fn skip() {
+        let mut reader = StringReader::from("abc");
+        reader.skip();
+        assert_eq!(reader.cursor(), 1);
+    }
+
+    #[test]
+    fn get_remaining() {
+        let mut reader = StringReader::from("Hello!");
+        assert_eq!(reader.remaining(), "Hello!");
+        reader.cursor = 3;
+        assert_eq!(reader.remaining(), "lo!");
+        reader.cursor = 6;
+        assert_eq!(reader.remaining(), "");
+    }
+
+    #[test]
+    fn get_read() {
+        let mut reader = StringReader::from("Hello!");
+        assert_eq!(reader.get_read(), "");
+        reader.cursor = 3;
+        assert_eq!(reader.get_read(), "Hel");
+        reader.cursor = 6;
+        assert_eq!(reader.get_read(), "Hello!");
+    }
+
+    #[test]
+    fn skip_whitespace_none() {
+        let mut reader = StringReader::from("Hello!");
+        reader.skip_whitespace();
+        assert_eq!(reader.cursor(), 0);
+    }
+
+    #[test]
+    fn skip_whitespace_mixed() {
+        let mut reader = StringReader::from(" \t \t\nHello!");
+        reader.skip_whitespace();
+        assert_eq!(reader.cursor(), 5);
+    }
+
+    #[test]
+    fn skip_whitespace_empty() {
+        let mut reader = StringReader::from("");
+        reader.skip_whitespace();
+        assert_eq!(reader.cursor(), 0);
+    }
+
+    #[test]
+    fn read_unquoted_string() {
+        let mut reader = StringReader::from("hello world");
+        assert_eq!(reader.read_unquoted_string(), "hello");
+        assert_eq!(reader.get_read(), "hello");
+        assert_eq!(reader.remaining(), "world");
+    }
+
+    #[test]
+    fn read_unquoted_string_empty() {
+        let mut reader = StringReader::from("");
+        assert_eq!(reader.read_unquoted_string(), "");
+        assert_eq!(reader.get_read(), "");
+        assert_eq!(reader.remaining(), "");
+    }
+
+    #[test]
+    fn read_unquoted_string_empty_with_remaining() {
+        let mut reader = StringReader::from(" hello world");
+        assert_eq!(reader.read_unquoted_string(), "");
+        assert_eq!(reader.get_read(), "");
+        assert_eq!(reader.remaining(), " hello world");
+    }
+
+    #[test]
+    fn read_quoted_string() {
+        let mut reader = StringReader::from("\"hello world\"");
+        assert_eq!(reader.read_unquoted_string(), "hello world");
+        assert_eq!(reader.get_read(), "\"hello world\"");
+        assert_eq!(reader.remaining(), "");
+    }
+}
