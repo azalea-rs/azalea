@@ -1,4 +1,4 @@
-use std::{cmp, rc::Rc};
+use std::{cmp, fmt, rc::Rc};
 
 use super::builtin_exceptions::BuiltInExceptions;
 use crate::message::Message;
@@ -78,5 +78,11 @@ impl CommandSyntaxException {
 
     pub fn cursor(&self) -> Option<usize> {
         self.cursor
+    }
+}
+
+impl fmt::Debug for CommandSyntaxException {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.message())
     }
 }

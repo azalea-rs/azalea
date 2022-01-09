@@ -187,7 +187,7 @@ impl StringReader<'_> {
 
     pub fn read_unquoted_string(&mut self) -> &str {
         let start = self.cursor;
-        while self.can_read() && StringReader::<'_>::is_allowed_in_unquoted_string(self.peek()) {
+        while self.can_read() && StringReader::is_allowed_in_unquoted_string(self.peek()) {
             self.skip();
         }
         &self.string[start..self.cursor]
@@ -395,7 +395,7 @@ mod test {
         let mut reader = StringReader::from("hello world");
         assert_eq!(reader.read_unquoted_string(), "hello");
         assert_eq!(reader.get_read(), "hello");
-        assert_eq!(reader.remaining(), "world");
+        assert_eq!(reader.remaining(), " world");
     }
 
     #[test]
@@ -417,7 +417,7 @@ mod test {
     #[test]
     fn read_quoted_string() {
         let mut reader = StringReader::from("\"hello world\"");
-        assert_eq!(reader.read_unquoted_string(), "hello world");
+        assert_eq!(reader.read_quoted_string().unwrap(), "hello world");
         assert_eq!(reader.get_read(), "\"hello world\"");
         assert_eq!(reader.remaining(), "");
     }
