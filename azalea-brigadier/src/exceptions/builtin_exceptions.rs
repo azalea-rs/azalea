@@ -4,6 +4,7 @@ use crate::{immutable_string_reader::ImmutableStringReader, message::Message};
 
 use super::command_syntax_exception::CommandSyntaxException;
 
+#[derive(Clone, PartialEq)]
 pub enum BuiltInExceptions {
     DoubleTooSmall { found: usize, min: usize },
     DoubleTooBig { found: usize, max: usize },

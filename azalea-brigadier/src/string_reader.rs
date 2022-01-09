@@ -421,4 +421,87 @@ mod test {
         assert_eq!(reader.get_read(), "\"hello world\"");
         assert_eq!(reader.remaining(), "");
     }
+
+    #[test]
+    fn read_single_quoted_string() {
+        let mut reader = StringReader::from("'hello world'");
+        assert_eq!(reader.read_quoted_string().unwrap(), "hello world");
+        assert_eq!(reader.get_read(), "'hello world'");
+        assert_eq!(reader.remaining(), "");
+    }
+
+    #[test]
+    fn read_mixed_quoted_string_double_inside_single() {
+        let mut reader = StringReader::from("'hello \"world\"'");
+        assert_eq!(reader.read_quoted_string().unwrap(), "hello \"world\"");
+        assert_eq!(reader.get_read(), "'hello \"world\"'");
+        assert_eq!(reader.remaining(), "");
+    }
+
+    #[test]
+    fn read_mixed_quoted_string_single_inside_double() {
+        let mut reader = StringReader::from("\"hello 'world'\"");
+        assert_eq!(reader.read_quoted_string().unwrap(), "hello 'world'");
+        assert_eq!(reader.get_read(), "\"hello 'world'\"");
+        assert_eq!(reader.remaining(), "");
+    }
+
+    #[test]
+    fn read_quoted_string_empty_quoted() {
+        let mut reader = StringReader::from("");
+        assert_eq!(reader.read_quoted_string().unwrap(), "");
+        assert_eq!(reader.get_read(), "");
+        assert_eq!(reader.remaining(), "");
+    }
+
+    #[test]
+    fn read_quoted_string_empty_quoted_with_remaining() {
+        let mut reader = StringReader::from("\"\" hello world");
+        assert_eq!(reader.read_quoted_string().unwrap(), "");
+        assert_eq!(reader.get_read(), "\"\"");
+        assert_eq!(reader.remaining(), " hello world");
+    }
+
+    #[test]
+    fn read_quoted_string_with_escaped_quote() {
+        let mut reader = StringReader::from("\"hello \\\"world\\\"\"");
+        assert_eq!(reader.read_quoted_string().unwrap(), "hello \"world\"");
+        assert_eq!(reader.get_read(), "\"hello \\\"world\\\"\"");
+        assert_eq!(reader.remaining(), "");
+    }
+
+    #[test]
+    fn read_quoted_string_with_escaped_escapes() {
+        let mut reader = StringReader::from("\"\\\\o/\"");
+        assert_eq!(reader.read_quoted_string().unwrap(), "\\o/");
+        assert_eq!(reader.get_read(), "\"\\\\o/\"");
+        assert_eq!(reader.remaining(), "");
+    }
+
+    #[test]
+    fn read_quoted_string_with_remaining() {
+        let mut reader = StringReader::from("\"hello world\" foo bar");
+        assert_eq!(reader.read_quoted_string().unwrap(), "hello world");
+        assert_eq!(reader.get_read(), "\"hello world\"");
+        assert_eq!(reader.remaining(), " foo bar");
+    }
+
+    #[test]
+    fn read_quoted_string_with_immediate_remaining() {
+        let mut reader = StringReader::from("\"hello world\"foo bar");
+        assert_eq!(reader.read_quoted_string().unwrap(), "hello world");
+        assert_eq!(reader.get_read(), "\"hello world\"");
+        assert_eq!(reader.remaining(), "foo bar");
+    }
+
+    #[test]
+    fn read_quoted_string_no_open() {
+        let mut reader = StringReader::from("hello world\"");
+        let result = reader.read_quoted_string();
+        assert!(result.is_err());
+        if let Err(e) = result {
+            assert_eq!(e.get_type(), &BuiltInExceptions::ReaderExpectedStartOfQuote);
+            assert_eq!(e.cursor(), Some(0));
+        }
+    }
 }
