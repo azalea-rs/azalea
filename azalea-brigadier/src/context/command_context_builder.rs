@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 
 use crate::{
-    arguments::argument_type::ArgumentType, command::Command,
-    command_dispatcher::CommandDispatcher, redirect_modifier::RedirectModifier,
+    arguments::argument_type::{ArgumentResult, ArgumentType},
+    command::Command,
+    command_dispatcher::CommandDispatcher,
+    redirect_modifier::RedirectModifier,
     tree::command_node::CommandNode,
 };
 
@@ -26,7 +28,7 @@ use super::{
 
 #[derive(Clone)]
 pub struct CommandContextBuilder<S> {
-    arguments: HashMap<String, ParsedArgument<S, dyn ArgumentType>>,
+    arguments: HashMap<String, ParsedArgument<dyn ArgumentType<dyn ArgumentResult>>>,
     root_node: dyn CommandNode<S>,
     nodes: Vec<ParsedCommandNode<S>>,
     dispatcher: CommandDispatcher<S>,
@@ -77,13 +79,15 @@ impl<S> CommandContextBuilder<S> {
     pub fn with_argument(
         mut self,
         name: String,
-        argument: ParsedArgument<S, dyn ArgumentType>,
+        argument: ParsedArgument<dyn ArgumentType<dyn ArgumentResult>>,
     ) -> Self {
         self.arguments.insert(name, argument);
         self
     }
 
-    pub fn arguments(&self) -> &HashMap<String, ParsedArgument<S, dyn ArgumentType>> {
+    pub fn arguments(
+        &self,
+    ) -> &HashMap<String, ParsedArgument<dyn ArgumentType<dyn ArgumentResult>>> {
         &self.arguments
     }
 

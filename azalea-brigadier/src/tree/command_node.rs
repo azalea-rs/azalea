@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
+    arguments::argument_type::{ArgumentResult, ArgumentType},
     builder::argument_builder::ArgumentBuilder,
     command::Command,
     context::{command_context::CommandContext, command_context_builder::CommandContextBuilder},
@@ -13,17 +14,9 @@ use crate::{
 use super::{argument_command_node::ArgumentCommandNode, literal_command_node::LiteralCommandNode};
 
 pub struct BaseCommandNode<S> {
-    // private final Map<String, CommandNode<S>> children = new LinkedHashMap<>();
-    // private final Map<String, LiteralCommandNode<S>> literals = new LinkedHashMap<>();
-    // private final Map<String, ArgumentCommandNode<S, ?>> arguments = new LinkedHashMap<>();
-    // private final Predicate<S> requirement;
-    // private final CommandNode<S> redirect;
-    // private final RedirectModifier<S> modifier;
-    // private final boolean forks;
-    // private Command<S> command;
     children: HashMap<String, dyn CommandNode<S>>,
     literals: HashMap<String, LiteralCommandNode<S>>,
-    arguments: HashMap<String, ArgumentCommandNode<S, _>>,
+    arguments: HashMap<String, ArgumentCommandNode<S, dyn ArgumentType<dyn ArgumentResult>>>,
     requirement: Option<dyn Fn(&S) -> bool>,
     redirect: Option<dyn CommandNode<S>>,
     modifier: Option<dyn RedirectModifier<S>>,

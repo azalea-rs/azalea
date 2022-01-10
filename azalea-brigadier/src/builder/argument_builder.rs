@@ -10,7 +10,7 @@ where
     T: ArgumentBuilder<S, T>,
 {
     arguments: RootCommandNode<S>,
-    command: dyn Command<S>,
+    command: Option<dyn Command<S>>,
     requirement: dyn Fn(&S) -> bool,
     target: Option<dyn CommandNode<S>>,
     modifier: Option<dyn RedirectModifier<S>>,
@@ -18,7 +18,6 @@ where
 }
 
 pub trait ArgumentBuilder<S, T> {
-    fn this() -> T;
     fn build(self) -> dyn CommandNode<S>;
 }
 
@@ -92,11 +91,11 @@ where
         Ok(self)
     }
 
-    pub fn redirect(&self) -> Option<&dyn CommandNode<S>> {
+    pub fn get_redirect(&self) -> Option<&dyn CommandNode<S>> {
         self.target.as_ref()
     }
 
-    pub fn redirect_modifier(&self) -> Option<&dyn RedirectModifier<S>> {
+    pub fn get_redirect_modifier(&self) -> Option<&dyn RedirectModifier<S>> {
         self.modifier.as_ref()
     }
 

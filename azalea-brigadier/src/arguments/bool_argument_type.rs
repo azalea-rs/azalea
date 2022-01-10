@@ -4,7 +4,7 @@ use super::argument_type::ArgumentType;
 
 struct BoolArgumentType {}
 
-impl ArgumentType for BoolArgumentType {}
+impl ArgumentType<bool> for BoolArgumentType {}
 
 impl BoolArgumentType {
     const EXAMPLES: &'static [&'static str] = &["true", "false"];

@@ -1,7 +1,8 @@
 use std::fmt::{Display, Formatter};
 
 use crate::{
-    arguments::argument_type::ArgumentType,
+    arguments::argument_type::{ArgumentResult, ArgumentType},
+    builder::required_argument_builder::RequiredArgumentBuilder,
     context::{
         command_context::CommandContext, command_context_builder::CommandContextBuilder,
         parsed_argument::ParsedArgument,
@@ -22,14 +23,14 @@ const USAGE_ARGUMENT_CLOSE: &str = ">";
 #[derive(Hash, PartialEq, Eq, Debug, Clone)]
 pub struct ArgumentCommandNode<S, T> {
     name: String,
-    type_: dyn ArgumentType,
+    type_: Box<dyn ArgumentType<dyn ArgumentResult>>,
     custom_suggestions: dyn SuggestionProvider<S>,
     // Since Rust doesn't have extending, we put the struct this is extending as the "base" field
     pub base: BaseCommandNode<S>,
 }
 
 impl<S, T> ArgumentCommandNode<S, T> {
-    fn get_type(&self) -> &dyn ArgumentType {
+    fn get_type(&self) -> &dyn ArgumentType<dyn ArgumentResult> {
         &self.type_
     }
 
@@ -45,7 +46,7 @@ impl<S, T> CommandNode<S> for ArgumentCommandNode<S, T> {
 
     fn parse(
         &self,
-        reader: StringReader,
+        reader: &mut StringReader,
         context_builder: CommandContextBuilder<S>,
     ) -> Result<(), CommandSyntaxException> {
         // final int start = reader.getCursor();
@@ -68,7 +69,7 @@ impl<S, T> CommandNode<S> for ArgumentCommandNode<S, T> {
     fn list_suggestions(
         &self,
         context: CommandContext<S>,
-        builder: SuggestionsBuilder,
+        builder: &mut SuggestionsBuilder,
     ) -> Result<Suggestions, CommandSyntaxException> {
         if self.custom_suggestions.is_none() {
             self.get_type().list_suggestions(context, builder)

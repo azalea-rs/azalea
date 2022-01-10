@@ -3,7 +3,9 @@ use super::{
     string_range::StringRange,
 };
 use crate::{
-    arguments::argument_type::ArgumentType, command::Command, redirect_modifier::RedirectModifier,
+    arguments::argument_type::{ArgumentResult, ArgumentType},
+    command::Command,
+    redirect_modifier::RedirectModifier,
     tree::command_node::CommandNode,
 };
 use std::collections::HashMap;
@@ -12,7 +14,7 @@ pub struct CommandContext<S> {
     source: S,
     input: String,
     command: dyn Command<S>,
-    arguments: HashMap<String, ParsedArgument<S, dyn ArgumentType>>,
+    arguments: HashMap<String, ParsedArgument<dyn ArgumentType<dyn ArgumentResult>>>,
     root_node: dyn CommandNode<S>,
     nodes: Vec<ParsedCommandNode<S>>,
     range: StringRange,

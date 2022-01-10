@@ -1,3 +1,5 @@
+use crate::tree::root_command_node::RootCommandNode;
+
 /// The core command dispatcher, for registering, parsing, and executing commands.
 /// The `S` generic is a custom "source" type, such as a user or originator of a command
 pub struct CommandDispatcher<S> {
