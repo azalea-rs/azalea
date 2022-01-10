@@ -5,7 +5,7 @@ use crate::{
     suggestion::{suggestions::Suggestions, suggestions_builder::SuggestionsBuilder},
 };
 
-pub trait ArgumentType<T> {
+pub trait ArgumentType {
     // T parse(StringReader reader) throws CommandSyntaxException;
 
     // default <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
@@ -16,7 +16,7 @@ pub trait ArgumentType<T> {
     //     return Collections.emptyList();
     // }
 
-    fn parse(reader: &mut StringReader) -> Result<T, CommandSyntaxException>;
+    fn parse<T>(reader: &mut StringReader) -> Result<T, CommandSyntaxException>;
 
     fn list_suggestions<S>(
         context: &CommandContext<S>,
