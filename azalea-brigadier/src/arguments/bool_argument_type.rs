@@ -33,13 +33,13 @@ where
         //     builder.suggest("false");
         // }
         // return builder.buildFuture();
-        if "true".starts_with(builder.get_remaining_lower_case()) {
+        if "true".starts_with(builder.remaining_lowercase()) {
             builder.suggest("true");
         }
-        if "false".starts_with(builder.get_remaining_lower_case()) {
+        if "false".starts_with(builder.remaining_lowercase()) {
             builder.suggest("false");
         }
-        Ok(builder.build_future())
+        Ok(builder.build())
     }
 
     fn get_examples(&self) -> Vec<String> {

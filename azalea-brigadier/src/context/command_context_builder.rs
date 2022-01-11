@@ -28,7 +28,7 @@ use super::{
 pub struct CommandContextBuilder<'a, S, T> {
     arguments: HashMap<String, ParsedArgument<T>>,
     root_node: &'a dyn CommandNode<S, T>,
-    nodes: Vec<ParsedCommandNode<'a, S, T>>,
+    nodes: Vec<ParsedCommandNode<S, T>>,
     dispatcher: CommandDispatcher<'a, S, T>,
     source: S,
     command: Box<dyn Command<S, T>>,

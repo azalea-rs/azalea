@@ -31,7 +31,7 @@ pub trait CommandNode<S, T> {
     fn usage_text(&self) -> &str;
     fn parse(
         &self,
-        reader: StringReader,
+        reader: &mut StringReader,
         context_builder: CommandContextBuilder<S, T>,
     ) -> Result<(), CommandSyntaxException>;
     fn list_suggestions(

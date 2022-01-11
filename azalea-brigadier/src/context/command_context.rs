@@ -14,17 +14,20 @@ pub struct CommandContext<'a, S, T> {
     command: &'a dyn Command<S, T>,
     arguments: HashMap<String, ParsedArgument<T>>,
     root_node: &'a dyn CommandNode<S, T>,
-    nodes: Vec<ParsedCommandNode<'a, S, T>>,
+    nodes: Vec<ParsedCommandNode<S, T>>,
     range: StringRange,
-    child: Option<CommandContext<'a, S, T>>,
+    child: Option<&'a CommandContext<'a, S, T>>,
     modifier: Option<&'a dyn RedirectModifier<S, T>>,
     forks: bool,
 }
 
-impl<S, T> CommandContext<'_, S, T> {
+impl<S, T> CommandContext<'_, S, T>
+where
+    S: PartialEq,
+{
     pub fn clone_for(&self, source: S) -> Self {
         if self.source == source {
-            return self.clone();
+            return *self;
         }
         Self {
             source,

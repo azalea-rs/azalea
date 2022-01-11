@@ -1,13 +1,14 @@
 use std::fmt::{Display, Formatter};
 
 use crate::{
-    arguments::argument_type::ArgumentType,
+    arguments::argument_type::{ArgumentType, Types},
     builder::required_argument_builder::RequiredArgumentBuilder,
     context::{
         command_context::CommandContext, command_context_builder::CommandContextBuilder,
         parsed_argument::ParsedArgument,
     },
     exceptions::command_syntax_exception::CommandSyntaxException,
+    immutable_string_reader::ImmutableStringReader,
     string_reader::StringReader,
     suggestion::{
         suggestion_provider::SuggestionProvider, suggestions::Suggestions,
@@ -20,11 +21,15 @@ use super::command_node::{BaseCommandNode, CommandNode};
 const USAGE_ARGUMENT_OPEN: &str = "<";
 const USAGE_ARGUMENT_CLOSE: &str = ">";
 
-#[derive(Hash, PartialEq, Eq, Debug, Clone)]
-pub struct ArgumentCommandNode<'a, S, T> {
+pub struct ArgumentCommandNode<'a, S, T>
+where
+    // each argument command node has its own different type
+    T: ArgumentType<dyn Types>,
+{
     name: String,
     type_: &'a T,
-    custom_suggestions: &'a dyn SuggestionProvider<S, T>,
+    custom_suggestions: Option<&'a dyn SuggestionProvider<S, T>>,
+    // custom_suggestions: &'a dyn SuggestionProvider<S, T>,
     // Since Rust doesn't have extending, we put the struct this is extending as the "base" field
     pub base: BaseCommandNode<'a, S, T>,
 }
@@ -34,12 +39,12 @@ impl<S, T> ArgumentCommandNode<'_, S, T> {
         &self.type_
     }
 
-    fn custom_suggestions(&self) -> &dyn SuggestionProvider<S, T> {
-        &self.custom_suggestions
+    fn custom_suggestions(&self) -> Option<&dyn SuggestionProvider<S, T>> {
+        self.custom_suggestions
     }
 }
 
-impl<S, T> CommandNode<S, T> for ArgumentCommandNode<'_, S, T> {
+impl<'a, S, T> CommandNode<S, T> for ArgumentCommandNode<'a, S, T> {
     fn name(&self) -> &str {
         &self.name
     }
@@ -56,7 +61,7 @@ impl<S, T> CommandNode<S, T> for ArgumentCommandNode<'_, S, T> {
         // contextBuilder.withArgument(name, parsed);
         // contextBuilder.withNode(this, parsed.getRange());
 
-        let start = reader.get_cursor();
+        let start = reader.cursor();
         let result = self.get_type().parse(reader)?;
         let parsed = ParsedArgument::new(start, reader.get_cursor(), result);
 
@@ -112,7 +117,7 @@ impl<S, T> CommandNode<S, T> for ArgumentCommandNode<'_, S, T> {
     }
 }
 
-impl Display for ArgumentCommandNode<'_, String, String> {
+impl Display for ArgumentCommandNode<'_, (), (), ()> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "<argument {}: {}>", self.name, self.type_)
     }

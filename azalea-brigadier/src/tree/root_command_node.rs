@@ -11,7 +11,6 @@ use crate::{
 
 use super::command_node::{BaseCommandNode, CommandNode};
 
-#[derive(Hash, PartialEq, Eq, Debug, Clone)]
 pub struct RootCommandNode<'a, S, T> {
     // Since Rust doesn't have extending, we put the struct this is extending as the "base" field
     pub base: BaseCommandNode<'a, S, T>,

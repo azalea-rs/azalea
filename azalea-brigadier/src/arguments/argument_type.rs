@@ -7,7 +7,9 @@ use crate::{
 };
 
 pub trait Types {
-    fn bool(value: bool) -> Self;
+    fn bool(value: bool) -> Self
+    where
+        Self: Sized;
 }
 
 /*
@@ -28,7 +30,7 @@ enum BrigadierTypes {
 pub trait ArgumentType<T>
 where
     Self: Sized,
-    T: Types,
+    T: Types + ?Sized,
 {
     // T parse(StringReader reader) throws CommandSyntaxException;
 

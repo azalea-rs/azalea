@@ -1,6 +1,6 @@
 use super::string_range::StringRange;
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub struct ParsedArgument<T> {
     range: StringRange,
     // T is an item in an enum
