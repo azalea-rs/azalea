@@ -3,27 +3,25 @@ use super::{
     string_range::StringRange,
 };
 use crate::{
-    arguments::argument_type::{ArgumentResult, ArgumentType},
-    command::Command,
-    redirect_modifier::RedirectModifier,
+    arguments::argument_type::ArgumentType, command::Command, redirect_modifier::RedirectModifier,
     tree::command_node::CommandNode,
 };
 use std::collections::HashMap;
 
-pub struct CommandContext<S> {
+pub struct CommandContext<'a, S, T> {
     source: S,
     input: String,
-    command: dyn Command<S>,
-    arguments: HashMap<String, ParsedArgument<dyn ArgumentType<dyn ArgumentResult>>>,
-    root_node: dyn CommandNode<S>,
-    nodes: Vec<ParsedCommandNode<S>>,
+    command: &'a dyn Command<S, T>,
+    arguments: HashMap<String, ParsedArgument<T>>,
+    root_node: &'a dyn CommandNode<S, T>,
+    nodes: Vec<ParsedCommandNode<'a, S, T>>,
     range: StringRange,
-    child: Option<CommandContext<S>>,
-    modifier: Option<dyn RedirectModifier<S>>,
+    child: Option<CommandContext<'a, S, T>>,
+    modifier: Option<&'a dyn RedirectModifier<S, T>>,
     forks: bool,
 }
 
-impl<S> CommandContext<S> {
+impl<S, T> CommandContext<'_, S, T> {
     pub fn clone_for(&self, source: S) -> Self {
         if self.source == source {
             return self.clone();
@@ -42,11 +40,11 @@ impl<S> CommandContext<S> {
         }
     }
 
-    fn child(&self) -> &Option<CommandContext<S>> {
+    fn child(&self) -> &Option<CommandContext<S, T>> {
         &self.child
     }
 
-    fn last_child(&self) -> &CommandContext<S> {
+    fn last_child(&self) -> &CommandContext<S, T> {
         let mut result = self;
         while result.child.is_some() {
             result = result.child.as_ref().unwrap();
@@ -54,7 +52,7 @@ impl<S> CommandContext<S> {
         result
     }
 
-    fn command(&self) -> &dyn Command<S> {
+    fn command(&self) -> &dyn Command<S, T> {
         &self.command
     }
 

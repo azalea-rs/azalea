@@ -1,10 +1,9 @@
-use std::marker::PhantomData;
-
 use super::string_range::StringRange;
 
 #[derive(PartialEq, Eq, Hash)]
 pub struct ParsedArgument<T> {
     range: StringRange,
+    // T is an item in an enum
     result: T,
 }
 

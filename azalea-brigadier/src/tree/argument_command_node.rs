@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 use crate::{
-    arguments::argument_type::{ArgumentResult, ArgumentType},
+    arguments::argument_type::ArgumentType,
     builder::required_argument_builder::RequiredArgumentBuilder,
     context::{
         command_context::CommandContext, command_context_builder::CommandContextBuilder,
@@ -21,25 +21,25 @@ const USAGE_ARGUMENT_OPEN: &str = "<";
 const USAGE_ARGUMENT_CLOSE: &str = ">";
 
 #[derive(Hash, PartialEq, Eq, Debug, Clone)]
-pub struct ArgumentCommandNode<S, T> {
+pub struct ArgumentCommandNode<'a, S, T> {
     name: String,
-    type_: Box<dyn ArgumentType<dyn ArgumentResult>>,
-    custom_suggestions: dyn SuggestionProvider<S>,
+    type_: &'a T,
+    custom_suggestions: &'a dyn SuggestionProvider<S, T>,
     // Since Rust doesn't have extending, we put the struct this is extending as the "base" field
-    pub base: BaseCommandNode<S>,
+    pub base: BaseCommandNode<'a, S, T>,
 }
 
-impl<S, T> ArgumentCommandNode<S, T> {
-    fn get_type(&self) -> &dyn ArgumentType<dyn ArgumentResult> {
+impl<S, T> ArgumentCommandNode<'_, S, T> {
+    fn get_type(&self) -> &T {
         &self.type_
     }
 
-    fn custom_suggestions(&self) -> &dyn SuggestionProvider<S> {
+    fn custom_suggestions(&self) -> &dyn SuggestionProvider<S, T> {
         &self.custom_suggestions
     }
 }
 
-impl<S, T> CommandNode<S> for ArgumentCommandNode<S, T> {
+impl<S, T> CommandNode<S, T> for ArgumentCommandNode<'_, S, T> {
     fn name(&self) -> &str {
         &self.name
     }
@@ -47,7 +47,7 @@ impl<S, T> CommandNode<S> for ArgumentCommandNode<S, T> {
     fn parse(
         &self,
         reader: &mut StringReader,
-        context_builder: CommandContextBuilder<S>,
+        context_builder: CommandContextBuilder<S, T>,
     ) -> Result<(), CommandSyntaxException> {
         // final int start = reader.getCursor();
         // final T result = type.parse(reader);
@@ -68,7 +68,7 @@ impl<S, T> CommandNode<S> for ArgumentCommandNode<S, T> {
 
     fn list_suggestions(
         &self,
-        context: CommandContext<S>,
+        context: CommandContext<S, T>,
         builder: &mut SuggestionsBuilder,
     ) -> Result<Suggestions, CommandSyntaxException> {
         if self.custom_suggestions.is_none() {
@@ -112,7 +112,7 @@ impl<S, T> CommandNode<S> for ArgumentCommandNode<S, T> {
     }
 }
 
-impl Display for ArgumentCommandNode<String, String> {
+impl Display for ArgumentCommandNode<'_, String, String> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "<argument {}: {}>", self.name, self.type_)
     }

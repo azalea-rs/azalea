@@ -1,8 +1,11 @@
 use crate::{
+    builder::literal_argument_builder::LiteralArgumentBuilder,
+    command::Command,
     context::{command_context::CommandContext, command_context_builder::CommandContextBuilder},
     exceptions::{
         builtin_exceptions::BuiltInExceptions, command_syntax_exception::CommandSyntaxException,
     },
+    redirect_modifier::RedirectModifier,
     string_reader::StringReader,
     suggestion::{suggestions::Suggestions, suggestions_builder::SuggestionsBuilder},
 };
@@ -10,14 +13,23 @@ use crate::{
 use super::command_node::{BaseCommandNode, CommandNode};
 
 #[derive(Hash, PartialEq, Eq, Debug, Clone)]
-pub struct LiteralCommandNode<S> {
+pub struct LiteralCommandNode<'a, S, T> {
     literal: String,
     literal_lowercase: String,
     // Since Rust doesn't have extending, we put the struct this is extending as the "base" field
-    pub base: BaseCommandNode<S>,
+    pub base: BaseCommandNode<'a, S, T>,
 }
 
-impl<S> LiteralCommandNode<S> {
+impl<'a, S, T> LiteralCommandNode<'a, S, T> {
+    pub fn new(literal: String, base: BaseCommandNode<S, T>) -> Self {
+        let literal_lowercase = literal.to_lowercase();
+        Self {
+            literal,
+            literal_lowercase,
+            base,
+        }
+    }
+
     pub fn literal(&self) -> &String {
         &self.literal
     }
@@ -39,7 +51,7 @@ impl<S> LiteralCommandNode<S> {
     }
 }
 
-impl<S> CommandNode<S> for LiteralCommandNode<S> {
+impl<S, T> CommandNode<S, T> for LiteralCommandNode<'_, S, T> {
     fn name(&self) -> &str {
         &self.literal
     }
@@ -47,7 +59,7 @@ impl<S> CommandNode<S> for LiteralCommandNode<S> {
     fn parse(
         &self,
         reader: StringReader,
-        context_builder: CommandContextBuilder<S>,
+        context_builder: CommandContextBuilder<S, T>,
     ) -> Result<(), CommandSyntaxException> {
         let start = reader.get_cursor();
         let end = self.parse(reader);
@@ -63,7 +75,7 @@ impl<S> CommandNode<S> for LiteralCommandNode<S> {
 
     fn list_suggestions(
         &self,
-        context: CommandContext<S>,
+        context: CommandContext<S, T>,
         builder: SuggestionsBuilder,
     ) -> Result<Suggestions, CommandSyntaxException> {
         if self
@@ -84,7 +96,7 @@ impl<S> CommandNode<S> for LiteralCommandNode<S> {
         self.literal
     }
 
-    fn create_builder(&self) -> LiteralArgumentBuilder<S> {
+    fn create_builder(&self) -> LiteralArgumentBuilder<S, T> {
         let builder = LiteralArgumentBuilder::literal(self.literal());
         builder.requires(self.requirement());
         builder.forward(self.redirect(), self.redirect_modifier(), self.is_fork());

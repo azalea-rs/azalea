@@ -3,6 +3,6 @@ use crate::{
     exceptions::command_syntax_exception::CommandSyntaxException,
 };
 
-pub trait SingleRedirectModifier<S> {
-    fn apply(&self, context: CommandContext<S>) -> Result<S, CommandSyntaxException>;
+pub trait SingleRedirectModifier<S, T> {
+    fn apply(&self, context: CommandContext<S, T>) -> Result<S, CommandSyntaxException>;
 }

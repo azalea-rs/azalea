@@ -12,12 +12,12 @@ use crate::{
 use super::command_node::{BaseCommandNode, CommandNode};
 
 #[derive(Hash, PartialEq, Eq, Debug, Clone)]
-pub struct RootCommandNode<S> {
+pub struct RootCommandNode<'a, S, T> {
     // Since Rust doesn't have extending, we put the struct this is extending as the "base" field
-    pub base: BaseCommandNode<S>,
+    pub base: BaseCommandNode<'a, S, T>,
 }
 
-impl<S> CommandNode<S> for RootCommandNode<S> {
+impl<S, T> CommandNode<S, T> for RootCommandNode<'_, S, T> {
     fn name(&self) -> &str {
         ""
     }
@@ -25,13 +25,13 @@ impl<S> CommandNode<S> for RootCommandNode<S> {
     fn parse(
         &self,
         reader: StringReader,
-        context_builder: CommandContextBuilder<S>,
+        context_builder: CommandContextBuilder<S, T>,
     ) -> Result<(), CommandSyntaxException> {
     }
 
     fn list_suggestions(
         &self,
-        context: CommandContext<S>,
+        context: CommandContext<S, T>,
         builder: SuggestionsBuilder,
     ) -> Result<Suggestions, CommandSyntaxException> {
         Suggestions::empty()
@@ -54,7 +54,7 @@ impl<S> CommandNode<S> for RootCommandNode<S> {
     }
 }
 
-impl Display for RootCommandNode<()> {
+impl<S, T> Display for RootCommandNode<'_, S, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "<root>")
     }

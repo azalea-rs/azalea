@@ -25,16 +25,16 @@ use super::{
 //     private boolean forks;
 
 #[derive(Clone)]
-pub struct CommandContextBuilder<S> {
-    arguments: HashMap<String, ParsedArgument<dyn ArgumentType<dyn ArgumentResult>>>,
-    root_node: dyn CommandNode<S>,
-    nodes: Vec<ParsedCommandNode<S>>,
-    dispatcher: CommandDispatcher<S>,
+pub struct CommandContextBuilder<'a, S, T> {
+    arguments: HashMap<String, ParsedArgument<T>>,
+    root_node: &'a dyn CommandNode<S, T>,
+    nodes: Vec<ParsedCommandNode<'a, S, T>>,
+    dispatcher: CommandDispatcher<'a, S, T>,
     source: S,
-    command: Box<dyn Command<S>>,
-    child: Option<CommandContextBuilder<S>>,
+    command: Box<dyn Command<S, T>>,
+    child: Option<CommandContextBuilder<'a, S, T>>,
     range: StringRange,
-    modifier: Option<Box<dyn RedirectModifier<S>>>,
+    modifier: Option<Box<dyn RedirectModifier<S, T>>>,
     forks: bool,
 }
 
@@ -45,15 +45,15 @@ pub struct CommandContextBuilder<S> {
 // 	this.range = StringRange.at(start);
 // }
 
-impl<S> CommandContextBuilder<S> {
+impl<S, T> CommandContextBuilder<'_, S, T> {
     pub fn new(
-        dispatcher: CommandDispatcher<S>,
+        dispatcher: CommandDispatcher<S, T>,
         source: S,
-        root_node: dyn CommandNode<S>,
+        root_node: dyn CommandNode<S, T>,
         start: usize,
     ) -> Self {
         Self {
-            root_node,
+            root_node: &root_node,
             dispatcher,
             source,
             range: StringRange::at(start),
@@ -70,31 +70,25 @@ impl<S> CommandContextBuilder<S> {
         &self.source
     }
 
-    pub fn root_node(&self) -> &dyn CommandNode<S> {
+    pub fn root_node(&self) -> &dyn CommandNode<S, T> {
         &self.root_node
     }
 
-    pub fn with_argument(
-        mut self,
-        name: String,
-        argument: ParsedArgument<dyn ArgumentType<dyn ArgumentResult>>,
-    ) -> Self {
+    pub fn with_argument(mut self, name: String, argument: ParsedArgument<T>) -> Self {
         self.arguments.insert(name, argument);
         self
     }
 
-    pub fn arguments(
-        &self,
-    ) -> &HashMap<String, ParsedArgument<dyn ArgumentType<dyn ArgumentResult>>> {
+    pub fn arguments(&self) -> &HashMap<String, ParsedArgument<T>> {
         &self.arguments
     }
 
-    pub fn with_command(mut self, command: Box<dyn Command<S>>) -> Self {
+    pub fn with_command(mut self, command: &dyn Command<S, T>) -> Self {
         self.command = command;
         self
     }
 
-    pub fn with_node(mut self, node: dyn CommandNode<S>, range: StringRange) -> Self {
+    pub fn with_node(mut self, node: dyn CommandNode<S, T>, range: StringRange) -> Self {
         self.nodes.push(ParsedCommandNode::new(node, range));
         self.range = StringRange::encompassing(&self.range, &range);
         self.modifier = node.redirect_modifier();
@@ -102,16 +96,16 @@ impl<S> CommandContextBuilder<S> {
         self
     }
 
-    pub fn with_child(mut self, child: CommandContextBuilder<S>) -> Self {
+    pub fn with_child(mut self, child: CommandContextBuilder<S, T>) -> Self {
         self.child = Some(child);
         self
     }
 
-    pub fn child(&self) -> Option<&CommandContextBuilder<S>> {
+    pub fn child(&self) -> Option<&CommandContextBuilder<S, T>> {
         self.child.as_ref()
     }
 
-    pub fn last_child(&self) -> Option<&CommandContextBuilder<S>> {
+    pub fn last_child(&self) -> Option<&CommandContextBuilder<S, T>> {
         let mut result = self;
         while let Some(child) = result.child() {
             result = child;
@@ -119,15 +113,15 @@ impl<S> CommandContextBuilder<S> {
         Some(result)
     }
 
-    pub fn command(&self) -> &dyn Command<S> {
+    pub fn command(&self) -> &dyn Command<S, T> {
         &*self.command
     }
 
-    pub fn nodes(&self) -> &Vec<ParsedCommandNode<S>> {
+    pub fn nodes(&self) -> &Vec<ParsedCommandNode<S, T>> {
         &self.nodes
     }
 
-    pub fn build(self, input: &str) -> CommandContext<S> {
+    pub fn build(self, input: &str) -> CommandContext<S, T> {
         CommandContext {
             source: self.source,
             input,
@@ -142,7 +136,7 @@ impl<S> CommandContextBuilder<S> {
         }
     }
 
-    pub fn dispatcher(&self) -> &CommandDispatcher<S> {
+    pub fn dispatcher(&self) -> &CommandDispatcher<S, T> {
         &self.dispatcher
     }
 
@@ -150,7 +144,7 @@ impl<S> CommandContextBuilder<S> {
         &self.range
     }
 
-    pub fn find_suggestion_context(&self, cursor: i32) -> Result<SuggestionContext<S>, String> {
+    pub fn find_suggestion_context(&self, cursor: i32) -> Result<SuggestionContext<S, T>, String> {
         if self.range.start() <= cursor {
             if self.range.end() < cursor {
                 if let Some(child) = self.child() {

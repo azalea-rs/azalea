@@ -5,6 +5,6 @@ use crate::{
 
 pub const SINGLE_SUCCESS: i32 = 1;
 
-pub trait Command<S> {
-    fn run(&self, context: &mut CommandContext<S>) -> Result<i32, CommandSyntaxException>;
+pub trait Command<S, T> {
+    fn run(&self, context: &mut CommandContext<S, T>) -> Result<i32, CommandSyntaxException>;
 }

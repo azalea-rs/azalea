@@ -6,27 +6,30 @@ use crate::{
     suggestion::{suggestions::Suggestions, suggestions_builder::SuggestionsBuilder},
 };
 
-pub enum DefaultArguments {
-    Bool(BoolArgumentType),
+pub trait Types {
+    fn bool(value: bool) -> Self;
 }
 
 /*
-define_arguments! {
+#[derive(Types)]
+enum BrigadierTypes {
     Entity(EntityArgumentType)
 }
 
 ===
 
-enum CustomArguments {
+enum BrigadierTypes {
+    Bool(BoolArgumentType)
+
     Entity(EntityArgumentType)
-}
-enum BrigadierArguments {
-    BuiltIn(DefaultArguments)
-    Custom(CustomArguments)
 }
 */
 
-pub trait ArgumentType<T> {
+pub trait ArgumentType<T>
+where
+    Self: Sized,
+    T: Types,
+{
     // T parse(StringReader reader) throws CommandSyntaxException;
 
     // default <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
@@ -41,9 +44,12 @@ pub trait ArgumentType<T> {
 
     fn list_suggestions<S>(
         &self,
-        context: &CommandContext<S>,
+        context: &CommandContext<S, T>,
         builder: &mut SuggestionsBuilder,
-    ) -> Result<Suggestions, CommandSyntaxException>;
+    ) -> Result<Suggestions, CommandSyntaxException>
+    where
+        S: Sized,
+        T: Sized;
 
     fn get_examples(&self) -> Vec<String>;
 }
