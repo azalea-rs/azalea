@@ -1,3 +1,4 @@
+use super::bool_argument_type::BoolArgumentType;
 use crate::{
     context::command_context::CommandContext,
     exceptions::command_syntax_exception::CommandSyntaxException,
@@ -5,12 +6,27 @@ use crate::{
     suggestion::{suggestions::Suggestions, suggestions_builder::SuggestionsBuilder},
 };
 
-pub trait ArgumentResult {}
+pub enum DefaultArguments {
+    Bool(BoolArgumentType),
+}
 
-pub trait ArgumentType<T>
-where
-    T: ArgumentResult,
-{
+/*
+define_arguments! {
+    Entity(EntityArgumentType)
+}
+
+===
+
+enum CustomArguments {
+    Entity(EntityArgumentType)
+}
+enum BrigadierArguments {
+    BuiltIn(DefaultArguments)
+    Custom(CustomArguments)
+}
+*/
+
+pub trait ArgumentType<T> {
     // T parse(StringReader reader) throws CommandSyntaxException;
 
     // default <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {

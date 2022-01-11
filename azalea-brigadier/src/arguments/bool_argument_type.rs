@@ -2,7 +2,7 @@ use crate::context::command_context::CommandContext;
 
 use super::argument_type::ArgumentType;
 
-struct BoolArgumentType {}
+pub struct BoolArgumentType {}
 
 impl ArgumentType<bool> for BoolArgumentType {}
 

@@ -1,10 +1,8 @@
 use std::collections::HashMap;
 
 use crate::{
-    arguments::argument_type::{ArgumentResult, ArgumentType},
-    command::Command,
-    command_dispatcher::CommandDispatcher,
-    redirect_modifier::RedirectModifier,
+    arguments::argument_type::ArgumentType, command::Command,
+    command_dispatcher::CommandDispatcher, redirect_modifier::RedirectModifier,
     tree::command_node::CommandNode,
 };
 

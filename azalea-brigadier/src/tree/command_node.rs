@@ -16,7 +16,7 @@ use super::{argument_command_node::ArgumentCommandNode, literal_command_node::Li
 pub struct BaseCommandNode<S> {
     children: HashMap<String, dyn CommandNode<S>>,
     literals: HashMap<String, LiteralCommandNode<S>>,
-    arguments: HashMap<String, ArgumentCommandNode<S, dyn ArgumentType<dyn ArgumentResult>>>,
+    arguments: HashMap<String, ArgumentCommandNode<S, dyn ArgumentType<ArgumentResult>>>,
     requirement: Option<dyn Fn(&S) -> bool>,
     redirect: Option<dyn CommandNode<S>>,
     modifier: Option<dyn RedirectModifier<S>>,
