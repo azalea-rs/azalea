@@ -1,7 +1,6 @@
-use std::collections::HashMap;
-
+use super::{argument_command_node::ArgumentCommandNode, literal_command_node::LiteralCommandNode};
 use crate::{
-    arguments::argument_type::ArgumentType,
+    arguments::argument_type::{ArgumentType, Types},
     builder::argument_builder::ArgumentBuilder,
     command::Command,
     context::{command_context::CommandContext, command_context_builder::CommandContextBuilder},
@@ -10,10 +9,14 @@ use crate::{
     string_reader::StringReader,
     suggestion::{suggestions::Suggestions, suggestions_builder::SuggestionsBuilder},
 };
+use dyn_clonable::*;
+use std::{collections::HashMap, fmt::Debug};
 
-use super::{argument_command_node::ArgumentCommandNode, literal_command_node::LiteralCommandNode};
-
-pub struct BaseCommandNode<'a, S, T> {
+#[derive(Default)]
+pub struct BaseCommandNode<'a, S, T>
+where
+    T: ArgumentType<dyn Types>,
+{
     children: HashMap<String, &'a dyn CommandNode<S, T>>,
     literals: HashMap<String, LiteralCommandNode<'a, S, T>>,
     arguments: HashMap<String, ArgumentCommandNode<'a, S, T>>,
@@ -24,9 +27,49 @@ pub struct BaseCommandNode<'a, S, T> {
     command: Option<&'a dyn Command<S, T>>,
 }
 
-impl<S, T> BaseCommandNode<'_, S, T> {}
+impl<S, T> BaseCommandNode<'_, S, T> where T: ArgumentType<dyn Types> {}
 
-pub trait CommandNode<S, T> {
+impl<S, T> Clone for BaseCommandNode<'_, S, T>
+where
+    T: ArgumentType<dyn Types>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            children: self.children.clone(),
+            literals: self.literals.clone(),
+            arguments: self.arguments.clone(),
+            requirement: self.requirement.clone(),
+            redirect: self.redirect.clone(),
+            modifier: self.modifier.clone(),
+            forks: self.forks.clone(),
+            command: self.command.clone(),
+        }
+    }
+}
+
+impl<S, T> Debug for BaseCommandNode<'_, S, T>
+where
+    T: ArgumentType<dyn Types>,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("BaseCommandNode")
+            .field("children", &self.children)
+            .field("literals", &self.literals)
+            .field("arguments", &self.arguments)
+            .field("requirement", &self.requirement)
+            .field("redirect", &self.redirect)
+            .field("modifier", &self.modifier)
+            .field("forks", &self.forks)
+            .field("command", &self.command)
+            .finish()
+    }
+}
+
+#[clonable]
+pub trait CommandNode<S, T>: Clone
+where
+    T: ArgumentType<dyn Types>,
+{
     fn name(&self) -> &str;
     fn usage_text(&self) -> &str;
     fn parse(

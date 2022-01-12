@@ -7,6 +7,7 @@ use crate::{
 
 use super::argument_type::{ArgumentType, Types};
 
+#[derive(Clone)]
 pub struct BoolArgumentType {}
 
 impl<T> ArgumentType<T> for BoolArgumentType

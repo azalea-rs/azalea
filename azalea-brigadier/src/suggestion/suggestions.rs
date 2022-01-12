@@ -1,8 +1,90 @@
-use std::cmp;
+use std::{cmp, collections::HashSet};
 
 use crate::{context::string_range::StringRange, message::Message};
 
-pub struct Suggestions {}
+use super::suggestion::Suggestion;
+
+#[derive(PartialEq, Eq, Hash, Default)]
+pub struct Suggestions {
+    range: StringRange,
+    suggestions: Vec<Suggestions>,
+}
+
+impl Suggestions {
+    fn range(&self) -> &StringRange {
+        &self.range
+    }
+
+    fn list(&self) -> &Vec<Suggestions> {
+        &self.suggestions
+    }
+
+    fn is_empty(&self) -> bool {
+        self.suggestions.is_empty()
+    }
+
+    fn merge(command: &str, input: &Vec<Suggestions>) {
+        if input.is_empty() {
+            return Self::default();
+        } else if input.len() == 1 {
+            return input.iter().next();
+        }
+        let texts = HashSet::new();
+        for suggestions in input {
+            texts.extend(suggestions.list())
+        }
+        Self::new(command, texts)
+    }
+
+    // public static Suggestions create(final String command, final Collection<Suggestion> suggestions) {
+    //     if (suggestions.isEmpty()) {
+    //         return EMPTY;
+    //     }
+    //     int start = Integer.MAX_VALUE;
+    //     int end = Integer.MIN_VALUE;
+    //     for (final Suggestion suggestion : suggestions) {
+    //         start = Math.min(suggestion.getRange().getStart(), start);
+    //         end = Math.max(suggestion.getRange().getEnd(), end);
+    //     }
+    //     final StringRange range = new StringRange(start, end);
+    //     final Set<Suggestion> texts = new HashSet<>();
+    //     for (final Suggestion suggestion : suggestions) {
+    //         texts.add(suggestion.expand(command, range));
+    //     }
+    //     final List<Suggestion> sorted = new ArrayList<>(texts);
+    //     sorted.sort((a, b) -> a.compareToIgnoreCase(b));
+    //     return new Suggestions(range, sorted);
+    pub fn new(command: String, suggestions: Vec<Suggestion>) -> Self {
+        if suggestions.is_empty() {
+            return Self::default();
+        }
+        let mut start = usize::MAX;
+        let mut end = usize::MIN;
+        for suggestion in suggestions {
+            let start = cmp::min(suggestion.range().start(), start);
+            let end = cmp::max(suggestion.range().end(), end);
+        }
+        let range = StringRange::new(start, end);
+        let texts = HashSet::new();
+        for suggestion in suggestions {
+            texts.insert(suggestion.expand(command, range));
+        }
+        let sorted = texts.sort_by(|a, b| a.compare_ignore_case(b));
+        Suggestions {
+            range,
+            suggestions: sorted,
+        }
+    }
+}
+
+impl Default for Suggestions {
+    fn default() -> Self {
+        Self {
+            range: StringRange::at(0),
+            suggestions: vec![],
+        }
+    }
+}
 
 // #[cfg(test)]
 // mod tests {

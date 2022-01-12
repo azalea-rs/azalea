@@ -5,9 +5,17 @@ use crate::{
     string_reader::StringReader,
     suggestion::{suggestions::Suggestions, suggestions_builder::SuggestionsBuilder},
 };
+use dyn_clonable::*;
 
-pub trait Types {
+#[clonable]
+// This should be applied to an Enum
+pub trait Types: Clone {
     fn bool(value: bool) -> Self
+    where
+        Self: Sized;
+
+    /// Get the less specific ArgumentType from this enum
+    fn inner<T>(&self) -> Box<dyn ArgumentType<T>>
     where
         Self: Sized;
 }
@@ -25,12 +33,21 @@ enum BrigadierTypes {
 
     Entity(EntityArgumentType)
 }
+
+impl Types for BrigadierTypes {
+    fn inner(&self) -> dyn ArgumentType<dyn Types> {
+        match self {
+            Bool(t) => t,
+            Entity(t) => t
+        }
+    }
+}
 */
 
-pub trait ArgumentType<T>
+#[clonable]
+pub trait ArgumentType<T: ?Sized>: Clone
 where
-    Self: Sized,
-    T: Types + ?Sized,
+    T: Types,
 {
     // T parse(StringReader reader) throws CommandSyntaxException;
 
@@ -42,7 +59,7 @@ where
     //     return Collections.emptyList();
     // }
 
-    fn parse(&self, reader: &mut StringReader) -> Result<T, CommandSyntaxException>;
+    fn parse(&self, reader: &mut StringReader) -> Result<Box<T>, CommandSyntaxException>;
 
     fn list_suggestions<S>(
         &self,
@@ -50,6 +67,7 @@ where
         builder: &mut SuggestionsBuilder,
     ) -> Result<Suggestions, CommandSyntaxException>
     where
+        Self: Sized,
         S: Sized,
         T: Sized;
 

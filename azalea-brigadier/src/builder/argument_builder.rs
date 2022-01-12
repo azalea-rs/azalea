@@ -1,4 +1,5 @@
 use crate::{
+    arguments::argument_type::{ArgumentType, Types},
     command::Command,
     redirect_modifier::RedirectModifier,
     single_redirect_modifier::SingleRedirectModifier,
@@ -8,7 +9,7 @@ use crate::{
 pub struct BaseArgumentBuilder<'a, S, T>
 where
     S: Sized,
-    T: Sized,
+    T: Sized + ArgumentType<dyn Types>,
 {
     arguments: RootCommandNode<'a, S, T>,
     command: Option<&'a dyn Command<S, T>>,
@@ -22,7 +23,10 @@ pub trait ArgumentBuilder<S, T> {
     fn build(self) -> dyn CommandNode<S, T>;
 }
 
-impl<S, T> BaseArgumentBuilder<'_, S, T> {
+impl<S, T> BaseArgumentBuilder<'_, S, T>
+where
+    T: ArgumentType<dyn Types>,
+{
     pub fn then(&mut self, command: dyn CommandNode<S, T>) -> Result<&mut T, String> {
         if self.target.is_some() {
             return Err("Cannot add children to a redirected node".to_string());

@@ -1,6 +1,8 @@
 use crate::context::string_range::StringRange;
 
-use super::{suggestion::Suggestion, suggestions::Suggestions};
+use super::{
+    integer_suggestion::IntegerSuggestion, suggestion::Suggestion, suggestions::Suggestions,
+};
 
 pub struct SuggestionsBuilder {
     input: String,

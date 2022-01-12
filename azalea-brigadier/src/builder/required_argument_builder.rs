@@ -1,11 +1,15 @@
 use crate::{
+    arguments::argument_type::{ArgumentType, Types},
     suggestion::suggestion_provider::SuggestionProvider,
     tree::{argument_command_node::ArgumentCommandNode, command_node::BaseCommandNode},
 };
 
 use super::argument_builder::BaseArgumentBuilder;
 
-pub struct RequiredArgumentBuilder<'a, S, T> {
+pub struct RequiredArgumentBuilder<'a, S, T>
+where
+    T: ArgumentType<dyn Types>,
+{
     // private final String name;
     // private final ArgumentType<T> type;
     // private SuggestionProvider<S> suggestionsProvider = null;
@@ -16,7 +20,10 @@ pub struct RequiredArgumentBuilder<'a, S, T> {
     pub base: BaseArgumentBuilder<'a, S, T>,
 }
 
-impl<'a, S, T> RequiredArgumentBuilder<'a, S, T> {
+impl<'a, S, T> RequiredArgumentBuilder<'a, S, T>
+where
+    T: ArgumentType<dyn Types>,
+{
     pub fn new(name: String, type_: T) -> Self {
         Self {
             name,

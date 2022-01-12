@@ -21,6 +21,7 @@ use super::command_node::{BaseCommandNode, CommandNode};
 const USAGE_ARGUMENT_OPEN: &str = "<";
 const USAGE_ARGUMENT_CLOSE: &str = ">";
 
+#[derive(Clone)]
 pub struct ArgumentCommandNode<'a, S, T>
 where
     // each argument command node has its own different type
@@ -34,7 +35,10 @@ where
     pub base: BaseCommandNode<'a, S, T>,
 }
 
-impl<S, T> ArgumentCommandNode<'_, S, T> {
+impl<S, T> ArgumentCommandNode<'_, S, T>
+where
+    T: ArgumentType<dyn Types>,
+{
     fn get_type(&self) -> &T {
         &self.type_
     }
@@ -44,7 +48,11 @@ impl<S, T> ArgumentCommandNode<'_, S, T> {
     }
 }
 
-impl<'a, S, T> CommandNode<S, T> for ArgumentCommandNode<'a, S, T> {
+impl<'a, S, T> CommandNode<S, T> for ArgumentCommandNode<'a, S, T>
+where
+    T: ArgumentType<dyn Types> + Clone,
+    S: Clone,
+{
     fn name(&self) -> &str {
         &self.name
     }
@@ -117,7 +125,10 @@ impl<'a, S, T> CommandNode<S, T> for ArgumentCommandNode<'a, S, T> {
     }
 }
 
-impl Display for ArgumentCommandNode<'_, (), (), ()> {
+impl<S, T> Display for ArgumentCommandNode<'_, S, T>
+where
+    T: ArgumentType<dyn Types>,
+{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "<argument {}: {}>", self.name, self.type_)
     }

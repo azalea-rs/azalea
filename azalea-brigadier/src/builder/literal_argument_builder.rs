@@ -1,14 +1,23 @@
-use crate::tree::literal_command_node::LiteralCommandNode;
+use crate::{
+    arguments::argument_type::{ArgumentType, Types},
+    tree::literal_command_node::LiteralCommandNode,
+};
 
 use super::argument_builder::BaseArgumentBuilder;
 
-pub struct LiteralArgumentBuilder<'a, S, T> {
+pub struct LiteralArgumentBuilder<'a, S, T>
+where
+    T: ArgumentType<dyn Types>,
+{
     literal: String,
 
     pub base: BaseArgumentBuilder<'a, S, T>,
 }
 
-impl<'a, S, T> LiteralArgumentBuilder<'a, S, T> {
+impl<'a, S, T> LiteralArgumentBuilder<'a, S, T>
+where
+    T: ArgumentType<dyn Types>,
+{
     pub fn new(literal: String) -> Self {
         Self {
             literal,

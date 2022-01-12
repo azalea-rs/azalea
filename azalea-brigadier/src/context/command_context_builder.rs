@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 
 use crate::{
-    arguments::argument_type::ArgumentType, command::Command,
-    command_dispatcher::CommandDispatcher, redirect_modifier::RedirectModifier,
+    arguments::argument_type::{ArgumentType, Types},
+    command::Command,
+    command_dispatcher::CommandDispatcher,
+    redirect_modifier::RedirectModifier,
     tree::command_node::CommandNode,
 };
 
@@ -25,7 +27,10 @@ use super::{
 //     private boolean forks;
 
 #[derive(Clone)]
-pub struct CommandContextBuilder<'a, S, T> {
+pub struct CommandContextBuilder<'a, S, T>
+where
+    T: ArgumentType<dyn Types>,
+{
     arguments: HashMap<String, ParsedArgument<T>>,
     root_node: &'a dyn CommandNode<S, T>,
     nodes: Vec<ParsedCommandNode<S, T>>,
@@ -45,7 +50,10 @@ pub struct CommandContextBuilder<'a, S, T> {
 // 	this.range = StringRange.at(start);
 // }
 
-impl<S, T> CommandContextBuilder<'_, S, T> {
+impl<S, T> CommandContextBuilder<'_, S, T>
+where
+    T: ArgumentType<dyn Types>,
+{
     pub fn new(
         dispatcher: CommandDispatcher<S, T>,
         source: S,

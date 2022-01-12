@@ -19,3 +19,12 @@ impl<S, T> ParsedCommandNode<S, T> {
         &self.range
     }
 }
+
+impl<S, T> Clone for ParsedCommandNode<S, T> {
+    fn clone_from(&mut self, source: &Self) {
+        Self {
+            node: self.node.clone(),
+            range: self.range.clone(),
+        }
+    }
+}
