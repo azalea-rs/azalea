@@ -7,19 +7,6 @@ use crate::{
 };
 use dyn_clonable::*;
 
-#[clonable]
-// This should be applied to an Enum
-pub trait Types: Clone {
-    fn bool(value: bool) -> Self
-    where
-        Self: Sized;
-
-    /// Get the less specific ArgumentType from this enum
-    fn inner<T>(&self) -> Box<dyn ArgumentType<T>>
-    where
-        Self: Sized;
-}
-
 /*
 #[derive(Types)]
 enum BrigadierTypes {
@@ -45,10 +32,8 @@ impl Types for BrigadierTypes {
 */
 
 #[clonable]
-pub trait ArgumentType<T: ?Sized>: Clone
-where
-    T: Types,
-{
+pub trait ArgumentType: Clone {
+    type Into;
     // T parse(StringReader reader) throws CommandSyntaxException;
 
     // default <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
@@ -59,17 +44,16 @@ where
     //     return Collections.emptyList();
     // }
 
-    fn parse(&self, reader: &mut StringReader) -> Result<Box<T>, CommandSyntaxException>;
+    fn parse(&self, reader: &mut StringReader) -> Result<Self::Into, CommandSyntaxException>;
 
     fn list_suggestions<S>(
         &self,
-        context: &CommandContext<S, T>,
+        context: &CommandContext<S>,
         builder: &mut SuggestionsBuilder,
     ) -> Result<Suggestions, CommandSyntaxException>
     where
         Self: Sized,
-        S: Sized,
-        T: Sized;
+        S: Sized;
 
     fn get_examples(&self) -> Vec<String>;
 }

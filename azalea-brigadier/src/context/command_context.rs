@@ -6,22 +6,22 @@ use crate::{
     arguments::argument_type::ArgumentType, command::Command, redirect_modifier::RedirectModifier,
     tree::command_node::CommandNode,
 };
-use std::collections::HashMap;
+use std::{any::Any, collections::HashMap};
 
-pub struct CommandContext<'a, S, T> {
+pub struct CommandContext<'a, S> {
     source: S,
     input: String,
-    command: &'a dyn Command<S, T>,
-    arguments: HashMap<String, ParsedArgument<T>>,
-    root_node: &'a dyn CommandNode<S, T>,
-    nodes: Vec<ParsedCommandNode<S, T>>,
+    command: &'a dyn Command<S>,
+    arguments: HashMap<String, ParsedArgument<Box<dyn Any>>>,
+    root_node: &'a dyn CommandNode<S>,
+    nodes: Vec<ParsedCommandNode<S>>,
     range: StringRange,
-    child: Option<&'a CommandContext<'a, S, T>>,
-    modifier: Option<&'a dyn RedirectModifier<S, T>>,
+    child: Option<&'a CommandContext<'a, S>>,
+    modifier: Option<&'a dyn RedirectModifier<S>>,
     forks: bool,
 }
 
-impl<S, T> CommandContext<'_, S, T>
+impl<S> CommandContext<'_, S>
 where
     S: PartialEq,
 {
@@ -43,11 +43,11 @@ where
         }
     }
 
-    fn child(&self) -> &Option<CommandContext<S, T>> {
+    fn child(&self) -> &Option<CommandContext<S>> {
         &self.child
     }
 
-    fn last_child(&self) -> &CommandContext<S, T> {
+    fn last_child(&self) -> &CommandContext<S> {
         let mut result = self;
         while result.child.is_some() {
             result = result.child.as_ref().unwrap();
@@ -55,7 +55,7 @@ where
         result
     }
 
-    fn command(&self) -> &dyn Command<S, T> {
+    fn command(&self) -> &dyn Command<S> {
         &self.command
     }
 

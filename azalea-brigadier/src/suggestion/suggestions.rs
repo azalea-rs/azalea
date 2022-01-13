@@ -4,7 +4,7 @@ use crate::{context::string_range::StringRange, message::Message};
 
 use super::suggestion::Suggestion;
 
-#[derive(PartialEq, Eq, Hash, Default)]
+#[derive(PartialEq, Eq, Hash)]
 pub struct Suggestions {
     range: StringRange,
     suggestions: Vec<Suggestions>,

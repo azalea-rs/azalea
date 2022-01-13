@@ -1,7 +1,10 @@
-use std::fmt::{Display, Formatter};
+use std::{
+    any::Any,
+    fmt::{Display, Formatter},
+};
 
 use crate::{
-    arguments::argument_type::{ArgumentType, Types},
+    arguments::argument_type::ArgumentType,
     builder::required_argument_builder::RequiredArgumentBuilder,
     context::{
         command_context::CommandContext, command_context_builder::CommandContextBuilder,
@@ -22,35 +25,27 @@ const USAGE_ARGUMENT_OPEN: &str = "<";
 const USAGE_ARGUMENT_CLOSE: &str = ">";
 
 #[derive(Clone)]
-pub struct ArgumentCommandNode<'a, S, T>
-where
-    // each argument command node has its own different type
-    T: ArgumentType<dyn Types>,
-{
+pub struct ArgumentCommandNode<'a, S> {
     name: String,
-    type_: &'a T,
-    custom_suggestions: Option<&'a dyn SuggestionProvider<S, T>>,
-    // custom_suggestions: &'a dyn SuggestionProvider<S, T>,
+    type_: Box<dyn ArgumentType<Into = dyn Any>>,
+    custom_suggestions: Option<&'a dyn SuggestionProvider<S>>,
+    // custom_suggestions: &'a dyn SuggestionProvider<S>,
     // Since Rust doesn't have extending, we put the struct this is extending as the "base" field
-    pub base: BaseCommandNode<'a, S, T>,
+    pub base: BaseCommandNode<'a, S>,
 }
 
-impl<S, T> ArgumentCommandNode<'_, S, T>
-where
-    T: ArgumentType<dyn Types>,
-{
-    fn get_type(&self) -> &T {
-        &self.type_
+impl<S> ArgumentCommandNode<'_, S> {
+    fn get_type(&self) -> &dyn ArgumentType<Into = dyn Any> {
+        self.type_
     }
 
-    fn custom_suggestions(&self) -> Option<&dyn SuggestionProvider<S, T>> {
+    fn custom_suggestions(&self) -> Option<&dyn SuggestionProvider<S>> {
         self.custom_suggestions
     }
 }
 
-impl<'a, S, T> CommandNode<S, T> for ArgumentCommandNode<'a, S, T>
+impl<'a, S> CommandNode<S> for ArgumentCommandNode<'a, S>
 where
-    T: ArgumentType<dyn Types> + Clone,
     S: Clone,
 {
     fn name(&self) -> &str {
@@ -60,11 +55,11 @@ where
     fn parse(
         &self,
         reader: &mut StringReader,
-        context_builder: CommandContextBuilder<S, T>,
+        context_builder: CommandContextBuilder<S>,
     ) -> Result<(), CommandSyntaxException> {
         // final int start = reader.getCursor();
         // final T result = type.parse(reader);
-        // final ParsedArgument<S, T> parsed = new ParsedArgument<>(start, reader.getCursor(), result);
+        // final ParsedArgument<S> parsed = new ParsedArgument<>(start, reader.getCursor(), result);
 
         // contextBuilder.withArgument(name, parsed);
         // contextBuilder.withNode(this, parsed.getRange());
@@ -81,7 +76,7 @@ where
 
     fn list_suggestions(
         &self,
-        context: CommandContext<S, T>,
+        context: CommandContext<S>,
         builder: &mut SuggestionsBuilder,
     ) -> Result<Suggestions, CommandSyntaxException> {
         if self.custom_suggestions.is_none() {
@@ -105,7 +100,7 @@ where
         USAGE_ARGUMENT_OPEN + self.name + USAGE_ARGUMENT_CLOSE
     }
 
-    fn create_builder(&self) -> RequiredArgumentBuilder<S, T> {
+    fn create_builder(&self) -> RequiredArgumentBuilder<S> {
         let builder = RequiredArgumentBuilder::argument(&self.name, &self.type_);
         builder.requires(self.base.get_requirement());
         builder.forward(
@@ -125,10 +120,7 @@ where
     }
 }
 
-impl<S, T> Display for ArgumentCommandNode<'_, S, T>
-where
-    T: ArgumentType<dyn Types>,
-{
+impl<S> Display for ArgumentCommandNode<'_, S> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "<argument {}: {}>", self.name, self.type_)
     }

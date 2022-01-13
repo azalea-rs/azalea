@@ -1,22 +1,13 @@
-use crate::{
-    arguments::argument_type::{ArgumentType, Types},
-    tree::root_command_node::RootCommandNode,
-};
+use crate::{arguments::argument_type::ArgumentType, tree::root_command_node::RootCommandNode};
 
 /// The core command dispatcher, for registering, parsing, and executing commands.
 /// The `S` generic is a custom "source" type, such as a user or originator of a command
 #[derive(Default, Clone)]
-pub struct CommandDispatcher<'a, S, T>
-where
-    T: ArgumentType<dyn Types>,
-{
-    root: RootCommandNode<'a, S, T>,
+pub struct CommandDispatcher<'a, S> {
+    root: RootCommandNode<'a, S>,
 }
 
-impl<S, T> CommandDispatcher<'_, S, T>
-where
-    T: ArgumentType<dyn Types>,
-{
+impl<S> CommandDispatcher<'_, S> {
     /// The string required to separate individual arguments in an input string
     ///
     /// See: [`ARGUMENT_SEPARATOR_CHAR`]
@@ -48,7 +39,7 @@ where
     /// * `root` - the existing [`RootCommandNode`] to use as the basis for this tree
     /// # Returns
     /// A new [`CommandDispatcher`] with the specified root node.
-    fn new(root: RootCommandNode<S, T>) -> Self {
+    fn new(root: RootCommandNode<S>) -> Self {
         Self { root }
     }
 }

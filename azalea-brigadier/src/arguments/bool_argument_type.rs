@@ -5,27 +5,25 @@ use crate::{
     suggestion::{suggestions::Suggestions, suggestions_builder::SuggestionsBuilder},
 };
 
-use super::argument_type::{ArgumentType, Types};
+use super::argument_type::ArgumentType;
 
 #[derive(Clone)]
 pub struct BoolArgumentType {}
 
-impl<T> ArgumentType<T> for BoolArgumentType
-where
-    T: Types,
-{
-    fn parse(&self, reader: &mut StringReader) -> Result<T, CommandSyntaxException> {
-        Ok(T::bool(reader.read_boolean()?))
+impl ArgumentType for BoolArgumentType {
+    type Into = bool;
+
+    fn parse(&self, reader: &mut StringReader) -> Result<Self::Into, CommandSyntaxException> {
+        Ok(reader.read_boolean()?)
     }
 
     fn list_suggestions<S>(
         &self,
-        context: &CommandContext<S, T>,
+        context: &CommandContext<S>,
         builder: &mut SuggestionsBuilder,
     ) -> Result<Suggestions, CommandSyntaxException>
     where
         S: Sized,
-        T: Sized,
     {
         // if ("true".startsWith(builder.getRemainingLowerCase())) {
         //     builder.suggest("true");
@@ -55,7 +53,7 @@ impl BoolArgumentType {
         Self {}
     }
 
-    fn get_bool<S, T>(context: CommandContext<S, T>, name: String) {
+    fn get_bool<S>(context: CommandContext<S>, name: String) {
         context.get_argument::<bool>(name)
     }
 }

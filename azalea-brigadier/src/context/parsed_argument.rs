@@ -3,12 +3,11 @@ use super::string_range::StringRange;
 #[derive(PartialEq, Eq, Hash, Clone)]
 pub struct ParsedArgument<T> {
     range: StringRange,
-    // T is an item in an enum
     result: T,
 }
 
 impl<T> ParsedArgument<T> {
-    fn new(start: usize, end: usize, result: T) -> Self {
+    fn new(start: usize, end: usize, result: &T) -> Self {
         Self {
             range: StringRange::between(start, end),
             result,

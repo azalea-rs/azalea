@@ -6,6 +6,6 @@ use crate::{
 };
 
 #[clonable]
-pub trait RedirectModifier<S, T>: Clone {
-    fn apply(&self, context: CommandContext<S, T>) -> Result<Vec<S>, CommandSyntaxException>;
+pub trait RedirectModifier<S>: Clone {
+    fn apply(&self, context: CommandContext<S>) -> Result<Vec<S>, CommandSyntaxException>;
 }

@@ -1,6 +1,6 @@
 use super::{argument_command_node::ArgumentCommandNode, literal_command_node::LiteralCommandNode};
 use crate::{
-    arguments::argument_type::{ArgumentType, Types},
+    arguments::argument_type::ArgumentType,
     builder::argument_builder::ArgumentBuilder,
     command::Command,
     context::{command_context::CommandContext, command_context_builder::CommandContextBuilder},
@@ -10,29 +10,23 @@ use crate::{
     suggestion::{suggestions::Suggestions, suggestions_builder::SuggestionsBuilder},
 };
 use dyn_clonable::*;
-use std::{collections::HashMap, fmt::Debug};
+use std::{any::Any, collections::HashMap, fmt::Debug};
 
 #[derive(Default)]
-pub struct BaseCommandNode<'a, S, T>
-where
-    T: ArgumentType<dyn Types>,
-{
-    children: HashMap<String, &'a dyn CommandNode<S, T>>,
-    literals: HashMap<String, LiteralCommandNode<'a, S, T>>,
-    arguments: HashMap<String, ArgumentCommandNode<'a, S, T>>,
+pub struct BaseCommandNode<'a, S> {
+    children: HashMap<String, &'a dyn CommandNode<S>>,
+    literals: HashMap<String, LiteralCommandNode<'a, S>>,
+    arguments: HashMap<String, ArgumentCommandNode<'a, S>>,
     requirement: Option<&'a dyn Fn(&S) -> bool>,
-    redirect: Option<&'a dyn CommandNode<S, T>>,
-    modifier: Option<&'a dyn RedirectModifier<S, T>>,
+    redirect: Option<&'a dyn CommandNode<S>>,
+    modifier: Option<&'a dyn RedirectModifier<S>>,
     forks: bool,
-    command: Option<&'a dyn Command<S, T>>,
+    command: Option<&'a dyn Command<S>>,
 }
 
-impl<S, T> BaseCommandNode<'_, S, T> where T: ArgumentType<dyn Types> {}
+impl<S> BaseCommandNode<'_, S> {}
 
-impl<S, T> Clone for BaseCommandNode<'_, S, T>
-where
-    T: ArgumentType<dyn Types>,
-{
+impl<S> Clone for BaseCommandNode<'_, S> {
     fn clone(&self) -> Self {
         Self {
             children: self.children.clone(),
@@ -47,10 +41,7 @@ where
     }
 }
 
-impl<S, T> Debug for BaseCommandNode<'_, S, T>
-where
-    T: ArgumentType<dyn Types>,
-{
+impl<S> Debug for BaseCommandNode<'_, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("BaseCommandNode")
             .field("children", &self.children)
@@ -66,23 +57,20 @@ where
 }
 
 #[clonable]
-pub trait CommandNode<S, T>: Clone
-where
-    T: ArgumentType<dyn Types>,
-{
+pub trait CommandNode<S>: Clone {
     fn name(&self) -> &str;
     fn usage_text(&self) -> &str;
     fn parse(
         &self,
         reader: &mut StringReader,
-        context_builder: CommandContextBuilder<S, T>,
+        context_builder: CommandContextBuilder<S>,
     ) -> Result<(), CommandSyntaxException>;
     fn list_suggestions(
         &self,
-        context: CommandContext<S, T>,
+        context: CommandContext<S>,
         builder: SuggestionsBuilder,
     ) -> Result<Suggestions, CommandSyntaxException>;
     fn is_valid_input(&self, input: &str) -> bool;
-    fn create_builder(&self) -> dyn ArgumentBuilder<S, T>;
+    fn create_builder(&self) -> dyn ArgumentBuilder<S, dyn Any>;
     fn get_examples(&self) -> Vec<String>;
 }

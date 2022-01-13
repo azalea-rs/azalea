@@ -1,23 +1,16 @@
 use crate::{
-    arguments::argument_type::{ArgumentType, Types},
-    tree::literal_command_node::LiteralCommandNode,
+    arguments::argument_type::ArgumentType, tree::literal_command_node::LiteralCommandNode,
 };
 
 use super::argument_builder::BaseArgumentBuilder;
 
-pub struct LiteralArgumentBuilder<'a, S, T>
-where
-    T: ArgumentType<dyn Types>,
-{
+pub struct LiteralArgumentBuilder<'a, S> {
     literal: String,
 
-    pub base: BaseArgumentBuilder<'a, S, T>,
+    pub base: BaseArgumentBuilder<'a, S>,
 }
 
-impl<'a, S, T> LiteralArgumentBuilder<'a, S, T>
-where
-    T: ArgumentType<dyn Types>,
-{
+impl<'a, S> LiteralArgumentBuilder<'a, S> {
     pub fn new(literal: String) -> Self {
         Self {
             literal,
@@ -29,7 +22,7 @@ where
         Self::new(name)
     }
 
-    pub fn build(self) -> LiteralCommandNode<'a, S, T> {
+    pub fn build(self) -> LiteralCommandNode<'a, S> {
         let result = LiteralCommandNode::new(self.literal, self.base);
 
         for argument in self.base.arguments {

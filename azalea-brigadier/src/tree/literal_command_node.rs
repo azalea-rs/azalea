@@ -1,5 +1,5 @@
 use crate::{
-    arguments::argument_type::{ArgumentType, Types},
+    arguments::argument_type::ArgumentType,
     builder::literal_argument_builder::LiteralArgumentBuilder,
     command::Command,
     context::{command_context::CommandContext, command_context_builder::CommandContextBuilder},
@@ -14,22 +14,15 @@ use crate::{
 use super::command_node::{BaseCommandNode, CommandNode};
 
 #[derive(Debug, Clone)]
-pub struct LiteralCommandNode<'a, S, T>
-where
-    // each argument command node has its own different type
-    T: ArgumentType<dyn Types>,
-{
+pub struct LiteralCommandNode<'a, S> {
     literal: String,
     literal_lowercase: String,
     // Since Rust doesn't have extending, we put the struct this is extending as the "base" field
-    pub base: BaseCommandNode<'a, S, T>,
+    pub base: BaseCommandNode<'a, S>,
 }
 
-impl<'a, S, T> LiteralCommandNode<'a, S, T>
-where
-    T: ArgumentType<dyn Types>,
-{
-    pub fn new(literal: String, base: BaseCommandNode<S, T>) -> Self {
+impl<'a, S> LiteralCommandNode<'a, S> {
+    pub fn new(literal: String, base: BaseCommandNode<S>) -> Self {
         let literal_lowercase = literal.to_lowercase();
         Self {
             literal,
@@ -59,9 +52,8 @@ where
     }
 }
 
-impl<S, T> CommandNode<S, T> for LiteralCommandNode<'_, S, T>
+impl<S> CommandNode<S> for LiteralCommandNode<'_, S>
 where
-    T: ArgumentType<dyn Types> + Clone,
     S: Clone,
 {
     fn name(&self) -> &str {
@@ -71,7 +63,7 @@ where
     fn parse(
         &self,
         reader: StringReader,
-        context_builder: CommandContextBuilder<S, T>,
+        context_builder: CommandContextBuilder<S>,
     ) -> Result<(), CommandSyntaxException> {
         let start = reader.get_cursor();
         let end = self.parse(reader);
@@ -87,7 +79,7 @@ where
 
     fn list_suggestions(
         &self,
-        context: CommandContext<S, T>,
+        context: CommandContext<S>,
         builder: SuggestionsBuilder,
     ) -> Result<Suggestions, CommandSyntaxException> {
         if self
@@ -108,7 +100,7 @@ where
         self.literal
     }
 
-    fn create_builder(&self) -> LiteralArgumentBuilder<S, T> {
+    fn create_builder(&self) -> LiteralArgumentBuilder<S> {
         let builder = LiteralArgumentBuilder::literal(self.literal());
         builder.requires(self.requirement());
         builder.forward(self.redirect(), self.redirect_modifier(), self.is_fork());

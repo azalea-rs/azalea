@@ -5,10 +5,10 @@ use crate::{
 
 use super::{suggestions::Suggestions, suggestions_builder::SuggestionsBuilder};
 
-pub trait SuggestionProvider<S, T> {
+pub trait SuggestionProvider<S> {
     fn suggestions(
         &self,
-        context: &CommandContext<S, T>,
+        context: &CommandContext<S>,
         builder: &SuggestionsBuilder,
     ) -> Result<Suggestions, CommandSyntaxException>;
 }
