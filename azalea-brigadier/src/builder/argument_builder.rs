@@ -3,7 +3,10 @@ use crate::{
     command::Command,
     redirect_modifier::RedirectModifier,
     single_redirect_modifier::SingleRedirectModifier,
-    tree::{command_node::CommandNode, root_command_node::RootCommandNode},
+    tree::{
+        command_node::{BaseCommandNode, CommandNode},
+        root_command_node::RootCommandNode,
+    },
 };
 
 pub struct BaseArgumentBuilder<'a, S>
@@ -11,10 +14,10 @@ where
     S: Sized,
 {
     arguments: RootCommandNode<'a, S>,
-    command: Option<&'a dyn Command<S>>,
-    requirement: &'a dyn Fn(&S) -> bool,
-    target: Option<&'a dyn CommandNode<S>>,
-    modifier: Option<&'a dyn RedirectModifier<S>>,
+    command: Option<Box<dyn Command<S>>>,
+    requirement: Box<dyn Fn(&S) -> bool>,
+    target: Option<Box<dyn CommandNode<S>>>,
+    modifier: Option<Box<dyn RedirectModifier<S>>>,
     forks: bool,
 }
 
@@ -22,15 +25,18 @@ pub trait ArgumentBuilder<S, T>
 where
     T: ArgumentBuilder<S, T>,
 {
-    fn build(self) -> dyn CommandNode<S>;
+    fn build(self) -> Box<dyn CommandNode<S>>;
 }
 
-impl<S> BaseArgumentBuilder<'_, S> {
-    pub fn then(&mut self, command: dyn CommandNode<S>) -> Result<&mut Self, String> {
+impl<'a, S> BaseArgumentBuilder<'a, S> {
+    pub fn then(
+        &mut self,
+        command: Box<dyn ArgumentBuilder<S, Self>>,
+    ) -> Result<&mut Self, String> {
         if self.target.is_some() {
             return Err("Cannot add children to a redirected node".to_string());
         }
-        self.command = command;
+        self.command = Some(command);
         Ok(self)
     }
 
@@ -102,5 +108,25 @@ impl<S> BaseArgumentBuilder<'_, S> {
 
     pub fn is_fork(&self) -> bool {
         self.forks
+    }
+
+    pub fn build(self) -> BaseCommandNode<'a, S> {
+        let result: BaseCommandNode<'a, S> = BaseCommandNode {
+            command: self.command,
+            requirement: self.requirement,
+            redirect: self.target,
+            modifier: self.modifier,
+            forks: self.forks,
+
+            arguments: Default::default(),
+            children: Default::default(),
+            literals: Default::default(),
+        };
+
+        for argument in self.arguments() {
+            result.add_child(argument);
+        }
+
+        result
     }
 }

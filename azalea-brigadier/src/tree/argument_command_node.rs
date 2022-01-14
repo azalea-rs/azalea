@@ -77,7 +77,7 @@ where
     fn list_suggestions(
         &self,
         context: CommandContext<S>,
-        builder: &mut SuggestionsBuilder,
+        builder: &SuggestionsBuilder,
     ) -> Result<Suggestions, CommandSyntaxException> {
         if self.custom_suggestions.is_none() {
             self.get_type().list_suggestions(context, builder)
@@ -117,6 +117,10 @@ where
 
     fn get_examples(&self) -> Vec<String> {
         self.type_.get_examples()
+    }
+
+    fn base(&self) -> &BaseCommandNode<S> {
+        &self.base
     }
 }
 

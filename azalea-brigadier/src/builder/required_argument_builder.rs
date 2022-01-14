@@ -19,10 +19,10 @@ pub struct RequiredArgumentBuilder<'a, S> {
 }
 
 impl<'a, S> RequiredArgumentBuilder<'a, S> {
-    pub fn new(name: String, type_: dyn ArgumentType<Into = dyn Any>) -> Self {
+    pub fn new(name: String, type_: Box<dyn ArgumentType<Into = dyn Any>>) -> Self {
         Self {
             name,
-            type_: &type_,
+            type_: type_,
             suggestions_provider: None,
             base: BaseArgumentBuilder::new(name, type_),
         }

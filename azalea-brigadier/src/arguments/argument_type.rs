@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use super::bool_argument_type::BoolArgumentType;
 use crate::{
     context::command_context::CommandContext,
@@ -31,8 +33,7 @@ impl Types for BrigadierTypes {
 }
 */
 
-#[clonable]
-pub trait ArgumentType: Clone {
+pub trait ArgumentType {
     type Into;
     // T parse(StringReader reader) throws CommandSyntaxException;
 
@@ -49,7 +50,7 @@ pub trait ArgumentType: Clone {
     fn list_suggestions<S>(
         &self,
         context: &CommandContext<S>,
-        builder: &mut SuggestionsBuilder,
+        builder: &SuggestionsBuilder,
     ) -> Result<Suggestions, CommandSyntaxException>
     where
         Self: Sized,
