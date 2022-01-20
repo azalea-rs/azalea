@@ -8,14 +8,16 @@ use std::any::Any;
 use super::argument_builder::BaseArgumentBuilder;
 
 pub struct RequiredArgumentBuilder<'a, S> {
-    // private final String name;
-    // private final ArgumentType<T> type;
-    // private SuggestionProvider<S> suggestionsProvider = null;
+    arguments: RootCommandNode<'a, S>,
+    command: Option<Box<dyn Command<S>>>,
+    requirement: Box<dyn Fn(&S) -> bool>,
+    target: Option<Box<dyn CommandNode<S>>>,
+    modifier: Option<Box<dyn RedirectModifier<S>>>,
+    forks: bool,
+
     name: String,
     type_: Box<dyn ArgumentType<Into = dyn Any>>,
-    suggestions_provider: Option<&'a dyn SuggestionProvider<S>>,
-
-    pub base: BaseArgumentBuilder<'a, S>,
+    suggestions_provider: Option<Box<dyn SuggestionProvider<S>>>,
 }
 
 impl<'a, S> RequiredArgumentBuilder<'a, S> {
@@ -24,29 +26,29 @@ impl<'a, S> RequiredArgumentBuilder<'a, S> {
             name,
             type_: type_,
             suggestions_provider: None,
-            base: BaseArgumentBuilder::new(name, type_),
+            base: BaseArgumentBuilder::default(),
         }
     }
 
-    pub fn argument(name: String, type_: dyn ArgumentType<Into = dyn Any>) -> Self {
+    pub fn argument(name: String, type_: Box<dyn ArgumentType<Into = dyn Any>>) -> Self {
         Self::new(name, type_)
     }
 
-    pub fn suggests(mut self, provider: &dyn SuggestionProvider<S>) -> Self {
+    pub fn suggests(mut self, provider: Box<dyn SuggestionProvider<S>>) -> Self {
         self.suggestions_provider = Some(provider);
         self
     }
 
-    pub fn suggestions_provider(&self) -> Option<&dyn SuggestionProvider<S>> {
-        self.suggestions_provider.as_ref()
+    pub fn suggestions_provider(&self) -> Option<Box<dyn SuggestionProvider<S>>> {
+        self.suggestions_provider
     }
 
-    pub fn get_type(&self) -> &dyn ArgumentType<Into = dyn Any> {
+    pub fn get_type(&self) -> Box<dyn ArgumentType<Into = dyn Any>> {
         self.type_
     }
 
     pub fn name(&self) -> &str {
-        self.name
+        &self.name
     }
 
     // final ArgumentCommandNode<S> result = new ArgumentCommandNode<>(getName(), getType(), getCommand(), getRequirement(), getRedirect(), getRedirectModifier(), isFork(), getSuggestionsProvider());
@@ -59,19 +61,19 @@ impl<'a, S> RequiredArgumentBuilder<'a, S> {
     pub fn build(self) -> ArgumentCommandNode<'a, S> {
         let result = ArgumentCommandNode {
             name: self.name,
-            type_: &self.type_,
+            type_: self.type_,
             base: BaseCommandNode {
-                command: self.base.command,
-                requirement: self.base.requirement,
-                redirect: self.base.redirect,
-                modifier: self.base.modifier,
+                command: self.base.command(),
+                requirement: self.base.requirement(),
+                redirect: self.base.get_redirect(),
+                modifier: self.base.get_redirect_modifier(),
                 forks: self.base.forks,
                 ..BaseCommandNode::default()
             },
             custom_suggestions: self.base.custom_suggestions,
         };
 
-        for argument in self.base.arguments {
+        for argument in self.base.arguments() {
             result.add_child(argument);
         }
 

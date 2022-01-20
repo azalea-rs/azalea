@@ -1,14 +1,23 @@
+use super::argument_builder::{ArgumentBuilder, BaseArgumentBuilder};
 use crate::{
     arguments::argument_type::ArgumentType,
-    tree::{command_node::CommandNode, literal_command_node::LiteralCommandNode},
+    command::Command,
+    redirect_modifier::RedirectModifier,
+    tree::{
+        command_node::CommandNode, literal_command_node::LiteralCommandNode,
+        root_command_node::RootCommandNode,
+    },
 };
 
-use super::argument_builder::{ArgumentBuilder, BaseArgumentBuilder};
-
 pub struct LiteralArgumentBuilder<'a, S> {
-    literal: String,
+    arguments: RootCommandNode<'a, S>,
+    command: Option<Box<dyn Command<S>>>,
+    requirement: Box<dyn Fn(&S) -> bool>,
+    target: Option<Box<dyn CommandNode<S>>>,
+    modifier: Option<Box<dyn RedirectModifier<S>>>,
+    forks: bool,
 
-    pub base: BaseArgumentBuilder<'a, S>,
+    literal: String,
 }
 
 impl<'a, S> LiteralArgumentBuilder<'a, S> {
@@ -31,10 +40,10 @@ where
     fn build(self) -> Box<dyn CommandNode<S>> {
         let result = LiteralCommandNode::new(self.literal, self.base.build());
 
-        for argument in self.base.arguments {
+        for argument in self.base.arguments() {
             result.add_child(argument);
         }
 
-        result
+        Box::new(result)
     }
 }

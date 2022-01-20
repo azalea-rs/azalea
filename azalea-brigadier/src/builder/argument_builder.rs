@@ -29,14 +29,11 @@ where
 }
 
 impl<'a, S> BaseArgumentBuilder<'a, S> {
-    pub fn then(
-        &mut self,
-        command: Box<dyn ArgumentBuilder<S, Self>>,
-    ) -> Result<&mut Self, String> {
+    pub fn then(&mut self, argument: Box<dyn CommandNode<S>>) -> Result<&mut Self, String> {
         if self.target.is_some() {
             return Err("Cannot add children to a redirected node".to_string());
         }
-        self.command = Some(command);
+
         Ok(self)
     }
 
@@ -44,25 +41,25 @@ impl<'a, S> BaseArgumentBuilder<'a, S> {
         &self.arguments.get_children()
     }
 
-    pub fn executes(&mut self, command: dyn Command<S>) -> &mut Self {
-        self.command = command;
+    pub fn executes(&mut self, command: Box<dyn Command<S>>) -> &mut Self {
+        self.command = Some(command);
         self
     }
 
-    pub fn command(&self) -> dyn Command<S> {
+    pub fn command(&self) -> Option<Box<dyn Command<S>>> {
         self.command
     }
 
-    pub fn requires(&mut self, requirement: &dyn Fn(&S) -> bool) -> &mut Self {
+    pub fn requires(&mut self, requirement: Box<dyn Fn(&S) -> bool>) -> &mut Self {
         self.requirement = requirement;
         self
     }
 
-    pub fn requirement(&self) -> dyn Fn(&S) -> bool {
+    pub fn requirement(&self) -> Box<dyn Fn(&S) -> bool> {
         self.requirement
     }
 
-    pub fn redirect(&mut self, target: &dyn CommandNode<S>) -> &mut Self {
+    pub fn redirect(&mut self, target: Box<dyn CommandNode<S>>) -> &mut Self {
         self.forward(target, None, false)
     }
 
@@ -85,8 +82,8 @@ impl<'a, S> BaseArgumentBuilder<'a, S> {
 
     pub fn forward(
         &mut self,
-        target: &dyn CommandNode<S>,
-        modifier: Option<&dyn RedirectModifier<S>>,
+        target: Box<dyn CommandNode<S>>,
+        modifier: Option<Box<dyn RedirectModifier<S>>>,
         fork: bool,
     ) -> Result<&mut Self, String> {
         if !self.arguments.get_children().is_empty() {
@@ -128,5 +125,18 @@ impl<'a, S> BaseArgumentBuilder<'a, S> {
         }
 
         result
+    }
+}
+
+impl<S> Default for BaseArgumentBuilder<'_, S> {
+    fn default() -> Self {
+        Self {
+            arguments: Default::default(),
+            command: Default::default(),
+            requirement: Default::default(),
+            target: Default::default(),
+            modifier: Default::default(),
+            forks: Default::default(),
+        }
     }
 }
