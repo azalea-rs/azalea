@@ -1,17 +1,19 @@
 use crate::{
     arguments::argument_type::ArgumentType,
-    builder::literal_argument_builder::LiteralArgumentBuilder,
-    command::Command,
+    builder::{
+        argument_builder::ArgumentBuilder, literal_argument_builder::LiteralArgumentBuilder,
+    },
     context::{command_context::CommandContext, command_context_builder::CommandContextBuilder},
     exceptions::{
         builtin_exceptions::BuiltInExceptions, command_syntax_exception::CommandSyntaxException,
     },
-    redirect_modifier::RedirectModifier,
+    immutable_string_reader::ImmutableStringReader,
     string_reader::StringReader,
     suggestion::{suggestions::Suggestions, suggestions_builder::SuggestionsBuilder},
 };
+use std::fmt::Debug;
 
-use super::command_node::{BaseCommandNode, CommandNode};
+use super::command_node::{BaseCommandNode, CommandNodeTrait};
 
 #[derive(Debug, Clone)]
 pub struct LiteralCommandNode<'a, S> {
@@ -22,7 +24,7 @@ pub struct LiteralCommandNode<'a, S> {
 }
 
 impl<'a, S> LiteralCommandNode<'a, S> {
-    pub fn new(literal: String, base: BaseCommandNode<S>) -> Self {
+    pub fn new(literal: String, base: BaseCommandNode<'a, S>) -> Self {
         let literal_lowercase = literal.to_lowercase();
         Self {
             literal,
@@ -35,16 +37,16 @@ impl<'a, S> LiteralCommandNode<'a, S> {
         &self.literal
     }
 
-    pub fn parse(&self, reader: StringReader) -> i32 {
-        let start = reader.get_cursor();
-        if reader.can_read(self.literal.len()) {
+    pub fn parse(&self, reader: &mut StringReader) -> i32 {
+        let start = reader.cursor();
+        if reader.can_read_length(self.literal.len()) {
             let end = start + self.literal.len();
-            if reader.get_string()[start..end].eq(&self.literal) {
-                reader.set_cursor(end);
+            if reader.string()[start..end].eq(&self.literal) {
+                reader.cursor = end;
                 if !reader.can_read() || reader.peek() == ' ' {
                     return end as i32;
                 } else {
-                    reader.set_cursor(start);
+                    reader.cursor = start;
                 }
             }
         }
@@ -52,27 +54,24 @@ impl<'a, S> LiteralCommandNode<'a, S> {
     }
 }
 
-impl<S> CommandNode<S> for LiteralCommandNode<'_, S>
-where
-    S: Clone,
-{
+impl<S> CommandNodeTrait<S> for LiteralCommandNode<'_, S> {
     fn name(&self) -> &str {
         &self.literal
     }
 
     fn parse(
         &self,
-        reader: StringReader,
+        reader: &mut StringReader<'_>,
         context_builder: CommandContextBuilder<S>,
     ) -> Result<(), CommandSyntaxException> {
-        let start = reader.get_cursor();
+        let start = reader.cursor();
         let end = self.parse(reader);
         if end > -1 {
             return Ok(());
         }
 
         Err(BuiltInExceptions::LiteralIncorrect {
-            expected: self.literal(),
+            expected: self.literal().to_string(),
         }
         .create_with_context(reader))
     }
@@ -80,33 +79,41 @@ where
     fn list_suggestions(
         &self,
         context: CommandContext<S>,
-        builder: SuggestionsBuilder,
+        builder: &SuggestionsBuilder,
     ) -> Result<Suggestions, CommandSyntaxException> {
         if self
             .literal_lowercase
             .starts_with(&builder.remaining_lowercase())
         {
-            builder.suggest(self.literal())
+            Ok(builder.suggest(self.literal()).build())
         } else {
-            Suggestions::empty()
+            Ok(Suggestions::default())
         }
     }
 
     fn is_valid_input(&self, input: &str) -> bool {
-        self.parse(StringReader::from(input)) > -1
+        self.parse(&mut StringReader::from(input)) > -1
     }
 
     fn usage_text(&self) -> &str {
-        self.literal
+        &self.literal
     }
 
-    fn create_builder(&self) -> LiteralArgumentBuilder<S> {
-        let builder = LiteralArgumentBuilder::literal(self.literal());
-        builder.requires(self.requirement());
-        builder.forward(self.redirect(), self.redirect_modifier(), self.is_fork());
+    fn create_builder(&self) -> Box<dyn ArgumentBuilder<S>> {
+        let mut builder = LiteralArgumentBuilder::literal(self.literal().to_string());
+        builder.base.requires(&self.base().requirement);
+        builder.base.forward(
+            self.base.redirect(),
+            self.base.redirect_modifier(),
+            self.base.is_fork(),
+        );
         if self.command().is_some() {
             builder.executes(self.command().unwrap());
         }
         builder
+    }
+
+    fn get_examples(&self) -> Vec<String> {
+        todo!()
     }
 }

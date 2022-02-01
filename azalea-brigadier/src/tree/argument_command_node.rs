@@ -1,17 +1,20 @@
 use std::{
     any::Any,
-    fmt::{Display, Formatter},
+    collections::HashMap,
+    fmt::{Debug, Display, Formatter},
 };
 
 use crate::{
     arguments::argument_type::ArgumentType,
     builder::required_argument_builder::RequiredArgumentBuilder,
+    command::Command,
     context::{
         command_context::CommandContext, command_context_builder::CommandContextBuilder,
         parsed_argument::ParsedArgument,
     },
     exceptions::command_syntax_exception::CommandSyntaxException,
     immutable_string_reader::ImmutableStringReader,
+    redirect_modifier::RedirectModifier,
     string_reader::StringReader,
     suggestion::{
         suggestion_provider::SuggestionProvider, suggestions::Suggestions,
@@ -19,12 +22,16 @@ use crate::{
     },
 };
 
-use super::command_node::{BaseCommandNode, CommandNode};
+use super::{
+    command_node::{BaseCommandNode, CommandNodeTrait},
+    literal_command_node::LiteralCommandNode,
+    root_command_node::RootCommandNode,
+};
 
 const USAGE_ARGUMENT_OPEN: &str = "<";
 const USAGE_ARGUMENT_CLOSE: &str = ">";
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ArgumentCommandNode<'a, S> {
     name: String,
     type_: Box<dyn ArgumentType<Into = dyn Any>>,
@@ -32,6 +39,15 @@ pub struct ArgumentCommandNode<'a, S> {
     // custom_suggestions: &'a dyn SuggestionProvider<S>,
     // Since Rust doesn't have extending, we put the struct this is extending as the "base" field
     pub base: BaseCommandNode<'a, S>,
+
+    children: HashMap<String, Box<dyn CommandNodeTrait<S>>>,
+    literals: HashMap<String, LiteralCommandNode<'a, S>>,
+    arguments: HashMap<String, ArgumentCommandNode<'a, S>>,
+    pub requirement: Box<dyn Fn(&S) -> bool>,
+    redirect: Option<Box<dyn CommandNodeTrait<S>>>,
+    modifier: Option<Box<dyn RedirectModifier<S>>>,
+    forks: bool,
+    pub command: Option<Box<dyn Command<S>>>,
 }
 
 impl<S> ArgumentCommandNode<'_, S> {
@@ -44,10 +60,7 @@ impl<S> ArgumentCommandNode<'_, S> {
     }
 }
 
-impl<'a, S> CommandNode<S> for ArgumentCommandNode<'a, S>
-where
-    S: Clone,
-{
+impl<'a, S> CommandNodeTrait<S> for ArgumentCommandNode<'a, S> {
     fn name(&self) -> &str {
         &self.name
     }
@@ -119,8 +132,44 @@ where
         self.type_.get_examples()
     }
 
-    fn base(&self) -> &BaseCommandNode<S> {
-        &self.base
+    fn redirect_modifier(&self) -> Option<&dyn RedirectModifier<S>> {
+        self.modifier.as_ref().map(|modifier| modifier.as_ref())
+    }
+
+    fn can_use(&self, source: S) -> bool {
+        (self.requirement)(&source)
+    }
+
+    fn add_child(&self, node: &Box<dyn CommandNodeTrait<S>>) -> Result<(), String> {
+        let dynamic_node = node as &dyn Any;
+        if dynamic_node.is::<RootCommandNode<S>>() {
+            return Err(String::from(
+                "Cannot add a RootCommandNode as a child to any other CommandNode",
+            ));
+        }
+
+        let mut child = self.children.get(node.name());
+        if let Some(child) = child {
+            // We've found something to merge onto
+            if let Some(command) = node.base().command() {
+                child.base_mut().command = Some(*command);
+            }
+            for grandchild in node.base().children().values() {
+                child.base_mut().add_child(&*grandchild)?;
+            }
+            Ok(())
+        } else {
+            self.children.insert(node.name().to_string(), *node);
+
+            if let Some(dynamic_node) = dynamic_node.downcast_ref::<LiteralCommandNode<S>>() {
+                self.literals.insert(node.name().to_string(), *dynamic_node);
+            } else if let Some(dynamic_node) = dynamic_node.downcast_ref::<ArgumentCommandNode<S>>()
+            {
+                self.arguments
+                    .insert(node.name().to_string(), *dynamic_node);
+            }
+            Ok(())
+        }
     }
 }
 

@@ -1,4 +1,5 @@
 use crate::{arguments::argument_type::ArgumentType, tree::root_command_node::RootCommandNode};
+use std::fmt::Debug;
 
 /// The core command dispatcher, for registering, parsing, and executing commands.
 /// The `S` generic is a custom "source" type, such as a user or originator of a command

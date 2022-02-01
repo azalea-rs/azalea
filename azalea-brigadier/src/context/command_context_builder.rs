@@ -1,10 +1,10 @@
-use std::{any::Any, collections::HashMap};
-
 use crate::{
     arguments::argument_type::ArgumentType, command::Command,
     command_dispatcher::CommandDispatcher, redirect_modifier::RedirectModifier,
-    tree::command_node::CommandNode,
+    tree::command_node::CommandNodeTrait,
 };
+use std::fmt::Debug;
+use std::{any::Any, collections::HashMap};
 
 use super::{
     command_context::CommandContext, parsed_argument::ParsedArgument,
@@ -27,12 +27,12 @@ use super::{
 #[derive(Clone)]
 pub struct CommandContextBuilder<'a, S> {
     arguments: HashMap<String, ParsedArgument<Box<dyn Any>>>,
-    root_node: &'a dyn CommandNode<S>,
+    root_node: &'a dyn CommandNodeTrait<S>,
     nodes: Vec<ParsedCommandNode<S>>,
     dispatcher: CommandDispatcher<'a, S>,
     source: S,
     command: Box<dyn Command<S>>,
-    child: Option<CommandContextBuilder<'a, S>>,
+    child: Box<Option<CommandContextBuilder<'a, S>>>,
     range: StringRange,
     modifier: Option<Box<dyn RedirectModifier<S>>>,
     forks: bool,
@@ -45,11 +45,14 @@ pub struct CommandContextBuilder<'a, S> {
 // 	this.range = StringRange.at(start);
 // }
 
-impl<S> CommandContextBuilder<'_, S> {
+impl<S> CommandContextBuilder<'_, S>
+where
+    ,
+{
     pub fn new(
         dispatcher: CommandDispatcher<S>,
         source: S,
-        root_node: dyn CommandNode<S>,
+        root_node: dyn CommandNodeTrait<S>,
         start: usize,
     ) -> Self {
         Self {
@@ -70,7 +73,7 @@ impl<S> CommandContextBuilder<'_, S> {
         &self.source
     }
 
-    pub fn root_node(&self) -> &dyn CommandNode<S> {
+    pub fn root_node(&self) -> &dyn CommandNodeTrait<S> {
         &self.root_node
     }
 
@@ -88,7 +91,7 @@ impl<S> CommandContextBuilder<'_, S> {
         self
     }
 
-    pub fn with_node(mut self, node: dyn CommandNode<S>, range: StringRange) -> Self {
+    pub fn with_node(mut self, node: dyn CommandNodeTrait<S>, range: StringRange) -> Self {
         self.nodes.push(ParsedCommandNode::new(node, range));
         self.range = StringRange::encompassing(&self.range, &range);
         self.modifier = node.redirect_modifier();

@@ -1,17 +1,23 @@
+use super::argument_builder::BaseArgumentBuilder;
 use crate::{
     arguments::argument_type::ArgumentType,
+    command::Command,
+    redirect_modifier::RedirectModifier,
     suggestion::suggestion_provider::SuggestionProvider,
-    tree::{argument_command_node::ArgumentCommandNode, command_node::BaseCommandNode},
+    tree::{
+        argument_command_node::ArgumentCommandNode,
+        command_node::{BaseCommandNode, CommandNodeTrait},
+        root_command_node::RootCommandNode,
+    },
 };
 use std::any::Any;
-
-use super::argument_builder::BaseArgumentBuilder;
+use std::fmt::Debug;
 
 pub struct RequiredArgumentBuilder<'a, S> {
     arguments: RootCommandNode<'a, S>,
     command: Option<Box<dyn Command<S>>>,
     requirement: Box<dyn Fn(&S) -> bool>,
-    target: Option<Box<dyn CommandNode<S>>>,
+    target: Option<Box<dyn CommandNodeTrait<S>>>,
     modifier: Option<Box<dyn RedirectModifier<S>>>,
     forks: bool,
 
@@ -26,7 +32,12 @@ impl<'a, S> RequiredArgumentBuilder<'a, S> {
             name,
             type_: type_,
             suggestions_provider: None,
-            base: BaseArgumentBuilder::default(),
+            arguments: RootCommandNode::new(),
+            command: None,
+            requirement: Box::new(|_| true),
+            target: None,
+            modifier: None,
+            forks: false,
         }
     }
 
@@ -62,15 +73,13 @@ impl<'a, S> RequiredArgumentBuilder<'a, S> {
         let result = ArgumentCommandNode {
             name: self.name,
             type_: self.type_,
-            base: BaseCommandNode {
-                command: self.base.command(),
-                requirement: self.base.requirement(),
-                redirect: self.base.get_redirect(),
-                modifier: self.base.get_redirect_modifier(),
-                forks: self.base.forks,
-                ..BaseCommandNode::default()
-            },
+            command: self.base.command(),
+            requirement: self.base.requirement(),
+            redirect: self.base.get_redirect(),
+            modifier: self.base.get_redirect_modifier(),
+            forks: self.base.forks,
             custom_suggestions: self.base.custom_suggestions,
+            ..ArgumentCommandNode::default()
         };
 
         for argument in self.base.arguments() {

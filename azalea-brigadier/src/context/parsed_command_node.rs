@@ -1,17 +1,17 @@
 use super::string_range::StringRange;
-use crate::tree::command_node::CommandNode;
+use crate::tree::command_node::CommandNodeTrait;
 
 pub struct ParsedCommandNode<S> {
-    node: Box<dyn CommandNode<S>>,
+    node: Box<dyn CommandNodeTrait<S>>,
     range: StringRange,
 }
 
 impl<S> ParsedCommandNode<S> {
-    fn new(node: dyn CommandNode<S>, range: StringRange) -> Self {
+    fn new(node: dyn CommandNodeTrait<S>, range: StringRange) -> Self {
         Self { node, range }
     }
 
-    fn node(&self) -> &dyn CommandNode<S> {
+    fn node(&self) -> &dyn CommandNodeTrait<S> {
         &self.node
     }
 

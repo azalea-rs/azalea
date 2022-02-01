@@ -4,40 +4,35 @@ use crate::{
     redirect_modifier::RedirectModifier,
     single_redirect_modifier::SingleRedirectModifier,
     tree::{
-        command_node::{BaseCommandNode, CommandNode},
+        command_node::{BaseCommandNode, CommandNodeTrait},
         root_command_node::RootCommandNode,
     },
 };
+use std::fmt::Debug;
 
-pub struct BaseArgumentBuilder<'a, S>
-where
-    S: Sized,
-{
+pub struct BaseArgumentBuilder<'a, S> {
     arguments: RootCommandNode<'a, S>,
     command: Option<Box<dyn Command<S>>>,
     requirement: Box<dyn Fn(&S) -> bool>,
-    target: Option<Box<dyn CommandNode<S>>>,
+    target: Option<Box<dyn CommandNodeTrait<S>>>,
     modifier: Option<Box<dyn RedirectModifier<S>>>,
     forks: bool,
 }
 
-pub trait ArgumentBuilder<S, T>
-where
-    T: ArgumentBuilder<S, T>,
-{
-    fn build(self) -> Box<dyn CommandNode<S>>;
+pub trait ArgumentBuilder<S> {
+    fn build(self) -> Box<dyn CommandNodeTrait<S>>;
 }
 
 impl<'a, S> BaseArgumentBuilder<'a, S> {
-    pub fn then(&mut self, argument: Box<dyn CommandNode<S>>) -> Result<&mut Self, String> {
+    pub fn then(&mut self, argument: Box<dyn ArgumentBuilder<S>>) -> Result<&mut Self, String> {
         if self.target.is_some() {
             return Err("Cannot add children to a redirected node".to_string());
         }
-
+        self.arguments.add_child(argument.build());
         Ok(self)
     }
 
-    pub fn arguments(&self) -> &Vec<&dyn CommandNode<S>> {
+    pub fn arguments(&self) -> &Vec<&dyn CommandNodeTrait<S>> {
         &self.arguments.get_children()
     }
 
@@ -59,13 +54,13 @@ impl<'a, S> BaseArgumentBuilder<'a, S> {
         self.requirement
     }
 
-    pub fn redirect(&mut self, target: Box<dyn CommandNode<S>>) -> &mut Self {
+    pub fn redirect(&mut self, target: Box<dyn CommandNodeTrait<S>>) -> &mut Self {
         self.forward(target, None, false)
     }
 
     pub fn redirect_modifier(
         &mut self,
-        target: &dyn CommandNode<S>,
+        target: &dyn CommandNodeTrait<S>,
         modifier: &dyn SingleRedirectModifier<S>,
     ) -> &mut Self {
         // forward(target, modifier == null ? null : o -> Collections.singleton(modifier.apply(o)), false);
@@ -74,7 +69,7 @@ impl<'a, S> BaseArgumentBuilder<'a, S> {
 
     pub fn fork(
         &mut self,
-        target: &dyn CommandNode<S>,
+        target: &dyn CommandNodeTrait<S>,
         modifier: &dyn RedirectModifier<S>,
     ) -> &mut Self {
         self.forward(target, Some(modifier), true)
@@ -82,20 +77,20 @@ impl<'a, S> BaseArgumentBuilder<'a, S> {
 
     pub fn forward(
         &mut self,
-        target: Box<dyn CommandNode<S>>,
-        modifier: Option<Box<dyn RedirectModifier<S>>>,
+        target: Option<Box<dyn CommandNodeTrait<S>>>,
+        modifier: Option<&dyn RedirectModifier<S>>,
         fork: bool,
     ) -> Result<&mut Self, String> {
         if !self.arguments.get_children().is_empty() {
             return Err("Cannot forward a node with children".to_string());
         }
-        self.target = Some(target);
+        self.target = target;
         self.modifier = modifier;
         self.forks = fork;
         Ok(self)
     }
 
-    pub fn get_redirect(&self) -> Option<&dyn CommandNode<S>> {
+    pub fn get_redirect(&self) -> Option<&dyn CommandNodeTrait<S>> {
         self.target.as_ref()
     }
 

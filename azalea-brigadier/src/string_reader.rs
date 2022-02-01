@@ -9,7 +9,7 @@ use std::str::FromStr;
 #[derive(Clone)]
 pub struct StringReader<'a> {
     string: &'a str,
-    cursor: usize,
+    pub cursor: usize,
 }
 
 const SYNTAX_ESCAPE: char = '\\';
@@ -18,9 +18,15 @@ const SYNTAX_SINGLE_QUOTE: char = '\'';
 
 // impl<'a> From<&'a str> for &StringReader<'a> {}
 
-impl StringReader<'_> {
-    fn from(string: &str) -> StringReader {
-        StringReader { string, cursor: 0 }
+// impl StringReader<'_> {
+//     fn from(string: &str) -> StringReader {
+//         StringReader { string, cursor: 0 }
+//     }
+// }
+
+impl<'a> From<&'a str> for StringReader<'a> {
+    fn from(string: &'a str) -> Self {
+        Self { string, cursor: 0 }
     }
 }
 

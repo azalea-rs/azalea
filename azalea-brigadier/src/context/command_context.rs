@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     arguments::argument_type::ArgumentType, command::Command, redirect_modifier::RedirectModifier,
-    tree::command_node::CommandNode,
+    tree::command_node::CommandNodeTrait,
 };
 use std::{any::Any, collections::HashMap};
 
@@ -13,7 +13,7 @@ pub struct CommandContext<'a, S> {
     input: String,
     command: &'a dyn Command<S>,
     arguments: HashMap<String, ParsedArgument<Box<dyn Any>>>,
-    root_node: &'a dyn CommandNode<S>,
+    root_node: &'a dyn CommandNodeTrait<S>,
     nodes: Vec<ParsedCommandNode<S>>,
     range: StringRange,
     child: Option<&'a CommandContext<'a, S>>,
