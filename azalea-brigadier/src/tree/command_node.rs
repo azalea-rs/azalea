@@ -21,14 +21,14 @@ enum CommandNodeEnum<'a, S> {
     Root(RootCommandNode<'a, S>),
 }
 
-impl<S> Deref for CommandNodeEnum<'_, S> {
+impl<'a, S> Deref for CommandNodeEnum<'a, S> {
     type Target = dyn CommandNodeTrait<S>;
 
     fn deref(&self) -> &Self::Target {
         match self {
-            CommandNodeEnum::Literal(node) => node,
-            CommandNodeEnum::Argument(node) => node,
-            CommandNodeEnum::Root(node) => node,
+            CommandNodeEnum::Literal(node) => *node as &Self::Target,
+            CommandNodeEnum::Argument(node) => *node as &Self::Target,
+            CommandNodeEnum::Root(node) => *node as &Self::Target,
         }
     }
 }

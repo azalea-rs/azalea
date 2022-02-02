@@ -45,14 +45,11 @@ pub struct CommandContextBuilder<'a, S> {
 // 	this.range = StringRange.at(start);
 // }
 
-impl<S> CommandContextBuilder<'_, S>
-where
-    ,
-{
+impl<S> CommandContextBuilder<'_, S> {
     pub fn new(
         dispatcher: CommandDispatcher<S>,
         source: S,
-        root_node: dyn CommandNodeTrait<S>,
+        root_node: &dyn CommandNodeTrait<S>,
         start: usize,
     ) -> Self {
         Self {
