@@ -3,33 +3,45 @@ use crate::{
     builder::{
         argument_builder::ArgumentBuilder, literal_argument_builder::LiteralArgumentBuilder,
     },
+    command::Command,
     context::{command_context::CommandContext, command_context_builder::CommandContextBuilder},
     exceptions::{
         builtin_exceptions::BuiltInExceptions, command_syntax_exception::CommandSyntaxException,
     },
     immutable_string_reader::ImmutableStringReader,
+    redirect_modifier::RedirectModifier,
     string_reader::StringReader,
     suggestion::{suggestions::Suggestions, suggestions_builder::SuggestionsBuilder},
 };
-use std::fmt::Debug;
+use std::{collections::HashMap, fmt::Debug};
 
-use super::command_node::{BaseCommandNode, CommandNodeTrait};
+use super::{
+    argument_command_node::ArgumentCommandNode,
+    command_node::{BaseCommandNode, CommandNodeTrait},
+};
 
 #[derive(Debug, Clone)]
-pub struct LiteralCommandNode<'a, S> {
+pub struct LiteralCommandNode<S> {
     literal: String,
     literal_lowercase: String,
-    // Since Rust doesn't have extending, we put the struct this is extending as the "base" field
-    pub base: BaseCommandNode<'a, S>,
+
+    children: HashMap<String, Box<dyn CommandNodeTrait<S>>>,
+    literals: HashMap<String, LiteralCommandNode<S>>,
+    arguments: HashMap<String, ArgumentCommandNode<S>>,
+    pub requirement: Box<dyn Fn(&S) -> bool>,
+    redirect: Option<Box<dyn CommandNodeTrait<S>>>,
+    modifier: Option<Box<dyn RedirectModifier<S>>>,
+    forks: bool,
+    pub command: Option<Box<dyn Command<S>>>,
 }
 
-impl<'a, S> LiteralCommandNode<'a, S> {
-    pub fn new(literal: String, base: BaseCommandNode<'a, S>) -> Self {
+impl<S> LiteralCommandNode<S> {
+    pub fn new(literal: String) -> Self {
         let literal_lowercase = literal.to_lowercase();
         Self {
             literal,
             literal_lowercase,
-            base,
+            ..Default::default()
         }
     }
 
@@ -54,7 +66,7 @@ impl<'a, S> LiteralCommandNode<'a, S> {
     }
 }
 
-impl<S> CommandNodeTrait<S> for LiteralCommandNode<'_, S> {
+impl<S> CommandNodeTrait<S> for LiteralCommandNode<S> {
     fn name(&self) -> &str {
         &self.literal
     }

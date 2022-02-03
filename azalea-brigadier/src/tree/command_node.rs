@@ -15,43 +15,14 @@ use crate::{
 use std::ops::Deref;
 use std::{any::Any, collections::HashMap, fmt::Debug};
 
-enum CommandNodeEnum<'a, S> {
-    Literal(LiteralCommandNode<'a, S>),
-    Argument(ArgumentCommandNode<'a, S>),
-    Root(RootCommandNode<'a, S>),
+#[enum_dispatch(CommandNodeTrait)]
+enum CommandNodeEnum<S> {
+    Literal(LiteralCommandNode<S>),
+    Argument(ArgumentCommandNode<S>),
+    Root(RootCommandNode<S>),
 }
 
-impl<'a, S> Deref for CommandNodeEnum<'a, S> {
-    type Target = dyn CommandNodeTrait<S>;
-
-    fn deref(&self) -> &Self::Target {
-        match self {
-            CommandNodeEnum::Literal(node) => *node as &Self::Target,
-            CommandNodeEnum::Argument(node) => *node as &Self::Target,
-            CommandNodeEnum::Root(node) => *node as &Self::Target,
-        }
-    }
-}
-
-impl<S> From<LiteralCommandNode<'_, S>> for CommandNodeEnum<'_, S> {
-    fn from(node: LiteralCommandNode<'_, S>) -> Self {
-        CommandNodeEnum::Literal(node)
-    }
-}
-
-impl<S> From<ArgumentCommandNode<'_, S>> for CommandNodeEnum<'_, S> {
-    fn from(node: ArgumentCommandNode<'_, S>) -> Self {
-        CommandNodeEnum::Argument(node)
-    }
-}
-
-impl<S> From<RootCommandNode<'_, S>> for CommandNodeEnum<'_, S> {
-    fn from(node: RootCommandNode<'_, S>) -> Self {
-        CommandNodeEnum::Root(node)
-    }
-}
-
-impl<S> CommandNodeEnum<'_, S> {
+impl<S> CommandNodeEnum<S> {
     fn redirect_modifier(&self) -> Option<&dyn RedirectModifier<S>> {
         (*self).modifier.as_ref().map(|modifier| modifier.as_ref())
     }
@@ -92,10 +63,10 @@ impl<S> CommandNodeEnum<'_, S> {
         }
     }
 }
-pub struct BaseCommandNode<'a, S> {
+pub struct BaseCommandNode<S> {
     children: HashMap<String, Box<dyn CommandNodeTrait<S>>>,
-    literals: HashMap<String, LiteralCommandNode<'a, S>>,
-    arguments: HashMap<String, ArgumentCommandNode<'a, S>>,
+    literals: HashMap<String, LiteralCommandNode<S>>,
+    arguments: HashMap<String, ArgumentCommandNode<S>>,
     pub requirement: Box<dyn Fn(&S) -> bool>,
     redirect: Option<Box<dyn CommandNodeTrait<S>>>,
     modifier: Option<Box<dyn RedirectModifier<S>>>,
@@ -118,7 +89,7 @@ pub struct BaseCommandNode<'a, S> {
 //     }
 // }
 
-impl<S> Debug for BaseCommandNode<'_, S> {
+impl<S> Debug for BaseCommandNode<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("BaseCommandNode")
             .field("children", &self.children)
@@ -133,7 +104,7 @@ impl<S> Debug for BaseCommandNode<'_, S> {
     }
 }
 
-impl<S> Default for BaseCommandNode<'_, S> {
+impl<S> Default for BaseCommandNode<S> {
     fn default() -> Self {
         Self {
             children: HashMap::new(),
@@ -148,6 +119,7 @@ impl<S> Default for BaseCommandNode<'_, S> {
     }
 }
 
+#[enum_dispatch]
 pub trait CommandNodeTrait<S> {
     fn name(&self) -> &str;
     fn usage_text(&self) -> &str;
@@ -164,4 +136,8 @@ pub trait CommandNodeTrait<S> {
     fn is_valid_input(&self, input: &str) -> bool;
     fn create_builder(&self) -> Box<dyn ArgumentBuilder<S>>;
     fn get_examples(&self) -> Vec<String>;
+
+    fn redirect_modifier(&self) -> Option<&dyn RedirectModifier<S>>;
+    fn can_use(&self, source: S) -> bool;
+    fn add_child(&self, node: &Box<dyn CommandNodeTrait<S>>) -> Result<(), String>;
 }

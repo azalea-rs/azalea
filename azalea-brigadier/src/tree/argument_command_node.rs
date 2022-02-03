@@ -31,18 +31,14 @@ use super::{
 const USAGE_ARGUMENT_OPEN: &str = "<";
 const USAGE_ARGUMENT_CLOSE: &str = ">";
 
-#[derive(Clone, Debug)]
-pub struct ArgumentCommandNode<'a, S> {
+pub struct ArgumentCommandNode<S> {
     name: String,
     type_: Box<dyn ArgumentType<Into = dyn Any>>,
-    custom_suggestions: Option<&'a dyn SuggestionProvider<S>>,
-    // custom_suggestions: &'a dyn SuggestionProvider<S>,
-    // Since Rust doesn't have extending, we put the struct this is extending as the "base" field
-    pub base: BaseCommandNode<'a, S>,
+    custom_suggestions: Option<Box<dyn SuggestionProvider<S>>>,
 
     children: HashMap<String, Box<dyn CommandNodeTrait<S>>>,
-    literals: HashMap<String, LiteralCommandNode<'a, S>>,
-    arguments: HashMap<String, ArgumentCommandNode<'a, S>>,
+    literals: HashMap<String, LiteralCommandNode<S>>,
+    arguments: HashMap<String, ArgumentCommandNode<S>>,
     pub requirement: Box<dyn Fn(&S) -> bool>,
     redirect: Option<Box<dyn CommandNodeTrait<S>>>,
     modifier: Option<Box<dyn RedirectModifier<S>>>,
@@ -50,17 +46,17 @@ pub struct ArgumentCommandNode<'a, S> {
     pub command: Option<Box<dyn Command<S>>>,
 }
 
-impl<S> ArgumentCommandNode<'_, S> {
+impl<S> ArgumentCommandNode<S> {
     fn get_type(&self) -> &dyn ArgumentType<Into = dyn Any> {
-        self.type_
+        &*self.type_
     }
 
-    fn custom_suggestions(&self) -> Option<&dyn SuggestionProvider<S>> {
-        self.custom_suggestions
+    fn custom_suggestions(&self) -> &Option<Box<dyn SuggestionProvider<S>>> {
+        &self.custom_suggestions
     }
 }
 
-impl<'a, S> CommandNodeTrait<S> for ArgumentCommandNode<'a, S> {
+impl<S> CommandNodeTrait<S> for ArgumentCommandNode<S> {
     fn name(&self) -> &str {
         &self.name
     }
@@ -173,7 +169,7 @@ impl<'a, S> CommandNodeTrait<S> for ArgumentCommandNode<'a, S> {
     }
 }
 
-impl<S> Display for ArgumentCommandNode<'_, S> {
+impl<S> Display for ArgumentCommandNode<S> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "<argument {}: {}>", self.name, self.type_)
     }

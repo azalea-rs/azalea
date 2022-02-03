@@ -6,6 +6,7 @@ use super::{
 use crate::{
     arguments::argument_type::ArgumentType,
     builder::argument_builder::ArgumentBuilder,
+    command::Command,
     context::{command_context::CommandContext, command_context_builder::CommandContextBuilder},
     exceptions::{
         builtin_exceptions::BuiltInExceptions, command_syntax_exception::CommandSyntaxException,
@@ -16,16 +17,24 @@ use crate::{
 };
 use std::{
     any::Any,
+    collections::HashMap,
     fmt::{Debug, Display, Formatter},
 };
 
-#[derive(Clone, Default, Debug)]
-pub struct RootCommandNode<'a, S> {
+#[derive(Default)]
+pub struct RootCommandNode<S> {
     // Since Rust doesn't have extending, we put the struct this is extending as the "base" field
-    pub base: BaseCommandNode<'a, S>,
+    children: HashMap<String, Box<dyn CommandNodeTrait<S>>>,
+    literals: HashMap<String, LiteralCommandNode<S>>,
+    arguments: HashMap<String, ArgumentCommandNode<S>>,
+    pub requirement: Box<dyn Fn(&S) -> bool>,
+    redirect: Option<Box<dyn CommandNodeTrait<S>>>,
+    modifier: Option<Box<dyn RedirectModifier<S>>>,
+    forks: bool,
+    pub command: Option<Box<dyn Command<S>>>,
 }
 
-impl<S> CommandNodeTrait<S> for RootCommandNode<'_, S> {
+impl<S> CommandNodeTrait<S> for RootCommandNode<S> {
     fn name(&self) -> &str {
         ""
     }
@@ -63,7 +72,7 @@ impl<S> CommandNodeTrait<S> for RootCommandNode<'_, S> {
     }
 }
 
-impl<S> Display for RootCommandNode<'_, S> {
+impl<S> Display for RootCommandNode<S> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "<root>")
     }

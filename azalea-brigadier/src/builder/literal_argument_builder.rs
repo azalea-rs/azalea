@@ -10,11 +10,8 @@ use crate::{
 };
 use std::fmt::Debug;
 
-pub struct LiteralArgumentBuilder<'a, S>
-where
-    ,
-{
-    arguments: RootCommandNode<'a, S>,
+pub struct LiteralArgumentBuilder<S> {
+    arguments: RootCommandNode<S>,
     command: Option<Box<dyn Command<S>>>,
     requirement: Box<dyn Fn(&S) -> bool>,
     target: Option<Box<dyn CommandNodeTrait<S>>>,
@@ -23,10 +20,7 @@ where
     literal: String,
 }
 
-impl<'a, S> LiteralArgumentBuilder<'a, S>
-where
-    ,
-{
+impl<S> LiteralArgumentBuilder<S> {
     pub fn new(literal: String) -> Self {
         Self {
             literal,
@@ -44,10 +38,7 @@ where
     }
 }
 
-impl<'a, S> ArgumentBuilder<S> for LiteralArgumentBuilder<'a, S>
-where
-    ,
-{
+impl<S> ArgumentBuilder<S> for LiteralArgumentBuilder<S> {
     fn build(self) -> Box<dyn CommandNodeTrait<S>> {
         let result = LiteralCommandNode::new(self.literal, self.base.build());
 
