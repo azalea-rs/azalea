@@ -330,18 +330,45 @@ mod tests {
     //         assertThat(ex.getCursor(), is(0));
     //     }
     // }
-    // #[test]
-    // fn execute_unknown_command() {
-    //     let mut subject = CommandDispatcher::<Rc<CommandSource>>::new();
-    //     subject.register(literal("bar"));
-    //     subject.register(literal("baz"));
+    #[test]
+    fn execute_unknown_command() {
+        let mut subject = CommandDispatcher::<Rc<CommandSource>>::new();
+        subject.register(literal("bar"));
+        subject.register(literal("baz"));
 
-    //     assert_eq!(
-    //         subject
-    //             .execute("foo".into(), Rc::new(CommandSource {}))
-    //             .err()
-    //             .unwrap(),
-    //         BuiltInExceptions::DispatcherUnknownCommand.create()
-    //     );
+        let execute_result = subject.execute("foo".into(), Rc::new(CommandSource {}));
+
+        let err = execute_result.err().unwrap();
+        match err.type_ {
+            BuiltInExceptions::DispatcherUnknownCommand => {}
+            _ => panic!("Unexpected error"),
+        }
+        assert_eq!(err.cursor().unwrap(), 0);
+    }
+    // @Test
+    // public void testExecuteImpermissibleCommand() throws Exception {
+    //     subject.register(literal("foo").requires(s -> false));
+
+    //     try {
+    //         subject.execute("foo", source);
+    //         fail();
+    //     } catch (final CommandSyntaxException ex) {
+    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand()));
+    //         assertThat(ex.getCursor(), is(0));
+    //     }
     // }
+    #[test]
+    fn execute_impermissible_command() {
+        let mut subject = CommandDispatcher::<Rc<CommandSource>>::new();
+        subject.register(literal("foo").requires(|_| false));
+
+        let execute_result = subject.execute("foo".into(), Rc::new(CommandSource {}));
+
+        let err = execute_result.err().unwrap();
+        match err.type_ {
+            BuiltInExceptions::DispatcherUnknownCommand => {}
+            _ => panic!("Unexpected error"),
+        }
+        assert_eq!(err.cursor().unwrap(), 0);
+    }
 }

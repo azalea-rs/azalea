@@ -66,6 +66,14 @@ impl<S: Any + Clone> ArgumentBuilder<S> {
         self.clone()
     }
 
+    pub fn requires<F>(&mut self, requirement: F) -> Self
+    where
+        F: Fn(Rc<S>) -> bool + 'static,
+    {
+        self.requirement = Rc::new(requirement);
+        self.clone()
+    }
+
     pub fn build(self) -> CommandNode<S> {
         CommandNode {
             value: self.value,

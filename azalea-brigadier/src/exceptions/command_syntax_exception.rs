@@ -5,7 +5,7 @@ use crate::message::Message;
 
 #[derive(Clone, PartialEq)]
 pub struct CommandSyntaxException {
-    type_: BuiltInExceptions,
+    pub type_: BuiltInExceptions,
     message: Message,
     input: Option<String>,
     cursor: Option<usize>,
