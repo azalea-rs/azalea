@@ -67,8 +67,6 @@ impl<S: Any + Clone> CommandNode<S> {
     pub fn get_relevant_nodes(&self, input: &mut StringReader) -> Vec<Rc<RefCell<CommandNode<S>>>> {
         let literals = self.literals();
 
-        println!("get relevant nodes {:?} literals={:?}", self, literals);
-
         if literals.len() > 0 {
             let cursor = input.cursor();
             while input.can_read() && input.peek() != ' ' {
@@ -220,7 +218,6 @@ impl<S: Any + Clone> Debug for CommandNode<S> {
 
 impl<S: Any + Clone> Default for CommandNode<S> {
     fn default() -> Self {
-        println!("making default node");
         Self {
             value: ArgumentBuilderType::Literal(Literal::default()),
 

@@ -18,7 +18,7 @@ mod tests {
     use crate::{
         builder::{literal_argument_builder::literal, required_argument_builder::argument},
         dispatcher::CommandDispatcher,
-        parsers::integer,
+        parsers::{get_integer, integer},
     };
 
     struct CommandSourceStack {
@@ -36,7 +36,7 @@ mod tests {
         dispatcher.register(
             literal("foo")
                 .then(argument("bar", integer()).executes(|c| {
-                    // println!("Bar is {}", get_integer(c, "bar"));
+                    println!("Bar is {:?}", get_integer(c, "bar"));
                     2
                 }))
                 .executes(|c| {
@@ -45,11 +45,8 @@ mod tests {
                 }),
         );
 
-        let parse = dispatcher.parse("foo 123".to_string().into(), source);
-        println!(
-            "{}",
-            CommandDispatcher::<Rc<CommandSourceStack>>::execute(parse).unwrap()
-        );
-        // assert_eq!(dispatcher.execute("foo bar", source), 2);
+        let parse = dispatcher.parse("foo 123".into(), source.clone());
+        assert_eq!(CommandDispatcher::<_>::execute_parsed(parse).unwrap(), 2);
+        assert_eq!(dispatcher.execute("foo".into(), source).unwrap(), 1);
     }
 }

@@ -5,7 +5,6 @@ use crate::{
         builtin_exceptions::BuiltInExceptions, command_syntax_exception::CommandSyntaxException,
     },
     parse_results::ParseResults,
-    string_range::StringRange,
     string_reader::StringReader,
     tree::CommandNode,
 };
@@ -28,10 +27,8 @@ impl<S: Any + Clone> CommandDispatcher<S> {
     }
 
     pub fn register(&mut self, node: ArgumentBuilder<S>) {
-        println!("register {:#?}", node);
         let build = Rc::new(RefCell::new(node.build()));
         self.root.borrow_mut().add_child(&build);
-        // println!("build: {:#?}", build);
     }
 
     pub fn parse(&self, command: StringReader, source: S) -> ParseResults<S> {
@@ -142,7 +139,6 @@ impl<S: Any + Clone> CommandDispatcher<S> {
                 })
             }
             let best_potential = potentials.into_iter().next().unwrap();
-            println!("chosen {:#?}", best_potential);
             return Ok(best_potential);
         }
 
@@ -153,10 +149,14 @@ impl<S: Any + Clone> CommandDispatcher<S> {
         })
     }
 
+    pub fn execute(&self, input: StringReader, source: S) -> Result<i32, CommandSyntaxException> {
+        let parse = self.parse(input, source);
+        Self::execute_parsed(parse)
+    }
+
     /// Executes a given pre-parsed command.
-    pub fn execute(parse: ParseResults<S>) -> Result<i32, CommandSyntaxException> {
+    pub fn execute_parsed(parse: ParseResults<S>) -> Result<i32, CommandSyntaxException> {
         if parse.reader.can_read() {
-            println!("can read from reader {}", parse.reader.cursor);
             if parse.exceptions.len() == 1 {
                 return Err(parse.exceptions.values().next().unwrap().clone());
             }
@@ -169,7 +169,6 @@ impl<S: Any + Clone> CommandDispatcher<S> {
                 BuiltInExceptions::DispatcherUnknownArgument.create_with_context(&parse.reader)
             );
         }
-        println!("a");
         let mut result = 0i32;
         let mut successful_forks = 0;
         let mut forked = false;

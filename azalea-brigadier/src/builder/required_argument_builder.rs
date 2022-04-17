@@ -1,5 +1,8 @@
 use super::argument_builder::{ArgumentBuilder, ArgumentBuilderType};
-use crate::{parsers::Parser, string_reader::StringReader};
+use crate::{
+    exceptions::command_syntax_exception::CommandSyntaxException, parsers::Parser,
+    string_reader::StringReader,
+};
 use std::{any::Any, fmt::Debug, rc::Rc};
 
 /// An argument node type. The `T` type parameter is the type of the argument,
@@ -17,7 +20,7 @@ impl Argument {
         }
     }
 
-    pub fn parse(&self, reader: &mut StringReader) -> Option<Rc<dyn Any>> {
+    pub fn parse(&self, reader: &mut StringReader) -> Result<Rc<dyn Any>, CommandSyntaxException> {
         self.parser.parse(reader)
     }
 }

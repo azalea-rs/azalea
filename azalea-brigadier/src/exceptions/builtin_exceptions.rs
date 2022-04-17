@@ -6,17 +6,17 @@ use super::command_syntax_exception::CommandSyntaxException;
 
 #[derive(Clone, PartialEq)]
 pub enum BuiltInExceptions {
-    DoubleTooSmall { found: usize, min: usize },
-    DoubleTooBig { found: usize, max: usize },
+    DoubleTooSmall { found: f64, min: f64 },
+    DoubleTooBig { found: f64, max: f64 },
 
-    FloatTooSmall { found: usize, min: usize },
-    FloatTooBig { found: usize, max: usize },
+    FloatTooSmall { found: f32, min: f32 },
+    FloatTooBig { found: f32, max: f32 },
 
-    IntegerTooSmall { found: usize, min: usize },
-    IntegerTooBig { found: usize, max: usize },
+    IntegerTooSmall { found: i32, min: i32 },
+    IntegerTooBig { found: i32, max: i32 },
 
-    LONGTooSmall { found: usize, min: usize },
-    LONGTooBig { found: usize, max: usize },
+    LongTooSmall { found: i64, min: i64 },
+    LongTooBig { found: i64, max: i64 },
 
     LiteralIncorrect { expected: String },
 
@@ -65,10 +65,10 @@ impl fmt::Debug for BuiltInExceptions {
                 write!(f, "Integer must not be more than {}, found {}", max, found)
             }
 
-            BuiltInExceptions::LONGTooSmall { found, min } => {
+            BuiltInExceptions::LongTooSmall { found, min } => {
                 write!(f, "Long must not be less than {}, found {}", min, found)
             }
-            BuiltInExceptions::LONGTooBig { found, max } => {
+            BuiltInExceptions::LongTooBig { found, max } => {
                 write!(f, "Long must not be more than {}, found {}", max, found)
             }
 

@@ -18,6 +18,14 @@ impl From<String> for StringReader {
         Self { string, cursor: 0 }
     }
 }
+impl From<&str> for StringReader {
+    fn from(string: &str) -> Self {
+        Self {
+            string: string.to_string(),
+            cursor: 0,
+        }
+    }
+}
 
 impl StringReader {
     pub fn string(&self) -> &str {

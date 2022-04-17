@@ -67,7 +67,6 @@ impl<S: Any + Clone> ArgumentBuilder<S> {
     }
 
     pub fn build(self) -> CommandNode<S> {
-        println!("building {:?}", self);
         CommandNode {
             value: self.value,
 
