@@ -12,29 +12,24 @@ pub enum ArgumentBuilderType {
 /// A node that hasn't yet been built.
 #[derive(Clone)]
 pub struct ArgumentBuilder<S: Any + Clone> {
-    arguments: BTreeMap<String, Rc<RefCell<CommandNode<S>>>>,
-    children: BTreeMap<String, Rc<RefCell<CommandNode<S>>>>,
-    literals: BTreeMap<String, Rc<RefCell<CommandNode<S>>>>,
+    arguments: CommandNode<S>,
 
     command: Option<Rc<dyn Fn(&CommandContext<S>) -> i32>>,
     requirement: Rc<dyn Fn(Rc<S>) -> bool>,
     target: Option<Rc<RefCell<CommandNode<S>>>>,
 
-    value: ArgumentBuilderType,
     forks: bool,
     modifier: Option<Rc<dyn RedirectModifier<S>>>,
 }
-
-// todo: maybe remake this to be based on a CommandNode like vanilla does?
 
 /// A node that isn't yet built.
 impl<S: Any + Clone> ArgumentBuilder<S> {
     pub fn new(value: ArgumentBuilderType) -> Self {
         Self {
-            value,
-            children: BTreeMap::new(),
-            literals: BTreeMap::new(),
-            arguments: BTreeMap::new(),
+            arguments: CommandNode {
+                value,
+                ..Default::default()
+            },
             command: None,
             requirement: Rc::new(|_| true),
             forks: false,
@@ -43,20 +38,9 @@ impl<S: Any + Clone> ArgumentBuilder<S> {
         }
     }
 
-    pub fn then(&mut self, node: ArgumentBuilder<S>) -> Self {
-        let built_node = node.build();
-        let name = built_node.name();
-        let node_reference = Rc::new(RefCell::new(built_node.clone()));
-        self.children
-            .insert(name.to_string(), node_reference.clone());
-        match &built_node.value {
-            ArgumentBuilderType::Literal(_) => {
-                self.literals.insert(name.to_string(), node_reference);
-            }
-            ArgumentBuilderType::Argument(_) => {
-                self.arguments.insert(name.to_string(), node_reference);
-            }
-        }
+    pub fn then(&mut self, argument: ArgumentBuilder<S>) -> Self {
+        self.arguments
+            .add_child(&Rc::new(RefCell::new(argument.build())));
         self.clone()
     }
 
@@ -86,7 +70,7 @@ impl<S: Any + Clone> ArgumentBuilder<S> {
         modifier: Option<Rc<dyn RedirectModifier<S>>>,
         fork: bool,
     ) -> Self {
-        if !self.arguments.is_empty() {
+        if !self.arguments.children.is_empty() {
             panic!("Cannot forward a node with children");
         }
         self.target = Some(target);
@@ -96,31 +80,31 @@ impl<S: Any + Clone> ArgumentBuilder<S> {
     }
 
     pub fn build(self) -> CommandNode<S> {
-        CommandNode {
-            value: self.value,
-
-            children: self.children,
-            literals: self.literals,
-            arguments: self.arguments,
-
+        let mut result = CommandNode {
+            value: self.arguments.value,
             command: self.command.clone(),
             requirement: self.requirement.clone(),
-            redirect: self.target,
+            redirect: self.target.clone(),
+            modifier: self.modifier.clone(),
             forks: self.forks,
-            modifier: self.modifier,
+            ..Default::default()
+        };
+
+        for (_, argument) in &self.arguments.children {
+            result.add_child(argument);
         }
+
+        result
     }
 }
 
 impl<S: Any + Clone> Debug for ArgumentBuilder<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ArgumentBuilder")
-            .field("value", &self.value)
-            .field("children", &self.children)
-            .field("literals", &self.literals)
             .field("arguments", &self.arguments)
-            .field("executes", &self.command.is_some())
+            // .field("command", &self.command)
             // .field("requirement", &self.requirement)
+            .field("target", &self.target)
             .field("forks", &self.forks)
             // .field("modifier", &self.modifier)
             .finish()
@@ -162,9 +146,10 @@ mod tests {
 
         let argument: ArgumentBuilder<()> = argument("bar", integer());
         builder.then(argument.clone());
-        assert_eq!(builder.children.len(), 1);
+        assert_eq!(builder.arguments.children.len(), 1);
         let built_argument = Rc::new(argument.build());
         assert!(builder
+            .arguments
             .children
             .values()
             .any(|e| *e.borrow() == *built_argument));
