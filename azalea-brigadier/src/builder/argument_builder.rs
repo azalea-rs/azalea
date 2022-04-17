@@ -12,14 +12,15 @@ pub enum ArgumentBuilderType {
 /// A node that hasn't yet been built.
 #[derive(Clone)]
 pub struct ArgumentBuilder<S: Any + Clone> {
-    value: ArgumentBuilderType,
-
+    arguments: BTreeMap<String, Rc<RefCell<CommandNode<S>>>>,
     children: BTreeMap<String, Rc<RefCell<CommandNode<S>>>>,
     literals: BTreeMap<String, Rc<RefCell<CommandNode<S>>>>,
-    arguments: BTreeMap<String, Rc<RefCell<CommandNode<S>>>>,
 
-    executes: Option<Rc<dyn Fn(&CommandContext<S>) -> i32>>,
+    command: Option<Rc<dyn Fn(&CommandContext<S>) -> i32>>,
     requirement: Rc<dyn Fn(Rc<S>) -> bool>,
+    target: Option<Rc<RefCell<CommandNode<S>>>>,
+
+    value: ArgumentBuilderType,
     forks: bool,
     modifier: Option<Rc<dyn RedirectModifier<S>>>,
 }
@@ -34,10 +35,11 @@ impl<S: Any + Clone> ArgumentBuilder<S> {
             children: BTreeMap::new(),
             literals: BTreeMap::new(),
             arguments: BTreeMap::new(),
-            executes: None,
+            command: None,
             requirement: Rc::new(|_| true),
             forks: false,
             modifier: None,
+            target: None,
         }
     }
 
@@ -62,7 +64,7 @@ impl<S: Any + Clone> ArgumentBuilder<S> {
     where
         F: Fn(&CommandContext<S>) -> i32 + 'static,
     {
-        self.executes = Some(Rc::new(f));
+        self.command = Some(Rc::new(f));
         self.clone()
     }
 
@@ -74,6 +76,25 @@ impl<S: Any + Clone> ArgumentBuilder<S> {
         self.clone()
     }
 
+    pub fn redirect(&mut self, target: Rc<RefCell<CommandNode<S>>>) -> Self {
+        self.forward(target, None, false)
+    }
+
+    pub fn forward(
+        &mut self,
+        target: Rc<RefCell<CommandNode<S>>>,
+        modifier: Option<Rc<dyn RedirectModifier<S>>>,
+        fork: bool,
+    ) -> Self {
+        if !self.arguments.is_empty() {
+            panic!("Cannot forward a node with children");
+        }
+        self.target = Some(target);
+        self.modifier = modifier;
+        self.forks = fork;
+        self.clone()
+    }
+
     pub fn build(self) -> CommandNode<S> {
         CommandNode {
             value: self.value,
@@ -82,9 +103,9 @@ impl<S: Any + Clone> ArgumentBuilder<S> {
             literals: self.literals,
             arguments: self.arguments,
 
-            command: self.executes.clone(),
+            command: self.command.clone(),
             requirement: self.requirement.clone(),
-            redirect: None,
+            redirect: self.target,
             forks: self.forks,
             modifier: self.modifier,
         }
@@ -98,7 +119,7 @@ impl<S: Any + Clone> Debug for ArgumentBuilder<S> {
             .field("children", &self.children)
             .field("literals", &self.literals)
             .field("arguments", &self.arguments)
-            .field("executes", &self.executes.is_some())
+            .field("executes", &self.command.is_some())
             // .field("requirement", &self.requirement)
             .field("forks", &self.forks)
             // .field("modifier", &self.modifier)

@@ -26,9 +26,10 @@ impl<S: Any + Clone> CommandDispatcher<S> {
         }
     }
 
-    pub fn register(&mut self, node: ArgumentBuilder<S>) {
+    pub fn register(&mut self, node: ArgumentBuilder<S>) -> Rc<RefCell<CommandNode<S>>> {
         let build = Rc::new(RefCell::new(node.build()));
         self.root.borrow_mut().add_child(&build);
+        build
     }
 
     pub fn parse(&self, command: StringReader, source: S) -> ParseResults<S> {
@@ -241,7 +242,10 @@ impl<S: Any + Clone> Clone for CommandDispatcher<S> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::builder::literal_argument_builder::literal;
+    use crate::{
+        builder::{literal_argument_builder::literal, required_argument_builder::argument},
+        parsers::integer,
+    };
 
     struct CommandSource {}
 
@@ -260,7 +264,7 @@ mod tests {
     // }
     #[test]
     fn create_and_execute_command() {
-        let mut subject = CommandDispatcher::<Rc<CommandSource>>::new();
+        let mut subject = CommandDispatcher::new();
         subject.register(literal("foo").executes(|_| 42));
 
         assert_eq!(
@@ -279,7 +283,7 @@ mod tests {
     // }
     #[test]
     fn create_and_execute_offset_command() {
-        let mut subject = CommandDispatcher::<Rc<CommandSource>>::new();
+        let mut subject = CommandDispatcher::new();
         subject.register(literal("foo").executes(|_| 42));
 
         assert_eq!(
@@ -300,7 +304,7 @@ mod tests {
     // }
     #[test]
     fn create_and_merge_commands() {
-        let mut subject = CommandDispatcher::<Rc<CommandSource>>::new();
+        let mut subject = CommandDispatcher::new();
         subject.register(literal("base").then(literal("foo").executes(|_| 42)));
         subject.register(literal("base").then(literal("bar").executes(|_| 42)));
 
@@ -332,7 +336,7 @@ mod tests {
     // }
     #[test]
     fn execute_unknown_command() {
-        let mut subject = CommandDispatcher::<Rc<CommandSource>>::new();
+        let mut subject = CommandDispatcher::new();
         subject.register(literal("bar"));
         subject.register(literal("baz"));
 
@@ -359,7 +363,7 @@ mod tests {
     // }
     #[test]
     fn execute_impermissible_command() {
-        let mut subject = CommandDispatcher::<Rc<CommandSource>>::new();
+        let mut subject = CommandDispatcher::new();
         subject.register(literal("foo").requires(|_| false));
 
         let execute_result = subject.execute("foo".into(), Rc::new(CommandSource {}));
@@ -371,4 +375,279 @@ mod tests {
         }
         assert_eq!(err.cursor().unwrap(), 0);
     }
+    // @Test
+    // public void testExecuteEmptyCommand() throws Exception {
+    //     subject.register(literal(""));
+
+    //     try {
+    //         subject.execute("", source);
+    //         fail();
+    //     } catch (final CommandSyntaxException ex) {
+    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand()));
+    //         assertThat(ex.getCursor(), is(0));
+    //     }
+    // }
+    #[test]
+    fn execute_empty_command() {
+        let mut subject = CommandDispatcher::new();
+        subject.register(literal(""));
+
+        let execute_result = subject.execute("".into(), Rc::new(CommandSource {}));
+
+        let err = execute_result.err().unwrap();
+        match err.type_ {
+            BuiltInExceptions::DispatcherUnknownCommand => {}
+            _ => panic!("Unexpected error"),
+        }
+        assert_eq!(err.cursor().unwrap(), 0);
+    }
+    // @Test
+    // public void testExecuteUnknownSubcommand() throws Exception {
+    //     subject.register(literal("foo").executes(command));
+
+    //     try {
+    //         subject.execute("foo bar", source);
+    //         fail();
+    //     } catch (final CommandSyntaxException ex) {
+    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument()));
+    //         assertThat(ex.getCursor(), is(4));
+    //     }
+    // }
+    #[test]
+    fn execute_unknown_subcommand() {
+        let mut subject = CommandDispatcher::new();
+        subject.register(literal("foo").executes(|_| 42));
+
+        let execute_result = subject.execute("foo bar".into(), Rc::new(CommandSource {}));
+
+        let err = execute_result.err().unwrap();
+        match err.type_ {
+            BuiltInExceptions::DispatcherUnknownArgument => {}
+            _ => panic!("Unexpected error"),
+        }
+        assert_eq!(err.cursor().unwrap(), 4);
+    }
+    // @Test
+    // public void testExecuteIncorrectLiteral() throws Exception {
+    //     subject.register(literal("foo").executes(command).then(literal("bar")));
+
+    //     try {
+    //         subject.execute("foo baz", source);
+    //         fail();
+    //     } catch (final CommandSyntaxException ex) {
+    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument()));
+    //         assertThat(ex.getCursor(), is(4));
+    //     }
+    // }
+    #[test]
+    fn execute_incorrect_literal() {
+        let mut subject = CommandDispatcher::new();
+        subject.register(literal("foo").executes(|_| 42).then(literal("bar")));
+
+        let execute_result = subject.execute("foo baz".into(), Rc::new(CommandSource {}));
+
+        let err = execute_result.err().unwrap();
+        match err.type_ {
+            BuiltInExceptions::DispatcherUnknownArgument => {}
+            _ => panic!("Unexpected error"),
+        }
+        assert_eq!(err.cursor().unwrap(), 4);
+    }
+    // @Test
+    // public void testExecuteAmbiguousIncorrectArgument() throws Exception {
+    //     subject.register(
+    //         literal("foo").executes(command)
+    //             .then(literal("bar"))
+    //             .then(literal("baz"))
+    //     );
+
+    //     try {
+    //         subject.execute("foo unknown", source);
+    //         fail();
+    //     } catch (final CommandSyntaxException ex) {
+    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument()));
+    //         assertThat(ex.getCursor(), is(4));
+    //     }
+    // }
+    #[test]
+    fn execute_ambiguous_incorrect_argument() {
+        let mut subject = CommandDispatcher::new();
+        subject.register(
+            literal("foo")
+                .executes(|_| 42)
+                .then(literal("bar"))
+                .then(literal("baz")),
+        );
+
+        let execute_result = subject.execute("foo unknown".into(), Rc::new(CommandSource {}));
+
+        let err = execute_result.err().unwrap();
+        match err.type_ {
+            BuiltInExceptions::DispatcherUnknownArgument => {}
+            _ => panic!("Unexpected error"),
+        }
+        assert_eq!(err.cursor().unwrap(), 4);
+    }
+
+    // @Test
+    // public void testExecuteSubcommand() throws Exception {
+    //     final Command<Object> subCommand = mock(Command.class);
+    //     when(subCommand.run(any())).thenReturn(100);
+
+    //     subject.register(literal("foo").then(
+    //         literal("a")
+    //     ).then(
+    //         literal("=").executes(subCommand)
+    //     ).then(
+    //         literal("c")
+    //     ).executes(command));
+
+    //     assertThat(subject.execute("foo =", source), is(100));
+    //     verify(subCommand).run(any(CommandContext.class));
+    // }
+    #[test]
+    fn test_execute_subcommand() {
+        let mut subject = CommandDispatcher::new();
+
+        subject.register(
+            literal("foo")
+                .then(literal("a"))
+                .then(literal("=").executes(|_| 100))
+                .then(literal("c"))
+                .executes(|_| 42),
+        );
+
+        assert_eq!(
+            subject
+                .execute("foo =".into(), Rc::new(CommandSource {}))
+                .unwrap(),
+            100
+        );
+    }
+    // @Test
+    // public void testParseIncompleteLiteral() throws Exception {
+    //     subject.register(literal("foo").then(literal("bar").executes(command)));
+
+    //     final ParseResults<Object> parse = subject.parse("foo ", source);
+    //     assertThat(parse.getReader().getRemaining(), equalTo(" "));
+    //     assertThat(parse.getContext().getNodes().size(), is(1));
+    // }
+    #[test]
+    fn test_parse_incomplete_literal() {
+        let mut subject = CommandDispatcher::new();
+        subject.register(literal("foo").then(literal("bar").executes(|_| 42)));
+
+        let parse = subject.parse("foo ".into(), Rc::new(CommandSource {}));
+        assert_eq!(parse.reader.remaining(), " ");
+        assert_eq!(parse.context.nodes.len(), 1);
+    }
+    // @Test
+    // public void testParseIncompleteArgument() throws Exception {
+    //     subject.register(literal("foo").then(argument("bar", integer()).executes(command)));
+
+    //     final ParseResults<Object> parse = subject.parse("foo ", source);
+    //     assertThat(parse.getReader().getRemaining(), equalTo(" "));
+    //     assertThat(parse.getContext().getNodes().size(), is(1));
+    // }
+    #[test]
+    fn test_parse_incomplete_argument() {
+        let mut subject = CommandDispatcher::new();
+        subject.register(literal("foo").then(argument("bar", integer()).executes(|_| 42)));
+
+        let parse = subject.parse("foo ".into(), Rc::new(CommandSource {}));
+        assert_eq!(parse.reader.remaining(), " ");
+        assert_eq!(parse.context.nodes.len(), 1);
+    }
+
+    // @Test
+    // public void testExecuteAmbiguiousParentSubcommand() throws Exception {
+    //     final Command<Object> subCommand = mock(Command.class);
+    //     when(subCommand.run(any())).thenReturn(100);
+
+    //     subject.register(
+    //         literal("test")
+    //             .then(
+    //                 argument("incorrect", integer())
+    //                     .executes(command)
+    //             )
+    //             .then(
+    //                 argument("right", integer())
+    //                     .then(
+    //                         argument("sub", integer())
+    //                             .executes(subCommand)
+    //                     )
+    //             )
+    //     );
+
+    //     assertThat(subject.execute("test 1 2", source), is(100));
+    //     verify(subCommand).run(any(CommandContext.class));
+    //     verify(command, never()).run(any());
+    // }
+    #[test]
+    fn test_execute_ambiguious_parent_subcommand() {
+        let mut subject = CommandDispatcher::new();
+
+        subject.register(
+            literal("test")
+                .then(argument("incorrect", integer()).executes(|_| 42))
+                .then(
+                    argument("right", integer()).then(argument("sub", integer()).executes(|_| 100)),
+                ),
+        );
+
+        assert_eq!(
+            subject
+                .execute("test 1 2".into(), Rc::new(CommandSource {}))
+                .unwrap(),
+            100
+        );
+    }
+
+    // @Test
+    // public void testExecuteAmbiguiousParentSubcommandViaRedirect() throws Exception {
+    //     final Command<Object> subCommand = mock(Command.class);
+    //     when(subCommand.run(any())).thenReturn(100);
+
+    //     final LiteralCommandNode<Object> real = subject.register(
+    //         literal("test")
+    //             .then(
+    //                 argument("incorrect", integer())
+    //                     .executes(command)
+    //             )
+    //             .then(
+    //                 argument("right", integer())
+    //                     .then(
+    //                         argument("sub", integer())
+    //                             .executes(subCommand)
+    //                     )
+    //             )
+    //     );
+
+    //     subject.register(literal("redirect").redirect(real));
+
+    //     assertThat(subject.execute("redirect 1 2", source), is(100));
+    //     verify(subCommand).run(any(CommandContext.class));
+    //     verify(command, never()).run(any());
+    // }
+    // #[test]
+    // fn test_execute_ambiguious_parent_subcommand_via_redirect() {
+    //     let mut subject = CommandDispatcher::new();
+
+    //     let real = subject.register(
+    //         literal("test")
+    //             .then(argument("incorrect", integer()).executes(|_| 42))
+    //             .then(
+    //                 argument("right", integer()).then(argument("sub", integer()).executes(|_| 100)),
+    //             ),
+    //     );
+
+    //     subject.register(literal("redirect").redirect(real));
+
+    //     assert_eq!(
+    //         subject
+    //             .execute("redirect 1 2".into(), Rc::new(CommandSource {}))
+    //             .unwrap(),
+    //         100
+    //     );
+    // }
 }
