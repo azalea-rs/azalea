@@ -1,51 +1,35 @@
-use super::argument_builder::{ArgumentBuilder, BaseArgumentBuilder};
+use std::any::Any;
+
 use crate::{
-    arguments::argument_type::ArgumentType,
-    command::Command,
-    redirect_modifier::RedirectModifier,
-    tree::{
-        command_node::CommandNodeTrait, literal_command_node::LiteralCommandNode,
-        root_command_node::RootCommandNode,
+    context::CommandContextBuilder,
+    exceptions::{
+        builtin_exceptions::BuiltInExceptions, command_syntax_exception::CommandSyntaxException,
     },
+    string_range::StringRange,
+    string_reader::StringReader,
 };
-use std::fmt::Debug;
 
-pub struct LiteralArgumentBuilder<S> {
-    arguments: RootCommandNode<S>,
-    command: Option<Box<dyn Command<S>>>,
-    requirement: Box<dyn Fn(&S) -> bool>,
-    target: Option<Box<dyn CommandNodeTrait<S>>>,
-    modifier: Option<Box<dyn RedirectModifier<S>>>,
-    forks: bool,
-    literal: String,
+use super::argument_builder::{ArgumentBuilder, ArgumentBuilderType};
+
+#[derive(Debug, Clone, Default)]
+pub struct Literal {
+    pub value: String,
 }
-
-impl<S> LiteralArgumentBuilder<S> {
-    pub fn new(literal: String) -> Self {
+impl Literal {
+    pub fn new(value: &str) -> Self {
         Self {
-            literal,
-            arguments: RootCommandNode::new(),
-            command: None,
-            requirement: Box::new(|_| true),
-            target: None,
-            modifier: None,
-            forks: false,
+            value: value.to_string(),
         }
-    }
-
-    pub fn literal(name: String) -> Self {
-        Self::new(name)
     }
 }
 
-impl<S> ArgumentBuilder<S> for LiteralArgumentBuilder<S> {
-    fn build(self) -> Box<dyn CommandNodeTrait<S>> {
-        let result = LiteralCommandNode::new(self.literal, self.base.build());
-
-        for argument in self.base.arguments() {
-            result.add_child(argument);
-        }
-
-        Box::new(result)
+impl From<Literal> for ArgumentBuilderType {
+    fn from(literal: Literal) -> Self {
+        Self::Literal(literal)
     }
+}
+
+/// Shortcut for creating a new literal builder node.
+pub fn literal<S: Any + Clone>(value: &str) -> ArgumentBuilder<S> {
+    ArgumentBuilder::new(ArgumentBuilderType::Literal(Literal::new(value)))
 }

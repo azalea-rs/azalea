@@ -1,6 +1,6 @@
 use std::cmp;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub struct StringRange {
     start: usize,
     end: usize,
@@ -31,7 +31,7 @@ impl StringRange {
         self.end
     }
 
-    pub fn get(&self, reader: &str) -> &str {
+    pub fn get<'a>(&self, reader: &'a str) -> &'a str {
         &reader[self.start..self.end]
     }
 

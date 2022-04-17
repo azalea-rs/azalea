@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::{immutable_string_reader::ImmutableStringReader, message::Message};
+use crate::{message::Message, string_reader::StringReader};
 
 use super::command_syntax_exception::CommandSyntaxException;
 
@@ -35,9 +35,9 @@ pub enum BuiltInExceptions {
     ReaderExpectedBool,
     ReaderExpectedSymbol { symbol: char },
 
-    ReaderUnknownCommand,
-    ReaderUnknownArgument,
-    DusoatcgerExpectedArgumentSeparator,
+    DispatcherUnknownCommand,
+    DispatcherUnknownArgument,
+    DispatcherExpectedArgumentSeparator,
     DispatcherParseException { message: String },
 }
 
@@ -127,13 +127,13 @@ impl fmt::Debug for BuiltInExceptions {
                 write!(f, "Expected '{}'", symbol)
             }
 
-            BuiltInExceptions::ReaderUnknownCommand => {
+            BuiltInExceptions::DispatcherUnknownCommand => {
                 write!(f, "Unknown command")
             }
-            BuiltInExceptions::ReaderUnknownArgument => {
+            BuiltInExceptions::DispatcherUnknownArgument => {
                 write!(f, "Incorrect argument for command")
             }
-            BuiltInExceptions::DusoatcgerExpectedArgumentSeparator => {
+            BuiltInExceptions::DispatcherExpectedArgumentSeparator => {
                 write!(
                     f,
                     "Expected whitespace to end one argument, but found trailing data"
@@ -152,7 +152,7 @@ impl BuiltInExceptions {
         CommandSyntaxException::create(self, message)
     }
 
-    pub fn create_with_context(self, reader: &dyn ImmutableStringReader) -> CommandSyntaxException {
+    pub fn create_with_context(self, reader: &StringReader) -> CommandSyntaxException {
         let message = Message::from(format!("{:?}", self));
         CommandSyntaxException::new(self, message, reader.string(), reader.cursor())
     }

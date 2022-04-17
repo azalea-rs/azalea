@@ -1,137 +1,178 @@
-use crate::{
-    arguments::argument_type::ArgumentType,
-    command::Command,
-    redirect_modifier::RedirectModifier,
-    single_redirect_modifier::SingleRedirectModifier,
-    tree::{
-        command_node::{BaseCommandNode, CommandNodeTrait},
-        root_command_node::RootCommandNode,
-    },
-};
-use std::fmt::Debug;
+use crate::{context::CommandContext, modifier::RedirectModifier, tree::CommandNode};
 
-pub struct BaseArgumentBuilder<'a, S> {
-    arguments: RootCommandNode<'a, S>,
-    command: Option<Box<dyn Command<S>>>,
-    requirement: Box<dyn Fn(&S) -> bool>,
-    target: Option<Box<dyn CommandNodeTrait<S>>>,
-    modifier: Option<Box<dyn RedirectModifier<S>>>,
+use super::{literal_argument_builder::Literal, required_argument_builder::Argument};
+use std::{any::Any, cell::RefCell, collections::BTreeMap, fmt::Debug, rc::Rc};
+
+#[derive(Debug, Clone)]
+pub enum ArgumentBuilderType {
+    Literal(Literal),
+    Argument(Argument),
+}
+
+/// A node that hasn't yet been built.
+#[derive(Clone)]
+pub struct ArgumentBuilder<S: Any + Clone> {
+    value: ArgumentBuilderType,
+
+    children: BTreeMap<String, Rc<RefCell<CommandNode<S>>>>,
+    literals: BTreeMap<String, Rc<RefCell<CommandNode<S>>>>,
+    arguments: BTreeMap<String, Rc<RefCell<CommandNode<S>>>>,
+
+    executes: Option<Rc<dyn Fn(&CommandContext<S>) -> i32>>,
+    requirement: Rc<dyn Fn(Rc<S>) -> bool>,
     forks: bool,
+    modifier: Option<Rc<dyn RedirectModifier<S>>>,
 }
 
-pub trait ArgumentBuilder<S> {
-    fn build(self) -> Box<dyn CommandNodeTrait<S>>;
-}
+// todo: maybe remake this to be based on a CommandNode like vanilla does?
 
-impl<'a, S> BaseArgumentBuilder<'a, S> {
-    pub fn then(&mut self, argument: Box<dyn ArgumentBuilder<S>>) -> Result<&mut Self, String> {
-        if self.target.is_some() {
-            return Err("Cannot add children to a redirected node".to_string());
-        }
-        self.arguments.add_child(argument.build());
-        Ok(self)
-    }
-
-    pub fn arguments(&self) -> &Vec<&dyn CommandNodeTrait<S>> {
-        &self.arguments.get_children()
-    }
-
-    pub fn executes(&mut self, command: Box<dyn Command<S>>) -> &mut Self {
-        self.command = Some(command);
-        self
-    }
-
-    pub fn command(&self) -> Option<Box<dyn Command<S>>> {
-        self.command
-    }
-
-    pub fn requires(&mut self, requirement: Box<dyn Fn(&S) -> bool>) -> &mut Self {
-        self.requirement = requirement;
-        self
-    }
-
-    pub fn requirement(&self) -> Box<dyn Fn(&S) -> bool> {
-        self.requirement
-    }
-
-    pub fn redirect(&mut self, target: Box<dyn CommandNodeTrait<S>>) -> &mut Self {
-        self.forward(target, None, false)
-    }
-
-    pub fn redirect_modifier(
-        &mut self,
-        target: &dyn CommandNodeTrait<S>,
-        modifier: &dyn SingleRedirectModifier<S>,
-    ) -> &mut Self {
-        // forward(target, modifier == null ? null : o -> Collections.singleton(modifier.apply(o)), false);
-        self.forward(target, modifier.map(|m| |o| vec![m.apply(o)]), false)
-    }
-
-    pub fn fork(
-        &mut self,
-        target: &dyn CommandNodeTrait<S>,
-        modifier: &dyn RedirectModifier<S>,
-    ) -> &mut Self {
-        self.forward(target, Some(modifier), true)
-    }
-
-    pub fn forward(
-        &mut self,
-        target: Option<Box<dyn CommandNodeTrait<S>>>,
-        modifier: Option<&dyn RedirectModifier<S>>,
-        fork: bool,
-    ) -> Result<&mut Self, String> {
-        if !self.arguments.get_children().is_empty() {
-            return Err("Cannot forward a node with children".to_string());
-        }
-        self.target = target;
-        self.modifier = modifier;
-        self.forks = fork;
-        Ok(self)
-    }
-
-    pub fn get_redirect(&self) -> Option<&dyn CommandNodeTrait<S>> {
-        self.target.as_ref()
-    }
-
-    pub fn get_redirect_modifier(&self) -> Option<&dyn RedirectModifier<S>> {
-        self.modifier.as_ref()
-    }
-
-    pub fn is_fork(&self) -> bool {
-        self.forks
-    }
-
-    pub fn build(self) -> BaseCommandNode<'a, S> {
-        let result: BaseCommandNode<'a, S> = BaseCommandNode {
-            command: self.command,
-            requirement: self.requirement,
-            redirect: self.target,
-            modifier: self.modifier,
-            forks: self.forks,
-
-            arguments: Default::default(),
-            children: Default::default(),
-            literals: Default::default(),
-        };
-
-        for argument in self.arguments() {
-            result.add_child(argument);
-        }
-
-        result
-    }
-}
-
-impl<S> Default for BaseArgumentBuilder<'_, S> {
-    fn default() -> Self {
+/// A node that isn't yet built.
+impl<S: Any + Clone> ArgumentBuilder<S> {
+    pub fn new(value: ArgumentBuilderType) -> Self {
         Self {
-            arguments: Default::default(),
-            command: Default::default(),
-            requirement: Default::default(),
-            target: Default::default(),
-            modifier: Default::default(),
-            forks: Default::default(),
+            value,
+            children: BTreeMap::new(),
+            literals: BTreeMap::new(),
+            arguments: BTreeMap::new(),
+            executes: None,
+            requirement: Rc::new(|_| true),
+            forks: false,
+            modifier: None,
         }
     }
+
+    pub fn then(&mut self, node: ArgumentBuilder<S>) -> &mut Self {
+        let built_node = node.build();
+        let name = built_node.name();
+        let node_reference = Rc::new(RefCell::new(built_node.clone()));
+        self.children
+            .insert(name.to_string(), node_reference.clone());
+        match &built_node.value {
+            ArgumentBuilderType::Literal(literal) => {
+                self.literals.insert(name.to_string(), node_reference);
+            }
+            ArgumentBuilderType::Argument(argument) => {
+                self.arguments.insert(name.to_string(), node_reference);
+            }
+        }
+        self
+    }
+
+    pub fn executes<F>(&mut self, f: F) -> Self
+    where
+        F: Fn(&CommandContext<S>) -> i32 + 'static,
+    {
+        self.executes = Some(Rc::new(f));
+        self.clone()
+    }
+
+    pub fn build(self) -> CommandNode<S> {
+        println!("building {:?}", self);
+        CommandNode {
+            value: self.value,
+
+            children: self.children,
+            literals: self.literals,
+            arguments: self.arguments,
+
+            command: self.executes.clone(),
+            requirement: self.requirement.clone(),
+            redirect: None,
+            forks: self.forks,
+            modifier: self.modifier,
+        }
+    }
+}
+
+impl<S: Any + Clone> Debug for ArgumentBuilder<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ArgumentBuilder")
+            .field("value", &self.value)
+            .field("children", &self.children)
+            .field("literals", &self.literals)
+            .field("arguments", &self.arguments)
+            .field("executes", &self.executes.is_some())
+            // .field("requirement", &self.requirement)
+            .field("forks", &self.forks)
+            // .field("modifier", &self.modifier)
+            .finish()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::rc::Rc;
+
+    use crate::{
+        builder::{literal_argument_builder::literal, required_argument_builder::argument},
+        parsers::integer,
+    };
+
+    use super::ArgumentBuilder;
+
+    // public class ArgumentBuilderTest {
+    //     private TestableArgumentBuilder<Object> builder;
+
+    //     @Before
+    //     public void setUp() throws Exception {
+    //         builder = new TestableArgumentBuilder<>();
+    //     }
+
+    //     @Test
+    //     public void testArguments() throws Exception {
+    //         final RequiredArgumentBuilder<Object, ?> argument = argument("bar", integer());
+
+    //         builder.then(argument);
+
+    //         assertThat(builder.getArguments(), hasSize(1));
+    //         assertThat(builder.getArguments(), hasItem((CommandNode<Object>) argument.build()));
+    //     }
+
+    #[test]
+    fn test_arguments() {
+        let mut builder: ArgumentBuilder<()> = literal("foo");
+
+        let argument: ArgumentBuilder<()> = argument("bar", integer());
+        builder.then(argument.clone());
+        assert_eq!(builder.children.len(), 1);
+        let built_argument = Rc::new(argument.build());
+        assert!(builder
+            .children
+            .values()
+            .any(|e| *e.borrow() == *built_argument));
+    }
+
+    //     @Test
+    //     public void testRedirect() throws Exception {
+    //         final CommandNode<Object> target = mock(CommandNode.class);
+    //         builder.redirect(target);
+    //         assertThat(builder.getRedirect(), is(target));
+    //     }
+
+    //     @Test(expected = IllegalStateException.class)
+    //     public void testRedirect_withChild() throws Exception {
+    //         final CommandNode<Object> target = mock(CommandNode.class);
+    //         builder.then(literal("foo"));
+    //         builder.redirect(target);
+    //     }
+
+    //     @Test(expected = IllegalStateException.class)
+    //     public void testThen_withRedirect() throws Exception {
+    //         final CommandNode<Object> target = mock(CommandNode.class);
+    //         builder.redirect(target);
+    //         builder.then(literal("foo"));
+    //     }
+
+    //     private static class TestableArgumentBuilder<S> extends ArgumentBuilder<S, TestableArgumentBuilder<S>> {
+    //         @Override
+    //         protected TestableArgumentBuilder<S> getThis() {
+    //             return this;
+    //         }
+
+    //         @Override
+    //         public CommandNode<S> build() {
+    //             return null;
+    //         }
+    //     }
+    // }
 }

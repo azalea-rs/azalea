@@ -3,6 +3,7 @@ use std::{cmp, fmt, rc::Rc};
 use super::builtin_exceptions::BuiltInExceptions;
 use crate::message::Message;
 
+#[derive(Clone)]
 pub struct CommandSyntaxException {
     type_: BuiltInExceptions,
     message: Message,
@@ -59,7 +60,10 @@ impl CommandSyntaxException {
                     builder.push_str("...");
                 }
 
-                builder.push_str(&input[cmp::max(0, cursor - CONTEXT_AMOUNT)..cursor]);
+                builder.push_str(
+                    &input
+                        [(cmp::max(0, cursor as isize - CONTEXT_AMOUNT as isize) as usize)..cursor],
+                );
                 builder.push_str("<--[HERE]");
 
                 return Some(builder);
