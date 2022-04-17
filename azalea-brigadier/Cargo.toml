@@ -6,6 +6,3 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-lazy_static = "^1.4"
-dyn-clonable = "^0.9"
-enum_dispatch = "^0.3"
