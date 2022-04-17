@@ -32,15 +32,6 @@ pub struct CommandNode<S: Any + Clone> {
 }
 
 impl<S: Any + Clone> CommandNode<S> {
-    // pub fn new()
-    // TODO: precalculate `literals` and `arguments` and include them in CommandNode
-    fn literals(&self) -> &BTreeMap<String, Rc<RefCell<CommandNode<S>>>> {
-        &self.literals
-    }
-    fn arguments(&self) -> &BTreeMap<String, Rc<RefCell<CommandNode<S>>>> {
-        &self.arguments
-    }
-
     /// Gets the literal, or panics. You should use match if you're not certain about the type.
     pub fn literal(&self) -> &Literal {
         match self.value {
@@ -57,7 +48,7 @@ impl<S: Any + Clone> CommandNode<S> {
     }
 
     pub fn get_relevant_nodes(&self, input: &mut StringReader) -> Vec<Rc<RefCell<CommandNode<S>>>> {
-        let literals = self.literals();
+        let literals = &self.literals;
 
         if !literals.is_empty() {
             let cursor = input.cursor();
@@ -75,10 +66,10 @@ impl<S: Any + Clone> CommandNode<S> {
             if let Some(literal) = literal {
                 return vec![literal.clone()];
             } else {
-                return self.arguments().values().cloned().collect();
+                return self.arguments.values().cloned().collect();
             }
         } else {
-            self.arguments().values().cloned().collect()
+            self.arguments.values().cloned().collect()
         }
     }
 
@@ -245,8 +236,7 @@ impl<S: Any + Clone> PartialEq for CommandNode<S> {
             } else {
                 return false;
             }
-        }
-        else if other.command.is_some() {
+        } else if other.command.is_some() {
             return false;
         }
         true

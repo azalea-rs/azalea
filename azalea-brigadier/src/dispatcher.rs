@@ -104,6 +104,11 @@ impl<S: Any + Clone> CommandDispatcher<S> {
                         .parse_nodes(redirect, &reader, child_context)
                         .expect("Parsing nodes failed");
                     context.with_child(Rc::new(parse.context));
+                    return Ok(ParseResults {
+                        context,
+                        reader: parse.reader,
+                        exceptions: parse.exceptions,
+                    });
                 } else {
                     let parse = self
                         .parse_nodes(&child, &reader, context)
@@ -629,25 +634,25 @@ mod tests {
     //     verify(subCommand).run(any(CommandContext.class));
     //     verify(command, never()).run(any());
     // }
-    // #[test]
-    // fn test_execute_ambiguious_parent_subcommand_via_redirect() {
-    //     let mut subject = CommandDispatcher::new();
+    #[test]
+    fn test_execute_ambiguious_parent_subcommand_via_redirect() {
+        let mut subject = CommandDispatcher::new();
 
-    //     let real = subject.register(
-    //         literal("test")
-    //             .then(argument("incorrect", integer()).executes(|_| 42))
-    //             .then(
-    //                 argument("right", integer()).then(argument("sub", integer()).executes(|_| 100)),
-    //             ),
-    //     );
+        let real = subject.register(
+            literal("test")
+                .then(argument("incorrect", integer()).executes(|_| 42))
+                .then(
+                    argument("right", integer()).then(argument("sub", integer()).executes(|_| 100)),
+                ),
+        );
 
-    //     subject.register(literal("redirect").redirect(real));
+        subject.register(literal("redirect").redirect(real));
 
-    //     assert_eq!(
-    //         subject
-    //             .execute("redirect 1 2".into(), Rc::new(CommandSource {}))
-    //             .unwrap(),
-    //         100
-    //     );
-    // }
+        assert_eq!(
+            subject
+                .execute("redirect 1 2".into(), Rc::new(CommandSource {}))
+                .unwrap(),
+            100
+        );
+    }
 }

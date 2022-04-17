@@ -1,7 +1,7 @@
 use crate::{context::CommandContext, modifier::RedirectModifier, tree::CommandNode};
 
 use super::{literal_argument_builder::Literal, required_argument_builder::Argument};
-use std::{any::Any, cell::RefCell, collections::BTreeMap, fmt::Debug, rc::Rc};
+use std::{any::Any, cell::RefCell, fmt::Debug, rc::Rc};
 
 #[derive(Debug, Clone)]
 pub enum ArgumentBuilderType {
@@ -38,6 +38,7 @@ impl<S: Any + Clone> ArgumentBuilder<S> {
         }
     }
 
+    // do we need to be cloning here? maybe we could return a ref to self?
     pub fn then(&mut self, argument: ArgumentBuilder<S>) -> Self {
         self.arguments
             .add_child(&Rc::new(RefCell::new(argument.build())));
@@ -82,10 +83,10 @@ impl<S: Any + Clone> ArgumentBuilder<S> {
     pub fn build(self) -> CommandNode<S> {
         let mut result = CommandNode {
             value: self.arguments.value,
-            command: self.command.clone(),
-            requirement: self.requirement.clone(),
-            redirect: self.target.clone(),
-            modifier: self.modifier.clone(),
+            command: self.command,
+            requirement: self.requirement,
+            redirect: self.target,
+            modifier: self.modifier,
             forks: self.forks,
             ..Default::default()
         };
