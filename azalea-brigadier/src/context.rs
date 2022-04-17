@@ -1,4 +1,4 @@
-use std::{any::Any, cell::RefCell, collections::HashMap, fmt::Debug, ptr, rc::Rc};
+use std::{any::Any, cell::RefCell, collections::HashMap, fmt::Debug, rc::Rc};
 
 use crate::{
     dispatcher::CommandDispatcher, modifier::RedirectModifier, string_range::StringRange,
@@ -73,7 +73,7 @@ impl<S: Any + Clone> CommandContextBuilder<S> {
             nodes: self.nodes.clone(),
             source: self.source.clone(),
             command: self.command.clone(),
-            child: self.child.clone().map(|c| Rc::new(c.build(&input))),
+            child: self.child.clone().map(|c| Rc::new(c.build(input))),
             range: self.range.clone(),
             forks: self.forks,
             modifier: self.modifier.clone(),
@@ -125,7 +125,7 @@ impl<S: Any + Clone> CommandContext<S> {
         if Rc::ptr_eq(&source, &self.source) {
             return self.clone();
         }
-        return CommandContext {
+        CommandContext {
             source,
             input: self.input.clone(),
             arguments: self.arguments.clone(),
@@ -136,11 +136,11 @@ impl<S: Any + Clone> CommandContext<S> {
             child: self.child.clone(),
             modifier: self.modifier.clone(),
             forks: self.forks,
-        };
+        }
     }
 
     pub fn has_nodes(&self) -> bool {
-        return !self.nodes.is_empty();
+        !self.nodes.is_empty()
     }
 
     pub fn argument(&self, name: &str) -> Option<Rc<dyn Any>> {

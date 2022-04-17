@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Message(String);
 

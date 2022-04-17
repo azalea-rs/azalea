@@ -1,4 +1,4 @@
-use std::{any::Any, marker::PhantomData, rc::Rc};
+use std::{any::Any, rc::Rc};
 
 use crate::{
     context::CommandContext,
@@ -24,6 +24,7 @@ impl Parser for Integer {
         let result = reader.read_int()?;
         if let Some(minimum) = self.minimum {
             if result < minimum {
+                reader.cursor = start;
                 return Err(BuiltInExceptions::IntegerTooSmall {
                     found: result,
                     min: minimum,
@@ -33,6 +34,7 @@ impl Parser for Integer {
         }
         if let Some(maximum) = self.maximum {
             if result > maximum {
+                reader.cursor = start;
                 return Err(BuiltInExceptions::IntegerTooBig {
                     found: result,
                     max: maximum,
@@ -52,5 +54,5 @@ pub fn get_integer<S: Any + Clone>(context: &CommandContext<S>, name: &str) -> O
         .argument(name)
         .unwrap()
         .downcast_ref::<i32>()
-        .map(|x| *x)
+        .copied()
 }

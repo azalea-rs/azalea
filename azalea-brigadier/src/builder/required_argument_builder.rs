@@ -16,7 +16,7 @@ impl Argument {
     pub fn new(name: &str, parser: Rc<dyn Parser>) -> Self {
         Self {
             name: name.to_string(),
-            parser: parser,
+            parser,
         }
     }
 
@@ -41,9 +41,6 @@ impl Debug for Argument {
 }
 
 /// Shortcut for creating a new argument builder node.
-pub fn argument<'a, S: Any + Clone>(
-    name: &'a str,
-    parser: impl Parser + 'static,
-) -> ArgumentBuilder<S> {
+pub fn argument<S: Any + Clone>(name: &str, parser: impl Parser + 'static) -> ArgumentBuilder<S> {
     ArgumentBuilder::new(Argument::new(name, Rc::new(parser)).into())
 }

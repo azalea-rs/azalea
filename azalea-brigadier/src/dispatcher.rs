@@ -75,16 +75,14 @@ impl<S: Any + Clone> CommandDispatcher<S> {
                 reader.cursor = cursor;
                 continue;
             }
-            if reader.can_read() {
-                if reader.peek() != ' ' {
-                    errors.insert(
-                        Rc::new((*child.borrow()).clone()),
-                        BuiltInExceptions::DispatcherExpectedArgumentSeparator
-                            .create_with_context(&reader),
-                    );
-                    reader.cursor = cursor;
-                    continue;
-                }
+            if reader.can_read() && reader.peek() != ' ' {
+                errors.insert(
+                    Rc::new((*child.borrow()).clone()),
+                    BuiltInExceptions::DispatcherExpectedArgumentSeparator
+                        .create_with_context(&reader),
+                );
+                reader.cursor = cursor;
+                continue;
             }
 
             context.with_command(&child.borrow().command);
@@ -120,7 +118,7 @@ impl<S: Any + Clone> CommandDispatcher<S> {
             }
         }
 
-        if potentials.len() > 0 {
+        if !potentials.is_empty() {
             if potentials.len() > 1 {
                 potentials.sort_by(|a, b| {
                     if !a.reader.can_read() && b.reader.can_read() {
@@ -174,11 +172,11 @@ impl<S: Any + Clone> CommandDispatcher<S> {
         let mut forked = false;
         let mut found_command = false;
         let command = parse.reader.string();
-        let original = parse.context.build(&command);
+        let original = parse.context.build(command);
         let mut contexts = vec![original];
         let mut next: Vec<CommandContext<S>> = vec![];
 
-        while contexts.len() > 0 {
+        while !contexts.is_empty() {
             for context in contexts.iter() {
                 let child = &context.child;
                 if let Some(child) = child {
@@ -238,4 +236,112 @@ impl<S: Any + Clone> Clone for CommandDispatcher<S> {
             _marker: PhantomData,
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::builder::literal_argument_builder::literal;
+
+    struct CommandSource {}
+
+    fn input_with_offset(input: &str, offset: usize) -> StringReader {
+        let mut result: StringReader = input.into();
+        result.cursor = offset;
+        result
+    }
+
+    // @Test
+    // public void testCreateAndExecuteCommand() throws Exception {
+    //     subject.register(literal("foo").executes(command));
+
+    //     assertThat(subject.execute("foo", source), is(42));
+    //     verify(command).run(any(CommandContext.class));
+    // }
+    #[test]
+    fn create_and_execute_command() {
+        let mut subject = CommandDispatcher::<Rc<CommandSource>>::new();
+        subject.register(literal("foo").executes(|_| 42));
+
+        assert_eq!(
+            subject
+                .execute("foo".into(), Rc::new(CommandSource {}))
+                .unwrap(),
+            42
+        );
+    }
+    // @Test
+    // public void testCreateAndExecuteOffsetCommand() throws Exception {
+    //     subject.register(literal("foo").executes(command));
+
+    //     assertThat(subject.execute(inputWithOffset("/foo", 1), source), is(42));
+    //     verify(command).run(any(CommandContext.class));
+    // }
+    #[test]
+    fn create_and_execute_offset_command() {
+        let mut subject = CommandDispatcher::<Rc<CommandSource>>::new();
+        subject.register(literal("foo").executes(|_| 42));
+
+        assert_eq!(
+            subject
+                .execute(input_with_offset("/foo", 1), Rc::new(CommandSource {}))
+                .unwrap(),
+            42
+        );
+    }
+    // @Test
+    // public void testCreateAndMergeCommands() throws Exception {
+    //     subject.register(literal("base").then(literal("foo").executes(command)));
+    //     subject.register(literal("base").then(literal("bar").executes(command)));
+
+    //     assertThat(subject.execute("base foo", source), is(42));
+    //     assertThat(subject.execute("base bar", source), is(42));
+    //     verify(command, times(2)).run(any(CommandContext.class));
+    // }
+    #[test]
+    fn create_and_merge_commands() {
+        let mut subject = CommandDispatcher::<Rc<CommandSource>>::new();
+        subject.register(literal("base").then(literal("foo").executes(|_| 42)));
+        subject.register(literal("base").then(literal("bar").executes(|_| 42)));
+
+        assert_eq!(
+            subject
+                .execute("base foo".into(), Rc::new(CommandSource {}))
+                .unwrap(),
+            42
+        );
+        assert_eq!(
+            subject
+                .execute("base bar".into(), Rc::new(CommandSource {}))
+                .unwrap(),
+            42
+        );
+    }
+    // @Test
+    // public void testExecuteUnknownCommand() throws Exception {
+    //     subject.register(literal("bar"));
+    //     subject.register(literal("baz"));
+
+    //     try {
+    //         subject.execute("foo", source);
+    //         fail();
+    //     } catch (final CommandSyntaxException ex) {
+    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand()));
+    //         assertThat(ex.getCursor(), is(0));
+    //     }
+    // }
+    // #[test]
+    // fn execute_unknown_command() {
+    //     let mut subject = CommandDispatcher::<Rc<CommandSource>>::new();
+    //     subject.register(literal("bar"));
+    //     subject.register(literal("baz"));
+
+    //     assert_eq!(
+    //         subject
+    //             .execute("foo".into(), Rc::new(CommandSource {}))
+    //             .err()
+    //             .unwrap(),
+    //         BuiltInExceptions::DispatcherUnknownCommand.create()
+    //     );
+    // }
 }

@@ -1,7 +1,7 @@
 use crate::exceptions::{
     builtin_exceptions::BuiltInExceptions, command_syntax_exception::CommandSyntaxException,
 };
-use std::{rc::Rc, str::FromStr};
+use std::str::FromStr;
 
 #[derive(Clone)]
 pub struct StringReader {
@@ -79,7 +79,7 @@ impl StringReader {
     }
 
     pub fn is_allowed_number(c: char) -> bool {
-        c >= '0' && c <= '9' || c == '.' || c == '-'
+        ('0'..='9').contains(&c) || c == '.' || c == '-'
     }
 
     pub fn is_quoted_string_start(c: char) -> bool {
@@ -177,9 +177,9 @@ impl StringReader {
     }
 
     pub fn is_allowed_in_unquoted_string(c: char) -> bool {
-        c >= '0' && c <= '9'
-            || c >= 'A' && c <= 'Z'
-            || c >= 'a' && c <= 'z'
+        ('0'..='9').contains(&c)
+            || ('A'..='Z').contains(&c)
+            || ('a'..='z').contains(&c)
             || c == '_'
             || c == '-'
             || c == '.'
@@ -232,7 +232,7 @@ impl StringReader {
             }
         }
 
-        return Err(BuiltInExceptions::ReaderExpectedEndOfQuote.create_with_context(self));
+        Err(BuiltInExceptions::ReaderExpectedEndOfQuote.create_with_context(self))
     }
 
     pub fn read_string(&mut self) -> Result<String, CommandSyntaxException> {
@@ -255,12 +255,12 @@ impl StringReader {
         }
 
         if value == "true" {
-            return Ok(true);
+            Ok(true)
         } else if value == "false" {
-            return Ok(false);
+            Ok(false)
         } else {
             self.cursor = start;
-            return Err(BuiltInExceptions::ReaderInvalidBool { value }.create_with_context(self));
+            Err(BuiltInExceptions::ReaderInvalidBool { value }.create_with_context(self))
         }
     }
 

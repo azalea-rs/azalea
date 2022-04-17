@@ -1,9 +1,9 @@
-use std::{cmp, fmt, rc::Rc};
+use std::{cmp, fmt};
 
 use super::builtin_exceptions::BuiltInExceptions;
 use crate::message::Message;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct CommandSyntaxException {
     type_: BuiltInExceptions,
     message: Message,
@@ -12,7 +12,6 @@ pub struct CommandSyntaxException {
 }
 
 const CONTEXT_AMOUNT: usize = 10;
-const ENABLE_COMMAND_STACK_TRACES: bool = true;
 
 impl CommandSyntaxException {
     pub fn new(type_: BuiltInExceptions, message: Message, input: &str, cursor: usize) -> Self {
@@ -76,8 +75,8 @@ impl CommandSyntaxException {
         &self.type_
     }
 
-    pub fn input(&self) -> String {
-        self.input()
+    pub fn input(&self) -> &Option<String> {
+        &self.input
     }
 
     pub fn cursor(&self) -> Option<usize> {

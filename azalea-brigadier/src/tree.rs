@@ -11,15 +11,7 @@ use crate::{
     string_range::StringRange,
     string_reader::StringReader,
 };
-use std::{
-    any::Any,
-    cell::RefCell,
-    collections::{BTreeMap, HashMap},
-    fmt::Debug,
-    hash::Hash,
-    ptr,
-    rc::Rc,
-};
+use std::{any::Any, cell::RefCell, collections::BTreeMap, fmt::Debug, hash::Hash, ptr, rc::Rc};
 
 /// An ArgumentBuilder that has been built.
 #[derive(Clone)]
@@ -67,7 +59,7 @@ impl<S: Any + Clone> CommandNode<S> {
     pub fn get_relevant_nodes(&self, input: &mut StringReader) -> Vec<Rc<RefCell<CommandNode<S>>>> {
         let literals = self.literals();
 
-        if literals.len() > 0 {
+        if !literals.is_empty() {
             let cursor = input.cursor();
             while input.can_read() && input.peek() != ' ' {
                 input.skip();
@@ -83,18 +75,10 @@ impl<S: Any + Clone> CommandNode<S> {
             if let Some(literal) = literal {
                 return vec![literal.clone()];
             } else {
-                return self
-                    .arguments()
-                    .values()
-                    .map(|argument| argument.clone())
-                    .collect();
+                return self.arguments().values().cloned().collect();
             }
         } else {
-            return self
-                .arguments()
-                .values()
-                .map(|argument| argument.clone())
-                .collect();
+            self.arguments().values().cloned().collect()
         }
     }
 
@@ -147,7 +131,7 @@ impl<S: Any + Clone> CommandNode<S> {
                     .expect("Couldn't get result for some reason");
                 let parsed = ParsedArgument {
                     range: StringRange::between(start, reader.cursor()),
-                    result: result,
+                    result,
                 };
 
                 context_builder.with_argument(&argument.name, parsed.clone());
@@ -175,7 +159,7 @@ impl<S: Any + Clone> CommandNode<S> {
 
     fn parse(&self, reader: &mut StringReader) -> Option<usize> {
         match self.value {
-            ArgumentBuilderType::Argument(ref argument) => {
+            ArgumentBuilderType::Argument(_) => {
                 panic!("Can't parse argument.")
             }
             ArgumentBuilderType::Literal(ref literal) => {
@@ -252,13 +236,18 @@ impl<S: Any + Clone> PartialEq for CommandNode<S> {
             return false;
         }
         if let Some(selfexecutes) = &self.command {
+            // idk how to do this better since we can't compare `dyn Fn`s
             if let Some(otherexecutes) = &other.command {
+                #[allow(clippy::vtable_address_comparisons)]
                 if !Rc::ptr_eq(selfexecutes, otherexecutes) {
                     return false;
                 }
             } else {
                 return false;
             }
+        }
+        else if other.command.is_some() {
+            return false;
         }
         true
     }

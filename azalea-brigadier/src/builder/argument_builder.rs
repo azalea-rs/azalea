@@ -41,21 +41,21 @@ impl<S: Any + Clone> ArgumentBuilder<S> {
         }
     }
 
-    pub fn then(&mut self, node: ArgumentBuilder<S>) -> &mut Self {
+    pub fn then(&mut self, node: ArgumentBuilder<S>) -> Self {
         let built_node = node.build();
         let name = built_node.name();
         let node_reference = Rc::new(RefCell::new(built_node.clone()));
         self.children
             .insert(name.to_string(), node_reference.clone());
         match &built_node.value {
-            ArgumentBuilderType::Literal(literal) => {
+            ArgumentBuilderType::Literal(_) => {
                 self.literals.insert(name.to_string(), node_reference);
             }
-            ArgumentBuilderType::Argument(argument) => {
+            ArgumentBuilderType::Argument(_) => {
                 self.arguments.insert(name.to_string(), node_reference);
             }
         }
-        self
+        self.clone()
     }
 
     pub fn executes<F>(&mut self, f: F) -> Self
