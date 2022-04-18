@@ -1,12 +1,11 @@
 pub mod builder;
+pub mod command_dispatcher;
 pub mod context;
-pub mod dispatcher;
 pub mod exceptions;
 pub mod message;
 pub mod modifier;
 pub mod parse_results;
 pub mod parsers;
-pub mod string_range;
 pub mod string_reader;
 pub mod tree;
 
@@ -17,8 +16,8 @@ mod tests {
 
     use crate::{
         builder::{literal_argument_builder::literal, required_argument_builder::argument},
+        command_dispatcher::CommandDispatcher,
         context::CommandContext,
-        dispatcher::CommandDispatcher,
         parsers::{get_integer, integer},
     };
 

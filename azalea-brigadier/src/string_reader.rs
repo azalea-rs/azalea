@@ -1,6 +1,4 @@
-use crate::exceptions::{
-    builtin_exceptions::BuiltInExceptions, command_syntax_exception::CommandSyntaxException,
-};
+use crate::exceptions::{BuiltInExceptions, CommandSyntaxException};
 use std::str::FromStr;
 
 #[derive(Clone)]

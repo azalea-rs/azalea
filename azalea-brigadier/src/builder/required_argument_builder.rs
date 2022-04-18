@@ -1,8 +1,5 @@
 use super::argument_builder::{ArgumentBuilder, ArgumentBuilderType};
-use crate::{
-    exceptions::command_syntax_exception::CommandSyntaxException, parsers::Parser,
-    string_reader::StringReader,
-};
+use crate::{exceptions::CommandSyntaxException, parsers::Parser, string_reader::StringReader};
 use std::{any::Any, fmt::Debug, rc::Rc};
 
 /// An argument node type. The `T` type parameter is the type of the argument,

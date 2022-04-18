@@ -2,9 +2,7 @@ use std::{any::Any, rc::Rc};
 
 use crate::{
     context::CommandContext,
-    exceptions::{
-        builtin_exceptions::BuiltInExceptions, command_syntax_exception::CommandSyntaxException,
-    },
+    exceptions::{BuiltInExceptions, CommandSyntaxException},
     string_reader::StringReader,
 };
 
