@@ -162,6 +162,40 @@ impl<S> CommandDispatcher<S> {
         Self::execute_parsed(parse)
     }
 
+    pub fn add_paths(
+        &self,
+        node: Rc<RefCell<CommandNode<S>>>,
+        result: &mut Vec<Vec<Rc<RefCell<CommandNode<S>>>>>,
+        parents: Vec<Rc<RefCell<CommandNode<S>>>>,
+    ) {
+        let mut current = parents.clone();
+        current.push(node.clone());
+        result.push(current.clone());
+
+        for child in node.borrow().children.values() {
+            self.add_paths(child.clone(), result, current.clone());
+        }
+    }
+
+    pub fn get_path(&self, target: CommandNode<S>) -> Vec<String> {
+        let rc_target = Rc::new(RefCell::new(target.clone()));
+        let mut nodes: Vec<Vec<Rc<RefCell<CommandNode<S>>>>> = Vec::new();
+        self.add_paths(self.root.clone(), &mut nodes, vec![]);
+
+        for list in nodes {
+            if *list.last().expect("Nothing in list").borrow() == *rc_target.borrow() {
+                let mut result: Vec<String> = Vec::with_capacity(list.len());
+                for node in list {
+                    if node != self.root {
+                        result.push(node.borrow().name().to_string());
+                    }
+                }
+                return result;
+            }
+        }
+        vec![]
+    }
+
     /// Executes a given pre-parsed command.
     pub fn execute_parsed(parse: ParseResults<S>) -> Result<i32, CommandSyntaxException> {
         if parse.reader.can_read() {
@@ -236,7 +270,6 @@ impl<S> CommandDispatcher<S> {
             );
         }
 
-        println!("forked: {}, successful forks: {}", forked, successful_forks);
         // TODO: this is not how vanilla does it but it works
         Ok(if successful_forks >= 2 {
             successful_forks
@@ -945,10 +978,10 @@ mod tests {
     // }
     #[test]
     fn get_path() {
-        let mut subject = CommandDispatcher::new();
+        let mut subject = CommandDispatcher::<()>::new();
 
         let bar = literal("bar").build();
-        subject.register(literal("foo").then(bar));
+        subject.register(literal("foo").then_built(bar.clone()));
 
         assert_eq!(
             subject.get_path(bar),

@@ -53,10 +53,12 @@ impl<S> ArgumentBuilder<S> {
         }
     }
 
-    // do we need to be cloning here? maybe we could return a ref to self?
     pub fn then(&mut self, argument: ArgumentBuilder<S>) -> Self {
-        self.arguments
-            .add_child(&Rc::new(RefCell::new(argument.build())));
+        self.then_built(argument.build())
+    }
+
+    pub fn then_built(&mut self, argument: CommandNode<S>) -> Self {
+        self.arguments.add_child(&Rc::new(RefCell::new(argument)));
         self.clone()
     }
 
