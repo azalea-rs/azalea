@@ -11,7 +11,7 @@ use crate::{
     string_range::StringRange,
     string_reader::StringReader,
 };
-use std::{any::Any, cell::RefCell, collections::BTreeMap, fmt::Debug, hash::Hash, ptr, rc::Rc};
+use std::{cell::RefCell, collections::BTreeMap, fmt::Debug, hash::Hash, ptr, rc::Rc};
 
 /// An ArgumentBuilder that has been built.
 #[non_exhaustive]
@@ -40,7 +40,7 @@ impl<S> Clone for CommandNode<S> {
             command: self.command.clone(),
             requirement: self.requirement.clone(),
             redirect: self.redirect.clone(),
-            forks: self.forks.clone(),
+            forks: self.forks,
             modifier: self.modifier.clone(),
         }
     }

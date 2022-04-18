@@ -32,7 +32,7 @@ impl<S> Clone for CommandContextBuilder<S> {
             child: self.child.clone(),
             range: self.range.clone(),
             modifier: self.modifier.clone(),
-            forks: self.forks.clone(),
+            forks: self.forks,
         }
     }
 }
@@ -150,7 +150,7 @@ impl<S> Clone for CommandContext<S> {
             range: self.range.clone(),
             child: self.child.clone(),
             modifier: self.modifier.clone(),
-            forks: self.forks.clone(),
+            forks: self.forks,
         }
     }
 }

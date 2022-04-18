@@ -1,10 +1,7 @@
-use crate::{
-    context::CommandContext, exceptions::command_syntax_exception::CommandSyntaxException,
-    modifier::RedirectModifier, tree::CommandNode,
-};
+use crate::{context::CommandContext, modifier::RedirectModifier, tree::CommandNode};
 
 use super::{literal_argument_builder::Literal, required_argument_builder::Argument};
-use std::{any::Any, cell::RefCell, fmt::Debug, rc::Rc};
+use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
 #[derive(Debug, Clone)]
 pub enum ArgumentBuilderType {
@@ -31,7 +28,7 @@ impl<S> Clone for ArgumentBuilder<S> {
             command: self.command.clone(),
             requirement: self.requirement.clone(),
             target: self.target.clone(),
-            forks: self.forks.clone(),
+            forks: self.forks,
             modifier: self.modifier.clone(),
         }
     }
@@ -118,7 +115,7 @@ impl<S> ArgumentBuilder<S> {
             literals: Default::default(),
         };
 
-        for (_, argument) in &self.arguments.children {
+        for argument in self.arguments.children.values() {
             result.add_child(argument);
         }
 

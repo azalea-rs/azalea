@@ -8,9 +8,7 @@ use crate::{
     string_reader::StringReader,
     tree::CommandNode,
 };
-use std::{
-    any::Any, cell::RefCell, cmp::Ordering, collections::HashMap, marker::PhantomData, mem, rc::Rc,
-};
+use std::{cell::RefCell, cmp::Ordering, collections::HashMap, marker::PhantomData, mem, rc::Rc};
 
 #[derive(Default)]
 pub struct CommandDispatcher<S> {
@@ -96,7 +94,7 @@ impl<S> CommandDispatcher<S> {
                 if let Some(redirect) = &child.borrow().redirect {
                     let child_context = CommandContextBuilder::new(
                         Rc::new(self.clone()),
-                        source.clone(),
+                        source,
                         redirect.clone(),
                         reader.cursor,
                     );
@@ -168,7 +166,7 @@ impl<S> CommandDispatcher<S> {
         result: &mut Vec<Vec<Rc<RefCell<CommandNode<S>>>>>,
         parents: Vec<Rc<RefCell<CommandNode<S>>>>,
     ) {
-        let mut current = parents.clone();
+        let mut current = parents;
         current.push(node.clone());
         result.push(current.clone());
 
@@ -178,7 +176,7 @@ impl<S> CommandDispatcher<S> {
     }
 
     pub fn get_path(&self, target: CommandNode<S>) -> Vec<String> {
-        let rc_target = Rc::new(RefCell::new(target.clone()));
+        let rc_target = Rc::new(RefCell::new(target));
         let mut nodes: Vec<Vec<Rc<RefCell<CommandNode<S>>>>> = Vec::new();
         self.add_paths(self.root.clone(), &mut nodes, vec![]);
 
