@@ -306,7 +306,6 @@ mod tests {
     use super::*;
     use crate::{
         builder::{literal_argument_builder::literal, required_argument_builder::argument},
-        modifier::RedirectModifier,
         parsers::integer,
     };
 
@@ -319,13 +318,6 @@ mod tests {
         result
     }
 
-    // @Test
-    // public void testCreateAndExecuteCommand() throws Exception {
-    //     subject.register(literal("foo").executes(command));
-
-    //     assertThat(subject.execute("foo", source), is(42));
-    //     verify(command).run(any(CommandContext.class));
-    // }
     #[test]
     fn create_and_execute_command() {
         let mut subject = CommandDispatcher::new();
@@ -338,13 +330,7 @@ mod tests {
             42
         );
     }
-    // @Test
-    // public void testCreateAndExecuteOffsetCommand() throws Exception {
-    //     subject.register(literal("foo").executes(command));
 
-    //     assertThat(subject.execute(inputWithOffset("/foo", 1), source), is(42));
-    //     verify(command).run(any(CommandContext.class));
-    // }
     #[test]
     fn create_and_execute_offset_command() {
         let mut subject = CommandDispatcher::new();
@@ -357,15 +343,7 @@ mod tests {
             42
         );
     }
-    // @Test
-    // public void testCreateAndMergeCommands() throws Exception {
-    //     subject.register(literal("base").then(literal("foo").executes(command)));
-    //     subject.register(literal("base").then(literal("bar").executes(command)));
 
-    //     assertThat(subject.execute("base foo", source), is(42));
-    //     assertThat(subject.execute("base bar", source), is(42));
-    //     verify(command, times(2)).run(any(CommandContext.class));
-    // }
     #[test]
     fn create_and_merge_commands() {
         let mut subject = CommandDispatcher::new();
@@ -385,19 +363,7 @@ mod tests {
             42
         );
     }
-    // @Test
-    // public void testExecuteUnknownCommand() throws Exception {
-    //     subject.register(literal("bar"));
-    //     subject.register(literal("baz"));
 
-    //     try {
-    //         subject.execute("foo", source);
-    //         fail();
-    //     } catch (final CommandSyntaxException ex) {
-    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand()));
-    //         assertThat(ex.getCursor(), is(0));
-    //     }
-    // }
     #[test]
     fn execute_unknown_command() {
         let mut subject = CommandDispatcher::new();
@@ -413,18 +379,7 @@ mod tests {
         }
         assert_eq!(err.cursor().unwrap(), 0);
     }
-    // @Test
-    // public void testExecuteImpermissibleCommand() throws Exception {
-    //     subject.register(literal("foo").requires(s -> false));
 
-    //     try {
-    //         subject.execute("foo", source);
-    //         fail();
-    //     } catch (final CommandSyntaxException ex) {
-    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand()));
-    //         assertThat(ex.getCursor(), is(0));
-    //     }
-    // }
     #[test]
     fn execute_impermissible_command() {
         let mut subject = CommandDispatcher::new();
@@ -439,18 +394,7 @@ mod tests {
         }
         assert_eq!(err.cursor().unwrap(), 0);
     }
-    // @Test
-    // public void testExecuteEmptyCommand() throws Exception {
-    //     subject.register(literal(""));
 
-    //     try {
-    //         subject.execute("", source);
-    //         fail();
-    //     } catch (final CommandSyntaxException ex) {
-    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand()));
-    //         assertThat(ex.getCursor(), is(0));
-    //     }
-    // }
     #[test]
     fn execute_empty_command() {
         let mut subject = CommandDispatcher::new();
@@ -465,18 +409,7 @@ mod tests {
         }
         assert_eq!(err.cursor().unwrap(), 0);
     }
-    // @Test
-    // public void testExecuteUnknownSubcommand() throws Exception {
-    //     subject.register(literal("foo").executes(command));
 
-    //     try {
-    //         subject.execute("foo bar", source);
-    //         fail();
-    //     } catch (final CommandSyntaxException ex) {
-    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument()));
-    //         assertThat(ex.getCursor(), is(4));
-    //     }
-    // }
     #[test]
     fn execute_unknown_subcommand() {
         let mut subject = CommandDispatcher::new();
@@ -491,18 +424,7 @@ mod tests {
         }
         assert_eq!(err.cursor().unwrap(), 4);
     }
-    // @Test
-    // public void testExecuteIncorrectLiteral() throws Exception {
-    //     subject.register(literal("foo").executes(command).then(literal("bar")));
 
-    //     try {
-    //         subject.execute("foo baz", source);
-    //         fail();
-    //     } catch (final CommandSyntaxException ex) {
-    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument()));
-    //         assertThat(ex.getCursor(), is(4));
-    //     }
-    // }
     #[test]
     fn execute_incorrect_literal() {
         let mut subject = CommandDispatcher::new();
@@ -517,22 +439,7 @@ mod tests {
         }
         assert_eq!(err.cursor().unwrap(), 4);
     }
-    // @Test
-    // public void testExecuteAmbiguousIncorrectArgument() throws Exception {
-    //     subject.register(
-    //         literal("foo").executes(command)
-    //             .then(literal("bar"))
-    //             .then(literal("baz"))
-    //     );
 
-    //     try {
-    //         subject.execute("foo unknown", source);
-    //         fail();
-    //     } catch (final CommandSyntaxException ex) {
-    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument()));
-    //         assertThat(ex.getCursor(), is(4));
-    //     }
-    // }
     #[test]
     fn execute_ambiguous_incorrect_argument() {
         let mut subject = CommandDispatcher::new();
@@ -553,22 +460,6 @@ mod tests {
         assert_eq!(err.cursor().unwrap(), 4);
     }
 
-    // @Test
-    // public void testExecuteSubcommand() throws Exception {
-    //     final Command<Object> subCommand = mock(Command.class);
-    //     when(subCommand.run(any())).thenReturn(100);
-
-    //     subject.register(literal("foo").then(
-    //         literal("a")
-    //     ).then(
-    //         literal("=").executes(subCommand)
-    //     ).then(
-    //         literal("c")
-    //     ).executes(command));
-
-    //     assertThat(subject.execute("foo =", source), is(100));
-    //     verify(subCommand).run(any(CommandContext.class));
-    // }
     #[test]
     fn execute_subcommand() {
         let mut subject = CommandDispatcher::new();
@@ -588,14 +479,7 @@ mod tests {
             100
         );
     }
-    // @Test
-    // public void testParseIncompleteLiteral() throws Exception {
-    //     subject.register(literal("foo").then(literal("bar").executes(command)));
 
-    //     final ParseResults<Object> parse = subject.parse("foo ", source);
-    //     assertThat(parse.getReader().getRemaining(), equalTo(" "));
-    //     assertThat(parse.getContext().getNodes().size(), is(1));
-    // }
     #[test]
     fn parse_incomplete_literal() {
         let mut subject = CommandDispatcher::new();
@@ -605,14 +489,7 @@ mod tests {
         assert_eq!(parse.reader.remaining(), " ");
         assert_eq!(parse.context.nodes.len(), 1);
     }
-    // @Test
-    // public void testParseIncompleteArgument() throws Exception {
-    //     subject.register(literal("foo").then(argument("bar", integer()).executes(command)));
 
-    //     final ParseResults<Object> parse = subject.parse("foo ", source);
-    //     assertThat(parse.getReader().getRemaining(), equalTo(" "));
-    //     assertThat(parse.getContext().getNodes().size(), is(1));
-    // }
     #[test]
     fn parse_incomplete_argument() {
         let mut subject = CommandDispatcher::new();
@@ -623,30 +500,6 @@ mod tests {
         assert_eq!(parse.context.nodes.len(), 1);
     }
 
-    // @Test
-    // public void testExecuteAmbiguiousParentSubcommand() throws Exception {
-    //     final Command<Object> subCommand = mock(Command.class);
-    //     when(subCommand.run(any())).thenReturn(100);
-
-    //     subject.register(
-    //         literal("test")
-    //             .then(
-    //                 argument("incorrect", integer())
-    //                     .executes(command)
-    //             )
-    //             .then(
-    //                 argument("right", integer())
-    //                     .then(
-    //                         argument("sub", integer())
-    //                             .executes(subCommand)
-    //                     )
-    //             )
-    //     );
-
-    //     assertThat(subject.execute("test 1 2", source), is(100));
-    //     verify(subCommand).run(any(CommandContext.class));
-    //     verify(command, never()).run(any());
-    // }
     #[test]
     fn execute_ambiguious_parent_subcommand() {
         let mut subject = CommandDispatcher::new();
@@ -667,32 +520,6 @@ mod tests {
         );
     }
 
-    // @Test
-    // public void testExecuteAmbiguiousParentSubcommandViaRedirect() throws Exception {
-    //     final Command<Object> subCommand = mock(Command.class);
-    //     when(subCommand.run(any())).thenReturn(100);
-
-    //     final LiteralCommandNode<Object> real = subject.register(
-    //         literal("test")
-    //             .then(
-    //                 argument("incorrect", integer())
-    //                     .executes(command)
-    //             )
-    //             .then(
-    //                 argument("right", integer())
-    //                     .then(
-    //                         argument("sub", integer())
-    //                             .executes(subCommand)
-    //                     )
-    //             )
-    //     );
-
-    //     subject.register(literal("redirect").redirect(real));
-
-    //     assertThat(subject.execute("redirect 1 2", source), is(100));
-    //     verify(subCommand).run(any(CommandContext.class));
-    //     verify(command, never()).run(any());
-    // }
     #[test]
     fn execute_ambiguious_parent_subcommand_via_redirect() {
         let mut subject = CommandDispatcher::new();
@@ -714,39 +541,7 @@ mod tests {
             100
         );
     }
-    // @Test
-    // public void testExecuteRedirectedMultipleTimes() throws Exception {
-    //     final LiteralCommandNode<Object> concreteNode = subject.register(literal("actual").executes(command));
-    //     final LiteralCommandNode<Object> redirectNode = subject.register(literal("redirected").redirect(subject.getRoot()));
 
-    //     final String input = "redirected redirected actual";
-
-    //     final ParseResults<Object> parse = subject.parse(input, source);
-    //     assertThat(parse.getContext().getRange().get(input), equalTo("redirected"));
-    //     assertThat(parse.getContext().getNodes().size(), is(1));
-    //     assertThat(parse.getContext().getRootNode(), is(subject.getRoot()));
-    //     assertThat(parse.getContext().getNodes().get(0).getRange(), equalTo(parse.getContext().getRange()));
-    //     assertThat(parse.getContext().getNodes().get(0).getNode(), is(redirectNode));
-
-    //     final CommandContextBuilder<Object> child1 = parse.getContext().getChild();
-    //     assertThat(child1, is(notNullValue()));
-    //     assertThat(child1.getRange().get(input), equalTo("redirected"));
-    //     assertThat(child1.getNodes().size(), is(1));
-    //     assertThat(child1.getRootNode(), is(subject.getRoot()));
-    //     assertThat(child1.getNodes().get(0).getRange(), equalTo(child1.getRange()));
-    //     assertThat(child1.getNodes().get(0).getNode(), is(redirectNode));
-
-    //     final CommandContextBuilder<Object> child2 = child1.getChild();
-    //     assertThat(child2, is(notNullValue()));
-    //     assertThat(child2.getRange().get(input), equalTo("actual"));
-    //     assertThat(child2.getNodes().size(), is(1));
-    //     assertThat(child2.getRootNode(), is(subject.getRoot()));
-    //     assertThat(child2.getNodes().get(0).getRange(), equalTo(child2.getRange()));
-    //     assertThat(child2.getNodes().get(0).getNode(), is(concreteNode));
-
-    //     assertThat(subject.execute(parse), is(42));
-    //     verify(command).run(any(CommandContext.class));
-    // }
     #[test]
     fn execute_redirected_multiple_times() {
         let mut subject = CommandDispatcher::new();
@@ -788,39 +583,7 @@ mod tests {
 
         assert_eq!(CommandDispatcher::execute_parsed(parse).unwrap(), 42);
     }
-    // @Test
-    // public void testExecuteRedirected() throws Exception {
-    //     final RedirectModifier<Object> modifier = mock(RedirectModifier.class);
-    //     final Object source1 = new Object();
-    //     final Object source2 = new Object();
 
-    //     when(modifier.apply(argThat(hasProperty("source", is(source))))).thenReturn(Lists.newArrayList(source1, source2));
-
-    //     final LiteralCommandNode<Object> concreteNode = subject.register(literal("actual").executes(command));
-    //     final LiteralCommandNode<Object> redirectNode = subject.register(literal("redirected").fork(subject.getRoot(), modifier));
-
-    //     final String input = "redirected actual";
-    //     final ParseResults<Object> parse = subject.parse(input, source);
-    //     assertThat(parse.getContext().getRange().get(input), equalTo("redirected"));
-    //     assertThat(parse.getContext().getNodes().size(), is(1));
-    //     assertThat(parse.getContext().getRootNode(), equalTo(subject.getRoot()));
-    //     assertThat(parse.getContext().getNodes().get(0).getRange(), equalTo(parse.getContext().getRange()));
-    //     assertThat(parse.getContext().getNodes().get(0).getNode(), is(redirectNode));
-    //     assertThat(parse.getContext().getSource(), is(source));
-
-    //     final CommandContextBuilder<Object> parent = parse.getContext().getChild();
-    //     assertThat(parent, is(notNullValue()));
-    //     assertThat(parent.getRange().get(input), equalTo("actual"));
-    //     assertThat(parent.getNodes().size(), is(1));
-    //     assertThat(parse.getContext().getRootNode(), equalTo(subject.getRoot()));
-    //     assertThat(parent.getNodes().get(0).getRange(), equalTo(parent.getRange()));
-    //     assertThat(parent.getNodes().get(0).getNode(), is(concreteNode));
-    //     assertThat(parent.getSource(), is(source));
-
-    //     assertThat(subject.execute(parse), is(2));
-    //     verify(command).run(argThat(hasProperty("source", is(source1))));
-    //     verify(command).run(argThat(hasProperty("source", is(source2))));
-    // }
     #[test]
     fn execute_redirected() {
         let mut subject = CommandDispatcher::new();
@@ -857,25 +620,11 @@ mod tests {
         assert_eq!(CommandDispatcher::execute_parsed(parse).unwrap(), 2);
     }
 
-    // @Test
-    // public void testExecuteOrphanedSubcommand() throws Exception {
-    //     subject.register(literal("foo").then(
-    //         argument("bar", integer())
-    //     ).executes(command));
-
-    //     try {
-    //         subject.execute("foo 5", source);
-    //         fail();
-    //     } catch (final CommandSyntaxException ex) {
-    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand()));
-    //         assertThat(ex.getCursor(), is(5));
-    //     }
-    // }
     #[test]
     fn execute_orphaned_subcommand() {
         let mut subject = CommandDispatcher::new();
 
-        let concrete_node = subject.register(
+        subject.register(
             literal("foo")
                 .then(argument("bar", integer()))
                 .executes(|_| 42),
@@ -891,16 +640,6 @@ mod tests {
         assert_eq!(result.cursor(), Some(5));
     }
 
-    // @Test
-    // public void testExecute_invalidOther() throws Exception {
-    //     final Command<Object> wrongCommand = mock(Command.class);
-    //     subject.register(literal("w").executes(wrongCommand));
-    //     subject.register(literal("world").executes(command));
-
-    //     assertThat(subject.execute("world", source), is(42));
-    //     verify(wrongCommand, never()).run(any());
-    //     verify(command).run(any());
-    // }
     #[test]
     fn execute_invalid_other() {
         let mut subject = CommandDispatcher::new();
@@ -915,19 +654,6 @@ mod tests {
             42
         );
     }
-
-    // @Test
-    // public void parse_noSpaceSeparator() throws Exception {
-    //     subject.register(literal("foo").then(argument("bar", integer()).executes(command)));
-
-    //     try {
-    //         subject.execute("foo$", source);
-    //         fail();
-    //     } catch (final CommandSyntaxException ex) {
-    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand()));
-    //         assertThat(ex.getCursor(), is(0));
-    //     }
-    // }
 
     #[test]
     fn parse_no_space_separator() {
@@ -949,21 +675,6 @@ mod tests {
         assert_eq!(result.cursor(), Some(0));
     }
 
-    // @Test
-    // public void testExecuteInvalidSubcommand() throws Exception {
-    //     subject.register(literal("foo").then(
-    //         argument("bar", integer())
-    //     ).executes(command));
-
-    //     try {
-    //         subject.execute("foo bar", source);
-    //         fail();
-    //     } catch (final CommandSyntaxException ex) {
-    //         assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerExpectedInt()));
-    //         assertThat(ex.getCursor(), is(4));
-    //     }
-    // }
-
     #[test]
     fn execute_invalid_subcommand() {
         let mut subject = CommandDispatcher::new();
@@ -981,13 +692,7 @@ mod tests {
         // assert_eq!(*result.get_type(), BuiltInExceptions::ReaderExpectedInt);
         assert_eq!(result.cursor(), Some(4));
     }
-    // @Test
-    // public void testGetPath() {
-    //     final LiteralCommandNode<Object> bar = literal("bar").build();
-    //     subject.register(literal("foo").then(bar));
 
-    //     assertThat(subject.getPath(bar), equalTo(Lists.newArrayList("foo", "bar")));
-    // }
     #[test]
     fn get_path() {
         let mut subject = CommandDispatcher::<()>::new();
@@ -1001,10 +706,6 @@ mod tests {
         );
     }
 
-    // @Test
-    // public void testFindNodeDoesntExist() {
-    //     assertThat(subject.findNode(Lists.newArrayList("foo", "bar")), is(nullValue()));
-    // }
     #[test]
     fn find_node_doesnt_exist() {
         let subject = CommandDispatcher::<()>::new();
