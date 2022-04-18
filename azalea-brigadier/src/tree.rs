@@ -147,9 +147,7 @@ impl<S> CommandNode<S> {
             ArgumentBuilderType::Argument(ref argument) => {
                 let start = reader.cursor();
                 // TODO: handle this better
-                let result = argument
-                    .parse(reader)
-                    .expect("Couldn't get result for some reason");
+                let result = argument.parse(reader)?;
                 let parsed = ParsedArgument {
                     range: StringRange::between(start, reader.cursor()),
                     result,
