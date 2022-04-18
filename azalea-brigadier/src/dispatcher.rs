@@ -589,7 +589,7 @@ mod tests {
         let source1 = Rc::new(CommandSource {});
         let source2 = Rc::new(CommandSource {});
 
-        let modifier = move |source: &CommandContext<CommandSource>| -> Result<Vec<Rc<CommandSource>>, CommandSyntaxException> {
+        let modifier = move |_: &CommandContext<CommandSource>| -> Result<Vec<Rc<CommandSource>>, CommandSyntaxException> {
             Ok(vec![source1.clone(), source2.clone()])
         };
 

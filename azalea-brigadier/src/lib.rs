@@ -17,6 +17,7 @@ mod tests {
 
     use crate::{
         builder::{literal_argument_builder::literal, required_argument_builder::argument},
+        context::CommandContext,
         dispatcher::CommandDispatcher,
         parsers::{get_integer, integer},
     };
@@ -27,7 +28,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut dispatcher = CommandDispatcher::<CommandSourceStack>::new();
+        let mut dispatcher = CommandDispatcher::new();
 
         let source = Rc::new(CommandSourceStack {
             player: "player".to_string(),
@@ -35,11 +36,17 @@ mod tests {
 
         dispatcher.register(
             literal("foo")
-                .then(argument("bar", integer()).executes(|c| {
-                    println!("Bar is {:?}", get_integer(c, "bar"));
-                    2
-                }))
-                .executes(|c| {
+                .then(argument("bar", integer()).executes(
+                    |c: &CommandContext<CommandSourceStack>| {
+                        println!(
+                            "Bar is {:?} and player is {}",
+                            get_integer(c, "bar"),
+                            c.source.player
+                        );
+                        2
+                    },
+                ))
+                .executes(|_| {
                     println!("Called foo with no arguments");
                     1
                 }),

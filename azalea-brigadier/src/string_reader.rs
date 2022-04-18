@@ -824,7 +824,7 @@ mod test {
     #[test]
     fn expect_correct() {
         let mut reader = StringReader::from("abc".to_string());
-        reader.expect('a');
+        reader.expect('a').unwrap();
         assert_eq!(reader.cursor(), 1);
     }
 
