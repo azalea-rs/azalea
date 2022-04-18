@@ -2,7 +2,7 @@ use crate::{
     context::CommandContextBuilder, exceptions::command_syntax_exception::CommandSyntaxException,
     string_reader::StringReader, tree::CommandNode,
 };
-use std::{any::Any, collections::HashMap, fmt::Debug, rc::Rc};
+use std::{collections::HashMap, fmt::Debug, rc::Rc};
 
 pub struct ParseResults<S> {
     pub context: CommandContextBuilder<S>,

@@ -190,6 +190,7 @@ impl<S> CommandDispatcher<S> {
             for context in contexts.iter() {
                 let child = &context.child;
                 if let Some(child) = child {
+                    println!("aaaaaaa {:?}", child);
                     forked |= child.forks;
                     if child.has_nodes() {
                         found_command = true;
@@ -235,6 +236,7 @@ impl<S> CommandDispatcher<S> {
             );
         }
 
+        println!("forked: {}, successful forks: {}", forked, successful_forks);
         Ok(if forked { successful_forks } else { result })
     }
 }
@@ -248,7 +250,6 @@ impl<S> Clone for CommandDispatcher<S> {
     }
 }
 
-/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -258,6 +259,7 @@ mod tests {
         parsers::integer,
     };
 
+    #[derive(Debug, PartialEq)]
     struct CommandSource {}
 
     fn input_with_offset(input: &str, offset: usize) -> StringReader {
@@ -775,13 +777,13 @@ mod tests {
         let source1 = Rc::new(CommandSource {});
         let source2 = Rc::new(CommandSource {});
 
-        let modifier = move |source: &CommandContext<Rc<CommandSource>>| -> Result<Vec<Rc<CommandSource>>, CommandSyntaxException> {
+        let modifier = move |source: &CommandContext<CommandSource>| -> Result<Vec<Rc<CommandSource>>, CommandSyntaxException> {
             Ok(vec![source1.clone(), source2.clone()])
         };
 
         let concrete_node = subject.register(literal("actual").executes(|_| 42));
         let redirect_node =
-            subject.register(literal("redirected").fork(subject.root.clone(), modifier));
+            subject.register(literal("redirected").fork(subject.root.clone(), Rc::new(modifier)));
 
         let input = "redirected actual";
         let parse = subject.parse(input.into(), Rc::new(CommandSource {}));
@@ -799,7 +801,8 @@ mod tests {
         assert_eq!(parse.context.root, subject.root);
         assert_eq!(parent.nodes[0].range, parent.range);
         assert_eq!(parent.nodes[0].node, concrete_node);
-        // assert_eq!(parent.source, Rc::new(CommandSource {}));
+        assert_eq!(parent.source, Rc::new(CommandSource {}));
+
+        assert_eq!(CommandDispatcher::execute_parsed(parse).unwrap(), 2);
     }
 }
-*/

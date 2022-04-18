@@ -111,7 +111,9 @@ impl<S> ArgumentBuilder<S> {
             redirect: self.target,
             modifier: self.modifier,
             forks: self.forks,
-            ..Default::default()
+            arguments: Default::default(),
+            children: Default::default(),
+            literals: Default::default(),
         };
 
         for (_, argument) in &self.arguments.children {

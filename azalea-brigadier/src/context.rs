@@ -53,8 +53,6 @@ impl<S> CommandContextBuilder<S> {
             command: None,
             dispatcher,
             nodes: vec![],
-            // rootNode,
-            // start,
             child: None,
             modifier: None,
             forks: false,
@@ -154,6 +152,23 @@ impl<S> Clone for CommandContext<S> {
             modifier: self.modifier.clone(),
             forks: self.forks.clone(),
         }
+    }
+}
+
+impl<S> Debug for CommandContext<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CommandContext")
+            // .field("source", &self.source)
+            .field("input", &self.input)
+            // .field("arguments", &self.arguments)
+            // .field("command", &self.command)
+            // .field("root_node", &self.root_node)
+            // .field("nodes", &self.nodes)
+            .field("range", &self.range)
+            .field("child", &self.child)
+            // .field("modifier", &self.modifier)
+            .field("forks", &self.forks)
+            .finish()
     }
 }
 
