@@ -27,7 +27,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut dispatcher = CommandDispatcher::<Rc<CommandSourceStack>>::new();
+        let mut dispatcher = CommandDispatcher::<CommandSourceStack>::new();
 
         let source = Rc::new(CommandSourceStack {
             player: "player".to_string(),

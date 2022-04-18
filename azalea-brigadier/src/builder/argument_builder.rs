@@ -1,4 +1,7 @@
-use crate::{context::CommandContext, modifier::RedirectModifier, tree::CommandNode};
+use crate::{
+    context::CommandContext, exceptions::command_syntax_exception::CommandSyntaxException,
+    modifier::RedirectModifier, tree::CommandNode,
+};
 
 use super::{literal_argument_builder::Literal, required_argument_builder::Argument};
 use std::{any::Any, cell::RefCell, fmt::Debug, rc::Rc};
@@ -10,8 +13,7 @@ pub enum ArgumentBuilderType {
 }
 
 /// A node that hasn't yet been built.
-#[derive(Clone)]
-pub struct ArgumentBuilder<S: Any + Clone> {
+pub struct ArgumentBuilder<S> {
     arguments: CommandNode<S>,
 
     command: Option<Rc<dyn Fn(&CommandContext<S>) -> i32>>,
@@ -19,11 +21,24 @@ pub struct ArgumentBuilder<S: Any + Clone> {
     target: Option<Rc<RefCell<CommandNode<S>>>>,
 
     forks: bool,
-    modifier: Option<Rc<dyn RedirectModifier<S>>>,
+    modifier: Option<Rc<RedirectModifier<S>>>,
+}
+
+impl<S> Clone for ArgumentBuilder<S> {
+    fn clone(&self) -> Self {
+        Self {
+            arguments: self.arguments.clone(),
+            command: self.command.clone(),
+            requirement: self.requirement.clone(),
+            target: self.target.clone(),
+            forks: self.forks.clone(),
+            modifier: self.modifier.clone(),
+        }
+    }
 }
 
 /// A node that isn't yet built.
-impl<S: Any + Clone> ArgumentBuilder<S> {
+impl<S> ArgumentBuilder<S> {
     pub fn new(value: ArgumentBuilderType) -> Self {
         Self {
             arguments: CommandNode {
@@ -65,10 +80,18 @@ impl<S: Any + Clone> ArgumentBuilder<S> {
         self.forward(target, None, false)
     }
 
+    pub fn fork(
+        &mut self,
+        target: Rc<RefCell<CommandNode<S>>>,
+        modifier: Rc<RedirectModifier<S>>,
+    ) -> Self {
+        self.forward(target, Some(modifier), true)
+    }
+
     pub fn forward(
         &mut self,
         target: Rc<RefCell<CommandNode<S>>>,
-        modifier: Option<Rc<dyn RedirectModifier<S>>>,
+        modifier: Option<Rc<RedirectModifier<S>>>,
         fork: bool,
     ) -> Self {
         if !self.arguments.children.is_empty() {
@@ -99,7 +122,7 @@ impl<S: Any + Clone> ArgumentBuilder<S> {
     }
 }
 
-impl<S: Any + Clone> Debug for ArgumentBuilder<S> {
+impl<S> Debug for ArgumentBuilder<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ArgumentBuilder")
             .field("arguments", &self.arguments)

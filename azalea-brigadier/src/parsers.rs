@@ -49,7 +49,7 @@ impl Parser for Integer {
 pub fn integer() -> impl Parser {
     Integer::default()
 }
-pub fn get_integer<S: Any + Clone>(context: &CommandContext<S>, name: &str) -> Option<i32> {
+pub fn get_integer<S>(context: &CommandContext<S>, name: &str) -> Option<i32> {
     context
         .argument(name)
         .unwrap()

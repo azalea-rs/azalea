@@ -21,6 +21,6 @@ impl From<Literal> for ArgumentBuilderType {
 }
 
 /// Shortcut for creating a new literal builder node.
-pub fn literal<S: Any + Clone>(value: &str) -> ArgumentBuilder<S> {
+pub fn literal<S>(value: &str) -> ArgumentBuilder<S> {
     ArgumentBuilder::new(ArgumentBuilderType::Literal(Literal::new(value)))
 }

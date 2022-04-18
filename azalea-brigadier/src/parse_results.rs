@@ -4,13 +4,13 @@ use crate::{
 };
 use std::{any::Any, collections::HashMap, fmt::Debug, rc::Rc};
 
-pub struct ParseResults<S: Any + Clone> {
+pub struct ParseResults<S> {
     pub context: CommandContextBuilder<S>,
     pub reader: StringReader,
     pub exceptions: HashMap<Rc<CommandNode<S>>, CommandSyntaxException>,
 }
 
-impl<S: Any + Clone> Debug for ParseResults<S> {
+impl<S> Debug for ParseResults<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ParseResults")
             .field("context", &self.context)

@@ -14,9 +14,8 @@ use crate::{
 use std::{any::Any, cell::RefCell, collections::BTreeMap, fmt::Debug, hash::Hash, ptr, rc::Rc};
 
 /// An ArgumentBuilder that has been built.
-#[derive(Clone)]
 #[non_exhaustive]
-pub struct CommandNode<S: Any + Clone> {
+pub struct CommandNode<S> {
     pub value: ArgumentBuilderType,
 
     // we use BTreeMap instead of HashMap because it can be hashed
@@ -28,10 +27,41 @@ pub struct CommandNode<S: Any + Clone> {
     pub requirement: Rc<dyn Fn(Rc<S>) -> bool>,
     pub redirect: Option<Rc<RefCell<CommandNode<S>>>>,
     pub forks: bool,
-    pub modifier: Option<Rc<dyn RedirectModifier<S>>>,
+    pub modifier: Option<Rc<RedirectModifier<S>>>,
 }
 
-impl<S: Any + Clone> CommandNode<S> {
+impl<S> Clone for CommandNode<S> {
+    fn clone(&self) -> Self {
+        Self {
+            value: self.value.clone(),
+            children: self.children.clone(),
+            literals: self.literals.clone(),
+            arguments: self.arguments.clone(),
+            command: self.command.clone(),
+            requirement: self.requirement.clone(),
+            redirect: self.redirect.clone(),
+            forks: self.forks.clone(),
+            modifier: self.modifier.clone(),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct ParsedCommandNode<S> {
+    pub node: Rc<RefCell<CommandNode<S>>>,
+    pub range: StringRange,
+}
+
+impl<S> Clone for ParsedCommandNode<S> {
+    fn clone(&self) -> Self {
+        Self {
+            node: self.node.clone(),
+            range: self.range.clone(),
+        }
+    }
+}
+
+impl<S> CommandNode<S> {
     /// Gets the literal, or panics. You should use match if you're not certain about the type.
     pub fn literal(&self) -> &Literal {
         match self.value {
@@ -126,7 +156,7 @@ impl<S: Any + Clone> CommandNode<S> {
                 };
 
                 context_builder.with_argument(&argument.name, parsed.clone());
-                context_builder.with_node(Rc::new(self.clone()), parsed.range);
+                context_builder.with_node(Rc::new(RefCell::new(self.clone())), parsed.range);
 
                 Ok(())
             }
@@ -135,8 +165,10 @@ impl<S: Any + Clone> CommandNode<S> {
                 let end = self.parse(reader);
 
                 if let Some(end) = end {
-                    context_builder
-                        .with_node(Rc::new(self.clone()), StringRange::between(start, end));
+                    context_builder.with_node(
+                        Rc::new(RefCell::new(self.clone())),
+                        StringRange::between(start, end),
+                    );
                     return Ok(());
                 }
 
@@ -177,7 +209,7 @@ impl<S: Any + Clone> CommandNode<S> {
     }
 }
 
-impl<S: Any + Clone> Debug for CommandNode<S> {
+impl<S> Debug for CommandNode<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CommandNode")
             .field("value", &self.value)
@@ -191,7 +223,7 @@ impl<S: Any + Clone> Debug for CommandNode<S> {
     }
 }
 
-impl<S: Any + Clone> Default for CommandNode<S> {
+impl<S> Default for CommandNode<S> {
     fn default() -> Self {
         Self {
             value: ArgumentBuilderType::Literal(Literal::default()),
@@ -209,7 +241,7 @@ impl<S: Any + Clone> Default for CommandNode<S> {
     }
 }
 
-impl<S: Any + Clone> Hash for CommandNode<S> {
+impl<S> Hash for CommandNode<S> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         // hash the children
         for (k, v) in &self.children {
@@ -221,7 +253,7 @@ impl<S: Any + Clone> Hash for CommandNode<S> {
     }
 }
 
-impl<S: Any + Clone> PartialEq for CommandNode<S> {
+impl<S> PartialEq for CommandNode<S> {
     fn eq(&self, other: &Self) -> bool {
         if self.children != other.children {
             return false;
@@ -242,4 +274,4 @@ impl<S: Any + Clone> PartialEq for CommandNode<S> {
         true
     }
 }
-impl<S: Any + Clone> Eq for CommandNode<S> {}
+impl<S> Eq for CommandNode<S> {}

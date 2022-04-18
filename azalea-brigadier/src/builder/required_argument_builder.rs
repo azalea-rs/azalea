@@ -41,6 +41,6 @@ impl Debug for Argument {
 }
 
 /// Shortcut for creating a new argument builder node.
-pub fn argument<S: Any + Clone>(name: &str, parser: impl Parser + 'static) -> ArgumentBuilder<S> {
+pub fn argument<S>(name: &str, parser: impl Parser + 'static) -> ArgumentBuilder<S> {
     ArgumentBuilder::new(Argument::new(name, Rc::new(parser)).into())
 }
