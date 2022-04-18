@@ -196,6 +196,18 @@ impl<S> CommandDispatcher<S> {
         vec![]
     }
 
+    pub fn find_node(&self, path: &[&str]) -> Option<Rc<RefCell<CommandNode<S>>>> {
+        let mut node = self.root.clone();
+        for name in path {
+            if let Some(child) = node.clone().borrow().child(name) {
+                node = child
+            } else {
+                return None;
+            }
+        }
+        Some(node)
+    }
+
     /// Executes a given pre-parsed command.
     pub fn execute_parsed(parse: ParseResults<S>) -> Result<i32, CommandSyntaxException> {
         if parse.reader.can_read() {
@@ -993,4 +1005,10 @@ mod tests {
     // public void testFindNodeDoesntExist() {
     //     assertThat(subject.findNode(Lists.newArrayList("foo", "bar")), is(nullValue()));
     // }
+    #[test]
+    fn find_node_doesnt_exist() {
+        let subject = CommandDispatcher::<()>::new();
+
+        assert_eq!(subject.find_node(&vec!["foo", "bar"]), None)
+    }
 }

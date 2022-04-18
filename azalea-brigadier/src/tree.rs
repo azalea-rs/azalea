@@ -138,6 +138,10 @@ impl<S> CommandNode<S> {
         }
     }
 
+    pub fn child(&self, name: &str) -> Option<Rc<RefCell<CommandNode<S>>>> {
+        self.children.get(name).cloned()
+    }
+
     pub fn parse_with_context(
         &self,
         reader: &mut StringReader,
