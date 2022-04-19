@@ -1,11 +1,9 @@
-use std::collections::{BTreeMap, HashMap};
-
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     self, braced,
     parse::{Parse, ParseStream, Result},
-    parse_macro_input, DeriveInput, Expr, FieldsNamed, Ident, LitInt, Token, Type, Visibility,
+    parse_macro_input, DeriveInput, FieldsNamed, Ident, LitInt, Token,
 };
 
 fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> TokenStream {
@@ -215,10 +213,13 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeclareStatePackets);
 
     let state_name = input.name;
+    let state_name_litstr = syn::LitStr::new(&state_name.to_string(), state_name.span());
 
     let mut enum_contents = quote!();
     let mut id_match_contents = quote!();
     let mut write_match_contents = quote!();
+    let mut serverbound_read_match_contents = quote!();
+    let mut clientbound_read_match_contents = quote!();
     for PacketIdPair { id, module, name } in input.serverbound.packets {
         enum_contents.extend(quote! {
             #name(#module::#name)
@@ -229,16 +230,22 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
         write_match_contents.extend(quote! {
             #state_name::#name(packet) => packet.write(buf)
         });
+        serverbound_read_match_contents.extend(quote! {
+            #id => #module::#name::read(buf).await?,
+        });
     }
     for PacketIdPair { id, module, name } in input.clientbound.packets {
         enum_contents.extend(quote! {
-            #name(#module::#name)
+            #name(#module::#name),
         });
         id_match_contents.extend(quote! {
-            #state_name::#name(_packet) => #id
+            #state_name::#name(_packet) => #id,
         });
         write_match_contents.extend(quote! {
-            #state_name::#name(packet) => packet.write(buf)
+            #state_name::#name(packet) => packet.write(buf),
+        });
+        clientbound_read_match_contents.extend(quote! {
+            #id => #module::#name::read(buf).await?,
         });
     }
 
@@ -276,20 +283,12 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             {
                 Ok(match flow {
                     PacketFlow::ServerToClient => match id {
-                        0x0e => clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket
-                            ::read(buf)
-                            .await?,
-                        0x18 => clientbound_custom_payload_packet::ClientboundCustomPayloadPacket::read(buf).await?,
-                        0x26 => clientbound_login_packet::ClientboundLoginPacket::read(buf).await?,
-                        0x4a => clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket
-                            ::read(buf)
-                            .await?,
-                        // _ => return Err(format!("Unknown ServerToClient game packet id: {}", id)),
-                        _ => panic!("Unknown ServerToClient game packet id: {}", id),
+                        #serverbound_read_match_contents
+                        _ => panic!("Unknown ServerToClient {} packet id: {}", #state_name_litstr, id),
                     },
                     PacketFlow::ClientToServer => match id {
-                        // 0x00 => serverbound_hello_packet::ServerboundHelloPacket::read(buf).await?,
-                        _ => return Err(format!("Unknown ClientToServer game packet id: {}", id)),
+                        #clientbound_read_match_contents
+                        _ => return Err(format!("Unknown ClientToServer {} packet id: {}", #state_name_litstr, id)),
                     },
                 })
             }
