@@ -73,6 +73,9 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 GamePacket::ClientboundChangeDifficultyPacket(p) => {
                     println!("Got difficulty packet {:?}", p);
                 }
+                GamePacket::ClientboundDeclareCommandsPacket(p) => {
+                    println!("Got declare commands packet {:?}", p);
+                }
             },
             Err(e) => {
                 println!("Error: {:?}", e);

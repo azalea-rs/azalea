@@ -2,7 +2,6 @@ use async_trait::async_trait;
 use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
 };
-use num_traits::FromPrimitive;
 use tokio::io::{AsyncRead, AsyncReadExt};
 
 use super::MAX_STRING_LENGTH;

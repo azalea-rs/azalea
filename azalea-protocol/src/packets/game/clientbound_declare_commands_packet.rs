@@ -1,37 +1,96 @@
-// use std::hash::Hash;
+use std::hash::Hash;
 
-// use crate::mc_buf::Readable;
+use async_trait::async_trait;
+use tokio::io::AsyncRead;
 
-// use super::LoginPacket;
+use crate::mc_buf::{McBufReadable, Readable};
 
-// #[derive(Hash, Clone, Debug)]
-// pub struct ClientboundDeclareCommandsPacket {
-//     pub root: RootCommandNode<SharedSuggestionProvider>,
-//     pub public_key: Vec<u8>,
-//     pub nonce: Vec<u8>,
-// }
+use super::GamePacket;
 
-// impl ClientboundHelloPacket {
-//     pub fn get(self) -> LoginPacket {
-//         LoginPacket::ClientboundHelloPacket(self)
-//     }
+#[derive(Hash, Clone, Debug)]
+pub struct ClientboundDeclareCommandsPacket {
+    pub entries: Vec<BrigadierNodeStub>,
+    pub root_index: i32,
+}
 
-//     pub fn write(&self, _buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-//         panic!("ClientboundHelloPacket::write not implemented")
-//     }
+impl ClientboundDeclareCommandsPacket {
+    pub fn get(self) -> GamePacket {
+        GamePacket::ClientboundDeclareCommandsPacket(self)
+    }
 
-//     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-//         buf: &mut T,
-//     ) -> Result<LoginPacket, String> {
-//         let server_id = buf.read_utf_with_len(20).await?;
-//         let public_key = buf.read_byte_array().await?;
-//         let nonce = buf.read_byte_array().await?;
+    pub fn write(&self, _buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        panic!("ClientboundDeclareCommandsPacket::write not implemented")
+    }
 
-//         Ok(ClientboundHelloPacket {
-//             server_id,
-//             public_key,
-//             nonce,
-//         }
-//         .get())
-//     }
-// }
+    pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
+        buf: &mut T,
+    ) -> Result<GamePacket, String> {
+        let node_count = buf.read_varint().await?;
+        println!("node_count: {}", node_count);
+        let mut nodes = Vec::with_capacity(node_count as usize);
+        for _ in 0..node_count {
+            let node = BrigadierNodeStub::read_into(buf).await?;
+            nodes.push(node);
+        }
+        let root_index = buf.read_varint().await?;
+        Ok(GamePacket::ClientboundDeclareCommandsPacket(
+            ClientboundDeclareCommandsPacket {
+                entries: nodes,
+                root_index,
+            },
+        ))
+    }
+}
+
+#[derive(Hash, Debug, Clone)]
+pub struct BrigadierNodeStub {}
+
+// azalea_brigadier::tree::CommandNode
+#[async_trait]
+impl McBufReadable for BrigadierNodeStub {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        let flags = u8::read_into(buf).await?;
+
+        let node_type = flags & 0x03;
+        let is_executable = flags & 0x04 != 0;
+        let has_redirect = flags & 0x08 != 0;
+        let has_suggestions_type = flags & 0x10 != 0;
+        println!("flags: {}, node_type: {}, is_executable: {}, has_redirect: {}, has_suggestions_type: {}", flags, node_type, is_executable, has_redirect, has_suggestions_type);
+
+        let children = buf.read_int_id_list().await?;
+        println!("children: {:?}", children);
+        let redirect_node = if has_redirect {
+            buf.read_varint().await?
+        } else {
+            0
+        };
+        println!("redirect_node: {}", redirect_node);
+
+        if node_type == 2 {
+            let name = buf.read_utf().await?;
+            println!("name: {}", name);
+
+            let resource_location = if has_suggestions_type {
+                Some(buf.read_resource_location().await?)
+            } else {
+                None
+            };
+            println!(
+                "node_type=2, flags={}, name={}, resource_location={:?}",
+                flags, name, resource_location
+            );
+            return Ok(BrigadierNodeStub {});
+        }
+        if node_type == 1 {
+            let name = buf.read_utf().await?;
+            println!("node_type=1, flags={}, name={}", flags, name);
+            return Ok(BrigadierNodeStub {});
+        }
+        println!("node_type={}, flags={}", node_type, flags);
+        Ok(BrigadierNodeStub {})
+        // return Err("Unknown node type".to_string());
+    }
+}

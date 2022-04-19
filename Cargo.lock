@@ -117,6 +117,7 @@ dependencies = [
  "async-recursion",
  "async-trait",
  "azalea-auth",
+ "azalea-brigadier",
  "azalea-chat",
  "azalea-core",
  "azalea-nbt",

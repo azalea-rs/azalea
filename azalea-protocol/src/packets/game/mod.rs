@@ -1,5 +1,6 @@
 pub mod clientbound_change_difficulty_packet;
 pub mod clientbound_custom_payload_packet;
+pub mod clientbound_declare_commands_packet;
 pub mod clientbound_login_packet;
 pub mod clientbound_update_view_distance_packet;
 
@@ -22,6 +23,9 @@ where
     ClientboundChangeDifficultyPacket(
         clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
     ),
+    ClientboundDeclareCommandsPacket(
+        clientbound_declare_commands_packet::ClientboundDeclareCommandsPacket,
+    ),
 }
 
 #[async_trait]
@@ -32,6 +36,7 @@ impl ProtocolPacket for GamePacket {
             GamePacket::ClientboundCustomPayloadPacket(_packet) => 0x18,
             GamePacket::ClientboundLoginPacket(_packet) => 0x26,
             GamePacket::ClientboundUpdateViewDistancePacket(_packet) => 0x4a,
+            GamePacket::ClientboundDeclareCommandsPacket(_packet) => 0x12,
         }
     }
 
@@ -41,6 +46,7 @@ impl ProtocolPacket for GamePacket {
             GamePacket::ClientboundCustomPayloadPacket(packet) => packet.write(buf),
             GamePacket::ClientboundLoginPacket(packet) => packet.write(buf),
             GamePacket::ClientboundUpdateViewDistancePacket(packet) => packet.write(buf),
+            GamePacket::ClientboundDeclareCommandsPacket(packet) => packet.write(buf),
         }
     }
 
@@ -61,6 +67,9 @@ impl ProtocolPacket for GamePacket {
                 0x18 => clientbound_custom_payload_packet::ClientboundCustomPayloadPacket::read(buf).await?,
                 0x26 => clientbound_login_packet::ClientboundLoginPacket::read(buf).await?,
                 0x4a => clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket
+                    ::read(buf)
+                    .await?,
+                0x12 => clientbound_declare_commands_packet::ClientboundDeclareCommandsPacket
                     ::read(buf)
                     .await?,
                 // _ => return Err(format!("Unknown ServerToClient game packet id: {}", id)),
