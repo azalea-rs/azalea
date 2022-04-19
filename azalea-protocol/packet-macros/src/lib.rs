@@ -214,20 +214,85 @@ impl Parse for DeclareStatePackets {
 pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeclareStatePackets);
 
-    let name = input.name;
+    let state_name = input.name;
 
     let mut enum_contents = quote!();
+    let mut id_match_contents = quote!();
+    let mut write_match_contents = quote!();
     for PacketIdPair { id, module, name } in input.serverbound.packets {
-        enum_contents.extend(quote! {#name(#module::#name)});
+        enum_contents.extend(quote! {
+            #name(#module::#name)
+        });
+        id_match_contents.extend(quote! {
+            #state_name::#name(_packet) => #id
+        });
+        write_match_contents.extend(quote! {
+            #state_name::#name(packet) => packet.write(buf)
+        });
+    }
+    for PacketIdPair { id, module, name } in input.clientbound.packets {
+        enum_contents.extend(quote! {
+            #name(#module::#name)
+        });
+        id_match_contents.extend(quote! {
+            #state_name::#name(_packet) => #id
+        });
+        write_match_contents.extend(quote! {
+            #state_name::#name(packet) => packet.write(buf)
+        });
     }
 
     quote! {
         #[derive(Clone, Debug)]
-        pub enum #name
+        pub enum #state_name
         where
             Self: Sized,
         {
             #enum_contents
+        }
+
+        #[async_trait]
+        impl ProtocolPacket for GamePacket {
+            fn id(&self) -> u32 {
+                match self {
+                    #id_match_contents
+                }
+            }
+
+            fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+                match self {
+                    #write_match_contents
+                }
+            }
+
+            /// Read a packet by its id, ConnectionProtocol, and flow
+            async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
+                id: u32,
+                flow: &PacketFlow,
+                buf: &mut T,
+            ) -> Result<GamePacket, String>
+            where
+                Self: Sized,
+            {
+                Ok(match flow {
+                    PacketFlow::ServerToClient => match id {
+                        0x0e => clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket
+                            ::read(buf)
+                            .await?,
+                        0x18 => clientbound_custom_payload_packet::ClientboundCustomPayloadPacket::read(buf).await?,
+                        0x26 => clientbound_login_packet::ClientboundLoginPacket::read(buf).await?,
+                        0x4a => clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket
+                            ::read(buf)
+                            .await?,
+                        // _ => return Err(format!("Unknown ServerToClient game packet id: {}", id)),
+                        _ => panic!("Unknown ServerToClient game packet id: {}", id),
+                    },
+                    PacketFlow::ClientToServer => match id {
+                        // 0x00 => serverbound_hello_packet::ServerboundHelloPacket::read(buf).await?,
+                        _ => return Err(format!("Unknown ClientToServer game packet id: {}", id)),
+                    },
+                })
+            }
         }
     }
     .into()
