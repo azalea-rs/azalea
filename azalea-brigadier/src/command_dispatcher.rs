@@ -301,8 +301,8 @@ impl<S> Clone for CommandDispatcher<S> {
 mod tests {
     use super::*;
     use crate::{
+        arguments::integer_argument_type::integer,
         builder::{literal_argument_builder::literal, required_argument_builder::argument},
-        parsers::integer,
     };
 
     #[derive(Debug, PartialEq)]

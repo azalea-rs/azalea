@@ -141,8 +141,8 @@ mod tests {
     use std::rc::Rc;
 
     use crate::{
+        arguments::integer_argument_type::integer,
         builder::{literal_argument_builder::literal, required_argument_builder::argument},
-        parsers::integer,
     };
 
     use super::ArgumentBuilder;

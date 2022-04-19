@@ -6,9 +6,7 @@ use crate::{
     string_reader::StringReader,
 };
 
-pub trait Parser {
-    fn parse(&self, reader: &mut StringReader) -> Result<Rc<dyn Any>, CommandSyntaxException>;
-}
+use super::ArgumentType;
 
 #[derive(Default)]
 struct Integer {
@@ -16,7 +14,7 @@ struct Integer {
     pub maximum: Option<i32>,
 }
 
-impl Parser for Integer {
+impl ArgumentType for Integer {
     fn parse(&self, reader: &mut StringReader) -> Result<Rc<dyn Any>, CommandSyntaxException> {
         let start = reader.cursor;
         let result = reader.read_int()?;
@@ -44,7 +42,7 @@ impl Parser for Integer {
     }
 }
 
-pub fn integer() -> impl Parser {
+pub fn integer() -> impl ArgumentType {
     Integer::default()
 }
 pub fn get_integer<S>(context: &CommandContext<S>, name: &str) -> Option<i32> {

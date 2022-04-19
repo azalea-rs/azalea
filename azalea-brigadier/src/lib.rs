@@ -1,3 +1,4 @@
+pub mod arguments;
 pub mod builder;
 pub mod command_dispatcher;
 pub mod context;
@@ -5,7 +6,6 @@ pub mod exceptions;
 pub mod message;
 pub mod modifier;
 pub mod parse_results;
-pub mod parsers;
 pub mod string_reader;
 pub mod tree;
 
@@ -15,10 +15,10 @@ mod tests {
     use std::rc::Rc;
 
     use crate::{
+        arguments::integer_argument_type::{get_integer, integer},
         builder::{literal_argument_builder::literal, required_argument_builder::argument},
         command_dispatcher::CommandDispatcher,
         context::CommandContext,
-        parsers::{get_integer, integer},
     };
 
     struct CommandSourceStack {
