@@ -4,76 +4,17 @@ pub mod clientbound_hello_packet;
 pub mod clientbound_login_compression_packet;
 pub mod serverbound_hello_packet;
 
-use super::ProtocolPacket;
-use crate::connect::PacketFlow;
-use async_trait::async_trait;
+use packet_macros::declare_state_packets;
 
-#[derive(Clone, Debug)]
-pub enum LoginPacket
-where
-    Self: Sized,
-{
-    ClientboundCustomQueryPacket(clientbound_custom_query_packet::ClientboundCustomQueryPacket),
-    ClientboundGameProfilePacket(clientbound_game_profile_packet::ClientboundGameProfilePacket),
-    ClientboundHelloPacket(clientbound_hello_packet::ClientboundHelloPacket),
-    ClientboundLoginCompressionPacket(
-        clientbound_login_compression_packet::ClientboundLoginCompressionPacket,
-    ),
-    ServerboundHelloPacket(serverbound_hello_packet::ServerboundHelloPacket),
-}
-
-#[async_trait]
-impl ProtocolPacket for LoginPacket {
-    fn id(&self) -> u32 {
-        match self {
-            LoginPacket::ClientboundCustomQueryPacket(_packet) => 0x04,
-            LoginPacket::ClientboundGameProfilePacket(_packet) => 0x02,
-            LoginPacket::ClientboundHelloPacket(_packet) => 0x01,
-            LoginPacket::ClientboundLoginCompressionPacket(_packet) => 0x03,
-            LoginPacket::ServerboundHelloPacket(_packet) => 0x00,
-        }
+declare_state_packets!(
+    LoginPacket,
+    Serverbound => {
+        0x00: serverbound_hello_packet::ServerboundHelloPacket,
+    },
+    Clientbound => {
+        0x00: clientbound_hello_packet::ClientboundHelloPacket,
+        0x02: clientbound_game_profile_packet::ClientboundGameProfilePacket,
+        0x03: clientbound_login_compression_packet::ClientboundLoginCompressionPacket,
+        0x04: clientbound_custom_query_packet::ClientboundCustomQueryPacket,
     }
-
-    fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        match self {
-            LoginPacket::ClientboundCustomQueryPacket(packet) => packet.write(buf),
-            LoginPacket::ClientboundGameProfilePacket(packet) => packet.write(buf),
-            LoginPacket::ClientboundHelloPacket(packet) => packet.write(buf),
-            LoginPacket::ClientboundLoginCompressionPacket(packet) => packet.write(buf),
-            LoginPacket::ServerboundHelloPacket(packet) => packet.write(buf),
-        }
-    }
-
-    /// Read a packet by its id, ConnectionProtocol, and flow
-    async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        id: u32,
-        flow: &PacketFlow,
-        buf: &mut T,
-    ) -> Result<LoginPacket, String>
-    where
-        Self: Sized,
-    {
-        Ok(match flow {
-            PacketFlow::ServerToClient => match id {
-                0x01 => clientbound_hello_packet::ClientboundHelloPacket::read(buf).await?,
-                0x02 => {
-                    clientbound_game_profile_packet::ClientboundGameProfilePacket::read(buf).await?
-                }
-                0x04 => {
-                    clientbound_custom_query_packet::ClientboundCustomQueryPacket::read(buf).await?
-                }
-                0x03 => {
-                    clientbound_login_compression_packet::ClientboundLoginCompressionPacket::read(
-                        buf,
-                    )
-                    .await?
-                }
-                _ => return Err(format!("Unknown ServerToClient login packet id: {}", id)),
-            },
-            PacketFlow::ClientToServer => match id {
-                0x00 => serverbound_hello_packet::ServerboundHelloPacket::read(buf).await?,
-                _ => return Err(format!("Unknown ClientToServer login packet id: {}", id)),
-            },
-        })
-    }
-}
+);

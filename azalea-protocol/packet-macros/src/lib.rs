@@ -222,13 +222,13 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     let mut clientbound_read_match_contents = quote!();
     for PacketIdPair { id, module, name } in input.serverbound.packets {
         enum_contents.extend(quote! {
-            #name(#module::#name)
+            #name(#module::#name),
         });
         id_match_contents.extend(quote! {
-            #state_name::#name(_packet) => #id
+            #state_name::#name(_packet) => #id,
         });
         write_match_contents.extend(quote! {
-            #state_name::#name(packet) => packet.write(buf)
+            #state_name::#name(packet) => packet.write(buf),
         });
         serverbound_read_match_contents.extend(quote! {
             #id => #module::#name::read(buf).await?,
@@ -258,8 +258,8 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #enum_contents
         }
 
-        #[async_trait]
-        impl ProtocolPacket for GamePacket {
+        #[async_trait::async_trait]
+        impl crate::packets::ProtocolPacket for #state_name {
             fn id(&self) -> u32 {
                 match self {
                     #id_match_contents
@@ -275,18 +275,18 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             /// Read a packet by its id, ConnectionProtocol, and flow
             async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
                 id: u32,
-                flow: &PacketFlow,
+                flow: &crate::connect::PacketFlow,
                 buf: &mut T,
-            ) -> Result<GamePacket, String>
+            ) -> Result<#state_name, String>
             where
                 Self: Sized,
             {
                 Ok(match flow {
-                    PacketFlow::ServerToClient => match id {
+                    crate::connect::PacketFlow::ServerToClient => match id {
                         #serverbound_read_match_contents
                         _ => panic!("Unknown ServerToClient {} packet id: {}", #state_name_litstr, id),
                     },
-                    PacketFlow::ClientToServer => match id {
+                    crate::connect::PacketFlow::ClientToServer => match id {
                         #clientbound_read_match_contents
                         _ => return Err(format!("Unknown ClientToServer {} packet id: {}", #state_name_litstr, id)),
                     },
