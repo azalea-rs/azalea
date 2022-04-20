@@ -68,6 +68,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "azalea-brigadier"
+version = "0.1.0"
+
+[[package]]
 name = "azalea-chat"
 version = "0.1.0"
 dependencies = [

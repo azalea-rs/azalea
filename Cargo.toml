@@ -8,4 +8,5 @@ members = [
   "azalea-core",
   "azalea-auth",
   "azalea-nbt",
+  "azalea-brigadier",
 ]
