@@ -2,6 +2,7 @@ pub mod clientbound_change_difficulty_packet;
 pub mod clientbound_custom_payload_packet;
 pub mod clientbound_declare_commands_packet;
 pub mod clientbound_login_packet;
+pub mod clientbound_player_abilities_packet;
 pub mod clientbound_update_view_distance_packet;
 
 use packet_macros::declare_state_packets;
@@ -14,6 +15,7 @@ declare_state_packets!(
         0x12: clientbound_declare_commands_packet::ClientboundDeclareCommandsPacket,
         0x18: clientbound_custom_payload_packet::ClientboundCustomPayloadPacket,
         0x26: clientbound_login_packet::ClientboundLoginPacket,
+        0x32: clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
         0x4a: clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket
     }
 );

@@ -24,6 +24,7 @@ pub trait Readable {
     async fn read_long(&mut self) -> Result<i64, String>;
     async fn read_resource_location(&mut self) -> Result<ResourceLocation, String>;
     async fn read_short(&mut self) -> Result<i16, String>;
+    async fn read_float(&mut self) -> Result<f32, String>;
 }
 
 #[async_trait]
@@ -187,6 +188,13 @@ where
         match AsyncReadExt::read_i16(self).await {
             Ok(r) => Ok(r),
             Err(_) => Err("Error reading short".to_string()),
+        }
+    }
+
+    async fn read_float(&mut self) -> Result<f32, String> {
+        match AsyncReadExt::read_f32(self).await {
+            Ok(r) => Ok(r),
+            Err(_) => Err("Error reading float".to_string()),
         }
     }
 }
@@ -359,6 +367,17 @@ impl McBufReadable for i8 {
         R: AsyncRead + std::marker::Unpin + std::marker::Send,
     {
         buf.read_byte().await.map(|i| i as i8)
+    }
+}
+
+// f32
+#[async_trait]
+impl McBufReadable for f32 {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_float().await
     }
 }
 

@@ -76,6 +76,10 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 GamePacket::ClientboundDeclareCommandsPacket(p) => {
                     println!("Got declare commands packet {:?}", p);
                 }
+
+                GamePacket::ClientboundPlayerAbilitiesPacket(p) => {
+                    println!("Got player abilities packet {:?}", p);
+                }
             },
             Err(e) => {
                 println!("Error: {:?}", e);
