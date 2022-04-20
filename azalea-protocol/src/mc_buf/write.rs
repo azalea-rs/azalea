@@ -3,7 +3,6 @@ use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
 };
 use byteorder::{BigEndian, WriteBytesExt};
-use num_traits::FromPrimitive;
 use std::io::Write;
 
 use super::MAX_STRING_LENGTH;
