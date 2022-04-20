@@ -150,13 +150,16 @@ impl Parse for PacketIdMap {
             input.parse::<Token![::]>()?;
             // ClientboundChangeDifficultyPacket
             let name: Ident = input.parse()?;
-            input.parse::<Token![,]>()?;
 
             packets.push(PacketIdPair {
                 id: packet_id,
                 module,
                 name,
             });
+
+            if input.parse::<Token![,]>().is_err() {
+                break;
+            }
         }
 
         Ok(PacketIdMap { packets })
