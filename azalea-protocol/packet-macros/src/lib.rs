@@ -75,7 +75,7 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
         .collect::<Vec<_>>();
     let read_field_names = named.iter().map(|f| &f.ident).collect::<Vec<_>>();
 
-    let gen = quote! {
+    quote! {
         impl #ident {
             pub fn get(self) -> #state {
                 #state::#ident(self)
@@ -95,9 +95,8 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
                 }.get())
             }
         }
-    };
-
-    gen.into()
+    }
+    .into()
 }
 
 #[proc_macro_derive(GamePacket, attributes(varint))]

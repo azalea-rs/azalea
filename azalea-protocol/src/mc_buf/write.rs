@@ -14,7 +14,7 @@ pub trait Writable {
         F: FnOnce(&mut Self, &T) -> Result<(), std::io::Error> + Copy,
         T: Sized,
         Self: Sized;
-    fn write_int_id_list(&mut self, list: Vec<i32>) -> Result<(), std::io::Error>;
+    fn write_int_id_list(&mut self, list: &Vec<i32>) -> Result<(), std::io::Error>;
     fn write_map<KF, VF, KT, VT>(
         &mut self,
         map: Vec<(KT, VT)>,
@@ -58,7 +58,7 @@ impl Writable for Vec<u8> {
         Ok(())
     }
 
-    fn write_int_id_list(&mut self, list: Vec<i32>) -> Result<(), std::io::Error> {
+    fn write_int_id_list(&mut self, list: &Vec<i32>) -> Result<(), std::io::Error> {
         self.write_list(&list, |buf, n| buf.write_varint(*n))
     }
 

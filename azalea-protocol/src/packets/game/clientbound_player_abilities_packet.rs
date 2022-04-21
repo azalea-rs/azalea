@@ -21,7 +21,6 @@ pub struct PlayerAbilitiesFlags {
     pub instant_break: bool,
 }
 
-// Difficulty
 #[async_trait]
 impl McBufReadable for PlayerAbilitiesFlags {
     async fn read_into<R>(buf: &mut R) -> Result<Self, String>
@@ -38,7 +37,6 @@ impl McBufReadable for PlayerAbilitiesFlags {
     }
 }
 
-// Difficulty
 impl McBufWritable for PlayerAbilitiesFlags {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         let mut byte = 0;
