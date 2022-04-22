@@ -28,7 +28,6 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
 
     group.throughput(Throughput::Bytes(decoded_src.len() as u64));
 
-    // idk if this is criterion's fault or rust's fault but the async benchmark doesn't compile
     group.bench_function("Decode", |b| {
         b.to_async(tokio::runtime::Runtime::new().unwrap())
             .iter(|| async {
