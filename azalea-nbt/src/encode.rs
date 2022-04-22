@@ -2,6 +2,7 @@ use crate::Error;
 use crate::Tag;
 use byteorder::{WriteBytesExt, BE};
 use flate2::write::{GzEncoder, ZlibEncoder};
+use std::collections::HashMap;
 use std::io::Write;
 
 #[inline]
@@ -11,8 +12,19 @@ fn write_string(writer: &mut dyn Write, string: &str) -> Result<(), Error> {
 
     Ok(())
 }
+#[inline]
+fn write_compound(writer: &mut dyn Write, value: &HashMap<String, Tag>) -> Result<(), Error> {
+    for (key, tag) in value {
+        writer.write_u8(tag.id())?;
+        write_string(writer, key)?;
+        tag.write_without_end(writer)?;
+    }
+    writer.write_u8(Tag::End.id())?;
+    Ok(())
+}
 
 impl Tag {
+    #[inline]
     pub fn write_without_end(&self, writer: &mut dyn Write) -> Result<(), Error> {
         match self {
             Tag::End => {}
@@ -34,25 +46,48 @@ impl Tag {
             Tag::List(value) => {
                 // we just get the type from the first item, or default the type to END
                 if value.is_empty() {
-                    writer.write_i8(0)?;
-                    writer.write_i32::<BE>(0)?;
+                    writer.write_all(&[0; 5])?;
                 } else {
-                    let type_id = value[0].id();
-                    writer.write_u8(type_id)?;
+                    let first_tag = &value[0];
+                    writer.write_u8(first_tag.id())?;
                     writer.write_i32::<BE>(value.len() as i32)?;
-                    for tag in value {
-                        tag.write_without_end(writer)?;
+                    match first_tag {
+                        Self::Int(_) => {
+                            for i in value {
+                                if let Tag::Int(v) = i {
+                                    writer.write_i32::<BE>(*v)?
+                                } else {
+                                    panic!("List of Ints should only contain Ints")
+                                }
+                            }
+                        }
+                        Self::String(_) => {
+                            for i in value {
+                                if let Tag::String(v) = i {
+                                    write_string(writer, v)?;
+                                } else {
+                                    panic!("List of Strings should only contain Strings")
+                                }
+                            }
+                        }
+                        &Self::Compound(_) => {
+                            for i in value {
+                                if let Tag::Compound(v) = i {
+                                    write_compound(writer, v)?;
+                                } else {
+                                    panic!("List of Compounds should only contain Compounds")
+                                }
+                            }
+                        }
+                        _ => {
+                            for tag in value {
+                                tag.write_without_end(writer)?;
+                            }
+                        }
                     }
                 }
             }
-            Tag::Compound(value) => {
-                for (key, tag) in value {
-                    writer.write_u8(tag.id())?;
-                    write_string(writer, key)?;
-                    tag.write_without_end(writer)?;
-                }
-                writer.write_u8(Tag::End.id())?;
-            }
+            Tag::Compound(value) => write_compound(writer, value)?,
             Tag::IntArray(value) => {
                 writer.write_i32::<BE>(value.len() as i32)?;
                 for &int in value {
