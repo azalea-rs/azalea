@@ -21,6 +21,7 @@ where
 }
 
 impl Tag {
+    #[inline]
     #[async_recursion]
     async fn read_known<R>(stream: &mut R, id: u8) -> Result<Tag, Error>
     where

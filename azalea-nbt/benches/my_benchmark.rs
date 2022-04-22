@@ -29,20 +29,20 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
 
     group.throughput(Throughput::Bytes(decoded_src.len() as u64));
 
-    // group.bench_function("Decode", |b| {
-    //     b.to_async(tokio::runtime::Runtime::new().unwrap())
-    //         .iter(|| async {
-    //             let mut owned_decoded_src_stream = decoded_src_stream.clone();
-    //             owned_decoded_src_stream.seek(SeekFrom::Start(0)).unwrap();
-    //             Tag::read(&mut owned_decoded_src_stream).await.unwrap();
-    //         })
-    // });
-
-    group.bench_function("Encode", |b| {
-        b.iter(|| {
-            nbt.write(&mut io::sink()).unwrap();
-        })
+    group.bench_function("Decode", |b| {
+        b.to_async(tokio::runtime::Runtime::new().unwrap())
+            .iter(|| async {
+                let mut owned_decoded_src_stream = decoded_src_stream.clone();
+                owned_decoded_src_stream.seek(SeekFrom::Start(0)).unwrap();
+                Tag::read(&mut owned_decoded_src_stream).await.unwrap();
+            })
     });
+
+    // group.bench_function("Encode", |b| {
+    //     b.iter(|| {
+    //         nbt.write(&mut io::sink()).unwrap();
+    //     })
+    // });
     group.finish();
 }
 
