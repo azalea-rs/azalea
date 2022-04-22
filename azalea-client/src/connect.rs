@@ -87,7 +87,7 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 }
             },
             Err(e) => {
-                println!("Error: {:?}", e);
+                panic!("Error: {:?}", e);
             }
         }
     }
