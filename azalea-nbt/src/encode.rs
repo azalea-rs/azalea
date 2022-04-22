@@ -6,12 +6,8 @@ use std::io::Write;
 
 #[inline]
 fn write_string(writer: &mut dyn Write, string: &str) -> Result<(), Error> {
-    writer
-        .write_i16::<BE>(string.len() as i16)
-        .map_err(|_| Error::WriteError)?;
-    writer
-        .write_all(string.as_bytes())
-        .map_err(|_| Error::WriteError)?;
+    writer.write_i16::<BE>(string.len() as i16)?;
+    writer.write_all(string.as_bytes())?;
 
     Ok(())
 }
@@ -20,28 +16,16 @@ impl Tag {
     pub fn write_without_end(&self, writer: &mut dyn Write) -> Result<(), Error> {
         match self {
             Tag::End => {}
-            Tag::Byte(value) => writer.write_i8(*value).map_err(|_| Error::WriteError)?,
-            Tag::Short(value) => writer
-                .write_i16::<BE>(*value)
-                .map_err(|_| Error::WriteError)?,
-            Tag::Int(value) => writer
-                .write_i32::<BE>(*value)
-                .map_err(|_| Error::WriteError)?,
-            Tag::Long(value) => writer
-                .write_i64::<BE>(*value)
-                .map_err(|_| Error::WriteError)?,
-            Tag::Float(value) => writer
-                .write_f32::<BE>(*value)
-                .map_err(|_| Error::WriteError)?,
-            Tag::Double(value) => writer
-                .write_f64::<BE>(*value)
-                .map_err(|_| Error::WriteError)?,
+            Tag::Byte(value) => writer.write_i8(*value)?,
+            Tag::Short(value) => writer.write_i16::<BE>(*value)?,
+            Tag::Int(value) => writer.write_i32::<BE>(*value)?,
+            Tag::Long(value) => writer.write_i64::<BE>(*value)?,
+            Tag::Float(value) => writer.write_f32::<BE>(*value)?,
+            Tag::Double(value) => writer.write_f64::<BE>(*value)?,
             Tag::ByteArray(value) => {
-                writer
-                    .write_i32::<BE>(value.len() as i32)
-                    .map_err(|_| Error::WriteError)?;
+                writer.write_i32::<BE>(value.len() as i32)?;
                 for &byte in value {
-                    writer.write_i8(byte).map_err(|_| Error::WriteError)?;
+                    writer.write_i8(byte)?;
                 }
             }
             Tag::String(value) => {
@@ -50,14 +34,12 @@ impl Tag {
             Tag::List(value) => {
                 // we just get the type from the first item, or default the type to END
                 if value.is_empty() {
-                    writer.write_i8(0).map_err(|_| Error::WriteError)?;
-                    writer.write_i32::<BE>(0).map_err(|_| Error::WriteError)?;
+                    writer.write_i8(0)?;
+                    writer.write_i32::<BE>(0)?;
                 } else {
                     let type_id = value[0].id();
-                    writer.write_u8(type_id).map_err(|_| Error::WriteError)?;
-                    writer
-                        .write_i32::<BE>(value.len() as i32)
-                        .map_err(|_| Error::WriteError)?;
+                    writer.write_u8(type_id)?;
+                    writer.write_i32::<BE>(value.len() as i32)?;
                     for tag in value {
                         tag.write_without_end(writer)?;
                     }
@@ -65,30 +47,22 @@ impl Tag {
             }
             Tag::Compound(value) => {
                 for (key, tag) in value {
-                    writer.write_u8(tag.id()).map_err(|_| Error::WriteError)?;
+                    writer.write_u8(tag.id())?;
                     write_string(writer, key)?;
                     tag.write_without_end(writer)?;
                 }
-                writer
-                    .write_u8(Tag::End.id())
-                    .map_err(|_| Error::WriteError)?;
+                writer.write_u8(Tag::End.id())?;
             }
             Tag::IntArray(value) => {
-                writer
-                    .write_i32::<BE>(value.len() as i32)
-                    .map_err(|_| Error::WriteError)?;
+                writer.write_i32::<BE>(value.len() as i32)?;
                 for &int in value {
-                    writer.write_i32::<BE>(int).map_err(|_| Error::WriteError)?;
+                    writer.write_i32::<BE>(int)?;
                 }
             }
             Tag::LongArray(value) => {
-                writer
-                    .write_i32::<BE>(value.len() as i32)
-                    .map_err(|_| Error::WriteError)?;
+                writer.write_i32::<BE>(value.len() as i32)?;
                 for &long in value {
-                    writer
-                        .write_i64::<BE>(long)
-                        .map_err(|_| Error::WriteError)?;
+                    writer.write_i64::<BE>(long)?;
                 }
             }
         }
@@ -100,7 +74,7 @@ impl Tag {
         match self {
             Tag::Compound(value) => {
                 for (key, tag) in value {
-                    writer.write_u8(tag.id()).map_err(|_| Error::WriteError)?;
+                    writer.write_u8(tag.id())?;
                     write_string(writer, key)?;
                     tag.write_without_end(writer)?;
                 }
