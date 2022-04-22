@@ -54,29 +54,27 @@ impl Tag {
                     match first_tag {
                         Self::Int(_) => {
                             for i in value {
-                                if let Tag::Int(v) = i {
-                                    writer.write_i32::<BE>(*v)?
-                                } else {
-                                    panic!("List of Ints should only contain Ints")
-                                }
+                                writer.write_i32::<BE>(
+                                    *i.as_int().expect("List of Int should only contains Int"),
+                                )?;
                             }
                         }
                         Self::String(_) => {
                             for i in value {
-                                if let Tag::String(v) = i {
-                                    write_string(writer, v)?;
-                                } else {
-                                    panic!("List of Strings should only contain Strings")
-                                }
+                                write_string(
+                                    writer,
+                                    i.as_string()
+                                        .expect("List of String should only contain String"),
+                                )?;
                             }
                         }
                         &Self::Compound(_) => {
                             for i in value {
-                                if let Tag::Compound(v) = i {
-                                    write_compound(writer, v)?;
-                                } else {
-                                    panic!("List of Compounds should only contain Compounds")
-                                }
+                                write_compound(
+                                    writer,
+                                    i.as_compound()
+                                        .expect("List of Compound should only contain Compound"),
+                                )?;
                             }
                         }
                         _ => {

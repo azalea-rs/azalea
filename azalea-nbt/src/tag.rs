@@ -36,4 +36,31 @@ impl Tag {
             Tag::LongArray(_) => 12,
         }
     }
+
+    #[inline]
+    pub fn as_int(&self) -> Option<&i32> {
+        if let Tag::Int(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    pub fn as_string(&self) -> Option<&str> {
+        if let Tag::String(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    pub fn as_compound(&self) -> Option<&HashMap<String, Tag>> {
+        if let Tag::Compound(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
 }
