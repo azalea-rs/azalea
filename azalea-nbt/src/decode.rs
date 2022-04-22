@@ -11,13 +11,13 @@ async fn read_string<R>(stream: &mut R) -> Result<String, Error>
 where
     R: AsyncRead + std::marker::Unpin,
 {
-    let length = stream.read_u16().await.map_err(|_| Error::InvalidTag)?;
+    let length = stream.read_u16().await?;
 
     let mut buf = Vec::with_capacity(length as usize);
     for _ in 0..length {
-        buf.push(stream.read_u8().await.map_err(|_| Error::InvalidTag)?);
+        buf.push(stream.read_u8().await?);
     }
-    String::from_utf8(buf).map_err(|_| Error::InvalidTag)
+    Ok(String::from_utf8(buf)?)
 }
 
 impl Tag {
@@ -31,26 +31,26 @@ impl Tag {
             // a TAG_Compound, and is not named despite being in a TAG_Compound
             0 => Tag::End,
             // A single signed byte
-            1 => Tag::Byte(stream.read_i8().await.map_err(|_| Error::InvalidTag)?),
+            1 => Tag::Byte(stream.read_i8().await?),
             // A single signed, big endian 16 bit integer
-            2 => Tag::Short(stream.read_i16().await.map_err(|_| Error::InvalidTag)?),
+            2 => Tag::Short(stream.read_i16().await?),
             // A single signed, big endian 32 bit integer
-            3 => Tag::Int(stream.read_i32().await.map_err(|_| Error::InvalidTag)?),
+            3 => Tag::Int(stream.read_i32().await?),
             // A single signed, big endian 64 bit integer
-            4 => Tag::Long(stream.read_i64().await.map_err(|_| Error::InvalidTag)?),
+            4 => Tag::Long(stream.read_i64().await?),
             // A single, big endian IEEE-754 single-precision floating point
             // number (NaN possible)
-            5 => Tag::Float(stream.read_f32().await.map_err(|_| Error::InvalidTag)?),
+            5 => Tag::Float(stream.read_f32().await?),
             // A single, big endian IEEE-754 double-precision floating point
             // number (NaN possible)
-            6 => Tag::Double(stream.read_f64().await.map_err(|_| Error::InvalidTag)?),
+            6 => Tag::Double(stream.read_f64().await?),
             // A length-prefixed array of signed bytes. The prefix is a signed
             // integer (thus 4 bytes)
             7 => {
-                let length = stream.read_i32().await.map_err(|_| Error::InvalidTag)?;
+                let length = stream.read_i32().await?;
                 let mut bytes = Vec::with_capacity(length as usize);
                 for _ in 0..length {
-                    bytes.push(stream.read_i8().await.map_err(|_| Error::InvalidTag)?);
+                    bytes.push(stream.read_i8().await?);
                 }
                 Tag::ByteArray(bytes)
             }
@@ -67,8 +67,8 @@ impl Tag {
             // another reference implementation by Mojang uses 1 instead;
             // parsers should accept any type if the length is <= 0).
             9 => {
-                let type_id = stream.read_u8().await.map_err(|_| Error::InvalidTag)?;
-                let length = stream.read_i32().await.map_err(|_| Error::InvalidTag)?;
+                let type_id = stream.read_u8().await?;
+                let length = stream.read_i32().await?;
                 let mut list = Vec::with_capacity(length as usize);
                 for _ in 0..length {
                     list.push(Tag::read_known(stream, type_id).await?);
@@ -94,20 +94,20 @@ impl Tag {
             // signed integer (thus 4 bytes) and indicates the number of 4 byte
             // integers.
             11 => {
-                let length = stream.read_i32().await.map_err(|_| Error::InvalidTag)?;
+                let length = stream.read_i32().await?;
                 let mut ints = Vec::with_capacity(length as usize);
                 for _ in 0..length {
-                    ints.push(stream.read_i32().await.map_err(|_| Error::InvalidTag)?);
+                    ints.push(stream.read_i32().await?);
                 }
                 Tag::IntArray(ints)
             }
             // A length-prefixed array of signed longs. The prefix is a signed
             // integer (thus 4 bytes) and indicates the number of 8 byte longs.
             12 => {
-                let length = stream.read_i32().await.map_err(|_| Error::InvalidTag)?;
+                let length = stream.read_i32().await?;
                 let mut longs = Vec::with_capacity(length as usize);
                 for _ in 0..length {
-                    longs.push(stream.read_i64().await.map_err(|_| Error::InvalidTag)?);
+                    longs.push(stream.read_i64().await?);
                 }
                 Tag::LongArray(longs)
             }
