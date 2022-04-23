@@ -102,7 +102,7 @@ fn write_compound(
 }
 
 #[inline]
-fn write_list(writer: &mut dyn Write, value: &Vec<Tag>) -> Result<(), Error> {
+fn write_list(writer: &mut dyn Write, value: &[Tag]) -> Result<(), Error> {
     // we just get the type from the first item, or default the type to END
     if value.is_empty() {
         writer.write_all(&[0; 5])?;

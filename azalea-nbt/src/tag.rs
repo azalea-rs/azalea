@@ -137,7 +137,7 @@ impl Tag {
     }
 
     #[inline]
-    pub fn as_list(&self) -> Option<&Vec<Tag>> {
+    pub fn as_list(&self) -> Option<&[Tag]> {
         if let Tag::List(v) = self {
             Some(v)
         } else {
