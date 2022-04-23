@@ -38,8 +38,53 @@ impl Tag {
     }
 
     #[inline]
+    pub fn as_byte(&self) -> Option<&i8> {
+        if let Tag::Byte(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    pub fn as_short(&self) -> Option<&i16> {
+        if let Tag::Short(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
     pub fn as_int(&self) -> Option<&i32> {
         if let Tag::Int(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    pub fn as_long(&self) -> Option<&i64> {
+        if let Tag::Long(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    pub fn as_float(&self) -> Option<&f32> {
+        if let Tag::Float(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    pub fn as_double(&self) -> Option<&f64> {
+        if let Tag::Double(v) = self {
             Some(v)
         } else {
             None
@@ -58,6 +103,42 @@ impl Tag {
     #[inline]
     pub fn as_compound(&self) -> Option<&HashMap<String, Tag>> {
         if let Tag::Compound(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    pub fn as_bytearray(&self) -> Option<&Vec<i8>> {
+        if let Tag::ByteArray(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    pub fn as_intarray(&self) -> Option<&Vec<i32>> {
+        if let Tag::IntArray(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    pub fn as_longarray(&self) -> Option<&Vec<i64>> {
+        if let Tag::LongArray(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    pub fn as_list(&self) -> Option<&Vec<Tag>> {
+        if let Tag::List(v) = self {
             Some(v)
         } else {
             None
