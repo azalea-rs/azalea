@@ -54,6 +54,7 @@ impl Tag {
                     match first_tag {
                         Self::Int(_) => {
                             for i in value {
+                                assert!(matches!(i, Tag::Int(_)));
                                 writer.write_i32::<BE>(
                                     *i.as_int().expect("List of Int should only contains Int"),
                                 )?;
@@ -61,6 +62,7 @@ impl Tag {
                         }
                         Self::String(_) => {
                             for i in value {
+                                assert!(matches!(i, Tag::String(_)));
                                 write_string(
                                     writer,
                                     i.as_string()
@@ -68,8 +70,9 @@ impl Tag {
                                 )?;
                             }
                         }
-                        &Self::Compound(_) => {
+                        Self::Compound(_) => {
                             for i in value {
+                                assert!(matches!(i, Tag::Compound(_)));
                                 write_compound(
                                     writer,
                                     i.as_compound()
