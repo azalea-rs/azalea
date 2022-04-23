@@ -112,39 +112,34 @@ fn write_list(writer: &mut dyn Write, value: &Vec<Tag>) -> Result<(), Error> {
         writer.write_i32::<BE>(value.len() as i32)?;
         match first_tag {
             Tag::Int(_) => {
-                // assert all items are the same variant
-                // assert_eq!(value.iter().all(|tag| tag.id() == 1), true);
-                for i in value {
-                    assert!(matches!(i, Tag::Int(_)));
+                for tag in value {
                     writer.write_i32::<BE>(
-                        *i.as_int().expect("List of Int should only contains Int"),
+                        *tag.as_int().expect("List of Int should only contains Int"),
                     )?;
                 }
             }
             Tag::String(_) => {
-                for i in value {
-                    assert!(matches!(i, Tag::String(_)));
+                for tag in value {
                     write_string(
                         writer,
-                        i.as_string()
+                        tag.as_string()
                             .expect("List of String should only contain String"),
                     )?;
                 }
             }
             Tag::Compound(_) => {
-                for i in value {
-                    assert!(matches!(i, Tag::Compound(_)));
+                for tag in value {
                     write_compound(
                         writer,
-                        i.as_compound()
+                        tag.as_compound()
                             .expect("List of Compound should only contain Compound"),
                         true,
                     )?;
                 }
             }
             _ => {
-                for i in value {
-                    i.write_without_end(writer)?;
+                for tag in value {
+                    tag.write_without_end(writer)?;
                 }
             }
         }
