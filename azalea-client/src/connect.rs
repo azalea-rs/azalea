@@ -48,10 +48,18 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                     println!("Got profile {:?}", p.game_profile);
                     break conn.game();
                 }
-                _ => panic!("unhandled packet"),
+                LoginPacket::ServerboundHelloPacket(p) => {
+                    println!("Got hello {:?}", p);
+                }
+                LoginPacket::ClientboundLoginDisconnectPacket(p) => {
+                    println!("Got disconnect {:?}", p);
+                }
+                LoginPacket::ClientboundCustomQueryPacket(p) => {
+                    println!("Got custom query {:?}", p);
+                }
             },
             Err(e) => {
-                println!("Error: {:?}", e);
+                panic!("Error: {:?}", e);
             }
         }
     };
@@ -84,6 +92,9 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 }
                 GamePacket::ClientboundUpdateTagsPacket(p) => {
                     println!("Got update tags packet {:?}", p);
+                }
+                GamePacket::ClientboundDisconnectPacket(p) => {
+                    println!("Got login disconnect packet {:?}", p);
                 }
             },
             Err(e) => {

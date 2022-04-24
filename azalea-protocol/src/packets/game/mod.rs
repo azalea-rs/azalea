@@ -1,6 +1,7 @@
 pub mod clientbound_change_difficulty_packet;
 pub mod clientbound_custom_payload_packet;
 pub mod clientbound_declare_commands_packet;
+pub mod clientbound_disconnect_packet;
 pub mod clientbound_login_packet;
 pub mod clientbound_player_abilities_packet;
 pub mod clientbound_set_carried_item_packet;
@@ -15,6 +16,7 @@ declare_state_packets!(
     Clientbound => {
         0x0e: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
         0x12: clientbound_declare_commands_packet::ClientboundDeclareCommandsPacket,
+        0x1a: clientbound_disconnect_packet::ClientboundDisconnectPacket,
         0x18: clientbound_custom_payload_packet::ClientboundCustomPayloadPacket,
         0x26: clientbound_login_packet::ClientboundLoginPacket,
         0x32: clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,

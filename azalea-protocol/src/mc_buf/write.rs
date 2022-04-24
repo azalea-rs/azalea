@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use azalea_chat::component::Component;
 use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
 };
@@ -209,7 +210,7 @@ impl McBufWritable for ResourceLocation {
 // u32
 impl McBufWritable for u32 {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        i32::varint_write_into(&(*self as i32), buf)
+        i16::write_into(&(*self as i16), buf)
     }
 }
 
@@ -223,7 +224,7 @@ impl McBufVarintWritable for u32 {
 // u16
 impl McBufWritable for u16 {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        i32::varint_write_into(&(*self as i32), buf)
+        i16::write_into(&(*self as i16), buf)
     }
 }
 
@@ -238,6 +239,13 @@ impl McBufVarintWritable for u16 {
 impl McBufWritable for u8 {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         buf.write_byte(*self)
+    }
+}
+
+// i16
+impl McBufWritable for i16 {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        Writable::write_short(buf, *self)
     }
 }
 
@@ -269,7 +277,7 @@ impl McBufWritable for i8 {
     }
 }
 
-// i8
+// f32
 impl McBufWritable for f32 {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         buf.write_float(*self)
@@ -310,5 +318,24 @@ impl McBufWritable for azalea_nbt::Tag {
 impl McBufWritable for Difficulty {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         u8::write_into(&self.id(), buf)
+    }
+}
+
+// Component
+#[async_trait]
+impl McBufWritable for Component {
+    // async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    // where
+    //     R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    // {
+    //     let string = buf.read_utf().await?;
+    //     let json: serde_json::Value = serde_json::from_str(string.as_str())
+    //         .map_err(|e| "Component isn't valid JSON".to_string())?;
+    //     let component = Component::deserialize(json).map_err(|e| e.to_string())?;
+    //     Ok(component)
+    // }
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        // component doesn't have serialize implemented yet
+        todo!()
     }
 }

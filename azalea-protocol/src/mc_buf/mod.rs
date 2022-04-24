@@ -20,20 +20,52 @@ mod tests {
     #[test]
     fn test_write_varint() {
         let mut buf = Vec::new();
-        buf.write_varint(123456).unwrap();
-        assert_eq!(buf, vec![192, 196, 7]);
-
-        let mut buf = Vec::new();
         buf.write_varint(0).unwrap();
         assert_eq!(buf, vec![0]);
+
+        let mut buf = Vec::new();
+        buf.write_varint(1).unwrap();
+        assert_eq!(buf, vec![1]);
+
+        let mut buf = Vec::new();
+        buf.write_varint(2).unwrap();
+        assert_eq!(buf, vec![2]);
+
+        let mut buf = Vec::new();
+        buf.write_varint(127).unwrap();
+        assert_eq!(buf, vec![127]);
+
+        let mut buf = Vec::new();
+        buf.write_varint(128).unwrap();
+        assert_eq!(buf, vec![128, 1]);
+
+        let mut buf = Vec::new();
+        buf.write_varint(255).unwrap();
+        assert_eq!(buf, vec![255, 1]);
+
+        let mut buf = Vec::new();
+        buf.write_varint(25565).unwrap();
+        assert_eq!(buf, vec![221, 199, 1]);
+
+        let mut buf = Vec::new();
+        buf.write_varint(2097151).unwrap();
+        assert_eq!(buf, vec![255, 255, 127]);
+
+        let mut buf = Vec::new();
+        buf.write_varint(2147483647).unwrap();
+        assert_eq!(buf, vec![255, 255, 255, 255, 7]);
+
+        let mut buf = Vec::new();
+        buf.write_varint(-1).unwrap();
+        assert_eq!(buf, vec![255, 255, 255, 255, 15]);
+
+        let mut buf = Vec::new();
+        buf.write_varint(-2147483648).unwrap();
+        assert_eq!(buf, vec![128, 128, 128, 128, 8]);
     }
 
     #[tokio::test]
     async fn test_read_varint() {
-        let mut buf = BufReader::new(Cursor::new(vec![192, 196, 7]));
-        assert_eq!(buf.read_varint().await.unwrap(), 123456);
-        assert_eq!(buf.get_varint_size(123456), 3);
-
         let mut buf = BufReader::new(Cursor::new(vec![0]));
         assert_eq!(buf.read_varint().await.unwrap(), 0);
         assert_eq!(buf.get_varint_size(0), 1);
@@ -41,6 +73,42 @@ mod tests {
         let mut buf = BufReader::new(Cursor::new(vec![1]));
         assert_eq!(buf.read_varint().await.unwrap(), 1);
         assert_eq!(buf.get_varint_size(1), 1);
+
+        let mut buf = BufReader::new(Cursor::new(vec![2]));
+        assert_eq!(buf.read_varint().await.unwrap(), 2);
+        assert_eq!(buf.get_varint_size(2), 1);
+
+        let mut buf = BufReader::new(Cursor::new(vec![127]));
+        assert_eq!(buf.read_varint().await.unwrap(), 127);
+        assert_eq!(buf.get_varint_size(127), 1);
+
+        let mut buf = BufReader::new(Cursor::new(vec![128, 1]));
+        assert_eq!(buf.read_varint().await.unwrap(), 128);
+        assert_eq!(buf.get_varint_size(128), 2);
+
+        let mut buf = BufReader::new(Cursor::new(vec![255, 1]));
+        assert_eq!(buf.read_varint().await.unwrap(), 255);
+        assert_eq!(buf.get_varint_size(255), 2);
+
+        let mut buf = BufReader::new(Cursor::new(vec![221, 199, 1]));
+        assert_eq!(buf.read_varint().await.unwrap(), 25565);
+        assert_eq!(buf.get_varint_size(25565), 3);
+
+        let mut buf = BufReader::new(Cursor::new(vec![255, 255, 127]));
+        assert_eq!(buf.read_varint().await.unwrap(), 2097151);
+        assert_eq!(buf.get_varint_size(2097151), 3);
+
+        let mut buf = BufReader::new(Cursor::new(vec![255, 255, 255, 255, 7]));
+        assert_eq!(buf.read_varint().await.unwrap(), 2147483647);
+        assert_eq!(buf.get_varint_size(2147483647), 5);
+
+        let mut buf = BufReader::new(Cursor::new(vec![255, 255, 255, 255, 15]));
+        assert_eq!(buf.read_varint().await.unwrap(), -1);
+        assert_eq!(buf.get_varint_size(-1), 5);
+
+        let mut buf = BufReader::new(Cursor::new(vec![128, 128, 128, 128, 8]));
+        assert_eq!(buf.read_varint().await.unwrap(), -2147483648);
+        assert_eq!(buf.get_varint_size(-2147483648), 5);
     }
 
     #[tokio::test]

@@ -1,7 +1,9 @@
 use async_trait::async_trait;
+use azalea_chat::component::Component;
 use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
 };
+use serde::Deserialize;
 use tokio::io::{AsyncRead, AsyncReadExt};
 
 use super::MAX_STRING_LENGTH;
@@ -41,12 +43,12 @@ where
         Ok(list)
     }
 
-    // fast varints stolen from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
+    // fast varints modified from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
     /// Read a single varint from the reader and return the value, along with the number of bytes read
     async fn read_varint(&mut self) -> Result<i32, String> {
         let mut buffer = [0];
         let mut ans = 0;
-        for i in 0..4 {
+        for i in 0..5 {
             self.read_exact(&mut buffer)
                 .await
                 .map_err(|_| "Invalid VarInt".to_string())?;
@@ -438,5 +440,20 @@ impl McBufReadable for Difficulty {
         R: AsyncRead + std::marker::Unpin + std::marker::Send,
     {
         Ok(Difficulty::by_id(u8::read_into(buf).await?))
+    }
+}
+
+// Component
+#[async_trait]
+impl McBufReadable for Component {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        let string = buf.read_utf().await?;
+        let json: serde_json::Value = serde_json::from_str(string.as_str())
+            .map_err(|e| "Component isn't valid JSON".to_string())?;
+        let component = Component::deserialize(json).map_err(|e| e.to_string())?;
+        Ok(component)
     }
 }

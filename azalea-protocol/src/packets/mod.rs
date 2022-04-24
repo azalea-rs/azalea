@@ -12,9 +12,9 @@ use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use tokio::io::AsyncRead;
 
-pub const PROTOCOL_VERSION: u32 = 757;
+pub const PROTOCOL_VERSION: u32 = 758;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, FromPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, FromPrimitive)]
 pub enum ConnectionProtocol {
     Handshake = -1,
     Game = 0,
@@ -63,6 +63,6 @@ impl McBufReadable for ConnectionProtocol {
 
 impl McBufWritable for ConnectionProtocol {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        buf.write_varint(self.clone() as i32)
+        buf.write_varint(*self as i32)
     }
 }
