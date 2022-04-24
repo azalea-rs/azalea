@@ -3,7 +3,7 @@ use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use flate2::read::GzDecoder;
 use std::{
     fs::File,
-    io::{self, Cursor, Read, Seek, SeekFrom},
+    io::{self, Read, Seek, SeekFrom},
 };
 
 fn bench_serialize(filename: &str, c: &mut Criterion) {
@@ -28,12 +28,13 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
 
     group.throughput(Throughput::Bytes(decoded_src.len() as u64));
 
-    // idk if this is criterion's fault or rust's fault but the async benchmark doesn't compile
     // group.bench_function("Decode", |b| {
-    //     b.to_async(tokio::runtime::Runtime::new().unwrap();).iter(|| async {
-    //         decoded_src_stream.seek(SeekFrom::Start(0)).unwrap();
-    //         Tag::read(&mut decoded_src_stream).await.unwrap();
-    //     })
+    //     b.to_async(tokio::runtime::Runtime::new().unwrap())
+    //         .iter(|| async {
+    //             let mut owned_decoded_src_stream = decoded_src_stream.clone();
+    //             owned_decoded_src_stream.seek(SeekFrom::Start(0)).unwrap();
+    //             Tag::read(&mut owned_decoded_src_stream).await.unwrap();
+    //         })
     // });
 
     group.bench_function("Encode", |b| {

@@ -1,22 +1,5 @@
+use packet_macros::StatusPacket;
 use std::hash::Hash;
 
-use super::StatusPacket;
-
-#[derive(Hash, Clone, Debug)]
+#[derive(Clone, Debug, StatusPacket)]
 pub struct ServerboundStatusRequestPacket {}
-
-impl ServerboundStatusRequestPacket {
-    pub fn get(self) -> StatusPacket {
-        StatusPacket::ServerboundStatusRequestPacket(self)
-    }
-
-    pub fn write(&self, _buf: &mut Vec<u8>) {
-        panic!("ServerboundStatusRequestPacket::write not implemented")
-    }
-
-    pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        _buf: &mut T,
-    ) -> Result<StatusPacket, String> {
-        Err("ServerboundStatusRequestPacket::read not implemented".to_string())
-    }
-}

@@ -6,8 +6,8 @@ I named this Azalea because it sounds like a cool word and this is a cool librar
 
 ## Goals
 
-- Bypass most anticheats
-- Only support the latest Minecraft version
 - Do everything a vanilla client can do
-- Be fast
 - Be easy to use
+- Bypass most/all anticheats
+- Support the latest Minecraft version
+- Be fast

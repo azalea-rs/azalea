@@ -14,3 +14,14 @@ impl std::fmt::Display for Error {
         }
     }
 }
+
+impl From<std::io::Error> for Error {
+    fn from(_: std::io::Error) -> Self {
+        Error::WriteError
+    }
+}
+impl From<std::string::FromUtf8Error> for Error {
+    fn from(_: std::string::FromUtf8Error) -> Self {
+        Error::WriteError
+    }
+}

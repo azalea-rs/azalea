@@ -38,7 +38,7 @@ pub async fn ping_server(
     let packet = conn.read().await.unwrap();
 
     match packet {
-        StatusPacket::ClientboundStatusResponsePacket(p) => Ok(*p),
+        StatusPacket::ClientboundStatusResponsePacket(p) => Ok(p),
         _ => Err("Invalid packet type".to_string()),
     }
 }

@@ -71,6 +71,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "azalea-brigadier"
+version = "0.1.0"
+
+[[package]]
 name = "azalea-chat"
 version = "0.1.0"
 dependencies = [
@@ -116,11 +120,15 @@ dependencies = [
  "async-recursion",
  "async-trait",
  "azalea-auth",
+ "azalea-brigadier",
  "azalea-chat",
  "azalea-core",
  "azalea-nbt",
  "byteorder",
  "bytes",
+ "num-derive",
+ "num-traits",
+ "packet-macros",
  "serde",
  "serde_json",
  "thiserror",
@@ -749,6 +757,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ab1bc2a289d34bd04a330323ac98a1b4bc82c9d9fcb1e66b63caa84da26b575"
 
 [[package]]
+name = "packet-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "parking_lot"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -827,9 +844,9 @@ checksum = "ed0cfbc8191465bed66e1718596ee0b0b35d5ee1f41c5df2189d0fe8bde535ba"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.32"
+version = "1.0.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba508cc11742c0dc5c1659771673afbab7a0efab23aa17e854cbab0837ed0b43"
+checksum = "c7342d5883fbccae1cc37a2353b09c87c9b0f3afd73f5fb9bba687a1f733b029"
 dependencies = [
  "unicode-xid",
 ]

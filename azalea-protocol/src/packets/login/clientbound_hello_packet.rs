@@ -16,7 +16,7 @@ impl ClientboundHelloPacket {
         LoginPacket::ClientboundHelloPacket(self)
     }
 
-    pub fn write(&self, _buf: &mut Vec<u8>) {
+    pub fn write(&self, _buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         panic!("ClientboundHelloPacket::write not implemented")
     }
 

@@ -49,10 +49,18 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                     println!("Got profile {:?}", p.game_profile);
                     break conn.game();
                 }
-                _ => panic!("unhandled packet"),
+                LoginPacket::ServerboundHelloPacket(p) => {
+                    println!("Got hello {:?}", p);
+                }
+                LoginPacket::ClientboundLoginDisconnectPacket(p) => {
+                    println!("Got disconnect {:?}", p);
+                }
+                LoginPacket::ClientboundCustomQueryPacket(p) => {
+                    println!("Got custom query {:?}", p);
+                }
             },
             Err(e) => {
-                println!("Error: {:?}", e);
+                panic!("Error: {:?}", e);
             }
         }
     };
@@ -65,13 +73,30 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 GamePacket::ClientboundLoginPacket(p) => {
                     println!("Got login packet {:?}", p);
                 }
-                // GamePacket::ClientboundKeepAlivePacket(p) => {
-                //     println!("Got keep alive packet {:?}", p.keep_alive_id);
-                // }
-                // GamePacket::ClientboundChatMessagePacket(p) => {
-                //     println!("Got chat message packet {:?}", p.message);
-                // }
-                _ => panic!("unhandled packet"),
+                GamePacket::ClientboundUpdateViewDistancePacket(p) => {
+                    println!("Got view distance packet {:?}", p);
+                }
+                GamePacket::ClientboundCustomPayloadPacket(p) => {
+                    println!("Got custom payload packet {:?}", p);
+                }
+                GamePacket::ClientboundChangeDifficultyPacket(p) => {
+                    println!("Got difficulty packet {:?}", p);
+                }
+                GamePacket::ClientboundDeclareCommandsPacket(p) => {
+                    println!("Got declare commands packet {:?}", p);
+                }
+                GamePacket::ClientboundPlayerAbilitiesPacket(p) => {
+                    println!("Got player abilities packet {:?}", p);
+                }
+                GamePacket::ClientboundSetCarriedItemPacket(p) => {
+                    println!("Got set carried item packet {:?}", p);
+                }
+                GamePacket::ClientboundUpdateTagsPacket(p) => {
+                    println!("Got update tags packet {:?}", p);
+                }
+                GamePacket::ClientboundDisconnectPacket(p) => {
+                    println!("Got login disconnect packet {:?}", p);
+                }
             },
             Err(e) => {
                 panic!("Error: {:?}", e);

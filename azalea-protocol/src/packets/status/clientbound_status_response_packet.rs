@@ -36,10 +36,12 @@ pub struct ClientboundStatusResponsePacket {
 
 impl ClientboundStatusResponsePacket {
     pub fn get(self) -> StatusPacket {
-        StatusPacket::ClientboundStatusResponsePacket(Box::new(self))
+        StatusPacket::ClientboundStatusResponsePacket(self)
     }
 
-    pub fn write(&self, _buf: &mut Vec<u8>) {}
+    pub fn write(&self, _buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        Ok(())
+    }
 
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         buf: &mut T,

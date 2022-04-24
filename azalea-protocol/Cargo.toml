@@ -10,11 +10,15 @@ async-compression = {version = "^0.3.8", features = ["tokio", "zlib"]}
 async-recursion = "^0.3.2"
 async-trait = "0.1.51"
 azalea-auth = {path = "../azalea-auth"}
+azalea-brigadier = {path = "../azalea-brigadier"}
 azalea-chat = {path = "../azalea-chat"}
 azalea-core = {path = "../azalea-core"}
 azalea-nbt = {path = "../azalea-nbt"}
 byteorder = "^1.4.3"
 bytes = "^1.1.0"
+num-derive = "^0.3.3"
+num-traits = "^0.2.14"
+packet-macros = {path = "./packet-macros"}
 serde = {version = "1.0.130", features = ["serde_derive"]}
 serde_json = "^1.0.72"
 thiserror = "^1.0.30"
