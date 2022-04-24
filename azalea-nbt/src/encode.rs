@@ -63,22 +63,22 @@ fn write_compound(
                 }
             }
             Tag::String(value) => {
-                writer.write_u8(9)?;
+                writer.write_u8(8)?;
                 write_string(writer, key)?;
                 write_string(writer, value)?
             }
             Tag::List(value) => {
-                writer.write_u8(10)?;
+                writer.write_u8(9)?;
                 write_string(writer, key)?;
                 write_list(writer, value)?
             }
             Tag::Compound(value) => {
-                writer.write_u8(11)?;
+                writer.write_u8(10)?;
                 write_string(writer, key)?;
                 write_compound(writer, value, true)?
             }
             Tag::IntArray(value) => {
-                writer.write_u8(12)?;
+                writer.write_u8(11)?;
                 write_string(writer, key)?;
                 writer.write_i32::<BE>(value.len() as i32)?;
                 for &int in value {
@@ -86,7 +86,7 @@ fn write_compound(
                 }
             }
             Tag::LongArray(value) => {
-                writer.write_u8(13)?;
+                writer.write_u8(12)?;
                 write_string(writer, key)?;
                 writer.write_i32::<BE>(value.len() as i32)?;
                 for &long in value {
