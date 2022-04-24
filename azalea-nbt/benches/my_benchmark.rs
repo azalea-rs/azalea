@@ -3,7 +3,7 @@ use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use flate2::read::GzDecoder;
 use std::{
     fs::File,
-    io::{self, Cursor, Read, Seek, SeekFrom},
+    io::{self, Read, Seek, SeekFrom},
 };
 
 fn bench_serialize(filename: &str, c: &mut Criterion) {
