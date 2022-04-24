@@ -5,6 +5,8 @@ use flate2::write::{GzEncoder, ZlibEncoder};
 use std::collections::HashMap;
 use std::io::Write;
 
+// who needs friends when you've got code that runs in nanoseconds?
+
 #[inline]
 fn write_string(writer: &mut dyn Write, string: &str) -> Result<(), Error> {
     writer.write_i16::<BE>(string.len() as i16)?;
@@ -12,8 +14,6 @@ fn write_string(writer: &mut dyn Write, string: &str) -> Result<(), Error> {
 
     Ok(())
 }
-
-// who needs friends when you've got code that runs in nanoseconds?
 
 #[inline]
 fn write_compound(
