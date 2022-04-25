@@ -5,6 +5,7 @@ use azalea_core::{
 };
 use serde::Deserialize;
 use tokio::io::{AsyncRead, AsyncReadExt};
+use crate::mc_buf::ByteArray;
 
 use super::MAX_STRING_LENGTH;
 
@@ -14,7 +15,7 @@ pub trait Readable {
     async fn read_varint(&mut self) -> Result<i32, String>;
     fn get_varint_size(&mut self, value: i32) -> u8;
     fn get_varlong_size(&mut self, value: i32) -> u8;
-    async fn read_byte_array(&mut self) -> Result<Vec<u8>, String>;
+    async fn read_byte_array(&mut self) -> Result<ByteArray, String>;
     async fn read_bytes_with_len(&mut self, n: usize) -> Result<Vec<u8>, String>;
     async fn read_bytes(&mut self) -> Result<Vec<u8>, String>;
     async fn read_utf(&mut self) -> Result<String, String>;
@@ -80,9 +81,9 @@ where
         10
     }
 
-    async fn read_byte_array(&mut self) -> Result<Vec<u8>, String> {
+    async fn read_byte_array(&mut self) -> Result<ByteArray, String> {
         let length = self.read_varint().await? as usize;
-        Ok(self.read_bytes_with_len(length).await?)
+        Ok(ByteArray(self.read_bytes_with_len(length).await?))
     }
 
     async fn read_bytes_with_len(&mut self, n: usize) -> Result<Vec<u8>, String> {
@@ -248,6 +249,17 @@ impl McBufReadable for Vec<u8> {
         R: AsyncRead + std::marker::Unpin + std::marker::Send,
     {
         buf.read_bytes().await
+    }
+}
+
+
+#[async_trait]
+impl McBufReadable for ByteArray {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_byte_array().await
     }
 }
 

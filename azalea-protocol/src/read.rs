@@ -1,13 +1,17 @@
+use std::{cell::Cell, pin::Pin};
+
 use crate::{connect::PacketFlow, mc_buf::Readable, packets::ProtocolPacket};
 use async_compression::tokio::bufread::ZlibDecoder;
+use azalea_auth::encryption::Aes128Cfb;
 use tokio::io::{AsyncRead, AsyncReadExt};
 
-async fn frame_splitter<R>(stream: &mut R) -> Result<Vec<u8>, String>
+async fn frame_splitter<R: ?Sized>(mut stream: &mut R) -> Result<Vec<u8>, String>
 where
     R: AsyncRead + std::marker::Unpin + std::marker::Send,
 {
     // Packet Length
     let length_result = stream.read_varint().await;
+    println!("length_result: {:?}", length_result);
     match length_result {
         Ok(length) => {
             let mut buf = vec![0; length as usize];
@@ -16,6 +20,8 @@ where
                 .read_exact(&mut buf)
                 .await
                 .map_err(|e| e.to_string())?;
+
+            println!("buf: {:?}", buf);
 
             Ok(buf)
         }
@@ -90,15 +96,61 @@ where
     Ok(decoded_buf)
 }
 
-pub async fn read_packet<P: ProtocolPacket, R>(
-    flow: &PacketFlow,
-    stream: &mut R,
-    compression_threshold: Option<u32>,
-) -> Result<P, String>
+struct EncryptedStream<'a, R>
 where
     R: AsyncRead + std::marker::Unpin + std::marker::Send,
 {
-    let mut buf = frame_splitter(stream).await?;
+    cipher: Cell<&'a mut Option<Aes128Cfb>>,
+    stream: &'a mut Pin<&'a mut R>,
+}
+
+impl<R> AsyncRead for EncryptedStream<'_, R>
+where
+    R: AsyncRead + std::marker::Unpin + std::marker::Send,
+{
+    fn poll_read(
+        mut self: Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+        buf: &mut tokio::io::ReadBuf<'_>,
+    ) -> std::task::Poll<std::io::Result<()>> {
+        // i hate this
+        let polled = self.as_mut().stream.as_mut().poll_read(cx, buf);
+        match polled {
+            std::task::Poll::Ready(r) => {
+                println!("encrypted packet {:?}", buf.initialized_mut());
+                if let Some(cipher) = self.as_mut().cipher.get_mut() {
+                    azalea_auth::encryption::decrypt_packet(cipher, buf.initialized_mut());
+                    println!("decrypted packet {:?}", buf.initialized_mut());
+                }
+                match r {
+                    Ok(()) => std::task::Poll::Ready(Ok(())),
+                    Err(e) => panic!("{:?}", e),
+                }
+            }
+            std::task::Poll::Pending => {
+                return std::task::Poll::Pending;
+            }
+        }
+    }
+}
+
+pub async fn read_packet<'a, P: ProtocolPacket, R>(
+    flow: &PacketFlow,
+    stream: &'a mut R,
+    compression_threshold: Option<u32>,
+    cipher: &mut Option<Aes128Cfb>,
+) -> Result<P, String>
+where
+    R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
+{
+    // if we were given a cipher, decrypt the packet
+    let mut encrypted_stream = EncryptedStream {
+        cipher: Cell::new(cipher),
+        stream: &mut Pin::new(stream),
+    };
+
+    let mut buf = frame_splitter(&mut encrypted_stream).await?;
+
     if let Some(compression_threshold) = compression_threshold {
         buf = compression_decoder(&mut buf.as_slice(), compression_threshold).await?;
     }

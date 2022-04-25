@@ -5,10 +5,30 @@ mod write;
 
 pub use read::{McBufReadable, McBufVarintReadable, Readable};
 pub use write::{McBufVarintWritable, McBufWritable, Writable};
+use std::ops::Deref;
 
 // const DEFAULT_NBT_QUOTA: u32 = 2097152;
 const MAX_STRING_LENGTH: u16 = 32767;
 // const MAX_COMPONENT_STRING_LENGTH: u32 = 262144;
+
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct ByteArray(Vec<u8>);
+
+impl Deref for ByteArray {
+    type Target = Vec<u8>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl From<Vec<u8>> for ByteArray {
+    fn from(vec: Vec<u8>) -> Self {
+        Self(vec)
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
