@@ -6,8 +6,8 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-aes = "0.8.1"
-cfb8 = "0.8.1"
+aes = "0.7.4"
+cfb8 = "0.7.1"
 num-bigint = "^0.4.3"
 rand = {version = "^0.8.4", features = ["getrandom"]}
 rsa_public_encrypt_pkcs1 = "0.4.0"

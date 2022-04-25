@@ -15,9 +15,9 @@ declare_state_packets!(
         0x01: serverbound_key_packet::ServerboundKeyPacket,
     },
     Clientbound => {
-        // 0x00: clientbound_login_disconnect_packet::ClientboundLoginDisconnectPacket,
-        // for some reason this is used instead of 0x00??
-        0x1a: clientbound_login_disconnect_packet::ClientboundLoginDisconnectPacket,
+        0x00: clientbound_login_disconnect_packet::ClientboundLoginDisconnectPacket,
+        // sometimes this is used for some reason?
+        // 0x1a: clientbound_login_disconnect_packet::ClientboundLoginDisconnectPacket,
 
         0x01: clientbound_hello_packet::ClientboundHelloPacket,
         0x02: clientbound_game_profile_packet::ClientboundGameProfilePacket,

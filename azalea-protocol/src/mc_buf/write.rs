@@ -1,3 +1,5 @@
+use super::MAX_STRING_LENGTH;
+use crate::mc_buf::ByteArray;
 use async_trait::async_trait;
 use azalea_chat::component::Component;
 use azalea_core::{
@@ -5,8 +7,6 @@ use azalea_core::{
 };
 use byteorder::{BigEndian, WriteBytesExt};
 use std::io::Write;
-
-use super::MAX_STRING_LENGTH;
 
 #[async_trait]
 pub trait Writable {
@@ -190,6 +190,12 @@ impl McBufVarintWritable for i32 {
 impl McBufWritable for Vec<u8> {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         buf.write_bytes(self)
+    }
+}
+
+impl McBufWritable for ByteArray {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_byte_array(&self)
     }
 }
 

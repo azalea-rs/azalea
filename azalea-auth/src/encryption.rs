@@ -1,3 +1,8 @@
+use aes::{
+    cipher::{AsyncStreamCipher, NewCipher},
+    Aes128,
+};
+use cfb8::Cfb8;
 use rand::{rngs::OsRng, RngCore};
 use sha1::{Digest, Sha1};
 
@@ -24,7 +29,9 @@ fn hex_digest(digest: &[u8]) -> String {
     num_bigint::BigInt::from_signed_bytes_be(digest).to_str_radix(16)
 }
 
+#[derive(Debug)]
 pub struct EncryptResult {
+    pub secret_key: [u8; 16],
     pub encrypted_public_key: Vec<u8>,
     pub encrypted_nonce: Vec<u8>,
 }
@@ -43,9 +50,24 @@ pub fn encrypt(public_key: &[u8], nonce: &[u8]) -> Result<EncryptResult, String>
     let encrypted_nonce: Vec<u8> = rsa_public_encrypt_pkcs1::encrypt(&public_key, &nonce)?;
 
     Ok(EncryptResult {
+        secret_key,
         encrypted_public_key,
         encrypted_nonce,
     })
+}
+
+// TODO: update the aes and cfb8 crates
+pub type Aes128Cfb = Cfb8<Aes128>;
+
+pub fn create_cipher(key: &[u8]) -> Aes128Cfb {
+    Aes128Cfb::new_from_slices(&key, &key).unwrap()
+}
+
+pub fn encrypt_packet(cipher: &mut Aes128Cfb, packet: &mut [u8]) {
+    cipher.encrypt(packet);
+}
+pub fn decrypt_packet(cipher: &mut Aes128Cfb, packet: &mut [u8]) {
+    cipher.decrypt(packet);
 }
 
 #[cfg(test)]
