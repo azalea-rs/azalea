@@ -24,9 +24,28 @@ fn hex_digest(digest: &[u8]) -> String {
     num_bigint::BigInt::from_signed_bytes_be(digest).to_str_radix(16)
 }
 
-fn encrypt(public_key: &[u8], server_id: String, nonce: &[u8]) {
+pub struct EncryptResult {
+    pub encrypted_public_key: Vec<u8>,
+    pub encrypted_nonce: Vec<u8>,
+}
+
+pub fn encrypt(public_key: &[u8], nonce: &[u8]) -> Result<EncryptResult, String> {
+    // On receipt of a Encryption Request from the server, the client will
+    // generate a random 16-byte shared secret, to be used with the AES/CFB8
+    // stream cipher.
     let secret_key = generate_secret_key();
-    let hash = hex_digest(&digest_data(server_id.as_bytes(), public_key, &secret_key));
+    // let hash = hex_digest(&digest_data(server_id.as_bytes(), public_key, &secret_key));
+
+    // this.keybytes = Crypt.encryptUsingKey(publicKey, secretKey.getEncoded());
+    // this.nonce = Crypt.encryptUsingKey(publicKey, arrby);
+    let encrypted_public_key: Vec<u8> =
+        rsa_public_encrypt_pkcs1::encrypt(&public_key, &secret_key)?;
+    let encrypted_nonce: Vec<u8> = rsa_public_encrypt_pkcs1::encrypt(&public_key, &nonce)?;
+
+    Ok(EncryptResult {
+        encrypted_public_key,
+        encrypted_nonce,
+    })
 }
 
 #[cfg(test)]

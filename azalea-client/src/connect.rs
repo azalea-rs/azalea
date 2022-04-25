@@ -4,7 +4,10 @@ use azalea_protocol::{
     packets::{
         game::GamePacket,
         handshake::client_intention_packet::ClientIntentionPacket,
-        login::{serverbound_hello_packet::ServerboundHelloPacket, LoginPacket},
+        login::{
+            serverbound_hello_packet::ServerboundHelloPacket,
+            serverbound_key_packet::ServerboundKeyPacket, LoginPacket,
+        },
         ConnectionProtocol, PROTOCOL_VERSION,
     },
     resolver, ServerAddress,
@@ -39,7 +42,15 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
             Ok(packet) => match packet {
                 LoginPacket::ClientboundHelloPacket(p) => {
                     println!("Got encryption request {:?} {:?}", p.nonce, p.public_key);
-                    panic!("");
+                    let e = azalea_auth::encryption::encrypt(&p.public_key, &p.nonce).unwrap();
+                    conn.write(
+                        ServerboundKeyPacket {
+                            nonce: e.encrypted_nonce,
+                            shared_secret: e.encrypted_public_key,
+                        }
+                        .get(),
+                    )
+                    .await;
                 }
                 LoginPacket::ClientboundLoginCompressionPacket(p) => {
                     println!("Got compression request {:?}", p.compression_threshold);
@@ -58,6 +69,7 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 LoginPacket::ClientboundCustomQueryPacket(p) => {
                     println!("Got custom query {:?}", p);
                 }
+                LoginPacket::ServerboundKeyPacket(_) => todo!(),
             },
             Err(e) => {
                 panic!("Error: {:?}", e);
