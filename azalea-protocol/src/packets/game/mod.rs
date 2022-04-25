@@ -5,6 +5,7 @@ pub mod clientbound_disconnect_packet;
 pub mod clientbound_login_packet;
 pub mod clientbound_player_abilities_packet;
 pub mod clientbound_set_carried_item_packet;
+pub mod clientbound_update_recipes_packet;
 pub mod clientbound_update_tags_packet;
 pub mod clientbound_update_view_distance_packet;
 
@@ -22,6 +23,7 @@ declare_state_packets!(
         0x32: clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
         0x48: clientbound_set_carried_item_packet::ClientboundSetCarriedItemPacket,
         0x4a: clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket,
+        0x66: clientbound_update_recipes_packet::ClientboundUpdateRecipesPacket,
         0x67: clientbound_update_tags_packet::ClientboundUpdateTagsPacket
     }
 );

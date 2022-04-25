@@ -1,11 +1,8 @@
-use std::hash::Hash;
-
-use async_trait::async_trait;
-use tokio::io::AsyncRead;
-
-use crate::mc_buf::{McBufReadable, Readable};
-
 use super::GamePacket;
+use crate::mc_buf::{McBufReadable, Readable};
+use async_trait::async_trait;
+use std::hash::Hash;
+use tokio::io::AsyncRead;
 
 #[derive(Hash, Clone, Debug)]
 pub struct ClientboundDeclareCommandsPacket {
