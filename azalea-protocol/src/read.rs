@@ -11,7 +11,6 @@ where
 {
     // Packet Length
     let length_result = stream.read_varint().await;
-    println!("length_result: {:?}", length_result);
     match length_result {
         Ok(length) => {
             let mut buf = vec![0; length as usize];
@@ -20,8 +19,6 @@ where
                 .read_exact(&mut buf)
                 .await
                 .map_err(|e| e.to_string())?;
-
-            println!("buf: {:?}", buf);
 
             Ok(buf)
         }
@@ -117,10 +114,8 @@ where
         let polled = self.as_mut().stream.as_mut().poll_read(cx, buf);
         match polled {
             std::task::Poll::Ready(r) => {
-                println!("encrypted packet {:?}", buf.initialized_mut());
                 if let Some(cipher) = self.as_mut().cipher.get_mut() {
                     azalea_auth::encryption::decrypt_packet(cipher, buf.initialized_mut());
-                    println!("decrypted packet {:?}", buf.initialized_mut());
                 }
                 match r {
                     Ok(()) => std::task::Poll::Ready(Ok(())),
