@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use azalea_chat::component::Component;
 use azalea_core::{resource_location::ResourceLocation, Slot};
-use packet_macros::GamePacket;
+use packet_macros::{GamePacket, McBufReadable, McBufWritable};
 use tokio::io::AsyncRead;
 
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
@@ -17,19 +17,70 @@ pub struct Recipe {
     pub data: RecipeData,
 }
 
-#[derive(Clone, Debug)]
-pub enum RecipeData {
-    CraftingShapeless {
-        /// Used to group similar recipes together in the recipe book.
-        /// Tag is present in recipe JSON
-        group: String,
-        // ingredients
-        ingredients: Vec<Ingredient>,
-        result: Slot,
-    },
+#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+pub struct ShapelessRecipe {
+    /// Used to group similar recipes together in the recipe book.
+    /// Tag is present in recipe JSON
+    group: String,
+    ingredients: Vec<Ingredient>,
+    result: Slot,
+}
+#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+pub struct ShapedRecipe {
+    width: u32,
+    height: u32,
+    group: String,
+    ingredients: Vec<Ingredient>,
+    result: Slot,
+}
+#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+pub struct CookingRecipe {
+    group: String,
+    ingredient: Ingredient,
+    result: Slot,
+    experience: f32,
+    #[varint]
+    cooking_time: u32,
+}
+#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+pub struct StoneCuttingRecipe {
+    group: String,
+    ingredient: Ingredient,
+    result: Slot,
+}
+#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+pub struct SmithingRecipe {
+    base: Ingredient,
+    addition: Ingredient,
+    result: Slot,
 }
 
 #[derive(Clone, Debug)]
+pub enum RecipeData {
+    CraftingShapeless(ShapelessRecipe),
+    CraftingShaped(ShapedRecipe),
+    CraftingSpecialArmorDye,
+    CraftingSpecialBookCloning,
+    CraftingSpecialMapCloning,
+    CraftingSpecialMapExtending,
+    CraftingSpecialFireworkRocket,
+    CraftingSpecialFireworkStar,
+    CraftingSpecialFireworkStarFade,
+    CraftingSpecialRepairItem,
+    CraftingSpecialTippedArrow,
+    CraftingSpecialBannerDuplicate,
+    CraftingSpecialBannerAddPattern,
+    CraftingSpecialShieldDecoration,
+    CraftingSpecialShulkerBoxColoring,
+    CraftingSpecialSuspiciousStew,
+    Smelting(CookingRecipe),
+    Blasting(CookingRecipe),
+    Smoking(CookingRecipe),
+    CampfireCooking(CookingRecipe),
+    Stonecutting(StoneCuttingRecipe),
+}
+
+#[derive(Clone, Debug, McBufReadable, McBufWritable)]
 pub struct Ingredient {
     pub allowed: Vec<Slot>,
 }
@@ -56,35 +107,17 @@ impl McBufReadable for Recipe {
             let ingredients = Vec::<Ingredient>::read_into(buf).await?;
             let result = Slot::read_into(buf).await?;
 
-            RecipeData::CraftingShapeless {
+            RecipeData::CraftingShapeless(ShapelessRecipe {
                 group,
                 ingredients,
                 result,
-            }
+            })
         } else {
-            panic!();
+            panic!("Unknown recipe type sent by server: {}", recipe_type);
         };
 
         let recipe = Recipe { identifier, data };
 
         Ok(recipe)
-    }
-}
-
-impl McBufWritable for Ingredient {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        todo!()
-    }
-}
-#[async_trait]
-impl McBufReadable for Ingredient {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let ingredient = Ingredient {
-            allowed: Vec::<Slot>::read_into(buf).await?,
-        };
-        Ok(ingredient)
     }
 }

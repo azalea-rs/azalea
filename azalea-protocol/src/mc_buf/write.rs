@@ -2,7 +2,7 @@ use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use async_trait::async_trait;
 use azalea_chat::component::Component;
 use azalea_core::{
-    difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
+    difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation, Slot,
 };
 use byteorder::{BigEndian, WriteBytesExt};
 use std::io::Write;
@@ -335,5 +335,21 @@ impl McBufWritable for Component {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         // component doesn't have serialize implemented yet
         todo!()
+    }
+}
+
+// Slot
+impl McBufWritable for Slot {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        match self {
+            Slot::Empty => buf.write_byte(0)?,
+            Slot::Present(i) => {
+                buf.write_varint(i.id)?;
+                buf.write_byte(i.count)?;
+                buf.write_nbt(&i.nbt)?;
+            }
+        }
+
+        Ok(())
     }
 }

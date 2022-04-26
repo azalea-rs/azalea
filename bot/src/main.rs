@@ -7,6 +7,7 @@ async fn main() {
     // let response = azalea_client::ping::ping_server(&address.try_into().unwrap())
     //     .await
     //     .unwrap();
+
     // println!("{}", response.description.to_ansi(None));
     let _response = azalea_client::connect::join_server(&address.try_into().unwrap())
         .await

@@ -6,6 +6,118 @@ use syn::{
     parse_macro_input, DeriveInput, FieldsNamed, Ident, LitInt, Token,
 };
 
+#[proc_macro_derive(McBufReadable, attributes(varint))]
+pub fn derive_mcbufreadable(input: TokenStream) -> TokenStream {
+    let DeriveInput { ident, data, .. } = parse_macro_input!(input);
+
+    let fields = match data {
+        syn::Data::Struct(syn::DataStruct { fields, .. }) => fields,
+        _ => panic!("#[derive(*Packet)] can only be used on structs"),
+    };
+    let FieldsNamed { named, .. } = match fields {
+        syn::Fields::Named(f) => f,
+        _ => panic!("#[derive(*Packet)] can only be used on structs with named fields"),
+    };
+
+    let read_fields = named
+        .iter()
+        .map(|f| {
+            let field_name = &f.ident;
+            let field_type = &f.ty;
+            // do a different buf.write_* for each field depending on the type
+            // if it's a string, use buf.write_string
+            match field_type {
+                syn::Type::Path(_) => {
+                        if f.attrs.iter().any(|a| a.path.is_ident("varint")) {
+                            quote! {
+                                let #field_name = crate::mc_buf::McBufVarintReadable::varint_read_into(buf).await?;
+                            }
+                        } else {
+                            quote! {
+                                let #field_name = crate::mc_buf::McBufReadable::read_into(buf).await?;
+                            }
+                    }
+                }
+                _ => panic!(
+                    "Error reading field {}: {}",
+                    field_name.clone().unwrap(),
+                    field_type.to_token_stream()
+                ),
+            }
+        })
+        .collect::<Vec<_>>();
+    let read_field_names = named.iter().map(|f| &f.ident).collect::<Vec<_>>();
+
+    quote! {
+    #[async_trait::async_trait]
+
+    impl crate::mc_buf::McBufReadable for #ident {
+        async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+        where
+            R: AsyncRead + std::marker::Unpin + std::marker::Send,
+        {
+            #(#read_fields)*
+            Ok(#ident {
+                #(#read_field_names: #read_field_names),*
+            })
+        }
+    }
+    }
+    .into()
+}
+
+#[proc_macro_derive(McBufWritable, attributes(varint))]
+pub fn derive_mcbufwritable(input: TokenStream) -> TokenStream {
+    let DeriveInput { ident, data, .. } = parse_macro_input!(input);
+
+    let fields = match data {
+        syn::Data::Struct(syn::DataStruct { fields, .. }) => fields,
+        _ => panic!("#[derive(*Packet)] can only be used on structs"),
+    };
+    let FieldsNamed { named, .. } = match fields {
+        syn::Fields::Named(f) => f,
+        _ => panic!("#[derive(*Packet)] can only be used on structs with named fields"),
+    };
+
+    let write_fields = named
+        .iter()
+        .map(|f| {
+            let field_name = &f.ident;
+            let field_type = &f.ty;
+            // do a different buf.write_* for each field depending on the type
+            // if it's a string, use buf.write_string
+            match field_type {
+                syn::Type::Path(_) => {
+                    if f.attrs.iter().any(|attr| attr.path.is_ident("varint")) {
+                        quote! {
+                            crate::mc_buf::McBufVarintWritable::varint_write_into(&self.#field_name, buf)?;
+                        }
+                    } else {
+                        quote! {
+                            crate::mc_buf::McBufWritable::write_into(&self.#field_name, buf)?;
+                        }
+                    }
+                }
+                _ => panic!(
+                    "Error writing field {}: {}",
+                    field_name.clone().unwrap(),
+                    field_type.to_token_stream()
+                ),
+            }
+        })
+        .collect::<Vec<_>>();
+
+    quote! {
+        impl crate::mc_buf::McBufWritable for #ident {
+            fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+                #(#write_fields)*
+                Ok(())
+            }
+        }
+    }
+    .into()
+}
+
 fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> TokenStream {
     let DeriveInput { ident, data, .. } = parse_macro_input!(input);
 
