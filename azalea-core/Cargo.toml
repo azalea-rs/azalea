@@ -7,4 +7,5 @@ version = "0.1.0"
 
 [dependencies]
 azalea-chat = {path = "../azalea-chat"}
+azalea-nbt = {path = "../azalea-nbt"}
 uuid = "^0.8.2"

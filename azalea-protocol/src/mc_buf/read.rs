@@ -1,11 +1,12 @@
+use crate::mc_buf::ByteArray;
 use async_trait::async_trait;
 use azalea_chat::component::Component;
 use azalea_core::{
-    difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
+    difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation, Slot,
+    SlotData,
 };
 use serde::Deserialize;
 use tokio::io::{AsyncRead, AsyncReadExt};
-use crate::mc_buf::ByteArray;
 
 use super::MAX_STRING_LENGTH;
 
@@ -252,7 +253,6 @@ impl McBufReadable for Vec<u8> {
     }
 }
 
-
 #[async_trait]
 impl McBufReadable for ByteArray {
     async fn read_into<R>(buf: &mut R) -> Result<Self, String>
@@ -467,5 +467,23 @@ impl McBufReadable for Component {
             .map_err(|e| "Component isn't valid JSON".to_string())?;
         let component = Component::deserialize(json).map_err(|e| e.to_string())?;
         Ok(component)
+    }
+}
+
+// Slot
+#[async_trait]
+impl McBufReadable for Slot {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        let present = buf.read_boolean().await?;
+        if !present {
+            return Ok(Slot::Empty);
+        }
+        let id = buf.read_varint().await?;
+        let count = buf.read_byte().await?;
+        let nbt = buf.read_nbt().await?;
+        Ok(Slot::Present(SlotData { id, count, nbt }))
     }
 }

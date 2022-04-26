@@ -111,6 +111,7 @@ name = "azalea-core"
 version = "0.1.0"
 dependencies = [
  "azalea-chat",
+ "azalea-nbt",
  "uuid",
 ]
 
