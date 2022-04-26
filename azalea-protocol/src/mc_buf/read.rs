@@ -1,4 +1,3 @@
-use crate::mc_buf::ByteArray;
 use async_trait::async_trait;
 use azalea_chat::component::Component;
 use azalea_core::{
@@ -8,7 +7,7 @@ use azalea_core::{
 use serde::Deserialize;
 use tokio::io::{AsyncRead, AsyncReadExt};
 
-use super::MAX_STRING_LENGTH;
+use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 
 #[async_trait]
 pub trait Readable {
@@ -16,7 +15,7 @@ pub trait Readable {
     async fn read_varint(&mut self) -> Result<i32, String>;
     fn get_varint_size(&mut self, value: i32) -> u8;
     fn get_varlong_size(&mut self, value: i32) -> u8;
-    async fn read_byte_array(&mut self) -> Result<ByteArray, String>;
+    async fn read_byte_array(&mut self) -> Result<Vec<u8>, String>;
     async fn read_bytes_with_len(&mut self, n: usize) -> Result<Vec<u8>, String>;
     async fn read_bytes(&mut self) -> Result<Vec<u8>, String>;
     async fn read_utf(&mut self) -> Result<String, String>;
@@ -82,9 +81,9 @@ where
         10
     }
 
-    async fn read_byte_array(&mut self) -> Result<ByteArray, String> {
+    async fn read_byte_array(&mut self) -> Result<Vec<u8>, String> {
         let length = self.read_varint().await? as usize;
-        Ok(ByteArray(self.read_bytes_with_len(length).await?))
+        self.read_bytes_with_len(length).await
     }
 
     async fn read_bytes_with_len(&mut self, n: usize) -> Result<Vec<u8>, String> {
@@ -244,22 +243,27 @@ impl McBufVarintReadable for i32 {
 }
 
 #[async_trait]
-impl McBufReadable for Vec<u8> {
+impl McBufReadable for UnsizedByteArray {
     async fn read_into<R>(buf: &mut R) -> Result<Self, String>
     where
         R: AsyncRead + std::marker::Unpin + std::marker::Send,
     {
-        buf.read_bytes().await
+        Ok(UnsizedByteArray(buf.read_bytes().await?))
     }
 }
 
 #[async_trait]
-impl McBufReadable for ByteArray {
+impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
     async fn read_into<R>(buf: &mut R) -> Result<Self, String>
     where
         R: AsyncRead + std::marker::Unpin + std::marker::Send,
     {
-        buf.read_byte_array().await
+        let length = buf.read_varint().await? as usize;
+        let mut contents = Vec::with_capacity(length);
+        for _ in 0..length {
+            contents.push(T::read_into(buf).await?);
+        }
+        Ok(contents)
     }
 }
 
@@ -414,22 +418,6 @@ impl McBufReadable for Option<GameType> {
         R: AsyncRead + std::marker::Unpin + std::marker::Send,
     {
         GameType::from_optional_id(buf.read_byte().await? as i8)
-    }
-}
-
-// Vec<ResourceLocation>
-#[async_trait]
-impl McBufReadable for Vec<ResourceLocation> {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let mut vec = Vec::new();
-        let length = buf.read_varint().await?;
-        for _ in 0..length {
-            vec.push(buf.read_resource_location().await?);
-        }
-        Ok(vec)
     }
 }
 

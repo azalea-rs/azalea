@@ -1,3 +1,4 @@
+use crate::mc_buf::UnsizedByteArray;
 use azalea_core::resource_location::ResourceLocation;
 use packet_macros::LoginPacket;
 use std::hash::Hash;
@@ -7,5 +8,5 @@ pub struct ClientboundCustomQueryPacket {
     #[varint]
     pub transaction_id: u32,
     pub identifier: ResourceLocation,
-    pub data: Vec<u8>,
+    pub data: UnsizedByteArray,
 }

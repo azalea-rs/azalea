@@ -1,5 +1,4 @@
-use super::MAX_STRING_LENGTH;
-use crate::mc_buf::ByteArray;
+use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use async_trait::async_trait;
 use azalea_chat::component::Component;
 use azalea_core::{
@@ -187,15 +186,17 @@ impl McBufVarintWritable for i32 {
     }
 }
 
-impl McBufWritable for Vec<u8> {
+impl McBufWritable for UnsizedByteArray {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         buf.write_bytes(self)
     }
 }
 
-impl McBufWritable for ByteArray {
+// TODO: use specialization when that gets stabilized into rust
+// to optimize for Vec<u8> byte arrays
+impl<T: McBufWritable> McBufWritable for Vec<T> {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        buf.write_byte_array(&self)
+        buf.write_list(self, |buf, i| T::write_into(i, buf))
     }
 }
 
@@ -301,15 +302,6 @@ impl McBufWritable for GameType {
 impl McBufWritable for Option<GameType> {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         buf.write_byte(GameType::to_optional_id(self) as u8)
-    }
-}
-
-// Vec<ResourceLocation>
-impl McBufWritable for Vec<ResourceLocation> {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        buf.write_list(self, |buf, resource_location| {
-            buf.write_resource_location(resource_location)
-        })
     }
 }
 

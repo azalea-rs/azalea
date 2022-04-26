@@ -1,13 +1,13 @@
 use std::hash::Hash;
 
 use super::LoginPacket;
-use crate::mc_buf::{ByteArray, Readable};
+use crate::mc_buf::Readable;
 
 #[derive(Hash, Clone, Debug)]
 pub struct ClientboundHelloPacket {
     pub server_id: String,
-    pub public_key: ByteArray,
-    pub nonce: ByteArray,
+    pub public_key: Vec<u8>,
+    pub nonce: Vec<u8>,
 }
 
 impl ClientboundHelloPacket {

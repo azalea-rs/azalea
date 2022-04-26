@@ -114,6 +114,9 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 GamePacket::ClientboundDisconnectPacket(p) => {
                     println!("Got login disconnect packet {:?}", p);
                 }
+                GamePacket::ClientboundUpdateRecipesPacket(p) => {
+                    println!("Got update recipes packet {:?}", p);
+                }
             },
             Err(e) => {
                 panic!("Error: {:?}", e);

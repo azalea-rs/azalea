@@ -54,33 +54,6 @@ impl McBufWritable for HashMap<ResourceLocation, Vec<Tags>> {
         Ok(())
     }
 }
-
-#[async_trait]
-impl McBufReadable for Vec<Tags> {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let tags_count = buf.read_varint().await? as usize;
-        let mut tags_vec = Vec::with_capacity(tags_count);
-        for _ in 0..tags_count {
-            let tags = Tags::read_into(buf).await?;
-            tags_vec.push(tags);
-        }
-        Ok(tags_vec)
-    }
-}
-
-impl McBufWritable for Vec<Tags> {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        buf.write_varint(self.len() as i32)?;
-        for tag in self {
-            tag.write_into(buf)?;
-        }
-        Ok(())
-    }
-}
-
 #[async_trait]
 impl McBufReadable for Tags {
     async fn read_into<R>(buf: &mut R) -> Result<Self, String>
