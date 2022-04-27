@@ -23,7 +23,6 @@ impl ClientboundDeclareCommandsPacket {
         buf: &mut T,
     ) -> Result<GamePacket, String> {
         let node_count = buf.read_varint().await?;
-        println!("node_count: {}", node_count);
         let mut nodes = Vec::with_capacity(node_count as usize);
         for _ in 0..node_count {
             let node = BrigadierNodeStub::read_into(buf).await?;
@@ -55,20 +54,16 @@ impl McBufReadable for BrigadierNodeStub {
         let is_executable = flags & 0x04 != 0;
         let has_redirect = flags & 0x08 != 0;
         let has_suggestions_type = flags & 0x10 != 0;
-        println!("flags: {}, node_type: {}, is_executable: {}, has_redirect: {}, has_suggestions_type: {}", flags, node_type, is_executable, has_redirect, has_suggestions_type);
 
         let children = buf.read_int_id_list().await?;
-        println!("children: {:?}", children);
         let redirect_node = if has_redirect {
             buf.read_varint().await?
         } else {
             0
         };
-        println!("redirect_node: {}", redirect_node);
 
         if node_type == 2 {
             let name = buf.read_utf().await?;
-            println!("name: {}", name);
 
             let resource_location = if has_suggestions_type {
                 Some(buf.read_resource_location().await?)

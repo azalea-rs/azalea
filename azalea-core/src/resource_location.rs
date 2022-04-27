@@ -1,6 +1,6 @@
 //! A resource, like minecraft:stone
 
-#[derive(Hash, Clone, Debug, PartialEq, Eq)]
+#[derive(Hash, Clone, PartialEq, Eq)]
 pub struct ResourceLocation {
     pub namespace: String,
     pub path: String,
@@ -32,6 +32,11 @@ impl ResourceLocation {
 }
 
 impl std::fmt::Display for ResourceLocation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.namespace, self.path)
+    }
+}
+impl std::fmt::Debug for ResourceLocation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}:{}", self.namespace, self.path)
     }

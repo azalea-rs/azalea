@@ -1,6 +1,4 @@
 //! Handle Minecraft authentication.
 
-pub mod game_profile;
 pub mod encryption;
-
-
+pub mod game_profile;

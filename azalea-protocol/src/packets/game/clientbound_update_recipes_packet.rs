@@ -25,14 +25,54 @@ pub struct ShapelessRecipe {
     ingredients: Vec<Ingredient>,
     result: Slot,
 }
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug)]
 pub struct ShapedRecipe {
-    width: u32,
-    height: u32,
+    // TODO: make own McBufReadable and McBufWritable for this
+    width: usize,
+    height: usize,
     group: String,
     ingredients: Vec<Ingredient>,
     result: Slot,
 }
+
+impl McBufWritable for ShapedRecipe {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_varint(self.width.try_into().unwrap())?;
+        buf.write_varint(self.height.try_into().unwrap())?;
+        buf.write_utf(&self.group)?;
+        for ingredient in &self.ingredients {
+            ingredient.write_into(buf)?;
+        }
+        self.result.write_into(buf)?;
+
+        Ok(())
+    }
+}
+#[async_trait]
+impl McBufReadable for ShapedRecipe {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        let width = buf.read_varint().await?.try_into().unwrap();
+        let height = buf.read_varint().await?.try_into().unwrap();
+        let group = buf.read_utf().await?;
+        let mut ingredients = Vec::with_capacity(width * height);
+        for _ in 0..width * height {
+            ingredients.push(Ingredient::read_into(buf).await?);
+        }
+        let result = Slot::read_into(buf).await?;
+
+        Ok(ShapedRecipe {
+            width,
+            height,
+            group,
+            ingredients,
+            result,
+        })
+    }
+}
+
 #[derive(Clone, Debug, McBufReadable, McBufWritable)]
 pub struct CookingRecipe {
     group: String,
@@ -78,6 +118,7 @@ pub enum RecipeData {
     Smoking(CookingRecipe),
     CampfireCooking(CookingRecipe),
     Stonecutting(StoneCuttingRecipe),
+    Smithing(SmithingRecipe),
 }
 
 #[derive(Clone, Debug, McBufReadable, McBufWritable)]
@@ -90,6 +131,7 @@ impl McBufWritable for Recipe {
         todo!()
     }
 }
+
 #[async_trait]
 impl McBufReadable for Recipe {
     async fn read_into<R>(buf: &mut R) -> Result<Self, String>
@@ -103,15 +145,77 @@ impl McBufReadable for Recipe {
         // if-else chain :(
         let data = if recipe_type == ResourceLocation::new("minecraft:crafting_shapeless").unwrap()
         {
-            let group = buf.read_utf().await?;
-            let ingredients = Vec::<Ingredient>::read_into(buf).await?;
-            let result = Slot::read_into(buf).await?;
-
-            RecipeData::CraftingShapeless(ShapelessRecipe {
-                group,
-                ingredients,
-                result,
-            })
+            RecipeData::CraftingShapeless(ShapelessRecipe::read_into(buf).await?)
+        } else if recipe_type == ResourceLocation::new("minecraft:crafting_shaped").unwrap() {
+            RecipeData::CraftingShaped(ShapedRecipe::read_into(buf).await?)
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_armordye").unwrap()
+        {
+            RecipeData::CraftingSpecialArmorDye
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_bookcloning").unwrap()
+        {
+            RecipeData::CraftingSpecialBookCloning
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_mapcloning").unwrap()
+        {
+            RecipeData::CraftingSpecialMapCloning
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_mapextending").unwrap()
+        {
+            RecipeData::CraftingSpecialMapExtending
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_firework_rocket").unwrap()
+        {
+            RecipeData::CraftingSpecialFireworkRocket
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_firework_star").unwrap()
+        {
+            RecipeData::CraftingSpecialFireworkStar
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_firework_star_fade").unwrap()
+        {
+            RecipeData::CraftingSpecialFireworkStarFade
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_repairitem").unwrap()
+        {
+            RecipeData::CraftingSpecialRepairItem
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_tippedarrow").unwrap()
+        {
+            RecipeData::CraftingSpecialTippedArrow
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_bannerduplicate").unwrap()
+        {
+            RecipeData::CraftingSpecialBannerDuplicate
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_banneraddpattern").unwrap()
+        {
+            RecipeData::CraftingSpecialBannerAddPattern
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_shielddecoration").unwrap()
+        {
+            RecipeData::CraftingSpecialShieldDecoration
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_shulkerboxcoloring").unwrap()
+        {
+            RecipeData::CraftingSpecialShulkerBoxColoring
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_suspiciousstew").unwrap()
+        {
+            RecipeData::CraftingSpecialSuspiciousStew
+        } else if recipe_type == ResourceLocation::new("minecraft:smelting").unwrap() {
+            RecipeData::Smelting(CookingRecipe::read_into(buf).await?)
+        } else if recipe_type == ResourceLocation::new("minecraft:blasting").unwrap() {
+            RecipeData::Blasting(CookingRecipe::read_into(buf).await?)
+        } else if recipe_type == ResourceLocation::new("minecraft:smoking").unwrap() {
+            RecipeData::Smoking(CookingRecipe::read_into(buf).await?)
+        } else if recipe_type == ResourceLocation::new("minecraft:campfire_cooking").unwrap() {
+            RecipeData::CampfireCooking(CookingRecipe::read_into(buf).await?)
+        } else if recipe_type == ResourceLocation::new("minecraft:stonecutting").unwrap() {
+            RecipeData::Stonecutting(StoneCuttingRecipe::read_into(buf).await?)
+        } else if recipe_type == ResourceLocation::new("minecraft:smithing").unwrap() {
+            RecipeData::Smithing(SmithingRecipe::read_into(buf).await?)
         } else {
             panic!("Unknown recipe type sent by server: {}", recipe_type);
         };

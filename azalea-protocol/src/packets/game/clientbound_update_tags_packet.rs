@@ -24,20 +24,16 @@ impl McBufReadable for HashMap<ResourceLocation, Vec<Tags>> {
     where
         R: AsyncRead + std::marker::Unpin + std::marker::Send,
     {
-        println!("reading tags!");
         let length = buf.read_varint().await? as usize;
-        println!("length: {}", length);
         let mut data = HashMap::with_capacity(length);
         for _ in 0..length {
             let tag_type = buf.read_resource_location().await?;
-            println!("read tag type {}", tag_type);
             let tags_count = buf.read_varint().await? as usize;
             let mut tags_vec = Vec::with_capacity(tags_count);
             for _ in 0..tags_count {
                 let tags = Tags::read_into(buf).await?;
                 tags_vec.push(tags);
             }
-            println!("tags: {} {:?}", tag_type, tags_vec);
             data.insert(tag_type, tags_vec);
         }
         Ok(data)
@@ -60,11 +56,8 @@ impl McBufReadable for Tags {
     where
         R: AsyncRead + std::marker::Unpin + std::marker::Send,
     {
-        println!("reading tags.");
         let name = buf.read_resource_location().await?;
-        println!("tags name: {}", name);
         let elements = buf.read_int_id_list().await?;
-        println!("elements: {:?}", elements);
         Ok(Tags { name, elements })
     }
 }

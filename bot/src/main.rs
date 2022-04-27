@@ -3,7 +3,7 @@ async fn main() {
     println!("Hello, world!");
 
     // let address = "95.111.249.143:10000";
-    let address = "localhost:52400";
+    let address = "localhost:57308";
     // let response = azalea_client::ping::ping_server(&address.try_into().unwrap())
     //     .await
     //     .unwrap();

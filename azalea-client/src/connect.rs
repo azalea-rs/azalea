@@ -122,6 +122,7 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 panic!("Error: {:?}", e);
             }
         }
+        println!();
     }
 
     Ok(())
