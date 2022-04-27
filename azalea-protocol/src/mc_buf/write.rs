@@ -42,6 +42,7 @@ pub trait Writable {
         location: &ResourceLocation,
     ) -> Result<(), std::io::Error>;
     fn write_float(&mut self, n: f32) -> Result<(), std::io::Error>;
+    fn write_double(&mut self, n: f64) -> Result<(), std::io::Error>;
 }
 
 #[async_trait]
@@ -150,6 +151,10 @@ impl Writable for Vec<u8> {
 
     fn write_float(&mut self, n: f32) -> Result<(), std::io::Error> {
         WriteBytesExt::write_f32::<BigEndian>(self, n)
+    }
+
+    fn write_double(&mut self, n: f64) -> Result<(), std::io::Error> {
+        WriteBytesExt::write_f64::<BigEndian>(self, n)
     }
 
     fn write_resource_location(
@@ -288,6 +293,13 @@ impl McBufWritable for i8 {
 impl McBufWritable for f32 {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         buf.write_float(*self)
+    }
+}
+
+// f64
+impl McBufWritable for f64 {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_double(*self)
     }
 }
 
