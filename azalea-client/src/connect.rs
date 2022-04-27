@@ -120,6 +120,9 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 GamePacket::ClientboundEntityEventPacket(p) => {
                     println!("Got entity event packet {:?}", p);
                 }
+                GamePacket::ClientboundRecipePacket(p) => {
+                    println!("Got recipe packet {:?}", p);
+                }
             },
             Err(e) => {
                 panic!("Error: {:?}", e);
