@@ -2,10 +2,12 @@ use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use async_trait::async_trait;
 use azalea_chat::component::Component;
 use azalea_core::{
-    difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation, Slot,
+    difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
+    serializable_uuid::SerializableUuid, Slot,
 };
 use byteorder::{BigEndian, WriteBytesExt};
 use std::io::Write;
+use uuid::Uuid;
 
 #[async_trait]
 pub trait Writable {
@@ -43,6 +45,7 @@ pub trait Writable {
     ) -> Result<(), std::io::Error>;
     fn write_float(&mut self, n: f32) -> Result<(), std::io::Error>;
     fn write_double(&mut self, n: f64) -> Result<(), std::io::Error>;
+    fn write_uuid(&mut self, uuid: &Uuid) -> Result<(), std::io::Error>;
 }
 
 #[async_trait]
@@ -162,6 +165,15 @@ impl Writable for Vec<u8> {
         location: &ResourceLocation,
     ) -> Result<(), std::io::Error> {
         self.write_utf(&location.to_string())
+    }
+
+    fn write_uuid(&mut self, uuid: &Uuid) -> Result<(), std::io::Error> {
+        let [a, b, c, d] = uuid.to_int_array();
+        a.write_into(self)?;
+        b.write_into(self)?;
+        c.write_into(self)?;
+        d.write_into(self)?;
+        Ok(())
     }
 }
 
@@ -317,6 +329,32 @@ impl McBufWritable for Option<GameType> {
     }
 }
 
+// Option<String>
+impl McBufWritable for Option<String> {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        if let Some(s) = self {
+            buf.write_boolean(true)?;
+            buf.write_utf(s)?;
+        } else {
+            buf.write_boolean(false)?;
+        };
+        Ok(())
+    }
+}
+
+// Option<Component>
+impl McBufWritable for Option<Component> {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        if let Some(s) = self {
+            buf.write_boolean(true)?;
+            s.write_into(buf)?;
+        } else {
+            buf.write_boolean(false)?;
+        };
+        Ok(())
+    }
+}
+
 // azalea_nbt::Tag
 impl McBufWritable for azalea_nbt::Tag {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
@@ -361,6 +399,15 @@ impl McBufWritable for Slot {
                 buf.write_nbt(&i.nbt)?;
             }
         }
+
+        Ok(())
+    }
+}
+
+// Slot
+impl McBufWritable for Uuid {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_uuid(self)?;
 
         Ok(())
     }

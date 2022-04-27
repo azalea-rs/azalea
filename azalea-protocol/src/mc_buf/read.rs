@@ -1,11 +1,12 @@
 use async_trait::async_trait;
 use azalea_chat::component::Component;
 use azalea_core::{
-    difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation, Slot,
-    SlotData,
+    difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
+    serializable_uuid::SerializableUuid, Slot, SlotData,
 };
 use serde::Deserialize;
 use tokio::io::{AsyncRead, AsyncReadExt};
+use uuid::Uuid;
 
 use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 
@@ -29,6 +30,7 @@ pub trait Readable {
     async fn read_short(&mut self) -> Result<i16, String>;
     async fn read_float(&mut self) -> Result<f32, String>;
     async fn read_double(&mut self) -> Result<f64, String>;
+    async fn read_uuid(&mut self) -> Result<Uuid, String>;
 }
 
 #[async_trait]
@@ -206,6 +208,15 @@ where
             Ok(r) => Ok(r),
             Err(_) => Err("Error reading double".to_string()),
         }
+    }
+
+    async fn read_uuid(&mut self) -> Result<Uuid, String> {
+        Ok(Uuid::from_int_array([
+            self.read_int().await? as u32,
+            self.read_int().await? as u32,
+            self.read_int().await? as u32,
+            self.read_int().await? as u32,
+        ]))
     }
 }
 
@@ -439,6 +450,37 @@ impl McBufReadable for Option<GameType> {
     }
 }
 
+// Option<String>
+#[async_trait]
+impl McBufReadable for Option<String> {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        let present = buf.read_boolean().await?;
+        Ok(if present {
+            Some(buf.read_utf().await?)
+        } else {
+            None
+        })
+    }
+}
+// Option<Component>
+#[async_trait]
+impl McBufReadable for Option<Component> {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        let present = buf.read_boolean().await?;
+        Ok(if present {
+            Some(Component::read_into(buf).await?)
+        } else {
+            None
+        })
+    }
+}
+
 // azalea_nbt::Tag
 #[async_trait]
 impl McBufReadable for azalea_nbt::Tag {
@@ -491,5 +533,16 @@ impl McBufReadable for Slot {
         let count = buf.read_byte().await?;
         let nbt = buf.read_nbt().await?;
         Ok(Slot::Present(SlotData { id, count, nbt }))
+    }
+}
+
+// Uuid
+#[async_trait]
+impl McBufReadable for Uuid {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_uuid().await
     }
 }

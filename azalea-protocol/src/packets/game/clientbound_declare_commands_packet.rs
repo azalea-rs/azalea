@@ -1,5 +1,5 @@
 use super::GamePacket;
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable};
+use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use async_trait::async_trait;
 use azalea_core::resource_location::ResourceLocation;
 use std::hash::Hash;
@@ -115,7 +115,7 @@ impl McBufReadable for BrigadierString {
 }
 impl McBufWritable for BrigadierString {
     fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        buf.write_i8(*self as i8);
+        buf.write_byte(*self as u8)?;
         Ok(())
     }
 }

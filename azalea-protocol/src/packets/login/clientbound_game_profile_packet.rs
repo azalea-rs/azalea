@@ -9,6 +9,7 @@ pub struct ClientboundGameProfilePacket {
     pub game_profile: GameProfile,
 }
 
+// TODO: add derives to GameProfile and have an impl McBufReadable/Writable for GameProfile
 impl ClientboundGameProfilePacket {
     pub fn get(self) -> LoginPacket {
         LoginPacket::ClientboundGameProfilePacket(self)
@@ -25,6 +26,7 @@ impl ClientboundGameProfilePacket {
     pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
         buf: &mut T,
     ) -> Result<LoginPacket, String> {
+        // TODO: we have a thing to read from the uuid now
         let uuid = Uuid::from_int_array([
             buf.read_int().await? as u32,
             buf.read_int().await? as u32,

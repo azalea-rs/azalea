@@ -5,6 +5,7 @@ pub mod clientbound_disconnect_packet;
 pub mod clientbound_entity_event_packet;
 pub mod clientbound_login_packet;
 pub mod clientbound_player_abilities_packet;
+pub mod clientbound_player_info_packet;
 pub mod clientbound_player_position_packet;
 pub mod clientbound_recipe_packet;
 pub mod clientbound_set_carried_item_packet;
@@ -25,6 +26,7 @@ declare_state_packets!(
         0x18: clientbound_custom_payload_packet::ClientboundCustomPayloadPacket,
         0x26: clientbound_login_packet::ClientboundLoginPacket,
         0x32: clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
+        0x36: clientbound_player_info_packet::ClientboundPlayerInfoPacket,
         0x38: clientbound_player_position_packet::ClientboundPlayerPositionPacket,
         0x39: clientbound_recipe_packet::ClientboundRecipePacket,
         0x48: clientbound_set_carried_item_packet::ClientboundSetCarriedItemPacket,

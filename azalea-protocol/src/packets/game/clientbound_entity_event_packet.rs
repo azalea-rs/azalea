@@ -1,4 +1,3 @@
-use azalea_core::{game_type::GameType, resource_location::ResourceLocation};
 use packet_macros::GamePacket;
 
 // we can't identify the status in azalea-protocol since they vary depending on the entity
