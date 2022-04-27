@@ -123,6 +123,10 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 GamePacket::ClientboundRecipePacket(p) => {
                     println!("Got recipe packet {:?}", p);
                 }
+                GamePacket::ClientboundPlayerPositionPacket(p) => {
+                    // TODO: reply with teleport confirm
+                    println!("Got player position packet {:?}", p);
+                }
             },
             Err(e) => {
                 panic!("Error: {:?}", e);
