@@ -9,4 +9,4 @@ pub struct ClientboundLevelChunkWithLightPacket {
     pub light_data: ClientboundLightUpdatePacketData,
 }
 
-struct ClientboundLevelChunkPacketData {}
+pub struct ClientboundLevelChunkPacketData {}
