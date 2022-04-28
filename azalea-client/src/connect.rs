@@ -130,6 +130,9 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 GamePacket::ClientboundPlayerInfoPacket(p) => {
                     println!("Got player info packet {:?}", p);
                 }
+                GamePacket::ClientboundSetChunkCacheCenterPacket(p) => {
+                    println!("Got chunk cache center packet {:?}", p);
+                }
             },
             Err(e) => {
                 panic!("Error: {:?}", e);

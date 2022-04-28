@@ -9,6 +9,7 @@ pub mod clientbound_player_info_packet;
 pub mod clientbound_player_position_packet;
 pub mod clientbound_recipe_packet;
 pub mod clientbound_set_carried_item_packet;
+pub mod clientbound_set_chunk_cache_center;
 pub mod clientbound_update_recipes_packet;
 pub mod clientbound_update_tags_packet;
 pub mod clientbound_update_view_distance_packet;
@@ -30,6 +31,7 @@ declare_state_packets!(
         0x38: clientbound_player_position_packet::ClientboundPlayerPositionPacket,
         0x39: clientbound_recipe_packet::ClientboundRecipePacket,
         0x48: clientbound_set_carried_item_packet::ClientboundSetCarriedItemPacket,
+        0x49: clientbound_set_chunk_cache_center::ClientboundSetChunkCacheCenterPacket,
         0x4a: clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket,
         0x66: clientbound_update_recipes_packet::ClientboundUpdateRecipesPacket,
         0x67: clientbound_update_tags_packet::ClientboundUpdateTagsPacket
