@@ -31,6 +31,7 @@ pub struct PlayerProperty {
 #[derive(Clone, Debug, McBufReadable, McBufWritable)]
 pub struct AddPlayer {
     uuid: Uuid,
+    name: String,
     properties: Vec<PlayerProperty>,
     #[varint]
     gamemode: u32,
