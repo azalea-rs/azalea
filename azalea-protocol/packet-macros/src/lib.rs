@@ -54,7 +54,7 @@ pub fn derive_mcbufreadable(input: TokenStream) -> TokenStream {
     impl crate::mc_buf::McBufReadable for #ident {
         async fn read_into<R>(buf: &mut R) -> Result<Self, String>
         where
-            R: AsyncRead + std::marker::Unpin + std::marker::Send,
+            R: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send,
         {
             #(#read_fields)*
             Ok(#ident {

@@ -4,12 +4,14 @@ mod read;
 mod write;
 
 pub use read::{McBufReadable, McBufVarintReadable, Readable};
-use std::ops::Deref;
+use std::ops::{Deref, Index};
 pub use write::{McBufVarintWritable, McBufWritable, Writable};
 
 // const DEFAULT_NBT_QUOTA: u32 = 2097152;
 const MAX_STRING_LENGTH: u16 = 32767;
 // const MAX_COMPONENT_STRING_LENGTH: u32 = 262144;
+
+// TODO: have a definitions.rs in mc_buf that contains UnsizedByteArray and BitSet
 
 /// A Vec<u8> that isn't prefixed by a VarInt with the size.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -26,6 +28,20 @@ impl Deref for UnsizedByteArray {
 impl From<Vec<u8>> for UnsizedByteArray {
     fn from(vec: Vec<u8>) -> Self {
         Self(vec)
+    }
+}
+
+/** Represents Java's BitSet, a list of bits. */
+pub struct BitSet {
+    data: Vec<u64>,
+}
+
+impl Index<usize> for BitSet {
+    type Output = bool;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        let result = (self.data[index / 64] & (1u64 << (index % 64))) != 0;
+        &result
     }
 }
 
