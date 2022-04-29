@@ -14,7 +14,7 @@ pub struct ClientboundLevelChunkWithLightPacket {
 pub struct ClientboundLevelChunkPacketData {
     heightmaps: azalea_nbt::Tag,
     data: Vec<u8>,
-    block_entities: BlockEntity,
+    block_entities: Vec<BlockEntity>,
 }
 
 #[derive(Clone, Debug, McBufReadable, McBufWritable)]

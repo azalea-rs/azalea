@@ -100,7 +100,7 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                     println!("Got difficulty packet {:?}", p);
                 }
                 GamePacket::ClientboundDeclareCommandsPacket(p) => {
-                    println!("Got declare commands packet {:?}", p);
+                    println!("Got declare commands packet");
                 }
                 GamePacket::ClientboundPlayerAbilitiesPacket(p) => {
                     println!("Got player abilities packet {:?}", p);
@@ -109,19 +109,19 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                     println!("Got set carried item packet {:?}", p);
                 }
                 GamePacket::ClientboundUpdateTagsPacket(p) => {
-                    println!("Got update tags packet {:?}", p);
+                    println!("Got update tags packet");
                 }
                 GamePacket::ClientboundDisconnectPacket(p) => {
                     println!("Got login disconnect packet {:?}", p);
                 }
                 GamePacket::ClientboundUpdateRecipesPacket(p) => {
-                    println!("Got update recipes packet {:?}", p);
+                    println!("Got update recipes packet");
                 }
                 GamePacket::ClientboundEntityEventPacket(p) => {
                     println!("Got entity event packet {:?}", p);
                 }
                 GamePacket::ClientboundRecipePacket(p) => {
-                    println!("Got recipe packet {:?}", p);
+                    println!("Got recipe packet");
                 }
                 GamePacket::ClientboundPlayerPositionPacket(p) => {
                     // TODO: reply with teleport confirm
@@ -132,6 +132,12 @@ pub async fn join_server(address: &ServerAddress) -> Result<(), String> {
                 }
                 GamePacket::ClientboundSetChunkCacheCenterPacket(p) => {
                     println!("Got chunk cache center packet {:?}", p);
+                }
+                GamePacket::ClientboundLevelChunkWithLightPacket(p) => {
+                    println!("Got chunk with light packet");
+                }
+                GamePacket::ClientboundLightUpdatePacket(p) => {
+                    println!("Got light update packet {:?}", p);
                 }
             },
             Err(e) => {

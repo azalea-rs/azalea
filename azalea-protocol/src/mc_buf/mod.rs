@@ -3,6 +3,7 @@
 mod read;
 mod write;
 
+use packet_macros::{McBufReadable, McBufWritable};
 pub use read::{McBufReadable, McBufVarintReadable, Readable};
 use std::ops::{Deref, Index};
 pub use write::{McBufVarintWritable, McBufWritable, Writable};
@@ -31,17 +32,16 @@ impl From<Vec<u8>> for UnsizedByteArray {
     }
 }
 
-/** Represents Java's BitSet, a list of bits. */
+/// Represents Java's BitSet, a list of bits.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, McBufReadable, McBufWritable)]
 pub struct BitSet {
     data: Vec<u64>,
 }
 
-impl Index<usize> for BitSet {
-    type Output = bool;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        let result = (self.data[index / 64] & (1u64 << (index % 64))) != 0;
-        &result
+// the Index trait requires us to return a reference, but we can't do that
+impl BitSet {
+    pub fn index(&self, index: usize) -> bool {
+        (self.data[index / 64] & (1u64 << (index % 64))) != 0
     }
 }
 

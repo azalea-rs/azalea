@@ -8,7 +8,7 @@ use serde::Deserialize;
 use tokio::io::{AsyncRead, AsyncReadExt};
 use uuid::Uuid;
 
-use super::{UnsizedByteArray, MAX_STRING_LENGTH};
+use super::{BitSet, UnsizedByteArray, MAX_STRING_LENGTH};
 
 #[async_trait]
 pub trait Readable {

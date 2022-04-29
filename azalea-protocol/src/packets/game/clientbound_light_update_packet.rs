@@ -1,6 +1,6 @@
 use crate::mc_buf::BitSet;
 use azalea_core::{game_type::GameType, resource_location::ResourceLocation};
-use packet_macros::GamePacket;
+use packet_macros::{GamePacket, McBufReadable, McBufWritable};
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundLightUpdatePacket {
@@ -16,7 +16,6 @@ pub struct ClientboundLightUpdatePacketData {
     block_y_mask: BitSet,
     empty_sky_y_mask: BitSet,
     empty_block_y_mask: BitSet,
-    sky_updates: Vec<>,
-    block_updates: BitSet,
-
+    sky_updates: Vec<Vec<u8>>,
+    block_updates: Vec<Vec<u8>>,
 }
