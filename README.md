@@ -17,15 +17,15 @@ I named this Azalea because it sounds like a cool word and this is a cool librar
 Note that this doesn't work yet, it's just how I want the API to look.
 
 ```rs
-use azalea::{Bot, Event};
+use azalea::{Account, Event};
 
-let bot = Bot::offline("bot");
-// or let bot = azalea::Bot::microsoft("access token").await;
+let account = Account::offline("bot");
+// or let account = azalea::Account::microsoft("access token").await;
 
-bot.join("localhost".try_into().unwrap()).await.unwrap();
+let bot = account.join("localhost".try_into().unwrap()).await.unwrap();
 
 loop {
-    match bot.recv().await {
+    match bot.next().await {
         Event::Message(m) {
             if m.username == bot.username { return };
             bot.chat(m.message).await;
@@ -42,17 +42,17 @@ loop {
 You can use the `azalea::Bots` struct to control many bots as one unit.
 
 ```rs
-use azalea::{Bot, Bots, Event, pathfinder};
+use azalea::{Account, Accounts, Event, pathfinder};
 
 #[tokio::main]
 async fn main() {
-    let bots = Bots::new();
+    let accounts = Accounts::new();
 
     for i in 0..10 {
-        bots.add(Bot::offline(format!("bot{}", i)));
+        accounts.add(Account::offline(format!("bot{}", i)));
     }
 
-    bots.join("localhost".try_into().unwrap()).await.unwrap();
+    let bots = accounts.join("localhost".try_into().unwrap()).await.unwrap();
 
     bots.goto(pathfinder::GotoGoal(azalea::BlockCoord(0, 70, 0))).await;
 

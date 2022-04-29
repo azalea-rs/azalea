@@ -8,3 +8,4 @@ version = "0.1.0"
 [dependencies]
 azalea-auth = {path = "../azalea-auth"}
 azalea-protocol = {path = "../azalea-protocol"}
+tokio = {version = "1.18.0", features = ["sync"]}

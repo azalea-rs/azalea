@@ -3,15 +3,17 @@ async fn main() {
     println!("Hello, world!");
 
     // let address = "95.111.249.143:10000";
-    // let address = "localhost:52467";
-    let address = "localhost:25566";
+    let address = "localhost:53193";
     // let response = azalea_client::ping::ping_server(&address.try_into().unwrap())
     //     .await
     //     .unwrap();
 
     // println!("{}", response.description.to_ansi(None));
-    let _response = azalea_client::connect::join_server(&address.try_into().unwrap())
-        .await
-        .unwrap();
+    let account = azalea_client::Account::offline("bot");
+    let client = account.join(&address.try_into().unwrap()).await.unwrap();
     println!("connected");
+
+    // loop {
+    // match client.next().await {}
+    // }
 }

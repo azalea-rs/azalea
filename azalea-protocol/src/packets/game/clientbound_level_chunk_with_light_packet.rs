@@ -13,6 +13,7 @@ pub struct ClientboundLevelChunkWithLightPacket {
 #[derive(Clone, Debug, McBufReadable, McBufWritable)]
 pub struct ClientboundLevelChunkPacketData {
     heightmaps: azalea_nbt::Tag,
+    // we can't parse the data in azalea-protocol because it dependso on context from other packets
     data: Vec<u8>,
     block_entities: Vec<BlockEntity>,
 }

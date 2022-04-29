@@ -1,7 +1,9 @@
 //! Significantly abstract azalea-protocol so it's actually useable for bots.
 
-pub mod connect;
+mod connect;
 pub mod ping;
+
+pub use connect::{Account, ServerClient};
 
 #[cfg(test)]
 mod tests {
