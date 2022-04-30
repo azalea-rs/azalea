@@ -3,7 +3,7 @@
 mod connect;
 pub mod ping;
 
-pub use connect::{Account, ServerClient};
+pub use connect::{Account, Client, Event};
 
 #[cfg(test)]
 mod tests {

@@ -11,15 +11,16 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use futures::FutureExt;
 use std::{
     borrow::BorrowMut,
     cell::RefCell,
     future::Future,
     pin::Pin,
-    sync::{Arc, Mutex, Weak},
+    rc::Rc,
+    sync::{Arc, Weak},
 };
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
+use tokio::sync::Mutex;
 
 ///! Connect to Minecraft servers.
 
@@ -36,14 +37,18 @@ pub struct ClientState {
 /// A player that you can control that is currently in a Minecraft server.
 pub struct Client {
     event_receiver: UnboundedReceiver<Event>,
-    conn: GameConnection,
-    state: ClientState,
+    conn: Arc<Mutex<GameConnection>>,
+    state: Arc<Mutex<ClientState>>,
+    // game_loop
 }
 
-pub enum Event {}
+#[derive(Debug, Clone)]
+pub enum Event {
+    Login,
+}
 
 impl Client {
-    async fn join(account: &Account, address: &ServerAddress) -> Result<Arc<Mutex<Self>>, String> {
+    async fn join(account: &Account, address: &ServerAddress) -> Result<Self, String> {
         let resolved_address = resolver::resolve_address(address).await?;
 
         let mut conn = HandshakeConnection::new(&resolved_address).await?;
@@ -116,47 +121,55 @@ impl Client {
             }
         };
 
+        let conn = Arc::new(Mutex::new(conn));
+
         let (tx, rx) = mpsc::unbounded_channel();
 
         // we got the GameConnection, so the server is now connected :)
         let client = Client {
             event_receiver: rx,
-            conn,
-            state: ClientState { health: 20 },
+            conn: conn.clone(),
+            state: Arc::new(Mutex::new(ClientState { health: 20 })),
         };
         // let client = Arc::new(Mutex::new(client));
         // let weak_client = Arc::<_>::downgrade(&client);
 
         // just start up the game loop and we're ready!
-        // tokio::spawn(Self::game_loop(weak_client, tx));
+        // tokio::spawn(Self::game_loop(conn, tx, handler, state))
+
+        let game_loop_conn = conn.clone();
+        let game_loop_state = client.state.clone();
+
+        tokio::spawn(async move { Self::game_loop(game_loop_conn, tx, game_loop_state).await });
 
         Ok(client)
     }
 
-    // async fn game_loop(weak_client: Weak<Mutex<Client>>, tx: UnboundedSender<Event>) {
-    //     loop {
-    //         let client_option = weak_client.upgrade();
-    //         match client_option {
-    //             Some(client) => {
-    //                 let mut client = client.lock().unwrap();
+    async fn game_loop(
+        conn: Arc<Mutex<GameConnection>>,
+        tx: UnboundedSender<Event>,
+        state: Arc<Mutex<ClientState>>,
+    ) {
+        loop {
+            let r = conn.lock().await.read().await;
+            match r {
+                Ok(packet) => Self::handle(&packet, &tx, &state).await,
+                Err(e) => {
+                    panic!("Error: {:?}", e);
+                }
+            };
+        }
+    }
 
-    //                 match client.conn.read().await {
-    //                     Ok(packet) => client.handle(&packet, &tx),
-    //                     Err(e) => {
-    //                         panic!("Error: {:?}", e);
-    //                     }
-    //                 };
-    //             }
-    //             // the client was dropped, so we're done
-    //             None => break,
-    //         }
-    //     }
-    // }
-
-    fn handle(&self, packet: &GamePacket, tx: &UnboundedSender<Event>) {
+    async fn handle(
+        packet: &GamePacket,
+        tx: &UnboundedSender<Event>,
+        state: &Arc<Mutex<ClientState>>,
+    ) {
         match packet {
             GamePacket::ClientboundLoginPacket(p) => {
                 println!("Got login packet {:?}", p);
+                tx.send(Event::Login).unwrap();
             }
             GamePacket::ClientboundUpdateViewDistancePacket(p) => {
                 println!("Got view distance packet {:?}", p);
@@ -223,7 +236,7 @@ impl Account {
         }
     }
 
-    pub async fn join(&self, address: &ServerAddress) -> Result<Arc<Mutex<Client>>, String> {
+    pub async fn join(&self, address: &ServerAddress) -> Result<Client, String> {
         Client::join(&self, address).await
     }
 }

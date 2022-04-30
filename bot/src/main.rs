@@ -1,3 +1,5 @@
+use azalea_client::{Account, Event};
+
 #[tokio::main]
 async fn main() {
     println!("Hello, world!");
@@ -9,11 +11,15 @@ async fn main() {
     //     .unwrap();
 
     // println!("{}", response.description.to_ansi(None));
-    let account = azalea_client::Account::offline("bot");
-    let client = account.join(&address.try_into().unwrap()).await.unwrap();
+    let account = Account::offline("bot");
+    let mut client = account.join(&address.try_into().unwrap()).await.unwrap();
     println!("connected");
 
-    // loop {
-    // match client.next().await {}
-    // }
+    while let Some(e) = client.next().await {
+        match e {
+            Event::Login => {}
+        }
+    }
+
+    println!("done");
 }
