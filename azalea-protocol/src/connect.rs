@@ -7,7 +7,7 @@ use crate::packets::status::StatusPacket;
 use crate::read::read_packet;
 use crate::write::write_packet;
 use crate::ServerIpAddress;
-use azalea_auth::encryption::Aes128Cfb;
+use azalea_auth::encryption::{Aes128CfbDec, Aes128CfbEnc};
 use tokio::net::TcpStream;
 
 pub enum PacketFlow {
@@ -26,7 +26,8 @@ pub struct GameConnection {
     /// The buffered writer
     pub stream: TcpStream,
     pub compression_threshold: Option<u32>,
-    pub cipher: Option<Aes128Cfb>,
+    pub enc_cipher: Option<Aes128CfbEnc>,
+    pub dec_cipher: Option<Aes128CfbDec>,
 }
 
 pub struct StatusConnection {
@@ -40,7 +41,8 @@ pub struct LoginConnection {
     /// The buffered writer
     pub stream: TcpStream,
     pub compression_threshold: Option<u32>,
-    pub cipher: Option<Aes128Cfb>,
+    pub enc_cipher: Option<Aes128CfbEnc>,
+    pub dec_cipher: Option<Aes128CfbDec>,
 }
 
 impl HandshakeConnection {
@@ -68,7 +70,8 @@ impl HandshakeConnection {
             flow: self.flow,
             stream: self.stream,
             compression_threshold: None,
-            cipher: None,
+            enc_cipher: None,
+            dec_cipher: None,
         }
     }
 
@@ -95,7 +98,7 @@ impl GameConnection {
             &self.flow,
             &mut self.stream,
             self.compression_threshold,
-            &mut self.cipher,
+            &mut self.dec_cipher,
         )
         .await
     }
@@ -106,7 +109,7 @@ impl GameConnection {
             packet,
             &mut self.stream,
             self.compression_threshold,
-            &mut self.cipher,
+            &mut self.enc_cipher,
         )
         .await;
     }
@@ -129,7 +132,7 @@ impl LoginConnection {
             &self.flow,
             &mut self.stream,
             self.compression_threshold,
-            &mut self.cipher,
+            &mut self.dec_cipher,
         )
         .await
     }
@@ -140,7 +143,7 @@ impl LoginConnection {
             packet,
             &mut self.stream,
             self.compression_threshold,
-            &mut self.cipher,
+            &mut self.enc_cipher,
         )
         .await;
     }
@@ -156,8 +159,9 @@ impl LoginConnection {
 
     pub fn set_encryption_key(&mut self, key: [u8; 16]) {
         // minecraft has a cipher decoder and encoder, i don't think it matters though?
-        let cipher = azalea_auth::encryption::create_cipher(&key);
-        self.cipher = Some(cipher);
+        let (enc_cipher, dec_cipher) = azalea_auth::encryption::create_cipher(&key);
+        self.enc_cipher = Some(enc_cipher);
+        self.dec_cipher = Some(dec_cipher);
     }
 
     pub fn game(self) -> GameConnection {
@@ -165,7 +169,8 @@ impl LoginConnection {
             flow: self.flow,
             stream: self.stream,
             compression_threshold: self.compression_threshold,
-            cipher: self.cipher,
+            enc_cipher: self.enc_cipher,
+            dec_cipher: self.dec_cipher,
         }
     }
 }

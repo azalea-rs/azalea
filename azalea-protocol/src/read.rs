@@ -2,7 +2,7 @@ use std::{cell::Cell, pin::Pin};
 
 use crate::{connect::PacketFlow, mc_buf::Readable, packets::ProtocolPacket};
 use async_compression::tokio::bufread::ZlibDecoder;
-use azalea_auth::encryption::Aes128Cfb;
+use azalea_auth::encryption::Aes128CfbDec;
 use tokio::io::{AsyncRead, AsyncReadExt};
 
 async fn frame_splitter<R: ?Sized>(mut stream: &mut R) -> Result<Vec<u8>, String>
@@ -97,7 +97,7 @@ struct EncryptedStream<'a, R>
 where
     R: AsyncRead + std::marker::Unpin + std::marker::Send,
 {
-    cipher: Cell<&'a mut Option<Aes128Cfb>>,
+    cipher: Cell<&'a mut Option<Aes128CfbDec>>,
     stream: &'a mut Pin<&'a mut R>,
 }
 
@@ -133,7 +133,7 @@ pub async fn read_packet<'a, P: ProtocolPacket, R>(
     flow: &PacketFlow,
     stream: &'a mut R,
     compression_threshold: Option<u32>,
-    cipher: &mut Option<Aes128Cfb>,
+    cipher: &mut Option<Aes128CfbDec>,
 ) -> Result<P, String>
 where
     R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,

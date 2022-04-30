@@ -1,8 +1,9 @@
 use crate::{mc_buf::Writable, packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSED_LENGTH};
 use async_compression::tokio::bufread::ZlibEncoder;
-use azalea_auth::encryption::Aes128Cfb;
+use azalea_auth::encryption::Aes128CfbEnc;
+use std::fmt::Debug;
 use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
+    io::{AsyncReadExt, AsyncWrite, AsyncWriteExt},
     net::TcpStream,
 };
 
@@ -51,13 +52,14 @@ async fn compression_encoder(data: &[u8], compression_threshold: u32) -> Result<
     }
 }
 
-pub async fn write_packet<P>(
+pub async fn write_packet<P, W>(
     packet: P,
-    stream: &mut TcpStream,
+    stream: &mut W,
     compression_threshold: Option<u32>,
-    cipher: &mut Option<Aes128Cfb>,
+    cipher: &mut Option<Aes128CfbEnc>,
 ) where
-    P: ProtocolPacket + std::fmt::Debug,
+    P: ProtocolPacket + Debug,
+    W: AsyncWrite + Unpin + Send,
 {
     let mut buf = packet_encoder(&packet).unwrap();
     if let Some(threshold) = compression_threshold {

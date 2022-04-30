@@ -1,8 +1,11 @@
+use aes::cipher::inout::InOutBuf;
+use aes::cipher::BlockEncrypt;
 use aes::{
-    cipher::{AsyncStreamCipher, NewCipher},
+    cipher::{
+        generic_array::GenericArray, AsyncStreamCipher, BlockDecryptMut, BlockEncryptMut, KeyIvInit,
+    },
     Aes128,
 };
-use cfb8::Cfb8;
 use rand::{rngs::OsRng, RngCore};
 use sha1::{Digest, Sha1};
 
@@ -57,17 +60,26 @@ pub fn encrypt(public_key: &[u8], nonce: &[u8]) -> Result<EncryptResult, String>
 }
 
 // TODO: update the aes and cfb8 crates
-pub type Aes128Cfb = Cfb8<Aes128>;
+pub type Aes128CfbEnc = cfb8::Encryptor<Aes128>;
+pub type Aes128CfbDec = cfb8::Decryptor<Aes128>;
 
-pub fn create_cipher(key: &[u8]) -> Aes128Cfb {
-    Aes128Cfb::new_from_slices(&key, &key).unwrap()
+pub fn create_cipher(key: &[u8]) -> (Aes128CfbEnc, Aes128CfbDec) {
+    (
+        Aes128CfbEnc::new_from_slices(key, key).unwrap(),
+        Aes128CfbDec::new_from_slices(key, key).unwrap(),
+    )
 }
 
-pub fn encrypt_packet(cipher: &mut Aes128Cfb, packet: &mut [u8]) {
-    cipher.encrypt(packet);
+// wow this is terrible
+pub fn encrypt_packet(cipher: &mut Aes128CfbEnc, packet: &mut [u8]) {
+    let (chunks, rest) = InOutBuf::from(packet).into_chunks();
+    assert!(rest.is_empty());
+    cipher.encrypt_blocks_inout_mut(chunks);
 }
-pub fn decrypt_packet(cipher: &mut Aes128Cfb, packet: &mut [u8]) {
-    cipher.decrypt(packet);
+pub fn decrypt_packet(cipher: &mut Aes128CfbDec, packet: &mut [u8]) {
+    let (chunks, rest) = InOutBuf::from(packet).into_chunks();
+    assert!(rest.is_empty());
+    cipher.decrypt_blocks_inout_mut(chunks);
 }
 
 #[cfg(test)]
