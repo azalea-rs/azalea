@@ -10,3 +10,6 @@ members = [
   "azalea-nbt",
   "azalea-brigadier",
 ]
+
+[profile.release]
+debug = true

@@ -73,11 +73,10 @@ impl Client {
             match packet_result {
                 Ok(packet) => match packet {
                     LoginPacket::ClientboundHelloPacket(p) => {
-                        println!("Got encryption request {:?} {:?}", p.nonce, p.public_key);
+                        println!("Got encryption request");
                         let e = azalea_auth::encryption::encrypt(&p.public_key, &p.nonce).unwrap();
 
                         // TODO: authenticate with the server here (authenticateServer)
-                        println!("Sending encryption response {:?}", e);
 
                         conn.write(
                             ServerboundKeyPacket {
