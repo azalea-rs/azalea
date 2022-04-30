@@ -215,7 +215,7 @@ impl Client {
                 println!("Got chunk cache center packet {:?}", p);
             }
             GamePacket::ClientboundLevelChunkWithLightPacket(p) => {
-                println!("Got chunk with light packet");
+                println!("Got chunk with light packet {} {}", p.x, p.z);
             }
             GamePacket::ClientboundLightUpdatePacket(p) => {
                 println!("Got light update packet {:?}", p);

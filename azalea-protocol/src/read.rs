@@ -149,7 +149,11 @@ where
     if let Some(compression_threshold) = compression_threshold {
         buf = compression_decoder(&mut buf.as_slice(), compression_threshold).await?;
     }
+
+    let start_time = std::time::Instant::now();
+    println!("decoding packet");
     let packet = packet_decoder(&mut buf.as_slice(), flow).await?;
+    println!("decoded packet in {}ms", start_time.elapsed().as_millis());
 
     Ok(packet)
 }

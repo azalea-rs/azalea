@@ -272,7 +272,7 @@ impl McBufReadable for UnsizedByteArray {
 
 #[async_trait]
 impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    default async fn read_into<R>(buf: &mut R) -> Result<Self, String>
     where
         R: AsyncRead + std::marker::Unpin + std::marker::Send,
     {
@@ -282,6 +282,16 @@ impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
             contents.push(T::read_into(buf).await?);
         }
         Ok(contents)
+    }
+}
+
+#[async_trait]
+impl McBufReadable for Vec<u8> {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_byte_array().await
     }
 }
 
