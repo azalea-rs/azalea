@@ -118,8 +118,12 @@ where
         let polled = self.as_mut().stream.as_mut().poll_read(cx, buf);
         match polled {
             Poll::Ready(r) => {
-                if let Some(cipher) = self.as_mut().cipher.get_mut() {
-                    azalea_auth::encryption::decrypt_packet(cipher, buf.initialized_mut());
+                // if we don't check for the remaining then we decrypt big packets incorrectly
+                // (but only on linux and release mode for some reason LMAO)
+                if buf.remaining() == 0 {
+                    if let Some(cipher) = self.as_mut().cipher.get_mut() {
+                        azalea_auth::encryption::decrypt_packet(cipher, buf.filled_mut());
+                    }
                 }
                 match r {
                     Ok(()) => Poll::Ready(Ok(())),
