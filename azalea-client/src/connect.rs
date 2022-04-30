@@ -11,14 +11,7 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use std::{
-    borrow::BorrowMut,
-    cell::RefCell,
-    future::Future,
-    pin::Pin,
-    rc::Rc,
-    sync::{Arc, Weak},
-};
+use std::sync::Arc;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use tokio::sync::Mutex;
 
@@ -88,8 +81,8 @@ impl Client {
 
                         conn.write(
                             ServerboundKeyPacket {
-                                nonce: e.encrypted_nonce.into(),
-                                shared_secret: e.encrypted_public_key.into(),
+                                nonce: e.encrypted_nonce,
+                                shared_secret: e.encrypted_public_key,
                             }
                             .get(),
                         )
@@ -237,6 +230,6 @@ impl Account {
     }
 
     pub async fn join(&self, address: &ServerAddress) -> Result<Client, String> {
-        Client::join(&self, address).await
+        Client::join(self, address).await
     }
 }

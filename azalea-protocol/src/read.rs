@@ -1,4 +1,8 @@
-use std::{cell::Cell, pin::Pin};
+use std::{
+    cell::Cell,
+    pin::Pin,
+    task::{Context, Poll},
+};
 
 use crate::{connect::PacketFlow, mc_buf::Readable, packets::ProtocolPacket};
 use async_compression::tokio::bufread::ZlibDecoder;
@@ -35,13 +39,13 @@ where
 {
     // Packet ID
     let packet_id = stream.read_varint().await?;
-    Ok(P::read(packet_id.try_into().unwrap(), flow, stream).await?)
+    P::read(packet_id.try_into().unwrap(), flow, stream).await
 }
 
 // this is always true in multiplayer, false in singleplayer
 static VALIDATE_DECOMPRESSED: bool = true;
 
-pub static MAXIMUM_UNCOMPRESSED_LENGTH: u32 = 8388608;
+pub static MAXIMUM_UNCOMPRESSED_LENGTH: u32 = 2097152;
 
 async fn compression_decoder<R>(
     stream: &mut R,
@@ -103,28 +107,26 @@ where
 
 impl<R> AsyncRead for EncryptedStream<'_, R>
 where
-    R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    R: AsyncRead + Unpin + Send,
 {
     fn poll_read(
         mut self: Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
+        cx: &mut Context<'_>,
         buf: &mut tokio::io::ReadBuf<'_>,
-    ) -> std::task::Poll<std::io::Result<()>> {
+    ) -> Poll<std::io::Result<()>> {
         // i hate this
         let polled = self.as_mut().stream.as_mut().poll_read(cx, buf);
         match polled {
-            std::task::Poll::Ready(r) => {
+            Poll::Ready(r) => {
                 if let Some(cipher) = self.as_mut().cipher.get_mut() {
                     azalea_auth::encryption::decrypt_packet(cipher, buf.initialized_mut());
                 }
                 match r {
-                    Ok(()) => std::task::Poll::Ready(Ok(())),
+                    Ok(()) => Poll::Ready(Ok(())),
                     Err(e) => panic!("{:?}", e),
                 }
             }
-            std::task::Poll::Pending => {
-                return std::task::Poll::Pending;
-            }
+            Poll::Pending => Poll::Pending,
         }
     }
 }

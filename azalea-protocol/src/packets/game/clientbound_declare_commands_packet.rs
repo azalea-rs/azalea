@@ -76,7 +76,7 @@ impl<T: McBufWritable> McBufWritable for BrigadierNumber<T> {
         if self.max.is_some() {
             flags |= 0x02;
         }
-        buf.write_i8(flags);
+        buf.write_byte(flags)?;
         if let Some(min) = &self.min {
             min.write_into(buf)?;
         }
