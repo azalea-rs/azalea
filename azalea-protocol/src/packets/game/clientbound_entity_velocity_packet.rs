@@ -1,10 +1,4 @@
-use async_trait::async_trait;
-use azalea_chat::component::Component;
-use azalea_core::{resource_location::ResourceLocation, Slot};
-use packet_macros::{GamePacket, McBufReadable, McBufWritable};
-use tokio::io::AsyncRead;
-
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use packet_macros::GamePacket;
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundEntityVelocityPacket {

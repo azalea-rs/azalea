@@ -16,6 +16,7 @@ pub mod clientbound_recipe_packet;
 pub mod clientbound_set_carried_item_packet;
 pub mod clientbound_set_chunk_cache_center;
 pub mod clientbound_set_entity_data_packet;
+pub mod clientbound_set_entity_link_packet;
 pub mod clientbound_update_attributes_packet;
 pub mod clientbound_update_recipes_packet;
 pub mod clientbound_update_tags_packet;
@@ -48,6 +49,7 @@ declare_state_packets!(
         0x49: clientbound_set_chunk_cache_center::ClientboundSetChunkCacheCenterPacket,
         0x4a: clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket,
         0x4d: clientbound_set_entity_data_packet::ClientboundSetEntityDataPacket,
+        0x45: clientbound_set_entity_link_packet::ClientboundSetEntityLinkPacket,
         0x4f: clientbound_entity_velocity_packet::ClientboundEntityVelocityPacket,
         0x64: clientbound_update_attributes_packet::ClientboundUpdateAttributesPacket,
         0x66: clientbound_update_recipes_packet::ClientboundUpdateRecipesPacket,

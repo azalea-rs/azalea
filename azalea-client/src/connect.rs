@@ -252,6 +252,9 @@ impl Client {
             GamePacket::ClientboundEntityVelocityPacket(p) => {
                 println!("Got entity velocity packet {:?}", p);
             }
+            GamePacket::ClientboundSetEntityLinkPacket(p) => {
+                println!("Got set entity link packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
         println!();
