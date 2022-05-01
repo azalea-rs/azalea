@@ -43,6 +43,8 @@ pub enum Event {
     Login,
 }
 
+const IGNORE_ERRORS: bool = false;
+
 impl Client {
     async fn join(account: &Account, address: &ServerAddress) -> Result<Self, String> {
         let resolved_address = resolver::resolve_address(address).await?;
@@ -147,9 +149,13 @@ impl Client {
             match r {
                 Ok(packet) => Self::handle(&packet, &tx, &state, &conn).await,
                 Err(e) => {
-                    println!("Error: {:?}", e);
-                    if e == "length wider than 21-bit" {
-                        panic!();
+                    if IGNORE_ERRORS {
+                        println!("Error: {:?}", e);
+                        if e == "length wider than 21-bit" {
+                            panic!();
+                        }
+                    } else {
+                        panic!("Error: {:?}", e);
                     }
                 }
             };
