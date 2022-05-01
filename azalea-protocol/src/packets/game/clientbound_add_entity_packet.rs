@@ -16,11 +16,8 @@ pub struct ClientboundAddEntityPacket {
     pub z: f64,
     pub x_rot: i8,
     pub y_rot: i8,
-    pub data: i8,
-    /// X acceleration
-    pub xa: u16,
-    /// Y acceleration
-    pub ya: u16,
-    /// Z acceleration
-    pub za: u16,
+    pub y_head_rot: i8,
+    pub x_vel: u16,
+    pub y_vel: u16,
+    pub z_vel: u16,
 }
