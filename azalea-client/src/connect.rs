@@ -200,7 +200,7 @@ impl Client {
                 println!("Got update tags packet");
             }
             GamePacket::ClientboundDisconnectPacket(p) => {
-                println!("Got login disconnect packet {:?}", p);
+                println!("Got disconnect packet {:?}", p);
             }
             GamePacket::ClientboundUpdateRecipesPacket(p) => {
                 println!("Got update recipes packet");
@@ -229,6 +229,9 @@ impl Client {
             }
             GamePacket::ClientboundAddMobPacket(p) => {
                 println!("Got add mob packet {:?}", p);
+            }
+            GamePacket::ClientboundAddEntityPacket(p) => {
+                println!("Got add entity packet {:?}", p);
             }
             _ => panic!("Unexpected packet {:?}", packet),
         }

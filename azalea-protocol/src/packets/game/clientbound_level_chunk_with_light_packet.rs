@@ -26,3 +26,9 @@ pub struct BlockEntity {
     type_: i32,
     data: azalea_nbt::Tag,
 }
+
+pub struct ChunkSection {}
+
+impl ClientboundLevelChunkPacketData {
+    pub fn read(world_height: u32) {}
+}

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use azalea_chat::component::Component;
 use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
-    serializable_uuid::SerializableUuid, Slot, SlotData,
+    serializable_uuid::SerializableUuid, BlockPos, Direction, Slot, SlotData,
 };
 use serde::Deserialize;
 use tokio::io::{AsyncRead, AsyncReadExt};
@@ -473,29 +473,14 @@ impl McBufReadable for Option<GameType> {
 
 // Option<String>
 #[async_trait]
-impl McBufReadable for Option<String> {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+impl<T: McBufReadable> McBufReadable for Option<T> {
+    default async fn read_into<R>(buf: &mut R) -> Result<Self, String>
     where
         R: AsyncRead + std::marker::Unpin + std::marker::Send,
     {
         let present = buf.read_boolean().await?;
         Ok(if present {
-            Some(buf.read_utf().await?)
-        } else {
-            None
-        })
-    }
-}
-// Option<Component>
-#[async_trait]
-impl McBufReadable for Option<Component> {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let present = buf.read_boolean().await?;
-        Ok(if present {
-            Some(Component::read_into(buf).await?)
+            Some(T::read_into(buf).await?)
         } else {
             None
         })
@@ -565,5 +550,39 @@ impl McBufReadable for Uuid {
         R: AsyncRead + std::marker::Unpin + std::marker::Send,
     {
         buf.read_uuid().await
+    }
+}
+
+// BlockPos
+#[async_trait]
+impl McBufReadable for BlockPos {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        let val = u64::read_into(buf).await?;
+        let x = (val >> 38) as i32;
+        let y = (val & 0xFFF) as i32;
+        let z = ((val >> 12) & 0x3FFFFFF) as i32;
+        Ok(BlockPos { x, y, z })
+    }
+}
+
+// Direction
+#[async_trait]
+impl McBufReadable for Direction {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        match buf.read_varint().await? {
+            0 => Ok(Self::Down),
+            1 => Ok(Self::Up),
+            2 => Ok(Self::North),
+            3 => Ok(Self::South),
+            4 => Ok(Self::West),
+            5 => Ok(Self::East),
+            _ => Err("Invalid direction".to_string()),
+        }
     }
 }

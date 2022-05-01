@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use azalea_chat::component::Component;
 use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
-    serializable_uuid::SerializableUuid, Slot,
+    serializable_uuid::SerializableUuid, BlockPos, Direction, Slot,
 };
 use byteorder::{BigEndian, WriteBytesExt};
 use std::io::Write;
@@ -336,21 +336,8 @@ impl McBufWritable for Option<GameType> {
 }
 
 // Option<String>
-impl McBufWritable for Option<String> {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        if let Some(s) = self {
-            buf.write_boolean(true)?;
-            buf.write_utf(s)?;
-        } else {
-            buf.write_boolean(false)?;
-        };
-        Ok(())
-    }
-}
-
-// Option<Component>
-impl McBufWritable for Option<Component> {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+impl<T: McBufWritable> McBufWritable for Option<T> {
+    default fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         if let Some(s) = self {
             buf.write_boolean(true)?;
             s.write_into(buf)?;
@@ -416,5 +403,23 @@ impl McBufWritable for Uuid {
         buf.write_uuid(self)?;
 
         Ok(())
+    }
+}
+
+// BlockPos
+impl McBufWritable for BlockPos {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_long(
+            (((self.x & 0x3FFFFFF) as i64) << 38)
+                | (((self.z & 0x3FFFFFF) as i64) << 12)
+                | ((self.y & 0xFFF) as i64),
+        )
+    }
+}
+
+// Direction
+impl McBufWritable for Direction {
+    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        buf.write_varint(*self as i32)
     }
 }

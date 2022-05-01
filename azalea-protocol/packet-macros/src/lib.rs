@@ -7,105 +7,146 @@ use syn::{
 };
 
 fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
-    let fields = match data {
-        syn::Data::Struct(syn::DataStruct { fields, .. }) => fields,
-        _ => panic!("#[derive(*Packet)] can only be used on structs"),
-    };
-    let FieldsNamed { named, .. } = match fields {
-        syn::Fields::Named(f) => f,
-        _ => panic!("#[derive(*Packet)] can only be used on structs with named fields"),
-    };
+    match data {
+        syn::Data::Struct(syn::DataStruct { fields, .. }) => {
+            let FieldsNamed { named, .. } = match fields {
+                syn::Fields::Named(f) => f,
+                _ => panic!("#[derive(*Packet)] can only be used on structs with named fields"),
+            };
 
-    let read_fields = named
-        .iter()
-        .map(|f| {
-            let field_name = &f.ident;
-            let field_type = &f.ty;
-            // do a different buf.write_* for each field depending on the type
-            // if it's a string, use buf.write_string
-            match field_type {
-                syn::Type::Path(_) => {
-                        if f.attrs.iter().any(|a| a.path.is_ident("varint")) {
-                            quote! {
-                                let #field_name = crate::mc_buf::McBufVarintReadable::varint_read_into(buf).await?;
+            let read_fields = named
+                .iter()
+                .map(|f| {
+                    let field_name = &f.ident;
+                    let field_type = &f.ty;
+                    // do a different buf.write_* for each field depending on the type
+                    // if it's a string, use buf.write_string
+                    match field_type {
+                        syn::Type::Path(_) => {
+                                if f.attrs.iter().any(|a| a.path.is_ident("varint")) {
+                                    quote! {
+                                        let #field_name = crate::mc_buf::McBufVarintReadable::varint_read_into(buf).await?;
+                                    }
+                                } else {
+                                    quote! {
+                                        let #field_name = crate::mc_buf::McBufReadable::read_into(buf).await?;
+                                    }
                             }
-                        } else {
-                            quote! {
-                                let #field_name = crate::mc_buf::McBufReadable::read_into(buf).await?;
-                            }
+                        }
+                        _ => panic!(
+                            "Error reading field {}: {}",
+                            field_name.clone().unwrap(),
+                            field_type.to_token_stream()
+                        ),
+                    }
+                })
+                .collect::<Vec<_>>();
+            let read_field_names = named.iter().map(|f| &f.ident).collect::<Vec<_>>();
+
+            quote! {
+            #[async_trait::async_trait]
+            impl crate::mc_buf::McBufReadable for #ident {
+                async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+                where
+                    R: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send,
+                {
+                    #(#read_fields)*
+                    Ok(#ident {
+                        #(#read_field_names: #read_field_names),*
+                    })
+                }
+            }
+            }
+        }
+        syn::Data::Enum(syn::DataEnum { variants, .. }) => {
+            let mut match_contents = quote!();
+            for variant in variants {
+                let variant_name = &variant.ident;
+                let variant_discrim = &variant
+                    .discriminant
+                    .as_ref()
+                    .expect("enum variant must have a discriminant")
+                    .1;
+                match_contents.extend(quote! {
+                    #variant_discrim => Ok(Self::#variant_name),
+                });
+            }
+
+            quote! {
+            #[async_trait::async_trait]
+            impl crate::mc_buf::McBufReadable for #ident {
+                async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+                where
+                    R: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send,
+                {
+                    let id = buf.read_varint().await?;
+                    match id {
+                        #match_contents
+                        _ => Err(format!("Unknown enum variant {}", id)),
                     }
                 }
-                _ => panic!(
-                    "Error reading field {}: {}",
-                    field_name.clone().unwrap(),
-                    field_type.to_token_stream()
-                ),
             }
-        })
-        .collect::<Vec<_>>();
-    let read_field_names = named.iter().map(|f| &f.ident).collect::<Vec<_>>();
-
-    quote! {
-    #[async_trait::async_trait]
-    impl crate::mc_buf::McBufReadable for #ident {
-        async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-        where
-            R: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send,
-        {
-            #(#read_fields)*
-            Ok(#ident {
-                #(#read_field_names: #read_field_names),*
-            })
+            }
         }
-    }
+        _ => panic!("#[derive(*Packet)] can only be used on structs"),
     }
 }
 
 fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
-    let fields = match data {
-        syn::Data::Struct(syn::DataStruct { fields, .. }) => fields,
-        _ => panic!("#[derive(*Packet)] can only be used on structs"),
-    };
-    let FieldsNamed { named, .. } = match fields {
-        syn::Fields::Named(f) => f,
-        _ => panic!("#[derive(*Packet)] can only be used on structs with named fields"),
-    };
+    match data {
+        syn::Data::Struct(syn::DataStruct { fields, .. }) => {
+            let FieldsNamed { named, .. } = match fields {
+                syn::Fields::Named(f) => f,
+                _ => panic!("#[derive(*Packet)] can only be used on structs with named fields"),
+            };
 
-    let write_fields = named
-        .iter()
-        .map(|f| {
-            let field_name = &f.ident;
-            let field_type = &f.ty;
-            // do a different buf.write_* for each field depending on the type
-            // if it's a string, use buf.write_string
-            match field_type {
-                syn::Type::Path(_) => {
-                    if f.attrs.iter().any(|attr| attr.path.is_ident("varint")) {
-                        quote! {
-                            crate::mc_buf::McBufVarintWritable::varint_write_into(&self.#field_name, buf)?;
-                        }
-                    } else {
-                        quote! {
-                            crate::mc_buf::McBufWritable::write_into(&self.#field_name, buf)?;
+            let write_fields = named
+            .iter()
+            .map(|f| {
+                let field_name = &f.ident;
+                let field_type = &f.ty;
+                // do a different buf.write_* for each field depending on the type
+                // if it's a string, use buf.write_string
+                match field_type {
+                    syn::Type::Path(_) => {
+                        if f.attrs.iter().any(|attr| attr.path.is_ident("varint")) {
+                            quote! {
+                                crate::mc_buf::McBufVarintWritable::varint_write_into(&self.#field_name, buf)?;
+                            }
+                        } else {
+                            quote! {
+                                crate::mc_buf::McBufWritable::write_into(&self.#field_name, buf)?;
+                            }
                         }
                     }
+                    _ => panic!(
+                        "Error writing field {}: {}",
+                        field_name.clone().unwrap(),
+                        field_type.to_token_stream()
+                    ),
                 }
-                _ => panic!(
-                    "Error writing field {}: {}",
-                    field_name.clone().unwrap(),
-                    field_type.to_token_stream()
-                ),
-            }
-        })
-        .collect::<Vec<_>>();
+            })
+            .collect::<Vec<_>>();
 
-    quote! {
-        impl crate::mc_buf::McBufWritable for #ident {
-            fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-                #(#write_fields)*
-                Ok(())
+            quote! {
+                impl crate::mc_buf::McBufWritable for #ident {
+                    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+                        #(#write_fields)*
+                        Ok(())
+                    }
+                }
             }
         }
+        syn::Data::Enum(syn::DataEnum { .. }) => {
+            quote! {
+                impl crate::mc_buf::McBufWritable for #ident {
+                    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+                        crate::mc_buf::Writable::write_varint(buf, *self as i32)
+                    }
+                }
+            }
+        }
+        _ => panic!("#[derive(*Packet)] can only be used on structs"),
     }
 }
 
