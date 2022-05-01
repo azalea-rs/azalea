@@ -32,6 +32,12 @@ impl From<Vec<u8>> for UnsizedByteArray {
     }
 }
 
+impl From<&str> for UnsizedByteArray {
+    fn from(s: &str) -> Self {
+        Self(s.as_bytes().to_vec())
+    }
+}
+
 /// Represents Java's BitSet, a list of bits.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, McBufReadable, McBufWritable)]
 pub struct BitSet {

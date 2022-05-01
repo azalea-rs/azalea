@@ -3,13 +3,10 @@ use quote::{quote, ToTokens};
 use syn::{
     self, braced,
     parse::{Parse, ParseStream, Result},
-    parse_macro_input, DeriveInput, FieldsNamed, Ident, LitInt, Token,
+    parse_macro_input, Data, DeriveInput, FieldsNamed, Ident, LitInt, Token,
 };
 
-#[proc_macro_derive(McBufReadable, attributes(varint))]
-pub fn derive_mcbufreadable(input: TokenStream) -> TokenStream {
-    let DeriveInput { ident, data, .. } = parse_macro_input!(input);
-
+fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
     let fields = match data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => fields,
         _ => panic!("#[derive(*Packet)] can only be used on structs"),
@@ -50,7 +47,6 @@ pub fn derive_mcbufreadable(input: TokenStream) -> TokenStream {
 
     quote! {
     #[async_trait::async_trait]
-
     impl crate::mc_buf::McBufReadable for #ident {
         async fn read_into<R>(buf: &mut R) -> Result<Self, String>
         where
@@ -63,13 +59,9 @@ pub fn derive_mcbufreadable(input: TokenStream) -> TokenStream {
         }
     }
     }
-    .into()
 }
 
-#[proc_macro_derive(McBufWritable, attributes(varint))]
-pub fn derive_mcbufwritable(input: TokenStream) -> TokenStream {
-    let DeriveInput { ident, data, .. } = parse_macro_input!(input);
-
+fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
     let fields = match data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => fields,
         _ => panic!("#[derive(*Packet)] can only be used on structs"),
@@ -115,13 +107,26 @@ pub fn derive_mcbufwritable(input: TokenStream) -> TokenStream {
             }
         }
     }
-    .into()
+}
+
+#[proc_macro_derive(McBufReadable, attributes(varint))]
+pub fn derive_mcbufreadable(input: TokenStream) -> TokenStream {
+    let DeriveInput { ident, data, .. } = parse_macro_input!(input);
+
+    create_impl_mcbufreadable(&ident, &data).into()
+}
+
+#[proc_macro_derive(McBufWritable, attributes(varint))]
+pub fn derive_mcbufwritable(input: TokenStream) -> TokenStream {
+    let DeriveInput { ident, data, .. } = parse_macro_input!(input);
+
+    create_impl_mcbufwritable(&ident, &data).into()
 }
 
 fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> TokenStream {
     let DeriveInput { ident, data, .. } = parse_macro_input!(input);
 
-    let fields = match data {
+    let fields = match &data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => fields,
         _ => panic!("#[derive(*Packet)] can only be used on structs"),
     };
@@ -130,85 +135,33 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
         _ => panic!("#[derive(*Packet)] can only be used on structs with named fields"),
     };
 
-    let write_fields = named
-        .iter()
-        .map(|f| {
-            let field_name = &f.ident;
-            let field_type = &f.ty;
-            // do a different buf.write_* for each field depending on the type
-            // if it's a string, use buf.write_string
-            match field_type {
-                syn::Type::Path(_) => {
-                    if f.attrs.iter().any(|attr| attr.path.is_ident("varint")) {
-                        quote! {
-                            crate::mc_buf::McBufVarintWritable::varint_write_into(&self.#field_name, buf)?;
-                        }
-                    } else {
-                        quote! {
-                            crate::mc_buf::McBufWritable::write_into(&self.#field_name, buf)?;
-                        }
-                    }
-                }
-                _ => panic!(
-                    "Error writing field {}: {}",
-                    field_name.clone().unwrap(),
-                    field_type.to_token_stream()
-                ),
-            }
-        })
-        .collect::<Vec<_>>();
+    let mcbufreadable_impl = create_impl_mcbufreadable(&ident, &data);
+    let mcbufwritable_impl = create_impl_mcbufwritable(&ident, &data);
 
-    let read_fields = named
-        .iter()
-        .map(|f| {
-            let field_name = &f.ident;
-            let field_type = &f.ty;
-            // do a different buf.write_* for each field depending on the type
-            // if it's a string, use buf.write_string
-            match field_type {
-                syn::Type::Path(_) => {
-                        if f.attrs.iter().any(|a| a.path.is_ident("varint")) {
-                            quote! {
-                                let #field_name = crate::mc_buf::McBufVarintReadable::varint_read_into(buf).await?;
-                            }
-                        } else {
-                            quote! {
-                                let #field_name = crate::mc_buf::McBufReadable::read_into(buf).await?;
-                            }
-                    }
-                }
-                _ => panic!(
-                    "Error reading field {}: {}",
-                    field_name.clone().unwrap(),
-                    field_type.to_token_stream()
-                ),
-            }
-        })
-        .collect::<Vec<_>>();
-    let read_field_names = named.iter().map(|f| &f.ident).collect::<Vec<_>>();
-
-    quote! {
+    let contents = quote! {
         impl #ident {
             pub fn get(self) -> #state {
                 #state::#ident(self)
             }
 
             pub fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-                #(#write_fields)*
-                Ok(())
+                crate::mc_buf::McBufWritable::write_into(self, buf)
             }
 
             pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
                 buf: &mut T,
             ) -> Result<#state, String> {
-                #(#read_fields)*
-                Ok(#ident {
-                    #(#read_field_names: #read_field_names),*
-                }.get())
+                use crate::mc_buf::McBufReadable;
+                Ok(Self::read_into(buf).await?.get())
             }
         }
-    }
-    .into()
+
+        #mcbufreadable_impl
+
+        #mcbufwritable_impl
+    };
+
+    contents.into()
 }
 
 #[proc_macro_derive(GamePacket, attributes(varint))]

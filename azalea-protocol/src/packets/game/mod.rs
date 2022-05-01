@@ -16,12 +16,15 @@ pub mod clientbound_set_chunk_cache_center;
 pub mod clientbound_update_recipes_packet;
 pub mod clientbound_update_tags_packet;
 pub mod clientbound_update_view_distance_packet;
+pub mod serverbound_custom_payload_packet;
 
 use packet_macros::declare_state_packets;
 
 declare_state_packets!(
     GamePacket,
-    Serverbound => {},
+    Serverbound => {
+        0x0a: serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
+    },
     Clientbound => {
         0x02: clientbound_add_mob_packet::ClientboundAddMobPacket,
         0x0e: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,

@@ -1,7 +1,9 @@
+use crate::Player;
+use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
     packets::{
-        game::GamePacket,
+        game::{serverbound_custom_payload_packet::ServerboundCustomPayloadPacket, GamePacket},
         handshake::client_intention_packet::ClientIntentionPacket,
         login::{
             serverbound_hello_packet::ServerboundHelloPacket,
@@ -14,8 +16,6 @@ use azalea_protocol::{
 use std::sync::Arc;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use tokio::sync::Mutex;
-
-use crate::Player;
 
 ///! Connect to Minecraft servers.
 
@@ -148,7 +148,7 @@ impl Client {
         loop {
             let r = conn.lock().await.read().await;
             match r {
-                Ok(packet) => Self::handle(&packet, &tx, &state).await,
+                Ok(packet) => Self::handle(&packet, &tx, &state, &conn).await,
                 Err(e) => {
                     panic!("Error: {:?}", e);
                 }
@@ -160,12 +160,21 @@ impl Client {
         packet: &GamePacket,
         tx: &UnboundedSender<Event>,
         state: &Arc<Mutex<ClientState>>,
+        conn: &Arc<Mutex<GameConnection>>,
     ) {
         match packet {
             GamePacket::ClientboundLoginPacket(p) => {
                 println!("Got login packet {:?}", p);
 
                 state.lock().await.player.entity.id = p.player_id;
+                conn.lock().await.write(
+                    ServerboundCustomPayloadPacket {
+                        identifier: ResourceLocation::new("brand").unwrap(),
+                        // they don't have to know :)
+                        data: "vanilla".into(),
+                    }
+                    .get(),
+                );
 
                 tx.send(Event::Login).unwrap();
             }
@@ -221,6 +230,7 @@ impl Client {
             GamePacket::ClientboundAddMobPacket(p) => {
                 println!("Got add mob packet {:?}", p);
             }
+            GamePacket::ServerboundCustomPayloadPacket(_) => todo!(),
         }
         println!();
     }
