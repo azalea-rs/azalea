@@ -167,14 +167,17 @@ impl Client {
                 println!("Got login packet {:?}", p);
 
                 state.lock().await.player.entity.id = p.player_id;
-                conn.lock().await.write(
-                    ServerboundCustomPayloadPacket {
-                        identifier: ResourceLocation::new("brand").unwrap(),
-                        // they don't have to know :)
-                        data: "vanilla".into(),
-                    }
-                    .get(),
-                );
+                conn.lock()
+                    .await
+                    .write(
+                        ServerboundCustomPayloadPacket {
+                            identifier: ResourceLocation::new("brand").unwrap(),
+                            // they don't have to know :)
+                            data: "vanilla".into(),
+                        }
+                        .get(),
+                    )
+                    .await;
 
                 tx.send(Event::Login).unwrap();
             }

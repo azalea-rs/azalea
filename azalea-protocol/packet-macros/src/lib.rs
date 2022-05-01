@@ -130,7 +130,7 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
         syn::Data::Struct(syn::DataStruct { fields, .. }) => fields,
         _ => panic!("#[derive(*Packet)] can only be used on structs"),
     };
-    let FieldsNamed { named, .. } = match fields {
+    let FieldsNamed { named: _, .. } = match fields {
         syn::Fields::Named(f) => f,
         _ => panic!("#[derive(*Packet)] can only be used on structs with named fields"),
     };
