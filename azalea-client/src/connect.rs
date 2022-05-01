@@ -99,16 +99,13 @@ impl Client {
                         println!("Got profile {:?}", p.game_profile);
                         break conn.game();
                     }
-                    LoginPacket::ServerboundHelloPacket(p) => {
-                        println!("Got hello {:?}", p);
-                    }
                     LoginPacket::ClientboundLoginDisconnectPacket(p) => {
                         println!("Got disconnect {:?}", p);
                     }
                     LoginPacket::ClientboundCustomQueryPacket(p) => {
                         println!("Got custom query {:?}", p);
                     }
-                    LoginPacket::ServerboundKeyPacket(_) => todo!(),
+                    _ => panic!("Unexpected packet {:?}", packet),
                 },
                 Err(e) => {
                     panic!("Error: {:?}", e);
@@ -233,7 +230,7 @@ impl Client {
             GamePacket::ClientboundAddMobPacket(p) => {
                 println!("Got add mob packet {:?}", p);
             }
-            GamePacket::ServerboundCustomPayloadPacket(_) => todo!(),
+            _ => panic!("Unexpected packet {:?}", packet),
         }
         println!();
     }
