@@ -212,6 +212,9 @@ impl Client {
             GamePacket::ClientboundLightUpdatePacket(p) => {
                 println!("Got light update packet {:?}", p);
             }
+            GamePacket::ClientboundAddEntityPacket(p) => {
+                println!("Got add entity packet {:?}", p);
+            }
         }
         println!();
     }

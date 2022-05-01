@@ -350,6 +350,17 @@ impl McBufReadable for u16 {
     }
 }
 
+// i16
+#[async_trait]
+impl McBufReadable for i16 {
+    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    where
+        R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    {
+        buf.read_short().await
+    }
+}
+
 // u16 varint
 #[async_trait]
 impl McBufVarintReadable for u16 {
