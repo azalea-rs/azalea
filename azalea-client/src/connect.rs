@@ -43,6 +43,7 @@ pub enum Event {
     Login,
 }
 
+/// Whether we should ignore errors when decoding packets.
 const IGNORE_ERRORS: bool = false;
 
 impl Client {
@@ -244,6 +245,12 @@ impl Client {
             }
             GamePacket::ClientboundSetEntityDataPacket(p) => {
                 println!("Got set entity data packet {:?}", p);
+            }
+            GamePacket::ClientboundUpdateAttributesPacket(p) => {
+                println!("Got update attributes packet {:?}", p);
+            }
+            GamePacket::ClientboundEntityVelocityPacket(p) => {
+                println!("Got entity velocity packet {:?}", p);
             }
             _ => panic!("Unexpected packet {:?}", packet),
         }
