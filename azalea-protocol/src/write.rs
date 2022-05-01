@@ -1,6 +1,6 @@
 use crate::{mc_buf::Writable, packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSED_LENGTH};
 use async_compression::tokio::bufread::ZlibEncoder;
-use azalea_auth::encryption::Aes128CfbEnc;
+use azalea_crypto::Aes128CfbEnc;
 use std::fmt::Debug;
 use tokio::{
     io::{AsyncReadExt, AsyncWrite, AsyncWriteExt},
@@ -67,7 +67,7 @@ pub async fn write_packet<P, W>(
     }
     // if we were given a cipher, encrypt the packet
     if let Some(cipher) = cipher {
-        azalea_auth::encryption::encrypt_packet(cipher, &mut buf);
+        azalea_crypto::encrypt_packet(cipher, &mut buf);
     }
     buf = frame_prepender(&mut buf).unwrap();
     stream.write_all(&buf).await.unwrap();

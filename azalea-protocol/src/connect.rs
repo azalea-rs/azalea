@@ -7,7 +7,7 @@ use crate::packets::status::StatusPacket;
 use crate::read::read_packet;
 use crate::write::write_packet;
 use crate::ServerIpAddress;
-use azalea_auth::encryption::{Aes128CfbDec, Aes128CfbEnc};
+use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use tokio::net::TcpStream;
 
 pub enum PacketFlow {
@@ -159,7 +159,7 @@ impl LoginConnection {
 
     pub fn set_encryption_key(&mut self, key: [u8; 16]) {
         // minecraft has a cipher decoder and encoder, i don't think it matters though?
-        let (enc_cipher, dec_cipher) = azalea_auth::encryption::create_cipher(&key);
+        let (enc_cipher, dec_cipher) = azalea_crypto::create_cipher(&key);
         self.enc_cipher = Some(enc_cipher);
         self.dec_cipher = Some(dec_cipher);
     }

@@ -75,12 +75,7 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 name = "azalea-auth"
 version = "0.1.0"
 dependencies = [
- "aes",
- "cfb8",
  "num-bigint",
- "rand",
- "rsa_public_encrypt_pkcs1",
- "sha-1",
  "uuid",
 ]
 
@@ -102,6 +97,7 @@ name = "azalea-client"
 version = "0.1.0"
 dependencies = [
  "azalea-auth",
+ "azalea-crypto",
  "azalea-protocol",
  "tokio",
 ]
@@ -113,6 +109,18 @@ dependencies = [
  "azalea-chat",
  "azalea-nbt",
  "uuid",
+]
+
+[[package]]
+name = "azalea-crypto"
+version = "0.1.0"
+dependencies = [
+ "aes",
+ "cfb8",
+ "num-bigint",
+ "rand",
+ "rsa_public_encrypt_pkcs1",
+ "sha-1",
 ]
 
 [[package]]
@@ -140,6 +148,7 @@ dependencies = [
  "azalea-brigadier",
  "azalea-chat",
  "azalea-core",
+ "azalea-crypto",
  "azalea-nbt",
  "byteorder",
  "bytes",
@@ -163,9 +172,9 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "block-buffer"
-version = "0.10.0"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1d36a02058e76b040de25a4464ba1c80935655595b661505c8b39b664828b95"
+checksum = "0bf7fe51849ea569fd452f37822f606a5cabb684dc918707a0193fd4664ff324"
 dependencies = [
  "generic-array",
 ]
@@ -404,13 +413,12 @@ checksum = "3ee2393c4a91429dffb4bedf19f4d6abf27d8a732c8ce4980305d782e5426d57"
 
 [[package]]
 name = "digest"
-version = "0.10.1"
+version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b697d66081d42af4fba142d56918a3cb21dc8eb63372c6b85d14f44fb9c5979b"
+checksum = "f2fb860ca6fafa5552fb6d0e816a69c8e49f0908bf524e30a90d97c85892d506"
 dependencies = [
  "block-buffer",
  "crypto-common",
- "generic-array",
 ]
 
 [[package]]
@@ -784,9 +792,9 @@ dependencies = [
 
 [[package]]
 name = "num-complex"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26873667bbbb7c5182d4a37c1add32cdf09f841af72da53318fdb81543c15085"
+checksum = "97fbc387afefefd5e9e39493299f3069e14a140dd34dc19b4c1c1a8fddb6a790"
 dependencies = [
  "num-traits",
 ]
@@ -814,9 +822,9 @@ dependencies = [
 
 [[package]]
 name = "num-iter"
-version = "0.1.42"
+version = "0.1.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2021c8337a54d21aca0d59a92577a029af9431cb59b909b03252b9c164fad59"
+checksum = "7d03e6c028c5dc5cac6e2dec0efda81fc887605bb3d884578bb6d6bf7514e252"
 dependencies = [
  "autocfg",
  "num-integer",

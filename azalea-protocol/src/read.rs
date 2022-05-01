@@ -6,7 +6,7 @@ use std::{
 
 use crate::{connect::PacketFlow, mc_buf::Readable, packets::ProtocolPacket};
 use async_compression::tokio::bufread::ZlibDecoder;
-use azalea_auth::encryption::Aes128CfbDec;
+use azalea_crypto::Aes128CfbDec;
 use tokio::io::{AsyncRead, AsyncReadExt};
 
 async fn frame_splitter<R: ?Sized>(mut stream: &mut R) -> Result<Vec<u8>, String>
@@ -122,7 +122,7 @@ where
                 // (but only on linux and release mode for some reason LMAO)
                 if buf.remaining() == 0 {
                     if let Some(cipher) = self.as_mut().cipher.get_mut() {
-                        azalea_auth::encryption::decrypt_packet(cipher, buf.filled_mut());
+                        azalea_crypto::decrypt_packet(cipher, buf.filled_mut());
                     }
                 }
                 match r {
