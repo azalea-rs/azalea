@@ -147,7 +147,10 @@ impl Client {
             match r {
                 Ok(packet) => Self::handle(&packet, &tx, &state, &conn).await,
                 Err(e) => {
-                    panic!("Error: {:?}", e);
+                    println!("Error: {:?}", e);
+                    if e == "length wider than 21-bit" {
+                        panic!();
+                    }
                 }
             };
         }
@@ -232,6 +235,9 @@ impl Client {
             }
             GamePacket::ClientboundAddEntityPacket(p) => {
                 println!("Got add entity packet {:?}", p);
+            }
+            GamePacket::ClientboundSetEntityDataPacket(p) => {
+                println!("Got set entity data packet {:?}", p);
             }
             _ => panic!("Unexpected packet {:?}", packet),
         }

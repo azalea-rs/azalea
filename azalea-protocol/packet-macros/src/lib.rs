@@ -392,7 +392,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 Ok(match flow {
                     crate::connect::PacketFlow::ServerToClient => match id {
                         #clientbound_read_match_contents
-                        _ => panic!("Unknown ServerToClient {} packet id: {}", #state_name_litstr, id),
+                        _ => return Err(format!("Unknown ServerToClient {} packet id: {}", #state_name_litstr, id)),
                     },
                     crate::connect::PacketFlow::ClientToServer => match id {
                         #serverbound_read_match_contents
