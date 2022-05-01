@@ -233,6 +233,7 @@ impl Client {
             }
             GamePacket::ClientboundLevelChunkWithLightPacket(p) => {
                 println!("Got chunk with light packet {} {}", p.x, p.z);
+                // p.chunk_data
             }
             GamePacket::ClientboundLightUpdatePacket(p) => {
                 println!("Got light update packet {:?}", p);

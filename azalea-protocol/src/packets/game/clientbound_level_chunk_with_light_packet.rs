@@ -30,5 +30,7 @@ pub struct BlockEntity {
 pub struct ChunkSection {}
 
 impl ClientboundLevelChunkPacketData {
-    pub fn read(world_height: u32) {}
+    pub fn read(world_height: u32) {
+        // let section_count
+    }
 }

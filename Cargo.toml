@@ -10,6 +10,7 @@ members = [
   "azalea-nbt",
   "azalea-brigadier",
   "azalea-crypto",
+  "azalea-world",
 ]
 
 [profile.release]
