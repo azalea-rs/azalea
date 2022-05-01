@@ -15,6 +15,8 @@ use std::sync::Arc;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use tokio::sync::Mutex;
 
+use crate::Player;
+
 ///! Connect to Minecraft servers.
 
 /// Something that can join Minecraft servers.
@@ -22,9 +24,10 @@ pub struct Account {
     username: String,
 }
 
+#[derive(Default)]
 pub struct ClientState {
     // placeholder
-    pub health: u16,
+    pub player: Player,
 }
 
 /// A player that you can control that is currently in a Minecraft server.
@@ -121,7 +124,7 @@ impl Client {
         let client = Client {
             event_receiver: rx,
             conn: conn.clone(),
-            state: Arc::new(Mutex::new(ClientState { health: 20 })),
+            state: Arc::new(Mutex::new(ClientState::default())),
         };
         // let client = Arc::new(Mutex::new(client));
         // let weak_client = Arc::<_>::downgrade(&client);
@@ -161,6 +164,9 @@ impl Client {
         match packet {
             GamePacket::ClientboundLoginPacket(p) => {
                 println!("Got login packet {:?}", p);
+
+                state.lock().await.player.entity.id = p.player_id;
+
                 tx.send(Event::Login).unwrap();
             }
             GamePacket::ClientboundUpdateViewDistancePacket(p) => {
@@ -212,8 +218,8 @@ impl Client {
             GamePacket::ClientboundLightUpdatePacket(p) => {
                 println!("Got light update packet {:?}", p);
             }
-            GamePacket::ClientboundAddEntityPacket(p) => {
-                println!("Got add entity packet {:?}", p);
+            GamePacket::ClientboundAddMobPacket(p) => {
+                println!("Got add mob packet {:?}", p);
             }
         }
         println!();

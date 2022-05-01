@@ -3,7 +3,7 @@ use packet_macros::GamePacket;
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundLoginPacket {
-    pub player_id: i32,
+    pub player_id: u32,
     pub hardcore: bool,
     pub game_type: GameType,
     pub previous_game_type: Option<GameType>,
