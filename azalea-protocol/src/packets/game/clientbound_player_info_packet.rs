@@ -1,7 +1,7 @@
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_chat::component::Component;
 use packet_macros::{GamePacket, McBufReadable, McBufWritable};
-use std::io::Read;
+use std::io::{Read, Write};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, GamePacket)]
@@ -75,7 +75,7 @@ impl McBufReadable for Action {
     }
 }
 impl McBufWritable for Action {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_byte(match self {
             Action::AddPlayer(_) => 0,
             Action::UpdateGameMode(_) => 1,

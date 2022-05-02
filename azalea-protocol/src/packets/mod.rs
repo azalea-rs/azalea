@@ -3,7 +3,7 @@ pub mod handshake;
 pub mod login;
 pub mod status;
 
-use std::io::Read;
+use std::io::{Read, Write};
 
 use crate::{
     connect::PacketFlow,
@@ -40,7 +40,7 @@ where
     /// Read a packet by its id, ConnectionProtocol, and flow
     fn read(id: u32, flow: &PacketFlow, buf: &mut impl Read) -> Result<Self, String>;
 
-    fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error>;
+    fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
 }
 
 impl McBufReadable for ConnectionProtocol {
@@ -51,7 +51,7 @@ impl McBufReadable for ConnectionProtocol {
 }
 
 impl McBufWritable for ConnectionProtocol {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_varint(*self as i32)
     }
 }

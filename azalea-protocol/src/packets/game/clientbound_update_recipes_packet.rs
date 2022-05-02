@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::io::{Read, Write};
 
 use azalea_core::{resource_location::ResourceLocation, Slot};
 use packet_macros::{GamePacket, McBufReadable, McBufWritable};
@@ -35,7 +35,7 @@ pub struct ShapedRecipe {
 }
 
 impl McBufWritable for ShapedRecipe {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_varint(self.width.try_into().unwrap())?;
         buf.write_varint(self.height.try_into().unwrap())?;
         buf.write_utf(&self.group)?;
@@ -122,7 +122,7 @@ pub struct Ingredient {
 }
 
 impl McBufWritable for Recipe {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         todo!()
     }
 }

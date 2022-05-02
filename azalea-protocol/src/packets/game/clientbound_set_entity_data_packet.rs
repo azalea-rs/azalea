@@ -1,5 +1,3 @@
-use std::io::Read;
-
 use crate::{
     mc_buf::{Readable, Writable},
     packets::{McBufReadable, McBufWritable},
@@ -7,6 +5,7 @@ use crate::{
 use azalea_chat::component::Component;
 use azalea_core::{BlockPos, Direction, Slot};
 use packet_macros::{GamePacket, McBufReadable, McBufWritable};
+use std::io::{Read, Write};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, GamePacket)]
@@ -40,7 +39,7 @@ impl McBufReadable for Vec<EntityDataItem> {
 }
 
 impl McBufWritable for Vec<EntityDataItem> {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         for item in self {
             buf.write_byte(item.index)?;
             item.value.write_into(buf)?;
@@ -124,7 +123,7 @@ impl McBufReadable for EntityDataValue {
 }
 
 impl McBufWritable for EntityDataValue {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         todo!();
     }
 }
@@ -399,7 +398,7 @@ impl McBufReadable for ParticleData {
 }
 
 impl McBufWritable for ParticleData {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         todo!()
     }
 }

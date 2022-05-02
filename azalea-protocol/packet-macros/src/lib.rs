@@ -123,7 +123,7 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
 
             quote! {
                 impl crate::mc_buf::McBufWritable for #ident {
-                    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+                    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
                         #(#write_fields)*
                         Ok(())
                     }
@@ -133,7 +133,7 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
         syn::Data::Enum(syn::DataEnum { .. }) => {
             quote! {
                 impl crate::mc_buf::McBufWritable for #ident {
-                    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+                    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
                         crate::mc_buf::Writable::write_varint(buf, *self as i32)
                     }
                 }
@@ -178,7 +178,7 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
                 #state::#ident(self)
             }
 
-            pub fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+            pub fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
                 crate::mc_buf::McBufWritable::write_into(self, buf)
             }
 
@@ -366,7 +366,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 }
             }
 
-            fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+            fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
                 match self {
                     #write_match_contents
                 }

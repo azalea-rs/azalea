@@ -1,7 +1,10 @@
 use super::GamePacket;
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::resource_location::ResourceLocation;
-use std::{hash::Hash, io::Read};
+use std::{
+    hash::Hash,
+    io::{Read, Write},
+};
 
 #[derive(Hash, Clone, Debug)]
 pub struct ClientboundDeclareCommandsPacket {
@@ -14,7 +17,7 @@ impl ClientboundDeclareCommandsPacket {
         GamePacket::ClientboundDeclareCommandsPacket(self)
     }
 
-    pub fn write(&self, _buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    pub fn write(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
         panic!("ClientboundDeclareCommandsPacket::write not implemented")
     }
 
@@ -60,7 +63,7 @@ impl<T: McBufReadable> McBufReadable for BrigadierNumber<T> {
     }
 }
 impl<T: McBufWritable> McBufWritable for BrigadierNumber<T> {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut flags = 0;
         if self.min.is_some() {
             flags |= 0x01;
@@ -101,7 +104,7 @@ impl McBufReadable for BrigadierString {
     }
 }
 impl McBufWritable for BrigadierString {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_byte(*self as u8)?;
         Ok(())
     }
