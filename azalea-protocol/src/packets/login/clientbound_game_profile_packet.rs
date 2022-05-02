@@ -1,3 +1,5 @@
+use std::io::Read;
+
 use super::LoginPacket;
 use crate::mc_buf::{Readable, Writable};
 use azalea_auth::game_profile::GameProfile;
@@ -23,17 +25,15 @@ impl ClientboundGameProfilePacket {
         Ok(())
     }
 
-    pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        buf: &mut T,
-    ) -> Result<LoginPacket, String> {
+    pub fn read(buf: &mut impl Read) -> Result<LoginPacket, String> {
         // TODO: we have a thing to read from the uuid now
         let uuid = Uuid::from_int_array([
-            buf.read_int().await? as u32,
-            buf.read_int().await? as u32,
-            buf.read_int().await? as u32,
-            buf.read_int().await? as u32,
+            buf.read_int()? as u32,
+            buf.read_int()? as u32,
+            buf.read_int()? as u32,
+            buf.read_int()? as u32,
         ]);
-        let name = buf.read_utf_with_len(16).await?;
+        let name = buf.read_utf_with_len(16)?;
         Ok(ClientboundGameProfilePacket {
             game_profile: GameProfile::new(uuid, name),
         }

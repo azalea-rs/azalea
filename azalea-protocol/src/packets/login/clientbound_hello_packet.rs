@@ -1,4 +1,4 @@
-use std::hash::Hash;
+use std::{hash::Hash, io::Read};
 
 use super::LoginPacket;
 use crate::mc_buf::Readable;
@@ -19,12 +19,10 @@ impl ClientboundHelloPacket {
         panic!("ClientboundHelloPacket::write not implemented")
     }
 
-    pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        buf: &mut T,
-    ) -> Result<LoginPacket, String> {
-        let server_id = buf.read_utf_with_len(20).await?;
-        let public_key = buf.read_byte_array().await?;
-        let nonce = buf.read_byte_array().await?;
+    pub  fn read(buf: &mut impl Read) -> Result<LoginPacket, String> {
+        let server_id = buf.read_utf_with_len(20)?;
+        let public_key = buf.read_byte_array()?;
+        let nonce = buf.read_byte_array()?;
 
         Ok(ClientboundHelloPacket {
             server_id,

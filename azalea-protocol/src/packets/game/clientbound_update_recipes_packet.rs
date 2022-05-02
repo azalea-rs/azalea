@@ -1,8 +1,7 @@
-use async_trait::async_trait;
-use azalea_chat::component::Component;
+use std::io::Read;
+
 use azalea_core::{resource_location::ResourceLocation, Slot};
 use packet_macros::{GamePacket, McBufReadable, McBufWritable};
-use tokio::io::AsyncRead;
 
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 
@@ -48,20 +47,16 @@ impl McBufWritable for ShapedRecipe {
         Ok(())
     }
 }
-#[async_trait]
 impl McBufReadable for ShapedRecipe {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let width = buf.read_varint().await?.try_into().unwrap();
-        let height = buf.read_varint().await?.try_into().unwrap();
-        let group = buf.read_utf().await?;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let width = buf.read_varint()?.try_into().unwrap();
+        let height = buf.read_varint()?.try_into().unwrap();
+        let group = buf.read_utf()?;
         let mut ingredients = Vec::with_capacity(width * height);
         for _ in 0..width * height {
-            ingredients.push(Ingredient::read_into(buf).await?);
+            ingredients.push(Ingredient::read_into(buf)?);
         }
-        let result = Slot::read_into(buf).await?;
+        let result = Slot::read_into(buf)?;
 
         Ok(ShapedRecipe {
             width,
@@ -132,22 +127,18 @@ impl McBufWritable for Recipe {
     }
 }
 
-#[async_trait]
 impl McBufReadable for Recipe {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let recipe_type = buf.read_resource_location().await?;
-        let identifier = buf.read_resource_location().await?;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let recipe_type = buf.read_resource_location()?;
+        let identifier = buf.read_resource_location()?;
 
         // rust doesn't let us match ResourceLocation so we have to do a big
         // if-else chain :(
         let data = if recipe_type == ResourceLocation::new("minecraft:crafting_shapeless").unwrap()
         {
-            RecipeData::CraftingShapeless(ShapelessRecipe::read_into(buf).await?)
+            RecipeData::CraftingShapeless(ShapelessRecipe::read_into(buf)?)
         } else if recipe_type == ResourceLocation::new("minecraft:crafting_shaped").unwrap() {
-            RecipeData::CraftingShaped(ShapedRecipe::read_into(buf).await?)
+            RecipeData::CraftingShaped(ShapedRecipe::read_into(buf)?)
         } else if recipe_type
             == ResourceLocation::new("minecraft:crafting_special_armordye").unwrap()
         {
@@ -205,17 +196,17 @@ impl McBufReadable for Recipe {
         {
             RecipeData::CraftingSpecialSuspiciousStew
         } else if recipe_type == ResourceLocation::new("minecraft:smelting").unwrap() {
-            RecipeData::Smelting(CookingRecipe::read_into(buf).await?)
+            RecipeData::Smelting(CookingRecipe::read_into(buf)?)
         } else if recipe_type == ResourceLocation::new("minecraft:blasting").unwrap() {
-            RecipeData::Blasting(CookingRecipe::read_into(buf).await?)
+            RecipeData::Blasting(CookingRecipe::read_into(buf)?)
         } else if recipe_type == ResourceLocation::new("minecraft:smoking").unwrap() {
-            RecipeData::Smoking(CookingRecipe::read_into(buf).await?)
+            RecipeData::Smoking(CookingRecipe::read_into(buf)?)
         } else if recipe_type == ResourceLocation::new("minecraft:campfire_cooking").unwrap() {
-            RecipeData::CampfireCooking(CookingRecipe::read_into(buf).await?)
+            RecipeData::CampfireCooking(CookingRecipe::read_into(buf)?)
         } else if recipe_type == ResourceLocation::new("minecraft:stonecutting").unwrap() {
-            RecipeData::Stonecutting(StoneCuttingRecipe::read_into(buf).await?)
+            RecipeData::Stonecutting(StoneCuttingRecipe::read_into(buf)?)
         } else if recipe_type == ResourceLocation::new("minecraft:smithing").unwrap() {
-            RecipeData::Smithing(SmithingRecipe::read_into(buf).await?)
+            RecipeData::Smithing(SmithingRecipe::read_into(buf)?)
         } else {
             panic!("Unknown recipe type sent by server: {}", recipe_type);
         };

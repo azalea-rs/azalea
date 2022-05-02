@@ -1,9 +1,7 @@
-// i don't know the actual name of this packet, i couldn't find it in the source code
+use std::io::Read;
 
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable};
-use async_trait::async_trait;
 use packet_macros::GamePacket;
-use tokio::io::AsyncRead;
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundPlayerPositionPacket {
@@ -29,13 +27,9 @@ pub struct RelativeArguments {
     pub x_rot: bool,
 }
 
-#[async_trait]
 impl McBufReadable for RelativeArguments {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let byte = buf.read_byte().await?;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let byte = buf.read_byte()?;
         Ok(RelativeArguments {
             x: byte & 0b1 != 0,
             y: byte & 0b10 != 0,

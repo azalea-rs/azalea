@@ -1,9 +1,7 @@
 use super::GamePacket;
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
-use async_trait::async_trait;
 use azalea_core::resource_location::ResourceLocation;
-use std::hash::Hash;
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWriteExt};
+use std::{hash::Hash, io::Read};
 
 #[derive(Hash, Clone, Debug)]
 pub struct ClientboundDeclareCommandsPacket {
@@ -20,16 +18,14 @@ impl ClientboundDeclareCommandsPacket {
         panic!("ClientboundDeclareCommandsPacket::write not implemented")
     }
 
-    pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        buf: &mut T,
-    ) -> Result<GamePacket, String> {
-        let node_count = buf.read_varint().await?;
+    pub fn read<T: Read>(buf: &mut T) -> Result<GamePacket, String> {
+        let node_count = buf.read_varint()?;
         let mut nodes = Vec::with_capacity(node_count as usize);
         for _ in 0..node_count {
-            let node = BrigadierNodeStub::read_into(buf).await?;
+            let node = BrigadierNodeStub::read_into(buf)?;
             nodes.push(node);
         }
-        let root_index = buf.read_varint().await?;
+        let root_index = buf.read_varint()?;
         Ok(GamePacket::ClientboundDeclareCommandsPacket(
             ClientboundDeclareCommandsPacket {
                 entries: nodes,
@@ -47,20 +43,16 @@ pub struct BrigadierNumber<T> {
     min: Option<T>,
     max: Option<T>,
 }
-#[async_trait]
-impl<T: McBufReadable + Send> McBufReadable for BrigadierNumber<T> {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let flags = buf.read_byte().await?;
+impl<T: McBufReadable> McBufReadable for BrigadierNumber<T> {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let flags = buf.read_byte()?;
         let min = if flags & 0x01 != 0 {
-            Some(T::read_into(buf).await?)
+            Some(T::read_into(buf)?)
         } else {
             None
         };
         let max = if flags & 0x02 != 0 {
-            Some(T::read_into(buf).await?)
+            Some(T::read_into(buf)?)
         } else {
             None
         };
@@ -97,13 +89,9 @@ pub enum BrigadierString {
     GreedyPhrase = 2,
 }
 
-#[async_trait]
 impl McBufReadable for BrigadierString {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let id = buf.read_byte().await?;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let id = buf.read_byte()?;
         Ok(match id {
             0 => BrigadierString::SingleWord,
             1 => BrigadierString::QuotablePhrase,
@@ -171,38 +159,24 @@ pub enum BrigadierParser {
     Resource { registry_key: ResourceLocation },
 }
 
-#[async_trait]
 impl McBufReadable for BrigadierParser {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let parser = buf.read_resource_location().await?;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let parser = buf.read_resource_location()?;
 
         if parser == ResourceLocation::new("brigadier:bool")? {
             Ok(BrigadierParser::Bool)
         } else if parser == ResourceLocation::new("brigadier:double")? {
-            Ok(BrigadierParser::Double(
-                BrigadierNumber::read_into(buf).await?,
-            ))
+            Ok(BrigadierParser::Double(BrigadierNumber::read_into(buf)?))
         } else if parser == ResourceLocation::new("brigadier:float")? {
-            Ok(BrigadierParser::Float(
-                BrigadierNumber::read_into(buf).await?,
-            ))
+            Ok(BrigadierParser::Float(BrigadierNumber::read_into(buf)?))
         } else if parser == ResourceLocation::new("brigadier:integer")? {
-            Ok(BrigadierParser::Integer(
-                BrigadierNumber::read_into(buf).await?,
-            ))
+            Ok(BrigadierParser::Integer(BrigadierNumber::read_into(buf)?))
         } else if parser == ResourceLocation::new("brigadier:long")? {
-            Ok(BrigadierParser::Long(
-                BrigadierNumber::read_into(buf).await?,
-            ))
+            Ok(BrigadierParser::Long(BrigadierNumber::read_into(buf)?))
         } else if parser == ResourceLocation::new("brigadier:string")? {
-            Ok(BrigadierParser::String(
-                BrigadierString::read_into(buf).await?,
-            ))
+            Ok(BrigadierParser::String(BrigadierString::read_into(buf)?))
         } else if parser == ResourceLocation::new("minecraft:entity")? {
-            let flags = buf.read_byte().await?;
+            let flags = buf.read_byte()?;
             Ok(BrigadierParser::Entity {
                 single: flags & 0x01 != 0,
                 players_only: flags & 0x02 != 0,
@@ -250,7 +224,7 @@ impl McBufReadable for BrigadierParser {
         } else if parser == ResourceLocation::new("minecraft:scoreboard_slot")? {
             Ok(BrigadierParser::ScoreboardSlot)
         } else if parser == ResourceLocation::new("minecraft:score_holder")? {
-            let flags = buf.read_byte().await?;
+            let flags = buf.read_byte()?;
             Ok(BrigadierParser::ScoreHolder {
                 allows_multiple: flags & 0x01 != 0,
             })
@@ -270,7 +244,7 @@ impl McBufReadable for BrigadierParser {
             Ok(BrigadierParser::EntityAnchor)
         } else if parser == ResourceLocation::new("minecraft:range")? {
             Ok(BrigadierParser::Range {
-                decimals_allowed: buf.read_boolean().await?,
+                decimals_allowed: buf.read_boolean()?,
             })
         } else if parser == ResourceLocation::new("minecraft:int_range")? {
             Ok(BrigadierParser::IntRange)
@@ -292,11 +266,11 @@ impl McBufReadable for BrigadierParser {
             Ok(BrigadierParser::Time)
         } else if parser == ResourceLocation::new("minecraft:resource_or_tag")? {
             Ok(BrigadierParser::ResourceOrTag {
-                registry_key: buf.read_resource_location().await?,
+                registry_key: buf.read_resource_location()?,
             })
         } else if parser == ResourceLocation::new("minecraft:resource")? {
             Ok(BrigadierParser::Resource {
-                registry_key: buf.read_resource_location().await?,
+                registry_key: buf.read_resource_location()?,
             })
         } else {
             panic!("Unknown Brigadier parser: {}", parser)
@@ -305,13 +279,9 @@ impl McBufReadable for BrigadierParser {
 }
 
 // azalea_brigadier::tree::CommandNode
-#[async_trait]
 impl McBufReadable for BrigadierNodeStub {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let flags = u8::read_into(buf).await?;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let flags = u8::read_into(buf)?;
         if flags > 31 {
             println!(
                 "Warning: The flags from a Brigadier node are over 31. This is probably a bug."
@@ -323,21 +293,17 @@ impl McBufReadable for BrigadierNodeStub {
         let has_redirect = flags & 0x08 != 0;
         let has_suggestions_type = flags & 0x10 != 0;
 
-        let children = buf.read_int_id_list().await?;
-        let redirect_node = if has_redirect {
-            buf.read_varint().await?
-        } else {
-            0
-        };
+        let children = buf.read_int_id_list()?;
+        let redirect_node = if has_redirect { buf.read_varint()? } else { 0 };
 
         // argument node
         if node_type == 2 {
-            let name = buf.read_utf().await?;
+            let name = buf.read_utf()?;
 
-            let parser = BrigadierParser::read_into(buf).await?;
+            let parser = BrigadierParser::read_into(buf)?;
 
             let suggestions_type = if has_suggestions_type {
-                Some(buf.read_resource_location().await?)
+                Some(buf.read_resource_location()?)
             } else {
                 None
             };
@@ -345,7 +311,7 @@ impl McBufReadable for BrigadierNodeStub {
         }
         // literal node
         if node_type == 1 {
-            let name = buf.read_utf().await?;
+            let name = buf.read_utf()?;
             return Ok(BrigadierNodeStub {});
         }
         Ok(BrigadierNodeStub {})

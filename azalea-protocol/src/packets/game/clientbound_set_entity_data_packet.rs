@@ -1,12 +1,12 @@
+use std::io::Read;
+
 use crate::{
     mc_buf::{Readable, Writable},
     packets::{McBufReadable, McBufWritable},
 };
-use async_trait::async_trait;
 use azalea_chat::component::Component;
 use azalea_core::{BlockPos, Direction, Slot};
 use packet_macros::{GamePacket, McBufReadable, McBufWritable};
-use tokio::io::AsyncRead;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, GamePacket)]
@@ -24,19 +24,15 @@ pub struct EntityDataItem {
     pub value: EntityDataValue,
 }
 
-#[async_trait]
 impl McBufReadable for Vec<EntityDataItem> {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
         let mut metadata = Vec::new();
         loop {
-            let index = buf.read_byte().await?;
+            let index = buf.read_byte()?;
             if index == 0xff {
                 break;
             }
-            let value = EntityDataValue::read_into(buf).await?;
+            let value = EntityDataValue::read_into(buf)?;
             metadata.push(EntityDataItem { index, value });
         }
         Ok(metadata)
@@ -81,51 +77,47 @@ pub enum EntityDataValue {
     Pose(Pose),
 }
 
-#[async_trait]
 impl McBufReadable for EntityDataValue {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let type_ = buf.read_varint().await?;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let type_ = buf.read_varint()?;
         Ok(match type_ {
-            0 => EntityDataValue::Byte(buf.read_byte().await?),
-            1 => EntityDataValue::Int(buf.read_varint().await?),
-            2 => EntityDataValue::Float(buf.read_float().await?),
-            3 => EntityDataValue::String(buf.read_utf().await?),
-            4 => EntityDataValue::Component(Component::read_into(buf).await?),
-            5 => EntityDataValue::OptionalComponent(Option::<Component>::read_into(buf).await?),
-            6 => EntityDataValue::ItemStack(Slot::read_into(buf).await?),
-            7 => EntityDataValue::Boolean(buf.read_boolean().await?),
+            0 => EntityDataValue::Byte(buf.read_byte()?),
+            1 => EntityDataValue::Int(buf.read_varint()?),
+            2 => EntityDataValue::Float(buf.read_float()?),
+            3 => EntityDataValue::String(buf.read_utf()?),
+            4 => EntityDataValue::Component(Component::read_into(buf)?),
+            5 => EntityDataValue::OptionalComponent(Option::<Component>::read_into(buf)?),
+            6 => EntityDataValue::ItemStack(Slot::read_into(buf)?),
+            7 => EntityDataValue::Boolean(buf.read_boolean()?),
             8 => EntityDataValue::Rotations {
-                x: buf.read_float().await?,
-                y: buf.read_float().await?,
-                z: buf.read_float().await?,
+                x: buf.read_float()?,
+                y: buf.read_float()?,
+                z: buf.read_float()?,
             },
-            9 => EntityDataValue::BlockPos(BlockPos::read_into(buf).await?),
-            10 => EntityDataValue::OptionalBlockPos(Option::<BlockPos>::read_into(buf).await?),
-            11 => EntityDataValue::Direction(Direction::read_into(buf).await?),
-            12 => EntityDataValue::OptionalUuid(Option::<Uuid>::read_into(buf).await?),
+            9 => EntityDataValue::BlockPos(BlockPos::read_into(buf)?),
+            10 => EntityDataValue::OptionalBlockPos(Option::<BlockPos>::read_into(buf)?),
+            11 => EntityDataValue::Direction(Direction::read_into(buf)?),
+            12 => EntityDataValue::OptionalUuid(Option::<Uuid>::read_into(buf)?),
             13 => EntityDataValue::OptionalBlockState({
-                let val = i32::read_into(buf).await?;
+                let val = i32::read_into(buf)?;
                 if val == 0 {
                     None
                 } else {
                     Some(val)
                 }
             }),
-            14 => EntityDataValue::CompoundTag(azalea_nbt::Tag::read_into(buf).await?),
-            15 => EntityDataValue::Particle(Particle::read_into(buf).await?),
-            16 => EntityDataValue::VillagerData(VillagerData::read_into(buf).await?),
+            14 => EntityDataValue::CompoundTag(azalea_nbt::Tag::read_into(buf)?),
+            15 => EntityDataValue::Particle(Particle::read_into(buf)?),
+            16 => EntityDataValue::VillagerData(VillagerData::read_into(buf)?),
             17 => EntityDataValue::OptionalUnsignedInt({
-                let val = buf.read_varint().await?;
+                let val = buf.read_varint()?;
                 if val == 0 {
                     None
                 } else {
                     Some((val - 1) as u32)
                 }
             }),
-            18 => EntityDataValue::Pose(Pose::read_into(buf).await?),
+            18 => EntityDataValue::Pose(Pose::read_into(buf)?),
             _ => return Err(format!("Unknown entity data type: {}", type_)),
         })
     }
@@ -309,18 +301,14 @@ pub struct VibrationParticle {
     pub ticks: u32,
 }
 
-#[async_trait]
 impl McBufReadable for ParticleData {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let id = buf.read_varint().await?;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let id = buf.read_varint()?;
         Ok(match id {
             0 => ParticleData::AmbientEntityEffect,
             1 => ParticleData::AngryVillager,
-            2 => ParticleData::Block(BlockParticle::read_into(buf).await?),
-            3 => ParticleData::BlockMarker(BlockParticle::read_into(buf).await?),
+            2 => ParticleData::Block(BlockParticle::read_into(buf)?),
+            3 => ParticleData::BlockMarker(BlockParticle::read_into(buf)?),
             4 => ParticleData::Bubble,
             5 => ParticleData::Cloud,
             6 => ParticleData::Crit,
@@ -331,10 +319,8 @@ impl McBufReadable for ParticleData {
             11 => ParticleData::LandingLava,
             12 => ParticleData::DrippingWater,
             13 => ParticleData::FallingWater,
-            14 => ParticleData::Dust(DustParticle::read_into(buf).await?),
-            15 => ParticleData::DustColorTransition(
-                DustColorTransitionParticle::read_into(buf).await?,
-            ),
+            14 => ParticleData::Dust(DustParticle::read_into(buf)?),
+            15 => ParticleData::DustColorTransition(DustColorTransitionParticle::read_into(buf)?),
             16 => ParticleData::Effect,
             17 => ParticleData::ElderGuardian,
             18 => ParticleData::EnchantedHit,
@@ -343,7 +329,7 @@ impl McBufReadable for ParticleData {
             21 => ParticleData::EntityEffect,
             22 => ParticleData::ExplosionEmitter,
             23 => ParticleData::Explosion,
-            24 => ParticleData::FallingDust(BlockParticle::read_into(buf).await?),
+            24 => ParticleData::FallingDust(BlockParticle::read_into(buf)?),
             25 => ParticleData::Firework,
             26 => ParticleData::Fishing,
             27 => ParticleData::Flame,
@@ -354,8 +340,8 @@ impl McBufReadable for ParticleData {
             32 => ParticleData::Composter,
             33 => ParticleData::Heart,
             34 => ParticleData::InstantEffect,
-            35 => ParticleData::Item(ItemParticle::read_into(buf).await?),
-            36 => ParticleData::Vibration(VibrationParticle::read_into(buf).await?),
+            35 => ParticleData::Item(ItemParticle::read_into(buf)?),
+            36 => ParticleData::Vibration(VibrationParticle::read_into(buf)?),
             37 => ParticleData::ItemSlime,
             38 => ParticleData::ItemSnowball,
             39 => ParticleData::LargeSmoke,

@@ -19,10 +19,7 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
     let mut decoded_src_stream = std::io::Cursor::new(decoded_src.clone());
 
     file.seek(SeekFrom::Start(0)).unwrap();
-    // run Tag::read(&mut decoded_src_stream) asynchronously
-    let nbt = tokio::runtime::Runtime::new()
-        .unwrap()
-        .block_on(async { Tag::read(&mut decoded_src_stream).await.unwrap() });
+    let nbt = Tag::read(&mut decoded_src_stream).unwrap();
 
     let mut group = c.benchmark_group(filename);
 

@@ -1,60 +1,57 @@
-use async_trait::async_trait;
+use super::{BitSet, UnsizedByteArray, MAX_STRING_LENGTH};
 use azalea_chat::component::Component;
 use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
     serializable_uuid::SerializableUuid, BlockPos, Direction, Slot, SlotData,
 };
+use byteorder::{ReadBytesExt, WriteBytesExt, BE};
 use serde::Deserialize;
+use std::io::Read;
 use tokio::io::{AsyncRead, AsyncReadExt};
 use uuid::Uuid;
 
-use super::{BitSet, UnsizedByteArray, MAX_STRING_LENGTH};
-
-#[async_trait]
 pub trait Readable {
-    async fn read_int_id_list(&mut self) -> Result<Vec<i32>, String>;
-    async fn read_varint(&mut self) -> Result<i32, String>;
+    fn read_int_id_list(&mut self) -> Result<Vec<i32>, String>;
+    fn read_varint(&mut self) -> Result<i32, String>;
     fn get_varint_size(&mut self, value: i32) -> u8;
     fn get_varlong_size(&mut self, value: i32) -> u8;
-    async fn read_byte_array(&mut self) -> Result<Vec<u8>, String>;
-    async fn read_bytes_with_len(&mut self, n: usize) -> Result<Vec<u8>, String>;
-    async fn read_bytes(&mut self) -> Result<Vec<u8>, String>;
-    async fn read_utf(&mut self) -> Result<String, String>;
-    async fn read_utf_with_len(&mut self, max_length: u32) -> Result<String, String>;
-    async fn read_byte(&mut self) -> Result<u8, String>;
-    async fn read_int(&mut self) -> Result<i32, String>;
-    async fn read_boolean(&mut self) -> Result<bool, String>;
-    async fn read_nbt(&mut self) -> Result<azalea_nbt::Tag, String>;
-    async fn read_long(&mut self) -> Result<i64, String>;
-    async fn read_resource_location(&mut self) -> Result<ResourceLocation, String>;
-    async fn read_short(&mut self) -> Result<i16, String>;
-    async fn read_float(&mut self) -> Result<f32, String>;
-    async fn read_double(&mut self) -> Result<f64, String>;
-    async fn read_uuid(&mut self) -> Result<Uuid, String>;
+    fn read_byte_array(&mut self) -> Result<Vec<u8>, String>;
+    fn read_bytes_with_len(&mut self, n: usize) -> Result<Vec<u8>, String>;
+    fn read_bytes(&mut self) -> Result<Vec<u8>, String>;
+    fn read_utf(&mut self) -> Result<String, String>;
+    fn read_utf_with_len(&mut self, max_length: u32) -> Result<String, String>;
+    fn read_byte(&mut self) -> Result<u8, String>;
+    fn read_int(&mut self) -> Result<i32, String>;
+    fn read_boolean(&mut self) -> Result<bool, String>;
+    fn read_nbt(&mut self) -> Result<azalea_nbt::Tag, String>;
+    fn read_long(&mut self) -> Result<i64, String>;
+    fn read_resource_location(&mut self) -> Result<ResourceLocation, String>;
+    fn read_short(&mut self) -> Result<i16, String>;
+    fn read_float(&mut self) -> Result<f32, String>;
+    fn read_double(&mut self) -> Result<f64, String>;
+    fn read_uuid(&mut self) -> Result<Uuid, String>;
 }
 
-#[async_trait]
 impl<R> Readable for R
 where
-    R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    R: Read,
 {
-    async fn read_int_id_list(&mut self) -> Result<Vec<i32>, String> {
-        let len = self.read_varint().await?;
+    fn read_int_id_list(&mut self) -> Result<Vec<i32>, String> {
+        let len = self.read_varint()?;
         let mut list = Vec::with_capacity(len as usize);
         for _ in 0..len {
-            list.push(self.read_varint().await?);
+            list.push(self.read_varint()?);
         }
         Ok(list)
     }
 
     // fast varints modified from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
     /// Read a single varint from the reader and return the value, along with the number of bytes read
-    async fn read_varint(&mut self) -> Result<i32, String> {
+    fn read_varint(&mut self) -> Result<i32, String> {
         let mut buffer = [0];
         let mut ans = 0;
         for i in 0..5 {
             self.read_exact(&mut buffer)
-                .await
                 .map_err(|_| "Invalid VarInt".to_string())?;
             ans |= ((buffer[0] & 0b0111_1111) as i32) << (7 * i);
             if buffer[0] & 0b1000_0000 == 0 {
@@ -84,34 +81,32 @@ where
         10
     }
 
-    async fn read_byte_array(&mut self) -> Result<Vec<u8>, String> {
-        let length = self.read_varint().await? as usize;
-        self.read_bytes_with_len(length).await
+    fn read_byte_array(&mut self) -> Result<Vec<u8>, String> {
+        let length = self.read_varint()? as usize;
+        self.read_bytes_with_len(length)
     }
 
-    async fn read_bytes_with_len(&mut self, n: usize) -> Result<Vec<u8>, String> {
-        let mut bytes = vec![0; n];
-        match AsyncReadExt::read_exact(self, &mut bytes).await {
-            Ok(_) => Ok(bytes),
-            Err(_) => Err("Error reading bytes".to_string()),
-        }
+    fn read_bytes_with_len(&mut self, n: usize) -> Result<Vec<u8>, String> {
+        let mut buffer = vec![0; n];
+        self.read_exact(&mut buffer)
+            .map_err(|_| "Error reading bytes".to_string())?;
+        Ok(buffer)
     }
 
-    async fn read_bytes(&mut self) -> Result<Vec<u8>, String> {
+    fn read_bytes(&mut self) -> Result<Vec<u8>, String> {
         // read to end of the buffer
         let mut bytes = vec![];
-        AsyncReadExt::read_to_end(self, &mut bytes)
-            .await
+        self.read_to_end(&mut bytes)
             .map_err(|_| "Error reading bytes".to_string())?;
         Ok(bytes)
     }
 
-    async fn read_utf(&mut self) -> Result<String, String> {
-        self.read_utf_with_len(MAX_STRING_LENGTH.into()).await
+    fn read_utf(&mut self) -> Result<String, String> {
+        self.read_utf_with_len(MAX_STRING_LENGTH.into())
     }
 
-    async fn read_utf_with_len(&mut self, max_length: u32) -> Result<String, String> {
-        let length = self.read_varint().await?;
+    fn read_utf_with_len(&mut self, max_length: u32) -> Result<String, String> {
+        let length = self.read_varint()?;
         // i don't know why it's multiplied by 4 but it's like that in mojang's code so
         if length < 0 {
             return Err(
@@ -131,7 +126,6 @@ where
         let mut string = String::new();
         let mut buffer = vec![0; length as usize];
         self.read_exact(&mut buffer)
-            .await
             .map_err(|_| "Invalid UTF-8".to_string())?;
         string.push_str(std::str::from_utf8(&buffer).unwrap());
         if string.len() > length as usize {
@@ -145,342 +139,263 @@ where
     }
 
     /// Read a single byte from the reader
-    async fn read_byte(&mut self) -> Result<u8, String> {
-        match AsyncReadExt::read_u8(self).await {
-            Ok(r) => Ok(r),
-            Err(_) => Err("Error reading byte".to_string()),
-        }
+    fn read_byte(&mut self) -> Result<u8, String> {
+        self.read_u8().map_err(|_| "Error reading byte".to_string())
     }
 
-    async fn read_int(&mut self) -> Result<i32, String> {
-        match AsyncReadExt::read_i32(self).await {
+    fn read_int(&mut self) -> Result<i32, String> {
+        match self.read_i32::<BE>() {
             Ok(r) => Ok(r),
             Err(_) => Err("Error reading int".to_string()),
         }
     }
 
-    async fn read_boolean(&mut self) -> Result<bool, String> {
-        match self.read_byte().await {
-            Ok(0) => Ok(false),
-            Ok(1) => Ok(true),
+    fn read_boolean(&mut self) -> Result<bool, String> {
+        match self.read_byte()? {
+            0 => Ok(false),
+            1 => Ok(true),
             _ => Err("Error reading boolean".to_string()),
         }
     }
 
-    async fn read_nbt(&mut self) -> Result<azalea_nbt::Tag, String> {
-        match azalea_nbt::Tag::read(self).await {
+    fn read_nbt(&mut self) -> Result<azalea_nbt::Tag, String> {
+        match azalea_nbt::Tag::read(self) {
             Ok(r) => Ok(r),
             // Err(e) => Err(e.to_string()),
             Err(e) => Err(e.to_string()).unwrap(),
         }
     }
 
-    async fn read_long(&mut self) -> Result<i64, String> {
-        match AsyncReadExt::read_i64(self).await {
+    fn read_long(&mut self) -> Result<i64, String> {
+        match self.read_i64::<BE>() {
             Ok(r) => Ok(r),
             Err(_) => Err("Error reading long".to_string()),
         }
     }
 
-    async fn read_resource_location(&mut self) -> Result<ResourceLocation, String> {
+    fn read_resource_location(&mut self) -> Result<ResourceLocation, String> {
         // get the resource location from the string
-        let location_string = self.read_utf().await?;
+        let location_string = self.read_utf()?;
         let location = ResourceLocation::new(&location_string)?;
         Ok(location)
     }
 
-    async fn read_short(&mut self) -> Result<i16, String> {
-        match AsyncReadExt::read_i16(self).await {
+    fn read_short(&mut self) -> Result<i16, String> {
+        match self.read_i16::<BE>() {
             Ok(r) => Ok(r),
             Err(_) => Err("Error reading short".to_string()),
         }
     }
 
-    async fn read_float(&mut self) -> Result<f32, String> {
-        match AsyncReadExt::read_f32(self).await {
+    fn read_float(&mut self) -> Result<f32, String> {
+        match self.read_f32::<BE>() {
             Ok(r) => Ok(r),
             Err(_) => Err("Error reading float".to_string()),
         }
     }
 
-    async fn read_double(&mut self) -> Result<f64, String> {
-        match AsyncReadExt::read_f64(self).await {
+    fn read_double(&mut self) -> Result<f64, String> {
+        match self.read_f64::<BE>() {
             Ok(r) => Ok(r),
             Err(_) => Err("Error reading double".to_string()),
         }
     }
 
-    async fn read_uuid(&mut self) -> Result<Uuid, String> {
+    fn read_uuid(&mut self) -> Result<Uuid, String> {
         Ok(Uuid::from_int_array([
-            self.read_int().await? as u32,
-            self.read_int().await? as u32,
-            self.read_int().await? as u32,
-            self.read_int().await? as u32,
+            Readable::read_int(self)? as u32,
+            Readable::read_int(self)? as u32,
+            Readable::read_int(self)? as u32,
+            Readable::read_int(self)? as u32,
         ]))
     }
 }
 
-#[async_trait]
+// fast varints modified from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
+/// Read a single varint from the reader and return the value, along with the number of bytes read
+pub async fn read_varint_async(reader: &mut (dyn AsyncRead + Unpin + Send)) -> Result<i32, String> {
+    let mut buffer = [0];
+    let mut ans = 0;
+    for i in 0..5 {
+        reader
+            .read_exact(&mut buffer)
+            .await
+            .map_err(|_| "Invalid VarInt".to_string())?;
+        ans |= ((buffer[0] & 0b0111_1111) as i32) << (7 * i);
+        if buffer[0] & 0b1000_0000 == 0 {
+            return Ok(ans);
+        }
+    }
+    Ok(ans)
+}
+
 pub trait McBufReadable
 where
     Self: Sized,
 {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String>;
 }
 
-#[async_trait]
 pub trait McBufVarintReadable
 where
     Self: Sized,
 {
-    async fn varint_read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send;
+    fn varint_read_into(buf: &mut impl Read) -> Result<Self, String>;
 }
 
-#[async_trait]
 impl McBufReadable for i32 {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_int().await
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        Readable::read_int(buf)
     }
 }
 
-#[async_trait]
 impl McBufVarintReadable for i32 {
-    async fn varint_read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_varint().await
+    fn varint_read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_varint()
     }
 }
 
-#[async_trait]
 impl McBufReadable for UnsizedByteArray {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        Ok(UnsizedByteArray(buf.read_bytes().await?))
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        Ok(UnsizedByteArray(buf.read_bytes()?))
     }
 }
 
-#[async_trait]
 impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
-    default async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let length = buf.read_varint().await? as usize;
+    default fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let length = buf.read_varint()? as usize;
         let mut contents = Vec::with_capacity(length);
         for _ in 0..length {
-            contents.push(T::read_into(buf).await?);
+            contents.push(T::read_into(buf)?);
         }
         Ok(contents)
     }
 }
 
-#[async_trait]
 impl McBufReadable for Vec<u8> {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_byte_array().await
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_byte_array()
     }
 }
 
 // string
-#[async_trait]
 impl McBufReadable for String {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_utf().await
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_utf()
     }
 }
 
 // ResourceLocation
-#[async_trait]
 impl McBufReadable for ResourceLocation {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_resource_location().await
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_resource_location()
     }
 }
 
 // u32
-#[async_trait]
 impl McBufReadable for u32 {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_int().await.map(|i| i as u32)
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        Readable::read_int(buf).map(|i| i as u32)
     }
 }
 
 // u32 varint
-#[async_trait]
 impl McBufVarintReadable for u32 {
-    async fn varint_read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_varint().await.map(|i| i as u32)
+    fn varint_read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_varint().map(|i| i as u32)
     }
 }
 
 // u16
-#[async_trait]
 impl McBufReadable for u16 {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_short().await.map(|i| i as u16)
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_short().map(|i| i as u16)
     }
 }
 
 // i16
-#[async_trait]
 impl McBufReadable for i16 {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_short().await
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_short()
     }
 }
 
 // u16 varint
-#[async_trait]
 impl McBufVarintReadable for u16 {
-    async fn varint_read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_varint().await.map(|i| i as u16)
+    fn varint_read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_varint().map(|i| i as u16)
     }
 }
 
 // i64
-#[async_trait]
 impl McBufReadable for i64 {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_long().await
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_long()
     }
 }
 
 // u64
-#[async_trait]
 impl McBufReadable for u64 {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        i64::read_into(buf).await.map(|i| i as u64)
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        i64::read_into(buf).map(|i| i as u64)
     }
 }
 
 // bool
-#[async_trait]
 impl McBufReadable for bool {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_boolean().await
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_boolean()
     }
 }
 
 // u8
-#[async_trait]
 impl McBufReadable for u8 {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_byte().await
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_byte()
     }
 }
 
 // i8
-#[async_trait]
 impl McBufReadable for i8 {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_byte().await.map(|i| i as i8)
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_byte().map(|i| i as i8)
     }
 }
 
 // f32
-#[async_trait]
 impl McBufReadable for f32 {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_float().await
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_float()
     }
 }
 
 // f64
-#[async_trait]
 impl McBufReadable for f64 {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_double().await
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_double()
     }
 }
 
 // GameType
-#[async_trait]
 impl McBufReadable for GameType {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        GameType::from_id(buf.read_byte().await?)
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        GameType::from_id(buf.read_byte()?)
     }
 }
 
 // Option<GameType>
-#[async_trait]
 impl McBufReadable for Option<GameType> {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        GameType::from_optional_id(buf.read_byte().await? as i8)
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        GameType::from_optional_id(buf.read_byte()? as i8)
     }
 }
 
 // Option<String>
-#[async_trait]
 impl<T: McBufReadable> McBufReadable for Option<T> {
-    default async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let present = buf.read_boolean().await?;
+    default fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let present = buf.read_boolean()?;
         Ok(if present {
-            Some(T::read_into(buf).await?)
+            Some(T::read_into(buf)?)
         } else {
             None
         })
@@ -488,35 +403,23 @@ impl<T: McBufReadable> McBufReadable for Option<T> {
 }
 
 // azalea_nbt::Tag
-#[async_trait]
 impl McBufReadable for azalea_nbt::Tag {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_nbt().await
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_nbt()
     }
 }
 
 // Difficulty
-#[async_trait]
 impl McBufReadable for Difficulty {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        Ok(Difficulty::by_id(u8::read_into(buf).await?))
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        Ok(Difficulty::by_id(u8::read_into(buf)?))
     }
 }
 
 // Component
-#[async_trait]
 impl McBufReadable for Component {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let string = buf.read_utf().await?;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let string = buf.read_utf()?;
         let json: serde_json::Value = serde_json::from_str(string.as_str())
             .map_err(|e| "Component isn't valid JSON".to_string())?;
         let component = Component::deserialize(json).map_err(|e| e.to_string())?;
@@ -525,42 +428,30 @@ impl McBufReadable for Component {
 }
 
 // Slot
-#[async_trait]
 impl McBufReadable for Slot {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let present = buf.read_boolean().await?;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let present = buf.read_boolean()?;
         if !present {
             return Ok(Slot::Empty);
         }
-        let id = buf.read_varint().await?;
-        let count = buf.read_byte().await?;
-        let nbt = buf.read_nbt().await?;
+        let id = buf.read_varint()?;
+        let count = buf.read_byte()?;
+        let nbt = buf.read_nbt()?;
         Ok(Slot::Present(SlotData { id, count, nbt }))
     }
 }
 
 // Uuid
-#[async_trait]
 impl McBufReadable for Uuid {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        buf.read_uuid().await
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        buf.read_uuid()
     }
 }
 
 // BlockPos
-#[async_trait]
 impl McBufReadable for BlockPos {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let val = u64::read_into(buf).await?;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let val = u64::read_into(buf)?;
         let x = (val >> 38) as i32;
         let y = (val & 0xFFF) as i32;
         let z = ((val >> 12) & 0x3FFFFFF) as i32;
@@ -569,13 +460,9 @@ impl McBufReadable for BlockPos {
 }
 
 // Direction
-#[async_trait]
 impl McBufReadable for Direction {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        match buf.read_varint().await? {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        match buf.read_varint()? {
             0 => Ok(Self::Down),
             1 => Ok(Self::Up),
             2 => Ok(Self::North),

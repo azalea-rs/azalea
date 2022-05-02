@@ -3,14 +3,14 @@ pub mod handshake;
 pub mod login;
 pub mod status;
 
+use std::io::Read;
+
 use crate::{
     connect::PacketFlow,
     mc_buf::{McBufReadable, McBufWritable, Readable, Writable},
 };
-use async_trait::async_trait;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
-use tokio::io::AsyncRead;
 
 pub const PROTOCOL_VERSION: u32 = 758;
 
@@ -31,7 +31,6 @@ pub enum Packet {
 }
 
 /// An enum of packets for a certain protocol
-#[async_trait]
 pub trait ProtocolPacket
 where
     Self: Sized,
@@ -39,24 +38,14 @@ where
     fn id(&self) -> u32;
 
     /// Read a packet by its id, ConnectionProtocol, and flow
-    async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        id: u32,
-        flow: &PacketFlow,
-        buf: &mut T,
-    ) -> Result<Self, String>
-    where
-        Self: Sized;
+    fn read(id: u32, flow: &PacketFlow, buf: &mut impl Read) -> Result<Self, String>;
 
     fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error>;
 }
 
-#[async_trait]
 impl McBufReadable for ConnectionProtocol {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        ConnectionProtocol::from_i32(buf.read_varint().await?)
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        ConnectionProtocol::from_i32(buf.read_varint()?)
             .ok_or_else(|| "Invalid intention".to_string())
     }
 }
