@@ -1,5 +1,4 @@
 use super::{UnsizedByteArray, MAX_STRING_LENGTH};
-use async_trait::async_trait;
 use azalea_chat::component::Component;
 use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
@@ -9,7 +8,6 @@ use byteorder::{BigEndian, WriteBytesExt};
 use std::io::Write;
 use uuid::Uuid;
 
-#[async_trait]
 pub trait Writable {
     fn write_list<F, T>(&mut self, list: &[T], writer: F) -> Result<(), std::io::Error>
     where
@@ -48,7 +46,6 @@ pub trait Writable {
     fn write_uuid(&mut self, uuid: &Uuid) -> Result<(), std::io::Error>;
 }
 
-#[async_trait]
 impl Writable for Vec<u8> {
     fn write_list<F, T>(&mut self, list: &[T], writer: F) -> Result<(), std::io::Error>
     where
@@ -363,9 +360,8 @@ impl McBufWritable for Difficulty {
 }
 
 // Component
-#[async_trait]
 impl McBufWritable for Component {
-    // async fn read_into<R>(buf: &mut R) -> Result<Self, String>
+    // async fn read_into(buf: &mut impl Read) -> Result<Self, String>
     // where
     //     R: AsyncRead + std::marker::Unpin + std::marker::Send,
     // {

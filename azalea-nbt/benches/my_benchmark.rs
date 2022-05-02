@@ -19,23 +19,19 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
     let mut decoded_src_stream = std::io::Cursor::new(decoded_src.clone());
 
     file.seek(SeekFrom::Start(0)).unwrap();
-    // run Tag::read(&mut decoded_src_stream) asynchronously
-    let nbt = tokio::runtime::Runtime::new()
-        .unwrap()
-        .block_on(async { Tag::read(&mut decoded_src_stream).await.unwrap() });
+    let nbt = Tag::read(&mut decoded_src_stream).unwrap();
 
     let mut group = c.benchmark_group(filename);
 
     group.throughput(Throughput::Bytes(decoded_src.len() as u64));
 
-    // group.bench_function("Decode", |b| {
-    //     b.to_async(tokio::runtime::Runtime::new().unwrap())
-    //         .iter(|| async {
-    //             let mut owned_decoded_src_stream = decoded_src_stream.clone();
-    //             owned_decoded_src_stream.seek(SeekFrom::Start(0)).unwrap();
-    //             Tag::read(&mut owned_decoded_src_stream).await.unwrap();
-    //         })
-    // });
+    group.bench_function("Decode", |b| {
+        b.iter(|| {
+            let mut owned_decoded_src_stream = decoded_src_stream.clone();
+            owned_decoded_src_stream.seek(SeekFrom::Start(0)).unwrap();
+            Tag::read(&mut owned_decoded_src_stream).unwrap();
+        })
+    });
 
     group.bench_function("Encode", |b| {
         b.iter(|| {

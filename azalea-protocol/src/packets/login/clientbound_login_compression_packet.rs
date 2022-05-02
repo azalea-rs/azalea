@@ -1,4 +1,4 @@
-use std::hash::Hash;
+use std::{hash::Hash, io::Read};
 
 use crate::mc_buf::{Readable, Writable};
 
@@ -19,10 +19,8 @@ impl ClientboundLoginCompressionPacket {
         Ok(())
     }
 
-    pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-        buf: &mut T,
-    ) -> Result<LoginPacket, String> {
-        let compression_threshold = buf.read_varint().await?;
+    pub  fn read(buf: &mut impl Read) -> Result<LoginPacket, String> {
+        let compression_threshold = buf.read_varint()?;
 
         Ok(ClientboundLoginCompressionPacket {
             compression_threshold,

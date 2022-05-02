@@ -1,11 +1,7 @@
-use std::collections::HashMap;
-
-use async_trait::async_trait;
+use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::resource_location::ResourceLocation;
 use packet_macros::GamePacket;
-use tokio::io::AsyncRead;
-
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use std::{collections::HashMap, io::Read};
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundUpdateTagsPacket {
@@ -18,20 +14,16 @@ pub struct Tags {
     pub elements: Vec<i32>,
 }
 
-#[async_trait]
 impl McBufReadable for HashMap<ResourceLocation, Vec<Tags>> {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let length = buf.read_varint().await? as usize;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let length = buf.read_varint()? as usize;
         let mut data = HashMap::with_capacity(length);
         for _ in 0..length {
-            let tag_type = buf.read_resource_location().await?;
-            let tags_count = buf.read_varint().await? as usize;
+            let tag_type = buf.read_resource_location()?;
+            let tags_count = buf.read_varint()? as usize;
             let mut tags_vec = Vec::with_capacity(tags_count);
             for _ in 0..tags_count {
-                let tags = Tags::read_into(buf).await?;
+                let tags = Tags::read_into(buf)?;
                 tags_vec.push(tags);
             }
             data.insert(tag_type, tags_vec);
@@ -50,14 +42,10 @@ impl McBufWritable for HashMap<ResourceLocation, Vec<Tags>> {
         Ok(())
     }
 }
-#[async_trait]
 impl McBufReadable for Tags {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let name = buf.read_resource_location().await?;
-        let elements = buf.read_int_id_list().await?;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let name = buf.read_resource_location()?;
+        let elements = buf.read_int_id_list()?;
         Ok(Tags { name, elements })
     }
 }

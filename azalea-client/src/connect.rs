@@ -135,7 +135,7 @@ impl Client {
         let game_loop_conn = conn.clone();
         let game_loop_state = client.state.clone();
 
-        tokio::spawn(async move { Self::game_loop(game_loop_conn, tx, game_loop_state).await });
+        tokio::spawn(Self::game_loop(game_loop_conn, tx, game_loop_state));
 
         Ok(client)
     }

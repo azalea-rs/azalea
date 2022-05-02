@@ -25,11 +25,11 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         syn::Type::Path(_) => {
                                 if f.attrs.iter().any(|a| a.path.is_ident("varint")) {
                                     quote! {
-                                        let #field_name = crate::mc_buf::McBufVarintReadable::varint_read_into(buf).await?;
+                                        let #field_name = crate::mc_buf::McBufVarintReadable::varint_read_into(buf)?;
                                     }
                                 } else {
                                     quote! {
-                                        let #field_name = crate::mc_buf::McBufReadable::read_into(buf).await?;
+                                        let #field_name = crate::mc_buf::McBufReadable::read_into(buf)?;
                                     }
                             }
                         }
@@ -44,12 +44,8 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             let read_field_names = named.iter().map(|f| &f.ident).collect::<Vec<_>>();
 
             quote! {
-            #[async_trait::async_trait]
             impl crate::mc_buf::McBufReadable for #ident {
-                async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-                where
-                    R: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send,
-                {
+                fn read_into(buf: &mut impl std::io::Read) -> Result<Self, String> {
                     #(#read_fields)*
                     Ok(#ident {
                         #(#read_field_names: #read_field_names),*
@@ -73,13 +69,10 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             }
 
             quote! {
-            #[async_trait::async_trait]
             impl crate::mc_buf::McBufReadable for #ident {
-                async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-                where
-                    R: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send,
+                fn read_into(buf: &mut impl std::io::Read) -> Result<Self, String>
                 {
-                    let id = buf.read_varint().await?;
+                    let id = buf.read_varint()?;
                     match id {
                         #match_contents
                         _ => Err(format!("Unknown enum variant {}", id)),
@@ -189,11 +182,11 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
                 crate::mc_buf::McBufWritable::write_into(self, buf)
             }
 
-            pub async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
-                buf: &mut T,
+            pub fn read(
+                buf: &mut impl std::io::Read,
             ) -> Result<#state, String> {
                 use crate::mc_buf::McBufReadable;
-                Ok(Self::read_into(buf).await?.get())
+                Ok(Self::read_into(buf)?.get())
             }
         }
 
@@ -339,7 +332,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #state_name::#name(packet) => packet.write(buf),
         });
         serverbound_read_match_contents.extend(quote! {
-            #id => #module::#name::read(buf).await?,
+            #id => #module::#name::read(buf)?,
         });
     }
     for PacketIdPair { id, module, name } in input.clientbound.packets {
@@ -353,7 +346,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #state_name::#name(packet) => packet.write(buf),
         });
         clientbound_read_match_contents.extend(quote! {
-            #id => #module::#name::read(buf).await?,
+            #id => #module::#name::read(buf)?,
         });
     }
 
@@ -366,7 +359,6 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #enum_contents
         }
 
-        #[async_trait::async_trait]
         impl crate::packets::ProtocolPacket for #state_name {
             fn id(&self) -> u32 {
                 match self {
@@ -381,10 +373,10 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             }
 
             /// Read a packet by its id, ConnectionProtocol, and flow
-            async fn read<T: tokio::io::AsyncRead + std::marker::Unpin + std::marker::Send>(
+            fn read(
                 id: u32,
                 flow: &crate::connect::PacketFlow,
-                buf: &mut T,
+                buf: &mut impl std::io::Read,
             ) -> Result<#state_name, String>
             where
                 Self: Sized,

@@ -1,10 +1,7 @@
-// i don't know the actual name of this packet, i couldn't find it in the source code
-
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
-use async_trait::async_trait;
 use azalea_chat::component::Component;
 use packet_macros::{GamePacket, McBufReadable, McBufWritable};
-use tokio::io::AsyncRead;
+use std::io::Read;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, GamePacket)]
@@ -64,19 +61,15 @@ pub struct RemovePlayer {
     uuid: Uuid,
 }
 
-#[async_trait]
 impl McBufReadable for Action {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let id = buf.read_byte().await?;
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let id = buf.read_byte()?;
         Ok(match id {
-            0 => Action::AddPlayer(Vec::<AddPlayer>::read_into(buf).await?),
-            1 => Action::UpdateGameMode(Vec::<UpdateGameMode>::read_into(buf).await?),
-            2 => Action::UpdateLatency(Vec::<UpdateLatency>::read_into(buf).await?),
-            3 => Action::UpdateDisplayName(Vec::<UpdateDisplayName>::read_into(buf).await?),
-            4 => Action::RemovePlayer(Vec::<RemovePlayer>::read_into(buf).await?),
+            0 => Action::AddPlayer(Vec::<AddPlayer>::read_into(buf)?),
+            1 => Action::UpdateGameMode(Vec::<UpdateGameMode>::read_into(buf)?),
+            2 => Action::UpdateLatency(Vec::<UpdateLatency>::read_into(buf)?),
+            3 => Action::UpdateDisplayName(Vec::<UpdateDisplayName>::read_into(buf)?),
+            4 => Action::RemovePlayer(Vec::<RemovePlayer>::read_into(buf)?),
             _ => panic!("Unknown player info action id: {}", id),
         })
     }
