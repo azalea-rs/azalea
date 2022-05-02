@@ -1,10 +1,8 @@
-use async_trait::async_trait;
-use azalea_core::{game_type::GameType, resource_location::ResourceLocation};
-use packet_macros::{GamePacket, McBufReadable, McBufWritable};
-use tokio::io::AsyncRead;
-use uuid::Uuid;
-
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use azalea_core::resource_location::ResourceLocation;
+use packet_macros::{GamePacket, McBufReadable, McBufWritable};
+use std::io::Read;
+use uuid::Uuid;
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundUpdateAttributesPacket {
@@ -34,13 +32,9 @@ enum Operation {
     MultiplyTotal = 2,
 }
 
-#[async_trait]
 impl McBufReadable for Operation {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        match buf.read_byte().await? {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        match buf.read_byte()? {
             0 => Ok(Operation::Addition),
             1 => Ok(Operation::MultiplyBase),
             2 => Ok(Operation::MultiplyTotal),

@@ -1,8 +1,6 @@
-use async_trait::async_trait;
-use azalea_chat::component::Component;
 use azalea_core::{resource_location::ResourceLocation, Slot};
 use packet_macros::{GamePacket, McBufReadable, McBufWritable};
-use tokio::io::AsyncRead;
+use std::io::Read;
 
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 
@@ -42,13 +40,9 @@ impl McBufWritable for State {
         Ok(())
     }
 }
-#[async_trait]
 impl McBufReadable for State {
-    async fn read_into<R>(buf: &mut R) -> Result<Self, String>
-    where
-        R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    {
-        let state = buf.read_varint().await?.try_into().unwrap();
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let state = buf.read_varint()?.try_into().unwrap();
         Ok(match state {
             0 => State::Init,
             1 => State::Add,

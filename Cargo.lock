@@ -21,9 +21,9 @@ dependencies = [
 
 [[package]]
 name = "async-compression"
-version = "0.3.8"
+version = "0.3.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5443ccbb270374a2b1055fc72da40e1f237809cd6bb0e97e66d264cd138473a6"
+checksum = "f2bf394cfbbe876f0ac67b13b6ca819f9c9f2fb9ec67223cceb1555fbab1c31a"
 dependencies = [
  "flate2",
  "futures-core",
@@ -127,14 +127,11 @@ dependencies = [
 name = "azalea-nbt"
 version = "0.1.0"
 dependencies = [
- "async-compression",
- "async-recursion",
  "byteorder",
  "criterion",
  "flate2",
  "num-derive",
  "num-traits",
- "tokio",
 ]
 
 [[package]]
@@ -143,7 +140,6 @@ version = "0.1.0"
 dependencies = [
  "async-compression",
  "async-recursion",
- "async-trait",
  "azalea-auth",
  "azalea-brigadier",
  "azalea-chat",
@@ -152,6 +148,7 @@ dependencies = [
  "azalea-nbt",
  "byteorder",
  "bytes",
+ "flate2",
  "num-derive",
  "num-traits",
  "packet-macros",
@@ -302,7 +299,6 @@ dependencies = [
  "clap",
  "criterion-plot",
  "csv",
- "futures",
  "itertools",
  "lazy_static",
  "num-traits",
@@ -315,7 +311,6 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "tinytemplate",
- "tokio",
  "walkdir",
 ]
 
@@ -441,9 +436,9 @@ dependencies = [
 
 [[package]]
 name = "flate2"
-version = "1.0.22"
+version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e6988e897c1c9c485f43b47a529cef42fde0547f9d8d41a7062518f1d8fc53f"
+checksum = "b39522e96686d38f4bc984b9198e3a0613264abaebaff2c5c918bfa6b6da09af"
 dependencies = [
  "cfg-if",
  "crc32fast",
@@ -462,27 +457,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "futures"
-version = "0.3.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a12aa0eb539080d55c3f2d45a67c3b58b6b0773c1a3ca2dfec66d58c97fd66ca"
-dependencies = [
- "futures-channel",
- "futures-core",
- "futures-io",
- "futures-sink",
- "futures-task",
- "futures-util",
-]
-
-[[package]]
 name = "futures-channel"
 version = "0.3.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7fc8cd39e3dbf865f7340dce6a2d401d24fd37c6fe6c4f0ee0de8bfca2252d27"
 dependencies = [
  "futures-core",
- "futures-sink",
 ]
 
 [[package]]
@@ -516,7 +496,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "41d22213122356472061ac0f1ab2cee28d2bac8491410fd68c2af53d1cedb83e"
 dependencies = [
  "futures-core",
- "futures-sink",
  "futures-task",
  "pin-project-lite",
  "pin-utils",
@@ -725,12 +704,11 @@ dependencies = [
 
 [[package]]
 name = "miniz_oxide"
-version = "0.4.4"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a92518e98c078586bc6c934028adcca4c92a53d6a958196de835170a01d84e4b"
+checksum = "d2b29bd4bc3f33391105ebee3589c19197c4271e3e5a9ec9bfe8127eeff8f082"
 dependencies = [
  "adler",
- "autocfg",
 ]
 
 [[package]]
