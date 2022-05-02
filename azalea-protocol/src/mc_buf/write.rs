@@ -168,8 +168,6 @@ impl McBufWritable for UnsizedByteArray {
     }
 }
 
-// TODO: use specialization when that gets stabilized into rust
-// to optimize for Vec<u8> byte arrays
 impl<T: McBufWritable> McBufWritable for Vec<T> {
     default fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_list(self, |buf, i| T::write_into(i, buf))
