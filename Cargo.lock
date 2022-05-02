@@ -164,6 +164,9 @@ dependencies = [
 [[package]]
 name = "azalea-world"
 version = "0.1.0"
+dependencies = [
+ "azalea-protocol",
+]
 
 [[package]]
 name = "bitflags"

@@ -1,5 +1,11 @@
 //! Utilities for reading and writing for the Minecraft protocol
 
+// TODO: have a separate azalea-protocol-definitions crate to house everything in mc_buf
+// We need to do this to prevent cyclic dependencies.
+// For example with azalea-protocol depending on azalea-world,
+// it could be changed to azalea-protocol depending on azalea-world
+// and azalea-world depending on azalea-protocol-definitions.
+
 mod read;
 mod write;
 
