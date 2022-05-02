@@ -99,6 +99,7 @@ dependencies = [
  "azalea-core",
  "azalea-crypto",
  "azalea-protocol",
+ "azalea-world",
  "tokio",
 ]
 

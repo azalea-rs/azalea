@@ -13,6 +13,7 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
+use azalea_world::Chunk;
 use std::sync::Arc;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use tokio::sync::Mutex;
@@ -233,7 +234,7 @@ impl Client {
             }
             GamePacket::ClientboundLevelChunkWithLightPacket(p) => {
                 println!("Got chunk with light packet {} {}", p.x, p.z);
-                // p.chunk_data
+                // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
             }
             GamePacket::ClientboundLightUpdatePacket(p) => {
                 println!("Got light update packet {:?}", p);

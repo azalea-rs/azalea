@@ -27,4 +27,3 @@ pub struct BlockEntity {
     data: azalea_nbt::Tag,
 }
 
-pub struct ChunkSection {}

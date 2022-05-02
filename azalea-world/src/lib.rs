@@ -12,12 +12,16 @@ mod tests {
 
 const SECTION_HEIGHT: u32 = 16;
 
+pub struct World {
+    
+}
+
 pub struct Chunk {
     pub sections: Vec<Section>,
 }
 
 impl Chunk {
-    fn read_with_world_height(buf: &mut impl Read, world_height: u32) -> Result<Self, String> {
+    pub fn read_with_world_height(buf: &mut impl Read, world_height: u32) -> Result<Self, String> {
         let section_count = world_height / SECTION_HEIGHT;
         let mut sections = Vec::with_capacity(section_count as usize);
         for _ in 0..section_count {
