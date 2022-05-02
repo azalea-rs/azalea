@@ -7,10 +7,7 @@ use std::io::BufRead;
 use std::io::Read;
 
 #[inline]
-fn read_string<R>(stream: &mut R) -> Result<String, Error>
-where
-    R: Read,
-{
+fn read_string(stream: &mut impl Read) -> Result<String, Error> {
     let length = stream.read_u16::<BE>()?;
 
     let mut buf = Vec::with_capacity(length as usize);
@@ -22,10 +19,7 @@ where
 
 impl Tag {
     #[inline]
-    fn read_known<R>(stream: &mut R, id: u8) -> Result<Tag, Error>
-    where
-        R: Read,
-    {
+    fn read_known(stream: &mut impl Read, id: u8) -> Result<Tag, Error> {
         let tag = match id {
             // Signifies the end of a TAG_Compound. It is only ever used inside
             // a TAG_Compound, and is not named despite being in a TAG_Compound
@@ -116,10 +110,7 @@ impl Tag {
         Ok(tag)
     }
 
-    pub fn read<R>(stream: &mut R) -> Result<Tag, Error>
-    where
-        R: Read,
-    {
+    pub fn read(stream: &mut impl Read) -> Result<Tag, Error> {
         // default to compound tag
 
         // the parent compound only ever has one item
@@ -135,18 +126,12 @@ impl Tag {
         Ok(Tag::Compound(map))
     }
 
-    pub fn read_zlib<R>(stream: &mut R) -> Result<Tag, Error>
-    where
-        R: BufRead,
-    {
+    pub fn read_zlib(stream: &mut impl BufRead) -> Result<Tag, Error> {
         let mut gz = ZlibDecoder::new(stream);
         Tag::read(&mut gz)
     }
 
-    pub fn read_gzip<R>(stream: &mut R) -> Result<Tag, Error>
-    where
-        R: Read,
-    {
+    pub fn read_gzip(stream: &mut impl Read) -> Result<Tag, Error> {
         let mut gz = GzDecoder::new(stream);
         Tag::read(&mut gz)
     }
