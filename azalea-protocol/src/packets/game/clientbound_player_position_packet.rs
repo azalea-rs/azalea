@@ -1,7 +1,6 @@
-use std::io::Read;
-
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable};
 use packet_macros::GamePacket;
+use std::io::{Read, Write};
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundPlayerPositionPacket {
@@ -41,7 +40,7 @@ impl McBufReadable for RelativeArguments {
 }
 
 impl McBufWritable for RelativeArguments {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut byte = 0;
         if self.x {
             byte = byte | 0b1;

@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::io::{Read, Write};
 
 use azalea_chat::component::Component;
 use serde::Deserialize;
@@ -41,7 +41,7 @@ impl ClientboundStatusResponsePacket {
         StatusPacket::ClientboundStatusResponsePacket(self)
     }
 
-    pub fn write(&self, _buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    pub fn write(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
         Ok(())
     }
 

@@ -1,7 +1,7 @@
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::resource_location::ResourceLocation;
 use packet_macros::{GamePacket, McBufReadable, McBufWritable};
-use std::io::Read;
+use std::io::{Read, Write};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, GamePacket)]
@@ -44,7 +44,7 @@ impl McBufReadable for Operation {
 }
 
 impl McBufWritable for Operation {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_byte(*self as u8)?;
         Ok(())
     }

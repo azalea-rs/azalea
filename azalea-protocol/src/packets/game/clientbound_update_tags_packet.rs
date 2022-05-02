@@ -1,7 +1,10 @@
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::resource_location::ResourceLocation;
 use packet_macros::GamePacket;
-use std::{collections::HashMap, io::Read};
+use std::{
+    collections::HashMap,
+    io::{Read, Write},
+};
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundUpdateTagsPacket {
@@ -33,7 +36,7 @@ impl McBufReadable for HashMap<ResourceLocation, Vec<Tags>> {
 }
 
 impl McBufWritable for HashMap<ResourceLocation, Vec<Tags>> {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_varint(self.len() as i32)?;
         for (k, v) in self {
             k.write_into(buf)?;
@@ -51,7 +54,7 @@ impl McBufReadable for Tags {
 }
 
 impl McBufWritable for Tags {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self.name.write_into(buf)?;
         buf.write_int_id_list(&self.elements)?;
         Ok(())

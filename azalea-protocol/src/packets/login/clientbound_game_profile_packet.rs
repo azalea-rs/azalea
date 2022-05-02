@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::io::{Read, Write};
 
 use super::LoginPacket;
 use crate::mc_buf::{Readable, Writable};
@@ -17,7 +17,7 @@ impl ClientboundGameProfilePacket {
         LoginPacket::ClientboundGameProfilePacket(self)
     }
 
-    pub fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    pub fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         for n in self.game_profile.uuid.to_int_array() {
             buf.write_int(n as i32).unwrap();
         }

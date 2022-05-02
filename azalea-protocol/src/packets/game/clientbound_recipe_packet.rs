@@ -1,8 +1,7 @@
+use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::{resource_location::ResourceLocation, Slot};
 use packet_macros::{GamePacket, McBufReadable, McBufWritable};
-use std::io::Read;
-
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use std::io::{Read, Write};
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundRecipePacket {
@@ -35,7 +34,7 @@ pub enum State {
 }
 
 impl McBufWritable for State {
-    fn write_into(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_varint(*self as i32)?;
         Ok(())
     }

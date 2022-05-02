@@ -5,7 +5,7 @@ mod write;
 
 use packet_macros::{McBufReadable, McBufWritable};
 pub use read::{read_varint_async, McBufReadable, McBufVarintReadable, Readable};
-use std::ops::{Deref, Index};
+use std::ops::Deref;
 pub use write::{McBufVarintWritable, McBufWritable, Writable};
 
 // const DEFAULT_NBT_QUOTA: u32 = 2097152;

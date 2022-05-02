@@ -1,4 +1,7 @@
-use std::{hash::Hash, io::Read};
+use std::{
+    hash::Hash,
+    io::{Read, Write},
+};
 
 use crate::mc_buf::{Readable, Writable};
 
@@ -14,12 +17,12 @@ impl ClientboundLoginCompressionPacket {
         LoginPacket::ClientboundLoginCompressionPacket(self)
     }
 
-    pub fn write(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    pub fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_varint(self.compression_threshold).unwrap();
         Ok(())
     }
 
-    pub  fn read(buf: &mut impl Read) -> Result<LoginPacket, String> {
+    pub fn read(buf: &mut impl Read) -> Result<LoginPacket, String> {
         let compression_threshold = buf.read_varint()?;
 
         Ok(ClientboundLoginCompressionPacket {
