@@ -149,7 +149,7 @@ where
         //     "decompressing packet ({}ms)",
         //     start_time.elapsed().as_millis()
         // );
-        buf = compression_decoder(&mut &buf[..], compression_threshold)?;
+        buf = compression_decoder(&mut buf.as_slice(), compression_threshold)?;
     }
 
     // println!("decoding packet ({}ms)", start_time.elapsed().as_millis());
