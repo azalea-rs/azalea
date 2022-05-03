@@ -1,5 +1,4 @@
 use crate::Entity;
-use azalea_world::World;
 
 #[derive(Default)]
 pub struct Player {

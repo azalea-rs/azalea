@@ -232,13 +232,12 @@ struct PacketIdMap {
 impl Parse for PacketIdMap {
     fn parse(input: ParseStream) -> Result<Self> {
         let mut packets = vec![];
-        loop {
-            // 0x0e: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
-            // 0x0e
-            let packet_id: LitInt = match input.parse() {
-                Ok(i) => i,
-                Err(_) => break,
-            };
+
+        // example:
+        // 0x0e: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
+
+        // 0x0e
+        while let Ok(packet_id) = input.parse::<LitInt>() {
             let packet_id = packet_id.base10_parse::<u32>()?;
             // :
             input.parse::<Token![:]>()?;

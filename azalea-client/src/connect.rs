@@ -13,8 +13,8 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use azalea_world::{Chunk, ChunkStorage, World};
-use std::{fmt::Debug, ops::Deref, sync::Arc};
+use azalea_world::{ChunkStorage, World};
+use std::{fmt::Debug, sync::Arc};
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use tokio::sync::Mutex;
 
@@ -34,8 +34,8 @@ pub struct ClientState {
 /// A player that you can control that is currently in a Minecraft server.
 pub struct Client {
     event_receiver: UnboundedReceiver<Event>,
-    conn: Arc<Mutex<GameConnection>>,
-    state: Arc<Mutex<ClientState>>,
+    pub conn: Arc<Mutex<GameConnection>>,
+    pub state: Arc<Mutex<ClientState>>,
     // game_loop
 }
 
@@ -133,10 +133,9 @@ impl Client {
         // just start up the game loop and we're ready!
         // tokio::spawn(Self::game_loop(conn, tx, handler, state))
 
-        let game_loop_conn = conn.clone();
         let game_loop_state = client.state.clone();
 
-        tokio::spawn(Self::game_loop(game_loop_conn, tx, game_loop_state));
+        tokio::spawn(Self::game_loop(conn, tx, game_loop_state));
 
         Ok(client)
     }
@@ -221,7 +220,7 @@ impl Client {
             GamePacket::ClientboundChangeDifficultyPacket(p) => {
                 println!("Got difficulty packet {:?}", p);
             }
-            GamePacket::ClientboundDeclareCommandsPacket(p) => {
+            GamePacket::ClientboundDeclareCommandsPacket(_p) => {
                 println!("Got declare commands packet");
             }
             GamePacket::ClientboundPlayerAbilitiesPacket(p) => {
@@ -230,19 +229,19 @@ impl Client {
             GamePacket::ClientboundSetCarriedItemPacket(p) => {
                 println!("Got set carried item packet {:?}", p);
             }
-            GamePacket::ClientboundUpdateTagsPacket(p) => {
+            GamePacket::ClientboundUpdateTagsPacket(_p) => {
                 println!("Got update tags packet");
             }
             GamePacket::ClientboundDisconnectPacket(p) => {
                 println!("Got disconnect packet {:?}", p);
             }
-            GamePacket::ClientboundUpdateRecipesPacket(p) => {
+            GamePacket::ClientboundUpdateRecipesPacket(_p) => {
                 println!("Got update recipes packet");
             }
             GamePacket::ClientboundEntityEventPacket(p) => {
                 println!("Got entity event packet {:?}", p);
             }
-            GamePacket::ClientboundRecipePacket(p) => {
+            GamePacket::ClientboundRecipePacket(_p) => {
                 println!("Got recipe packet");
             }
             GamePacket::ClientboundPlayerPositionPacket(p) => {

@@ -1,5 +1,5 @@
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
-use azalea_core::{resource_location::ResourceLocation, Slot};
+use azalea_core::resource_location::ResourceLocation;
 use packet_macros::{GamePacket, McBufReadable, McBufWritable};
 use std::io::{Read, Write};
 
@@ -41,7 +41,7 @@ impl McBufWritable for State {
 }
 impl McBufReadable for State {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let state = buf.read_varint()?.try_into().unwrap();
+        let state = buf.read_varint()?;
         Ok(match state {
             0 => State::Init,
             1 => State::Add,

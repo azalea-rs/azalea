@@ -1,10 +1,10 @@
-use super::{BitSet, UnsizedByteArray, MAX_STRING_LENGTH};
+use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use azalea_chat::component::Component;
 use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
     serializable_uuid::SerializableUuid, BlockPos, Direction, Slot, SlotData,
 };
-use byteorder::{ReadBytesExt, WriteBytesExt, BE};
+use byteorder::{ReadBytesExt, BE};
 use serde::Deserialize;
 use std::io::Read;
 use tokio::io::{AsyncRead, AsyncReadExt};
@@ -421,7 +421,7 @@ impl McBufReadable for Component {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
         let string = buf.read_utf()?;
         let json: serde_json::Value = serde_json::from_str(string.as_str())
-            .map_err(|e| "Component isn't valid JSON".to_string())?;
+            .map_err(|_| "Component isn't valid JSON".to_string())?;
         let component = Component::deserialize(json).map_err(|e| e.to_string())?;
         Ok(component)
     }

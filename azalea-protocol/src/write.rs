@@ -2,10 +2,7 @@ use crate::{mc_buf::Writable, packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSE
 use async_compression::tokio::bufread::ZlibEncoder;
 use azalea_crypto::Aes128CfbEnc;
 use std::fmt::Debug;
-use tokio::{
-    io::{AsyncReadExt, AsyncWrite, AsyncWriteExt},
-    net::TcpStream,
-};
+use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 fn frame_prepender(data: &mut Vec<u8>) -> Result<Vec<u8>, String> {
     let mut buf = Vec::new();

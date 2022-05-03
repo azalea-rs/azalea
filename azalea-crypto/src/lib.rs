@@ -1,9 +1,6 @@
 use aes::cipher::inout::InOutBuf;
-use aes::cipher::BlockEncrypt;
 use aes::{
-    cipher::{
-        generic_array::GenericArray, AsyncStreamCipher, BlockDecryptMut, BlockEncryptMut, KeyIvInit,
-    },
+    cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit},
     Aes128,
 };
 use rand::{rngs::OsRng, RngCore};
@@ -15,7 +12,7 @@ fn generate_secret_key() -> [u8; 16] {
     key
 }
 
-fn digest_data(server_id: &[u8], public_key: &[u8], private_key: &[u8]) -> Vec<u8> {
+pub fn digest_data(server_id: &[u8], public_key: &[u8], private_key: &[u8]) -> Vec<u8> {
     let mut digest = Sha1::new();
     digest.update(server_id);
     digest.update(public_key);
@@ -23,7 +20,7 @@ fn digest_data(server_id: &[u8], public_key: &[u8], private_key: &[u8]) -> Vec<u
     digest.finalize().to_vec()
 }
 
-fn hex_digest(digest: &[u8]) -> String {
+pub fn hex_digest(digest: &[u8]) -> String {
     // Note that the Sha1.hexdigest() method used by minecraft is non standard.
     // It doesn't match the digest method found in most programming languages
     // and libraries. It works by treating the sha1 output bytes as one large
@@ -48,9 +45,8 @@ pub fn encrypt(public_key: &[u8], nonce: &[u8]) -> Result<EncryptResult, String>
 
     // this.keybytes = Crypt.encryptUsingKey(publicKey, secretKey.getEncoded());
     // this.nonce = Crypt.encryptUsingKey(publicKey, arrby);
-    let encrypted_public_key: Vec<u8> =
-        rsa_public_encrypt_pkcs1::encrypt(&public_key, &secret_key)?;
-    let encrypted_nonce: Vec<u8> = rsa_public_encrypt_pkcs1::encrypt(&public_key, &nonce)?;
+    let encrypted_public_key: Vec<u8> = rsa_public_encrypt_pkcs1::encrypt(public_key, &secret_key)?;
+    let encrypted_nonce: Vec<u8> = rsa_public_encrypt_pkcs1::encrypt(public_key, nonce)?;
 
     Ok(EncryptResult {
         secret_key,

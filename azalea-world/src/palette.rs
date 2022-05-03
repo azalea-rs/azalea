@@ -35,9 +35,9 @@ impl McBufWritable for PalettedContainer {
 pub enum Palette {
     /// ID of the corresponding entry in its global palette
     SingleValue(u32),
-    LinearPalette(Vec<u32>),
-    HashmapPalette(Vec<u32>),
-    GlobalPalette,
+    Linear(Vec<u32>),
+    Hashmap(Vec<u32>),
+    Global,
 }
 
 impl Palette {
@@ -47,9 +47,9 @@ impl Palette {
     ) -> Result<Palette, String> {
         Ok(match bits_per_entry {
             0 => Palette::SingleValue(u32::read_into(buf)?),
-            1..=4 => Palette::LinearPalette(Vec::<u32>::read_into(buf)?),
-            5..=8 => Palette::HashmapPalette(Vec::<u32>::read_into(buf)?),
-            _ => Palette::GlobalPalette,
+            1..=4 => Palette::Linear(Vec::<u32>::read_into(buf)?),
+            5..=8 => Palette::Hashmap(Vec::<u32>::read_into(buf)?),
+            _ => Palette::Global,
         })
     }
 }
@@ -60,13 +60,13 @@ impl McBufWritable for Palette {
             Palette::SingleValue(value) => {
                 value.write_into(buf)?;
             }
-            Palette::LinearPalette(values) => {
+            Palette::Linear(values) => {
                 values.write_into(buf)?;
             }
-            Palette::HashmapPalette(values) => {
+            Palette::Hashmap(values) => {
                 values.write_into(buf)?;
             }
-            Palette::GlobalPalette => {}
+            Palette::Global => {}
         }
         Ok(())
     }

@@ -20,8 +20,8 @@ pub trait Writable: Write {
         Ok(())
     }
 
-    fn write_int_id_list(&mut self, list: &Vec<i32>) -> Result<(), std::io::Error> {
-        self.write_list(&list, |buf, n| buf.write_varint(*n))
+    fn write_int_id_list(&mut self, list: &[i32]) -> Result<(), std::io::Error> {
+        self.write_list(list, |buf, n| buf.write_varint(*n))
     }
 
     fn write_map<KF, VF, KT, VT>(
@@ -47,7 +47,7 @@ pub trait Writable: Write {
     }
 
     fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), std::io::Error> {
-        self.write_all(bytes);
+        self.write_all(bytes)?;
         Ok(())
     }
 
@@ -333,7 +333,7 @@ impl McBufWritable for Component {
     //     let component = Component::deserialize(json).map_err(|e| e.to_string())?;
     //     Ok(component)
     // }
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
         // component doesn't have serialize implemented yet
         todo!()
     }

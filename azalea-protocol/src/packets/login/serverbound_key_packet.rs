@@ -1,5 +1,3 @@
-use super::LoginPacket;
-use crate::mc_buf::Writable;
 use packet_macros::LoginPacket;
 use std::hash::Hash;
 

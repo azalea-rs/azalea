@@ -1,5 +1,4 @@
 use crate::mc_buf::BitSet;
-use azalea_core::{game_type::GameType, resource_location::ResourceLocation};
 use packet_macros::{GamePacket, McBufReadable, McBufWritable};
 
 #[derive(Clone, Debug, GamePacket)]
