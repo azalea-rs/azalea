@@ -17,6 +17,12 @@ pub enum Tag {
     LongArray(Vec<i64>),            // 12
 }
 
+impl Default for Tag {
+    fn default() -> Self {
+        Tag::End
+    }
+}
+
 impl Tag {
     #[inline]
     pub fn id(&self) -> u8 {

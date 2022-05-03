@@ -1,5 +1,13 @@
-use azalea_protocol::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
-use std::io::{Read, Write};
+mod palette;
+
+use azalea_core::ChunkPos;
+use azalea_protocol::mc_buf::{McBufReadable, McBufWritable};
+use palette::PalettedContainer;
+use std::{
+    io::{Read, Write},
+    ops::{Index, IndexMut},
+    sync::{Arc, Mutex},
+};
 
 #[cfg(test)]
 mod tests {
@@ -13,14 +21,107 @@ mod tests {
 const SECTION_HEIGHT: u32 = 16;
 
 pub struct World {
-    
+    pub storage: ChunkStorage,
+    pub height: u32,
 }
 
+impl World {
+    pub fn replace_with_packet_data(
+        &mut self,
+        pos: &ChunkPos,
+        data: &mut impl Read,
+    ) -> Result<(), String> {
+        if !self.storage.in_range(pos) {
+            println!(
+                "Ignoring chunk since it's not in the view range: {}, {}",
+                pos.x, pos.z
+            );
+            return Ok(());
+        }
+        let existing_chunk = &self.storage[pos];
+        if let Some(existing_chunk) = existing_chunk {
+            existing_chunk
+                .lock()
+                .expect("Couldn't get lock on existing chunk")
+                .replace_with_packet_data(data)?;
+        } else {
+            let chunk = Arc::new(Mutex::new(Chunk::read_with_world(data, self)?));
+            println!("Loaded chunk {:?}", chunk);
+            self.storage[pos] = Some(chunk);
+        }
+
+        Ok(())
+    }
+
+    pub fn update_view_center(&mut self, pos: &ChunkPos) {
+        self.storage.view_center = *pos;
+    }
+}
+
+pub struct ChunkStorage {
+    view_center: ChunkPos,
+    chunk_radius: u32,
+    view_range: u32,
+    // chunks is a list of size chunk_radius * chunk_radius
+    chunks: Vec<Option<Arc<Mutex<Chunk>>>>,
+}
+
+// java moment
+// it might be possible to replace this with just a modulo, but i copied java's floorMod just in case
+fn floor_mod(x: i32, y: u32) -> u32 {
+    if x < 0 {
+        y - ((-x) as u32 % y)
+    } else {
+        x as u32 % y
+    }
+}
+
+impl ChunkStorage {
+    pub fn new(chunk_radius: u32) -> Self {
+        let view_range = chunk_radius * 2 + 1;
+        ChunkStorage {
+            view_center: ChunkPos::new(0, 0),
+            chunk_radius,
+            view_range,
+            chunks: vec![None; (view_range * view_range) as usize],
+        }
+    }
+
+    fn get_index(&self, chunk_pos: &ChunkPos) -> usize {
+        (floor_mod(chunk_pos.x, self.view_range) * self.view_range
+            + floor_mod(chunk_pos.z, self.view_range)) as usize
+    }
+
+    pub fn in_range(&self, chunk_pos: &ChunkPos) -> bool {
+        (chunk_pos.x - self.view_center.x).unsigned_abs() <= self.chunk_radius
+            && (chunk_pos.z - self.view_center.z).unsigned_abs() <= self.chunk_radius
+    }
+}
+
+impl Index<&ChunkPos> for ChunkStorage {
+    type Output = Option<Arc<Mutex<Chunk>>>;
+
+    fn index(&self, pos: &ChunkPos) -> &Self::Output {
+        &self.chunks[self.get_index(pos)]
+    }
+}
+impl IndexMut<&ChunkPos> for ChunkStorage {
+    fn index_mut<'a>(&'a mut self, pos: &ChunkPos) -> &'a mut Self::Output {
+        let index = self.get_index(pos);
+        &mut self.chunks[index]
+    }
+}
+
+#[derive(Debug)]
 pub struct Chunk {
     pub sections: Vec<Section>,
 }
 
 impl Chunk {
+    pub fn read_with_world(buf: &mut impl Read, data: &World) -> Result<Self, String> {
+        Self::read_with_world_height(buf, data.height)
+    }
+
     pub fn read_with_world_height(buf: &mut impl Read, world_height: u32) -> Result<Self, String> {
         let section_count = world_height / SECTION_HEIGHT;
         let mut sections = Vec::with_capacity(section_count as usize);
@@ -29,6 +130,18 @@ impl Chunk {
             sections.push(section);
         }
         Ok(Chunk { sections })
+    }
+
+    fn replace_with_packet_data(&mut self, data: &mut impl Read) -> Result<(), String> {
+        let section_count = self.sections.len();
+
+        // this should also replace block entities and set the heightmap
+
+        for i in 0..section_count {
+            self.sections[i] = Section::read_into(data)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -66,76 +179,6 @@ impl McBufWritable for Section {
         self.block_count.write_into(buf)?;
         self.states.write_into(buf)?;
         self.biomes.write_into(buf)?;
-        Ok(())
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct PalettedContainer {
-    pub bits_per_entry: u8,
-    pub palette: Palette,
-    /// Compacted list of indices pointing to entry IDs in the Palette.
-    pub data: Vec<i64>,
-}
-
-impl McBufReadable for PalettedContainer {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let bits_per_entry = buf.read_byte()?;
-        let palette = Palette::read_with_bits_per_entry(buf, bits_per_entry)?;
-        let data = Vec::<i64>::read_into(buf)?;
-        Ok(PalettedContainer {
-            bits_per_entry,
-            palette,
-            data,
-        })
-    }
-}
-impl McBufWritable for PalettedContainer {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_byte(self.bits_per_entry)?;
-        self.palette.write_into(buf)?;
-        self.data.write_into(buf)?;
-        Ok(())
-    }
-}
-
-#[derive(Clone, Debug)]
-pub enum Palette {
-    /// ID of the corresponding entry in its global palette
-    SingleValue(u32),
-    LinearPalette(Vec<u32>),
-    HashmapPalette(Vec<u32>),
-    GlobalPalette,
-}
-
-impl Palette {
-    pub fn read_with_bits_per_entry(
-        buf: &mut impl Read,
-        bits_per_entry: u8,
-    ) -> Result<Palette, String> {
-        Ok(match bits_per_entry {
-            0 => Palette::SingleValue(u32::read_into(buf)?),
-            1..=4 => Palette::LinearPalette(Vec::<u32>::read_into(buf)?),
-            5..=8 => Palette::HashmapPalette(Vec::<u32>::read_into(buf)?),
-            _ => Palette::GlobalPalette,
-        })
-    }
-}
-
-impl McBufWritable for Palette {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        match self {
-            Palette::SingleValue(value) => {
-                value.write_into(buf)?;
-            }
-            Palette::LinearPalette(values) => {
-                values.write_into(buf)?;
-            }
-            Palette::HashmapPalette(values) => {
-                values.write_into(buf)?;
-            }
-            Palette::GlobalPalette => {}
-        }
         Ok(())
     }
 }

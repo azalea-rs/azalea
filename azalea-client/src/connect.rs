@@ -1,5 +1,5 @@
 use crate::Player;
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::{resource_location::ResourceLocation, ChunkPos};
 use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
     packets::{
@@ -13,8 +13,8 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use azalea_world::Chunk;
-use std::sync::Arc;
+use azalea_world::{Chunk, ChunkStorage, World};
+use std::{fmt::Debug, ops::Deref, sync::Arc};
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use tokio::sync::Mutex;
 
@@ -27,8 +27,8 @@ pub struct Account {
 
 #[derive(Default)]
 pub struct ClientState {
-    // placeholder
     pub player: Player,
+    pub world: Option<World>,
 }
 
 /// A player that you can control that is currently in a Minecraft server.
@@ -173,8 +173,31 @@ impl Client {
         match packet {
             GamePacket::ClientboundLoginPacket(p) => {
                 println!("Got login packet {:?}", p);
+                std::fs::write("login.txt", format!("{:#?}", p)).expect("Unable to write file");
 
-                state.lock().await.player.entity.id = p.player_id;
+                let mut state = state.lock().await;
+                state.player.entity.id = p.player_id;
+                let dimension_type = p
+                    .dimension_type
+                    .as_compound()
+                    .expect("Dimension type is not compound")
+                    .get("")
+                    .expect("No \"\" tag")
+                    .as_compound()
+                    .expect("\"\" tag is not compound");
+                let height = (*dimension_type
+                    .get("height")
+                    .expect("No height tag")
+                    .as_int()
+                    .expect("height tag is not int"))
+                .try_into()
+                .expect("height is not a u32");
+
+                state.world = Some(World {
+                    height,
+                    storage: ChunkStorage::new(16),
+                });
+
                 conn.lock()
                     .await
                     .write(
@@ -231,10 +254,25 @@ impl Client {
             }
             GamePacket::ClientboundSetChunkCacheCenterPacket(p) => {
                 println!("Got chunk cache center packet {:?}", p);
+                state
+                    .lock()
+                    .await
+                    .world
+                    .as_mut()
+                    .unwrap()
+                    .update_view_center(&ChunkPos::new(p.x, p.z));
             }
             GamePacket::ClientboundLevelChunkWithLightPacket(p) => {
                 println!("Got chunk with light packet {} {}", p.x, p.z);
+                let pos = ChunkPos::new(p.x, p.z);
                 // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
+                // println("chunk {:?}")
+                state
+                    .lock()
+                    .await
+                    .world
+                    .replace_with_packet_data(&pos, &mut p.chunk_data.data.as_slice())
+                    .unwrap();
             }
             GamePacket::ClientboundLightUpdatePacket(p) => {
                 println!("Got light update packet {:?}", p);

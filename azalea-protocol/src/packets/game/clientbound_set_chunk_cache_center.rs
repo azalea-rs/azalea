@@ -5,5 +5,5 @@ pub struct ClientboundSetChunkCacheCenterPacket {
     #[varint]
     pub x: i32,
     #[varint]
-    pub y: i32,
+    pub z: i32,
 }
