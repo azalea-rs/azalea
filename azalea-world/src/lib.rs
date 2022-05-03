@@ -38,17 +38,11 @@ impl World {
             );
             return Ok(());
         }
-        let existing_chunk = &self.storage[pos];
-        if let Some(existing_chunk) = existing_chunk {
-            existing_chunk
-                .lock()
-                .expect("Couldn't get lock on existing chunk")
-                .replace_with_packet_data(data)?;
-        } else {
-            let chunk = Arc::new(Mutex::new(Chunk::read_with_world(data, self)?));
-            println!("Loaded chunk {:?}", chunk);
-            self.storage[pos] = Some(chunk);
-        }
+        // let existing_chunk = &self.storage[pos];
+
+        let chunk = Arc::new(Mutex::new(Chunk::read_with_world(data, self)?));
+        println!("Loaded chunk {:?}", chunk);
+        self.storage[pos] = Some(chunk);
 
         Ok(())
     }
@@ -130,18 +124,6 @@ impl Chunk {
             sections.push(section);
         }
         Ok(Chunk { sections })
-    }
-
-    fn replace_with_packet_data(&mut self, data: &mut impl Read) -> Result<(), String> {
-        let section_count = self.sections.len();
-
-        // this should also replace block entities and set the heightmap
-
-        for i in 0..section_count {
-            self.sections[i] = Section::read_into(data)?;
-        }
-
-        Ok(())
     }
 }
 

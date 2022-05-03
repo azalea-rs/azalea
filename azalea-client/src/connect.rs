@@ -271,6 +271,8 @@ impl Client {
                     .lock()
                     .await
                     .world
+                    .as_mut()
+                    .expect("World doesn't exist! We should've gotten a login packet by now.")
                     .replace_with_packet_data(&pos, &mut p.chunk_data.data.as_slice())
                     .unwrap();
             }
