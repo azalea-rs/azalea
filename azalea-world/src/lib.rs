@@ -1,7 +1,9 @@
+mod bit_storage;
 mod palette;
 
 use azalea_core::ChunkPos;
 use azalea_protocol::mc_buf::{McBufReadable, McBufWritable};
+pub use bit_storage::BitStorage;
 use palette::PalettedContainer;
 use std::{
     io::{Read, Write},
