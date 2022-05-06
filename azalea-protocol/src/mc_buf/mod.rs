@@ -12,6 +12,8 @@ pub use write::{McBufVarintWritable, McBufWritable, Writable};
 const MAX_STRING_LENGTH: u16 = 32767;
 // const MAX_COMPONENT_STRING_LENGTH: u32 = 262144;
 
+// TODO: maybe get rid of the readable/writable traits so there's not two ways to do the same thing and improve McBufReadable/McBufWritable
+
 // TODO: have a definitions.rs in mc_buf that contains UnsizedByteArray and BitSet
 
 /// A Vec<u8> that isn't prefixed by a VarInt with the size.

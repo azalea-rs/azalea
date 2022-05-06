@@ -255,6 +255,17 @@ impl McBufVarintReadable for i32 {
     }
 }
 
+impl<T: McBufVarintReadable> McBufVarintReadable for Vec<T> {
+    fn varint_read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let length = u32::varint_read_into(buf)?;
+        let mut vec = Vec::with_capacity(length as usize);
+        for _ in 0..length {
+            vec.push(T::varint_read_into(buf)?);
+        }
+        Ok(vec)
+    }
+}
+
 impl McBufReadable for UnsizedByteArray {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
         Ok(UnsizedByteArray(buf.read_bytes()?))

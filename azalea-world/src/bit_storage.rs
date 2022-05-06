@@ -1,4 +1,4 @@
-use std::{error::Error, fmt, ops::Index};
+use std::{error::Error, fmt};
 
 // this is from minecraft's code
 // yeah idk either
@@ -70,6 +70,7 @@ const MAGIC: [(i32, i32, i32); 64] = [
 ];
 
 /// A compact list of integers with the given number of bits per entry.
+#[derive(Clone)]
 pub struct BitStorage {
     data: Vec<u64>,
     bits: usize,
@@ -135,7 +136,7 @@ impl BitStorage {
 
     pub fn cell_index(&self, index: u64) -> usize {
         let first = self.divide_mul as u64;
-        let second = self.divide_mul as u64;
+        let second = self.divide_add as u64;
 
         (index * first + second >> 32 >> self.divide_shift)
             .try_into()
@@ -182,8 +183,8 @@ mod tests {
         let data = [
             1, 2, 2, 3, 4, 4, 5, 6, 6, 4, 8, 0, 7, 4, 3, 13, 15, 16, 9, 14, 10, 12, 0, 2,
         ];
-        let expected_compact: [u64; 2] = [0x0020863148418841, 0x01018A7260F68C87];
-        let storage = BitStorage::new(5, data.len(), Some(expected_compact.to_vec())).unwrap();
+        let compact_data: [u64; 2] = [0x0020863148418841, 0x01018A7260F68C87];
+        let storage = BitStorage::new(5, data.len(), Some(compact_data.to_vec())).unwrap();
 
         for (i, expected) in data.iter().enumerate() {
             assert_eq!(storage.get(i), *expected);

@@ -1,20 +1,43 @@
+use azalea_protocol::mc_buf::{
+    McBufReadable, McBufVarintReadable, McBufWritable, Readable, Writable,
+};
 use std::io::{Read, Write};
 
-use azalea_protocol::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
+#[derive(Clone, Debug, Copy)]
+pub enum PalettedContainerType {
+    Biomes,
+    BlockStates,
+}
 
 #[derive(Clone, Debug)]
 pub struct PalettedContainer {
     pub bits_per_entry: u8,
     pub palette: Palette,
     /// Compacted list of indices pointing to entry IDs in the Palette.
-    pub data: Vec<i64>,
+    pub data: Vec<u64>,
 }
 
-impl McBufReadable for PalettedContainer {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+impl PalettedContainer {
+    pub fn read_with_type(
+        buf: &mut impl Read,
+        type_: &'static PalettedContainerType,
+    ) -> Result<Self, String> {
         let bits_per_entry = buf.read_byte()?;
-        let palette = Palette::read_with_bits_per_entry(buf, bits_per_entry)?;
-        let data = Vec::<i64>::read_into(buf)?;
+        let palette = match type_ {
+            PalettedContainerType::BlockStates => {
+                Palette::block_states_read_with_bits_per_entry(buf, bits_per_entry)?
+            }
+            PalettedContainerType::Biomes => {
+                Palette::biomes_read_with_bits_per_entry(buf, bits_per_entry)?
+            }
+        };
+
+        let data = Vec::<u64>::read_into(buf)?;
+        debug_assert!(
+            bits_per_entry != 0 || data.is_empty(),
+            "Bits per entry is 0 but data is not empty."
+        );
+
         Ok(PalettedContainer {
             bits_per_entry,
             palette,
@@ -41,14 +64,25 @@ pub enum Palette {
 }
 
 impl Palette {
-    pub fn read_with_bits_per_entry(
+    pub fn block_states_read_with_bits_per_entry(
         buf: &mut impl Read,
         bits_per_entry: u8,
     ) -> Result<Palette, String> {
         Ok(match bits_per_entry {
-            0 => Palette::SingleValue(u32::read_into(buf)?),
-            1..=4 => Palette::Linear(Vec::<u32>::read_into(buf)?),
-            5..=8 => Palette::Hashmap(Vec::<u32>::read_into(buf)?),
+            0 => Palette::SingleValue(u32::varint_read_into(buf)?),
+            1..=4 => Palette::Linear(Vec::<u32>::varint_read_into(buf)?),
+            5..=8 => Palette::Hashmap(Vec::<u32>::varint_read_into(buf)?),
+            _ => Palette::Global,
+        })
+    }
+
+    pub fn biomes_read_with_bits_per_entry(
+        buf: &mut impl Read,
+        bits_per_entry: u8,
+    ) -> Result<Palette, String> {
+        Ok(match bits_per_entry {
+            0 => Palette::SingleValue(u32::varint_read_into(buf)?),
+            1..=3 => Palette::Linear(Vec::<u32>::varint_read_into(buf)?),
             _ => Palette::Global,
         })
     }
