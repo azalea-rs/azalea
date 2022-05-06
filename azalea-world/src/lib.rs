@@ -123,9 +123,7 @@ impl Chunk {
     pub fn read_with_world_height(buf: &mut impl Read, world_height: u32) -> Result<Self, String> {
         let section_count = world_height / SECTION_HEIGHT;
         let mut sections = Vec::with_capacity(section_count as usize);
-        println!("\n\nreading {} sections", section_count);
         for i in 0..section_count {
-            println!("reading section #{}", i);
             let section = Section::read_into(buf)?;
             sections.push(section);
         }
@@ -152,15 +150,13 @@ pub struct Section {
 impl McBufReadable for Section {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
         let block_count = u16::read_into(buf)?;
-        println!("block count: {}\n", block_count);
+        // this is commented out because apparently the vanilla server just gives us an incorrect block count sometimes
         // assert!(
         //     block_count <= 16 * 16 * 16,
         //     "A section has more blocks than what should be possible. This is a bug!"
         // );
         let states = PalettedContainer::read_with_type(buf, &PalettedContainerType::BlockStates)?;
-        println!("! read states, reading biomes next");
         let biomes = PalettedContainer::read_with_type(buf, &PalettedContainerType::Biomes)?;
-        println!();
         Ok(Section {
             block_count,
             states,
