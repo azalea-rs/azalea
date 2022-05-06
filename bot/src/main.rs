@@ -1,4 +1,5 @@
 use azalea_client::{Account, Event};
+use azalea_core::ChunkPos;
 
 #[tokio::main]
 async fn main() {
@@ -17,7 +18,17 @@ async fn main() {
 
     while let Some(e) = client.next().await {
         match e {
-            Event::Login => {}
+            // TODO: have a "loaded" or "ready" event that fires when all chunks are loaded
+            Event::Login => {
+                // let state = client.state.lock().await;
+                // let world = state.world.as_ref().unwrap();
+                // let c = world[&ChunkPos::new(-1, -4)]
+                //     .as_ref()
+                //     .unwrap()
+                //     .lock()
+                //     .unwrap();
+                // println!("{:?}", c);
+            }
         }
     }
 

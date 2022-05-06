@@ -55,6 +55,18 @@ impl World {
         self.storage.view_center = *pos;
     }
 }
+impl Index<&ChunkPos> for World {
+    type Output = Option<Arc<Mutex<Chunk>>>;
+
+    fn index(&self, pos: &ChunkPos) -> &Self::Output {
+        &self.storage[pos]
+    }
+}
+impl IndexMut<&ChunkPos> for World {
+    fn index_mut<'a>(&'a mut self, pos: &ChunkPos) -> &'a mut Self::Output {
+        &mut self.storage[pos]
+    }
+}
 
 pub struct ChunkStorage {
     view_center: ChunkPos,
@@ -150,7 +162,7 @@ pub struct Section {
 impl McBufReadable for Section {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
         let block_count = u16::read_into(buf)?;
-        // this is commented out because apparently the vanilla server just gives us an incorrect block count sometimes
+        // this is commented out because the vanilla server is wrong
         // assert!(
         //     block_count <= 16 * 16 * 16,
         //     "A section has more blocks than what should be possible. This is a bug!"

@@ -191,6 +191,7 @@ name = "bot"
 version = "0.1.0"
 dependencies = [
  "azalea-client",
+ "azalea-core",
  "azalea-protocol",
  "tokio",
 ]
