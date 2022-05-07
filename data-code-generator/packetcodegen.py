@@ -70,16 +70,15 @@ def write_packet_file(state, packet_name_snake_case, code):
         f.write(code)
 
 
-def generate(burger_packets, mappings: Mappings, packet_ids):
+def generate(burger_packets, mappings: Mappings, target_packet_id, target_packet_direction, target_packet_state):
     for packet in burger_packets.values():
-        if packet['id'] not in packet_ids:
+        if packet['id'] != target_packet_id:
             continue
 
         direction = packet['direction'].lower()  # serverbound or clientbound
         state = {'PLAY': 'game'}.get(packet['state'], packet['state'].lower())
 
-        # TODO: have something better to control this
-        if state != 'game' or direction != 'clientbound':
+        if state != target_packet_state or direction != target_packet_direction:
             continue
 
         generated_packet_code = []

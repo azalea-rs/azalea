@@ -39,9 +39,11 @@ with open('burger.json', 'r') as f:
     burger_data = json.load(f)
 
 burger_packets_data = burger_data[0]['packets']['packet']
-packet_ids = list(map(int, sys.argv[1:]))
-print(packet_ids)
-packetcodegen.generate(burger_packets_data, mappings, packet_ids)
+packet_id, direction, state = int(sys.argv[1]), sys.argv[2], sys.argv[3]
+print(
+    f'Generating code for packet id: {packet_id} with direction {direction} and state {state}')
+packetcodegen.generate(burger_packets_data, mappings,
+                       packet_id, direction, state)
 
 os.system('cd .. && cargo fmt')
 
