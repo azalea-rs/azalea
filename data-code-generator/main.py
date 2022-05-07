@@ -11,7 +11,7 @@ print(
     f'\033[92mFinding Minecraft version...\033[m')
 version_manifest_data = requests.get(
     'https://launchermeta.mojang.com/mc/game/version_manifest.json').json()
-minecraft_version = version_manifest_data['latest']['snapshot']
+minecraft_version = version_manifest_data['latest']['release']
 print(
     f'\033[92mUsing \033[1m{minecraft_version}..\033[m')
 package_url = next(
@@ -22,13 +22,14 @@ client_jar_url = package_data['downloads']['client']['url']
 if not SKIP_BURGER:
     print('\033[92mDownloading Burger...\033[m')
     r = os.system('git clone https://github.com/pokechu22/Burger')
-    os.system('git pull')
+    os.system('cd Burger && git pull')
     print('\033[92mDownloading client jar...\033[m')
     with open('client.jar', 'wb') as f:
         f.write(requests.get(client_jar_url).content)
 
     print(f'\033[92mExtracting data with Burger...\033[m')
-    os.system('cd Burger && python munch.py ../client.jar --output ../burger.json')
+    os.system(
+        'cd Burger && python munch.py ../client.jar --output ../burger.json')
 
 client_mappings_url = package_data['downloads']['client_mappings']['url']
 mappings = Mappings.parse(requests.get(client_mappings_url).text)
