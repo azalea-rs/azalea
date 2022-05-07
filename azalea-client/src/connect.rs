@@ -273,6 +273,12 @@ impl Client {
             GamePacket::ClientboundSetHealthPacket(p) => {
                 println!("Got set health packet {:?}", p);
             }
+            GamePacket::ClientboundSetExperiencePacket(p) => {
+                println!("Got set experience packet {:?}", p);
+            }
+            GamePacket::ClientboundTeleportEntityPacket(p) => {
+                println!("Got teleport entity packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
         println!();
