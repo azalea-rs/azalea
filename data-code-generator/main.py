@@ -5,9 +5,6 @@ import json
 import sys
 import os
 
-# enable this if you already have the burger.json and don't want to wait
-SKIP_BURGER = True
-
 print(
     f'\033[92mFinding Minecraft version...\033[m')
 version_manifest_data = requests.get(
@@ -20,7 +17,18 @@ package_url = next(
 package_data = requests.get(package_url).json()
 client_jar_url = package_data['downloads']['client']['url']
 
-if not SKIP_BURGER:
+skipping_burger = False
+try:
+    with open('burger.json', 'r') as f:
+        burger_data = json.load(f)[0]
+        if burger_data['version']['id'] == minecraft_version:
+            skipping_burger = True
+            print(
+                f'\033[92mSkipping Burger step because the burger.json is up-to-date.\033[m')
+except FileNotFoundError:
+    pass
+
+if not skipping_burger:
     print('\033[92mDownloading Burger...\033[m')
     r = os.system('git clone https://github.com/pokechu22/Burger')
     os.system('cd Burger && git pull')
