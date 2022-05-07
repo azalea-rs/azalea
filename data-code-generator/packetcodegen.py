@@ -58,6 +58,11 @@ def burger_type_to_rust_type(burger_type):
     return field_type_rs, is_var, uses
 
 
+def write_packet_file(state, packet_name_snake_case, code):
+    with open(f'../azalea-protocol/src/packets/{state}/{packet_name_snake_case}.rs', 'w') as f:
+        f.write(code)
+
+
 def generate(burger_packets, mappings: Mappings):
     for packet in burger_packets.values():
         direction = packet['direction'].lower()  # serverbound or clientbound
@@ -97,4 +102,6 @@ def generate(burger_packets, mappings: Mappings):
 
         generated_packet_code.append('}')
         print(generated_packet_code)
+        write_packet_file(state, to_snake_case(class_name),
+                          '\n'.join(generated_packet_code))
         print()
