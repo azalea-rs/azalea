@@ -264,6 +264,12 @@ impl Client {
             GamePacket::ClientboundSetTimePacket(p) => {
                 println!("Got set time packet {:?}", p);
             }
+            GamePacket::ClientboundSetDefaultSpawnPositionPacket(p) => {
+                println!("Got set default spawn position packet {:?}", p);
+            }
+            GamePacket::ClientboundContainerSetContentPacket(p) => {
+                println!("Got container set content packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
         println!();

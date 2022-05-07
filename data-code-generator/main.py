@@ -2,6 +2,7 @@ from mappings import Mappings
 import packetcodegen
 import requests
 import json
+import sys
 import os
 
 # enable this if you already have the burger.json and don't want to wait
@@ -34,11 +35,14 @@ if not SKIP_BURGER:
 client_mappings_url = package_data['downloads']['client_mappings']['url']
 mappings = Mappings.parse(requests.get(client_mappings_url).text)
 
-
 with open('burger.json', 'r') as f:
     burger_data = json.load(f)
 
 burger_packets_data = burger_data[0]['packets']['packet']
-packetcodegen.generate(burger_packets_data, mappings)
+packet_ids = list(map(int, sys.argv[1:]))
+print(packet_ids)
+packetcodegen.generate(burger_packets_data, mappings, packet_ids)
 
 os.system('cd .. && cargo fmt')
+
+print('Done!')

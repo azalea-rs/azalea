@@ -2,6 +2,7 @@ pub mod clientbound_add_entity_packet;
 pub mod clientbound_add_mob_packet;
 pub mod clientbound_add_player_packet;
 pub mod clientbound_change_difficulty_packet;
+pub mod clientbound_container_set_content_packet;
 pub mod clientbound_custom_payload_packet;
 pub mod clientbound_declare_commands_packet;
 pub mod clientbound_disconnect_packet;
@@ -40,6 +41,7 @@ declare_state_packets!(
         0x04: clientbound_add_player_packet::ClientboundAddPlayerPacket,
         0x0e: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
         0x12: clientbound_declare_commands_packet::ClientboundDeclareCommandsPacket,
+        0x14: clientbound_container_set_content_packet::ClientboundContainerSetContentPacket,
         0x1a: clientbound_disconnect_packet::ClientboundDisconnectPacket,
         0x1b: clientbound_entity_event_packet::ClientboundEntityEventPacket,
         0x18: clientbound_custom_payload_packet::ClientboundCustomPayloadPacket,

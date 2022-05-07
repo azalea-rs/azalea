@@ -8,3 +8,4 @@ data-code-generator/Burger
 data-code-generator/client.jar
 data-code-generator/burger.json
 __pycache__
+*.tmp

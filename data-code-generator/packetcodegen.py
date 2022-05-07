@@ -70,14 +70,17 @@ def write_packet_file(state, packet_name_snake_case, code):
         f.write(code)
 
 
-def generate(burger_packets, mappings: Mappings):
-    packet_ids = [75]
+def generate(burger_packets, mappings: Mappings, packet_ids):
     for packet in burger_packets.values():
         if packet['id'] not in packet_ids:
             continue
 
         direction = packet['direction'].lower()  # serverbound or clientbound
         state = {'PLAY': 'game'}.get(packet['state'], packet['state'].lower())
+
+        # TODO: have something better to control this
+        if state != 'game' or direction != 'clientbound':
+            continue
 
         generated_packet_code = []
         uses = set()
@@ -86,7 +89,8 @@ def generate(burger_packets, mappings: Mappings):
         uses.add(f'packet_macros::{to_camel_case(state)}Packet')
 
         obfuscated_class_name = packet['class'].split('.')[0]
-        class_name = mappings.get_class(obfuscated_class_name).split('.')[-1]
+        class_name = mappings.get_class(
+            obfuscated_class_name).split('.')[-1].split('$')[0]
 
         generated_packet_code.append(
             f'pub struct {to_camel_case(class_name)} {{')
