@@ -4,8 +4,8 @@ flamegraph.svg
 perf.data
 perf.data.old
 
-data-code-generator/Burger
-data-code-generator/client.jar
-data-code-generator/burger.json
+code-generator/Burger
+code-generator/client.jar
+code-generator/burger.json
 __pycache__
 *.tmp
