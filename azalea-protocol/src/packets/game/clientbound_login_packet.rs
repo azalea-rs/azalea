@@ -12,11 +12,11 @@ pub struct ClientboundLoginPacket {
     pub dimension_type: azalea_nbt::Tag,
     pub dimension: ResourceLocation,
     pub seed: i64,
-    #[varint]
+    #[var]
     pub max_players: i32,
-    #[varint]
+    #[var]
     pub chunk_radius: i32,
-    #[varint]
+    #[var]
     pub simulation_distance: i32,
     pub reduced_debug_info: bool,
     pub show_death_screen: bool,

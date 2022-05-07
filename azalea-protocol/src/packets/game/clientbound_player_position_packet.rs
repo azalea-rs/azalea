@@ -12,7 +12,7 @@ pub struct ClientboundPlayerPositionPacket {
     pub relative_arguments: RelativeArguments,
     /// Client should confirm this packet with Teleport Confirm containing the
     /// same Teleport ID.
-    #[varint]
+    #[var]
     pub id: i32,
     pub dismount_vehicle: bool,
 }

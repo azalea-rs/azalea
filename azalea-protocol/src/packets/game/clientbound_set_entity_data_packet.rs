@@ -10,7 +10,7 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundSetEntityDataPacket {
-    #[varint]
+    #[var]
     pub id: i32,
     pub metadata: Vec<EntityDataItem>,
 }
@@ -142,17 +142,17 @@ pub enum Pose {
 
 #[derive(Debug, Clone, McBufReadable, McBufWritable)]
 pub struct VillagerData {
-    #[varint]
+    #[var]
     type_: u32,
-    #[varint]
+    #[var]
     profession: u32,
-    #[varint]
+    #[var]
     level: u32,
 }
 
 #[derive(Debug, Clone, McBufReadable, McBufWritable)]
 pub struct Particle {
-    #[varint]
+    #[var]
     pub id: i32,
     pub data: ParticleData,
 }
@@ -251,7 +251,7 @@ pub enum ParticleData {
 
 #[derive(Debug, Clone, McBufReadable, McBufWritable)]
 pub struct BlockParticle {
-    #[varint]
+    #[var]
     pub block_state: i32,
 }
 #[derive(Debug, Clone, McBufReadable, McBufWritable)]
@@ -294,9 +294,9 @@ pub struct VibrationParticle {
     pub origin: BlockPos,
     pub position_type: String,
     pub block_position: BlockPos,
-    #[varint]
+    #[var]
     pub entity_id: u32,
-    #[varint]
+    #[var]
     pub ticks: u32,
 }
 

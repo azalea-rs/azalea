@@ -23,9 +23,9 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                     // if it's a string, use buf.write_string
                     match field_type {
                         syn::Type::Path(_) => {
-                                if f.attrs.iter().any(|a| a.path.is_ident("varint")) {
+                                if f.attrs.iter().any(|a| a.path.is_ident("var")) {
                                     quote! {
-                                        let #field_name = crate::mc_buf::McBufVarintReadable::varint_read_into(buf)?;
+                                        let #field_name = crate::mc_buf::McBufVarReadable::var_read_into(buf)?;
                                     }
                                 } else {
                                     quote! {
@@ -102,9 +102,9 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                 // if it's a string, use buf.write_string
                 match field_type {
                     syn::Type::Path(_) => {
-                        if f.attrs.iter().any(|attr| attr.path.is_ident("varint")) {
+                        if f.attrs.iter().any(|attr| attr.path.is_ident("var")) {
                             quote! {
-                                crate::mc_buf::McBufVarintWritable::varint_write_into(&self.#field_name, buf)?;
+                                crate::mc_buf::McBufVarWritable::var_write_into(&self.#field_name, buf)?;
                             }
                         } else {
                             quote! {
@@ -143,14 +143,14 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
     }
 }
 
-#[proc_macro_derive(McBufReadable, attributes(varint))]
+#[proc_macro_derive(McBufReadable, attributes(var))]
 pub fn derive_mcbufreadable(input: TokenStream) -> TokenStream {
     let DeriveInput { ident, data, .. } = parse_macro_input!(input);
 
     create_impl_mcbufreadable(&ident, &data).into()
 }
 
-#[proc_macro_derive(McBufWritable, attributes(varint))]
+#[proc_macro_derive(McBufWritable, attributes(var))]
 pub fn derive_mcbufwritable(input: TokenStream) -> TokenStream {
     let DeriveInput { ident, data, .. } = parse_macro_input!(input);
 
@@ -198,22 +198,22 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
     contents.into()
 }
 
-#[proc_macro_derive(GamePacket, attributes(varint))]
+#[proc_macro_derive(GamePacket, attributes(var))]
 pub fn derive_game_packet(input: TokenStream) -> TokenStream {
     as_packet_derive(input, quote! {crate::packets::game::GamePacket})
 }
 
-#[proc_macro_derive(HandshakePacket, attributes(varint))]
+#[proc_macro_derive(HandshakePacket, attributes(var))]
 pub fn derive_handshake_packet(input: TokenStream) -> TokenStream {
     as_packet_derive(input, quote! {crate::packets::handshake::HandshakePacket})
 }
 
-#[proc_macro_derive(LoginPacket, attributes(varint))]
+#[proc_macro_derive(LoginPacket, attributes(var))]
 pub fn derive_login_packet(input: TokenStream) -> TokenStream {
     as_packet_derive(input, quote! {crate::packets::login::LoginPacket})
 }
 
-#[proc_macro_derive(StatusPacket, attributes(varint))]
+#[proc_macro_derive(StatusPacket, attributes(var))]
 pub fn derive_status_packet(input: TokenStream) -> TokenStream {
     as_packet_derive(input, quote! {crate::packets::status::StatusPacket})
 }

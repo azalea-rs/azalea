@@ -4,9 +4,9 @@ mod read;
 mod write;
 
 use packet_macros::{McBufReadable, McBufWritable};
-pub use read::{read_varint_async, McBufReadable, McBufVarintReadable, Readable};
+pub use read::{read_varint_async, McBufReadable, McBufVarReadable, Readable};
 use std::ops::Deref;
-pub use write::{McBufVarintWritable, McBufWritable, Writable};
+pub use write::{McBufVarWritable, McBufWritable, Writable};
 
 // const DEFAULT_NBT_QUOTA: u32 = 2097152;
 const MAX_STRING_LENGTH: u16 = 32767;

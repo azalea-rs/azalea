@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundUpdateAttributesPacket {
-    #[varint]
+    #[var]
     pub entity_id: u32,
     pub attributes: Vec<AttributeSnapshot>,
 }

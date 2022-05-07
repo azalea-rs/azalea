@@ -5,7 +5,7 @@ use std::hash::Hash;
 
 #[derive(Hash, Clone, Debug, LoginPacket)]
 pub struct ClientboundCustomQueryPacket {
-    #[varint]
+    #[var]
     pub transaction_id: u32,
     pub identifier: ResourceLocation,
     pub data: UnsizedByteArray,

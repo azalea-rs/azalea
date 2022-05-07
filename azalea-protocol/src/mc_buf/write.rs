@@ -146,8 +146,8 @@ pub trait McBufWritable {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
 }
 
-pub trait McBufVarintWritable {
-    fn varint_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
+pub trait McBufVarWritable {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
 }
 
 impl McBufWritable for i32 {
@@ -156,8 +156,8 @@ impl McBufWritable for i32 {
     }
 }
 
-impl McBufVarintWritable for i32 {
-    fn varint_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+impl McBufVarWritable for i32 {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_varint(*self)
     }
 }
@@ -202,9 +202,32 @@ impl McBufWritable for u32 {
 }
 
 // u32 varint
-impl McBufVarintWritable for u32 {
-    fn varint_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        i32::varint_write_into(&(*self as i32), buf)
+impl McBufVarWritable for u32 {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        i32::var_write_into(&(*self as i32), buf)
+    }
+}
+
+impl McBufVarWritable for i64 {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        let mut buffer = [0];
+        let mut cnt = 0;
+        let mut value = *self;
+        while value != 0 {
+            buffer[0] = (value & 0b0111_1111) as u8;
+            value = (value >> 7) & (i64::max_value() >> 6);
+            if value != 0 {
+                buffer[0] |= 0b1000_0000;
+            }
+            cnt += buf.write(&mut buffer)?;
+        }
+        Ok(())
+    }
+}
+
+impl McBufVarWritable for u64 {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        i64::var_write_into(&(*self as i64), buf)
     }
 }
 
@@ -216,9 +239,9 @@ impl McBufWritable for u16 {
 }
 
 // u16 varint
-impl McBufVarintWritable for u16 {
-    fn varint_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        i32::varint_write_into(&(*self as i32), buf)
+impl McBufVarWritable for u16 {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        i32::var_write_into(&(*self as i32), buf)
     }
 }
 

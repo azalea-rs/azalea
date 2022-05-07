@@ -236,11 +236,11 @@ where
     fn read_into(buf: &mut impl Read) -> Result<Self, String>;
 }
 
-pub trait McBufVarintReadable
+pub trait McBufVarReadable
 where
     Self: Sized,
 {
-    fn varint_read_into(buf: &mut impl Read) -> Result<Self, String>;
+    fn var_read_into(buf: &mut impl Read) -> Result<Self, String>;
 }
 
 impl McBufReadable for i32 {
@@ -249,9 +249,31 @@ impl McBufReadable for i32 {
     }
 }
 
-impl McBufVarintReadable for i32 {
-    fn varint_read_into(buf: &mut impl Read) -> Result<Self, String> {
+impl McBufVarReadable for i32 {
+    fn var_read_into(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_varint()
+    }
+}
+
+impl McBufVarReadable for i64 {
+    // fast varints modified from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L54
+    fn var_read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let mut buffer = [0];
+        let mut ans = 0;
+        for i in 0..8 {
+            buf.read_exact(&mut buffer)
+                .map_err(|_| "Invalid VarLong".to_string())?;
+            ans |= ((buffer[0] & 0b0111_1111) as i64) << 7 * i;
+            if buffer[0] & 0b1000_0000 == 0 {
+                break;
+            }
+        }
+        Ok(ans)
+    }
+}
+impl McBufVarReadable for u64 {
+    fn var_read_into(buf: &mut impl Read) -> Result<Self, String> {
+        i64::var_read_into(buf).map(|i| i as u64)
     }
 }
 
@@ -300,8 +322,8 @@ impl McBufReadable for u32 {
 }
 
 // u32 varint
-impl McBufVarintReadable for u32 {
-    fn varint_read_into(buf: &mut impl Read) -> Result<Self, String> {
+impl McBufVarReadable for u32 {
+    fn var_read_into(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_varint().map(|i| i as u32)
     }
 }
@@ -321,8 +343,8 @@ impl McBufReadable for i16 {
 }
 
 // u16 varint
-impl McBufVarintReadable for u16 {
-    fn varint_read_into(buf: &mut impl Read) -> Result<Self, String> {
+impl McBufVarReadable for u16 {
+    fn var_read_into(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_varint().map(|i| i as u16)
     }
 }

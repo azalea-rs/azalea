@@ -74,7 +74,7 @@ pub struct CookingRecipe {
     ingredient: Ingredient,
     result: Slot,
     experience: f32,
-    #[varint]
+    #[var]
     cooking_time: u32,
 }
 #[derive(Clone, Debug, McBufReadable, McBufWritable)]

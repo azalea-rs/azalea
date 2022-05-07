@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundAddPlayerPacket {
-    #[varint]
+    #[var]
     pub id: i32,
     pub uuid: Uuid,
     pub x: f64,

@@ -7,6 +7,7 @@ pub mod clientbound_declare_commands_packet;
 pub mod clientbound_disconnect_packet;
 pub mod clientbound_entity_event_packet;
 pub mod clientbound_entity_velocity_packet;
+pub mod clientbound_initialize_border_packet;
 pub mod clientbound_level_chunk_with_light_packet;
 pub mod clientbound_light_update_packet;
 pub mod clientbound_login_packet;
@@ -40,6 +41,7 @@ declare_state_packets!(
         0x1a: clientbound_disconnect_packet::ClientboundDisconnectPacket,
         0x1b: clientbound_entity_event_packet::ClientboundEntityEventPacket,
         0x18: clientbound_custom_payload_packet::ClientboundCustomPayloadPacket,
+        0x20: clientbound_initialize_border_packet::ClientboundInitializeBorderPacket,
         0x22: clientbound_level_chunk_with_light_packet::ClientboundLevelChunkWithLightPacket,
         0x25: clientbound_light_update_packet::ClientboundLightUpdatePacket,
         0x26: clientbound_login_packet::ClientboundLoginPacket,

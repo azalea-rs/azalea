@@ -3,11 +3,11 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundAddEntityPacket {
-    #[varint]
+    #[var]
     pub id: i32,
     pub uuid: Uuid,
     // TODO: have an entity type struct
-    #[varint]
+    #[var]
     pub entity_type: i32,
     pub x: f64,
     pub y: f64,
