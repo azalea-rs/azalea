@@ -2,6 +2,7 @@ pub mod clientbound_add_entity_packet;
 pub mod clientbound_add_mob_packet;
 pub mod clientbound_add_player_packet;
 pub mod clientbound_change_difficulty_packet;
+pub mod clientbound_container_set_content_packet;
 pub mod clientbound_custom_payload_packet;
 pub mod clientbound_declare_commands_packet;
 pub mod clientbound_disconnect_packet;
@@ -17,6 +18,7 @@ pub mod clientbound_player_position_packet;
 pub mod clientbound_recipe_packet;
 pub mod clientbound_set_carried_item_packet;
 pub mod clientbound_set_chunk_cache_center;
+pub mod clientbound_set_default_spawn_position_packet;
 pub mod clientbound_set_entity_data_packet;
 pub mod clientbound_set_entity_link_packet;
 pub mod clientbound_set_time_packet;
@@ -39,6 +41,7 @@ declare_state_packets!(
         0x04: clientbound_add_player_packet::ClientboundAddPlayerPacket,
         0x0e: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
         0x12: clientbound_declare_commands_packet::ClientboundDeclareCommandsPacket,
+        0x14: clientbound_container_set_content_packet::ClientboundContainerSetContentPacket,
         0x1a: clientbound_disconnect_packet::ClientboundDisconnectPacket,
         0x1b: clientbound_entity_event_packet::ClientboundEntityEventPacket,
         0x18: clientbound_custom_payload_packet::ClientboundCustomPayloadPacket,
@@ -53,12 +56,13 @@ declare_state_packets!(
         0x48: clientbound_set_carried_item_packet::ClientboundSetCarriedItemPacket,
         0x49: clientbound_set_chunk_cache_center::ClientboundSetChunkCacheCenterPacket,
         0x4a: clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket,
+        0x4b: clientbound_set_default_spawn_position_packet::ClientboundSetDefaultSpawnPositionPacket,
         0x4d: clientbound_set_entity_data_packet::ClientboundSetEntityDataPacket,
         0x45: clientbound_set_entity_link_packet::ClientboundSetEntityLinkPacket,
         0x4f: clientbound_entity_velocity_packet::ClientboundEntityVelocityPacket,
         0x59: clientbound_set_time_packet::ClientboundSetTimePacket,
         0x64: clientbound_update_attributes_packet::ClientboundUpdateAttributesPacket,
         0x66: clientbound_update_recipes_packet::ClientboundUpdateRecipesPacket,
-        0x67: clientbound_update_tags_packet::ClientboundUpdateTagsPacket
+        0x67: clientbound_update_tags_packet::ClientboundUpdateTagsPacket,
     }
 );
