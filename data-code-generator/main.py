@@ -39,3 +39,5 @@ with open('burger.json', 'r') as f:
 
 burger_packets_data = burger_data[0]['packets']['packet']
 packetcodegen.generate(burger_packets_data, mappings)
+
+os.system('cd .. && cargo fmt')

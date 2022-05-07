@@ -7,7 +7,7 @@ import io
 
 def to_snake_case(name):
     s = re.sub('([A-Z])', r'_\1', name)
-    return s.lower()
+    return s.lower().strip('_')
 
 
 def to_camel_case(name):
