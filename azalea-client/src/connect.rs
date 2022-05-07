@@ -261,6 +261,9 @@ impl Client {
             GamePacket::ClientboundInitializeBorderPacket(p) => {
                 println!("Got initialize border packet {:?}", p);
             }
+            GamePacket::ClientboundSetTimePacket(p) => {
+                println!("Got set time packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
         println!();
