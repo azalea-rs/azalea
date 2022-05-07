@@ -32,6 +32,10 @@ if not skipping_burger:
     print('\033[92mDownloading Burger...\033[m')
     r = os.system('git clone https://github.com/pokechu22/Burger')
     os.system('cd Burger && git pull')
+
+    # print('\033[92mInstalling dependencies...\033[m')
+    # os.system('cd Burger && pip install six jawa')
+
     print('\033[92mDownloading client jar...\033[m')
     with open('client.jar', 'wb') as f:
         f.write(requests.get(client_jar_url).content)

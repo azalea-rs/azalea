@@ -1,4 +1,4 @@
-Tools for generating code.
+Tools for automatically generating code to help with updating Minecraft versions.
 
 The directory name doesn't start with `azalea-` because it's not a Rust crate.
 

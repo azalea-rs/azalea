@@ -270,6 +270,9 @@ impl Client {
             GamePacket::ClientboundContainerSetContentPacket(p) => {
                 println!("Got container set content packet {:?}", p);
             }
+            GamePacket::ClientboundSetHealthPacket(p) => {
+                println!("Got set health packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
         println!();
