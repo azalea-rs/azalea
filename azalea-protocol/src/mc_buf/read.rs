@@ -279,7 +279,7 @@ impl McBufVarReadable for u64 {
 
 impl McBufReadable for UnsizedByteArray {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        Ok(UnsizedByteArray(buf.read_bytes()?))
+        Ok(buf.read_bytes()?.into())
     }
 }
 
