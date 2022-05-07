@@ -10,6 +10,7 @@ use crate::ServerIpAddress;
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use tokio::net::TcpStream;
 
+#[derive(Debug, Clone, Copy)]
 pub enum PacketFlow {
     ClientToServer,
     ServerToClient,

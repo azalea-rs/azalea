@@ -255,6 +255,9 @@ impl Client {
             GamePacket::ClientboundSetEntityLinkPacket(p) => {
                 println!("Got set entity link packet {:?}", p);
             }
+            GamePacket::ClientboundAddPlayerPacket(p) => {
+                println!("Got add player packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
         println!();
