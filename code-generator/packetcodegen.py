@@ -87,7 +87,7 @@ def generate(burger_packets, mappings: Mappings, target_packet_id, target_packet
             f'#[derive(Clone, Debug, {to_camel_case(state)}Packet)]')
         uses.add(f'packet_macros::{to_camel_case(state)}Packet')
 
-        obfuscated_class_name = packet['class'].split('.')[0]
+        obfuscated_class_name = packet['class'].split('.')[0].split('$')[0]
         class_name = mappings.get_class(
             obfuscated_class_name).split('.')[-1].split('$')[0]
 
@@ -103,7 +103,8 @@ def generate(burger_packets, mappings: Mappings, target_packet_id, target_packet
                 field_name = mappings.get_field(
                     obfuscated_class_name, obfuscated_field_name)
                 if not field_name:
-                    generated_packet_code.append(f'// TODO: {instruction}')
+                    generated_packet_code.append(
+                        f'// TODO: unknown field {instruction}')
                     continue
 
                 field_type = instruction['type']

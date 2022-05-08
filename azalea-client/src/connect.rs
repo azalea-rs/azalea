@@ -282,6 +282,12 @@ impl Client {
             GamePacket::ClientboundUpdateAdvancementsPacket(p) => {
                 println!("Got update advancements packet {:?}", p);
             }
+            GamePacket::ClientboundRotateHeadPacket(p) => {
+                println!("Got rotate head packet {:?}", p);
+            }
+            GamePacket::ClientboundMoveEntityPacket(p) => {
+                println!("Got move entity packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
         println!();

@@ -12,10 +12,12 @@ pub mod clientbound_initialize_border_packet;
 pub mod clientbound_level_chunk_with_light_packet;
 pub mod clientbound_light_update_packet;
 pub mod clientbound_login_packet;
+pub mod clientbound_move_entity_packet;
 pub mod clientbound_player_abilities_packet;
 pub mod clientbound_player_info_packet;
 pub mod clientbound_player_position_packet;
 pub mod clientbound_recipe_packet;
+pub mod clientbound_rotate_head_packet;
 pub mod clientbound_set_carried_item_packet;
 pub mod clientbound_set_chunk_cache_center;
 pub mod clientbound_set_default_spawn_position_packet;
@@ -53,10 +55,12 @@ declare_state_packets!(
         0x22: clientbound_level_chunk_with_light_packet::ClientboundLevelChunkWithLightPacket,
         0x25: clientbound_light_update_packet::ClientboundLightUpdatePacket,
         0x26: clientbound_login_packet::ClientboundLoginPacket,
+        0x29: clientbound_move_entity_packet::ClientboundMoveEntityPacket,
         0x32: clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
         0x36: clientbound_player_info_packet::ClientboundPlayerInfoPacket,
         0x38: clientbound_player_position_packet::ClientboundPlayerPositionPacket,
         0x39: clientbound_recipe_packet::ClientboundRecipePacket,
+        0x3e: clientbound_rotate_head_packet::ClientboundRotateHeadPacket,
         0x48: clientbound_set_carried_item_packet::ClientboundSetCarriedItemPacket,
         0x49: clientbound_set_chunk_cache_center::ClientboundSetChunkCacheCenterPacket,
         0x4a: clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket,
