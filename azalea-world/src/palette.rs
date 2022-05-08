@@ -1,6 +1,4 @@
-use azalea_protocol::mc_buf::{
-    McBufReadable, McBufVarintReadable, McBufWritable, Readable, Writable,
-};
+use azalea_protocol::mc_buf::{McBufReadable, McBufVarReadable, McBufWritable, Readable, Writable};
 use std::io::{Read, Write};
 
 #[derive(Clone, Debug, Copy)]
@@ -69,9 +67,9 @@ impl Palette {
         bits_per_entry: u8,
     ) -> Result<Palette, String> {
         Ok(match bits_per_entry {
-            0 => Palette::SingleValue(u32::varint_read_into(buf)?),
-            1..=4 => Palette::Linear(Vec::<u32>::varint_read_into(buf)?),
-            5..=8 => Palette::Hashmap(Vec::<u32>::varint_read_into(buf)?),
+            0 => Palette::SingleValue(u32::var_read_into(buf)?),
+            1..=4 => Palette::Linear(Vec::<u32>::var_read_into(buf)?),
+            5..=8 => Palette::Hashmap(Vec::<u32>::var_read_into(buf)?),
             _ => Palette::Global,
         })
     }
@@ -81,8 +79,8 @@ impl Palette {
         bits_per_entry: u8,
     ) -> Result<Palette, String> {
         Ok(match bits_per_entry {
-            0 => Palette::SingleValue(u32::varint_read_into(buf)?),
-            1..=3 => Palette::Linear(Vec::<u32>::varint_read_into(buf)?),
+            0 => Palette::SingleValue(u32::var_read_into(buf)?),
+            1..=3 => Palette::Linear(Vec::<u32>::var_read_into(buf)?),
             _ => Palette::Global,
         })
     }
