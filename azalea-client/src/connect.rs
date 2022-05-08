@@ -250,7 +250,7 @@ impl Client {
                 // println!("Got update attributes packet {:?}", p);
             }
             GamePacket::ClientboundEntityVelocityPacket(p) => {
-                println!("Got entity velocity packet {:?}", p);
+                // println!("Got entity velocity packet {:?}", p);
             }
             GamePacket::ClientboundSetEntityLinkPacket(p) => {
                 println!("Got set entity link packet {:?}", p);
@@ -283,10 +283,16 @@ impl Client {
                 println!("Got update advancements packet {:?}", p);
             }
             GamePacket::ClientboundRotateHeadPacket(p) => {
-                println!("Got rotate head packet {:?}", p);
+                // println!("Got rotate head packet {:?}", p);
             }
-            GamePacket::ClientboundMoveEntityPacket(p) => {
-                println!("Got move entity packet {:?}", p);
+            GamePacket::ClientboundMoveEntityPosPacket(p) => {
+                // println!("Got move entity pos packet {:?}", p);
+            }
+            GamePacket::ClientboundMoveEntityPosRotPacket(p) => {
+                // println!("Got move entity pos rot packet {:?}", p);
+            }
+            GamePacket::ClientboundMoveEntityRotPacket(p) => {
+                println!("Got move entity rot packet {:?}", p);
             }
             _ => panic!("Unexpected packet {:?}", packet),
         }

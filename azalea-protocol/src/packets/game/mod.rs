@@ -12,7 +12,9 @@ pub mod clientbound_initialize_border_packet;
 pub mod clientbound_level_chunk_with_light_packet;
 pub mod clientbound_light_update_packet;
 pub mod clientbound_login_packet;
-pub mod clientbound_move_entity_packet;
+pub mod clientbound_move_entity_pos_packet;
+pub mod clientbound_move_entity_posrot_packet;
+pub mod clientbound_move_entity_rot_packet;
 pub mod clientbound_player_abilities_packet;
 pub mod clientbound_player_info_packet;
 pub mod clientbound_player_position_packet;
@@ -55,7 +57,9 @@ declare_state_packets!(
         0x22: clientbound_level_chunk_with_light_packet::ClientboundLevelChunkWithLightPacket,
         0x25: clientbound_light_update_packet::ClientboundLightUpdatePacket,
         0x26: clientbound_login_packet::ClientboundLoginPacket,
-        0x29: clientbound_move_entity_packet::ClientboundMoveEntityPacket,
+        0x29: clientbound_move_entity_pos_packet::ClientboundMoveEntityPosPacket,
+        0x2a: clientbound_move_entity_posrot_packet::ClientboundMoveEntityPosRotPacket,
+        0x2b: clientbound_move_entity_rot_packet::ClientboundMoveEntityRotPacket,
         0x32: clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
         0x36: clientbound_player_info_packet::ClientboundPlayerInfoPacket,
         0x38: clientbound_player_position_packet::ClientboundPlayerPositionPacket,
