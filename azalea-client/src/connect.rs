@@ -3,7 +3,10 @@ use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
     packets::{
-        game::{serverbound_custom_payload_packet::ServerboundCustomPayloadPacket, GamePacket},
+        game::{
+            serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
+            serverbound_keep_alive_packet::ServerboundKeepAlivePacket, GamePacket,
+        },
         handshake::client_intention_packet::ClientIntentionPacket,
         login::{
             serverbound_hello_packet::ServerboundHelloPacket,
@@ -293,6 +296,13 @@ impl Client {
             }
             GamePacket::ClientboundMoveEntityRotPacket(p) => {
                 println!("Got move entity rot packet {:?}", p);
+            }
+            GamePacket::ClientboundKeepAlivePacket(p) => {
+                println!("Got keep alive packet {:?}", p);
+                conn.lock()
+                    .await
+                    .write(ServerboundKeepAlivePacket { id: p.id }.get())
+                    .await;
             }
             _ => panic!("Unexpected packet {:?}", packet),
         }

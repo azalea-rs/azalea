@@ -9,6 +9,7 @@ pub mod clientbound_disconnect_packet;
 pub mod clientbound_entity_event_packet;
 pub mod clientbound_entity_velocity_packet;
 pub mod clientbound_initialize_border_packet;
+pub mod clientbound_keep_alive_packet;
 pub mod clientbound_level_chunk_with_light_packet;
 pub mod clientbound_light_update_packet;
 pub mod clientbound_login_packet;
@@ -35,6 +36,7 @@ pub mod clientbound_update_recipes_packet;
 pub mod clientbound_update_tags_packet;
 pub mod clientbound_update_view_distance_packet;
 pub mod serverbound_custom_payload_packet;
+pub mod serverbound_keep_alive_packet;
 
 use packet_macros::declare_state_packets;
 
@@ -42,6 +44,7 @@ declare_state_packets!(
     GamePacket,
     Serverbound => {
         0x0a: serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
+        0x0f: serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
     },
     Clientbound => {
         0x00: clientbound_add_entity_packet::ClientboundAddEntityPacket,
@@ -54,6 +57,7 @@ declare_state_packets!(
         0x1b: clientbound_entity_event_packet::ClientboundEntityEventPacket,
         0x18: clientbound_custom_payload_packet::ClientboundCustomPayloadPacket,
         0x20: clientbound_initialize_border_packet::ClientboundInitializeBorderPacket,
+        0x21: clientbound_keep_alive_packet::ClientboundKeepAlivePacket,
         0x22: clientbound_level_chunk_with_light_packet::ClientboundLevelChunkWithLightPacket,
         0x25: clientbound_light_update_packet::ClientboundLightUpdatePacket,
         0x26: clientbound_login_packet::ClientboundLoginPacket,
