@@ -1,6 +1,7 @@
 pub mod clientbound_add_entity_packet;
 pub mod clientbound_add_mob_packet;
 pub mod clientbound_add_player_packet;
+pub mod clientbound_animate_packet;
 pub mod clientbound_block_update_packet;
 pub mod clientbound_change_difficulty_packet;
 pub mod clientbound_chat_packet;
@@ -55,6 +56,7 @@ declare_state_packets!(
         0x00: clientbound_add_entity_packet::ClientboundAddEntityPacket,
         0x02: clientbound_add_mob_packet::ClientboundAddMobPacket,
         0x04: clientbound_add_player_packet::ClientboundAddPlayerPacket,
+        0x6: clientbound_animate_packet::ClientboundAnimatePacket,
         0xc: clientbound_block_update_packet::ClientboundBlockUpdatePacket,
         0x0e: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
         0xf: clientbound_chat_packet::ClientboundChatPacket,
