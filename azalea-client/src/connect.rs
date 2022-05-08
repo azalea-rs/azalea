@@ -304,6 +304,9 @@ impl Client {
                     .write(ServerboundKeepAlivePacket { id: p.id }.get())
                     .await;
             }
+            GamePacket::ClientboundRemoveEntitiesPacket(p) => {
+                println!("Got remove entities packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
         println!();

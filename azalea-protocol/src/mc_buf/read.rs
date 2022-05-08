@@ -360,6 +360,18 @@ impl McBufVarReadable for u16 {
     }
 }
 
+// Vec<T> varint
+impl<T: McBufVarReadable> McBufVarReadable for Vec<T> {
+    fn var_read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let length = buf.read_varint()? as usize;
+        let mut contents = Vec::with_capacity(length);
+        for _ in 0..length {
+            contents.push(T::var_read_into(buf)?);
+        }
+        Ok(contents)
+    }
+}
+
 // i64
 impl McBufReadable for i64 {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {

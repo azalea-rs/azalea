@@ -20,6 +20,7 @@ pub mod clientbound_player_abilities_packet;
 pub mod clientbound_player_info_packet;
 pub mod clientbound_player_position_packet;
 pub mod clientbound_recipe_packet;
+pub mod clientbound_remove_entities_packet;
 pub mod clientbound_rotate_head_packet;
 pub mod clientbound_set_carried_item_packet;
 pub mod clientbound_set_chunk_cache_center;
@@ -68,6 +69,7 @@ declare_state_packets!(
         0x36: clientbound_player_info_packet::ClientboundPlayerInfoPacket,
         0x38: clientbound_player_position_packet::ClientboundPlayerPositionPacket,
         0x39: clientbound_recipe_packet::ClientboundRecipePacket,
+        0x3a: clientbound_remove_entities_packet::ClientboundRemoveEntitiesPacket,
         0x3e: clientbound_rotate_head_packet::ClientboundRotateHeadPacket,
         0x48: clientbound_set_carried_item_packet::ClientboundSetCarriedItemPacket,
         0x49: clientbound_set_chunk_cache_center::ClientboundSetChunkCacheCenterPacket,

@@ -257,6 +257,17 @@ impl McBufVarWritable for u16 {
     }
 }
 
+// Vec<T> varint
+impl<T: McBufVarWritable> McBufVarWritable for Vec<T> {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        u32::var_write_into(&(self.len() as u32), buf)?;
+        for i in self {
+            i.var_write_into(buf)?;
+        }
+        Ok(())
+    }
+}
+
 // u8
 impl McBufWritable for u8 {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
