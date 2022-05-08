@@ -4,6 +4,7 @@ use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
     packets::{
         game::{
+            clientbound_chat_packet::ClientboundChatPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             serverbound_keep_alive_packet::ServerboundKeepAlivePacket, GamePacket,
         },
@@ -44,6 +45,7 @@ pub struct Client {
 #[derive(Debug, Clone)]
 pub enum Event {
     Login,
+    Chat(ClientboundChatPacket),
 }
 
 /// Whether we should ignore errors when decoding packets.
@@ -309,6 +311,7 @@ impl Client {
             }
             GamePacket::ClientboundChatPacket(p) => {
                 println!("Got chat packet {:?}", p);
+                tx.send(Event::Chat(p.clone())).unwrap();
             }
             GamePacket::ClientboundSoundPacket(p) => {
                 println!("Got sound packet {:?}", p);
