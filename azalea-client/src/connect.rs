@@ -218,9 +218,9 @@ impl Client {
             GamePacket::ClientboundUpdateRecipesPacket(p) => {
                 println!("Got update recipes packet");
             }
-            GamePacket::ClientboundEntityEventPacket(p) => {
-                println!("Got entity event packet {:?}", p);
-            }
+            // GamePacket::ClientboundEntityEventPacket(p) => {
+            //     println!("Got entity event packet {:?}", p);
+            // }
             GamePacket::ClientboundRecipePacket(p) => {
                 println!("Got recipe packet");
             }
@@ -280,7 +280,7 @@ impl Client {
                 println!("Got set experience packet {:?}", p);
             }
             GamePacket::ClientboundTeleportEntityPacket(p) => {
-                println!("Got teleport entity packet {:?}", p);
+                // println!("Got teleport entity packet {:?}", p);
             }
             GamePacket::ClientboundUpdateAdvancementsPacket(p) => {
                 println!("Got update advancements packet {:?}", p);
@@ -315,6 +315,9 @@ impl Client {
             }
             GamePacket::ClientboundLevelEventPacket(p) => {
                 println!("Got level event packet {:?}", p);
+            }
+            GamePacket::ClientboundBlockUpdatePacket(p) => {
+                println!("Got block update packet {:?}", p);
             }
             _ => panic!("Unexpected packet {:?}", packet),
         }

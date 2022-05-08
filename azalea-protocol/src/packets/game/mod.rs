@@ -1,7 +1,7 @@
-pub mod clientbound_level_event_packet;
 pub mod clientbound_add_entity_packet;
 pub mod clientbound_add_mob_packet;
 pub mod clientbound_add_player_packet;
+pub mod clientbound_block_update_packet;
 pub mod clientbound_change_difficulty_packet;
 pub mod clientbound_chat_packet;
 pub mod clientbound_container_set_content_packet;
@@ -13,6 +13,7 @@ pub mod clientbound_entity_velocity_packet;
 pub mod clientbound_initialize_border_packet;
 pub mod clientbound_keep_alive_packet;
 pub mod clientbound_level_chunk_with_light_packet;
+pub mod clientbound_level_event_packet;
 pub mod clientbound_light_update_packet;
 pub mod clientbound_login_packet;
 pub mod clientbound_move_entity_pos_packet;
@@ -54,6 +55,7 @@ declare_state_packets!(
         0x00: clientbound_add_entity_packet::ClientboundAddEntityPacket,
         0x02: clientbound_add_mob_packet::ClientboundAddMobPacket,
         0x04: clientbound_add_player_packet::ClientboundAddPlayerPacket,
+        0xc: clientbound_block_update_packet::ClientboundBlockUpdatePacket,
         0x0e: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
         0xf: clientbound_chat_packet::ClientboundChatPacket,
         0x12: clientbound_declare_commands_packet::ClientboundDeclareCommandsPacket,
