@@ -6,7 +6,7 @@ use azalea_core::{
 };
 use byteorder::{ReadBytesExt, WriteBytesExt, BE};
 use serde::Deserialize;
-use std::io::Read;
+use std::{collections::HashMap, hash::Hash, io::Read};
 use tokio::io::{AsyncRead, AsyncReadExt};
 use uuid::Uuid;
 
@@ -289,6 +289,17 @@ impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
         let mut contents = Vec::with_capacity(length);
         for _ in 0..length {
             contents.push(T::read_into(buf)?);
+        }
+        Ok(contents)
+    }
+}
+
+impl<K: McBufReadable + Send + Eq + Hash, V: McBufReadable + Send> McBufReadable for HashMap<K, V> {
+    default fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let length = buf.read_varint()? as usize;
+        let mut contents = HashMap::with_capacity(length);
+        for _ in 0..length {
+            contents.insert(K::read_into(buf)?, V::read_into(buf)?);
         }
         Ok(contents)
     }

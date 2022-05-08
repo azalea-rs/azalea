@@ -72,7 +72,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             impl crate::mc_buf::McBufReadable for #ident {
                 fn read_into(buf: &mut impl std::io::Read) -> Result<Self, String>
                 {
-                    let id = buf.read_varint()?;
+                    let id = crate::mc_buf::McBufVarReadable::var_read_into(buf)?;
                     match id {
                         #match_contents
                         _ => Err(format!("Unknown enum variant {}", id)),

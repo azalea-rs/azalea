@@ -244,10 +244,10 @@ impl Client {
                 println!("Got add entity packet {:?}", p);
             }
             GamePacket::ClientboundSetEntityDataPacket(p) => {
-                println!("Got set entity data packet {:?}", p);
+                // println!("Got set entity data packet {:?}", p);
             }
             GamePacket::ClientboundUpdateAttributesPacket(p) => {
-                println!("Got update attributes packet {:?}", p);
+                // println!("Got update attributes packet {:?}", p);
             }
             GamePacket::ClientboundEntityVelocityPacket(p) => {
                 println!("Got entity velocity packet {:?}", p);
@@ -278,6 +278,9 @@ impl Client {
             }
             GamePacket::ClientboundTeleportEntityPacket(p) => {
                 println!("Got teleport entity packet {:?}", p);
+            }
+            GamePacket::ClientboundUpdateAdvancementsPacket(p) => {
+                println!("Got update advancements packet {:?}", p);
             }
             _ => panic!("Unexpected packet {:?}", packet),
         }

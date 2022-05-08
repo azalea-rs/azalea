@@ -25,6 +25,7 @@ pub mod clientbound_set_experience_packet;
 pub mod clientbound_set_health_packet;
 pub mod clientbound_set_time_packet;
 pub mod clientbound_teleport_entity_packet;
+pub mod clientbound_update_advancements_packet;
 pub mod clientbound_update_attributes_packet;
 pub mod clientbound_update_recipes_packet;
 pub mod clientbound_update_tags_packet;
@@ -67,6 +68,7 @@ declare_state_packets!(
         0x52: clientbound_set_health_packet::ClientboundSetHealthPacket,
         0x59: clientbound_set_time_packet::ClientboundSetTimePacket,
         0x62: clientbound_teleport_entity_packet::ClientboundTeleportEntityPacket,
+        0x63: clientbound_update_advancements_packet::ClientboundUpdateAdvancementsPacket,
         0x64: clientbound_update_attributes_packet::ClientboundUpdateAttributesPacket,
         0x66: clientbound_update_recipes_packet::ClientboundUpdateRecipesPacket,
         0x67: clientbound_update_tags_packet::ClientboundUpdateTagsPacket,

@@ -98,6 +98,7 @@ def generate(burger_packets, mappings: Mappings, target_packet_id, target_packet
             if instruction['operation'] == 'write':
                 obfuscated_field_name = instruction['field']
                 if '.' in obfuscated_field_name or ' ' in obfuscated_field_name or '(' in obfuscated_field_name:
+                    generated_packet_code.append(f'// TODO: {instruction}')
                     continue
                 field_name = mappings.get_field(
                     obfuscated_class_name, obfuscated_field_name)

@@ -5,7 +5,7 @@ use azalea_core::{
     serializable_uuid::SerializableUuid, BlockPos, Direction, Slot,
 };
 use byteorder::{BigEndian, WriteBytesExt};
-use std::io::Write;
+use std::{collections::HashMap, io::Write};
 use uuid::Uuid;
 
 pub trait Writable: Write {
@@ -171,6 +171,18 @@ impl McBufWritable for UnsizedByteArray {
 impl<T: McBufWritable> McBufWritable for Vec<T> {
     default fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_list(self, |buf, i| T::write_into(i, buf))
+    }
+}
+
+impl<K: McBufWritable, V: McBufWritable> McBufWritable for HashMap<K, V> {
+    default fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        u32::var_write_into(&(self.len() as u32), buf)?;
+        for (key, value) in self {
+            key.write_into(buf)?;
+            value.write_into(buf)?;
+        }
+
+        Ok(())
     }
 }
 
