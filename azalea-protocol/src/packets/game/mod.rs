@@ -1,3 +1,4 @@
+pub mod clientbound_level_event_packet;
 pub mod clientbound_add_entity_packet;
 pub mod clientbound_add_mob_packet;
 pub mod clientbound_add_player_packet;
@@ -63,6 +64,7 @@ declare_state_packets!(
         0x20: clientbound_initialize_border_packet::ClientboundInitializeBorderPacket,
         0x21: clientbound_keep_alive_packet::ClientboundKeepAlivePacket,
         0x22: clientbound_level_chunk_with_light_packet::ClientboundLevelChunkWithLightPacket,
+        0x23: clientbound_level_event_packet::ClientboundLevelEventPacket,
         0x25: clientbound_light_update_packet::ClientboundLightUpdatePacket,
         0x26: clientbound_login_packet::ClientboundLoginPacket,
         0x29: clientbound_move_entity_pos_packet::ClientboundMoveEntityPosPacket,

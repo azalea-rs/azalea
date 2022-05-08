@@ -313,9 +313,11 @@ impl Client {
             GamePacket::ClientboundSoundPacket(p) => {
                 println!("Got sound packet {:?}", p);
             }
+            GamePacket::ClientboundLevelEventPacket(p) => {
+                println!("Got level event packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
-        println!();
     }
 
     pub async fn next(&mut self) -> Option<Event> {
