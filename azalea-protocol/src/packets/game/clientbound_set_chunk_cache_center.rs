@@ -2,8 +2,8 @@ use packet_macros::GamePacket;
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundSetChunkCacheCenterPacket {
-    #[varint]
+    #[var]
     pub x: i32,
-    #[varint]
+    #[var]
     pub z: i32,
 }

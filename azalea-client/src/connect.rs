@@ -3,7 +3,11 @@ use azalea_core::{resource_location::ResourceLocation, ChunkPos};
 use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
     packets::{
-        game::{serverbound_custom_payload_packet::ServerboundCustomPayloadPacket, GamePacket},
+        game::{
+            clientbound_chat_packet::ClientboundChatPacket,
+            serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
+            serverbound_keep_alive_packet::ServerboundKeepAlivePacket, GamePacket,
+        },
         handshake::client_intention_packet::ClientIntentionPacket,
         login::{
             serverbound_hello_packet::ServerboundHelloPacket,
@@ -42,6 +46,7 @@ pub struct Client {
 #[derive(Debug, Clone)]
 pub enum Event {
     Login,
+    Chat(ClientboundChatPacket),
 }
 
 /// Whether we should ignore errors when decoding packets.
@@ -239,7 +244,7 @@ impl Client {
                 println!("Got update recipes packet");
             }
             GamePacket::ClientboundEntityEventPacket(p) => {
-                println!("Got entity event packet {:?}", p);
+                // println!("Got entity event packet {:?}", p);
             }
             GamePacket::ClientboundRecipePacket(_p) => {
                 println!("Got recipe packet");
@@ -285,20 +290,84 @@ impl Client {
                 println!("Got add entity packet {:?}", p);
             }
             GamePacket::ClientboundSetEntityDataPacket(p) => {
-                println!("Got set entity data packet {:?}", p);
+                // println!("Got set entity data packet {:?}", p);
             }
             GamePacket::ClientboundUpdateAttributesPacket(p) => {
-                println!("Got update attributes packet {:?}", p);
+                // println!("Got update attributes packet {:?}", p);
             }
             GamePacket::ClientboundEntityVelocityPacket(p) => {
-                println!("Got entity velocity packet {:?}", p);
+                // println!("Got entity velocity packet {:?}", p);
             }
             GamePacket::ClientboundSetEntityLinkPacket(p) => {
                 println!("Got set entity link packet {:?}", p);
             }
+            GamePacket::ClientboundAddPlayerPacket(p) => {
+                println!("Got add player packet {:?}", p);
+            }
+            GamePacket::ClientboundInitializeBorderPacket(p) => {
+                println!("Got initialize border packet {:?}", p);
+            }
+            GamePacket::ClientboundSetTimePacket(p) => {
+                println!("Got set time packet {:?}", p);
+            }
+            GamePacket::ClientboundSetDefaultSpawnPositionPacket(p) => {
+                println!("Got set default spawn position packet {:?}", p);
+            }
+            GamePacket::ClientboundContainerSetContentPacket(p) => {
+                println!("Got container set content packet {:?}", p);
+            }
+            GamePacket::ClientboundSetHealthPacket(p) => {
+                println!("Got set health packet {:?}", p);
+            }
+            GamePacket::ClientboundSetExperiencePacket(p) => {
+                println!("Got set experience packet {:?}", p);
+            }
+            GamePacket::ClientboundTeleportEntityPacket(p) => {
+                // println!("Got teleport entity packet {:?}", p);
+            }
+            GamePacket::ClientboundUpdateAdvancementsPacket(p) => {
+                println!("Got update advancements packet {:?}", p);
+            }
+            GamePacket::ClientboundRotateHeadPacket(p) => {
+                // println!("Got rotate head packet {:?}", p);
+            }
+            GamePacket::ClientboundMoveEntityPosPacket(p) => {
+                // println!("Got move entity pos packet {:?}", p);
+            }
+            GamePacket::ClientboundMoveEntityPosRotPacket(p) => {
+                // println!("Got move entity pos rot packet {:?}", p);
+            }
+            GamePacket::ClientboundMoveEntityRotPacket(p) => {
+                println!("Got move entity rot packet {:?}", p);
+            }
+            GamePacket::ClientboundKeepAlivePacket(p) => {
+                println!("Got keep alive packet {:?}", p);
+                conn.lock()
+                    .await
+                    .write(ServerboundKeepAlivePacket { id: p.id }.get())
+                    .await;
+            }
+            GamePacket::ClientboundRemoveEntitiesPacket(p) => {
+                println!("Got remove entities packet {:?}", p);
+            }
+            GamePacket::ClientboundChatPacket(p) => {
+                println!("Got chat packet {:?}", p);
+                tx.send(Event::Chat(p.clone())).unwrap();
+            }
+            GamePacket::ClientboundSoundPacket(p) => {
+                println!("Got sound packet {:?}", p);
+            }
+            GamePacket::ClientboundLevelEventPacket(p) => {
+                println!("Got level event packet {:?}", p);
+            }
+            GamePacket::ClientboundBlockUpdatePacket(p) => {
+                println!("Got block update packet {:?}", p);
+            }
+            GamePacket::ClientboundAnimatePacket(p) => {
+                println!("Got animate packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
-        println!();
     }
 
     pub async fn next(&mut self) -> Option<Event> {

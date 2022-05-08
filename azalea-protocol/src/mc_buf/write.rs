@@ -5,7 +5,7 @@ use azalea_core::{
     serializable_uuid::SerializableUuid, BlockPos, Direction, Slot,
 };
 use byteorder::{BigEndian, WriteBytesExt};
-use std::io::Write;
+use std::{collections::HashMap, io::Write};
 use uuid::Uuid;
 
 pub trait Writable: Write {
@@ -146,8 +146,8 @@ pub trait McBufWritable {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
 }
 
-pub trait McBufVarintWritable {
-    fn varint_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
+pub trait McBufVarWritable {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
 }
 
 impl McBufWritable for i32 {
@@ -156,8 +156,8 @@ impl McBufWritable for i32 {
     }
 }
 
-impl McBufVarintWritable for i32 {
-    fn varint_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+impl McBufVarWritable for i32 {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_varint(*self)
     }
 }
@@ -168,11 +168,21 @@ impl McBufWritable for UnsizedByteArray {
     }
 }
 
-// TODO: use specialization when that gets stabilized into rust
-// to optimize for Vec<u8> byte arrays
 impl<T: McBufWritable> McBufWritable for Vec<T> {
     default fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_list(self, |buf, i| T::write_into(i, buf))
+    }
+}
+
+impl<K: McBufWritable, V: McBufWritable> McBufWritable for HashMap<K, V> {
+    default fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        u32::var_write_into(&(self.len() as u32), buf)?;
+        for (key, value) in self {
+            key.write_into(buf)?;
+            value.write_into(buf)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -204,16 +214,32 @@ impl McBufWritable for u32 {
 }
 
 // u32 varint
-impl McBufVarintWritable for u32 {
-    fn varint_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        i32::varint_write_into(&(*self as i32), buf)
+impl McBufVarWritable for u32 {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        i32::var_write_into(&(*self as i32), buf)
     }
 }
 
-// Vec<T> varint
-impl<T: McBufVarintWritable> McBufVarintWritable for Vec<T> {
-    fn varint_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_list(self, |buf, i| i.varint_write_into(buf))
+impl McBufVarWritable for i64 {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        let mut buffer = [0];
+        let mut cnt = 0;
+        let mut value = *self;
+        while value != 0 {
+            buffer[0] = (value & 0b0111_1111) as u8;
+            value = (value >> 7) & (i64::max_value() >> 6);
+            if value != 0 {
+                buffer[0] |= 0b1000_0000;
+            }
+            cnt += buf.write(&mut buffer)?;
+        }
+        Ok(())
+    }
+}
+
+impl McBufVarWritable for u64 {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        i64::var_write_into(&(*self as i64), buf)
     }
 }
 
@@ -225,9 +251,20 @@ impl McBufWritable for u16 {
 }
 
 // u16 varint
-impl McBufVarintWritable for u16 {
-    fn varint_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        i32::varint_write_into(&(*self as i32), buf)
+impl McBufVarWritable for u16 {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        i32::var_write_into(&(*self as i32), buf)
+    }
+}
+
+// Vec<T> varint
+impl<T: McBufVarWritable> McBufVarWritable for Vec<T> {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        u32::var_write_into(&(self.len() as u32), buf)?;
+        for i in self {
+            i.var_write_into(buf)?;
+        }
+        Ok(())
     }
 }
 

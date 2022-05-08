@@ -22,7 +22,7 @@ pub struct ClientboundLevelChunkPacketData {
 pub struct BlockEntity {
     pub packed_xz: u8,
     pub y: u16,
-    #[varint]
+    #[var]
     pub type_: i32,
     pub data: azalea_nbt::Tag,
 }

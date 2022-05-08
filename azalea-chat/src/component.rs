@@ -63,14 +63,15 @@ impl Component {
 
         for component in self.clone().into_iter() {
             let component_text = match &component {
-                Self::Text(c) => &c.text,
-                Self::Translatable(c) => &c.key,
+                Self::Text(c) => c.text.to_string(),
+                Self::Translatable(c) => c.to_string(),
             };
+
             let component_style = &component.get_base().style;
 
             let ansi_text = running_style.compare_ansi(component_style, default_style);
             built_string.push_str(&ansi_text);
-            built_string.push_str(component_text);
+            built_string.push_str(&component_text);
 
             running_style.apply(component_style);
         }
@@ -123,7 +124,12 @@ impl<'de> Deserialize<'de> for Component {
                 let text = json.get("text").unwrap().as_str().unwrap_or("").to_string();
                 component = Component::Text(TextComponent::new(text));
             } else if json.get("translate").is_some() {
-                let translate = json.get("translate").unwrap().to_string();
+                let translate = json
+                    .get("translate")
+                    .unwrap()
+                    .as_str()
+                    .ok_or_else(|| de::Error::custom("\"translate\" must be a string"))?
+                    .into();
                 if json.get("with").is_some() {
                     let with = json.get("with").unwrap().as_array().unwrap();
                     let mut with_array = Vec::with_capacity(with.len());
@@ -136,7 +142,7 @@ impl<'de> Deserialize<'de> for Component {
                                 && text_component.base.style.is_empty()
                             {
                                 with_array.push(StringOrComponent::String(text_component.text));
-                                break;
+                                continue;
                             }
                         }
                         with_array.push(StringOrComponent::Component(

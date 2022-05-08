@@ -30,9 +30,9 @@ pub struct AddPlayer {
     uuid: Uuid,
     name: String,
     properties: Vec<PlayerProperty>,
-    #[varint]
+    #[var]
     gamemode: u32,
-    #[varint]
+    #[var]
     ping: i32,
     display_name: Option<Component>,
 }
@@ -40,14 +40,14 @@ pub struct AddPlayer {
 #[derive(Clone, Debug, McBufReadable, McBufWritable)]
 pub struct UpdateGameMode {
     uuid: Uuid,
-    #[varint]
+    #[var]
     gamemode: u32,
 }
 
 #[derive(Clone, Debug, McBufReadable, McBufWritable)]
 pub struct UpdateLatency {
     uuid: Uuid,
-    #[varint]
+    #[var]
     ping: i32,
 }
 

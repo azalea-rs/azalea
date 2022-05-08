@@ -1,12 +1,14 @@
 //! Utilities for reading and writing for the Minecraft protocol
 
+mod definitions;
 mod read;
 mod write;
 
+pub use definitions::{BitSet, EntityMetadata, UnsizedByteArray};
 use packet_macros::{McBufReadable, McBufWritable};
-pub use read::{read_varint_async, McBufReadable, McBufVarintReadable, Readable};
+pub use read::{read_varint_async, McBufReadable, McBufVarReadable, Readable};
 use std::ops::Deref;
-pub use write::{McBufVarintWritable, McBufWritable, Writable};
+pub use write::{McBufVarWritable, McBufWritable, Writable};
 
 // const DEFAULT_NBT_QUOTA: u32 = 2097152;
 const MAX_STRING_LENGTH: u16 = 32767;
@@ -15,43 +17,6 @@ const MAX_STRING_LENGTH: u16 = 32767;
 // TODO: maybe get rid of the readable/writable traits so there's not two ways to do the same thing and improve McBufReadable/McBufWritable
 
 // TODO: have a definitions.rs in mc_buf that contains UnsizedByteArray and BitSet
-
-/// A Vec<u8> that isn't prefixed by a VarInt with the size.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct UnsizedByteArray(Vec<u8>);
-
-impl Deref for UnsizedByteArray {
-    type Target = Vec<u8>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl From<Vec<u8>> for UnsizedByteArray {
-    fn from(vec: Vec<u8>) -> Self {
-        Self(vec)
-    }
-}
-
-impl From<&str> for UnsizedByteArray {
-    fn from(s: &str) -> Self {
-        Self(s.as_bytes().to_vec())
-    }
-}
-
-/// Represents Java's BitSet, a list of bits.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, McBufReadable, McBufWritable)]
-pub struct BitSet {
-    data: Vec<u64>,
-}
-
-// the Index trait requires us to return a reference, but we can't do that
-impl BitSet {
-    pub fn index(&self, index: usize) -> bool {
-        (self.data[index / 64] & (1u64 << (index % 64))) != 0
-    }
-}
 
 #[cfg(test)]
 mod tests {

@@ -55,7 +55,6 @@ pub fn encrypt(public_key: &[u8], nonce: &[u8]) -> Result<EncryptResult, String>
     })
 }
 
-// TODO: update the aes and cfb8 crates
 pub type Aes128CfbEnc = cfb8::Encryptor<Aes128>;
 pub type Aes128CfbDec = cfb8::Decryptor<Aes128>;
 

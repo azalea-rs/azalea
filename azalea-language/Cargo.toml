@@ -1,0 +1,12 @@
+[package]
+edition = "2021"
+name = "azalea-language"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+lazy_static = "1.4.0"
+serde = "1.0.137"
+serde_json = "1.0.81"
+# tokio = {version = "1.18.2", features = ["fs"]}

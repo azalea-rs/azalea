@@ -4,7 +4,7 @@ use std::hash::Hash;
 
 #[derive(Hash, Clone, Debug, HandshakePacket)]
 pub struct ClientIntentionPacket {
-    #[varint]
+    #[var]
     pub protocol_version: u32,
     pub hostname: String,
     pub port: u16,
