@@ -218,9 +218,9 @@ impl Client {
             GamePacket::ClientboundUpdateRecipesPacket(p) => {
                 println!("Got update recipes packet");
             }
-            // GamePacket::ClientboundEntityEventPacket(p) => {
-            //     println!("Got entity event packet {:?}", p);
-            // }
+            GamePacket::ClientboundEntityEventPacket(p) => {
+                // println!("Got entity event packet {:?}", p);
+            }
             GamePacket::ClientboundRecipePacket(p) => {
                 println!("Got recipe packet");
             }
