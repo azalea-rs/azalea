@@ -307,6 +307,12 @@ impl Client {
             GamePacket::ClientboundRemoveEntitiesPacket(p) => {
                 println!("Got remove entities packet {:?}", p);
             }
+            GamePacket::ClientboundChatPacket(p) => {
+                println!("Got chat packet {:?}", p);
+            }
+            GamePacket::ClientboundSoundPacket(p) => {
+                println!("Got sound packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
         println!();

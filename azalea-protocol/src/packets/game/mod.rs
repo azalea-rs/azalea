@@ -2,6 +2,7 @@ pub mod clientbound_add_entity_packet;
 pub mod clientbound_add_mob_packet;
 pub mod clientbound_add_player_packet;
 pub mod clientbound_change_difficulty_packet;
+pub mod clientbound_chat_packet;
 pub mod clientbound_container_set_content_packet;
 pub mod clientbound_custom_payload_packet;
 pub mod clientbound_declare_commands_packet;
@@ -30,6 +31,7 @@ pub mod clientbound_set_entity_link_packet;
 pub mod clientbound_set_experience_packet;
 pub mod clientbound_set_health_packet;
 pub mod clientbound_set_time_packet;
+pub mod clientbound_sound_packet;
 pub mod clientbound_teleport_entity_packet;
 pub mod clientbound_update_advancements_packet;
 pub mod clientbound_update_attributes_packet;
@@ -52,6 +54,7 @@ declare_state_packets!(
         0x02: clientbound_add_mob_packet::ClientboundAddMobPacket,
         0x04: clientbound_add_player_packet::ClientboundAddPlayerPacket,
         0x0e: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
+        0xf: clientbound_chat_packet::ClientboundChatPacket,
         0x12: clientbound_declare_commands_packet::ClientboundDeclareCommandsPacket,
         0x14: clientbound_container_set_content_packet::ClientboundContainerSetContentPacket,
         0x1a: clientbound_disconnect_packet::ClientboundDisconnectPacket,
@@ -81,6 +84,7 @@ declare_state_packets!(
         0x51: clientbound_set_experience_packet::ClientboundSetExperiencePacket,
         0x52: clientbound_set_health_packet::ClientboundSetHealthPacket,
         0x59: clientbound_set_time_packet::ClientboundSetTimePacket,
+        0x5d: clientbound_sound_packet::ClientboundSoundPacket,
         0x62: clientbound_teleport_entity_packet::ClientboundTeleportEntityPacket,
         0x63: clientbound_update_advancements_packet::ClientboundUpdateAdvancementsPacket,
         0x64: clientbound_update_attributes_packet::ClientboundUpdateAttributesPacket,
