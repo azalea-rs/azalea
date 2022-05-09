@@ -1,6 +1,6 @@
 use lazy_static::lazy_static;
+use std::io::Read;
 use std::{collections::HashMap, fs::File};
-
 // use tokio::fs::File;
 
 // pub struct Language {
@@ -29,7 +29,7 @@ use std::{collections::HashMap, fs::File};
 // The code above is kept in case I come up with a better solution
 
 lazy_static! {
-    pub static ref STORAGE: HashMap<String, String> = serde_json::from_str({
+    pub static ref STORAGE: HashMap<String, String> = serde_json::from_str(&{
         let mut file = File::open("en_us.json").unwrap();
         let mut contents = String::new();
         file.read_to_string(&mut contents).unwrap();
