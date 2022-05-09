@@ -67,6 +67,15 @@ impl IndexMut<&ChunkPos> for World {
         &mut self.storage[pos]
     }
 }
+// impl Index<&BlockPos> for World {
+//     type Output = Option<Arc<Mutex<Chunk>>>;
+
+//     fn index(&self, pos: &BlockPos) -> &Self::Output {
+//         let chunk = &self[ChunkPos::from(pos)];
+//         // chunk.
+
+//     }
+// }
 
 pub struct ChunkStorage {
     view_center: ChunkPos,

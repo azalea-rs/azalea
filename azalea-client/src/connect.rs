@@ -177,7 +177,6 @@ impl Client {
         match packet {
             GamePacket::ClientboundLoginPacket(p) => {
                 println!("Got login packet {:?}", p);
-                std::fs::write("login.txt", format!("{:#?}", p)).expect("Unable to write file");
 
                 let mut state = state.lock().await;
                 state.player.entity.id = p.player_id;

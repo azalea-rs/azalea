@@ -4,8 +4,6 @@ flamegraph.svg
 perf.data
 perf.data.old
 
-# TODO: remove this after chunk-decoding is merged
-/login.txt
 
 code-generator/Burger
 code-generator/client.jar

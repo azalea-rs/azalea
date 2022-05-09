@@ -70,9 +70,9 @@ const MAGIC: [(i32, i32, i32); 64] = [
 ];
 
 /// A compact list of integers with the given number of bits per entry.
-#[derive(Clone)]
+#[derive(Clone, Debug, Default)]
 pub struct BitStorage {
-    data: Vec<u64>,
+    pub data: Vec<u64>,
     bits: usize,
     mask: u64,
     size: usize,
@@ -103,9 +103,17 @@ impl BitStorage {
     /// Create a new BitStorage with the given number of bits per entry.
     /// `size` is the number of entries in the BitStorage.
     pub fn new(bits: usize, size: usize, data: Option<Vec<u64>>) -> Result<Self, BitStorageError> {
+        if let Some(data) = &data {
+            if data.len() == 0 {
+                // TODO: make 0 bit storage actually work
+                return Ok(BitStorage::default());
+            }
+        }
+
         let values_per_long = 64 / bits;
         let magic_index = values_per_long - 1;
         let (divide_mul, divide_add, divide_shift) = MAGIC[magic_index as usize];
+        println!("values_per_long: {}, size: {}", values_per_long, size);
         let calculated_length = (size + values_per_long - 1) / values_per_long;
 
         let mask = (1 << bits) - 1;

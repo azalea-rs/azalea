@@ -1,6 +1,8 @@
 use azalea_protocol::mc_buf::{McBufReadable, McBufVarReadable, McBufWritable, Readable, Writable};
 use std::io::{Read, Write};
 
+use crate::BitStorage;
+
 #[derive(Clone, Debug, Copy)]
 pub enum PalettedContainerType {
     Biomes,
@@ -12,7 +14,7 @@ pub struct PalettedContainer {
     pub bits_per_entry: u8,
     pub palette: Palette,
     /// Compacted list of indices pointing to entry IDs in the Palette.
-    pub data: Vec<u64>,
+    pub storage: BitStorage,
 }
 
 impl PalettedContainer {
@@ -29,17 +31,23 @@ impl PalettedContainer {
                 Palette::biomes_read_with_bits_per_entry(buf, bits_per_entry)?
             }
         };
+        let size = match type_ {
+            PalettedContainerType::BlockStates => 4096,
+            PalettedContainerType::Biomes => 64,
+        };
 
         let data = Vec::<u64>::read_into(buf)?;
         debug_assert!(
             bits_per_entry != 0 || data.is_empty(),
             "Bits per entry is 0 but data is not empty."
         );
+        println!("data: {:?}", data);
+        let storage = BitStorage::new(bits_per_entry.into(), size, Some(data)).unwrap();
 
         Ok(PalettedContainer {
             bits_per_entry,
             palette,
-            data,
+            storage,
         })
     }
 }
@@ -47,7 +55,7 @@ impl McBufWritable for PalettedContainer {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_byte(self.bits_per_entry)?;
         self.palette.write_into(buf)?;
-        self.data.write_into(buf)?;
+        self.storage.data.write_into(buf)?;
         Ok(())
     }
 }
