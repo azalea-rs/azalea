@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
 use std::io::Read;
+use std::path::Path;
 use std::{collections::HashMap, fs::File};
 // use tokio::fs::File;
 
@@ -30,7 +31,9 @@ use std::{collections::HashMap, fs::File};
 
 lazy_static! {
     pub static ref STORAGE: HashMap<String, String> = serde_json::from_str(&{
-        let mut file = File::open("en_us.json").unwrap();
+        let src_dir = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/en_us.json"));
+        println!("dir: {:?}", src_dir);
+        let mut file = File::open(src_dir).unwrap();
         let mut contents = String::new();
         file.read_to_string(&mut contents).unwrap();
         contents
@@ -40,4 +43,14 @@ lazy_static! {
 
 pub fn get(key: &str) -> Option<&str> {
     STORAGE.get(key).map(|s| s.as_str())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get() {
+        assert_eq!(get("translation.test.none"), Some("Hello, world!"));
+    }
 }
