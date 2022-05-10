@@ -70,7 +70,7 @@ let bot = Bot::offline("bot");
 bot.join("localhost".try_into().unwrap()).await.unwrap();
 
 loop {
-    match bot.recv().await {
+    match bot.next().await {
         Event::Message(m) {
             if m.username == bot.username { return };
             if m.message = "go" {
