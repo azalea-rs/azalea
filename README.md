@@ -40,7 +40,7 @@ loop {
         },
         Event::Hunger(h) {
             if !h.using_held_item() && h.hunger <= 17 {
-                match bot.hold_item(azalea::ItemGroup::Food).await {
+                match bot.hold(azalea::ItemGroup::Food).await {
                     Ok(_) => {},
                     Err(e) => {
                         println!("{}", e);
