@@ -10,15 +10,15 @@ I named this Azalea because it sounds like a cool word and this is a cool librar
 
 ## Goals
 
-- Do everything a vanilla client can do
-- Be easy to use
-- Bypass most/all anticheats
-- Support the latest Minecraft version
-- Be fast
+- Do everything a vanilla client can do.
+- Be easy to use.
+- Bypass most/all anticheats.
+- Support the latest Minecraft version.
+- Be fast and memory efficient.
 
 ## Example code
 
-Note that these doesn't work yet, it's just how I want the API to look.
+Note that these don't work yet, it's just how I want the API to look.
 
 ```rs
 use azalea::{Account, Event};
