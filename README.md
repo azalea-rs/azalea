@@ -38,6 +38,24 @@ loop {
             println!(m);
             bot.reconnect().await.unwrap();
         },
+        Event::Hunger(h) {
+            if !h.using_held_item() && h.hunger <= 17 {
+                match bot.hold_item(azalea::ItemGroup::Food).await {
+                    Ok(_) => {},
+                    Err(e) => {
+                        println!("{}", e);
+                        break;
+                    }
+                }
+                match bot.use_held_item().await {
+                    Ok(_) => {},
+                    Err(e) => {
+                        println!("{}", e);
+                        break;
+                    }
+                }
+            }
+        }
         _ => {}
     }
 }
