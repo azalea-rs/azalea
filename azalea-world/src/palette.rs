@@ -15,6 +15,7 @@ pub struct PalettedContainer {
     pub palette: Palette,
     /// Compacted list of indices pointing to entry IDs in the Palette.
     pub storage: BitStorage,
+    pub container_type: PalettedContainerType,
 }
 
 impl PalettedContainer {
@@ -47,9 +48,29 @@ impl PalettedContainer {
             bits_per_entry,
             palette,
             storage,
+            container_type: *type_,
         })
     }
+
+    pub fn get_index(&self, x: usize, y: usize, z: usize) -> usize {
+        let size_bits = match self.container_type {
+            PalettedContainerType::BlockStates => 4,
+            PalettedContainerType::Biomes => 2,
+        };
+
+        (((y << size_bits) | z) << size_bits) | x
+    }
+
+    pub fn get(&self, x: usize, y: usize, z: usize) -> u32 {
+        println!(
+            "get: {} {} {}, bits per entry: {}",
+            x, y, z, self.bits_per_entry
+        );
+        let paletted_value = self.storage.get(self.get_index(x, y, z));
+        self.palette.value_for(paletted_value as usize)
+    }
 }
+
 impl McBufWritable for PalettedContainer {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_byte(self.bits_per_entry)?;
@@ -90,6 +111,15 @@ impl Palette {
             1..=3 => Palette::Linear(Vec::<u32>::var_read_into(buf)?),
             _ => Palette::Global,
         })
+    }
+
+    pub fn value_for(&self, value: usize) -> u32 {
+        match self {
+            Palette::SingleValue(v) => *v,
+            Palette::Linear(v) => v[value],
+            Palette::Hashmap(v) => v[value],
+            Palette::Global => value as u32,
+        }
     }
 }
 

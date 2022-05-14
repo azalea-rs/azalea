@@ -9,7 +9,7 @@ mod slot;
 pub use slot::{Slot, SlotData};
 
 mod position;
-pub use position::{BlockPos, ChunkPos, ChunkSectionPos};
+pub use position::{BlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos};
 
 mod direction;
 pub use direction::Direction;

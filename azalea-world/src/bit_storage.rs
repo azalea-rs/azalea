@@ -103,6 +103,9 @@ impl BitStorage {
     /// Create a new BitStorage with the given number of bits per entry.
     /// `size` is the number of entries in the BitStorage.
     pub fn new(bits: usize, size: usize, data: Option<Vec<u64>>) -> Result<Self, BitStorageError> {
+        // vanilla has this assert but it's not always true for some reason??
+        // assert!(bits >= 1 && bits <= 32);
+
         if let Some(data) = &data {
             if data.len() == 0 {
                 // TODO: make 0 bit storage actually work
@@ -142,10 +145,12 @@ impl BitStorage {
     }
 
     pub fn cell_index(&self, index: u64) -> usize {
-        let first = self.divide_mul as u64;
+        // as unsigned wrap
+        let first = self.divide_mul as u32 as u64;
         let second = self.divide_add as u64;
+        dbg!(first, second, index);
 
-        (index * first + second >> 32 >> self.divide_shift)
+        (((index * first) + second) >> 32 >> self.divide_shift)
             .try_into()
             .unwrap()
     }
@@ -157,7 +162,12 @@ impl BitStorage {
         // int var5 = (var1 - var2 * this.valuesPerLong) * this.bits;
         // return (int)(var3 >> var5 & this.mask);
 
-        assert!(index <= self.size - 1);
+        assert!(
+            index <= self.size - 1,
+            "Index {} out of bounds (max is {})",
+            index,
+            self.size - 1
+        );
         let cell_index = self.cell_index(index as u64);
         let cell = &self.data[cell_index as usize];
         let bit_index = (index - cell_index * self.values_per_long as usize) * self.bits;

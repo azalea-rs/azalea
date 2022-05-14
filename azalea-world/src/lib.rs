@@ -1,7 +1,8 @@
 mod bit_storage;
 mod palette;
 
-use azalea_core::ChunkPos;
+use crate::palette::PalettedContainerType;
+use azalea_core::{BlockPos, ChunkPos, ChunkSectionBlockPos};
 use azalea_protocol::mc_buf::{McBufReadable, McBufWritable};
 pub use bit_storage::BitStorage;
 use palette::PalettedContainer;
@@ -10,8 +11,6 @@ use std::{
     ops::{Index, IndexMut},
     sync::{Arc, Mutex},
 };
-
-use crate::palette::PalettedContainerType;
 
 #[cfg(test)]
 mod tests {
@@ -53,6 +52,10 @@ impl World {
 
     pub fn update_view_center(&mut self, pos: &ChunkPos) {
         self.storage.view_center = *pos;
+    }
+
+    pub fn get_block_state(&self, pos: &BlockPos) -> Option<u32> {
+        self.storage.get_block_state(pos)
     }
 }
 impl Index<&ChunkPos> for World {
@@ -115,6 +118,15 @@ impl ChunkStorage {
         (chunk_pos.x - self.view_center.x).unsigned_abs() <= self.chunk_radius
             && (chunk_pos.z - self.view_center.z).unsigned_abs() <= self.chunk_radius
     }
+
+    pub fn get_block_state(&self, pos: &BlockPos) -> Option<u32> {
+        let chunk_pos = ChunkPos::from(pos);
+        let chunk = &self[&chunk_pos];
+        match chunk {
+            Some(chunk) => Some(chunk.lock().unwrap().get(pos)),
+            None => None,
+        }
+    }
 }
 
 impl Index<&ChunkPos> for ChunkStorage {
@@ -149,6 +161,23 @@ impl Chunk {
             sections.push(section);
         }
         Ok(Chunk { sections })
+    }
+
+    pub fn section_index(&self, y: i32) -> u32 {
+        // TODO: check the build height and stuff, this code will be broken if the min build height is 0
+        // (LevelHeightAccessor.getMinSection in vanilla code)
+        assert!(y >= 0);
+        (y as u32) / 16
+    }
+
+    pub fn get(&self, pos: &BlockPos) -> u32 {
+        let section_index = self.section_index(pos.y);
+        println!("section index: {}", section_index);
+        // TODO: make sure the section exists
+        let section = &self.sections[section_index as usize];
+        let chunk_section_pos = ChunkSectionBlockPos::from(pos);
+        let block_state = section.get(chunk_section_pos);
+        block_state
     }
 }
 
@@ -192,5 +221,13 @@ impl McBufWritable for Section {
         self.states.write_into(buf)?;
         self.biomes.write_into(buf)?;
         Ok(())
+    }
+}
+
+impl Section {
+    // TODO: return a BlockState instead of a u32
+    fn get(&self, pos: ChunkSectionBlockPos) -> u32 {
+        self.states
+            .get(pos.x as usize, pos.y as usize, pos.z as usize)
     }
 }

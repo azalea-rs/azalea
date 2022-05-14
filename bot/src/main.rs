@@ -25,12 +25,8 @@ async fn main() {
                 if p.message.to_ansi(None) == "<py5> ok" {
                     let state = client.state.lock().await;
                     let world = state.world.as_ref().unwrap();
-                    // let c = world[&BlockPos::new(5, 78, -2)]
-                    //     .as_ref()
-                    //     .unwrap()
-                    //     .lock()
-                    //     .unwrap();
-                    // println!("{:?}", c);
+                    let c = world.get_block_state(&BlockPos::new(5, 78, -2)).unwrap();
+                    println!("{:?}", c);
                 }
             }
         }
