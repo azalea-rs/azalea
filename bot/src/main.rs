@@ -26,7 +26,7 @@ async fn main() {
                     let state = client.state.lock().await;
                     let world = state.world.as_ref().unwrap();
                     let c = world.get_block_state(&BlockPos::new(5, 78, -2)).unwrap();
-                    println!("{:?}", c);
+                    println!("block state: {:?}", c);
                 }
             }
         }

@@ -195,9 +195,17 @@ impl Client {
                     .expect("height tag is not int"))
                 .try_into()
                 .expect("height is not a u32");
+                let min_y = (*dimension_type
+                    .get("min_y")
+                    .expect("No min_y tag")
+                    .as_int()
+                    .expect("min_y tag is not int"))
+                .try_into()
+                .expect("min_y is not an i32");
 
                 state.world = Some(World {
                     height,
+                    min_y,
                     storage: ChunkStorage::new(16),
                 });
 

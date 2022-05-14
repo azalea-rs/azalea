@@ -148,7 +148,6 @@ impl BitStorage {
         // as unsigned wrap
         let first = self.divide_mul as u32 as u64;
         let second = self.divide_add as u64;
-        dbg!(first, second, index);
 
         (((index * first) + second) >> 32 >> self.divide_shift)
             .try_into()

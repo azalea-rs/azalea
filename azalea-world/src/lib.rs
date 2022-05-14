@@ -1,8 +1,10 @@
+#![feature(int_roundings)]
+
 mod bit_storage;
 mod palette;
 
 use crate::palette::PalettedContainerType;
-use azalea_core::{BlockPos, ChunkPos, ChunkSectionBlockPos};
+use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use azalea_protocol::mc_buf::{McBufReadable, McBufWritable};
 pub use bit_storage::BitStorage;
 use palette::PalettedContainer;
@@ -26,6 +28,7 @@ const SECTION_HEIGHT: u32 = 16;
 pub struct World {
     pub storage: ChunkStorage,
     pub height: u32,
+    pub min_y: i32,
 }
 
 impl World {
@@ -55,7 +58,7 @@ impl World {
     }
 
     pub fn get_block_state(&self, pos: &BlockPos) -> Option<u32> {
-        self.storage.get_block_state(pos)
+        self.storage.get_block_state(pos, self.min_y)
     }
 }
 impl Index<&ChunkPos> for World {
@@ -119,11 +122,12 @@ impl ChunkStorage {
             && (chunk_pos.z - self.view_center.z).unsigned_abs() <= self.chunk_radius
     }
 
-    pub fn get_block_state(&self, pos: &BlockPos) -> Option<u32> {
+    pub fn get_block_state(&self, pos: &BlockPos, min_y: i32) -> Option<u32> {
         let chunk_pos = ChunkPos::from(pos);
+        println!("chunk_pos {:?} block_pos {:?}", chunk_pos, pos);
         let chunk = &self[&chunk_pos];
         match chunk {
-            Some(chunk) => Some(chunk.lock().unwrap().get(pos)),
+            Some(chunk) => Some(chunk.lock().unwrap().get(&ChunkBlockPos::from(pos), min_y)),
             None => None,
         }
     }
@@ -156,26 +160,28 @@ impl Chunk {
     pub fn read_with_world_height(buf: &mut impl Read, world_height: u32) -> Result<Self, String> {
         let section_count = world_height / SECTION_HEIGHT;
         let mut sections = Vec::with_capacity(section_count as usize);
-        for i in 0..section_count {
+        for _ in 0..section_count {
             let section = Section::read_into(buf)?;
             sections.push(section);
         }
         Ok(Chunk { sections })
     }
 
-    pub fn section_index(&self, y: i32) -> u32 {
+    pub fn section_index(&self, y: i32, min_y: i32) -> u32 {
         // TODO: check the build height and stuff, this code will be broken if the min build height is 0
         // (LevelHeightAccessor.getMinSection in vanilla code)
         assert!(y >= 0);
-        (y as u32) / 16
+        let min_section_index = min_y.div_floor(16);
+        (y.div_floor(16) - min_section_index) as u32
     }
 
-    pub fn get(&self, pos: &BlockPos) -> u32 {
-        let section_index = self.section_index(pos.y);
+    pub fn get(&self, pos: &ChunkBlockPos, min_y: i32) -> u32 {
+        let section_index = self.section_index(pos.y, min_y);
         println!("section index: {}", section_index);
         // TODO: make sure the section exists
         let section = &self.sections[section_index as usize];
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
+        println!("chunk section pos: {:?}", chunk_section_pos);
         let block_state = section.get(chunk_section_pos);
         block_state
     }

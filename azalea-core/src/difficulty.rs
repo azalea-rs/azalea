@@ -83,7 +83,6 @@ mod tests {
         assert_eq!(1, Difficulty::EASY.id());
         assert_eq!(2, Difficulty::NORMAL.id());
         assert_eq!(3, Difficulty::HARD.id());
-        assert_eq!(4, Difficulty::PEACEFUL.id());
     }
 
     #[test]

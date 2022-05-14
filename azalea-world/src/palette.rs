@@ -62,11 +62,8 @@ impl PalettedContainer {
     }
 
     pub fn get(&self, x: usize, y: usize, z: usize) -> u32 {
-        println!(
-            "get: {} {} {}, bits per entry: {}",
-            x, y, z, self.bits_per_entry
-        );
         let paletted_value = self.storage.get(self.get_index(x, y, z));
+        println!("palette: {:?}", self.palette);
         self.palette.value_for(paletted_value as usize)
     }
 }

@@ -25,7 +25,7 @@ impl Rem<i32> for BlockPos {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct ChunkPos {
     pub x: i32,
     pub z: i32,
@@ -40,8 +40,8 @@ impl ChunkPos {
 impl From<&BlockPos> for ChunkPos {
     fn from(pos: &BlockPos) -> Self {
         ChunkPos {
-            x: pos.x / 16,
-            z: pos.z / 16,
+            x: pos.x.div_floor(16),
+            z: pos.z.div_floor(16),
         }
     }
 }
@@ -63,9 +63,9 @@ impl ChunkSectionPos {
 impl From<BlockPos> for ChunkSectionPos {
     fn from(pos: BlockPos) -> Self {
         ChunkSectionPos {
-            x: pos.x / 16,
-            y: pos.y / 16,
-            z: pos.z / 16,
+            x: pos.x.div_floor(16),
+            y: pos.y.div_floor(16),
+            z: pos.z.div_floor(16),
         }
     }
 }
@@ -76,11 +76,38 @@ impl From<ChunkSectionPos> for ChunkPos {
     }
 }
 
+/// The coordinates of a block inside a chunk.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct ChunkBlockPos {
+    pub x: u8,
+    pub y: i32,
+    pub z: u8,
+}
+
+impl ChunkBlockPos {
+    pub fn new(x: u8, y: i32, z: u8) -> Self {
+        ChunkBlockPos { x, y, z }
+    }
+}
+
+impl From<&BlockPos> for ChunkBlockPos {
+    fn from(pos: &BlockPos) -> Self {
+        ChunkBlockPos {
+            x: pos.x.rem_euclid(16).abs() as u8,
+            y: pos.y,
+            z: pos.z.rem_euclid(16).abs() as u8,
+        }
+    }
+}
+
 /// The coordinates of a block inside a chunk section.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct ChunkSectionBlockPos {
+    /// A number between 0 and 16.
     pub x: u8,
+    /// A number between 0 and 16.
     pub y: u8,
+    /// A number between 0 and 16.
     pub z: u8,
 }
 
@@ -97,5 +124,34 @@ impl From<&BlockPos> for ChunkSectionBlockPos {
             y: pos.y.rem(16).abs() as u8,
             z: pos.z.rem(16).abs() as u8,
         }
+    }
+}
+
+impl From<&ChunkBlockPos> for ChunkSectionBlockPos {
+    fn from(pos: &ChunkBlockPos) -> Self {
+        ChunkSectionBlockPos {
+            x: pos.x,
+            y: pos.y.rem(16).abs() as u8,
+            z: pos.z,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_block_pos_to_chunk_pos() {
+        let block_pos = BlockPos::new(5, 78, -2);
+        let chunk_pos = ChunkPos::from(&block_pos);
+        assert_eq!(chunk_pos, ChunkPos::new(0, -1));
+    }
+
+    #[test]
+    fn test_from_block_pos_to_chunk_block_pos() {
+        let block_pos = BlockPos::new(5, 78, -2);
+        let chunk_block_pos = ChunkBlockPos::from(&block_pos);
+        assert_eq!(chunk_block_pos, ChunkBlockPos::new(5, 78, 14));
     }
 }
