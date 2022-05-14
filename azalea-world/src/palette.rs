@@ -41,7 +41,6 @@ impl PalettedContainer {
             bits_per_entry != 0 || data.is_empty(),
             "Bits per entry is 0 but data is not empty."
         );
-        println!("data: {:?}", data);
         let storage = BitStorage::new(bits_per_entry.into(), size, Some(data)).unwrap();
 
         Ok(PalettedContainer {

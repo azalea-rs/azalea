@@ -32,7 +32,6 @@ use std::{collections::HashMap, fs::File};
 lazy_static! {
     pub static ref STORAGE: HashMap<String, String> = serde_json::from_str(&{
         let src_dir = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/en_us.json"));
-        println!("dir: {:?}", src_dir);
         let mut file = File::open(src_dir).unwrap();
         let mut contents = String::new();
         file.read_to_string(&mut contents).unwrap();
