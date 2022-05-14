@@ -14,15 +14,15 @@ I wanted a fun excuse to do something cool with Rust, and I also felt like I cou
 
 ## Goals
 
-- Do everything a vanilla client can do
-- Be easy to use
-- Bypass most/all anticheats
-- Support the latest Minecraft version
-- Be fast and memory efficient
+- Do everything a vanilla client can do.
+- Be easy to use.
+- Bypass most/all anticheats.
+- Support the latest Minecraft version.
+- Be fast and memory efficient.
 
 ## Example code
 
-Note that these doesn't work yet, it's just how I want the API to look.
+Note that these don't work yet, it's just how I want the API to look.
 
 ```rs
 use azalea::{Account, Event};
@@ -42,6 +42,24 @@ loop {
             println!(m);
             bot.reconnect().await.unwrap();
         },
+        Event::Hunger(h) {
+            if !h.using_held_item() && h.hunger <= 17 {
+                match bot.hold(azalea::ItemGroup::Food).await {
+                    Ok(_) => {},
+                    Err(e) => {
+                        println!("{}", e);
+                        break;
+                    }
+                }
+                match bot.use_held_item().await {
+                    Ok(_) => {},
+                    Err(e) => {
+                        println!("{}", e);
+                        break;
+                    }
+                }
+            }
+        }
         _ => {}
     }
 }
@@ -56,7 +74,7 @@ let bot = Bot::offline("bot");
 bot.join("localhost".try_into().unwrap()).await.unwrap();
 
 loop {
-    match bot.recv().await {
+    match bot.next().await {
         Event::Message(m) {
             if m.username == bot.username { return };
             if m.message = "go" {
