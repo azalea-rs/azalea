@@ -177,11 +177,9 @@ impl Chunk {
 
     pub fn get(&self, pos: &ChunkBlockPos, min_y: i32) -> u32 {
         let section_index = self.section_index(pos.y, min_y);
-        println!("section index: {}", section_index);
         // TODO: make sure the section exists
         let section = &self.sections[section_index as usize];
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
-        println!("chunk section pos: {:?}", chunk_section_pos);
         let block_state = section.get(chunk_section_pos);
         block_state
     }
