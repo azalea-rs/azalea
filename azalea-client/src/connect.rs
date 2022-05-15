@@ -381,6 +381,9 @@ impl Client {
             GamePacket::ClientboundGameEventPacket(p) => {
                 println!("Got game event packet {:?}", p);
             }
+            GamePacket::ClientboundLevelParticlesPacket(p) => {
+                println!("Got level particles packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
     }
