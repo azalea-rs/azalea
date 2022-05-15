@@ -1,6 +1,6 @@
 use packet_macros::{GamePacket, McBuf};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundGameEventPacket {
     pub event: EventType,
     pub param: f32,

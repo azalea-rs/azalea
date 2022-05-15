@@ -7,7 +7,7 @@ use std::{
     io::{Read, Write},
 };
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundUpdateAdvancementsPacket {
     pub reset: bool,
     pub added: HashMap<ResourceLocation, Advancement>,

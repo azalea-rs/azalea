@@ -1,9 +1,9 @@
 use crate::mc_buf::{McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_core::{ChunkSectionBlockPos, ChunkSectionPos};
-use packet_macros::GamePacket;
+use packet_macros::{GamePacket, McBuf};
 use std::io::{Read, Write};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundSectionBlocksUpdatePacket {
     pub section_pos: ChunkSectionPos,
     pub suppress_light_updates: bool,

@@ -4,7 +4,7 @@ use packet_macros::{GamePacket, McBuf};
 use std::io::{Read, Write};
 use uuid::Uuid;
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundPlayerInfoPacket {
     pub action: Action,
 }

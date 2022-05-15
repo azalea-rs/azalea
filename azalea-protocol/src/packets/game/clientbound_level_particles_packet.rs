@@ -1,7 +1,7 @@
 use crate::mc_buf::ParticleData;
-use packet_macros::GamePacket;
+use packet_macros::{GamePacket, McBuf};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundLevelParticlesPacket {
     pub particle_id: u32,
     pub override_limiter: bool,

@@ -1,6 +1,6 @@
 use packet_macros::{GamePacket, McBuf};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundSoundPacket {
     #[var]
     /// TODO: use the sound registry instead of just being a u32

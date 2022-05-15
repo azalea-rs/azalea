@@ -2,7 +2,7 @@ use packet_macros::{GamePacket, McBuf};
 
 use super::clientbound_light_update_packet::ClientboundLightUpdatePacketData;
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundLevelChunkWithLightPacket {
     pub x: i32,
     pub z: i32,

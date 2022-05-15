@@ -1,7 +1,7 @@
 use crate::mc_buf::BitSet;
 use packet_macros::{GamePacket, McBuf};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundLightUpdatePacket {
     pub x: i32,
     pub z: i32,

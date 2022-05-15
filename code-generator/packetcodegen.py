@@ -84,8 +84,8 @@ def generate(burger_packets, mappings: Mappings, target_packet_id, target_packet
         generated_packet_code = []
         uses = set()
         generated_packet_code.append(
-            f'#[derive(Clone, Debug, {to_camel_case(state)}Packet)]')
-        uses.add(f'packet_macros::{to_camel_case(state)}Packet')
+            f'#[derive(Clone, Debug, McBuf, {to_camel_case(state)}Packet)]')
+        uses.add(f'packet_macros::{{to_camel_case(state)}Packet, McBuf}')
 
         obfuscated_class_name = packet['class'].split('.')[0].split('$')[0]
         class_name = mappings.get_class(

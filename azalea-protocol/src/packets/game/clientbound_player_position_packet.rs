@@ -1,8 +1,8 @@
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable};
-use packet_macros::GamePacket;
+use packet_macros::{GamePacket, McBuf};
 use std::io::{Read, Write};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundPlayerPositionPacket {
     pub x: f64,
     pub y: f64,

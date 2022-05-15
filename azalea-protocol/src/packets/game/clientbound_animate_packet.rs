@@ -1,6 +1,6 @@
 use packet_macros::{GamePacket, McBuf};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundAnimatePacket {
     #[var]
     pub id: u32,

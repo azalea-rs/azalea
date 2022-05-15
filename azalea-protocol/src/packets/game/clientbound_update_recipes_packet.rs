@@ -5,7 +5,7 @@ use packet_macros::{GamePacket, McBuf};
 
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundUpdateRecipesPacket {
     pub recipes: Vec<Recipe>,
 }

@@ -182,8 +182,8 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
         _ => panic!("#[derive(*Packet)] can only be used on structs with named fields"),
     };
 
-    let mcbufreadable_impl = create_impl_mcbufreadable(&ident, &data);
-    let mcbufwritable_impl = create_impl_mcbufwritable(&ident, &data);
+    let _mcbufreadable_impl = create_impl_mcbufreadable(&ident, &data);
+    let _mcbufwritable_impl = create_impl_mcbufwritable(&ident, &data);
 
     let contents = quote! {
         impl #ident {
@@ -202,10 +202,6 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
                 Ok(Self::read_into(buf)?.get())
             }
         }
-
-        #mcbufreadable_impl
-
-        #mcbufwritable_impl
     };
 
     contents.into()
