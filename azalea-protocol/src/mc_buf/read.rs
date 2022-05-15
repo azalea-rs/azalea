@@ -2,7 +2,7 @@ use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use azalea_chat::component::Component;
 use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
-    serializable_uuid::SerializableUuid, BlockPos, Direction, Slot, SlotData,
+    serializable_uuid::SerializableUuid, BlockPos, ChunkSectionPos, Direction, Slot, SlotData,
 };
 use byteorder::{ReadBytesExt, BE};
 use serde::Deserialize;
@@ -516,5 +516,17 @@ impl McBufReadable for Direction {
             5 => Ok(Self::East),
             _ => Err("Invalid direction".to_string()),
         }
+    }
+}
+
+// ChunkSectionPos
+impl McBufReadable for ChunkSectionPos {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let long = i64::read_into(buf)?;
+        Ok(ChunkSectionPos {
+            x: (long >> 42) as i32,
+            y: (long << 44 >> 44) as i32,
+            z: (long << 22 >> 42) as i32,
+        })
     }
 }

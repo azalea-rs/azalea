@@ -1,12 +1,12 @@
 use azalea_client::{Account, Event};
-use azalea_core::{BlockPos, ChunkPos};
+use azalea_core::BlockPos;
 
 #[tokio::main]
 async fn main() {
     println!("Hello, world!");
 
     // let address = "95.111.249.143:10000";
-    let address = "192.168.2.234:62840";
+    let address = "192.168.2.234:50736";
     // let response = azalea_client::ping::ping_server(&address.try_into().unwrap())
     //     .await
     //     .unwrap();

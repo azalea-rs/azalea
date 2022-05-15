@@ -2,7 +2,7 @@ use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use azalea_chat::component::Component;
 use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
-    serializable_uuid::SerializableUuid, BlockPos, Direction, Slot,
+    serializable_uuid::SerializableUuid, BlockPos, ChunkSectionPos, Direction, Slot,
 };
 use byteorder::{BigEndian, WriteBytesExt};
 use std::{collections::HashMap, io::Write};
@@ -423,5 +423,16 @@ impl McBufWritable for BlockPos {
 impl McBufWritable for Direction {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_varint(*self as i32)
+    }
+}
+
+// ChunkSectionPos
+impl McBufWritable for ChunkSectionPos {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        let long = (((self.x & 0x3FFFFF) as i64) << 42)
+            | (self.y & 0xFFFFF) as i64
+            | (((self.z & 0x3FFFFF) as i64) << 20);
+        long.write_into(buf)?;
+        Ok(())
     }
 }

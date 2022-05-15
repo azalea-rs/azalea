@@ -26,6 +26,7 @@ pub mod clientbound_player_position_packet;
 pub mod clientbound_recipe_packet;
 pub mod clientbound_remove_entities_packet;
 pub mod clientbound_rotate_head_packet;
+pub mod clientbound_section_blocks_update_packet;
 pub mod clientbound_set_carried_item_packet;
 pub mod clientbound_set_chunk_cache_center;
 pub mod clientbound_set_default_spawn_position_packet;
@@ -80,6 +81,7 @@ declare_state_packets!(
         0x39: clientbound_recipe_packet::ClientboundRecipePacket,
         0x3a: clientbound_remove_entities_packet::ClientboundRemoveEntitiesPacket,
         0x3e: clientbound_rotate_head_packet::ClientboundRotateHeadPacket,
+        0x3f: clientbound_section_blocks_update_packet::ClientboundSectionBlocksUpdatePacket,
         0x48: clientbound_set_carried_item_packet::ClientboundSetCarriedItemPacket,
         0x49: clientbound_set_chunk_cache_center::ClientboundSetChunkCacheCenterPacket,
         0x4a: clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket,
