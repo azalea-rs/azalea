@@ -378,6 +378,9 @@ impl Client {
                 println!("Got section blocks update packet {:?}", p);
                 // TODO: update world
             }
+            GamePacket::ClientboundGameEventPacket(p) => {
+                println!("Got game event packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
     }
