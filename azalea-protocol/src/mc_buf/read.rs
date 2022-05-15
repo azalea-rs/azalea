@@ -1,10 +1,10 @@
-use super::{BitSet, UnsizedByteArray, MAX_STRING_LENGTH};
+use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use azalea_chat::component::Component;
 use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
-    serializable_uuid::SerializableUuid, BlockPos, Direction, Slot, SlotData,
+    serializable_uuid::SerializableUuid, BlockPos, ChunkSectionPos, Direction, Slot, SlotData,
 };
-use byteorder::{ReadBytesExt, WriteBytesExt, BE};
+use byteorder::{ReadBytesExt, BE};
 use serde::Deserialize;
 use std::{collections::HashMap, hash::Hash, io::Read};
 use tokio::io::{AsyncRead, AsyncReadExt};
@@ -466,7 +466,7 @@ impl McBufReadable for Component {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
         let string = buf.read_utf()?;
         let json: serde_json::Value = serde_json::from_str(string.as_str())
-            .map_err(|e| "Component isn't valid JSON".to_string())?;
+            .map_err(|_| "Component isn't valid JSON".to_string())?;
         let component = Component::deserialize(json).map_err(|e| e.to_string())?;
         Ok(component)
     }
@@ -516,5 +516,17 @@ impl McBufReadable for Direction {
             5 => Ok(Self::East),
             _ => Err("Invalid direction".to_string()),
         }
+    }
+}
+
+// ChunkSectionPos
+impl McBufReadable for ChunkSectionPos {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let long = i64::read_into(buf)?;
+        Ok(ChunkSectionPos {
+            x: (long >> 42) as i32,
+            y: (long << 44 >> 44) as i32,
+            z: (long << 22 >> 42) as i32,
+        })
     }
 }

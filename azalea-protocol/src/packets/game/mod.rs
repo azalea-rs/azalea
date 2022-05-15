@@ -11,10 +11,12 @@ pub mod clientbound_declare_commands_packet;
 pub mod clientbound_disconnect_packet;
 pub mod clientbound_entity_event_packet;
 pub mod clientbound_entity_velocity_packet;
+pub mod clientbound_game_event_packet;
 pub mod clientbound_initialize_border_packet;
 pub mod clientbound_keep_alive_packet;
 pub mod clientbound_level_chunk_with_light_packet;
 pub mod clientbound_level_event_packet;
+pub mod clientbound_level_particles_packet;
 pub mod clientbound_light_update_packet;
 pub mod clientbound_login_packet;
 pub mod clientbound_move_entity_pos_packet;
@@ -26,6 +28,7 @@ pub mod clientbound_player_position_packet;
 pub mod clientbound_recipe_packet;
 pub mod clientbound_remove_entities_packet;
 pub mod clientbound_rotate_head_packet;
+pub mod clientbound_section_blocks_update_packet;
 pub mod clientbound_set_carried_item_packet;
 pub mod clientbound_set_chunk_cache_center;
 pub mod clientbound_set_default_spawn_position_packet;
@@ -56,19 +59,21 @@ declare_state_packets!(
         0x00: clientbound_add_entity_packet::ClientboundAddEntityPacket,
         0x02: clientbound_add_mob_packet::ClientboundAddMobPacket,
         0x04: clientbound_add_player_packet::ClientboundAddPlayerPacket,
-        0x6: clientbound_animate_packet::ClientboundAnimatePacket,
-        0xc: clientbound_block_update_packet::ClientboundBlockUpdatePacket,
+        0x06: clientbound_animate_packet::ClientboundAnimatePacket,
+        0x0c: clientbound_block_update_packet::ClientboundBlockUpdatePacket,
         0x0e: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
-        0xf: clientbound_chat_packet::ClientboundChatPacket,
+        0x0f: clientbound_chat_packet::ClientboundChatPacket,
         0x12: clientbound_declare_commands_packet::ClientboundDeclareCommandsPacket,
         0x14: clientbound_container_set_content_packet::ClientboundContainerSetContentPacket,
         0x1a: clientbound_disconnect_packet::ClientboundDisconnectPacket,
         0x1b: clientbound_entity_event_packet::ClientboundEntityEventPacket,
         0x18: clientbound_custom_payload_packet::ClientboundCustomPayloadPacket,
+        0x1e: clientbound_game_event_packet::ClientboundGameEventPacket,
         0x20: clientbound_initialize_border_packet::ClientboundInitializeBorderPacket,
         0x21: clientbound_keep_alive_packet::ClientboundKeepAlivePacket,
         0x22: clientbound_level_chunk_with_light_packet::ClientboundLevelChunkWithLightPacket,
         0x23: clientbound_level_event_packet::ClientboundLevelEventPacket,
+        0x24: clientbound_level_particles_packet::ClientboundLevelParticlesPacket,
         0x25: clientbound_light_update_packet::ClientboundLightUpdatePacket,
         0x26: clientbound_login_packet::ClientboundLoginPacket,
         0x29: clientbound_move_entity_pos_packet::ClientboundMoveEntityPosPacket,
@@ -80,6 +85,7 @@ declare_state_packets!(
         0x39: clientbound_recipe_packet::ClientboundRecipePacket,
         0x3a: clientbound_remove_entities_packet::ClientboundRemoveEntitiesPacket,
         0x3e: clientbound_rotate_head_packet::ClientboundRotateHeadPacket,
+        0x3f: clientbound_section_blocks_update_packet::ClientboundSectionBlocksUpdatePacket,
         0x48: clientbound_set_carried_item_packet::ClientboundSetCarriedItemPacket,
         0x49: clientbound_set_chunk_cache_center::ClientboundSetChunkCacheCenterPacket,
         0x4a: clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket,

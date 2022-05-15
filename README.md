@@ -1,12 +1,16 @@
 # Azalea
 
-A Rust crate for creating Minecraft bots.
-
 <p align="center">
     <img src="https://cdn.matdoes.dev/images/flowering_azalea.webp" alt="Azalea" height="200">
 </p>
 
+A Rust crate for creating Minecraft bots.
+
 I named this Azalea because it sounds like a cool word and this is a cool library. This project was heavily inspired by PrismarineJS.
+
+## Why
+
+I wanted a fun excuse to do something cool with Rust, and I also felt like I could do better than [Mineflayer](https://github.com/prismarinejs/mineflayer) in some areas.
 
 ## Goals
 

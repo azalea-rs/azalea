@@ -1,4 +1,4 @@
-use packet_macros::StatusPacket;
+use packet_macros::{McBuf, StatusPacket};
 
-#[derive(Clone, Debug, StatusPacket)]
+#[derive(Clone, Debug, McBuf, StatusPacket)]
 pub struct ServerboundStatusRequestPacket {}

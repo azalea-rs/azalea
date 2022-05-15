@@ -98,7 +98,7 @@ fn write_compound(
     if end_tag {
         writer.write_u8(Tag::End.id())?;
     }
-    return Ok(());
+    Ok(())
 }
 
 #[inline]

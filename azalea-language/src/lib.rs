@@ -1,6 +1,7 @@
 use lazy_static::lazy_static;
-use std::collections::HashMap;
-
+use std::io::Read;
+use std::path::Path;
+use std::{collections::HashMap, fs::File};
 // use tokio::fs::File;
 
 // pub struct Language {
@@ -29,10 +30,26 @@ use std::collections::HashMap;
 // The code above is kept in case I come up with a better solution
 
 lazy_static! {
-    pub static ref STORAGE: HashMap<String, String> =
-        serde_json::from_str(include_str!("en_us.json")).unwrap();
+    pub static ref STORAGE: HashMap<String, String> = serde_json::from_str(&{
+        let src_dir = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/en_us.json"));
+        let mut file = File::open(src_dir).unwrap();
+        let mut contents = String::new();
+        file.read_to_string(&mut contents).unwrap();
+        contents
+    })
+    .unwrap();
 }
 
 pub fn get(key: &str) -> Option<&str> {
     STORAGE.get(key).map(|s| s.as_str())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get() {
+        assert_eq!(get("translation.test.none"), Some("Hello, world!"));
+    }
 }

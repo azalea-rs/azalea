@@ -1,7 +1,7 @@
 use azalea_core::Slot;
-use packet_macros::GamePacket;
+use packet_macros::{GamePacket, McBuf};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundContainerSetContentPacket {
     pub container_id: u8,
     #[var]

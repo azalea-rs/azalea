@@ -1,13 +1,13 @@
 use crate::packets::{McBufReadable, McBufWritable};
 use azalea_chat::component::Component;
 use azalea_core::{resource_location::ResourceLocation, Slot};
-use packet_macros::{GamePacket, McBufReadable, McBufWritable};
+use packet_macros::{GamePacket, McBuf};
 use std::{
     collections::HashMap,
     io::{Read, Write},
 };
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundUpdateAdvancementsPacket {
     pub reset: bool,
     pub added: HashMap<ResourceLocation, Advancement>,
@@ -15,7 +15,7 @@ pub struct ClientboundUpdateAdvancementsPacket {
     pub progress: HashMap<ResourceLocation, AdvancementProgress>,
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct Advancement {
     parent_id: Option<ResourceLocation>,
     display: Option<DisplayInfo>,
@@ -25,7 +25,7 @@ pub struct Advancement {
     // requirements_strategy: RequirementsStrategy.AND
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct DisplayInfo {
     pub title: Component,
     pub description: Component,
@@ -71,7 +71,7 @@ impl McBufWritable for DisplayFlags {
     }
 }
 
-#[derive(Clone, Debug, Copy, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, Copy, McBuf)]
 pub enum FrameType {
     Task = 0,
     Challenge = 1,
@@ -79,12 +79,12 @@ pub enum FrameType {
 }
 
 // nothing is written here
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct Criterion {}
 
 pub type AdvancementProgress = HashMap<ResourceLocation, CriterionProgress>;
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct CriterionProgress {
     date: Option<u64>,
 }

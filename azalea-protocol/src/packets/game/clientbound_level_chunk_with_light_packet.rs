@@ -1,8 +1,8 @@
-use packet_macros::{GamePacket, McBufReadable, McBufWritable};
+use packet_macros::{GamePacket, McBuf};
 
 use super::clientbound_light_update_packet::ClientboundLightUpdatePacketData;
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundLevelChunkWithLightPacket {
     pub x: i32,
     pub z: i32,
@@ -10,25 +10,19 @@ pub struct ClientboundLevelChunkWithLightPacket {
     pub light_data: ClientboundLightUpdatePacketData,
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct ClientboundLevelChunkPacketData {
-    heightmaps: azalea_nbt::Tag,
+    pub heightmaps: azalea_nbt::Tag,
     // we can't parse the data in azalea-protocol because it dependso on context from other packets
-    data: Vec<u8>,
-    block_entities: Vec<BlockEntity>,
+    pub data: Vec<u8>,
+    pub block_entities: Vec<BlockEntity>,
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct BlockEntity {
-    packed_xz: u8,
-    y: u16,
+    pub packed_xz: u8,
+    pub y: u16,
     #[var]
-    type_: i32,
-    data: azalea_nbt::Tag,
-}
-
-pub struct ChunkSection {}
-
-impl ClientboundLevelChunkPacketData {
-    pub fn read(world_height: u32) {}
+    pub type_: i32,
+    pub data: azalea_nbt::Tag,
 }

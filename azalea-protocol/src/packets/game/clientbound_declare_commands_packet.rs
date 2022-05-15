@@ -281,7 +281,7 @@ impl McBufReadable for BrigadierParser {
     }
 }
 
-// azalea_brigadier::tree::CommandNode
+// TODO: BrigadierNodeStub should have more stuff
 impl McBufReadable for BrigadierNodeStub {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
         let flags = u8::read_into(buf)?;
@@ -292,20 +292,18 @@ impl McBufReadable for BrigadierNodeStub {
         }
 
         let node_type = flags & 0x03;
-        let is_executable = flags & 0x04 != 0;
+        let _is_executable = flags & 0x04 != 0;
         let has_redirect = flags & 0x08 != 0;
         let has_suggestions_type = flags & 0x10 != 0;
 
-        let children = buf.read_int_id_list()?;
-        let redirect_node = if has_redirect { buf.read_varint()? } else { 0 };
+        let _children = buf.read_int_id_list()?;
+        let _redirect_node = if has_redirect { buf.read_varint()? } else { 0 };
 
         // argument node
         if node_type == 2 {
-            let name = buf.read_utf()?;
-
-            let parser = BrigadierParser::read_into(buf)?;
-
-            let suggestions_type = if has_suggestions_type {
+            let _name = buf.read_utf()?;
+            let _parser = BrigadierParser::read_into(buf)?;
+            let _suggestions_type = if has_suggestions_type {
                 Some(buf.read_resource_location()?)
             } else {
                 None
@@ -314,7 +312,7 @@ impl McBufReadable for BrigadierNodeStub {
         }
         // literal node
         if node_type == 1 {
-            let name = buf.read_utf()?;
+            let _name = buf.read_utf()?;
             return Ok(BrigadierNodeStub {});
         }
         Ok(BrigadierNodeStub {})

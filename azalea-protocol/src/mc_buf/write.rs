@@ -2,7 +2,7 @@ use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use azalea_chat::component::Component;
 use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
-    serializable_uuid::SerializableUuid, BlockPos, Direction, Slot,
+    serializable_uuid::SerializableUuid, BlockPos, ChunkSectionPos, Direction, Slot,
 };
 use byteorder::{BigEndian, WriteBytesExt};
 use std::{collections::HashMap, io::Write};
@@ -20,8 +20,8 @@ pub trait Writable: Write {
         Ok(())
     }
 
-    fn write_int_id_list(&mut self, list: &Vec<i32>) -> Result<(), std::io::Error> {
-        self.write_list(&list, |buf, n| buf.write_varint(*n))
+    fn write_int_id_list(&mut self, list: &[i32]) -> Result<(), std::io::Error> {
+        self.write_list(list, |buf, n| buf.write_varint(*n))
     }
 
     fn write_map<KF, VF, KT, VT>(
@@ -47,7 +47,7 @@ pub trait Writable: Write {
     }
 
     fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), std::io::Error> {
-        self.write_all(bytes);
+        self.write_all(bytes)?;
         Ok(())
     }
 
@@ -377,7 +377,7 @@ impl McBufWritable for Component {
     //     let component = Component::deserialize(json).map_err(|e| e.to_string())?;
     //     Ok(component)
     // }
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
         // component doesn't have serialize implemented yet
         todo!()
     }
@@ -423,5 +423,16 @@ impl McBufWritable for BlockPos {
 impl McBufWritable for Direction {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_varint(*self as i32)
+    }
+}
+
+// ChunkSectionPos
+impl McBufWritable for ChunkSectionPos {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        let long = (((self.x & 0x3FFFFF) as i64) << 42)
+            | (self.y & 0xFFFFF) as i64
+            | (((self.z & 0x3FFFFF) as i64) << 20);
+        long.write_into(buf)?;
+        Ok(())
     }
 }

@@ -1,15 +1,14 @@
 use crate::mc_buf::BitSet;
-use azalea_core::{game_type::GameType, resource_location::ResourceLocation};
-use packet_macros::{GamePacket, McBufReadable, McBufWritable};
+use packet_macros::{GamePacket, McBuf};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundLightUpdatePacket {
     pub x: i32,
     pub z: i32,
     pub light_data: ClientboundLightUpdatePacketData,
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct ClientboundLightUpdatePacketData {
     trust_edges: bool,
     sky_y_mask: BitSet,

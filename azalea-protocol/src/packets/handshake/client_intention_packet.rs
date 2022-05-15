@@ -1,8 +1,8 @@
 use crate::packets::ConnectionProtocol;
-use packet_macros::HandshakePacket;
+use packet_macros::{HandshakePacket, McBuf};
 use std::hash::Hash;
 
-#[derive(Hash, Clone, Debug, HandshakePacket)]
+#[derive(Hash, Clone, Debug, McBuf, HandshakePacket)]
 pub struct ClientIntentionPacket {
     #[var]
     pub protocol_version: u32,

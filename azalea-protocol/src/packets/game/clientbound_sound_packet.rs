@@ -1,6 +1,6 @@
-use packet_macros::{GamePacket, McBufReadable, McBufWritable};
+use packet_macros::{GamePacket, McBuf};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundSoundPacket {
     #[var]
     /// TODO: use the sound registry instead of just being a u32
@@ -13,7 +13,7 @@ pub struct ClientboundSoundPacket {
     pub pitch: f32,
 }
 
-#[derive(Clone, Debug, Copy, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, Copy, McBuf)]
 pub enum SoundSource {
     Master = 0,
     Music = 1,

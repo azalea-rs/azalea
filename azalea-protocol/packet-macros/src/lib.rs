@@ -157,6 +157,19 @@ pub fn derive_mcbufwritable(input: TokenStream) -> TokenStream {
     create_impl_mcbufwritable(&ident, &data).into()
 }
 
+#[proc_macro_derive(McBuf, attributes(var))]
+pub fn derive_mcbuf(input: TokenStream) -> TokenStream {
+    let DeriveInput { ident, data, .. } = parse_macro_input!(input);
+
+    let writable = create_impl_mcbufwritable(&ident, &data);
+    let readable = create_impl_mcbufreadable(&ident, &data);
+    quote! {
+        #writable
+        #readable
+    }
+    .into()
+}
+
 fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> TokenStream {
     let DeriveInput { ident, data, .. } = parse_macro_input!(input);
 
@@ -169,8 +182,8 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
         _ => panic!("#[derive(*Packet)] can only be used on structs with named fields"),
     };
 
-    let mcbufreadable_impl = create_impl_mcbufreadable(&ident, &data);
-    let mcbufwritable_impl = create_impl_mcbufwritable(&ident, &data);
+    let _mcbufreadable_impl = create_impl_mcbufreadable(&ident, &data);
+    let _mcbufwritable_impl = create_impl_mcbufwritable(&ident, &data);
 
     let contents = quote! {
         impl #ident {
@@ -189,10 +202,6 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
                 Ok(Self::read_into(buf)?.get())
             }
         }
-
-        #mcbufreadable_impl
-
-        #mcbufwritable_impl
     };
 
     contents.into()
@@ -232,13 +241,12 @@ struct PacketIdMap {
 impl Parse for PacketIdMap {
     fn parse(input: ParseStream) -> Result<Self> {
         let mut packets = vec![];
-        loop {
-            // 0x0e: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
-            // 0x0e
-            let packet_id: LitInt = match input.parse() {
-                Ok(i) => i,
-                Err(_) => break,
-            };
+
+        // example:
+        // 0x0e: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
+
+        // 0x0e
+        while let Ok(packet_id) = input.parse::<LitInt>() {
             let packet_id = packet_id.base10_parse::<u32>()?;
             // :
             input.parse::<Token![:]>()?;

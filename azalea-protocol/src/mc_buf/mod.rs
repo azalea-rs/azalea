@@ -4,15 +4,15 @@ mod definitions;
 mod read;
 mod write;
 
-pub use definitions::{BitSet, EntityMetadata, UnsizedByteArray};
-use packet_macros::{McBufReadable, McBufWritable};
+pub use definitions::{BitSet, EntityMetadata, ParticleData, UnsizedByteArray};
 pub use read::{read_varint_async, McBufReadable, McBufVarReadable, Readable};
-use std::ops::Deref;
 pub use write::{McBufVarWritable, McBufWritable, Writable};
 
 // const DEFAULT_NBT_QUOTA: u32 = 2097152;
 const MAX_STRING_LENGTH: u16 = 32767;
 // const MAX_COMPONENT_STRING_LENGTH: u32 = 262144;
+
+// TODO: maybe get rid of the readable/writable traits so there's not two ways to do the same thing and improve McBufReadable/McBufWritable
 
 // TODO: have a definitions.rs in mc_buf that contains UnsizedByteArray and BitSet
 

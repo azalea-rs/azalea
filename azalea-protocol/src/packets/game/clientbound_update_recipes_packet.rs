@@ -1,11 +1,11 @@
 use std::io::{Read, Write};
 
 use azalea_core::{resource_location::ResourceLocation, Slot};
-use packet_macros::{GamePacket, McBufReadable, McBufWritable};
+use packet_macros::{GamePacket, McBuf};
 
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundUpdateRecipesPacket {
     pub recipes: Vec<Recipe>,
 }
@@ -16,7 +16,7 @@ pub struct Recipe {
     pub data: RecipeData,
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct ShapelessRecipe {
     /// Used to group similar recipes together in the recipe book.
     /// Tag is present in recipe JSON
@@ -68,7 +68,7 @@ impl McBufReadable for ShapedRecipe {
     }
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct CookingRecipe {
     group: String,
     ingredient: Ingredient,
@@ -77,13 +77,13 @@ pub struct CookingRecipe {
     #[var]
     cooking_time: u32,
 }
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct StoneCuttingRecipe {
     group: String,
     ingredient: Ingredient,
     result: Slot,
 }
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct SmithingRecipe {
     base: Ingredient,
     addition: Ingredient,
@@ -116,13 +116,13 @@ pub enum RecipeData {
     Smithing(SmithingRecipe),
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct Ingredient {
     pub allowed: Vec<Slot>,
 }
 
 impl McBufWritable for Recipe {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
         todo!()
     }
 }

@@ -1,8 +1,8 @@
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable};
-use packet_macros::GamePacket;
+use packet_macros::{GamePacket, McBuf};
 use std::io::{Read, Write};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundPlayerPositionPacket {
     pub x: f64,
     pub y: f64,
@@ -43,19 +43,19 @@ impl McBufWritable for RelativeArguments {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut byte = 0;
         if self.x {
-            byte = byte | 0b1;
+            byte |= 0b1;
         }
         if self.y {
-            byte = byte | 0b10;
+            byte |= 0b10;
         }
         if self.z {
-            byte = byte | 0b100;
+            byte |= 0b100;
         }
         if self.y_rot {
-            byte = byte | 0b1000;
+            byte |= 0b1000;
         }
         if self.x_rot {
-            byte = byte | 0b10000;
+            byte |= 0b10000;
         }
         u8::write_into(&byte, buf)
     }

@@ -1,5 +1,5 @@
 use crate::Player;
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::{resource_location::ResourceLocation, ChunkPos};
 use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
     packets::{
@@ -17,7 +17,8 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use std::sync::Arc;
+use azalea_world::{ChunkStorage, World};
+use std::{fmt::Debug, sync::Arc};
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use tokio::sync::Mutex;
 
@@ -30,15 +31,15 @@ pub struct Account {
 
 #[derive(Default)]
 pub struct ClientState {
-    // placeholder
     pub player: Player,
+    pub world: Option<World>,
 }
 
 /// A player that you can control that is currently in a Minecraft server.
 pub struct Client {
     event_receiver: UnboundedReceiver<Event>,
-    conn: Arc<Mutex<GameConnection>>,
-    state: Arc<Mutex<ClientState>>,
+    pub conn: Arc<Mutex<GameConnection>>,
+    pub state: Arc<Mutex<ClientState>>,
     // game_loop
 }
 
@@ -137,10 +138,9 @@ impl Client {
         // just start up the game loop and we're ready!
         // tokio::spawn(Self::game_loop(conn, tx, handler, state))
 
-        let game_loop_conn = conn.clone();
         let game_loop_state = client.state.clone();
 
-        tokio::spawn(Self::game_loop(game_loop_conn, tx, game_loop_state));
+        tokio::spawn(Self::game_loop(conn, tx, game_loop_state));
 
         Ok(client)
     }
@@ -178,7 +178,37 @@ impl Client {
             GamePacket::ClientboundLoginPacket(p) => {
                 println!("Got login packet {:?}", p);
 
-                state.lock().await.player.entity.id = p.player_id;
+                let mut state = state.lock().await;
+                state.player.entity.id = p.player_id;
+                let dimension_type = p
+                    .dimension_type
+                    .as_compound()
+                    .expect("Dimension type is not compound")
+                    .get("")
+                    .expect("No \"\" tag")
+                    .as_compound()
+                    .expect("\"\" tag is not compound");
+                let height = (*dimension_type
+                    .get("height")
+                    .expect("No height tag")
+                    .as_int()
+                    .expect("height tag is not int"))
+                .try_into()
+                .expect("height is not a u32");
+                let min_y = (*dimension_type
+                    .get("min_y")
+                    .expect("No min_y tag")
+                    .as_int()
+                    .expect("min_y tag is not int"))
+                .try_into()
+                .expect("min_y is not an i32");
+
+                state.world = Some(World {
+                    height,
+                    min_y,
+                    storage: ChunkStorage::new(16),
+                });
+
                 conn.lock()
                     .await
                     .write(
@@ -202,7 +232,7 @@ impl Client {
             GamePacket::ClientboundChangeDifficultyPacket(p) => {
                 println!("Got difficulty packet {:?}", p);
             }
-            GamePacket::ClientboundDeclareCommandsPacket(p) => {
+            GamePacket::ClientboundDeclareCommandsPacket(_p) => {
                 println!("Got declare commands packet");
             }
             GamePacket::ClientboundPlayerAbilitiesPacket(p) => {
@@ -211,19 +241,19 @@ impl Client {
             GamePacket::ClientboundSetCarriedItemPacket(p) => {
                 println!("Got set carried item packet {:?}", p);
             }
-            GamePacket::ClientboundUpdateTagsPacket(p) => {
+            GamePacket::ClientboundUpdateTagsPacket(_p) => {
                 println!("Got update tags packet");
             }
             GamePacket::ClientboundDisconnectPacket(p) => {
                 println!("Got disconnect packet {:?}", p);
             }
-            GamePacket::ClientboundUpdateRecipesPacket(p) => {
+            GamePacket::ClientboundUpdateRecipesPacket(_p) => {
                 println!("Got update recipes packet");
             }
             GamePacket::ClientboundEntityEventPacket(p) => {
                 // println!("Got entity event packet {:?}", p);
             }
-            GamePacket::ClientboundRecipePacket(p) => {
+            GamePacket::ClientboundRecipePacket(_p) => {
                 println!("Got recipe packet");
             }
             GamePacket::ClientboundPlayerPositionPacket(p) => {
@@ -235,9 +265,27 @@ impl Client {
             }
             GamePacket::ClientboundSetChunkCacheCenterPacket(p) => {
                 println!("Got chunk cache center packet {:?}", p);
+                state
+                    .lock()
+                    .await
+                    .world
+                    .as_mut()
+                    .unwrap()
+                    .update_view_center(&ChunkPos::new(p.x, p.z));
             }
             GamePacket::ClientboundLevelChunkWithLightPacket(p) => {
                 println!("Got chunk with light packet {} {}", p.x, p.z);
+                let pos = ChunkPos::new(p.x, p.z);
+                // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
+                // println("chunk {:?}")
+                state
+                    .lock()
+                    .await
+                    .world
+                    .as_mut()
+                    .expect("World doesn't exist! We should've gotten a login packet by now.")
+                    .replace_with_packet_data(&pos, &mut p.chunk_data.data.as_slice())
+                    .unwrap();
             }
             GamePacket::ClientboundLightUpdatePacket(p) => {
                 println!("Got light update packet {:?}", p);
@@ -321,9 +369,20 @@ impl Client {
             }
             GamePacket::ClientboundBlockUpdatePacket(p) => {
                 println!("Got block update packet {:?}", p);
+                // TODO: update world
             }
             GamePacket::ClientboundAnimatePacket(p) => {
                 println!("Got animate packet {:?}", p);
+            }
+            GamePacket::ClientboundSectionBlocksUpdatePacket(p) => {
+                println!("Got section blocks update packet {:?}", p);
+                // TODO: update world
+            }
+            GamePacket::ClientboundGameEventPacket(p) => {
+                println!("Got game event packet {:?}", p);
+            }
+            GamePacket::ClientboundLevelParticlesPacket(p) => {
+                println!("Got level particles packet {:?}", p);
             }
             _ => panic!("Unexpected packet {:?}", packet),
         }

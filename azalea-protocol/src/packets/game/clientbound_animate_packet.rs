@@ -1,6 +1,6 @@
-use packet_macros::{GamePacket, McBufReadable, McBufWritable};
+use packet_macros::{GamePacket, McBuf};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundAnimatePacket {
     #[var]
     pub id: u32,
@@ -9,7 +9,7 @@ pub struct ClientboundAnimatePacket {
 
 // minecraft actually uses a u8 for this, but a varint still works and makes it
 // so i don't have to add a special handler
-#[derive(Clone, Debug, Copy, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, Copy, McBuf)]
 pub enum AnimationAction {
     SwingMainHand = 0,
     Hurt = 1,

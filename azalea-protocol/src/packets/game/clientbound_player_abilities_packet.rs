@@ -1,8 +1,8 @@
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable};
-use packet_macros::GamePacket;
+use packet_macros::{GamePacket, McBuf};
 use std::io::{Read, Write};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundPlayerAbilitiesPacket {
     pub flags: PlayerAbilitiesFlags,
     pub flying_speed: f32,
@@ -34,16 +34,16 @@ impl McBufWritable for PlayerAbilitiesFlags {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut byte = 0;
         if self.invulnerable {
-            byte = byte | 1;
+            byte |= 0b1;
         }
         if self.flying {
-            byte = byte | 2;
+            byte |= 0b10;
         }
         if self.can_fly {
-            byte = byte | 4;
+            byte |= 0b100;
         }
         if self.instant_break {
-            byte = byte | 8;
+            byte |= 0b1000;
         }
         u8::write_into(&byte, buf)
     }

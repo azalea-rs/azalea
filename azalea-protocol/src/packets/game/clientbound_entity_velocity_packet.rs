@@ -1,6 +1,6 @@
-use packet_macros::GamePacket;
+use packet_macros::{GamePacket, McBuf};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundEntityVelocityPacket {
     #[var]
     pub entity_id: u32,

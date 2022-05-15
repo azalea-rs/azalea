@@ -1,12 +1,12 @@
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::resource_location::ResourceLocation;
-use packet_macros::GamePacket;
+use packet_macros::{GamePacket, McBuf};
 use std::{
     collections::HashMap,
     io::{Read, Write},
 };
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundUpdateTagsPacket {
     pub tags: HashMap<ResourceLocation, Vec<Tags>>,
 }

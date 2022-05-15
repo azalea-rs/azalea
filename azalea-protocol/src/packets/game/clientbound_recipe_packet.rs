@@ -1,9 +1,9 @@
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
-use azalea_core::{resource_location::ResourceLocation, Slot};
-use packet_macros::{GamePacket, McBufReadable, McBufWritable};
+use azalea_core::resource_location::ResourceLocation;
+use packet_macros::{GamePacket, McBuf};
 use std::io::{Read, Write};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundRecipePacket {
     pub action: State,
     pub settings: RecipeBookSettings,
@@ -11,7 +11,7 @@ pub struct ClientboundRecipePacket {
     pub to_highlight: Vec<ResourceLocation>,
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct RecipeBookSettings {
     pub gui_open: bool,
     pub filtering_craftable: bool,
@@ -41,7 +41,7 @@ impl McBufWritable for State {
 }
 impl McBufReadable for State {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let state = buf.read_varint()?.try_into().unwrap();
+        let state = buf.read_varint()?;
         Ok(match state {
             0 => State::Init,
             1 => State::Add,

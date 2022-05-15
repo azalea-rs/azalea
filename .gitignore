@@ -4,6 +4,7 @@ flamegraph.svg
 perf.data
 perf.data.old
 
+
 code-generator/Burger
 code-generator/client.jar
 code-generator/burger.json
