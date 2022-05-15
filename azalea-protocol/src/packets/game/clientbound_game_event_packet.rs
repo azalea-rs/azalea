@@ -1,4 +1,4 @@
-use packet_macros::{GamePacket, McBufReadable, McBufWritable};
+use packet_macros::{GamePacket, McBuf};
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundGameEventPacket {
@@ -6,7 +6,7 @@ pub struct ClientboundGameEventPacket {
     pub param: f32,
 }
 
-#[derive(Clone, Debug, Copy, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, Copy, McBuf)]
 pub enum EventType {
     NoRespawnBlockAvailable = 0,
     StartRaining = 1,

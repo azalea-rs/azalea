@@ -1,5 +1,5 @@
 use crate::mc_buf::BitSet;
-use packet_macros::{GamePacket, McBufReadable, McBufWritable};
+use packet_macros::{GamePacket, McBuf};
 
 #[derive(Clone, Debug, GamePacket)]
 pub struct ClientboundLightUpdatePacket {
@@ -8,7 +8,7 @@ pub struct ClientboundLightUpdatePacket {
     pub light_data: ClientboundLightUpdatePacketData,
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct ClientboundLightUpdatePacketData {
     trust_edges: bool,
     sky_y_mask: BitSet,

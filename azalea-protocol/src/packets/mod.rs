@@ -43,7 +43,7 @@ where
     fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
 }
 
-impl McBufReadable for ConnectionProtocol {
+impl crate::mc_buf::McBufReadable for ConnectionProtocol {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
         ConnectionProtocol::from_i32(buf.read_varint()?)
             .ok_or_else(|| "Invalid intention".to_string())

@@ -1,8 +1,9 @@
 use crate::mc_buf::read::{McBufReadable, Readable};
 use crate::mc_buf::write::{McBufWritable, Writable};
+use crate::mc_buf::McBufVarReadable;
 use azalea_chat::component::Component;
 use azalea_core::{BlockPos, Direction, Slot};
-use packet_macros::{McBufReadable, McBufWritable};
+use packet_macros::McBuf;
 use std::io::{Read, Write};
 use std::ops::Deref;
 use uuid::Uuid;
@@ -32,7 +33,7 @@ impl From<&str> for UnsizedByteArray {
 }
 
 /// Represents Java's BitSet, a list of bits.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, McBufReadable, McBufWritable)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, McBuf)]
 pub struct BitSet {
     data: Vec<u64>,
 }
@@ -159,7 +160,7 @@ impl McBufWritable for EntityDataValue {
     }
 }
 
-#[derive(Clone, Debug, Copy, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, Copy, McBuf)]
 pub enum Pose {
     Standing = 0,
     FallFlying = 1,
@@ -171,7 +172,7 @@ pub enum Pose {
     Dying = 7,
 }
 
-#[derive(Debug, Clone, McBufReadable, McBufWritable)]
+#[derive(Debug, Clone, McBuf)]
 pub struct VillagerData {
     #[var]
     type_: u32,
@@ -181,7 +182,7 @@ pub struct VillagerData {
     level: u32,
 }
 
-#[derive(Debug, Clone, McBufReadable, McBufWritable)]
+#[derive(Debug, Clone, McBuf)]
 pub struct Particle {
     #[var]
     pub id: i32,
@@ -280,12 +281,12 @@ pub enum ParticleData {
     Scrape,
 }
 
-#[derive(Debug, Clone, McBufReadable, McBufWritable)]
+#[derive(Debug, Clone, McBuf)]
 pub struct BlockParticle {
     #[var]
     pub block_state: i32,
 }
-#[derive(Debug, Clone, McBufReadable, McBufWritable)]
+#[derive(Debug, Clone, McBuf)]
 pub struct DustParticle {
     /// Red value, 0-1
     pub red: f32,
@@ -297,7 +298,7 @@ pub struct DustParticle {
     pub scale: f32,
 }
 
-#[derive(Debug, Clone, McBufReadable, McBufWritable)]
+#[derive(Debug, Clone, McBuf)]
 pub struct DustColorTransitionParticle {
     /// Red value, 0-1
     pub from_red: f32,
@@ -315,12 +316,12 @@ pub struct DustColorTransitionParticle {
     pub to_blue: f32,
 }
 
-#[derive(Debug, Clone, McBufReadable, McBufWritable)]
+#[derive(Debug, Clone, McBuf)]
 pub struct ItemParticle {
     pub item: Slot,
 }
 
-#[derive(Debug, Clone, McBufReadable, McBufWritable)]
+#[derive(Debug, Clone, McBuf)]
 pub struct VibrationParticle {
     pub origin: BlockPos,
     pub position_type: String,
@@ -331,9 +332,8 @@ pub struct VibrationParticle {
     pub ticks: u32,
 }
 
-impl McBufReadable for ParticleData {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let id = buf.read_varint()?;
+impl ParticleData {
+    pub fn read_from_particle_id(buf: &mut impl Read, id: u32) -> Result<Self, String> {
         Ok(match id {
             0 => ParticleData::AmbientEntityEffect,
             1 => ParticleData::AngryVillager,
@@ -425,6 +425,13 @@ impl McBufReadable for ParticleData {
             87 => ParticleData::Scrape,
             _ => return Err(format!("Unknown particle id: {}", id)),
         })
+    }
+}
+
+impl McBufReadable for ParticleData {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let id = u32::var_read_into(buf)?;
+        ParticleData::read_from_particle_id(buf, id)
     }
 }
 

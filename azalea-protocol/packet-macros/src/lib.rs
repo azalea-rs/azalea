@@ -157,6 +157,19 @@ pub fn derive_mcbufwritable(input: TokenStream) -> TokenStream {
     create_impl_mcbufwritable(&ident, &data).into()
 }
 
+#[proc_macro_derive(McBuf, attributes(var))]
+pub fn derive_mcbuf(input: TokenStream) -> TokenStream {
+    let DeriveInput { ident, data, .. } = parse_macro_input!(input);
+
+    let writable = create_impl_mcbufwritable(&ident, &data);
+    let readable = create_impl_mcbufreadable(&ident, &data);
+    quote! {
+        #writable
+        #readable
+    }
+    .into()
+}
+
 fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> TokenStream {
     let DeriveInput { ident, data, .. } = parse_macro_input!(input);
 

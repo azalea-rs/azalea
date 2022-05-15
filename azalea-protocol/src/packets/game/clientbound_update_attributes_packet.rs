@@ -1,6 +1,6 @@
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::resource_location::ResourceLocation;
-use packet_macros::{GamePacket, McBufReadable, McBufWritable};
+use packet_macros::{GamePacket, McBuf};
 use std::io::{Read, Write};
 use uuid::Uuid;
 
@@ -11,14 +11,14 @@ pub struct ClientboundUpdateAttributesPacket {
     pub attributes: Vec<AttributeSnapshot>,
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct AttributeSnapshot {
     pub attribute: ResourceLocation,
     pub base: f64,
     pub modifiers: Vec<Modifier>,
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct Modifier {
     pub uuid: Uuid,
     pub amount: f64,

@@ -1,6 +1,6 @@
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_chat::component::Component;
-use packet_macros::{GamePacket, McBufReadable, McBufWritable};
+use packet_macros::{GamePacket, McBuf};
 use std::io::{Read, Write};
 use uuid::Uuid;
 
@@ -18,14 +18,14 @@ pub enum Action {
     RemovePlayer(Vec<RemovePlayer>),
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct PlayerProperty {
     name: String,
     value: String,
     signature: Option<String>,
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct AddPlayer {
     uuid: Uuid,
     name: String,
@@ -37,26 +37,26 @@ pub struct AddPlayer {
     display_name: Option<Component>,
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct UpdateGameMode {
     uuid: Uuid,
     #[var]
     gamemode: u32,
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct UpdateLatency {
     uuid: Uuid,
     #[var]
     ping: i32,
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct UpdateDisplayName {
     uuid: Uuid,
     display_name: Option<Component>,
 }
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct RemovePlayer {
     uuid: Uuid,
 }

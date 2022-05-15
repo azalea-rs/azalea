@@ -1,6 +1,6 @@
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::resource_location::ResourceLocation;
-use packet_macros::{GamePacket, McBufReadable, McBufWritable};
+use packet_macros::{GamePacket, McBuf};
 use std::io::{Read, Write};
 
 #[derive(Clone, Debug, GamePacket)]
@@ -11,7 +11,7 @@ pub struct ClientboundRecipePacket {
     pub to_highlight: Vec<ResourceLocation>,
 }
 
-#[derive(Clone, Debug, McBufReadable, McBufWritable)]
+#[derive(Clone, Debug, McBuf)]
 pub struct RecipeBookSettings {
     pub gui_open: bool,
     pub filtering_craftable: bool,

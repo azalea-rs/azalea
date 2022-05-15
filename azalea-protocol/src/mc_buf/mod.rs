@@ -4,10 +4,8 @@ mod definitions;
 mod read;
 mod write;
 
-pub use definitions::{BitSet, EntityMetadata, UnsizedByteArray};
-use packet_macros::{McBufReadable, McBufWritable};
+pub use definitions::{BitSet, EntityMetadata, ParticleData, UnsizedByteArray};
 pub use read::{read_varint_async, McBufReadable, McBufVarReadable, Readable};
-use std::ops::Deref;
 pub use write::{McBufVarWritable, McBufWritable, Writable};
 
 // const DEFAULT_NBT_QUOTA: u32 = 2097152;
