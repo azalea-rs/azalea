@@ -369,12 +369,14 @@ impl Client {
             }
             GamePacket::ClientboundBlockUpdatePacket(p) => {
                 println!("Got block update packet {:?}", p);
+                // TODO: update world
             }
             GamePacket::ClientboundAnimatePacket(p) => {
                 println!("Got animate packet {:?}", p);
             }
             GamePacket::ClientboundSectionBlocksUpdatePacket(p) => {
                 println!("Got section blocks update packet {:?}", p);
+                // TODO: update world
             }
             _ => panic!("Unexpected packet {:?}", packet),
         }
