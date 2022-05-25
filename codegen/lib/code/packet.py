@@ -7,13 +7,17 @@ def make_packet_mod_rs_line(packet_id: int, packet_class_name: str):
     return f'        {padded_hex(packet_id)}: {to_snake_case(packet_class_name)}::{to_camel_case(packet_class_name)},'
 
 
+def fix_state(state: str):
+    return {'PLAY': 'game'}.get(state, state.lower())
+
+
 def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target_packet_direction, target_packet_state):
     for packet in burger_packets.values():
         if packet['id'] != target_packet_id:
             continue
 
         direction = packet['direction'].lower()  # serverbound or clientbound
-        state = {'PLAY': 'game'}.get(packet['state'], packet['state'].lower())
+        state = fix_state(packet['state'])
 
         if state != target_packet_state or direction != target_packet_direction:
             continue
@@ -109,12 +113,12 @@ def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target
                 f.write('\n'.join(mod_rs))
 
 
-def set_packets(packet_ids: list, packet_class_names: list, direction: str, state: str):
+def set_packets(packet_ids: list[int], packet_class_names: list[str], direction: str, state: str):
     assert len(packet_ids) == len(packet_class_names)
 
     # sort the packets by id
-    packet_ids, packet_class_names = [list(x) for x in zip(
-        *sorted(zip(packet_ids, packet_class_names), key=lambda pair: pair[0]))]
+    zipped_packets: list[tuple[int, str]] = [list(x) for x in zip(
+        *sorted(zip(packet_ids, packet_class_names), key=lambda pair: pair[0]))]  # type: ignore
 
     mod_rs_dir = f'../azalea-protocol/src/packets/{state}/mod.rs'
     with open(mod_rs_dir, 'r') as f:
@@ -127,7 +131,7 @@ def set_packets(packet_ids: list, packet_class_names: list, direction: str, stat
         if line.strip() == 'Serverbound => {':
             if direction == 'serverbound':
                 ignore_lines = True
-                for packet_id, packet_class_name in zip(packet_ids, packet_class_names):
+                for packet_id, packet_class_name in zipped_packets:
                     new_mod_rs.append(
                         make_packet_mod_rs_line(packet_id, packet_class_name)
                     )
@@ -136,7 +140,7 @@ def set_packets(packet_ids: list, packet_class_names: list, direction: str, stat
         elif line.strip() == 'Clientbound => {':
             if direction == 'serverbound':
                 ignore_lines = True
-                for packet_id, packet_class_name in zip(packet_ids, packet_class_names):
+                for packet_id, packet_class_name in zipped_packets:
                     new_mod_rs.append(
                         make_packet_mod_rs_line(packet_id, packet_class_name)
                     )
@@ -208,9 +212,11 @@ def remove_packet_ids(packet_ids: list[int], direction: str, state: str):
         direction, state)
 
     new_packet_ids = []
+    new_packet_class_names = []
 
-    for packet_id in existing_packet_ids:
+    for packet_id, packet_class_name in zip(existing_packet_ids, existing_packet_class_names):
         if packet_id not in packet_ids:
             new_packet_ids.append(packet_id)
+            new_packet_class_names.append(packet_class_name)
 
-    set_packets(new_packet_ids, existing_packet_class_names, direction, state)
+    set_packets(new_packet_ids, new_packet_class_names, direction, state)

@@ -1,3 +1,4 @@
+from lib.code.packet import fix_state
 from lib.utils import PacketIdentifier, group_packets
 import lib.code.utils
 import lib.code.version
@@ -24,12 +25,12 @@ for packet in old_packet_list:
     assert packet['class'].endswith('.class')
     packet_name = old_mappings.get_class(packet['class'][:-6])
     old_packets[PacketIdentifier(
-        packet['id'], packet['direction'].lower(), packet['state'].lower())] = packet_name
+        packet['id'], packet['direction'].lower(), fix_state(packet['state']))] = packet_name
 for packet in new_packet_list:
     assert packet['class'].endswith('.class')
     packet_name = new_mappings.get_class(packet['class'][:-6])
     new_packets[PacketIdentifier(
-        packet['id'], packet['direction'].lower(), packet['state'].lower())] = packet_name
+        packet['id'], packet['direction'].lower(), fix_state(packet['state']))] = packet_name
 
 # find removed packets
 removed_packets: list[PacketIdentifier] = []
