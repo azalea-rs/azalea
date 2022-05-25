@@ -34,8 +34,8 @@ for packet in new_packet_list:
 
 # find removed packets
 removed_packets: list[PacketIdentifier] = []
-for packet in old_packets:
-    if packet not in new_packets or new_packets[packet] != old_packets[packet]:
+for packet, packet_name in old_packets.items():
+    if packet_name not in old_packets.values():
         removed_packets.append(packet)
         print('Removed packet:', packet)
 for (direction, state), packets in group_packets(removed_packets).items():
@@ -59,8 +59,8 @@ print()
 
 # find added packets
 added_packets: list[PacketIdentifier] = []
-for packet in new_packets:
-    if packet not in old_packets and new_packets[packet] == old_packets[packet]:
+for packet, packet_name in new_packets.items():
+    if packet_name not in old_packets.values():
         added_packets.append(packet)
         print('Added packet:', packet)
 for packet in added_packets:
