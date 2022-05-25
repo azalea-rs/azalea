@@ -1,16 +1,24 @@
-from mappings import Mappings
+from .mappings import Mappings
 import requests
 import json
 import os
 
+# make sure the downloads directory exists
+if not os.path.exists('downloads'):
+    os.mkdir('downloads')
 
-def download_burger():
-    print('\033[92mDownloading Burger...\033[m')
-    os.system(
-        'cd downloads && git clone https://github.com/pokechu22/Burger && cd Burger && git pull')
 
-    print('\033[92mInstalling dependencies...\033[m')
-    os.system('cd downloads/Burger && pip install six jawa')
+def get_burger():
+    if not os.path.exists('downloads/Burger'):
+        with open('burger.json', 'w') as f:
+            json.dump(requests.get(
+                'https://api.github.com/repos/Burger/Burger/releases/latest').json(), f)
+        print('\033[92mDownloading Burger...\033[m')
+        os.system(
+            'cd downloads && git clone https://github.com/pokechu22/Burger && cd Burger && git pull')
+
+        print('\033[92mInstalling dependencies...\033[m')
+        os.system('cd downloads/Burger && pip install six jawa')
 
 
 def get_version_manifest():
@@ -49,32 +57,33 @@ def get_client_jar(version_id: str):
         package_data = get_version_data(version_id)
         print('\033[92mDownloading client jar...\033[m')
         client_jar_url = package_data['downloads']['client']['url']
-        with open('client.jar', 'wb') as f:
+        with open(f'downloads/client-{version_id}.jar', 'wb') as f:
             f.write(requests.get(client_jar_url).content)
 
 
 def get_burger_data_for_version(version_id: str):
     if not os.path.exists(f'downloads/burger-{version_id}.json'):
+        get_burger()
         get_client_jar(version_id)
 
         os.system(
             f'cd downloads/Burger && python munch.py ../client-{version_id}.jar --output ../burger-{version_id}.json'
         )
-    with open(f'burger-{version_id}.json', 'r') as f:
+    with open(f'downloads/burger-{version_id}.json', 'r') as f:
         return json.load(f)
 
 
 def get_mappings_for_version(version_id: str):
-    if not os.path.exists(f'downloads/mappings-{version_id}.json'):
+    if not os.path.exists(f'downloads/mappings-{version_id}.txt'):
         package_data = get_version_data(version_id)
 
         client_mappings_url = package_data['downloads']['client_mappings']['url']
 
         mappings_text = requests.get(client_mappings_url).text
 
-        with open(f'downloads/mappings-{version_id}.json', 'w') as f:
+        with open(f'downloads/mappings-{version_id}.txt', 'w') as f:
             f.write(mappings_text)
     else:
-        with open(f'downloads/mappings-{version_id}.json', 'r') as f:
+        with open(f'downloads/mappings-{version_id}.txt', 'r') as f:
             mappings_text = f.read()
     return Mappings.parse(mappings_text)

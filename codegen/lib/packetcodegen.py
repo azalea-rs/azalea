@@ -1,6 +1,5 @@
-from utils import to_snake_case, to_camel_case
-from mappings import Mappings
-import os
+from .utils import to_snake_case, to_camel_case
+from .mappings import Mappings
 
 
 def burger_type_to_rust_type(burger_type):
