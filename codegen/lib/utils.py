@@ -18,7 +18,7 @@ def padded_hex(n: int):
 
 
 class PacketIdentifier:
-    def __init__(self, packet_id, direction, state):
+    def __init__(self, packet_id: int, direction: str, state: str):
         self.packet_id = packet_id
         self.direction = direction
         self.state = state
@@ -28,6 +28,12 @@ class PacketIdentifier:
 
     def __hash__(self):
         return hash((self.packet_id, self.direction, self.state))
+
+    def __str__(self):
+        return f'{self.packet_id} {self.direction} {self.state}'
+
+    def __repr__(self):
+        return f'PacketIdentifier({self.packet_id}, {self.direction}, {self.state})'
 
 
 def group_packets(packets: list[PacketIdentifier]):
