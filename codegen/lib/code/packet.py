@@ -7,7 +7,7 @@ def make_packet_mod_rs_line(packet_id: int, packet_class_name: str):
     return f'        {padded_hex(packet_id)}: {to_snake_case(packet_class_name)}::{to_camel_case(packet_class_name)},'
 
 
-def generate(burger_packets, mappings: Mappings, target_packet_id, target_packet_direction, target_packet_state):
+def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target_packet_direction, target_packet_state):
     for packet in burger_packets.values():
         if packet['id'] != target_packet_id:
             continue
@@ -109,8 +109,12 @@ def generate(burger_packets, mappings: Mappings, target_packet_id, target_packet
                 f.write('\n'.join(mod_rs))
 
 
-def set_packet_ids(packet_ids: list, packet_class_names: list, direction: str, state: str):
+def set_packets(packet_ids: list, packet_class_names: list, direction: str, state: str):
     assert len(packet_ids) == len(packet_class_names)
+
+    # sort the packets by id
+    packet_ids, packet_class_names = [list(x) for x in zip(
+        *sorted(zip(packet_ids, packet_class_names), key=lambda pair: pair[0]))]
 
     mod_rs_dir = f'../azalea-protocol/src/packets/{state}/mod.rs'
     with open(mod_rs_dir, 'r') as f:
@@ -146,3 +150,67 @@ def set_packet_ids(packet_ids: list, packet_class_names: list, direction: str, s
 
     with open(mod_rs_dir, 'w') as f:
         f.write('\n'.join(new_mod_rs))
+
+
+def get_packets(direction: str, state: str):
+    mod_rs_dir = f'../azalea-protocol/src/packets/{state}/mod.rs'
+    with open(mod_rs_dir, 'r') as f:
+        mod_rs = f.read().splitlines()
+
+    in_serverbound = False
+    in_clientbound = False
+
+    packet_ids: list[int] = []
+    packet_class_names: list[str] = []
+
+    for line in mod_rs:
+        if line.strip() == 'Serverbound => {':
+            in_serverbound = True
+            continue
+        elif line.strip() == 'Clientbound => {':
+            in_clientbound = True
+            continue
+        elif line.strip() in ('}', '},'):
+            if (in_serverbound and direction == 'serverbound') or (in_clientbound and direction == 'clientbound'):
+                break
+            in_serverbound = in_clientbound = False
+            continue
+
+        if line.strip() == '' or line.strip().startswith('//') or (not in_serverbound and direction == 'serverbound') or (not in_clientbound and direction == 'clientbound'):
+            continue
+
+        line_packet_id_hex = line.strip().split(':')[0]
+        assert line_packet_id_hex.startswith('0x')
+        line_packet_id = int(line_packet_id_hex[2:], 16)
+        packet_ids.append(line_packet_id)
+
+        packet_class_name = line.strip().split(':')[1].strip()
+        packet_class_names.append(packet_class_name)
+
+    return packet_ids, packet_class_names
+
+
+def change_packet_ids(id_map: dict[int, int], direction: str, state: str):
+    existing_packet_ids, existing_packet_class_names = get_packets(
+        direction, state)
+
+    new_packet_ids = []
+
+    for packet_id in existing_packet_ids:
+        new_packet_id = id_map.get(packet_id, packet_id)
+        new_packet_ids.append(new_packet_id)
+
+    set_packets(new_packet_ids, existing_packet_class_names, direction, state)
+
+
+def remove_packet_ids(packet_ids: list[int], direction: str, state: str):
+    existing_packet_ids, existing_packet_class_names = get_packets(
+        direction, state)
+
+    new_packet_ids = []
+
+    for packet_id in existing_packet_ids:
+        if packet_id not in packet_ids:
+            new_packet_ids.append(packet_id)
+
+    set_packets(new_packet_ids, existing_packet_class_names, direction, state)

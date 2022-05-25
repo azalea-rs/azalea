@@ -1,6 +1,8 @@
 
 import os
 
+# utilities specifically for codegen
+
 
 def burger_type_to_rust_type(burger_type):
     is_var = False
