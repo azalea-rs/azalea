@@ -1,72 +1,10 @@
-from .utils import to_snake_case, to_camel_case
-from .mappings import Mappings
+from .utils import burger_type_to_rust_type, write_packet_file
+from ..utils import padded_hex, to_snake_case, to_camel_case
+from ..mappings import Mappings
 
 
-def burger_type_to_rust_type(burger_type):
-    is_var = False
-    uses = set()
-
-    if burger_type == 'byte':
-        field_type_rs = 'i8'
-    elif burger_type == 'short':
-        field_type_rs = 'i16'
-    elif burger_type == 'int':
-        field_type_rs = 'i32'
-    elif burger_type == 'long':
-        field_type_rs = 'i64'
-    elif burger_type == 'float':
-        field_type_rs = 'f32'
-    elif burger_type == 'double':
-        field_type_rs = 'f64'
-
-    elif burger_type == 'varint':
-        is_var = True
-        field_type_rs = 'i32'
-    elif burger_type == 'varlong':
-        is_var = True
-        field_type_rs = 'i64'
-
-    elif burger_type == 'boolean':
-        field_type_rs = 'bool'
-    elif burger_type == 'string':
-        field_type_rs = 'String'
-
-    elif burger_type == 'chatcomponent':
-        field_type_rs = 'Component'
-        uses.add('azalea_chat::component::Component')
-    elif burger_type == 'identifier':
-        field_type_rs = 'ResourceLocation'
-        uses.add('azalea_core::resource_location::ResourceLocation')
-    elif burger_type == 'uuid':
-        field_type_rs = 'Uuid'
-        uses.add('uuid::Uuid')
-    elif burger_type == 'position':
-        field_type_rs = 'BlockPos'
-        uses.add('azalea_core::BlockPos')
-    elif burger_type == 'nbtcompound':
-        field_type_rs = 'azalea_nbt::Tag'
-    elif burger_type == 'itemstack':
-        field_type_rs = 'Slot'
-        uses.add('azalea_core::Slot')
-    elif burger_type == 'metadata':
-        field_type_rs = 'EntityMetadata'
-        uses.add('crate::mc_buf::EntityMetadata')
-    elif burger_type == 'enum':
-        # enums are too complicated, leave those to the user
-        field_type_rs = 'todo!()'
-    elif burger_type.endswith('[]'):
-        field_type_rs, is_var, uses = burger_type_to_rust_type(
-            burger_type[:-2])
-        field_type_rs = f'Vec<{field_type_rs}>'
-    else:
-        print('Unknown field type:', burger_type)
-        exit()
-    return field_type_rs, is_var, uses
-
-
-def write_packet_file(state, packet_name_snake_case, code):
-    with open(f'../azalea-protocol/src/packets/{state}/{packet_name_snake_case}.rs', 'w') as f:
-        f.write(code)
+def make_packet_mod_rs_line(packet_id: int, packet_class_name: str):
+    return f'        {padded_hex(packet_id)}: {to_snake_case(packet_class_name)}::{to_camel_case(packet_class_name)},'
 
 
 def generate(burger_packets, mappings: Mappings, target_packet_id, target_packet_direction, target_packet_state):
@@ -138,7 +76,8 @@ def generate(burger_packets, mappings: Mappings, target_packet_id, target_packet
         pub_mod_line = f'pub mod {to_snake_case(class_name)};'
         if pub_mod_line not in mod_rs:
             mod_rs.insert(0, pub_mod_line)
-            packet_mod_rs_line = f'        {hex(packet["id"])}: {to_snake_case(class_name)}::{to_camel_case(class_name)},'
+            packet_mod_rs_line = make_packet_mod_rs_line(
+                packet['id'], class_name)
 
             in_serverbound = False
             in_clientbound = False
@@ -168,3 +107,42 @@ def generate(burger_packets, mappings: Mappings, target_packet_id, target_packet
 
             with open(mod_rs_dir, 'w') as f:
                 f.write('\n'.join(mod_rs))
+
+
+def set_packet_ids(packet_ids: list, packet_class_names: list, direction: str, state: str):
+    assert len(packet_ids) == len(packet_class_names)
+
+    mod_rs_dir = f'../azalea-protocol/src/packets/{state}/mod.rs'
+    with open(mod_rs_dir, 'r') as f:
+        mod_rs = f.read().splitlines()
+    new_mod_rs = []
+
+    ignore_lines = False
+
+    for line in mod_rs:
+        if line.strip() == 'Serverbound => {':
+            if direction == 'serverbound':
+                ignore_lines = True
+                for packet_id, packet_class_name in zip(packet_ids, packet_class_names):
+                    new_mod_rs.append(
+                        make_packet_mod_rs_line(packet_id, packet_class_name)
+                    )
+            else:
+                ignore_lines = False
+        elif line.strip() == 'Clientbound => {':
+            if direction == 'serverbound':
+                ignore_lines = True
+                for packet_id, packet_class_name in zip(packet_ids, packet_class_names):
+                    new_mod_rs.append(
+                        make_packet_mod_rs_line(packet_id, packet_class_name)
+                    )
+            else:
+                ignore_lines = False
+        elif line.strip() in ('}', '},'):
+            ignore_lines = False
+
+        if not ignore_lines:
+            new_mod_rs.append(line)
+
+    with open(mod_rs_dir, 'w') as f:
+        f.write('\n'.join(new_mod_rs))

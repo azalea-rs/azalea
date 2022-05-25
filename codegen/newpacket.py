@@ -1,4 +1,4 @@
-from lib import download, packetcodegen  # type: ignore
+from lib import download, code  # type: ignore
 import sys
 import os
 
@@ -9,9 +9,9 @@ burger_packets_data = burger_data[0]['packets']['packet']
 packet_id, direction, state = int(sys.argv[1]), sys.argv[2], sys.argv[3]
 print(
     f'Generating code for packet id: {packet_id} with direction {direction} and state {state}')
-packetcodegen.generate(burger_packets_data, mappings,
-                       packet_id, direction, state)
+code.packetcodegen.generate(burger_packets_data, mappings,
+                            packet_id, direction, state)
 
-os.system('cd .. && cargo fmt')
+code.fmt()
 
 print('Done!')
