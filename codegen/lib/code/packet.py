@@ -129,6 +129,7 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
 
     for line in mod_rs:
         if line.strip() == 'Serverbound => {':
+            new_mod_rs.append(line)
             if direction == 'serverbound':
                 ignore_lines = True
                 for packet_id, packet_class_name in zipped_packets:
@@ -137,7 +138,9 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
                     )
             else:
                 ignore_lines = False
+            continue
         elif line.strip() == 'Clientbound => {':
+            new_mod_rs.append(line)
             if direction == 'serverbound':
                 ignore_lines = True
                 for packet_id, packet_class_name in zipped_packets:
@@ -146,6 +149,7 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
                     )
             else:
                 ignore_lines = False
+            continue
         elif line.strip() in ('}', '},'):
             ignore_lines = False
 
