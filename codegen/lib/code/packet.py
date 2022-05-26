@@ -1,6 +1,7 @@
 from .utils import burger_type_to_rust_type, write_packet_file
 from ..utils import padded_hex, to_snake_case, to_camel_case
 from ..mappings import Mappings
+import os
 
 
 def make_packet_mod_rs_line(packet_id: int, packet_class_name: str):
@@ -222,5 +223,7 @@ def remove_packet_ids(removing_packet_ids: list[int], direction: str, state: str
         if packet_id not in removing_packet_ids:
             new_packet_ids.append(packet_id)
             new_packet_class_names.append(packet_class_name)
+            os.remove(
+                f'../azalea-protocol/src/packets/{state}/{packet_class_name}.rs')
 
     set_packets(new_packet_ids, new_packet_class_names, direction, state)
