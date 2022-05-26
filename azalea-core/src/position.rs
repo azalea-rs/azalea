@@ -1,5 +1,7 @@
 use std::ops::Rem;
 
+use crate::resource_location::ResourceLocation;
+
 #[derive(Clone, Copy, Debug, Default)]
 pub struct BlockPos {
     pub x: i32,
@@ -135,6 +137,14 @@ impl From<&ChunkBlockPos> for ChunkSectionBlockPos {
             z: pos.z,
         }
     }
+}
+
+/// A block pos with an attached dimension
+#[derive(Debug, Clone)]
+pub struct GlobalPos {
+    pub pos: BlockPos,
+    // this is actually a ResourceKey in Minecraft, but i don't think it matters?
+    pub dimension: ResourceLocation,
 }
 
 #[cfg(test)]

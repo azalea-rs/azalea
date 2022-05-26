@@ -12,7 +12,8 @@ use azalea_protocol::{
         handshake::client_intention_packet::ClientIntentionPacket,
         login::{
             serverbound_hello_packet::ServerboundHelloPacket,
-            serverbound_key_packet::ServerboundKeyPacket, LoginPacket,
+            serverbound_key_packet::{NonceOrSaltSignature, ServerboundKeyPacket},
+            LoginPacket,
         },
         ConnectionProtocol, PROTOCOL_VERSION,
     },
@@ -109,8 +110,10 @@ impl Client {
 
                         conn.write(
                             ServerboundKeyPacket {
-                                nonce: e.encrypted_nonce,
-                                shared_secret: e.encrypted_public_key,
+                                nonce_or_salt_signature: NonceOrSaltSignature::Nonce(
+                                    e.encrypted_nonce,
+                                ),
+                                key_bytes: e.encrypted_public_key,
                             }
                             .get(),
                         )
@@ -196,27 +199,66 @@ impl Client {
                 println!("Got login packet {:?}", p);
 
                 let mut state = state.lock().await;
+
+                // write p into login.txt
+                std::io::Write::write_all(
+                    &mut std::fs::File::create("login.txt").unwrap(),
+                    format!("{:#?}", p).as_bytes(),
+                )
+                .unwrap();
+
                 state.player.entity.id = p.player_id;
-                let dimension_type = p
-                    .dimension_type
+
+                // TODO: have registry_holder be a struct because this sucks rn
+                // best way would be to add serde support to azalea-nbt
+
+                let registry_holder = p
+                    .registry_holder
                     .as_compound()
-                    .expect("Dimension type is not compound")
+                    .expect("Registry holder is not a compound")
                     .get("")
                     .expect("No \"\" tag")
                     .as_compound()
-                    .expect("\"\" tag is not compound");
+                    .expect("\"\" tag is not a compound");
+                let dimension_types = registry_holder
+                    .get("minecraft:dimension_type")
+                    .expect("No dimension_type tag")
+                    .as_compound()
+                    .expect("dimension_type is not a compound")
+                    .get("value")
+                    .expect("No dimension_type value")
+                    .as_list()
+                    .expect("dimension_type value is not a list");
+                let dimension_type = dimension_types
+                    .iter()
+                    .find(|t| {
+                        t.as_compound()
+                            .expect("dimension_type value is not a compound")
+                            .get("name")
+                            .expect("No name tag")
+                            .as_string()
+                            .expect("name is not a string")
+                            == p.dimension_type.to_string()
+                    })
+                    .expect(&format!("No dimension_type with name {}", p.dimension_type))
+                    .as_compound()
+                    .unwrap()
+                    .get("element")
+                    .expect("No element tag")
+                    .as_compound()
+                    .expect("element is not a compound");
                 let height = (*dimension_type
                     .get("height")
                     .expect("No height tag")
                     .as_int()
-                    .expect("height tag is not int"))
+                    .expect("height tag is not an int"))
                 .try_into()
                 .expect("height is not a u32");
                 let min_y = (*dimension_type
                     .get("min_y")
                     .expect("No min_y tag")
                     .as_int()
-                    .expect("min_y tag is not int"))
+                    .expect("min_y tag is not an int"))
                 .try_into()
                 .expect("min_y is not an i32");
 

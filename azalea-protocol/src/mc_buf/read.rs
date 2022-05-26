@@ -2,7 +2,8 @@ use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use azalea_chat::component::Component;
 use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
-    serializable_uuid::SerializableUuid, BlockPos, ChunkSectionPos, Direction, Slot, SlotData,
+    serializable_uuid::SerializableUuid, BlockPos, ChunkSectionPos, Direction, GlobalPos, Slot,
+    SlotData,
 };
 use azalea_crypto::SaltSignaturePair;
 use byteorder::{ReadBytesExt, BE};
@@ -478,6 +479,15 @@ impl McBufReadable for BlockPos {
         let y = (val & 0xFFF) as i32;
         let z = ((val >> 12) & 0x3FFFFFF) as i32;
         Ok(BlockPos { x, y, z })
+    }
+}
+
+impl McBufReadable for GlobalPos {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        Ok(GlobalPos {
+            pos: BlockPos::read_into(buf)?,
+            dimension: ResourceLocation::read_into(buf)?,
+        })
     }
 }
 

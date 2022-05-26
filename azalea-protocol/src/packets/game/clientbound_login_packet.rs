@@ -1,4 +1,4 @@
-use azalea_core::{game_type::GameType, resource_location::ResourceLocation};
+use azalea_core::{game_type::GameType, resource_location::ResourceLocation, GlobalPos};
 use packet_macros::{GamePacket, McBuf};
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
@@ -9,7 +9,7 @@ pub struct ClientboundLoginPacket {
     pub previous_game_type: Option<GameType>,
     pub levels: Vec<ResourceLocation>,
     pub registry_holder: azalea_nbt::Tag,
-    pub dimension_type: azalea_nbt::Tag,
+    pub dimension_type: ResourceLocation,
     pub dimension: ResourceLocation,
     pub seed: i64,
     #[var]
@@ -22,4 +22,5 @@ pub struct ClientboundLoginPacket {
     pub show_death_screen: bool,
     pub is_debug: bool,
     pub is_flat: bool,
+    pub last_death_location: Option<GlobalPos>,
 }

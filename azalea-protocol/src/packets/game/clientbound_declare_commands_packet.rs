@@ -1,6 +1,7 @@
 use super::GamePacket;
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::resource_location::ResourceLocation;
+use packet_macros::McBuf;
 use std::{
     hash::Hash,
     io::{Read, Write},
@@ -110,6 +111,58 @@ impl McBufWritable for BrigadierString {
     }
 }
 
+#[derive(Debug, Clone, McBuf)]
+pub enum BrigadierParserType {
+    Bool = 0,
+    Double,
+    Float,
+    Integer,
+    Long,
+    String,
+    Entity,
+    GameProfile,
+    BlockPos,
+    ColumnPos,
+    Vec3,
+    Vec2,
+    BlockState,
+    BlockPredicate,
+    ItemStack,
+    ItemPredicate,
+    Color,
+    Component,
+    Message,
+    Nbt,
+    NbtPath,
+    Objective,
+    ObjectiveCriteira,
+    Operation,
+    Particle,
+    Rotation,
+    Angle,
+    ScoreboardSlot,
+    ScoreHolder,
+    Swizzle,
+    Team,
+    ItemSlot,
+    ResourceLocation,
+    MobEffect,
+    Function,
+    EntityAnchor,
+    Range,
+    IntRange,
+    FloatRange,
+    ItemEnchantment,
+    EntitySummon,
+    Dimension,
+    Uuid,
+    NbtTag,
+    NbtCompoundTag,
+    Time,
+    ResourceOrTag,
+    Resource,
+}
+
 #[derive(Debug, Clone)]
 pub enum BrigadierParser {
     Bool,
@@ -164,119 +217,84 @@ pub enum BrigadierParser {
 
 impl McBufReadable for BrigadierParser {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let parser = buf.read_resource_location()?;
+        let parser_type = BrigadierParserType::read_into(buf)?;
 
-        if parser == ResourceLocation::new("brigadier:bool")? {
-            Ok(BrigadierParser::Bool)
-        } else if parser == ResourceLocation::new("brigadier:double")? {
-            Ok(BrigadierParser::Double(BrigadierNumber::read_into(buf)?))
-        } else if parser == ResourceLocation::new("brigadier:float")? {
-            Ok(BrigadierParser::Float(BrigadierNumber::read_into(buf)?))
-        } else if parser == ResourceLocation::new("brigadier:integer")? {
-            Ok(BrigadierParser::Integer(BrigadierNumber::read_into(buf)?))
-        } else if parser == ResourceLocation::new("brigadier:long")? {
-            Ok(BrigadierParser::Long(BrigadierNumber::read_into(buf)?))
-        } else if parser == ResourceLocation::new("brigadier:string")? {
-            Ok(BrigadierParser::String(BrigadierString::read_into(buf)?))
-        } else if parser == ResourceLocation::new("minecraft:entity")? {
-            let flags = buf.read_byte()?;
-            Ok(BrigadierParser::Entity {
-                single: flags & 0x01 != 0,
-                players_only: flags & 0x02 != 0,
-            })
-        } else if parser == ResourceLocation::new("minecraft:game_profile")? {
-            Ok(BrigadierParser::GameProfile)
-        } else if parser == ResourceLocation::new("minecraft:block_pos")? {
-            Ok(BrigadierParser::BlockPos)
-        } else if parser == ResourceLocation::new("minecraft:column_pos")? {
-            Ok(BrigadierParser::ColumnPos)
-        } else if parser == ResourceLocation::new("minecraft:vec3")? {
-            Ok(BrigadierParser::Vec3)
-        } else if parser == ResourceLocation::new("minecraft:vec2")? {
-            Ok(BrigadierParser::Vec2)
-        } else if parser == ResourceLocation::new("minecraft:block_state")? {
-            Ok(BrigadierParser::BlockState)
-        } else if parser == ResourceLocation::new("minecraft:block_predicate")? {
-            Ok(BrigadierParser::BlockPredicate)
-        } else if parser == ResourceLocation::new("minecraft:item_stack")? {
-            Ok(BrigadierParser::ItemStack)
-        } else if parser == ResourceLocation::new("minecraft:item_predicate")? {
-            Ok(BrigadierParser::ItemPredicate)
-        } else if parser == ResourceLocation::new("minecraft:color")? {
-            Ok(BrigadierParser::Color)
-        } else if parser == ResourceLocation::new("minecraft:component")? {
-            Ok(BrigadierParser::Component)
-        } else if parser == ResourceLocation::new("minecraft:message")? {
-            Ok(BrigadierParser::Message)
-        } else if parser == ResourceLocation::new("minecraft:nbt")? {
-            Ok(BrigadierParser::Nbt)
-        } else if parser == ResourceLocation::new("minecraft:nbt_path")? {
-            Ok(BrigadierParser::NbtPath)
-        } else if parser == ResourceLocation::new("minecraft:objective")? {
-            Ok(BrigadierParser::Objective)
-        } else if parser == ResourceLocation::new("minecraft:objective_criteria")? {
-            Ok(BrigadierParser::ObjectiveCriteira)
-        } else if parser == ResourceLocation::new("minecraft:operation")? {
-            Ok(BrigadierParser::Operation)
-        } else if parser == ResourceLocation::new("minecraft:particle")? {
-            Ok(BrigadierParser::Particle)
-        } else if parser == ResourceLocation::new("minecraft:rotation")? {
-            Ok(BrigadierParser::Rotation)
-        } else if parser == ResourceLocation::new("minecraft:angle")? {
-            Ok(BrigadierParser::Angle)
-        } else if parser == ResourceLocation::new("minecraft:scoreboard_slot")? {
-            Ok(BrigadierParser::ScoreboardSlot)
-        } else if parser == ResourceLocation::new("minecraft:score_holder")? {
-            let flags = buf.read_byte()?;
-            Ok(BrigadierParser::ScoreHolder {
-                allows_multiple: flags & 0x01 != 0,
-            })
-        } else if parser == ResourceLocation::new("minecraft:swizzle")? {
-            Ok(BrigadierParser::Swizzle)
-        } else if parser == ResourceLocation::new("minecraft:team")? {
-            Ok(BrigadierParser::Team)
-        } else if parser == ResourceLocation::new("minecraft:item_slot")? {
-            Ok(BrigadierParser::ItemSlot)
-        } else if parser == ResourceLocation::new("minecraft:resource_location")? {
-            Ok(BrigadierParser::ResourceLocation)
-        } else if parser == ResourceLocation::new("minecraft:mob_effect")? {
-            Ok(BrigadierParser::MobEffect)
-        } else if parser == ResourceLocation::new("minecraft:function")? {
-            Ok(BrigadierParser::Function)
-        } else if parser == ResourceLocation::new("minecraft:entity_anchor")? {
-            Ok(BrigadierParser::EntityAnchor)
-        } else if parser == ResourceLocation::new("minecraft:range")? {
-            Ok(BrigadierParser::Range {
+        match parser_type {
+            BrigadierParserType::Bool => Ok(BrigadierParser::Bool),
+            BrigadierParserType::Double => {
+                Ok(BrigadierParser::Double(BrigadierNumber::read_into(buf)?))
+            }
+            BrigadierParserType::Float => {
+                Ok(BrigadierParser::Float(BrigadierNumber::read_into(buf)?))
+            }
+            BrigadierParserType::Integer => {
+                Ok(BrigadierParser::Integer(BrigadierNumber::read_into(buf)?))
+            }
+            BrigadierParserType::Long => {
+                Ok(BrigadierParser::Long(BrigadierNumber::read_into(buf)?))
+            }
+            BrigadierParserType::String => {
+                Ok(BrigadierParser::String(BrigadierString::read_into(buf)?))
+            }
+            BrigadierParserType::Entity {
+                single,
+                players_only,
+            } => Ok(BrigadierParser::Entity {
+                single,
+                players_only,
+            }),
+            BrigadierParserType::GameProfile => Ok(BrigadierParser::GameProfile),
+            BrigadierParserType::BlockPos => Ok(BrigadierParser::BlockPos),
+            BrigadierParserType::ColumnPos => Ok(BrigadierParser::ColumnPos),
+            BrigadierParserType::Vec3 => Ok(BrigadierParser::Vec3),
+            BrigadierParserType::Vec2 => Ok(BrigadierParser::Vec2),
+            BrigadierParserType::BlockState => Ok(BrigadierParser::BlockState),
+            BrigadierParserType::BlockPredicate => Ok(BrigadierParser::BlockPredicate),
+            BrigadierParserType::ItemStack => Ok(BrigadierParser::ItemStack),
+            BrigadierParserType::ItemPredicate => Ok(BrigadierParser::ItemPredicate),
+            BrigadierParserType::Color => Ok(BrigadierParser::Color),
+            BrigadierParserType::Component => Ok(BrigadierParser::Component),
+            BrigadierParserType::Message => Ok(BrigadierParser::Message),
+            BrigadierParserType::Nbt => Ok(BrigadierParser::Nbt),
+            BrigadierParserType::NbtPath => Ok(BrigadierParser::NbtPath),
+            BrigadierParserType::Objective => Ok(BrigadierParser::Objective),
+            BrigadierParserType::ObjectiveCriteira => Ok(BrigadierParser::ObjectiveCriteira),
+            BrigadierParserType::Operation => Ok(BrigadierParser::Operation),
+            BrigadierParserType::Particle => Ok(BrigadierParser::Particle),
+            BrigadierParserType::Rotation => Ok(BrigadierParser::Rotation),
+            BrigadierParserType::Angle => Ok(BrigadierParser::Angle),
+            BrigadierParserType::ScoreboardSlot => Ok(BrigadierParser::ScoreboardSlot),
+            BrigadierParserType::ScoreHolder => {
+                let flags = buf.read_byte()?;
+                Ok(BrigadierParser::ScoreHolder {
+                    allows_multiple: flags & 0x01 != 0,
+                })
+            }
+            BrigadierParserType::Swizzle => Ok(BrigadierParser::Swizzle),
+            BrigadierParserType::Team => Ok(BrigadierParser::Team),
+            BrigadierParserType::ItemSlot => Ok(BrigadierParser::ItemSlot),
+            BrigadierParserType::ResourceLocation => Ok(BrigadierParser::ResourceLocation),
+            BrigadierParserType::MobEffect => Ok(BrigadierParser::MobEffect),
+            BrigadierParserType::Function => Ok(BrigadierParser::Function),
+            BrigadierParserType::EntityAnchor => Ok(BrigadierParser::EntityAnchor),
+            BrigadierParserType::Range => Ok(BrigadierParser::Range {
                 decimals_allowed: buf.read_boolean()?,
-            })
-        } else if parser == ResourceLocation::new("minecraft:int_range")? {
-            Ok(BrigadierParser::IntRange)
-        } else if parser == ResourceLocation::new("minecraft:float_range")? {
-            Ok(BrigadierParser::FloatRange)
-        } else if parser == ResourceLocation::new("minecraft:item_enchantment")? {
-            Ok(BrigadierParser::ItemEnchantment)
-        } else if parser == ResourceLocation::new("minecraft:entity_summon")? {
-            Ok(BrigadierParser::EntitySummon)
-        } else if parser == ResourceLocation::new("minecraft:dimension")? {
-            Ok(BrigadierParser::Dimension)
-        } else if parser == ResourceLocation::new("minecraft:uuid")? {
-            Ok(BrigadierParser::Uuid)
-        } else if parser == ResourceLocation::new("minecraft:nbt_tag")? {
-            Ok(BrigadierParser::NbtTag)
-        } else if parser == ResourceLocation::new("minecraft:nbt_compound_tag")? {
-            Ok(BrigadierParser::NbtCompoundTag)
-        } else if parser == ResourceLocation::new("minecraft:time")? {
-            Ok(BrigadierParser::Time)
-        } else if parser == ResourceLocation::new("minecraft:resource_or_tag")? {
-            Ok(BrigadierParser::ResourceOrTag {
+            }),
+            BrigadierParserType::IntRange => Ok(BrigadierParser::IntRange),
+            BrigadierParserType::FloatRange => Ok(BrigadierParser::FloatRange),
+            BrigadierParserType::ItemEnchantment => Ok(BrigadierParser::ItemEnchantment),
+            BrigadierParserType::EntitySummon => Ok(BrigadierParser::EntitySummon),
+            BrigadierParserType::Dimension => Ok(BrigadierParser::Dimension),
+            BrigadierParserType::Uuid => Ok(BrigadierParser::Uuid),
+            BrigadierParserType::NbtTag => Ok(BrigadierParser::NbtTag),
+            BrigadierParserType::NbtCompoundTag => Ok(BrigadierParser::NbtCompoundTag),
+            BrigadierParserType::Time => Ok(BrigadierParser::Time),
+            BrigadierParserType::ResourceOrTag => Ok(BrigadierParser::ResourceOrTag {
                 registry_key: buf.read_resource_location()?,
-            })
-        } else if parser == ResourceLocation::new("minecraft:resource")? {
-            Ok(BrigadierParser::Resource {
+            }),
+            BrigadierParserType::Resource => Ok(BrigadierParser::Resource {
                 registry_key: buf.read_resource_location()?,
-            })
-        } else {
-            panic!("Unknown Brigadier parser: {}", parser)
+            }),
         }
     }
 }

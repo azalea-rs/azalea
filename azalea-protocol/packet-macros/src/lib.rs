@@ -56,13 +56,23 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
         }
         syn::Data::Enum(syn::DataEnum { variants, .. }) => {
             let mut match_contents = quote!();
+            let mut variant_discrim: usize = 0;
             for variant in variants {
                 let variant_name = &variant.ident;
-                let variant_discrim = &variant
-                    .discriminant
-                    .as_ref()
-                    .expect("enum variant must have a discriminant")
-                    .1;
+                match &variant.discriminant.as_ref() {
+                    Some(d) => {
+                        variant_discrim = match &d.1 {
+                            syn::Expr::Lit(e) => match &e.lit {
+                                syn::Lit::Int(i) => i.base10_parse().unwrap(),
+                                _ => panic!("Error parsing enum discriminant"),
+                            },
+                            _ => panic!("Error parsing enum discriminant"),
+                        }
+                    }
+                    None => {
+                        variant_discrim += 1;
+                    }
+                }
                 match_contents.extend(quote! {
                     #variant_discrim => Ok(Self::#variant_name),
                 });
@@ -344,6 +354,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
         });
     }
     for PacketIdPair { id, module, name } in input.clientbound.packets {
+        let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
         enum_contents.extend(quote! {
             #name(#module::#name),
         });
@@ -354,7 +365,10 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #state_name::#name(packet) => packet.write(buf),
         });
         clientbound_read_match_contents.extend(quote! {
-            #id => #module::#name::read(buf)?,
+            #id => {
+                println!("reading packet {}", #name_litstr);
+                #module::#name::read(buf)?
+            },
         });
     }
 

@@ -1,6 +1,7 @@
 //! This lib is responsible for parsing Minecraft packets.
 
 #![feature(min_specialization)]
+#![feature(arbitrary_enum_discriminant)]
 
 use std::net::IpAddr;
 use std::str::FromStr;
