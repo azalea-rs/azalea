@@ -12,7 +12,7 @@ use crate::{
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 
-pub const PROTOCOL_VERSION: u32 = 758;
+pub const PROTOCOL_VERSION: u32 = 1073741911;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, FromPrimitive)]
 pub enum ConnectionProtocol {

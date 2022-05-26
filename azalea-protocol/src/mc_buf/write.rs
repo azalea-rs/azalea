@@ -4,6 +4,7 @@ use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
     serializable_uuid::SerializableUuid, BlockPos, ChunkSectionPos, Direction, Slot,
 };
+use azalea_crypto::SaltSignaturePair;
 use byteorder::{BigEndian, WriteBytesExt};
 use std::{collections::HashMap, io::Write};
 use uuid::Uuid;
@@ -433,6 +434,14 @@ impl McBufWritable for ChunkSectionPos {
             | (self.y & 0xFFFFF) as i64
             | (((self.z & 0x3FFFFF) as i64) << 20);
         long.write_into(buf)?;
+        Ok(())
+    }
+}
+
+impl McBufWritable for SaltSignaturePair {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.salt.write_into(buf)?;
+        self.signature.write_into(buf)?;
         Ok(())
     }
 }

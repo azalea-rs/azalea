@@ -72,6 +72,11 @@ for packet, packet_name in new_packets.items():
 for packet in added_packets:
     lib.code.packet.generate_packet(
         new_burger_data[0]['packets']['packet'], new_mappings, packet.packet_id, packet.direction, packet.state)
+
+lib.code.version.set_protocol_version(
+    new_burger_data[0]['version']['protocol'])
+lib.code.version.set_version_id(new_version_id)
+
 lib.code.utils.fmt()
 
 print('Done!')

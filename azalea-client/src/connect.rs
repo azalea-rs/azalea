@@ -4,7 +4,8 @@ use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
     packets::{
         game::{
-            clientbound_chat_packet::ClientboundChatPacket,
+            clientbound_player_chat_packet::ClientboundPlayerChatPacket,
+            clientbound_system_chat_packet::ClientboundSystemChatPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             serverbound_keep_alive_packet::ServerboundKeepAlivePacket, GamePacket,
         },
@@ -44,9 +45,24 @@ pub struct Client {
 }
 
 #[derive(Debug, Clone)]
+pub enum ChatPacket {
+    System(ClientboundSystemChatPacket),
+    Player(ClientboundPlayerChatPacket),
+}
+
+// impl ChatPacket {
+//     pub fn message(&self) -> &str {
+//         match self {
+//             ChatPacket::System(p) => &p.content,
+//             ChatPacket::Player(p) => &p.message,
+//         }
+//     }
+// }
+
+#[derive(Debug, Clone)]
 pub enum Event {
     Login,
-    Chat(ClientboundChatPacket),
+    Chat(ChatPacket),
 }
 
 /// Whether we should ignore errors when decoding packets.
@@ -75,6 +91,7 @@ impl Client {
         conn.write(
             ServerboundHelloPacket {
                 username: account.username.clone(),
+                public_key: None,
             }
             .get(),
         )
@@ -290,9 +307,6 @@ impl Client {
             GamePacket::ClientboundLightUpdatePacket(p) => {
                 println!("Got light update packet {:?}", p);
             }
-            GamePacket::ClientboundAddMobPacket(p) => {
-                println!("Got add mob packet {:?}", p);
-            }
             GamePacket::ClientboundAddEntityPacket(p) => {
                 println!("Got add entity packet {:?}", p);
             }
@@ -357,9 +371,13 @@ impl Client {
             GamePacket::ClientboundRemoveEntitiesPacket(p) => {
                 println!("Got remove entities packet {:?}", p);
             }
-            GamePacket::ClientboundChatPacket(p) => {
-                println!("Got chat packet {:?}", p);
-                tx.send(Event::Chat(p.clone())).unwrap();
+            GamePacket::ClientboundPlayerChatPacket(p) => {
+                println!("Got player chat packet {:?}", p);
+                tx.send(Event::Chat(ChatPacket::Player(p.clone()))).unwrap();
+            }
+            GamePacket::ClientboundSystemChatPacket(p) => {
+                println!("Got system chat packet {:?}", p);
+                tx.send(Event::Chat(ChatPacket::System(p.clone()))).unwrap();
             }
             GamePacket::ClientboundSoundPacket(p) => {
                 println!("Got sound packet {:?}", p);
