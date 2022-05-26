@@ -1,9 +1,6 @@
 use azalea_crypto::SaltSignaturePair;
 use packet_macros::{LoginPacket, McBuf};
-use std::{
-    hash::Hash,
-    io::{Read, Write},
-};
+use std::io::{Read, Write};
 
 use crate::mc_buf::{McBufReadable, McBufWritable};
 

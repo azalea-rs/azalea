@@ -56,7 +56,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
         }
         syn::Data::Enum(syn::DataEnum { variants, .. }) => {
             let mut match_contents = quote!();
-            let mut variant_discrim: usize = 0;
+            let mut variant_discrim: u32 = 0;
             for variant in variants {
                 let variant_name = &variant.ident;
                 match &variant.discriminant.as_ref() {

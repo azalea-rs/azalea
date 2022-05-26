@@ -111,7 +111,7 @@ impl McBufWritable for BrigadierString {
     }
 }
 
-#[derive(Debug, Clone, McBuf)]
+#[derive(Debug, Clone, Copy, McBuf)]
 pub enum BrigadierParserType {
     Bool = 0,
     Double,
@@ -236,13 +236,13 @@ impl McBufReadable for BrigadierParser {
             BrigadierParserType::String => {
                 Ok(BrigadierParser::String(BrigadierString::read_into(buf)?))
             }
-            BrigadierParserType::Entity {
-                single,
-                players_only,
-            } => Ok(BrigadierParser::Entity {
-                single,
-                players_only,
-            }),
+            BrigadierParserType::Entity => {
+                let flags = buf.read_byte()?;
+                Ok(BrigadierParser::Entity {
+                    single: flags & 0x01 != 0,
+                    players_only: flags & 0x02 != 0,
+                })
+            }
             BrigadierParserType::GameProfile => Ok(BrigadierParser::GameProfile),
             BrigadierParserType::BlockPos => Ok(BrigadierParser::BlockPos),
             BrigadierParserType::ColumnPos => Ok(BrigadierParser::ColumnPos),
