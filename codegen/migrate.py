@@ -38,8 +38,8 @@ for packet, packet_name in old_packets.items():
     if packet_name not in new_packets.values():
         removed_packets.append(packet)
         print('Removed packet:', packet, packet_name)
-# for (direction, state), packets in group_packets(removed_packets).items():
-#     lib.code.packet.remove_packet_ids(packets, direction, state)
+for (direction, state), packets in group_packets(removed_packets).items():
+    lib.code.packet.remove_packet_ids(packets, direction, state)
 
 print()
 
@@ -52,8 +52,14 @@ for old_packet, old_packet_name in old_packets.items():
             print('Changed packet id:', old_packet, '->',
                   new_packet, f'({new_packet_name})')
             break
-# for (direction, state), packets in group_packets(list(changed_packets.keys())).items():
-#     lib.code.packet.remove_packet_ids(packets, direction, state)
+for (direction, state), packets in group_packets(list(changed_packets.keys())).items():
+    id_map: dict[int, int] = {}
+    for old_packet_id in packets:
+        new_packet_id = changed_packets[PacketIdentifier(
+            old_packet_id, direction, state)]
+        id_map[old_packet_id] = new_packet_id
+
+    lib.code.packet.change_packet_ids(id_map, direction, state)
 
 
 print()
@@ -64,9 +70,9 @@ for packet, packet_name in new_packets.items():
     if packet_name not in old_packets.values():
         added_packets.append(packet)
         print('Added packet:', packet, packet_name)
-# for packet in added_packets:
-#     lib.code.packet.generate_packet(
-#         new_burger_data[0]['packets']['packet'], new_mappings, packet.packet_id, packet.direction, packet.state)
+for packet in added_packets:
+    lib.code.packet.generate_packet(
+        new_burger_data[0]['packets']['packet'], new_mappings, packet.packet_id, packet.direction, packet.state)
 lib.code.utils.fmt()
 
 print('Done!')
