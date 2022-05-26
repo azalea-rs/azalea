@@ -38,8 +38,8 @@ for packet, packet_name in old_packets.items():
     if packet_name not in old_packets.values():
         removed_packets.append(packet)
         print('Removed packet:', packet)
-for (direction, state), packets in group_packets(removed_packets).items():
-    lib.code.packet.remove_packet_ids(packets, direction, state)
+# for (direction, state), packets in group_packets(removed_packets).items():
+#     lib.code.packet.remove_packet_ids(packets, direction, state)
 
 print()
 
@@ -47,13 +47,13 @@ print()
 changed_packets: dict[PacketIdentifier, int] = {}
 for old_packet, old_packet_name in old_packets.items():
     for new_packet, new_packet_name in new_packets.items():
-        if old_packet.direction == new_packet.direction and old_packet.state == new_packet.state and old_packet.packet_id != new_packet.packet_id:
+        if old_packet_name == new_packet_name and old_packet.direction == new_packet.direction and old_packet.state == new_packet.state and old_packet.packet_id != new_packet.packet_id:
             changed_packets[old_packet] = new_packet.packet_id
             print('Changed packet id:', old_packet, '->',
                   new_packet, f'({new_packet_name})')
             break
-for (direction, state), packets in group_packets(list(changed_packets.keys())).items():
-    lib.code.packet.remove_packet_ids(packets, direction, state)
+# for (direction, state), packets in group_packets(list(changed_packets.keys())).items():
+#     lib.code.packet.remove_packet_ids(packets, direction, state)
 
 
 print()
@@ -64,9 +64,9 @@ for packet, packet_name in new_packets.items():
     if packet_name not in old_packets.values():
         added_packets.append(packet)
         print('Added packet:', packet)
-for packet in added_packets:
-    lib.code.packet.generate_packet(
-        new_burger_data[0]['packets']['packet'], new_mappings, packet.packet_id, packet.direction, packet.state)
+# for packet in added_packets:
+#     lib.code.packet.generate_packet(
+#         new_burger_data[0]['packets']['packet'], new_mappings, packet.packet_id, packet.direction, packet.state)
 lib.code.utils.fmt()
 
 print('Done!')

@@ -41,8 +41,12 @@ def get_version_data(version_id: str):
 
         print(
             f'\033[92mGetting data for \033[1m{version_id}..\033[m')
-        package_url = next(
-            filter(lambda v: v['id'] == version_id, version_manifest_data['versions']))['url']
+        try:
+            package_url = next(
+                filter(lambda v: v['id'] == version_id, version_manifest_data['versions']))['url']
+        except StopIteration:
+            raise ValueError(
+                f'No version with id {version_id} found. Maybe delete downloads/version_manifest.json and try again?')
         package_data = requests.get(package_url).json()
         with open(f'downloads/{version_id}.json', 'w') as f:
             json.dump(package_data, f)
