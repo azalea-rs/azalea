@@ -117,7 +117,7 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
     assert len(packet_ids) == len(packet_class_names)
 
     # sort the packets by id
-    zipped_packets: list[tuple[int, str]] = [list(x) for x in zip(
+    packet_ids, packet_class_names = [list(x) for x in zip(
         *sorted(zip(packet_ids, packet_class_names), key=lambda pair: pair[0]))]  # type: ignore
 
     mod_rs_dir = f'../azalea-protocol/src/packets/{state}/mod.rs'
@@ -132,7 +132,7 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
             new_mod_rs.append(line)
             if direction == 'serverbound':
                 ignore_lines = True
-                for packet_id, packet_class_name in zipped_packets:
+                for packet_id, packet_class_name in zip(packet_ids, packet_class_names):
                     new_mod_rs.append(
                         make_packet_mod_rs_line(packet_id, packet_class_name)
                     )
@@ -143,7 +143,7 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
             new_mod_rs.append(line)
             if direction == 'serverbound':
                 ignore_lines = True
-                for packet_id, packet_class_name in zipped_packets:
+                for packet_id, packet_class_name in zip(packet_ids, packet_class_names):
                     new_mod_rs.append(
                         make_packet_mod_rs_line(packet_id, packet_class_name)
                     )

@@ -58,7 +58,6 @@ for (direction, state), packets in group_packets(list(changed_packets.keys())).i
         new_packet_id = changed_packets[PacketIdentifier(
             old_packet_id, direction, state)]
         id_map[old_packet_id] = new_packet_id
-
     lib.code.packet.change_packet_ids(id_map, direction, state)
 
 
