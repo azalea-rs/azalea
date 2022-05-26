@@ -141,7 +141,7 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
             continue
         elif line.strip() == 'Clientbound => {':
             new_mod_rs.append(line)
-            if direction == 'serverbound':
+            if direction == 'clientbound':
                 ignore_lines = True
                 for packet_id, packet_class_name in zip(packet_ids, packet_class_names):
                     new_mod_rs.append(
@@ -211,7 +211,7 @@ def change_packet_ids(id_map: dict[int, int], direction: str, state: str):
     set_packets(new_packet_ids, existing_packet_class_names, direction, state)
 
 
-def remove_packet_ids(packet_ids: list[int], direction: str, state: str):
+def remove_packet_ids(removing_packet_ids: list[int], direction: str, state: str):
     existing_packet_ids, existing_packet_class_names = get_packets(
         direction, state)
 
@@ -219,7 +219,7 @@ def remove_packet_ids(packet_ids: list[int], direction: str, state: str):
     new_packet_class_names = []
 
     for packet_id, packet_class_name in zip(existing_packet_ids, existing_packet_class_names):
-        if packet_id not in packet_ids:
+        if packet_id not in removing_packet_ids:
             new_packet_ids.append(packet_id)
             new_packet_class_names.append(packet_class_name)
 
