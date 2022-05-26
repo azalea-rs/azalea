@@ -128,8 +128,7 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
 
     required_modules = []
 
-    # set to true by default to ignore the `pub mod` lines since we add these later
-    ignore_lines = True
+    ignore_lines = False
 
     for line in mod_rs:
         if line.strip() == 'Serverbound => {':
@@ -157,13 +156,15 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
             continue
         elif line.strip() in ('}', '},'):
             ignore_lines = False
+        elif line.strip().startswith('pub mod '):
+            continue
 
         if not ignore_lines:
             new_mod_rs.append(line)
             # 0x00: clientbound_status_response_packet::ClientboundStatusResponsePacket,
             if line.strip().startswith('0x'):
                 required_modules.append(
-                    line.strip().split(':')[1].split('::')[0])
+                    line.strip().split(':')[1].split('::')[0].strip())
 
     for i, required_module in enumerate(required_modules):
         if required_module not in mod_rs:
@@ -232,7 +233,13 @@ def remove_packet_ids(removing_packet_ids: list[int], direction: str, state: str
     new_packet_class_names = []
 
     for packet_id, packet_class_name in zip(existing_packet_ids, existing_packet_class_names):
-        if packet_id not in removing_packet_ids:
+        if packet_id in removing_packet_ids:
+            try:
+                os.remove(
+                    f'../azalea-protocol/src/packets/{state}/{packet_class_name}.rs')
+            except:
+                pass
+        else:
             new_packet_ids.append(packet_id)
             new_packet_class_names.append(packet_class_name)
 
