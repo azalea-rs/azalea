@@ -1,7 +1,8 @@
 import re
 import os
+from lib.utils import get_dir_location
 
-README_DIR = os.path.join(os.path.dirname(__file__), '../../../README.md')
+README_DIR = get_dir_location('../README.md')
 VERSION_REGEX = r'\*Currently supported Minecraft version: `(.*)`.\*'
 
 

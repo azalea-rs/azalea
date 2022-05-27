@@ -1,4 +1,5 @@
 import re
+import os
 
 # utilities that could be used for things other than codegen
 
@@ -44,3 +45,7 @@ def group_packets(packets: list[PacketIdentifier]):
             packet_groups[key] = []
         packet_groups[key].append(packet.packet_id)
     return packet_groups
+
+
+def get_dir_location(name: str):
+    return os.path.join(os.path.dirname(__file__), '..', name)
