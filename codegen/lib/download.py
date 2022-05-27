@@ -63,16 +63,13 @@ def get_client_jar(version_id: str):
             f.write(requests.get(client_jar_url).content)
 
 
-def get_burger_data_for_version(version_id: str):
-    if not os.path.exists(get_dir_location(f'downloads/burger-{version_id}.json')):
-        get_burger()
-        get_client_jar(version_id)
-
-        os.system(
-            f'cd {get_dir_location("downloads/Burger")} && python munch.py ../client-{version_id}.jar --output ../burger-{version_id}.json'
-        )
-    with open(get_dir_location(f'downloads/burger-{version_id}.json'), 'r') as f:
-        return json.load(f)
+def get_server_jar(version_id: str):
+    if not os.path.exists(get_dir_location(f'downloads/server-{version_id}.jar')):
+        package_data = get_version_data(version_id)
+        print('\033[92mDownloading server jar...\033[m')
+        server_jar_url = package_data['downloads']['server']['url']
+        with open(get_dir_location(f'downloads/server-{version_id}.jar'), 'wb') as f:
+            f.write(requests.get(server_jar_url).content)
 
 
 def get_mappings_for_version(version_id: str):
