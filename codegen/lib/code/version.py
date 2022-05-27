@@ -1,6 +1,7 @@
 import re
+import os
 
-README_DIR = '../README.md'
+README_DIR = os.path.join(os.path.dirname(__file__), '../../../README.md')
 VERSION_REGEX = r'\*Currently supported Minecraft version: `(.*)`.\*'
 
 
@@ -30,6 +31,7 @@ def set_version_id(version_id: str) -> None:
     with open(README_DIR, 'w') as f:
         f.write(readme_text)
 
+
 def get_protocol_version() -> str:
     # azalea-protocol/src/packets/mod.rs
     # pub const PROTOCOL_VERSION: u32 = 758;
@@ -38,7 +40,9 @@ def get_protocol_version() -> str:
     for line in mod_rs:
         if line.strip().startswith('pub const PROTOCOL_VERSION'):
             return line.strip().split(' ')[-1].strip(';')
-    raise Exception('Could not find protocol version in azalea-protocol/src/packets/mod.rs')
+    raise Exception(
+        'Could not find protocol version in azalea-protocol/src/packets/mod.rs')
+
 
 def set_protocol_version(protocol_version: str) -> None:
     with open('../azalea-protocol/src/packets/mod.rs', 'r') as f:
@@ -48,7 +52,8 @@ def set_protocol_version(protocol_version: str) -> None:
             mod_rs[i] = f'pub const PROTOCOL_VERSION: u32 = {protocol_version};'
             break
     else:
-        raise Exception('Could not find protocol version in azalea-protocol/src/packets/mod.rs')
+        raise Exception(
+            'Could not find protocol version in azalea-protocol/src/packets/mod.rs')
 
     with open('../azalea-protocol/src/packets/mod.rs', 'w') as f:
         f.write('\n'.join(mod_rs))
