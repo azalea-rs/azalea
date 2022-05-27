@@ -354,7 +354,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
         });
     }
     for PacketIdPair { id, module, name } in input.clientbound.packets {
-        let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
+        // let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
         enum_contents.extend(quote! {
             #name(#module::#name),
         });
@@ -365,10 +365,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #state_name::#name(packet) => packet.write(buf),
         });
         clientbound_read_match_contents.extend(quote! {
-            #id => {
-                println!("reading packet {}", #name_litstr);
-                #module::#name::read(buf)?
-            },
+            #id => #module::#name::read(buf)?,
         });
     }
 

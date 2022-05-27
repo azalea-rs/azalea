@@ -200,12 +200,12 @@ impl Client {
 
                 let mut state = state.lock().await;
 
-                // write p into login.txt
-                std::io::Write::write_all(
-                    &mut std::fs::File::create("login.txt").unwrap(),
-                    format!("{:#?}", p).as_bytes(),
-                )
-                .unwrap();
+                // // write p into login.txt
+                // std::io::Write::write_all(
+                //     &mut std::fs::File::create("login.txt").unwrap(),
+                //     format!("{:#?}", p).as_bytes(),
+                // )
+                // .unwrap();
 
                 state.player.entity.id = p.player_id;
 
@@ -443,6 +443,9 @@ impl Client {
             }
             GamePacket::ClientboundLevelParticlesPacket(p) => {
                 println!("Got level particles packet {:?}", p);
+            }
+            GamePacket::ClientboundServerDataPacket(p) => {
+                println!("Got server data packet {:?}", p);
             }
             _ => panic!("Unexpected packet {:?}", packet),
         }
