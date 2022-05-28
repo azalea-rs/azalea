@@ -1,13 +1,16 @@
+mod utils;
+
 use proc_macro::TokenStream;
-use quote::{quote, ToTokens};
-use std::fmt::Debug;
+use quote::quote;
+use std::collections::HashMap;
 use syn::{
     self, braced,
     parse::{Parse, ParseStream, Result},
     parse_macro_input,
     punctuated::Punctuated,
-    Data, DeriveInput, Expr, FieldsNamed, Ident, LitInt, Token,
+    Expr, Ident, Token,
 };
+use utils::{combinations_of, to_pascal_case};
 
 struct PropertyDefinition {
     name: Ident,
@@ -71,6 +74,7 @@ impl Parse for BlockDefinition {
         let name = input.parse()?;
         input.parse::<Token![=>]>()?;
         let behavior = input.parse()?;
+
         input.parse::<Token![,]>()?;
         let content;
         braced!(content in input);
@@ -124,14 +128,16 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as MakeBlockStates);
 
     let mut property_enums = quote! {};
-
+    let mut properties_map = HashMap::new();
     for property in &input.property_definitions.properties {
         let mut property_enum_variants = quote! {};
+        let mut property_enum_variant_names = Vec::new();
 
         for variant in &property.variants {
             property_enum_variants.extend(quote! {
                 #variant,
             });
+            property_enum_variant_names.push(variant.to_string());
         }
 
         let property_name = &property.name;
@@ -142,20 +148,46 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 #property_enum_variants
             }
         });
+        properties_map.insert(property_name.to_string(), property_enum_variant_names);
     }
 
-    // let mut block_state_enum_variants = quote! {};
-
-    // for block in &input.block_definitions.blocks {
-    //     let block_state_enum_variant = quote! {
-    //         #block.name(#block.behavior, #block.properties)
-    //     };
-    //     block_state_enum_variants.extend(block_state_enum_variant);
-    // }
+    let mut block_state_enum_variants = quote! {};
+    for block in &input.block_definitions.blocks {
+        let block_properties = &block.properties;
+        let mut block_properties_vec = Vec::new();
+        for property in block_properties {
+            let property_name = &property.to_string();
+            let property_variants = properties_map
+                .get(property_name)
+                .expect(format!("Property '{}' not found", property_name).as_str())
+                .clone();
+            block_properties_vec.push(property_variants);
+        }
+        for combination in combinations_of(&block_properties_vec) {
+            let variant_name = Ident::new(
+                &format!(
+                    "{}_{}",
+                    to_pascal_case(&block.name.to_string()),
+                    combination
+                        .iter()
+                        .map(|v| v.to_string())
+                        .collect::<Vec<String>>()
+                        .join("")
+                ),
+                proc_macro2::Span::call_site(),
+            );
+            block_state_enum_variants.extend(quote! {
+                #variant_name,
+            });
+        }
+    }
 
     quote! {
         #property_enums
-        // #block_state_enum_variants
+
+        pub enum BlockState {
+            #block_state_enum_variants
+        }
     }
     .into()
 }

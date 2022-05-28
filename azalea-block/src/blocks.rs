@@ -1,4 +1,3 @@
-use crate::behavior::BlockBehavior;
 use block_macros::make_block_states;
 
 make_block_states! {
@@ -8,14 +7,36 @@ make_block_states! {
             Wall,
             Ceiling
         };
+        Facing {
+            North,
+            South,
+            West,
+            East
+        };
+        Powered {
+            True,
+            False
+        };
+        Half {
+            Upper,
+            Lower
+        };
+        Hinge {
+            Left,
+            Right
+        };
+        Open {
+            True,
+            False
+        };
     }
     BLOCKS => {
-        acacia_button => BlockBehavior { has_collision: false }, {
+        acacia_button => BlockBehavior::new().no_collision(), {
             Face,
             Facing,
             Powered
         };
-        acacia_door => BlockBehavior { has_collision: true }, {
+        acacia_door => BlockBehavior::new(), {
             Facing,
             Half,
             Hinge,
