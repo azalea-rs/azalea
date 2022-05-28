@@ -12,7 +12,7 @@ def generate_data_from_server_jar(version_id: str):
 
     get_server_jar(version_id)
     os.system(
-        f'java -jar {get_dir_location(f"downloads/server-{version_id}.jar")} --all --output {get_dir_location(f"downloads/generated-{version_id}")}'
+        f'cd {get_dir_location(f"downloads")} && java -DbundlerMainClass=net.minecraft.data.Main -jar {get_dir_location(f"downloads/server-{version_id}.jar")} --all --output \"{get_dir_location(f"downloads/generated-{version_id}")}\"'
     )
 
 
