@@ -1,4 +1,9 @@
+use crate::BlockBehavior;
 use block_macros::make_block_states;
+
+pub trait Block {
+    fn behavior(&self) -> BlockBehavior;
+}
 
 make_block_states! {
     PROPERTIES => {
@@ -31,12 +36,12 @@ make_block_states! {
         };
     }
     BLOCKS => {
-        acacia_button => BlockBehavior::new().no_collision(), {
+        acacia_button => BlockBehavior::default().no_collision(), {
             Face,
             Facing,
             Powered
         };
-        acacia_door => BlockBehavior::new(), {
+        acacia_door => BlockBehavior::default(), {
             Facing,
             Half,
             Hinge,

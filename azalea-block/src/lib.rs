@@ -1,2 +1,5 @@
-pub mod behavior;
-pub mod blocks;
+mod behavior;
+mod blocks;
+
+pub use behavior::BlockBehavior;
+pub use blocks::*;

@@ -152,17 +152,40 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     }
 
     let mut block_state_enum_variants = quote! {};
+    let mut block_structs = quote! {};
     for block in &input.block_definitions.blocks {
-        let block_properties = &block.properties;
+        let block_property_names = &block
+            .properties
+            .iter()
+            .map(|p| p.to_string())
+            .collect::<Vec<_>>();
         let mut block_properties_vec = Vec::new();
-        for property in block_properties {
-            let property_name = &property.to_string();
+        for property_name in block_property_names {
             let property_variants = properties_map
                 .get(property_name)
                 .expect(format!("Property '{}' not found", property_name).as_str())
                 .clone();
             block_properties_vec.push(property_variants);
         }
+
+        //     pub face: properties::Face,
+        //     pub facing: properties::Facing,
+        //     pub powered: properties::Powered,
+        let mut block_struct_fields = quote! {};
+        for property in &block.properties {
+            let property_name_snake =
+                Ident::new(&property.to_string(), proc_macro2::Span::call_site());
+            block_struct_fields.extend(quote! {
+                pub #property_name_snake: #property,
+            })
+        }
+        let block_struct_name = Ident::new(
+            &format!("{}Block", to_pascal_case(&block.name.to_string())),
+            proc_macro2::Span::call_site(),
+        );
+
+        let mut from_block_to_state_match = quote! {};
+
         for combination in combinations_of(&block_properties_vec) {
             let variant_name = Ident::new(
                 &format!(
@@ -179,7 +202,55 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             block_state_enum_variants.extend(quote! {
                 #variant_name,
             });
+
+            // 	face: properties::Face::Floor,
+            // 	facing: properties::Facing::North,
+            // 	powered: properties::Powered::True,
+            let mut from_block_to_state_match_inner = quote! {};
+            for i in 0..block_property_names.len() {
+                let property_name = &block_property_names[i];
+                let property_name_ident = Ident::new(property_name, proc_macro2::Span::call_site());
+                let property_name_snake =
+                    Ident::new(&property_name.to_string(), proc_macro2::Span::call_site());
+                let variant =
+                    Ident::new(&combination[i].to_string(), proc_macro2::Span::call_site());
+
+                from_block_to_state_match_inner.extend(quote! {
+                    #property_name_ident: #property_name_snake::#variant,
+                });
+            }
+
+            from_block_to_state_match.extend(quote! {
+                #block_struct_name {
+                    #from_block_to_state_match_inner
+                } => BlockState::#variant_name,
+            });
         }
+
+        let block_behavior = &block.behavior;
+        let block_struct = quote! {
+            #[derive(Debug)]
+            pub struct #block_struct_name {
+                #block_struct_fields
+            }
+
+            impl Block for #block_struct_name {
+                fn behavior(&self) -> BlockBehavior {
+                    #block_behavior
+                }
+            }
+
+            impl From<#block_struct_name> for BlockState {
+                fn from(b: #block_struct_name) -> Self {
+                    match b {
+                        #from_block_to_state_match
+                    }
+                }
+            }
+
+        };
+
+        block_structs.extend(block_struct);
     }
 
     quote! {
@@ -188,6 +259,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         pub enum BlockState {
             #block_state_enum_variants
         }
+
+        #block_structs
     }
     .into()
 }
