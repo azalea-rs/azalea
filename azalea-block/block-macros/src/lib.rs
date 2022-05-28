@@ -38,7 +38,11 @@ impl Parse for PropertyDefinition {
         //     Ceiling
         // };
         let name = input.parse()?;
-        let variants = input.parse_terminated(Ident::parse)?;
+
+        let content;
+        braced!(content in input);
+        let variants = content.parse_terminated(Ident::parse)?;
+
         input.parse::<Token![;]>()?;
         Ok(PropertyDefinition { name, variants })
     }
@@ -130,7 +134,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             });
         }
 
-        let property_name = property.name;
+        let property_name = &property.name;
 
         property_enums.extend(quote! {
             #[derive(Debug, Clone, Copy)]

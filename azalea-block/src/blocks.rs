@@ -1,4 +1,5 @@
-use crate::{behavior::BlockBehavior, properties};
+use crate::behavior::BlockBehavior;
+use block_macros::make_block_states;
 
 make_block_states! {
     PROPERTIES => {
