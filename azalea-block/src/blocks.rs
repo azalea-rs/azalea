@@ -3,6 +3,7 @@ use block_macros::make_block_states;
 
 pub trait Block {
     fn behavior(&self) -> BlockBehavior;
+    fn id(&self) -> &'static str;
 }
 
 make_block_states! {
@@ -141,5 +142,29 @@ make_block_states! {
 //             // } => todo!(),
 //             _ => todo!(),
 //         }
+//     }
+// }
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+
+//     fn test_from_state_to_block() {
+//         let state = BlockState::AcaciaButton_CeilingSouthFalse;
+//         let block_state = BlockState::from(state);
+//         let block: Box<dyn Block> = block_state.into();
+//         assert_eq!(block.id(), "acacia_button");
+//         // downcast block to AcaciaButtonBlock
+//         // let acacia_button_block = block.try_into::<AcaciaButtonBlock>().unwrap();
+//         // assert_eq!(acacia_button_block.face, Face::Ceiling);
+//         // assert_eq!(acacia_button_block.facing, Facing::South);
+//         // assert_eq!(acacia_button_block.powered, Powered::False);
+//     }
+
+//     fn test_from_state_to_block_bottom_edge() {
+//         let state = BlockState::AcaciaButton_FloorNorthTrue;
+//         let block_state = BlockState::from(state);
+//         let block: Box<dyn Block> = block_state.into();
+//         assert_eq!(block.id(), "acacia_button");
 //     }
 // }

@@ -129,23 +129,50 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
     let mut property_enums = quote! {};
     let mut properties_map = HashMap::new();
+
+    let mut state_id = 0usize;
+
     for property in &input.property_definitions.properties {
         let mut property_enum_variants = quote! {};
+        let mut property_from_number_variants = quote! {};
         let mut property_enum_variant_names = Vec::new();
 
-        for variant in &property.variants {
+        let property_name = &property.name;
+
+        for i in 0..property.variants.len() {
+            let variant = &property.variants[i];
+
+            let i_lit = syn::Lit::Int(syn::LitInt::new(
+                &i.to_string(),
+                proc_macro2::Span::call_site(),
+            ));
+
             property_enum_variants.extend(quote! {
-                #variant,
+                #variant = #i_lit,
             });
+
+            // i_lit is used here instead of i because otherwise it says 0size
+            // in the expansion and that looks uglier
+            property_from_number_variants.extend(quote! {
+                #i_lit => #property_name::#variant,
+            });
+
             property_enum_variant_names.push(variant.to_string());
         }
-
-        let property_name = &property.name;
 
         property_enums.extend(quote! {
             #[derive(Debug, Clone, Copy)]
             pub enum #property_name {
                 #property_enum_variants
+            }
+
+            impl From<usize> for #property_name {
+                fn from(value: usize) -> Self {
+                    match value {
+                        #property_from_number_variants
+                        _ => panic!("Invalid property value: {}", value),
+                    }
+                }
             }
         });
         properties_map.insert(property_name.to_string(), property_enum_variant_names);
@@ -187,7 +214,10 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
         let mut from_block_to_state_match = quote! {};
 
+        let first_state_id = state_id;
+
         for combination in combinations_of(&block_properties_vec) {
+            state_id += 1;
             let variant_name = Ident::new(
                 &format!(
                     "{}_{}",
@@ -226,20 +256,41 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     #from_block_to_state_match_inner
                 } => BlockState::#variant_name,
             });
-
-            // BlockState::AcaciaButton_FloorNorthTrue => &AcaciaButtonBlock {
-            // 	face: properties::Face::Floor,
-            // 	facing: properties::Facing::North,
-            // 	powered: properties::Powered::True,
-            // },
-            from_state_to_block_match.extend(quote! {
-                BlockState::#variant_name => &#block_struct_name {
-                    #from_block_to_state_match_inner
-                },
-            })
         }
 
+        // 7035..=7058 => {
+        //     let b = b - 7035;
+        //     &AcaciaButtonBlock {
+        //         Powered: Powered::from((b / 1) % 2),
+        //         Facing: Facing::from((b / 2) % 4),
+        //         Face: Face::from((b / 8) % 3),
+        //     }
+        // }
+        let mut from_state_to_block_inner = quote! {};
+        let mut division = 1usize;
+        for i in (0..block.properties.len()).rev() {
+            let property = &block.properties[i];
+            let property_variants = &block_properties_vec[i];
+            let property_variants_count = property_variants.len();
+            from_state_to_block_inner.extend(quote! {
+                #property: #property::from((b / #division) % #property_variants_count),
+            });
+
+            division *= property_variants_count;
+        }
+
+        let last_state_id = state_id - 1;
+        from_state_to_block_match.extend(quote! {
+            #first_state_id..=#last_state_id => {
+                let b = b - #first_state_id;
+                Box::new(#block_struct_name {
+                    #from_state_to_block_inner
+                })
+            },
+        });
+
         let block_behavior = &block.behavior;
+        let block_id = block.name.to_string();
         let block_struct = quote! {
             #[derive(Debug)]
             pub struct #block_struct_name {
@@ -249,6 +300,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             impl Block for #block_struct_name {
                 fn behavior(&self) -> BlockBehavior {
                     #block_behavior
+                }
+                fn id(&self) -> &'static str {
+                    #block_id
                 }
             }
 
@@ -274,15 +328,15 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
         #block_structs
 
-        impl From<BlockState> for &dyn Block {
+        impl From<BlockState> for Box<dyn Block> {
             fn from(b: BlockState) -> Self {
+                let b = b as usize;
                 match b {
                     #from_state_to_block_match
+                    _ => panic!("Invalid block state: {}", b),
                 }
             }
         }
-
-
     }
     .into()
 }
