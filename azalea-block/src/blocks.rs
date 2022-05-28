@@ -7,7 +7,7 @@ pub trait Block {
 }
 
 make_block_states! {
-    PROPERTIES => {
+    Properties => {
         Face {
             Floor,
             Wall,
@@ -36,7 +36,7 @@ make_block_states! {
             False
         };
     }
-    BLOCKS => {
+    Blocks => {
         acacia_button => BlockBehavior::default().no_collision(), {
             Face,
             Facing,

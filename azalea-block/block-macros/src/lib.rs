@@ -101,16 +101,16 @@ impl Parse for BlockDefinitions {
 
 impl Parse for MakeBlockStates {
     fn parse(input: ParseStream) -> Result<Self> {
-        // PROPERTIES => { ... } BLOCKS => { ... }
+        // Properties => { ... } Blocks => { ... }
         let properties_ident = input.parse::<Ident>()?;
-        assert_eq!(properties_ident.to_string(), "PROPERTIES");
+        assert_eq!(properties_ident.to_string(), "Properties");
         input.parse::<Token![=>]>()?;
         let content;
         braced!(content in input);
         let properties = content.parse()?;
 
         let blocks_ident = input.parse::<Ident>()?;
-        assert_eq!(blocks_ident.to_string(), "BLOCKS");
+        assert_eq!(blocks_ident.to_string(), "Blocks");
         input.parse::<Token![=>]>()?;
         let content;
         braced!(content in input);
