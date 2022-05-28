@@ -1,4 +1,7 @@
-BLOCKS_RS_DIR = '../azalea-blocks/src/blocks.rs'
+from lib.utils import get_dir_location
+
+
+BLOCKS_RS_DIR = get_dir_location('../azalea-block/src/blocks.rs')
 
 
 def generate_blocks(blocks: dict):
