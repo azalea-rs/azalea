@@ -153,6 +153,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
     let mut block_state_enum_variants = quote! {};
     let mut block_structs = quote! {};
+    let mut from_state_to_block_match = quote! {};
     for block in &input.block_definitions.blocks {
         let block_property_names = &block
             .properties
@@ -225,6 +226,17 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     #from_block_to_state_match_inner
                 } => BlockState::#variant_name,
             });
+
+            // BlockState::AcaciaButton_FloorNorthTrue => &AcaciaButtonBlock {
+            // 	face: properties::Face::Floor,
+            // 	facing: properties::Facing::North,
+            // 	powered: properties::Powered::True,
+            // },
+            from_state_to_block_match.extend(quote! {
+                BlockState::#variant_name => &#block_struct_name {
+                    #from_block_to_state_match_inner
+                },
+            })
         }
 
         let block_behavior = &block.behavior;
@@ -261,6 +273,16 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         }
 
         #block_structs
+
+        impl From<BlockState> for &dyn Block {
+            fn from(b: BlockState) -> Self {
+                match b {
+                    #from_state_to_block_match
+                }
+            }
+        }
+
+
     }
     .into()
 }
