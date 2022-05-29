@@ -12,43 +12,43 @@ make_block_states! {
             Floor,
             Wall,
             Ceiling
-        };
+        },
         Facing {
             North,
             South,
             West,
             East
-        };
+        },
         Powered {
             True,
             False
-        };
+        },
         Half {
             Upper,
             Lower
-        };
+        },
         Hinge {
             Left,
             Right
-        };
+        },
         Open {
             True,
             False
-        };
-    }
+        },
+    },
     Blocks => {
         acacia_button => BlockBehavior::default().no_collision(), {
-            Face,
-            Facing,
-            Powered
-        };
+            Face=Floor,
+            Facing=North,
+            Powered=True
+        },
         acacia_door => BlockBehavior::default(), {
-            Facing,
-            Half,
-            Hinge,
-            Open,
-            Powered
-        };
+            Facing=North,
+            Half=Upper,
+            Hinge=Left,
+            Open=True,
+            Powered=True
+        },
     }
 }
 

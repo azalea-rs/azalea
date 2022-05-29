@@ -11,7 +11,12 @@ def to_snake_case(name: str):
 
 def to_camel_case(name: str):
     s = re.sub('_([a-z])', lambda m: m.group(1).upper(), name)
-    return s[0].upper() + s[1:]
+    s = s[0].upper() + s[1:]
+    # if the first character is a number, we need to add an underscore
+    # maybe we could convert it to the number name (like 2 would become "two")?
+    if s[0].isdigit():
+        s = f'_{s}'
+    return s
 
 
 def padded_hex(n: int):

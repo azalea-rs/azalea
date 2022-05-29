@@ -20,10 +20,14 @@ struct PropertyDefinitions {
     properties: Vec<PropertyDefinition>,
 }
 
+struct PropertyAndDefault {
+    name: Ident,
+    default: Ident,
+}
 struct BlockDefinition {
     name: Ident,
     behavior: Expr,
-    properties: Punctuated<Ident, Token![,]>,
+    properties_and_defaults: Vec<PropertyAndDefault>,
 }
 struct BlockDefinitions {
     blocks: Vec<BlockDefinition>,
@@ -39,14 +43,14 @@ impl Parse for PropertyDefinition {
         //     Floor,
         //     Wall,
         //     Ceiling
-        // };
+        // },
         let name = input.parse()?;
 
         let content;
         braced!(content in input);
         let variants = content.parse_terminated(Ident::parse)?;
 
-        input.parse::<Token![;]>()?;
+        input.parse::<Token![,]>()?;
         Ok(PropertyDefinition { name, variants })
     }
 }
@@ -66,11 +70,11 @@ impl Parse for PropertyDefinitions {
 
 impl Parse for BlockDefinition {
     fn parse(input: ParseStream) -> Result<Self> {
-        //     acacia_button => BlockBehavior { has_collision: false }, {
+        //     acacia_button => BlockBehavior::default().no_collision(), {
         //         Face,
         //         Facing,
         //         Powered
-        //     };
+        //     },
         let name = input.parse()?;
         input.parse::<Token![=>]>()?;
         let behavior = input.parse()?;
@@ -78,12 +82,29 @@ impl Parse for BlockDefinition {
         input.parse::<Token![,]>()?;
         let content;
         braced!(content in input);
-        let properties = content.parse_terminated(Ident::parse)?;
-        input.parse::<Token![;]>()?;
+
+        let mut properties_and_defaults = Vec::new();
+
+        loop {
+            let property = match content.parse() {
+                Ok(property) => property,
+                Err(_) => break,
+            };
+            content.parse::<Token![=]>()?;
+            let property_default = content.parse()?;
+            properties_and_defaults.push(PropertyAndDefault {
+                name: property,
+                default: property_default,
+            });
+            if content.parse::<Token![,]>().is_err() {
+                break;
+            }
+        }
+        input.parse::<Token![,]>()?;
         Ok(BlockDefinition {
             name,
             behavior,
-            properties,
+            properties_and_defaults,
         })
     }
 }
@@ -108,6 +129,8 @@ impl Parse for MakeBlockStates {
         let content;
         braced!(content in input);
         let properties = content.parse()?;
+
+        input.parse::<Token![,]>()?;
 
         let blocks_ident = input.parse::<Ident>()?;
         assert_eq!(blocks_ident.to_string(), "Blocks");
@@ -183,9 +206,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let mut from_state_to_block_match = quote! {};
     for block in &input.block_definitions.blocks {
         let block_property_names = &block
-            .properties
+            .properties_and_defaults
             .iter()
-            .map(|p| p.to_string())
+            .map(|p| p.name.to_string())
             .collect::<Vec<_>>();
         let mut block_properties_vec = Vec::new();
         for property_name in block_property_names {
@@ -200,7 +223,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         //     pub facing: properties::Facing,
         //     pub powered: properties::Powered,
         let mut block_struct_fields = quote! {};
-        for property in &block.properties {
+        for PropertyAndDefault { name: property, .. } in &block.properties_and_defaults {
             let property_name_snake =
                 Ident::new(&property.to_string(), proc_macro2::Span::call_site());
             block_struct_fields.extend(quote! {
@@ -268,12 +291,16 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         // }
         let mut from_state_to_block_inner = quote! {};
         let mut division = 1usize;
-        for i in (0..block.properties.len()).rev() {
-            let property = &block.properties[i];
+        for i in (0..block.properties_and_defaults.len()).rev() {
+            let PropertyAndDefault {
+                name: property_name,
+                ..
+            } = &block.properties_and_defaults[i];
+
             let property_variants = &block_properties_vec[i];
             let property_variants_count = property_variants.len();
             from_state_to_block_inner.extend(quote! {
-                #property: #property::from((b / #division) % #property_variants_count),
+                #property_name: #property_name::from((b / #division) % #property_variants_count),
             });
 
             division *= property_variants_count;
@@ -288,6 +315,17 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 })
             },
         });
+
+        let mut block_default_fields = quote! {};
+        for PropertyAndDefault {
+            name: property,
+            default: property_default,
+        } in &block.properties_and_defaults
+        {
+            block_default_fields.extend(quote! {
+                #property: #property::#property_default,
+            })
+        }
 
         let block_behavior = &block.behavior;
         let block_id = block.name.to_string();
@@ -314,6 +352,13 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 }
             }
 
+            impl Default for #block_struct_name {
+                fn default() -> Self {
+                    Self {
+                        #block_default_fields
+                    }
+                }
+            }
         };
 
         block_structs.extend(block_struct);
