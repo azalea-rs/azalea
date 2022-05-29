@@ -230,21 +230,32 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 pub #property_name_snake: #property,
             })
         }
+        let block_name_pascal_case = Ident::new(
+            &to_pascal_case(&block.name.to_string()),
+            proc_macro2::Span::call_site(),
+        );
         let block_struct_name = Ident::new(
-            &format!("{}Block", to_pascal_case(&block.name.to_string())),
+            &format!("{}Block", block_name_pascal_case),
             proc_macro2::Span::call_site(),
         );
 
-        let mut from_block_to_state_match = quote! {};
+        let mut from_block_to_state_match_inner = quote! {};
 
         let first_state_id = state_id;
 
+        // if there's no properties, then the block is just a single state
+        if block_properties_vec.len() == 0 {
+            block_state_enum_variants.extend(quote! {
+                #block_name_pascal_case,
+            });
+            state_id += 1;
+        }
         for combination in combinations_of(&block_properties_vec) {
             state_id += 1;
             let variant_name = Ident::new(
                 &format!(
                     "{}_{}",
-                    to_pascal_case(&block.name.to_string()),
+                    block_name_pascal_case,
                     combination
                         .iter()
                         .map(|v| v.to_string())
@@ -260,7 +271,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             // 	face: properties::Face::Floor,
             // 	facing: properties::Facing::North,
             // 	powered: properties::Powered::True,
-            let mut from_block_to_state_match_inner = quote! {};
+            let mut from_block_to_state_combination_match_inner = quote! {};
             for i in 0..block_property_names.len() {
                 let property_name = &block_property_names[i];
                 let property_name_ident = Ident::new(property_name, proc_macro2::Span::call_site());
@@ -269,14 +280,14 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 let variant =
                     Ident::new(&combination[i].to_string(), proc_macro2::Span::call_site());
 
-                from_block_to_state_match_inner.extend(quote! {
+                from_block_to_state_combination_match_inner.extend(quote! {
                     #property_name_ident: #property_name_snake::#variant,
                 });
             }
 
-            from_block_to_state_match.extend(quote! {
+            from_block_to_state_match_inner.extend(quote! {
                 #block_struct_name {
-                    #from_block_to_state_match_inner
+                    #from_block_to_state_combination_match_inner
                 } => BlockState::#variant_name,
             });
         }
@@ -329,6 +340,17 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
         let block_behavior = &block.behavior;
         let block_id = block.name.to_string();
+
+        let from_block_to_state_match = if block.properties_and_defaults.len() > 0 {
+            quote! {
+                match b {
+                    #from_block_to_state_match_inner
+                }
+            }
+        } else {
+            quote! { BlockState::#block_name_pascal_case }
+        };
+
         let block_struct = quote! {
             #[derive(Debug)]
             pub struct #block_struct_name {
@@ -346,9 +368,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
             impl From<#block_struct_name> for BlockState {
                 fn from(b: #block_struct_name) -> Self {
-                    match b {
-                        #from_block_to_state_match
-                    }
+                    #from_block_to_state_match
                 }
             }
 

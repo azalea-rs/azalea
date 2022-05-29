@@ -22,7 +22,7 @@ def generate_blocks(blocks: dict):
     new_make_block_states_macro_code.append('    Properties => {')
     for property_name, property_variants in properties.items():
         new_make_block_states_macro_code.append(
-            f'        {to_camel_case(property_name)} => {{')
+            f'        {to_camel_case(property_name)} {{')
 
         for variant in property_variants:
             new_make_block_states_macro_code.append(
@@ -51,6 +51,22 @@ def generate_blocks(blocks: dict):
             new_make_block_states_macro_code.append(
                 f'            {to_camel_case(property)}={to_camel_case(property_default)},')
         new_make_block_states_macro_code.append('        },')
-    new_make_block_states_macro_code.append('    },')
+    new_make_block_states_macro_code.append('    }')
+    new_make_block_states_macro_code.append('}')
 
-    print('\n'.join(new_make_block_states_macro_code))
+    new_code = []
+    in_macro = False
+    for line in existing_code:
+        if line == 'make_block_states! {':
+            in_macro = True
+        elif line == '}':
+            if in_macro:
+                in_macro = False
+                new_code.extend(new_make_block_states_macro_code)
+                continue
+        if in_macro:
+            continue
+        new_code.append(line)
+
+    with open(BLOCKS_RS_DIR, 'w') as f:
+        f.write('\n'.join(new_code))

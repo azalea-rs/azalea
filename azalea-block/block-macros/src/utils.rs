@@ -1,5 +1,8 @@
 pub fn combinations_of<T: Clone>(items: &[Vec<T>]) -> Vec<Vec<T>> {
     let mut combinations = Vec::new();
+    if items.len() == 0 {
+        return combinations;
+    };
     if items.len() == 1 {
         for item in &items[0] {
             combinations.push(vec![item.clone()]);

@@ -43,11 +43,6 @@ make_block_states! {
             Powered=True
         },
         acacia_door => BlockBehavior::default(), {
-            Facing=North,
-            Half=Upper,
-            Hinge=Left,
-            Open=True,
-            Powered=True
         },
     }
 }
@@ -167,4 +162,5 @@ make_block_states! {
 //         let block: Box<dyn Block> = block_state.into();
 //         assert_eq!(block.id(), "acacia_button");
 //     }
+// }
 // }
