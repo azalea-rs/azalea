@@ -1,41 +1,18 @@
 use super::GamePacket;
+use crate::mc_buf::McBufVarReadable;
 use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::resource_location::ResourceLocation;
+use packet_macros::{GamePacket, McBuf};
 use std::{
     hash::Hash,
     io::{Read, Write},
 };
 
-#[derive(Hash, Clone, Debug)]
+#[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundDeclareCommandsPacket {
     pub entries: Vec<BrigadierNodeStub>,
+    #[var]
     pub root_index: i32,
-}
-
-impl ClientboundDeclareCommandsPacket {
-    pub fn get(self) -> GamePacket {
-        GamePacket::ClientboundDeclareCommandsPacket(self)
-    }
-
-    pub fn write(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
-        panic!("ClientboundDeclareCommandsPacket::write not implemented")
-    }
-
-    pub fn read<T: Read>(buf: &mut T) -> Result<GamePacket, String> {
-        let node_count = buf.read_varint()?;
-        let mut nodes = Vec::with_capacity(node_count as usize);
-        for _ in 0..node_count {
-            let node = BrigadierNodeStub::read_into(buf)?;
-            nodes.push(node);
-        }
-        let root_index = buf.read_varint()?;
-        Ok(GamePacket::ClientboundDeclareCommandsPacket(
-            ClientboundDeclareCommandsPacket {
-                entries: nodes,
-                root_index,
-            },
-        ))
-    }
 }
 
 #[derive(Hash, Debug, Clone)]
@@ -82,7 +59,7 @@ impl<T: McBufWritable> McBufWritable for BrigadierNumber<T> {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, McBuf)]
 pub enum BrigadierString {
     /// Reads a single word
     SingleWord = 0,
@@ -90,24 +67,6 @@ pub enum BrigadierString {
     QuotablePhrase = 1,
     // Reads the rest of the content after the cursor. Quotes will not be removed.
     GreedyPhrase = 2,
-}
-
-impl McBufReadable for BrigadierString {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let id = buf.read_byte()?;
-        Ok(match id {
-            0 => BrigadierString::SingleWord,
-            1 => BrigadierString::QuotablePhrase,
-            2 => BrigadierString::GreedyPhrase,
-            _ => panic!("Unknown BrigadierString id: {}", id),
-        })
-    }
-}
-impl McBufWritable for BrigadierString {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_byte(*self as u8)?;
-        Ok(())
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -148,7 +107,6 @@ pub enum BrigadierParser {
     MobEffect,
     Function,
     EntityAnchor,
-    Range { decimals_allowed: bool },
     IntRange,
     FloatRange,
     ItemEnchantment,
@@ -160,123 +118,79 @@ pub enum BrigadierParser {
     Time,
     ResourceOrTag { registry_key: ResourceLocation },
     Resource { registry_key: ResourceLocation },
+    TemplateMirror,
+    TemplateRotation,
 }
 
 impl McBufReadable for BrigadierParser {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let parser = buf.read_resource_location()?;
+        let parser_type = u32::var_read_into(buf)?;
 
-        if parser == ResourceLocation::new("brigadier:bool")? {
-            Ok(BrigadierParser::Bool)
-        } else if parser == ResourceLocation::new("brigadier:double")? {
-            Ok(BrigadierParser::Double(BrigadierNumber::read_into(buf)?))
-        } else if parser == ResourceLocation::new("brigadier:float")? {
-            Ok(BrigadierParser::Float(BrigadierNumber::read_into(buf)?))
-        } else if parser == ResourceLocation::new("brigadier:integer")? {
-            Ok(BrigadierParser::Integer(BrigadierNumber::read_into(buf)?))
-        } else if parser == ResourceLocation::new("brigadier:long")? {
-            Ok(BrigadierParser::Long(BrigadierNumber::read_into(buf)?))
-        } else if parser == ResourceLocation::new("brigadier:string")? {
-            Ok(BrigadierParser::String(BrigadierString::read_into(buf)?))
-        } else if parser == ResourceLocation::new("minecraft:entity")? {
-            let flags = buf.read_byte()?;
-            Ok(BrigadierParser::Entity {
-                single: flags & 0x01 != 0,
-                players_only: flags & 0x02 != 0,
-            })
-        } else if parser == ResourceLocation::new("minecraft:game_profile")? {
-            Ok(BrigadierParser::GameProfile)
-        } else if parser == ResourceLocation::new("minecraft:block_pos")? {
-            Ok(BrigadierParser::BlockPos)
-        } else if parser == ResourceLocation::new("minecraft:column_pos")? {
-            Ok(BrigadierParser::ColumnPos)
-        } else if parser == ResourceLocation::new("minecraft:vec3")? {
-            Ok(BrigadierParser::Vec3)
-        } else if parser == ResourceLocation::new("minecraft:vec2")? {
-            Ok(BrigadierParser::Vec2)
-        } else if parser == ResourceLocation::new("minecraft:block_state")? {
-            Ok(BrigadierParser::BlockState)
-        } else if parser == ResourceLocation::new("minecraft:block_predicate")? {
-            Ok(BrigadierParser::BlockPredicate)
-        } else if parser == ResourceLocation::new("minecraft:item_stack")? {
-            Ok(BrigadierParser::ItemStack)
-        } else if parser == ResourceLocation::new("minecraft:item_predicate")? {
-            Ok(BrigadierParser::ItemPredicate)
-        } else if parser == ResourceLocation::new("minecraft:color")? {
-            Ok(BrigadierParser::Color)
-        } else if parser == ResourceLocation::new("minecraft:component")? {
-            Ok(BrigadierParser::Component)
-        } else if parser == ResourceLocation::new("minecraft:message")? {
-            Ok(BrigadierParser::Message)
-        } else if parser == ResourceLocation::new("minecraft:nbt")? {
-            Ok(BrigadierParser::Nbt)
-        } else if parser == ResourceLocation::new("minecraft:nbt_path")? {
-            Ok(BrigadierParser::NbtPath)
-        } else if parser == ResourceLocation::new("minecraft:objective")? {
-            Ok(BrigadierParser::Objective)
-        } else if parser == ResourceLocation::new("minecraft:objective_criteria")? {
-            Ok(BrigadierParser::ObjectiveCriteira)
-        } else if parser == ResourceLocation::new("minecraft:operation")? {
-            Ok(BrigadierParser::Operation)
-        } else if parser == ResourceLocation::new("minecraft:particle")? {
-            Ok(BrigadierParser::Particle)
-        } else if parser == ResourceLocation::new("minecraft:rotation")? {
-            Ok(BrigadierParser::Rotation)
-        } else if parser == ResourceLocation::new("minecraft:angle")? {
-            Ok(BrigadierParser::Angle)
-        } else if parser == ResourceLocation::new("minecraft:scoreboard_slot")? {
-            Ok(BrigadierParser::ScoreboardSlot)
-        } else if parser == ResourceLocation::new("minecraft:score_holder")? {
-            let flags = buf.read_byte()?;
-            Ok(BrigadierParser::ScoreHolder {
-                allows_multiple: flags & 0x01 != 0,
-            })
-        } else if parser == ResourceLocation::new("minecraft:swizzle")? {
-            Ok(BrigadierParser::Swizzle)
-        } else if parser == ResourceLocation::new("minecraft:team")? {
-            Ok(BrigadierParser::Team)
-        } else if parser == ResourceLocation::new("minecraft:item_slot")? {
-            Ok(BrigadierParser::ItemSlot)
-        } else if parser == ResourceLocation::new("minecraft:resource_location")? {
-            Ok(BrigadierParser::ResourceLocation)
-        } else if parser == ResourceLocation::new("minecraft:mob_effect")? {
-            Ok(BrigadierParser::MobEffect)
-        } else if parser == ResourceLocation::new("minecraft:function")? {
-            Ok(BrigadierParser::Function)
-        } else if parser == ResourceLocation::new("minecraft:entity_anchor")? {
-            Ok(BrigadierParser::EntityAnchor)
-        } else if parser == ResourceLocation::new("minecraft:range")? {
-            Ok(BrigadierParser::Range {
-                decimals_allowed: buf.read_boolean()?,
-            })
-        } else if parser == ResourceLocation::new("minecraft:int_range")? {
-            Ok(BrigadierParser::IntRange)
-        } else if parser == ResourceLocation::new("minecraft:float_range")? {
-            Ok(BrigadierParser::FloatRange)
-        } else if parser == ResourceLocation::new("minecraft:item_enchantment")? {
-            Ok(BrigadierParser::ItemEnchantment)
-        } else if parser == ResourceLocation::new("minecraft:entity_summon")? {
-            Ok(BrigadierParser::EntitySummon)
-        } else if parser == ResourceLocation::new("minecraft:dimension")? {
-            Ok(BrigadierParser::Dimension)
-        } else if parser == ResourceLocation::new("minecraft:uuid")? {
-            Ok(BrigadierParser::Uuid)
-        } else if parser == ResourceLocation::new("minecraft:nbt_tag")? {
-            Ok(BrigadierParser::NbtTag)
-        } else if parser == ResourceLocation::new("minecraft:nbt_compound_tag")? {
-            Ok(BrigadierParser::NbtCompoundTag)
-        } else if parser == ResourceLocation::new("minecraft:time")? {
-            Ok(BrigadierParser::Time)
-        } else if parser == ResourceLocation::new("minecraft:resource_or_tag")? {
-            Ok(BrigadierParser::ResourceOrTag {
+        match parser_type {
+            0 => Ok(BrigadierParser::Bool),
+            1 => Ok(BrigadierParser::Float(BrigadierNumber::read_into(buf)?)),
+            2 => Ok(BrigadierParser::Double(BrigadierNumber::read_into(buf)?)),
+            3 => Ok(BrigadierParser::Integer(BrigadierNumber::read_into(buf)?)),
+            4 => Ok(BrigadierParser::Long(BrigadierNumber::read_into(buf)?)),
+            5 => Ok(BrigadierParser::String(BrigadierString::read_into(buf)?)),
+            6 => {
+                let flags = buf.read_byte()?;
+                Ok(BrigadierParser::Entity {
+                    single: flags & 0x01 != 0,
+                    players_only: flags & 0x02 != 0,
+                })
+            }
+            7 => Ok(BrigadierParser::GameProfile),
+            8 => Ok(BrigadierParser::BlockPos),
+            9 => Ok(BrigadierParser::ColumnPos),
+            10 => Ok(BrigadierParser::Vec3),
+            11 => Ok(BrigadierParser::Vec2),
+            12 => Ok(BrigadierParser::BlockState),
+            13 => Ok(BrigadierParser::BlockPredicate),
+            14 => Ok(BrigadierParser::ItemStack),
+            15 => Ok(BrigadierParser::ItemPredicate),
+            16 => Ok(BrigadierParser::Color),
+            17 => Ok(BrigadierParser::Component),
+            18 => Ok(BrigadierParser::Message),
+            19 => Ok(BrigadierParser::NbtCompoundTag),
+            20 => Ok(BrigadierParser::NbtTag),
+            21 => Ok(BrigadierParser::NbtPath),
+            22 => Ok(BrigadierParser::Objective),
+            23 => Ok(BrigadierParser::ObjectiveCriteira),
+            24 => Ok(BrigadierParser::Operation),
+            25 => Ok(BrigadierParser::Particle),
+            26 => Ok(BrigadierParser::Angle),
+            27 => Ok(BrigadierParser::Rotation),
+            28 => Ok(BrigadierParser::ScoreboardSlot),
+            29 => {
+                let flags = buf.read_byte()?;
+                Ok(BrigadierParser::ScoreHolder {
+                    allows_multiple: flags & 0x01 != 0,
+                })
+            }
+            30 => Ok(BrigadierParser::Swizzle),
+            31 => Ok(BrigadierParser::Team),
+            32 => Ok(BrigadierParser::ItemSlot),
+            33 => Ok(BrigadierParser::ResourceLocation),
+            34 => Ok(BrigadierParser::MobEffect),
+            35 => Ok(BrigadierParser::Function),
+            36 => Ok(BrigadierParser::EntityAnchor),
+            37 => Ok(BrigadierParser::IntRange),
+            38 => Ok(BrigadierParser::FloatRange),
+            39 => Ok(BrigadierParser::ItemEnchantment),
+            40 => Ok(BrigadierParser::EntitySummon),
+            41 => Ok(BrigadierParser::Dimension),
+            42 => Ok(BrigadierParser::Time),
+            43 => Ok(BrigadierParser::ResourceOrTag {
                 registry_key: buf.read_resource_location()?,
-            })
-        } else if parser == ResourceLocation::new("minecraft:resource")? {
-            Ok(BrigadierParser::Resource {
+            }),
+            44 => Ok(BrigadierParser::Resource {
                 registry_key: buf.read_resource_location()?,
-            })
-        } else {
-            panic!("Unknown Brigadier parser: {}", parser)
+            }),
+            45 => Ok(BrigadierParser::TemplateMirror),
+            46 => Ok(BrigadierParser::TemplateRotation),
+            47 => Ok(BrigadierParser::Uuid),
+            _ => Err(format!("Unknown BrigadierParser type: {}", parser_type)),
         }
     }
 }
@@ -287,7 +201,7 @@ impl McBufReadable for BrigadierNodeStub {
         let flags = u8::read_into(buf)?;
         if flags > 31 {
             println!(
-                "Warning: The flags from a Brigadier node are over 31. This is probably a bug."
+                "Warning: The flags from a Brigadier node are over 31 ({flags}; {flags:#b}). This is probably a bug.",
             );
         }
 
@@ -317,5 +231,11 @@ impl McBufReadable for BrigadierNodeStub {
         }
         Ok(BrigadierNodeStub {})
         // return Err("Unknown node type".to_string());
+    }
+}
+
+impl McBufWritable for BrigadierNodeStub {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        todo!()
     }
 }

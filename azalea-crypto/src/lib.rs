@@ -1,3 +1,5 @@
+mod signing;
+
 use aes::cipher::inout::InOutBuf;
 use aes::{
     cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit},
@@ -5,6 +7,7 @@ use aes::{
 };
 use rand::{rngs::OsRng, RngCore};
 use sha1::{Digest, Sha1};
+pub use signing::SaltSignaturePair;
 
 fn generate_secret_key() -> [u8; 16] {
     let mut key = [0u8; 16];
@@ -65,7 +68,6 @@ pub fn create_cipher(key: &[u8]) -> (Aes128CfbEnc, Aes128CfbDec) {
     )
 }
 
-// wow this is terrible
 pub fn encrypt_packet(cipher: &mut Aes128CfbEnc, packet: &mut [u8]) {
     let (chunks, rest) = InOutBuf::from(packet).into_chunks();
     assert!(rest.is_empty());

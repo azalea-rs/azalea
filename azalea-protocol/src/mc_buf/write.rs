@@ -2,8 +2,9 @@ use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use azalea_chat::component::Component;
 use azalea_core::{
     difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
-    serializable_uuid::SerializableUuid, BlockPos, ChunkSectionPos, Direction, Slot,
+    serializable_uuid::SerializableUuid, BlockPos, ChunkSectionPos, Direction, GlobalPos, Slot,
 };
+use azalea_crypto::SaltSignaturePair;
 use byteorder::{BigEndian, WriteBytesExt};
 use std::{collections::HashMap, io::Write};
 use uuid::Uuid;
@@ -192,28 +193,24 @@ impl McBufWritable for Vec<u8> {
     }
 }
 
-// string
 impl McBufWritable for String {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_utf(self)
     }
 }
 
-// ResourceLocation
 impl McBufWritable for ResourceLocation {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_resource_location(self)
     }
 }
 
-// u32
 impl McBufWritable for u32 {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         i16::write_into(&(*self as i16), buf)
     }
 }
 
-// u32 varint
 impl McBufVarWritable for u32 {
     fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         i32::var_write_into(&(*self as i32), buf)
@@ -243,21 +240,18 @@ impl McBufVarWritable for u64 {
     }
 }
 
-// u16
 impl McBufWritable for u16 {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         i16::write_into(&(*self as i16), buf)
     }
 }
 
-// u16 varint
 impl McBufVarWritable for u16 {
     fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         i32::var_write_into(&(*self as i32), buf)
     }
 }
 
-// Vec<T> varint
 impl<T: McBufVarWritable> McBufVarWritable for Vec<T> {
     fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         u32::var_write_into(&(self.len() as u32), buf)?;
@@ -268,77 +262,66 @@ impl<T: McBufVarWritable> McBufVarWritable for Vec<T> {
     }
 }
 
-// u8
 impl McBufWritable for u8 {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_byte(*self)
     }
 }
 
-// i16
 impl McBufWritable for i16 {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         Writable::write_short(buf, *self)
     }
 }
 
-// i64
 impl McBufWritable for i64 {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         Writable::write_long(buf, *self)
     }
 }
 
-// u64
 impl McBufWritable for u64 {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         i64::write_into(&(*self as i64), buf)
     }
 }
 
-// bool
 impl McBufWritable for bool {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_boolean(*self)
     }
 }
 
-// i8
 impl McBufWritable for i8 {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_byte(*self as u8)
     }
 }
 
-// f32
 impl McBufWritable for f32 {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_float(*self)
     }
 }
 
-// f64
 impl McBufWritable for f64 {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_double(*self)
     }
 }
 
-// GameType
 impl McBufWritable for GameType {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         u8::write_into(&self.to_id(), buf)
     }
 }
 
-// Option<GameType>
 impl McBufWritable for Option<GameType> {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_byte(GameType::to_optional_id(self) as u8)
     }
 }
 
-// Option<String>
 impl<T: McBufWritable> McBufWritable for Option<T> {
     default fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         if let Some(s) = self {
@@ -351,21 +334,18 @@ impl<T: McBufWritable> McBufWritable for Option<T> {
     }
 }
 
-// azalea_nbt::Tag
 impl McBufWritable for azalea_nbt::Tag {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_nbt(self)
     }
 }
 
-// Difficulty
 impl McBufWritable for Difficulty {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         u8::write_into(&self.id(), buf)
     }
 }
 
-// Component
 impl McBufWritable for Component {
     // async fn read_into(buf: &mut impl Read) -> Result<Self, String>
     // where
@@ -383,7 +363,6 @@ impl McBufWritable for Component {
     }
 }
 
-// Slot
 impl McBufWritable for Slot {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
@@ -399,7 +378,6 @@ impl McBufWritable for Slot {
     }
 }
 
-// Slot
 impl McBufWritable for Uuid {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_uuid(self)?;
@@ -408,7 +386,6 @@ impl McBufWritable for Uuid {
     }
 }
 
-// BlockPos
 impl McBufWritable for BlockPos {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_long(
@@ -419,20 +396,35 @@ impl McBufWritable for BlockPos {
     }
 }
 
-// Direction
+impl McBufWritable for GlobalPos {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        BlockPos::write_into(&self.pos, buf)?;
+        ResourceLocation::write_into(&self.dimension, buf)?;
+
+        Ok(())
+    }
+}
+
 impl McBufWritable for Direction {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_varint(*self as i32)
     }
 }
 
-// ChunkSectionPos
 impl McBufWritable for ChunkSectionPos {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let long = (((self.x & 0x3FFFFF) as i64) << 42)
             | (self.y & 0xFFFFF) as i64
             | (((self.z & 0x3FFFFF) as i64) << 20);
         long.write_into(buf)?;
+        Ok(())
+    }
+}
+
+impl McBufWritable for SaltSignaturePair {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.salt.write_into(buf)?;
+        self.signature.write_into(buf)?;
         Ok(())
     }
 }

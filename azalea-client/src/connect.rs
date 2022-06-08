@@ -4,14 +4,16 @@ use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
     packets::{
         game::{
-            clientbound_chat_packet::ClientboundChatPacket,
+            clientbound_player_chat_packet::ClientboundPlayerChatPacket,
+            clientbound_system_chat_packet::ClientboundSystemChatPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             serverbound_keep_alive_packet::ServerboundKeepAlivePacket, GamePacket,
         },
         handshake::client_intention_packet::ClientIntentionPacket,
         login::{
             serverbound_hello_packet::ServerboundHelloPacket,
-            serverbound_key_packet::ServerboundKeyPacket, LoginPacket,
+            serverbound_key_packet::{NonceOrSaltSignature, ServerboundKeyPacket},
+            LoginPacket,
         },
         ConnectionProtocol, PROTOCOL_VERSION,
     },
@@ -44,9 +46,24 @@ pub struct Client {
 }
 
 #[derive(Debug, Clone)]
+pub enum ChatPacket {
+    System(ClientboundSystemChatPacket),
+    Player(ClientboundPlayerChatPacket),
+}
+
+// impl ChatPacket {
+//     pub fn message(&self) -> &str {
+//         match self {
+//             ChatPacket::System(p) => &p.content,
+//             ChatPacket::Player(p) => &p.message,
+//         }
+//     }
+// }
+
+#[derive(Debug, Clone)]
 pub enum Event {
     Login,
-    Chat(ClientboundChatPacket),
+    Chat(ChatPacket),
 }
 
 /// Whether we should ignore errors when decoding packets.
@@ -75,6 +92,7 @@ impl Client {
         conn.write(
             ServerboundHelloPacket {
                 username: account.username.clone(),
+                public_key: None,
             }
             .get(),
         )
@@ -92,8 +110,10 @@ impl Client {
 
                         conn.write(
                             ServerboundKeyPacket {
-                                nonce: e.encrypted_nonce,
-                                shared_secret: e.encrypted_public_key,
+                                nonce_or_salt_signature: NonceOrSaltSignature::Nonce(
+                                    e.encrypted_nonce,
+                                ),
+                                key_bytes: e.encrypted_public_key,
                             }
                             .get(),
                         )
@@ -179,27 +199,66 @@ impl Client {
                 println!("Got login packet {:?}", p);
 
                 let mut state = state.lock().await;
+
+                // // write p into login.txt
+                // std::io::Write::write_all(
+                //     &mut std::fs::File::create("login.txt").unwrap(),
+                //     format!("{:#?}", p).as_bytes(),
+                // )
+                // .unwrap();
+
                 state.player.entity.id = p.player_id;
-                let dimension_type = p
-                    .dimension_type
+
+                // TODO: have registry_holder be a struct because this sucks rn
+                // best way would be to add serde support to azalea-nbt
+
+                let registry_holder = p
+                    .registry_holder
                     .as_compound()
-                    .expect("Dimension type is not compound")
+                    .expect("Registry holder is not a compound")
                     .get("")
                     .expect("No \"\" tag")
                     .as_compound()
-                    .expect("\"\" tag is not compound");
+                    .expect("\"\" tag is not a compound");
+                let dimension_types = registry_holder
+                    .get("minecraft:dimension_type")
+                    .expect("No dimension_type tag")
+                    .as_compound()
+                    .expect("dimension_type is not a compound")
+                    .get("value")
+                    .expect("No dimension_type value")
+                    .as_list()
+                    .expect("dimension_type value is not a list");
+                let dimension_type = dimension_types
+                    .iter()
+                    .find(|t| {
+                        t.as_compound()
+                            .expect("dimension_type value is not a compound")
+                            .get("name")
+                            .expect("No name tag")
+                            .as_string()
+                            .expect("name is not a string")
+                            == p.dimension_type.to_string()
+                    })
+                    .expect(&format!("No dimension_type with name {}", p.dimension_type))
+                    .as_compound()
+                    .unwrap()
+                    .get("element")
+                    .expect("No element tag")
+                    .as_compound()
+                    .expect("element is not a compound");
                 let height = (*dimension_type
                     .get("height")
                     .expect("No height tag")
                     .as_int()
-                    .expect("height tag is not int"))
+                    .expect("height tag is not an int"))
                 .try_into()
                 .expect("height is not a u32");
                 let min_y = (*dimension_type
                     .get("min_y")
                     .expect("No min_y tag")
                     .as_int()
-                    .expect("min_y tag is not int"))
+                    .expect("min_y tag is not an int"))
                 .try_into()
                 .expect("min_y is not an i32");
 
@@ -290,9 +349,6 @@ impl Client {
             GamePacket::ClientboundLightUpdatePacket(p) => {
                 println!("Got light update packet {:?}", p);
             }
-            GamePacket::ClientboundAddMobPacket(p) => {
-                println!("Got add mob packet {:?}", p);
-            }
             GamePacket::ClientboundAddEntityPacket(p) => {
                 println!("Got add entity packet {:?}", p);
             }
@@ -357,9 +413,13 @@ impl Client {
             GamePacket::ClientboundRemoveEntitiesPacket(p) => {
                 println!("Got remove entities packet {:?}", p);
             }
-            GamePacket::ClientboundChatPacket(p) => {
-                println!("Got chat packet {:?}", p);
-                tx.send(Event::Chat(p.clone())).unwrap();
+            GamePacket::ClientboundPlayerChatPacket(p) => {
+                println!("Got player chat packet {:?}", p);
+                tx.send(Event::Chat(ChatPacket::Player(p.clone()))).unwrap();
+            }
+            GamePacket::ClientboundSystemChatPacket(p) => {
+                println!("Got system chat packet {:?}", p);
+                tx.send(Event::Chat(ChatPacket::System(p.clone()))).unwrap();
             }
             GamePacket::ClientboundSoundPacket(p) => {
                 println!("Got sound packet {:?}", p);
@@ -383,6 +443,9 @@ impl Client {
             }
             GamePacket::ClientboundLevelParticlesPacket(p) => {
                 println!("Got level particles packet {:?}", p);
+            }
+            GamePacket::ClientboundServerDataPacket(p) => {
+                println!("Got server data packet {:?}", p);
             }
             _ => panic!("Unexpected packet {:?}", packet),
         }
