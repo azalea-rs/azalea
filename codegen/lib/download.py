@@ -10,9 +10,6 @@ if not os.path.exists('downloads'):
 
 def get_burger():
     if not os.path.exists('downloads/Burger'):
-        with open('burger.json', 'w') as f:
-            json.dump(requests.get(
-                'https://api.github.com/repos/Burger/Burger/releases/latest').json(), f)
         print('\033[92mDownloading Burger...\033[m')
         os.system(
             'cd downloads && git clone https://github.com/pokechu22/Burger && cd Burger && git pull')
