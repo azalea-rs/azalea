@@ -6,10 +6,6 @@ pub struct ServerboundHelloPacket {
     pub public_key: Option<ProfilePublicKeyData>,
 }
 
-pub struct ProfilePublicKey {
-    pub data: ProfilePublicKeyData,
-}
-
 #[derive(Clone, Debug, McBuf)]
 pub struct ProfilePublicKeyData {
     pub expires_at: u64,
