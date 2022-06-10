@@ -8,30 +8,34 @@ pub trait Block {
 
 make_block_states! {
     Properties => {
-        Face {
-            Floor,
-            Wall,
-            Ceiling,
-        },
         Facing {
             North,
+            East,
             South,
             West,
-            East,
         },
         Powered {
             True,
             False,
         },
+        Face {
+            Floor,
+            Wall,
+            Ceiling,
+        },
         Half {
             Top,
             Bottom,
+        },
+        Open {
+            True,
+            False,
         },
         Hinge {
             Left,
             Right,
         },
-        Open {
+        North {
             True,
             False,
         },
@@ -39,7 +43,7 @@ make_block_states! {
             True,
             False,
         },
-        North {
+        West {
             True,
             False,
         },
@@ -48,10 +52,6 @@ make_block_states! {
             False,
         },
         Waterlogged {
-            True,
-            False,
-        },
-        West {
             True,
             False,
         },
@@ -115,6 +115,26 @@ make_block_states! {
             True,
             False,
         },
+        NorthWall {
+            None,
+            Low,
+            Tall,
+        },
+        EastWall {
+            None,
+            Low,
+            Tall,
+        },
+        WestWall {
+            None,
+            Low,
+            Tall,
+        },
+        SouthWall {
+            None,
+            Low,
+            Tall,
+        },
         Age {
             _0,
             _1,
@@ -150,13 +170,13 @@ make_block_states! {
             Partial,
             Full,
         },
-        Occupied {
-            True,
-            False,
-        },
         Part {
             Head,
             Foot,
+        },
+        Occupied {
+            True,
+            False,
         },
         Candles {
             _1,
@@ -168,15 +188,7 @@ make_block_states! {
             True,
             False,
         },
-        HasBottle_0 {
-            True,
-            False,
-        },
-        HasBottle_1 {
-            True,
-            False,
-        },
-        HasBottle_2 {
+        HasBottle {
             True,
             False,
         },
@@ -184,7 +196,7 @@ make_block_states! {
             True,
             False,
         },
-        Drag {
+        DragDown {
             True,
             False,
         },
@@ -198,10 +210,6 @@ make_block_states! {
             _6,
         },
         SignalFire {
-            True,
-            False,
-        },
-        Berries {
             True,
             False,
         },
@@ -219,10 +227,6 @@ make_block_states! {
             _1,
             _2,
             _3,
-        },
-        Inverted {
-            True,
-            False,
         },
         Power {
             _0,
@@ -242,11 +246,15 @@ make_block_states! {
             _14,
             _15,
         },
+        Inverted {
+            True,
+            False,
+        },
         Triggered {
             True,
             False,
         },
-        Eye {
+        HasEye {
             True,
             False,
         },
@@ -347,16 +355,16 @@ make_block_states! {
             True,
             False,
         },
+        TipDirection {
+            Up,
+            Down,
+        },
         Thickness {
             TipMerge,
             Tip,
             Frustum,
             Middle,
             Base,
-        },
-        VerticalDirection {
-            Up,
-            Down,
         },
         Delay {
             _1,
@@ -368,7 +376,7 @@ make_block_states! {
             True,
             False,
         },
-        Charges {
+        Charge {
             _0,
             _1,
             _2,
@@ -379,20 +387,20 @@ make_block_states! {
             True,
             False,
         },
-        Bloom {
+        Pulse {
             True,
             False,
         },
-        SculkSensorPhase {
+        Phase {
             Inactive,
             Active,
             Cooldown,
         },
-        CanSummon {
+        Shrieking {
             True,
             False,
         },
-        Shrieking {
+        CanSummon {
             True,
             False,
         },
@@ -412,6 +420,24 @@ make_block_states! {
             _7,
             _8,
         },
+        OutputPower {
+            _0,
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+            _6,
+            _7,
+            _8,
+            _9,
+            _10,
+            _11,
+            _12,
+            _13,
+            _14,
+            _15,
+        },
         Unstable {
             True,
             False,
@@ -424,43 +450,43 @@ make_block_states! {
             True,
             False,
         },
+        Hatch {
+            _0,
+            _1,
+            _2,
+        },
         Eggs {
             _1,
             _2,
             _3,
             _4,
         },
-        Hatch {
-            _0,
-            _1,
-            _2,
-        },
     },
     Blocks => {
         acacia_button => BlockBehavior::default(), {
-            Face=Wall,
             Facing=North,
             Powered=False,
+            Face=Wall,
         },
         acacia_door => BlockBehavior::default(), {
-            Facing=North,
             Half=Lower,
-            Hinge=Left,
+            Facing=North,
             Open=False,
+            Hinge=Left,
             Powered=False,
         },
         acacia_fence => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         acacia_fence_gate => BlockBehavior::default(), {
             Facing=North,
-            InWall=False,
             Open=False,
             Powered=False,
+            InWall=False,
         },
         acacia_leaves => BlockBehavior::default(), {
             Distance=_7,
@@ -494,8 +520,8 @@ make_block_states! {
         },
         acacia_trapdoor => BlockBehavior::default(), {
             Facing=North,
-            Half=Bottom,
             Open=False,
+            Half=Bottom,
             Powered=False,
             Waterlogged=False,
         },
@@ -507,8 +533,8 @@ make_block_states! {
             Axis=Y,
         },
         activator_rail => BlockBehavior::default(), {
-            Powered=False,
             Shape=NorthSouth,
+            Powered=False,
             Waterlogged=False,
         },
         air => BlockBehavior::default(), {
@@ -518,8 +544,8 @@ make_block_states! {
         amethyst_block => BlockBehavior::default(), {
         },
         amethyst_cluster => BlockBehavior::default(), {
-            Facing=Up,
             Waterlogged=False,
+            Facing=Up,
         },
         ancient_debris => BlockBehavior::default(), {
         },
@@ -536,12 +562,12 @@ make_block_states! {
             Waterlogged=False,
         },
         andesite_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         anvil => BlockBehavior::default(), {
             Facing=North,
@@ -582,54 +608,54 @@ make_block_states! {
         bedrock => BlockBehavior::default(), {
         },
         bee_nest => BlockBehavior::default(), {
-            Facing=North,
             HoneyLevel=_0,
+            Facing=North,
         },
         beehive => BlockBehavior::default(), {
-            Facing=North,
             HoneyLevel=_0,
+            Facing=North,
         },
         beetroots => BlockBehavior::default(), {
             Age=_0,
         },
         bell => BlockBehavior::default(), {
-            Attachment=Floor,
             Facing=North,
+            Attachment=Floor,
             Powered=False,
         },
         big_dripleaf => BlockBehavior::default(), {
+            Waterlogged=False,
             Facing=North,
             Tilt=None,
-            Waterlogged=False,
         },
         big_dripleaf_stem => BlockBehavior::default(), {
-            Facing=North,
             Waterlogged=False,
+            Facing=North,
         },
         birch_button => BlockBehavior::default(), {
-            Face=Wall,
             Facing=North,
             Powered=False,
+            Face=Wall,
         },
         birch_door => BlockBehavior::default(), {
-            Facing=North,
             Half=Lower,
-            Hinge=Left,
+            Facing=North,
             Open=False,
+            Hinge=Left,
             Powered=False,
         },
         birch_fence => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         birch_fence_gate => BlockBehavior::default(), {
             Facing=North,
-            InWall=False,
             Open=False,
             Powered=False,
+            InWall=False,
         },
         birch_leaves => BlockBehavior::default(), {
             Distance=_7,
@@ -663,8 +689,8 @@ make_block_states! {
         },
         birch_trapdoor => BlockBehavior::default(), {
             Facing=North,
-            Half=Bottom,
             Open=False,
+            Half=Bottom,
             Powered=False,
             Waterlogged=False,
         },
@@ -680,8 +706,8 @@ make_block_states! {
         },
         black_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         black_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -706,11 +732,11 @@ make_block_states! {
         black_stained_glass => BlockBehavior::default(), {
         },
         black_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         black_terracotta => BlockBehavior::default(), {
         },
@@ -732,12 +758,12 @@ make_block_states! {
             Waterlogged=False,
         },
         blackstone_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         blast_furnace => BlockBehavior::default(), {
             Facing=North,
@@ -748,8 +774,8 @@ make_block_states! {
         },
         blue_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         blue_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -778,11 +804,11 @@ make_block_states! {
         blue_stained_glass => BlockBehavior::default(), {
         },
         blue_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         blue_terracotta => BlockBehavior::default(), {
         },
@@ -809,9 +835,9 @@ make_block_states! {
             Waterlogged=True,
         },
         brewing_stand => BlockBehavior::default(), {
-            HasBottle_0=False,
-            HasBottle_1=False,
-            HasBottle_2=False,
+            HasBottle=False,
+            HasBottle=False,
+            HasBottle=False,
         },
         brick_slab => BlockBehavior::default(), {
             Type=Bottom,
@@ -824,12 +850,12 @@ make_block_states! {
             Waterlogged=False,
         },
         brick_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         bricks => BlockBehavior::default(), {
         },
@@ -838,8 +864,8 @@ make_block_states! {
         },
         brown_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         brown_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -861,11 +887,11 @@ make_block_states! {
         brown_mushroom => BlockBehavior::default(), {
         },
         brown_mushroom_block => BlockBehavior::default(), {
-            Down=True,
-            East=True,
-            North=True,
-            South=True,
             Up=True,
+            Down=True,
+            North=True,
+            East=True,
+            South=True,
             West=True,
         },
         brown_shulker_box => BlockBehavior::default(), {
@@ -874,11 +900,11 @@ make_block_states! {
         brown_stained_glass => BlockBehavior::default(), {
         },
         brown_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         brown_terracotta => BlockBehavior::default(), {
         },
@@ -888,7 +914,7 @@ make_block_states! {
         brown_wool => BlockBehavior::default(), {
         },
         bubble_column => BlockBehavior::default(), {
-            Drag=True,
+            DragDown=True,
         },
         bubble_coral => BlockBehavior::default(), {
             Waterlogged=True,
@@ -913,10 +939,10 @@ make_block_states! {
         calcite => BlockBehavior::default(), {
         },
         campfire => BlockBehavior::default(), {
-            Facing=North,
             Lit=True,
             SignalFire=False,
             Waterlogged=False,
+            Facing=North,
         },
         candle => BlockBehavior::default(), {
             Candles=_1,
@@ -939,23 +965,20 @@ make_block_states! {
         cave_air => BlockBehavior::default(), {
         },
         cave_vines => BlockBehavior::default(), {
-            Age=_0,
-            Berries=False,
         },
         cave_vines_plant => BlockBehavior::default(), {
-            Berries=False,
         },
         chain => BlockBehavior::default(), {
-            Axis=Y,
             Waterlogged=False,
+            Axis=Y,
         },
         chain_command_block => BlockBehavior::default(), {
-            Conditional=False,
             Facing=North,
+            Conditional=False,
         },
         chest => BlockBehavior::default(), {
-            Type=Single,
             Facing=North,
+            Type=Single,
             Waterlogged=False,
         },
         chipped_anvil => BlockBehavior::default(), {
@@ -979,12 +1002,12 @@ make_block_states! {
             Age=_0,
         },
         chorus_plant => BlockBehavior::default(), {
-            Down=False,
-            East=False,
             North=False,
+            East=False,
             South=False,
-            Up=False,
             West=False,
+            Up=False,
+            Down=False,
         },
         clay => BlockBehavior::default(), {
         },
@@ -1007,12 +1030,12 @@ make_block_states! {
             Waterlogged=False,
         },
         cobbled_deepslate_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         cobblestone => BlockBehavior::default(), {
         },
@@ -1027,22 +1050,22 @@ make_block_states! {
             Waterlogged=False,
         },
         cobblestone_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         cobweb => BlockBehavior::default(), {
         },
         cocoa => BlockBehavior::default(), {
-            Age=_0,
             Facing=North,
+            Age=_0,
         },
         command_block => BlockBehavior::default(), {
-            Conditional=False,
             Facing=North,
+            Conditional=False,
         },
         comparator => BlockBehavior::default(), {
             Facing=North,
@@ -1080,29 +1103,29 @@ make_block_states! {
             Facing=North,
         },
         crimson_button => BlockBehavior::default(), {
-            Face=Wall,
             Facing=North,
             Powered=False,
+            Face=Wall,
         },
         crimson_door => BlockBehavior::default(), {
-            Facing=North,
             Half=Lower,
-            Hinge=Left,
+            Facing=North,
             Open=False,
+            Hinge=Left,
             Powered=False,
         },
         crimson_fence => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         crimson_fence_gate => BlockBehavior::default(), {
             Facing=North,
-            InWall=False,
             Open=False,
             Powered=False,
+            InWall=False,
         },
         crimson_fungus => BlockBehavior::default(), {
         },
@@ -1137,8 +1160,8 @@ make_block_states! {
         },
         crimson_trapdoor => BlockBehavior::default(), {
             Facing=North,
-            Half=Bottom,
             Open=False,
+            Half=Bottom,
             Powered=False,
             Waterlogged=False,
         },
@@ -1177,8 +1200,8 @@ make_block_states! {
         },
         cyan_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         cyan_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -1203,11 +1226,11 @@ make_block_states! {
         cyan_stained_glass => BlockBehavior::default(), {
         },
         cyan_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         cyan_terracotta => BlockBehavior::default(), {
         },
@@ -1222,29 +1245,29 @@ make_block_states! {
         dandelion => BlockBehavior::default(), {
         },
         dark_oak_button => BlockBehavior::default(), {
-            Face=Wall,
             Facing=North,
             Powered=False,
+            Face=Wall,
         },
         dark_oak_door => BlockBehavior::default(), {
-            Facing=North,
             Half=Lower,
-            Hinge=Left,
+            Facing=North,
             Open=False,
+            Hinge=Left,
             Powered=False,
         },
         dark_oak_fence => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         dark_oak_fence_gate => BlockBehavior::default(), {
             Facing=North,
-            InWall=False,
             Open=False,
             Powered=False,
+            InWall=False,
         },
         dark_oak_leaves => BlockBehavior::default(), {
             Distance=_7,
@@ -1278,8 +1301,8 @@ make_block_states! {
         },
         dark_oak_trapdoor => BlockBehavior::default(), {
             Facing=North,
-            Half=Bottom,
             Open=False,
+            Half=Bottom,
             Powered=False,
             Waterlogged=False,
         },
@@ -1303,8 +1326,8 @@ make_block_states! {
             Waterlogged=False,
         },
         daylight_detector => BlockBehavior::default(), {
-            Inverted=False,
             Power=_0,
+            Inverted=False,
         },
         dead_brain_coral => BlockBehavior::default(), {
             Waterlogged=True,
@@ -1382,12 +1405,12 @@ make_block_states! {
             Waterlogged=False,
         },
         deepslate_brick_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         deepslate_bricks => BlockBehavior::default(), {
         },
@@ -1419,18 +1442,18 @@ make_block_states! {
             Waterlogged=False,
         },
         deepslate_tile_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         deepslate_tiles => BlockBehavior::default(), {
         },
         detector_rail => BlockBehavior::default(), {
-            Powered=False,
             Shape=NorthSouth,
+            Powered=False,
             Waterlogged=False,
         },
         diamond_block => BlockBehavior::default(), {
@@ -1450,12 +1473,12 @@ make_block_states! {
             Waterlogged=False,
         },
         diorite_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         dirt => BlockBehavior::default(), {
         },
@@ -1492,8 +1515,8 @@ make_block_states! {
         end_portal => BlockBehavior::default(), {
         },
         end_portal_frame => BlockBehavior::default(), {
-            Eye=False,
             Facing=North,
+            HasEye=False,
         },
         end_rod => BlockBehavior::default(), {
             Facing=Up,
@@ -1511,12 +1534,12 @@ make_block_states! {
             Waterlogged=False,
         },
         end_stone_brick_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         end_stone_bricks => BlockBehavior::default(), {
         },
@@ -1545,11 +1568,11 @@ make_block_states! {
         },
         fire => BlockBehavior::default(), {
             Age=_0,
-            East=False,
             North=False,
+            East=False,
             South=False,
-            Up=False,
             West=False,
+            Up=False,
         },
         fire_coral => BlockBehavior::default(), {
             Waterlogged=True,
@@ -1588,20 +1611,13 @@ make_block_states! {
         glass => BlockBehavior::default(), {
         },
         glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         glow_lichen => BlockBehavior::default(), {
-            Down=False,
-            East=False,
-            North=False,
-            South=False,
-            Up=False,
-            Waterlogged=False,
-            West=False,
         },
         glowstone => BlockBehavior::default(), {
         },
@@ -1622,12 +1638,12 @@ make_block_states! {
             Waterlogged=False,
         },
         granite_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         grass => BlockBehavior::default(), {
         },
@@ -1641,8 +1657,8 @@ make_block_states! {
         },
         gray_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         gray_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -1667,11 +1683,11 @@ make_block_states! {
         gray_stained_glass => BlockBehavior::default(), {
         },
         gray_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         gray_terracotta => BlockBehavior::default(), {
         },
@@ -1685,8 +1701,8 @@ make_block_states! {
         },
         green_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         green_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -1711,11 +1727,11 @@ make_block_states! {
         green_stained_glass => BlockBehavior::default(), {
         },
         green_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         green_terracotta => BlockBehavior::default(), {
         },
@@ -1725,8 +1741,8 @@ make_block_states! {
         green_wool => BlockBehavior::default(), {
         },
         grindstone => BlockBehavior::default(), {
-            Face=Wall,
             Facing=North,
+            Face=Wall,
         },
         hanging_roots => BlockBehavior::default(), {
             Waterlogged=False,
@@ -1742,8 +1758,8 @@ make_block_states! {
         honeycomb_block => BlockBehavior::default(), {
         },
         hopper => BlockBehavior::default(), {
-            Enabled=True,
             Facing=Down,
+            Enabled=True,
         },
         horn_coral => BlockBehavior::default(), {
             Waterlogged=True,
@@ -1766,7 +1782,6 @@ make_block_states! {
         infested_cracked_stone_bricks => BlockBehavior::default(), {
         },
         infested_deepslate => BlockBehavior::default(), {
-            Axis=Y,
         },
         infested_mossy_stone_bricks => BlockBehavior::default(), {
         },
@@ -1775,27 +1790,27 @@ make_block_states! {
         infested_stone_bricks => BlockBehavior::default(), {
         },
         iron_bars => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         iron_block => BlockBehavior::default(), {
         },
         iron_door => BlockBehavior::default(), {
-            Facing=North,
             Half=Lower,
-            Hinge=Left,
+            Facing=North,
             Open=False,
+            Hinge=Left,
             Powered=False,
         },
         iron_ore => BlockBehavior::default(), {
         },
         iron_trapdoor => BlockBehavior::default(), {
             Facing=North,
-            Half=Bottom,
             Open=False,
+            Half=Bottom,
             Powered=False,
             Waterlogged=False,
         },
@@ -1809,29 +1824,29 @@ make_block_states! {
             HasRecord=False,
         },
         jungle_button => BlockBehavior::default(), {
-            Face=Wall,
             Facing=North,
             Powered=False,
+            Face=Wall,
         },
         jungle_door => BlockBehavior::default(), {
-            Facing=North,
             Half=Lower,
-            Hinge=Left,
+            Facing=North,
             Open=False,
+            Hinge=Left,
             Powered=False,
         },
         jungle_fence => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         jungle_fence_gate => BlockBehavior::default(), {
             Facing=North,
-            InWall=False,
             Open=False,
             Powered=False,
+            InWall=False,
         },
         jungle_leaves => BlockBehavior::default(), {
             Distance=_7,
@@ -1865,8 +1880,8 @@ make_block_states! {
         },
         jungle_trapdoor => BlockBehavior::default(), {
             Facing=North,
-            Half=Bottom,
             Open=False,
+            Half=Bottom,
             Powered=False,
             Waterlogged=False,
         },
@@ -1895,8 +1910,8 @@ make_block_states! {
         lapis_ore => BlockBehavior::default(), {
         },
         large_amethyst_bud => BlockBehavior::default(), {
-            Facing=Up,
             Waterlogged=False,
+            Facing=Up,
         },
         large_fern => BlockBehavior::default(), {
             Half=Lower,
@@ -1908,8 +1923,8 @@ make_block_states! {
         },
         lectern => BlockBehavior::default(), {
             Facing=North,
-            HasBook=False,
             Powered=False,
+            HasBook=False,
         },
         lever => BlockBehavior::default(), {
             Face=Wall,
@@ -1925,8 +1940,8 @@ make_block_states! {
         },
         light_blue_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         light_blue_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -1951,11 +1966,11 @@ make_block_states! {
         light_blue_stained_glass => BlockBehavior::default(), {
         },
         light_blue_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         light_blue_terracotta => BlockBehavior::default(), {
         },
@@ -1969,8 +1984,8 @@ make_block_states! {
         },
         light_gray_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         light_gray_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -1995,11 +2010,11 @@ make_block_states! {
         light_gray_stained_glass => BlockBehavior::default(), {
         },
         light_gray_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         light_gray_terracotta => BlockBehavior::default(), {
         },
@@ -2028,8 +2043,8 @@ make_block_states! {
         },
         lime_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         lime_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -2054,11 +2069,11 @@ make_block_states! {
         lime_stained_glass => BlockBehavior::default(), {
         },
         lime_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         lime_terracotta => BlockBehavior::default(), {
         },
@@ -2077,8 +2092,8 @@ make_block_states! {
         },
         magenta_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         magenta_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -2103,11 +2118,11 @@ make_block_states! {
         magenta_stained_glass => BlockBehavior::default(), {
         },
         magenta_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         magenta_terracotta => BlockBehavior::default(), {
         },
@@ -2119,29 +2134,29 @@ make_block_states! {
         magma_block => BlockBehavior::default(), {
         },
         mangrove_button => BlockBehavior::default(), {
-            Face=Wall,
             Facing=North,
             Powered=False,
+            Face=Wall,
         },
         mangrove_door => BlockBehavior::default(), {
-            Facing=North,
             Half=Lower,
-            Hinge=Left,
+            Facing=North,
             Open=False,
+            Hinge=Left,
             Powered=False,
         },
         mangrove_fence => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         mangrove_fence_gate => BlockBehavior::default(), {
             Facing=North,
-            InWall=False,
             Open=False,
             Powered=False,
+            InWall=False,
         },
         mangrove_leaves => BlockBehavior::default(), {
             Distance=_7,
@@ -2157,10 +2172,10 @@ make_block_states! {
             Powered=False,
         },
         mangrove_propagule => BlockBehavior::default(), {
-            Age=_0,
-            Hanging=False,
             Stage=_0,
+            Age=_0,
             Waterlogged=False,
+            Hanging=False,
         },
         mangrove_roots => BlockBehavior::default(), {
             Waterlogged=False,
@@ -2181,8 +2196,8 @@ make_block_states! {
         },
         mangrove_trapdoor => BlockBehavior::default(), {
             Facing=North,
-            Half=Bottom,
             Open=False,
+            Half=Bottom,
             Powered=False,
             Waterlogged=False,
         },
@@ -2194,8 +2209,8 @@ make_block_states! {
             Axis=Y,
         },
         medium_amethyst_bud => BlockBehavior::default(), {
-            Facing=Up,
             Waterlogged=False,
+            Facing=Up,
         },
         melon => BlockBehavior::default(), {
         },
@@ -2219,12 +2234,12 @@ make_block_states! {
             Waterlogged=False,
         },
         mossy_cobblestone_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         mossy_stone_brick_slab => BlockBehavior::default(), {
             Type=Bottom,
@@ -2237,18 +2252,18 @@ make_block_states! {
             Waterlogged=False,
         },
         mossy_stone_brick_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         mossy_stone_bricks => BlockBehavior::default(), {
         },
         moving_piston => BlockBehavior::default(), {
-            Type=Normal,
             Facing=North,
+            Type=Normal,
         },
         mud => BlockBehavior::default(), {
         },
@@ -2263,12 +2278,12 @@ make_block_states! {
             Waterlogged=False,
         },
         mud_brick_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         mud_bricks => BlockBehavior::default(), {
         },
@@ -2276,22 +2291,22 @@ make_block_states! {
             Axis=Y,
         },
         mushroom_stem => BlockBehavior::default(), {
-            Down=True,
-            East=True,
-            North=True,
-            South=True,
             Up=True,
+            Down=True,
+            North=True,
+            East=True,
+            South=True,
             West=True,
         },
         mycelium => BlockBehavior::default(), {
             Snowy=False,
         },
         nether_brick_fence => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         nether_brick_slab => BlockBehavior::default(), {
             Type=Bottom,
@@ -2304,12 +2319,12 @@ make_block_states! {
             Waterlogged=False,
         },
         nether_brick_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         nether_bricks => BlockBehavior::default(), {
         },
@@ -2333,33 +2348,33 @@ make_block_states! {
         },
         note_block => BlockBehavior::default(), {
             Instrument=Harp,
-            Note=_0,
             Powered=False,
+            Note=_0,
         },
         oak_button => BlockBehavior::default(), {
-            Face=Wall,
             Facing=North,
             Powered=False,
+            Face=Wall,
         },
         oak_door => BlockBehavior::default(), {
-            Facing=North,
             Half=Lower,
-            Hinge=Left,
+            Facing=North,
             Open=False,
+            Hinge=Left,
             Powered=False,
         },
         oak_fence => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         oak_fence_gate => BlockBehavior::default(), {
             Facing=North,
-            InWall=False,
             Open=False,
             Powered=False,
+            InWall=False,
         },
         oak_leaves => BlockBehavior::default(), {
             Distance=_7,
@@ -2393,8 +2408,8 @@ make_block_states! {
         },
         oak_trapdoor => BlockBehavior::default(), {
             Facing=North,
-            Half=Bottom,
             Open=False,
+            Half=Bottom,
             Powered=False,
             Waterlogged=False,
         },
@@ -2419,8 +2434,8 @@ make_block_states! {
         },
         orange_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         orange_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -2445,11 +2460,11 @@ make_block_states! {
         orange_stained_glass => BlockBehavior::default(), {
         },
         orange_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         orange_terracotta => BlockBehavior::default(), {
         },
@@ -2495,8 +2510,8 @@ make_block_states! {
         },
         pink_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         pink_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -2521,11 +2536,11 @@ make_block_states! {
         pink_stained_glass => BlockBehavior::default(), {
         },
         pink_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         pink_terracotta => BlockBehavior::default(), {
         },
@@ -2537,12 +2552,12 @@ make_block_states! {
         pink_wool => BlockBehavior::default(), {
         },
         piston => BlockBehavior::default(), {
-            Extended=False,
             Facing=North,
+            Extended=False,
         },
         piston_head => BlockBehavior::default(), {
-            Type=Normal,
             Facing=North,
+            Type=Normal,
             Short=False,
         },
         player_head => BlockBehavior::default(), {
@@ -2555,8 +2570,8 @@ make_block_states! {
             Snowy=False,
         },
         pointed_dripstone => BlockBehavior::default(), {
+            TipDirection=Up,
             Thickness=Tip,
-            VerticalDirection=Up,
             Waterlogged=False,
         },
         polished_andesite => BlockBehavior::default(), {
@@ -2587,19 +2602,19 @@ make_block_states! {
             Waterlogged=False,
         },
         polished_blackstone_brick_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         polished_blackstone_bricks => BlockBehavior::default(), {
         },
         polished_blackstone_button => BlockBehavior::default(), {
-            Face=Wall,
             Facing=North,
             Powered=False,
+            Face=Wall,
         },
         polished_blackstone_pressure_plate => BlockBehavior::default(), {
             Powered=False,
@@ -2615,12 +2630,12 @@ make_block_states! {
             Waterlogged=False,
         },
         polished_blackstone_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         polished_deepslate => BlockBehavior::default(), {
         },
@@ -2635,12 +2650,12 @@ make_block_states! {
             Waterlogged=False,
         },
         polished_deepslate_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         polished_diorite => BlockBehavior::default(), {
         },
@@ -2741,8 +2756,8 @@ make_block_states! {
             Level=_1,
         },
         powered_rail => BlockBehavior::default(), {
-            Powered=False,
             Shape=NorthSouth,
+            Powered=False,
             Waterlogged=False,
         },
         prismarine => BlockBehavior::default(), {
@@ -2770,12 +2785,12 @@ make_block_states! {
             Waterlogged=False,
         },
         prismarine_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         pumpkin => BlockBehavior::default(), {
         },
@@ -2787,8 +2802,8 @@ make_block_states! {
         },
         purple_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         purple_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -2813,11 +2828,11 @@ make_block_states! {
         purple_stained_glass => BlockBehavior::default(), {
         },
         purple_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         purple_terracotta => BlockBehavior::default(), {
         },
@@ -2873,8 +2888,8 @@ make_block_states! {
         },
         red_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         red_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -2896,11 +2911,11 @@ make_block_states! {
         red_mushroom => BlockBehavior::default(), {
         },
         red_mushroom_block => BlockBehavior::default(), {
-            Down=True,
-            East=True,
-            North=True,
-            South=True,
             Up=True,
+            Down=True,
+            North=True,
+            East=True,
+            South=True,
             West=True,
         },
         red_nether_brick_slab => BlockBehavior::default(), {
@@ -2914,12 +2929,12 @@ make_block_states! {
             Waterlogged=False,
         },
         red_nether_brick_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         red_nether_bricks => BlockBehavior::default(), {
         },
@@ -2938,12 +2953,12 @@ make_block_states! {
             Waterlogged=False,
         },
         red_sandstone_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         red_shulker_box => BlockBehavior::default(), {
             Facing=Up,
@@ -2951,11 +2966,11 @@ make_block_states! {
         red_stained_glass => BlockBehavior::default(), {
         },
         red_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         red_terracotta => BlockBehavior::default(), {
         },
@@ -2982,26 +2997,26 @@ make_block_states! {
             Lit=True,
         },
         redstone_wire => BlockBehavior::default(), {
-            East=None,
             North=None,
-            Power=_0,
+            East=None,
             South=None,
             West=None,
+            Power=_0,
         },
         reinforced_deepslate => BlockBehavior::default(), {
         },
         repeater => BlockBehavior::default(), {
-            Delay=_1,
             Facing=North,
+            Delay=_1,
             Locked=False,
             Powered=False,
         },
         repeating_command_block => BlockBehavior::default(), {
-            Conditional=False,
             Facing=North,
+            Conditional=False,
         },
         respawn_anchor => BlockBehavior::default(), {
-            Charges=_0,
+            Charge=_0,
         },
         rooted_dirt => BlockBehavior::default(), {
         },
@@ -3023,41 +3038,34 @@ make_block_states! {
             Waterlogged=False,
         },
         sandstone_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         scaffolding => BlockBehavior::default(), {
-            Bottom=False,
             Distance=_7,
             Waterlogged=False,
+            Bottom=False,
         },
         sculk => BlockBehavior::default(), {
         },
         sculk_catalyst => BlockBehavior::default(), {
-            Bloom=False,
+            Pulse=False,
         },
         sculk_sensor => BlockBehavior::default(), {
+            Phase=Inactive,
             Power=_0,
-            SculkSensorPhase=Inactive,
             Waterlogged=False,
         },
         sculk_shrieker => BlockBehavior::default(), {
-            CanSummon=False,
             Shrieking=False,
             Waterlogged=False,
+            CanSummon=False,
         },
         sculk_vein => BlockBehavior::default(), {
-            Down=False,
-            East=False,
-            North=False,
-            South=False,
-            Up=False,
-            Waterlogged=False,
-            West=False,
         },
         sea_lantern => BlockBehavior::default(), {
         },
@@ -3081,13 +3089,13 @@ make_block_states! {
         slime_block => BlockBehavior::default(), {
         },
         small_amethyst_bud => BlockBehavior::default(), {
-            Facing=Up,
             Waterlogged=False,
+            Facing=Up,
         },
         small_dripleaf => BlockBehavior::default(), {
-            Facing=North,
             Half=Lower,
             Waterlogged=False,
+            Facing=North,
         },
         smithing_table => BlockBehavior::default(), {
         },
@@ -3145,10 +3153,10 @@ make_block_states! {
         snow_block => BlockBehavior::default(), {
         },
         soul_campfire => BlockBehavior::default(), {
-            Facing=North,
             Lit=True,
             SignalFire=False,
             Waterlogged=False,
+            Facing=North,
         },
         soul_fire => BlockBehavior::default(), {
         },
@@ -3172,29 +3180,29 @@ make_block_states! {
         spore_blossom => BlockBehavior::default(), {
         },
         spruce_button => BlockBehavior::default(), {
-            Face=Wall,
             Facing=North,
             Powered=False,
+            Face=Wall,
         },
         spruce_door => BlockBehavior::default(), {
-            Facing=North,
             Half=Lower,
-            Hinge=Left,
+            Facing=North,
             Open=False,
+            Hinge=Left,
             Powered=False,
         },
         spruce_fence => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         spruce_fence_gate => BlockBehavior::default(), {
             Facing=North,
-            InWall=False,
             Open=False,
             Powered=False,
+            InWall=False,
         },
         spruce_leaves => BlockBehavior::default(), {
             Distance=_7,
@@ -3228,8 +3236,8 @@ make_block_states! {
         },
         spruce_trapdoor => BlockBehavior::default(), {
             Facing=North,
-            Half=Bottom,
             Open=False,
+            Half=Bottom,
             Powered=False,
             Waterlogged=False,
         },
@@ -3241,8 +3249,8 @@ make_block_states! {
             Axis=Y,
         },
         sticky_piston => BlockBehavior::default(), {
-            Extended=False,
             Facing=North,
+            Extended=False,
         },
         stone => BlockBehavior::default(), {
         },
@@ -3257,19 +3265,19 @@ make_block_states! {
             Waterlogged=False,
         },
         stone_brick_wall => BlockBehavior::default(), {
-            East=None,
-            North=None,
-            South=None,
             Up=True,
+            NorthWall=None,
+            EastWall=None,
+            WestWall=None,
+            SouthWall=None,
             Waterlogged=False,
-            West=None,
         },
         stone_bricks => BlockBehavior::default(), {
         },
         stone_button => BlockBehavior::default(), {
-            Face=Wall,
             Facing=North,
             Powered=False,
+            Face=Wall,
         },
         stone_pressure_plate => BlockBehavior::default(), {
             Powered=False,
@@ -3362,7 +3370,7 @@ make_block_states! {
             Half=Lower,
         },
         target => BlockBehavior::default(), {
-            Power=_0,
+            OutputPower=_0,
         },
         terracotta => BlockBehavior::default(), {
         },
@@ -3374,23 +3382,23 @@ make_block_states! {
         torch => BlockBehavior::default(), {
         },
         trapped_chest => BlockBehavior::default(), {
-            Type=Single,
             Facing=North,
+            Type=Single,
             Waterlogged=False,
         },
         tripwire => BlockBehavior::default(), {
+            Powered=False,
             Attached=False,
             Disarmed=False,
-            East=False,
             North=False,
-            Powered=False,
-            South=False,
+            East=False,
             West=False,
+            South=False,
         },
         tripwire_hook => BlockBehavior::default(), {
-            Attached=False,
             Facing=North,
             Powered=False,
+            Attached=False,
         },
         tube_coral => BlockBehavior::default(), {
             Waterlogged=True,
@@ -3407,8 +3415,8 @@ make_block_states! {
         tuff => BlockBehavior::default(), {
         },
         turtle_egg => BlockBehavior::default(), {
-            Eggs=_1,
             Hatch=_0,
+            Eggs=_1,
         },
         twisting_vines => BlockBehavior::default(), {
             Age=_0,
@@ -3419,10 +3427,10 @@ make_block_states! {
             Axis=Y,
         },
         vine => BlockBehavior::default(), {
-            East=False,
-            North=False,
-            South=False,
             Up=False,
+            North=False,
+            East=False,
+            South=False,
             West=False,
         },
         void_air => BlockBehavior::default(), {
@@ -3431,29 +3439,29 @@ make_block_states! {
             Facing=North,
         },
         warped_button => BlockBehavior::default(), {
-            Face=Wall,
             Facing=North,
             Powered=False,
+            Face=Wall,
         },
         warped_door => BlockBehavior::default(), {
-            Facing=North,
             Half=Lower,
-            Hinge=Left,
+            Facing=North,
             Open=False,
+            Hinge=Left,
             Powered=False,
         },
         warped_fence => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         warped_fence_gate => BlockBehavior::default(), {
             Facing=North,
-            InWall=False,
             Open=False,
             Powered=False,
+            InWall=False,
         },
         warped_fungus => BlockBehavior::default(), {
         },
@@ -3488,8 +3496,8 @@ make_block_states! {
         },
         warped_trapdoor => BlockBehavior::default(), {
             Facing=North,
-            Half=Bottom,
             Open=False,
+            Half=Bottom,
             Powered=False,
             Waterlogged=False,
         },
@@ -3590,8 +3598,8 @@ make_block_states! {
         },
         white_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         white_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -3616,11 +3624,11 @@ make_block_states! {
         white_stained_glass => BlockBehavior::default(), {
         },
         white_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         white_terracotta => BlockBehavior::default(), {
         },
@@ -3644,8 +3652,8 @@ make_block_states! {
         },
         yellow_bed => BlockBehavior::default(), {
             Facing=North,
-            Occupied=False,
             Part=Foot,
+            Occupied=False,
         },
         yellow_candle => BlockBehavior::default(), {
             Candles=_1,
@@ -3670,11 +3678,11 @@ make_block_states! {
         yellow_stained_glass => BlockBehavior::default(), {
         },
         yellow_stained_glass_pane => BlockBehavior::default(), {
-            East=False,
             North=False,
+            East=False,
+            West=False,
             South=False,
             Waterlogged=False,
-            West=False,
         },
         yellow_terracotta => BlockBehavior::default(), {
         },

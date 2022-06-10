@@ -20,6 +20,7 @@ os.system(
 print('Ok')
 
 mappings = lib.download.get_mappings_for_version(version_id)
-block_states_data = lib.extract.get_block_states(version_id)
+block_states_burger = lib.extract.get_block_states_burger(version_id)
+block_states_report = lib.extract.get_block_states_report(version_id)
 
-lib.code.blocks.generate_blocks(block_states_data, mappings)
+lib.code.blocks.generate_blocks(block_states_burger, block_states_report, mappings)

@@ -16,12 +16,12 @@ def generate_data_from_server_jar(version_id: str):
     )
 
 
-# the minecraft server jar doesn't give enough useful info so we use burger instead
-# def get_block_states(version_id: str):
-#     generate_data_from_server_jar(version_id)
-#     with open(get_dir_location(f'downloads/generated-{version_id}/reports/blocks.json'), 'r') as f:
-#         return json.load(f)
-def get_block_states(version_id: str):
+def get_block_states_report(version_id: str):
+    generate_data_from_server_jar(version_id)
+    with open(get_dir_location(f'downloads/generated-{version_id}/reports/blocks.json'), 'r') as f:
+        return json.load(f)
+
+def get_block_states_burger(version_id: str):
     burger_data = get_burger_data_for_version(version_id)
     return burger_data[0]['blocks']['block']
 

@@ -23,24 +23,32 @@ def get_property_variants(data) -> list[str]:
     raise Exception('Unknown property type: ' + data['type'])
 
 
-def generate_blocks(blocks: dict, mappings: Mappings):
+def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings):
     with open(BLOCKS_RS_DIR, 'r') as f:
         existing_code = f.read().splitlines()
 
     new_make_block_states_macro_code = []
     new_make_block_states_macro_code.append('make_block_states! {')
 
+    def get_property_name(property: dict, block_data_burger: dict) -> str:
+        property_name = None
+        for class_name in [block_data_burger['class']] + block_data_burger['super']:
+            property_name = mappings.get_field(class_name, property['field_name'])
+            if property_name:
+                break
+        assert property_name
+        property_name = property_name.lower()
+        return property_name
+
     # Find properties
     properties = {}
-    for block_data in blocks.values():
+    for block_data_burger in blocks_burger.values():
         block_properties = {}
-        for property in block_data.get('states', []):
-            property_name = mappings.get_field(
-                property.get('declared_in', block_data['class']), property['field_name']).lower()
+        for property in block_data_burger.get('states', []):
+            property_name = get_property_name(property, block_data_burger)
+
             property_variants = get_property_variants(property)
             block_properties[property_name] = property_variants
-            # if property_name == 'eggs':
-            #     print(property, property_name, property_variants)
         properties.update(block_properties)
 
     # Property codegen
@@ -59,21 +67,28 @@ def generate_blocks(blocks: dict, mappings: Mappings):
 
     # Block codegen
     new_make_block_states_macro_code.append('    Blocks => {')
-    for block_id, block_data in blocks.items():
-        block_states = block_data['states']
+    for block_id, block_data_burger in blocks_burger.items():
+        block_data_report = blocks_report['minecraft:' + block_id]
 
-        default_property_variants = {}
-        for state in block_states:
-            if state.get('default'):
-                default_property_variants = state.get('properties', {})
+        block_properties_burger = block_data_burger['states']
+
+        default_property_variants: dict[str, str] = {}
+        for property in block_data_report['states']:
+            if property.get('default'):
+                default_property_variants = property.get('properties', {})
 
         # TODO: use burger to generate the blockbehavior
         new_make_block_states_macro_code.append(
             f'        {block_id} => BlockBehavior::default(), {{')
-        for property in block_data.get('properties', {}):
-            property_default = default_property_variants.get(property)
+        print('block data', block_data_burger)
+        for property in block_properties_burger:
+            property_default = default_property_variants.get(property['name'])
+            property_struct_name = get_property_name(property, block_data_burger)
+            assert property_default is not None
             new_make_block_states_macro_code.append(
-                f'            {to_camel_case(property)}={to_camel_case(property_default)},')
+                f'            {to_camel_case(property_struct_name)}={to_camel_case(property_default)},')
+            # new_make_block_states_macro_code.append(
+            #     f'            {to_camel_case(state)}=TODO,')
         new_make_block_states_macro_code.append('        },')
     new_make_block_states_macro_code.append('    }')
     new_make_block_states_macro_code.append('}')
