@@ -10,9 +10,9 @@ make_block_states! {
     Properties => {
         Facing {
             North,
-            East,
             South,
             West,
+            East,
         },
         Powered {
             True,

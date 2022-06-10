@@ -11,18 +11,6 @@ BLOCKS_RS_DIR = get_dir_location('../azalea-block/src/blocks.rs')
 # - State: A possible state of a block, a combination of variants
 # - Block: Has properties and states.
 
-
-def get_property_variants(data) -> list[str]:
-    if 'values' in data:
-        return list(map(str.lower, data['values']))
-    if data['type'] == 'bool':
-        return ['true', 'false']
-    if data['type'] == 'int':
-        # range between data['min'] and data['max']
-        return [str(i) for i in range(data['min'], data['max'] + 1)]
-    raise Exception('Unknown property type: ' + data['type'])
-
-
 def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings):
     with open(BLOCKS_RS_DIR, 'r') as f:
         existing_code = f.read().splitlines()
@@ -42,12 +30,14 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings
 
     # Find properties
     properties = {}
-    for block_data_burger in blocks_burger.values():
+    for block_id, block_data_burger in blocks_burger.items():
+        block_data_report = blocks_report[f'minecraft:{block_id}']
+
         block_properties = {}
         for property in block_data_burger.get('states', []):
+            property_variants = block_data_report['properties'][property['name']]
             property_name = get_property_name(property, block_data_burger)
 
-            property_variants = get_property_variants(property)
             block_properties[property_name] = property_variants
         properties.update(block_properties)
 
