@@ -8,12 +8,13 @@ use syn::{
     parse::{Parse, ParseStream, Result},
     parse_macro_input,
     punctuated::Punctuated,
-    Expr, Ident, Token,
+    Expr, Ident, LitStr, Token,
 };
 use utils::{combinations_of, to_pascal_case};
 
 struct PropertyDefinition {
-    name: Ident,
+    name: LitStr,
+    struct_name: Ident,
     variants: Punctuated<Ident, Token![,]>,
 }
 struct PropertyDefinitions {
@@ -21,13 +22,27 @@ struct PropertyDefinitions {
 }
 
 struct PropertyAndDefault {
-    name: Ident,
+    struct_name: Ident,
+    default: Ident,
+}
+struct PropertyWithNameAndDefault {
+    name: String,
+    struct_name: Ident,
     default: Ident,
 }
 struct BlockDefinition {
     name: Ident,
     behavior: Expr,
     properties_and_defaults: Vec<PropertyAndDefault>,
+}
+impl PropertyAndDefault {
+    fn into_property_with_name_and_default(&self, name: String) -> PropertyWithNameAndDefault {
+        PropertyWithNameAndDefault {
+            name,
+            struct_name: self.struct_name.clone(),
+            default: self.default.clone(),
+        }
+    }
 }
 struct BlockDefinitions {
     blocks: Vec<BlockDefinition>,
@@ -39,19 +54,29 @@ struct MakeBlockStates {
 
 impl Parse for PropertyDefinition {
     fn parse(input: ParseStream) -> Result<Self> {
-        // Face {
+        // "face" => Face {
         //     Floor,
         //     Wall,
         //     Ceiling
         // },
+
+        // if you're wondering, the reason it's in quotes is because `type` is
+        // a keyword in rust so if we don't put it in quotes it results in a
+        // syntax error
         let name = input.parse()?;
+        input.parse::<Token![=>]>()?;
+        let struct_name = input.parse()?;
 
         let content;
         braced!(content in input);
         let variants = content.parse_terminated(Ident::parse)?;
 
         input.parse::<Token![,]>()?;
-        Ok(PropertyDefinition { name, variants })
+        Ok(PropertyDefinition {
+            name,
+            struct_name,
+            variants,
+        })
     }
 }
 
@@ -70,11 +95,11 @@ impl Parse for PropertyDefinitions {
 
 impl Parse for BlockDefinition {
     fn parse(input: ParseStream) -> Result<Self> {
-        //     acacia_button => BlockBehavior::default().no_collision(), {
-        //         Face,
-        //         Facing,
-        //         Powered
-        //     },
+        // acacia_button => BlockBehavior::default(), {
+        //     Facing=North,
+        //     Powered=False,
+        //     Face=Wall,
+        // },
         let name = input.parse()?;
         input.parse::<Token![=>]>()?;
         let behavior = input.parse()?;
@@ -93,7 +118,7 @@ impl Parse for BlockDefinition {
             content.parse::<Token![=]>()?;
             let property_default = content.parse()?;
             properties_and_defaults.push(PropertyAndDefault {
-                name: property,
+                struct_name: property,
                 default: property_default,
             });
             if content.parse::<Token![,]>().is_err() {
@@ -152,15 +177,21 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
     let mut property_enums = quote! {};
     let mut properties_map = HashMap::new();
+    let mut property_struct_names_to_names = HashMap::new();
 
-    let mut state_id = 0usize;
+    let mut state_id: usize = 0;
 
     for property in &input.property_definitions.properties {
         let mut property_enum_variants = quote! {};
         let mut property_from_number_variants = quote! {};
         let mut property_enum_variant_names = Vec::new();
 
-        let property_name = &property.name;
+        let property_struct_name = &property.struct_name;
+
+        property_struct_names_to_names.insert(
+            property_struct_name.to_string(),
+            property.name.clone().value(),
+        );
 
         for i in 0..property.variants.len() {
             let variant = &property.variants[i];
@@ -177,7 +208,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             // i_lit is used here instead of i because otherwise it says 0size
             // in the expansion and that looks uglier
             property_from_number_variants.extend(quote! {
-                #i_lit => #property_name::#variant,
+                #i_lit => #property_struct_name::#variant,
             });
 
             property_enum_variant_names.push(variant.to_string());
@@ -185,11 +216,11 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
         property_enums.extend(quote! {
             #[derive(Debug, Clone, Copy)]
-            pub enum #property_name {
+            pub enum #property_struct_name {
                 #property_enum_variants
             }
 
-            impl From<usize> for #property_name {
+            impl From<usize> for #property_struct_name {
                 fn from(value: usize) -> Self {
                     match value {
                         #property_from_number_variants
@@ -198,7 +229,10 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 }
             }
         });
-        properties_map.insert(property_name.to_string(), property_enum_variant_names);
+        properties_map.insert(
+            property_struct_name.to_string(),
+            property_enum_variant_names,
+        );
     }
 
     let mut block_state_enum_variants = quote! {};
@@ -208,7 +242,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         let block_property_names = &block
             .properties_and_defaults
             .iter()
-            .map(|p| p.name.to_string())
+            .map(|p| p.struct_name.to_string())
             .collect::<Vec<_>>();
         let mut block_properties_vec = Vec::new();
         for property_name in block_property_names {
@@ -219,17 +253,56 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             block_properties_vec.push(property_variants);
         }
 
+        let mut properties_with_name: Vec<PropertyWithNameAndDefault> =
+            Vec::with_capacity(block.properties_and_defaults.len());
+        for property in &block.properties_and_defaults {
+            let index: Option<usize> = if block
+                .properties_and_defaults
+                .iter()
+                .filter(|p| p.struct_name == property.struct_name)
+                .count()
+                > 1
+            {
+                Some(
+                    properties_with_name
+                        .iter()
+                        .filter(|p| p.struct_name == property.struct_name)
+                        .count(),
+                )
+            } else {
+                None
+            };
+            let mut property_name = property_struct_names_to_names
+                .get(&property.struct_name.to_string())
+                .expect(format!("Property '{}' is bad", property.struct_name).as_str())
+                .clone();
+            if let Some(index) = index {
+                property_name.push_str(&format!("_{}", &index.to_string()));
+            }
+            properties_with_name
+                .push(property.into_property_with_name_and_default(property_name.clone()));
+        }
+
         //     pub face: properties::Face,
         //     pub facing: properties::Facing,
         //     pub powered: properties::Powered,
+        // or
+        //     pub has_bottle_0: HasBottle,
+        //     pub has_bottle_1: HasBottle,
+        //     pub has_bottle_2: HasBottle,
         let mut block_struct_fields = quote! {};
-        for PropertyAndDefault { name: property, .. } in &block.properties_and_defaults {
-            let property_name_snake =
-                Ident::new(&property.to_string(), proc_macro2::Span::call_site());
+        for PropertyWithNameAndDefault {
+            struct_name, name, ..
+        } in &properties_with_name
+        {
+            // let property_name_snake =
+            //     Ident::new(&property.to_string(), proc_macro2::Span::call_site());
+            let name_ident = Ident::new(&name, proc_macro2::Span::call_site());
             block_struct_fields.extend(quote! {
-                pub #property_name_snake: #property,
+                pub #name_ident: #struct_name,
             })
         }
+
         let block_name_pascal_case = Ident::new(
             &to_pascal_case(&block.name.to_string()),
             proc_macro2::Span::call_site(),
@@ -272,16 +345,16 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             // 	facing: properties::Facing::North,
             // 	powered: properties::Powered::True,
             let mut from_block_to_state_combination_match_inner = quote! {};
-            for i in 0..block_property_names.len() {
-                let property_name = &block_property_names[i];
+            for i in 0..properties_with_name.len() {
+                let property = &properties_with_name[i];
+                let property_name = &property.name;
                 let property_name_ident = Ident::new(property_name, proc_macro2::Span::call_site());
-                let property_name_snake =
-                    Ident::new(&property_name.to_string(), proc_macro2::Span::call_site());
+                let property_struct_name_ident = &property.struct_name;
                 let variant =
                     Ident::new(&combination[i].to_string(), proc_macro2::Span::call_site());
 
                 from_block_to_state_combination_match_inner.extend(quote! {
-                    #property_name_ident: #property_name_snake::#variant,
+                    #property_name_ident: #property_struct_name_ident::#variant,
                 });
             }
 
@@ -295,23 +368,25 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         // 7035..=7058 => {
         //     let b = b - 7035;
         //     &AcaciaButtonBlock {
-        //         Powered: Powered::from((b / 1) % 2),
-        //         Facing: Facing::from((b / 2) % 4),
-        //         Face: Face::from((b / 8) % 3),
+        //         powered: Powered::from((b / 1) % 2),
+        //         facing: Facing::from((b / 2) % 4),
+        //         face: Face::from((b / 8) % 3),
         //     }
         // }
         let mut from_state_to_block_inner = quote! {};
         let mut division = 1usize;
-        for i in (0..block.properties_and_defaults.len()).rev() {
-            let PropertyAndDefault {
+        for i in (0..properties_with_name.len()).rev() {
+            let PropertyWithNameAndDefault {
+                struct_name: property_struct_name_ident,
                 name: property_name,
                 ..
-            } = &block.properties_and_defaults[i];
+            } = &properties_with_name[i];
 
             let property_variants = &block_properties_vec[i];
             let property_variants_count = property_variants.len();
+            let property_name_ident = Ident::new(property_name, proc_macro2::Span::call_site());
             from_state_to_block_inner.extend(quote! {
-                #property_name: #property_name::from((b / #division) % #property_variants_count),
+                #property_name_ident: #property_struct_name_ident::from((b / #division) % #property_variants_count),
             });
 
             division *= property_variants_count;
@@ -328,13 +403,15 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         });
 
         let mut block_default_fields = quote! {};
-        for PropertyAndDefault {
-            name: property,
+        for PropertyWithNameAndDefault {
+            struct_name: struct_name_ident,
+            name,
             default: property_default,
-        } in &block.properties_and_defaults
+        } in properties_with_name
         {
+            let name_ident = Ident::new(&name, proc_macro2::Span::call_site());
             block_default_fields.extend(quote! {
-                #property: #property::#property_default,
+                #name_ident: #struct_name_ident::#property_default,
             })
         }
 

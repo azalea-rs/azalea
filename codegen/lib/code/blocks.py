@@ -65,14 +65,14 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings
     # Property codegen
     new_make_block_states_macro_code.append('    Properties => {')
     for property_struct_name, property_variants in properties.items():
-        # face => Face {
+        # "face" => Face {
         #     Floor,
         #     Wall,
         #     Ceiling,
         # },
         property_name = property_struct_names_to_names[property_struct_name]
         new_make_block_states_macro_code.append(
-            f'        {property_name} => {property_struct_name} {{')
+            f'        "{property_name}" => {property_struct_name} {{')
 
         for variant in property_variants:
             new_make_block_states_macro_code.append(
