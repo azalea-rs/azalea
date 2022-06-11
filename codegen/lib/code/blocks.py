@@ -1,7 +1,7 @@
+from lib.utils import upper_first_letter
 from lib.utils import get_dir_location
 from lib.utils import to_camel_case
 from ..mappings import Mappings
-import json
 
 BLOCKS_RS_DIR = get_dir_location('../azalea-block/src/blocks.rs')
 
@@ -25,7 +25,9 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings
             if property_name:
                 break
         assert property_name
-        property_name = property_name.lower()
+        property_name = to_camel_case(property_name.lower())
+        if property['type'] == 'int':
+            property_name = to_camel_case(block_data_burger['text_id']) + property_name
         return property_name
 
     # Find properties
@@ -84,7 +86,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings
             property_struct_name = get_property_struct_name(property, block_data_burger)
             assert property_default is not None
             new_make_block_states_macro_code.append(
-                f'            {to_camel_case(property_struct_name)}={to_camel_case(property_default)},')
+                f'            {property_struct_name}={to_camel_case(property_default)},')
             # new_make_block_states_macro_code.append(
             #     f'            {to_camel_case(state)}=TODO,')
         new_make_block_states_macro_code.append('        },')
