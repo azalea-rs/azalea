@@ -8,6 +8,11 @@ pub trait Block {
 
 make_block_states! {
     Properties => {
+        Face {
+            Floor,
+            Wall,
+            Ceiling,
+        },
         Facing {
             North,
             South,
@@ -18,24 +23,15 @@ make_block_states! {
             True,
             False,
         },
-        Face {
-            Floor,
-            Wall,
-            Ceiling,
-        },
         Half {
             Top,
             Bottom,
-        },
-        Open {
-            True,
-            False,
         },
         Hinge {
             Left,
             Right,
         },
-        North {
+        Open {
             True,
             False,
         },
@@ -43,7 +39,7 @@ make_block_states! {
             True,
             False,
         },
-        West {
+        North {
             True,
             False,
         },
@@ -52,6 +48,10 @@ make_block_states! {
             False,
         },
         Waterlogged {
+            True,
+            False,
+        },
+        West {
             True,
             False,
         },
@@ -111,26 +111,26 @@ make_block_states! {
             OuterLeft,
             OuterRight,
         },
-        Up {
-            True,
-            False,
+        EastWall {
+            None,
+            Low,
+            Tall,
         },
         NorthWall {
             None,
             Low,
             Tall,
         },
-        EastWall {
+        SouthWall {
             None,
             Low,
             Tall,
+        },
+        Up {
+            True,
+            False,
         },
         WestWall {
-            None,
-            Low,
-            Tall,
-        },
-        SouthWall {
             None,
             Low,
             Tall,
@@ -170,13 +170,13 @@ make_block_states! {
             Partial,
             Full,
         },
-        Part {
-            Head,
-            Foot,
-        },
         Occupied {
             True,
             False,
+        },
+        Part {
+            Head,
+            Foot,
         },
         Candles {
             _1,
@@ -228,6 +228,10 @@ make_block_states! {
             _2,
             _3,
         },
+        Inverted {
+            True,
+            False,
+        },
         Power {
             _0,
             _1,
@@ -245,10 +249,6 @@ make_block_states! {
             _13,
             _14,
             _15,
-        },
-        Inverted {
-            True,
-            False,
         },
         Triggered {
             True,
@@ -355,16 +355,16 @@ make_block_states! {
             True,
             False,
         },
-        TipDirection {
-            Up,
-            Down,
-        },
         Thickness {
             TipMerge,
             Tip,
             Frustum,
             Middle,
             Base,
+        },
+        TipDirection {
+            Up,
+            Down,
         },
         Delay {
             _1,
@@ -396,11 +396,11 @@ make_block_states! {
             Active,
             Cooldown,
         },
-        Shrieking {
+        CanSummon {
             True,
             False,
         },
-        CanSummon {
+        Shrieking {
             True,
             False,
         },
@@ -450,16 +450,16 @@ make_block_states! {
             True,
             False,
         },
-        Hatch {
-            _0,
-            _1,
-            _2,
-        },
         Eggs {
             _1,
             _2,
             _3,
             _4,
+        },
+        Hatch {
+            _0,
+            _1,
+            _2,
         },
     },
     Blocks => {

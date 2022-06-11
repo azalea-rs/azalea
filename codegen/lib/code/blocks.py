@@ -18,7 +18,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings
     new_make_block_states_macro_code = []
     new_make_block_states_macro_code.append('make_block_states! {')
 
-    def get_property_name(property: dict, block_data_burger: dict) -> str:
+    def get_property_struct_name(property: dict, block_data_burger: dict) -> str:
         property_name = None
         for class_name in [block_data_burger['class']] + block_data_burger['super']:
             property_name = mappings.get_field(class_name, property['field_name'])
@@ -34,11 +34,20 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings
         block_data_report = blocks_report[f'minecraft:{block_id}']
 
         block_properties = {}
-        for property in block_data_burger.get('states', []):
-            property_variants = block_data_report['properties'][property['name']]
-            property_name = get_property_name(property, block_data_burger)
+        for property_name in list(block_data_report.get('properties', {}).keys()):
+            property_burger = None
+            for property in block_data_burger['states']:
+                if property['name'] == property_name:
+                    property_burger = property
+                    break
+            if property_burger is None:
+                print('Error: The reports have states for a block, but Burger doesn\'t!', block_data_burger)
+                continue
+            # assert property_burger is not None
+            property_variants = block_data_report['properties'][property_name]
+            property_struct_name = get_property_struct_name(property_burger, block_data_burger)
 
-            block_properties[property_name] = property_variants
+            block_properties[property_struct_name] = property_variants
         properties.update(block_properties)
 
     # Property codegen
@@ -70,10 +79,9 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings
         # TODO: use burger to generate the blockbehavior
         new_make_block_states_macro_code.append(
             f'        {block_id} => BlockBehavior::default(), {{')
-        print('block data', block_data_burger)
         for property in block_properties_burger:
             property_default = default_property_variants.get(property['name'])
-            property_struct_name = get_property_name(property, block_data_burger)
+            property_struct_name = get_property_struct_name(property, block_data_burger)
             assert property_default is not None
             new_make_block_states_macro_code.append(
                 f'            {to_camel_case(property_struct_name)}={to_camel_case(property_default)},')
