@@ -1,7 +1,6 @@
-from lib.utils import upper_first_letter
-from lib.utils import get_dir_location
-from lib.utils import to_camel_case
+from lib.utils import to_snake_case, upper_first_letter, get_dir_location, to_camel_case
 from ..mappings import Mappings
+import re
 
 BLOCKS_RS_DIR = get_dir_location('../azalea-block/src/blocks.rs')
 
@@ -32,31 +31,48 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings
 
     # Find properties
     properties = {}
+
+    # This dict looks like { 'FloweringAzaleaLeavesDistance': 'distance' }
+    property_struct_names_to_names = {}
     for block_id, block_data_burger in blocks_burger.items():
         block_data_report = blocks_report[f'minecraft:{block_id}']
 
         block_properties = {}
-        for property_name in list(block_data_report.get('properties', {}).keys()):
+        for property_struct_name in list(block_data_report.get('properties', {}).keys()):
             property_burger = None
             for property in block_data_burger['states']:
-                if property['name'] == property_name:
+                if property['name'] == property_struct_name:
                     property_burger = property
                     break
             if property_burger is None:
                 print('Error: The reports have states for a block, but Burger doesn\'t!', block_data_burger)
                 continue
             # assert property_burger is not None
-            property_variants = block_data_report['properties'][property_name]
+            property_variants = block_data_report['properties'][property_struct_name]
             property_struct_name = get_property_struct_name(property_burger, block_data_burger)
 
             block_properties[property_struct_name] = property_variants
+            
+            property_name = property_burger['name']
+            # if the name ends with _<number>, remove that part
+            ending = property_name.split('_')[-1]
+            if ending.isdigit():
+                property_name = property_name[:-(len(ending) + 1)]
+            property_struct_names_to_names[property_struct_name] = property_name
+
         properties.update(block_properties)
 
     # Property codegen
     new_make_block_states_macro_code.append('    Properties => {')
-    for property_name, property_variants in properties.items():
+    for property_struct_name, property_variants in properties.items():
+        # face => Face {
+        #     Floor,
+        #     Wall,
+        #     Ceiling,
+        # },
+        property_name = property_struct_names_to_names[property_struct_name]
         new_make_block_states_macro_code.append(
-            f'        {to_camel_case(property_name)} {{')
+            f'        {property_name} => {property_struct_name} {{')
 
         for variant in property_variants:
             new_make_block_states_macro_code.append(

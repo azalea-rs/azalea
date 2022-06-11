@@ -8,58 +8,58 @@ pub trait Block {
 
 make_block_states! {
     Properties => {
-        Face {
+        face => Face {
             Floor,
             Wall,
             Ceiling,
         },
-        Facing {
+        facing => Facing {
             North,
             South,
             West,
             East,
         },
-        Powered {
+        powered => Powered {
             True,
             False,
         },
-        Half {
+        half => Half {
             Top,
             Bottom,
         },
-        Hinge {
+        hinge => Hinge {
             Left,
             Right,
         },
-        Open {
+        open => Open {
             True,
             False,
         },
-        East {
+        east => East {
             True,
             False,
         },
-        North {
+        north => North {
             True,
             False,
         },
-        South {
+        south => South {
             True,
             False,
         },
-        Waterlogged {
+        waterlogged => Waterlogged {
             True,
             False,
         },
-        West {
+        west => West {
             True,
             False,
         },
-        InWall {
+        in_wall => InWall {
             True,
             False,
         },
-        AcaciaLeavesDistance {
+        distance => AcaciaLeavesDistance {
             _1,
             _2,
             _3,
@@ -68,20 +68,20 @@ make_block_states! {
             _6,
             _7,
         },
-        Persistent {
+        persistent => Persistent {
             True,
             False,
         },
-        Axis {
+        axis => Axis {
             X,
             Y,
             Z,
         },
-        AcaciaSaplingStage {
+        stage => AcaciaSaplingStage {
             _0,
             _1,
         },
-        AcaciaSignRotation {
+        rotation => AcaciaSignRotation {
             _0,
             _1,
             _2,
@@ -99,43 +99,43 @@ make_block_states! {
             _14,
             _15,
         },
-        Type {
+        type => Type {
             Top,
             Bottom,
             Double,
         },
-        Shape {
+        shape => Shape {
             Straight,
             InnerLeft,
             InnerRight,
             OuterLeft,
             OuterRight,
         },
-        EastWall {
+        east => EastWall {
             None,
             Low,
             Tall,
         },
-        NorthWall {
+        north => NorthWall {
             None,
             Low,
             Tall,
         },
-        SouthWall {
+        south => SouthWall {
             None,
             Low,
             Tall,
         },
-        Up {
+        up => Up {
             True,
             False,
         },
-        WestWall {
+        west => WestWall {
             None,
             Low,
             Tall,
         },
-        AzaleaLeavesDistance {
+        distance => AzaleaLeavesDistance {
             _1,
             _2,
             _3,
@@ -144,28 +144,20 @@ make_block_states! {
             _6,
             _7,
         },
-        BambooAge {
+        age => BambooAge {
             _0,
             _1,
         },
-        Leaves {
+        leaves => Leaves {
             None,
             Small,
             Large,
         },
-        BambooStage {
+        stage => BambooStage {
             _0,
             _1,
         },
-        BeeNestHoneyLevel {
-            _0,
-            _1,
-            _2,
-            _3,
-            _4,
-            _5,
-        },
-        BeehiveHoneyLevel {
+        honey_level => BeeNestHoneyLevel {
             _0,
             _1,
             _2,
@@ -173,25 +165,33 @@ make_block_states! {
             _4,
             _5,
         },
-        BeetrootsAge {
+        honey_level => BeehiveHoneyLevel {
+            _0,
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+        },
+        age => BeetrootsAge {
             _0,
             _1,
             _2,
             _3,
         },
-        Attachment {
+        attachment => Attachment {
             Floor,
             Ceiling,
             SingleWall,
             DoubleWall,
         },
-        Tilt {
+        tilt => Tilt {
             None,
             Unstable,
             Partial,
             Full,
         },
-        BirchLeavesDistance {
+        distance => BirchLeavesDistance {
             _1,
             _2,
             _3,
@@ -200,29 +200,11 @@ make_block_states! {
             _6,
             _7,
         },
-        BirchSaplingStage {
+        stage => BirchSaplingStage {
             _0,
             _1,
         },
-        BirchSignRotation {
-            _0,
-            _1,
-            _2,
-            _3,
-            _4,
-            _5,
-            _6,
-            _7,
-            _8,
-            _9,
-            _10,
-            _11,
-            _12,
-            _13,
-            _14,
-            _15,
-        },
-        BlackBannerRotation {
+        rotation => BirchSignRotation {
             _0,
             _1,
             _2,
@@ -240,25 +222,43 @@ make_block_states! {
             _14,
             _15,
         },
-        Occupied {
+        rotation => BlackBannerRotation {
+            _0,
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+            _6,
+            _7,
+            _8,
+            _9,
+            _10,
+            _11,
+            _12,
+            _13,
+            _14,
+            _15,
+        },
+        occupied => Occupied {
             True,
             False,
         },
-        Part {
+        part => Part {
             Head,
             Foot,
         },
-        BlackCandleCandles {
+        candles => BlackCandleCandles {
             _1,
             _2,
             _3,
             _4,
         },
-        Lit {
+        lit => Lit {
             True,
             False,
         },
-        BlueBannerRotation {
+        rotation => BlueBannerRotation {
             _0,
             _1,
             _2,
@@ -276,17 +276,17 @@ make_block_states! {
             _14,
             _15,
         },
-        BlueCandleCandles {
+        candles => BlueCandleCandles {
             _1,
             _2,
             _3,
             _4,
         },
-        HasBottle {
+        has_bottle => HasBottle {
             True,
             False,
         },
-        BrownBannerRotation {
+        rotation => BrownBannerRotation {
             _0,
             _1,
             _2,
@@ -304,21 +304,21 @@ make_block_states! {
             _14,
             _15,
         },
-        BrownCandleCandles {
+        candles => BrownCandleCandles {
             _1,
             _2,
             _3,
             _4,
         },
-        Down {
+        down => Down {
             True,
             False,
         },
-        DragDown {
+        drag => DragDown {
             True,
             False,
         },
-        CactusAge {
+        age => CactusAge {
             _0,
             _1,
             _2,
@@ -336,7 +336,7 @@ make_block_states! {
             _14,
             _15,
         },
-        CakeBites {
+        bites => CakeBites {
             _0,
             _1,
             _2,
@@ -345,17 +345,17 @@ make_block_states! {
             _5,
             _6,
         },
-        SignalFire {
+        signal_fire => SignalFire {
             True,
             False,
         },
-        CandleCandles {
+        candles => CandleCandles {
             _1,
             _2,
             _3,
             _4,
         },
-        CarrotsAge {
+        age => CarrotsAge {
             _0,
             _1,
             _2,
@@ -365,11 +365,11 @@ make_block_states! {
             _6,
             _7,
         },
-        Conditional {
+        conditional => Conditional {
             True,
             False,
         },
-        ChorusFlowerAge {
+        age => ChorusFlowerAge {
             _0,
             _1,
             _2,
@@ -377,18 +377,18 @@ make_block_states! {
             _4,
             _5,
         },
-        CocoaAge {
+        age => CocoaAge {
             _0,
             _1,
             _2,
         },
-        Mode {
+        mode => Mode {
             Save,
             Load,
             Corner,
             Data,
         },
-        ComposterLevel {
+        level => ComposterLevel {
             _0,
             _1,
             _2,
@@ -399,25 +399,7 @@ make_block_states! {
             _7,
             _8,
         },
-        CreeperHeadRotation {
-            _0,
-            _1,
-            _2,
-            _3,
-            _4,
-            _5,
-            _6,
-            _7,
-            _8,
-            _9,
-            _10,
-            _11,
-            _12,
-            _13,
-            _14,
-            _15,
-        },
-        CrimsonSignRotation {
+        rotation => CreeperHeadRotation {
             _0,
             _1,
             _2,
@@ -435,7 +417,7 @@ make_block_states! {
             _14,
             _15,
         },
-        CyanBannerRotation {
+        rotation => CrimsonSignRotation {
             _0,
             _1,
             _2,
@@ -453,26 +435,7 @@ make_block_states! {
             _14,
             _15,
         },
-        CyanCandleCandles {
-            _1,
-            _2,
-            _3,
-            _4,
-        },
-        DarkOakLeavesDistance {
-            _1,
-            _2,
-            _3,
-            _4,
-            _5,
-            _6,
-            _7,
-        },
-        DarkOakSaplingStage {
-            _0,
-            _1,
-        },
-        DarkOakSignRotation {
+        rotation => CyanBannerRotation {
             _0,
             _1,
             _2,
@@ -490,11 +453,48 @@ make_block_states! {
             _14,
             _15,
         },
-        Inverted {
+        candles => CyanCandleCandles {
+            _1,
+            _2,
+            _3,
+            _4,
+        },
+        distance => DarkOakLeavesDistance {
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+            _6,
+            _7,
+        },
+        stage => DarkOakSaplingStage {
+            _0,
+            _1,
+        },
+        rotation => DarkOakSignRotation {
+            _0,
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+            _6,
+            _7,
+            _8,
+            _9,
+            _10,
+            _11,
+            _12,
+            _13,
+            _14,
+            _15,
+        },
+        inverted => Inverted {
             True,
             False,
         },
-        DaylightDetectorPower {
+        power => DaylightDetectorPower {
             _0,
             _1,
             _2,
@@ -512,11 +512,11 @@ make_block_states! {
             _14,
             _15,
         },
-        Triggered {
+        triggered => Triggered {
             True,
             False,
         },
-        DragonHeadRotation {
+        rotation => DragonHeadRotation {
             _0,
             _1,
             _2,
@@ -534,11 +534,11 @@ make_block_states! {
             _14,
             _15,
         },
-        HasEye {
+        eye => HasEye {
             True,
             False,
         },
-        FarmlandMoisture {
+        moisture => FarmlandMoisture {
             _0,
             _1,
             _2,
@@ -548,7 +548,7 @@ make_block_states! {
             _6,
             _7,
         },
-        FireAge {
+        age => FireAge {
             _0,
             _1,
             _2,
@@ -566,7 +566,7 @@ make_block_states! {
             _14,
             _15,
         },
-        FloweringAzaleaLeavesDistance {
+        distance => FloweringAzaleaLeavesDistance {
             _1,
             _2,
             _3,
@@ -575,17 +575,17 @@ make_block_states! {
             _6,
             _7,
         },
-        FrostedIceAge {
+        age => FrostedIceAge {
             _0,
             _1,
             _2,
             _3,
         },
-        Snowy {
+        snowy => Snowy {
             True,
             False,
         },
-        GrayBannerRotation {
+        rotation => GrayBannerRotation {
             _0,
             _1,
             _2,
@@ -603,13 +603,13 @@ make_block_states! {
             _14,
             _15,
         },
-        GrayCandleCandles {
+        candles => GrayCandleCandles {
             _1,
             _2,
             _3,
             _4,
         },
-        GreenBannerRotation {
+        rotation => GreenBannerRotation {
             _0,
             _1,
             _2,
@@ -627,13 +627,13 @@ make_block_states! {
             _14,
             _15,
         },
-        GreenCandleCandles {
+        candles => GreenCandleCandles {
             _1,
             _2,
             _3,
             _4,
         },
-        HeavyWeightedPressurePlatePower {
+        power => HeavyWeightedPressurePlatePower {
             _0,
             _1,
             _2,
@@ -651,11 +651,11 @@ make_block_states! {
             _14,
             _15,
         },
-        Enabled {
+        enabled => Enabled {
             True,
             False,
         },
-        Orientation {
+        orientation => Orientation {
             DownEast,
             DownNorth,
             DownSouth,
@@ -669,11 +669,11 @@ make_block_states! {
             NorthUp,
             SouthUp,
         },
-        HasRecord {
+        has_record => HasRecord {
             True,
             False,
         },
-        JungleLeavesDistance {
+        distance => JungleLeavesDistance {
             _1,
             _2,
             _3,
@@ -682,11 +682,11 @@ make_block_states! {
             _6,
             _7,
         },
-        JungleSaplingStage {
+        stage => JungleSaplingStage {
             _0,
             _1,
         },
-        JungleSignRotation {
+        rotation => JungleSignRotation {
             _0,
             _1,
             _2,
@@ -704,7 +704,7 @@ make_block_states! {
             _14,
             _15,
         },
-        KelpAge {
+        age => KelpAge {
             _0,
             _1,
             _2,
@@ -732,11 +732,11 @@ make_block_states! {
             _24,
             _25,
         },
-        Hanging {
+        hanging => Hanging {
             True,
             False,
         },
-        LavaLevel {
+        level => LavaLevel {
             _0,
             _1,
             _2,
@@ -754,11 +754,11 @@ make_block_states! {
             _14,
             _15,
         },
-        HasBook {
+        has_book => HasBook {
             True,
             False,
         },
-        LightLevel {
+        level => LightLevel {
             _0,
             _1,
             _2,
@@ -776,7 +776,7 @@ make_block_states! {
             _14,
             _15,
         },
-        LightBlueBannerRotation {
+        rotation => LightBlueBannerRotation {
             _0,
             _1,
             _2,
@@ -794,13 +794,13 @@ make_block_states! {
             _14,
             _15,
         },
-        LightBlueCandleCandles {
+        candles => LightBlueCandleCandles {
             _1,
             _2,
             _3,
             _4,
         },
-        LightGrayBannerRotation {
+        rotation => LightGrayBannerRotation {
             _0,
             _1,
             _2,
@@ -818,13 +818,13 @@ make_block_states! {
             _14,
             _15,
         },
-        LightGrayCandleCandles {
+        candles => LightGrayCandleCandles {
             _1,
             _2,
             _3,
             _4,
         },
-        LightWeightedPressurePlatePower {
+        power => LightWeightedPressurePlatePower {
             _0,
             _1,
             _2,
@@ -842,7 +842,7 @@ make_block_states! {
             _14,
             _15,
         },
-        LimeBannerRotation {
+        rotation => LimeBannerRotation {
             _0,
             _1,
             _2,
@@ -860,13 +860,13 @@ make_block_states! {
             _14,
             _15,
         },
-        LimeCandleCandles {
+        candles => LimeCandleCandles {
             _1,
             _2,
             _3,
             _4,
         },
-        MagentaBannerRotation {
+        rotation => MagentaBannerRotation {
             _0,
             _1,
             _2,
@@ -884,13 +884,13 @@ make_block_states! {
             _14,
             _15,
         },
-        MagentaCandleCandles {
+        candles => MagentaCandleCandles {
             _1,
             _2,
             _3,
             _4,
         },
-        MangroveLeavesDistance {
+        distance => MangroveLeavesDistance {
             _1,
             _2,
             _3,
@@ -899,18 +899,18 @@ make_block_states! {
             _6,
             _7,
         },
-        MangrovePropaguleAge {
+        age => MangrovePropaguleAge {
             _0,
             _1,
             _2,
             _3,
             _4,
         },
-        MangrovePropaguleStage {
+        stage => MangrovePropaguleStage {
             _0,
             _1,
         },
-        MangroveSignRotation {
+        rotation => MangroveSignRotation {
             _0,
             _1,
             _2,
@@ -928,7 +928,7 @@ make_block_states! {
             _14,
             _15,
         },
-        MelonStemAge {
+        age => MelonStemAge {
             _0,
             _1,
             _2,
@@ -938,13 +938,13 @@ make_block_states! {
             _6,
             _7,
         },
-        NetherWartAge {
+        age => NetherWartAge {
             _0,
             _1,
             _2,
             _3,
         },
-        Instrument {
+        instrument => Instrument {
             Harp,
             Basedrum,
             Snare,
@@ -962,7 +962,7 @@ make_block_states! {
             Banjo,
             Pling,
         },
-        NoteBlockNote {
+        note => NoteBlockNote {
             _0,
             _1,
             _2,
@@ -989,7 +989,7 @@ make_block_states! {
             _23,
             _24,
         },
-        OakLeavesDistance {
+        distance => OakLeavesDistance {
             _1,
             _2,
             _3,
@@ -998,29 +998,11 @@ make_block_states! {
             _6,
             _7,
         },
-        OakSaplingStage {
+        stage => OakSaplingStage {
             _0,
             _1,
         },
-        OakSignRotation {
-            _0,
-            _1,
-            _2,
-            _3,
-            _4,
-            _5,
-            _6,
-            _7,
-            _8,
-            _9,
-            _10,
-            _11,
-            _12,
-            _13,
-            _14,
-            _15,
-        },
-        OrangeBannerRotation {
+        rotation => OakSignRotation {
             _0,
             _1,
             _2,
@@ -1038,13 +1020,7 @@ make_block_states! {
             _14,
             _15,
         },
-        OrangeCandleCandles {
-            _1,
-            _2,
-            _3,
-            _4,
-        },
-        PinkBannerRotation {
+        rotation => OrangeBannerRotation {
             _0,
             _1,
             _2,
@@ -1062,21 +1038,45 @@ make_block_states! {
             _14,
             _15,
         },
-        PinkCandleCandles {
+        candles => OrangeCandleCandles {
             _1,
             _2,
             _3,
             _4,
         },
-        Extended {
+        rotation => PinkBannerRotation {
+            _0,
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+            _6,
+            _7,
+            _8,
+            _9,
+            _10,
+            _11,
+            _12,
+            _13,
+            _14,
+            _15,
+        },
+        candles => PinkCandleCandles {
+            _1,
+            _2,
+            _3,
+            _4,
+        },
+        extended => Extended {
             True,
             False,
         },
-        Short {
+        short => Short {
             True,
             False,
         },
-        PlayerHeadRotation {
+        rotation => PlayerHeadRotation {
             _0,
             _1,
             _2,
@@ -1094,18 +1094,18 @@ make_block_states! {
             _14,
             _15,
         },
-        Thickness {
+        thickness => Thickness {
             TipMerge,
             Tip,
             Frustum,
             Middle,
             Base,
         },
-        TipDirection {
+        vertical_direction => TipDirection {
             Up,
             Down,
         },
-        PotatoesAge {
+        age => PotatoesAge {
             _0,
             _1,
             _2,
@@ -1115,12 +1115,12 @@ make_block_states! {
             _6,
             _7,
         },
-        PowderSnowCauldronLevel {
+        level => PowderSnowCauldronLevel {
             _1,
             _2,
             _3,
         },
-        PumpkinStemAge {
+        age => PumpkinStemAge {
             _0,
             _1,
             _2,
@@ -1130,31 +1130,7 @@ make_block_states! {
             _6,
             _7,
         },
-        PurpleBannerRotation {
-            _0,
-            _1,
-            _2,
-            _3,
-            _4,
-            _5,
-            _6,
-            _7,
-            _8,
-            _9,
-            _10,
-            _11,
-            _12,
-            _13,
-            _14,
-            _15,
-        },
-        PurpleCandleCandles {
-            _1,
-            _2,
-            _3,
-            _4,
-        },
-        RedBannerRotation {
+        rotation => PurpleBannerRotation {
             _0,
             _1,
             _2,
@@ -1172,13 +1148,13 @@ make_block_states! {
             _14,
             _15,
         },
-        RedCandleCandles {
+        candles => PurpleCandleCandles {
             _1,
             _2,
             _3,
             _4,
         },
-        RedstoneWirePower {
+        rotation => RedBannerRotation {
             _0,
             _1,
             _2,
@@ -1196,28 +1172,52 @@ make_block_states! {
             _14,
             _15,
         },
-        RepeaterDelay {
+        candles => RedCandleCandles {
             _1,
             _2,
             _3,
             _4,
         },
-        Locked {
+        power => RedstoneWirePower {
+            _0,
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+            _6,
+            _7,
+            _8,
+            _9,
+            _10,
+            _11,
+            _12,
+            _13,
+            _14,
+            _15,
+        },
+        delay => RepeaterDelay {
+            _1,
+            _2,
+            _3,
+            _4,
+        },
+        locked => Locked {
             True,
             False,
         },
-        RespawnAnchorCharge {
+        charges => RespawnAnchorCharge {
             _0,
             _1,
             _2,
             _3,
             _4,
         },
-        Bottom {
+        bottom => Bottom {
             True,
             False,
         },
-        ScaffoldingDistance {
+        distance => ScaffoldingDistance {
             _0,
             _1,
             _2,
@@ -1227,11 +1227,11 @@ make_block_states! {
             _6,
             _7,
         },
-        Pulse {
+        bloom => Pulse {
             True,
             False,
         },
-        SculkSensorPower {
+        power => SculkSensorPower {
             _0,
             _1,
             _2,
@@ -1249,26 +1249,26 @@ make_block_states! {
             _14,
             _15,
         },
-        Phase {
+        sculk_sensor_phase => Phase {
             Inactive,
             Active,
             Cooldown,
         },
-        CanSummon {
+        can_summon => CanSummon {
             True,
             False,
         },
-        Shrieking {
+        shrieking => Shrieking {
             True,
             False,
         },
-        SeaPicklePickles {
+        pickles => SeaPicklePickles {
             _1,
             _2,
             _3,
             _4,
         },
-        SkeletonSkullRotation {
+        rotation => SkeletonSkullRotation {
             _0,
             _1,
             _2,
@@ -1286,7 +1286,7 @@ make_block_states! {
             _14,
             _15,
         },
-        SnowLayers {
+        layers => SnowLayers {
             _1,
             _2,
             _3,
@@ -1296,7 +1296,7 @@ make_block_states! {
             _7,
             _8,
         },
-        SpruceLeavesDistance {
+        distance => SpruceLeavesDistance {
             _1,
             _2,
             _3,
@@ -1305,29 +1305,11 @@ make_block_states! {
             _6,
             _7,
         },
-        SpruceSaplingStage {
+        stage => SpruceSaplingStage {
             _0,
             _1,
         },
-        SpruceSignRotation {
-            _0,
-            _1,
-            _2,
-            _3,
-            _4,
-            _5,
-            _6,
-            _7,
-            _8,
-            _9,
-            _10,
-            _11,
-            _12,
-            _13,
-            _14,
-            _15,
-        },
-        SugarCaneAge {
+        rotation => SpruceSignRotation {
             _0,
             _1,
             _2,
@@ -1345,13 +1327,7 @@ make_block_states! {
             _14,
             _15,
         },
-        SweetBerryBushAge {
-            _0,
-            _1,
-            _2,
-            _3,
-        },
-        TargetOutputPower {
+        age => SugarCaneAge {
             _0,
             _1,
             _2,
@@ -1369,30 +1345,54 @@ make_block_states! {
             _14,
             _15,
         },
-        Unstable {
+        age => SweetBerryBushAge {
+            _0,
+            _1,
+            _2,
+            _3,
+        },
+        power => TargetOutputPower {
+            _0,
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+            _6,
+            _7,
+            _8,
+            _9,
+            _10,
+            _11,
+            _12,
+            _13,
+            _14,
+            _15,
+        },
+        unstable => Unstable {
             True,
             False,
         },
-        Attached {
+        attached => Attached {
             True,
             False,
         },
-        Disarmed {
+        disarmed => Disarmed {
             True,
             False,
         },
-        TurtleEggEggs {
+        eggs => TurtleEggEggs {
             _1,
             _2,
             _3,
             _4,
         },
-        TurtleEggHatch {
+        hatch => TurtleEggHatch {
             _0,
             _1,
             _2,
         },
-        TwistingVinesAge {
+        age => TwistingVinesAge {
             _0,
             _1,
             _2,
@@ -1420,7 +1420,7 @@ make_block_states! {
             _24,
             _25,
         },
-        WarpedSignRotation {
+        rotation => WarpedSignRotation {
             _0,
             _1,
             _2,
@@ -1438,7 +1438,7 @@ make_block_states! {
             _14,
             _15,
         },
-        WaterLevel {
+        level => WaterLevel {
             _0,
             _1,
             _2,
@@ -1456,12 +1456,12 @@ make_block_states! {
             _14,
             _15,
         },
-        WaterCauldronLevel {
+        level => WaterCauldronLevel {
             _1,
             _2,
             _3,
         },
-        WeepingVinesAge {
+        age => WeepingVinesAge {
             _0,
             _1,
             _2,
@@ -1489,7 +1489,7 @@ make_block_states! {
             _24,
             _25,
         },
-        WheatAge {
+        age => WheatAge {
             _0,
             _1,
             _2,
@@ -1499,31 +1499,7 @@ make_block_states! {
             _6,
             _7,
         },
-        WhiteBannerRotation {
-            _0,
-            _1,
-            _2,
-            _3,
-            _4,
-            _5,
-            _6,
-            _7,
-            _8,
-            _9,
-            _10,
-            _11,
-            _12,
-            _13,
-            _14,
-            _15,
-        },
-        WhiteCandleCandles {
-            _1,
-            _2,
-            _3,
-            _4,
-        },
-        WitherSkeletonSkullRotation {
+        rotation => WhiteBannerRotation {
             _0,
             _1,
             _2,
@@ -1541,7 +1517,13 @@ make_block_states! {
             _14,
             _15,
         },
-        YellowBannerRotation {
+        candles => WhiteCandleCandles {
+            _1,
+            _2,
+            _3,
+            _4,
+        },
+        rotation => WitherSkeletonSkullRotation {
             _0,
             _1,
             _2,
@@ -1559,13 +1541,31 @@ make_block_states! {
             _14,
             _15,
         },
-        YellowCandleCandles {
+        rotation => YellowBannerRotation {
+            _0,
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+            _6,
+            _7,
+            _8,
+            _9,
+            _10,
+            _11,
+            _12,
+            _13,
+            _14,
+            _15,
+        },
+        candles => YellowCandleCandles {
             _1,
             _2,
             _3,
             _4,
         },
-        ZombieHeadRotation {
+        rotation => ZombieHeadRotation {
             _0,
             _1,
             _2,
