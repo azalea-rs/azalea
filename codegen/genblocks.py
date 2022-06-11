@@ -21,6 +21,8 @@ print('Ok')
 
 mappings = lib.download.get_mappings_for_version(version_id)
 block_states_burger = lib.extract.get_block_states_burger(version_id)
+ordered_blocks = lib.extract.get_ordered_blocks_burger(version_id)
 block_states_report = lib.extract.get_block_states_report(version_id)
 
-lib.code.blocks.generate_blocks(block_states_burger, block_states_report, mappings)
+lib.code.blocks.generate_blocks(
+    block_states_burger, block_states_report, ordered_blocks, mappings)

@@ -21,9 +21,15 @@ def get_block_states_report(version_id: str):
     with open(get_dir_location(f'downloads/generated-{version_id}/reports/blocks.json'), 'r') as f:
         return json.load(f)
 
+
 def get_block_states_burger(version_id: str):
     burger_data = get_burger_data_for_version(version_id)
     return burger_data[0]['blocks']['block']
+
+
+def get_ordered_blocks_burger(version_id: str):
+    burger_data = get_burger_data_for_version(version_id)
+    return burger_data[0]['blocks']['ordered_blocks']
 
 
 def get_burger_data_for_version(version_id: str):

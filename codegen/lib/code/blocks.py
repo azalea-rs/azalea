@@ -10,7 +10,8 @@ BLOCKS_RS_DIR = get_dir_location('../azalea-block/src/blocks.rs')
 # - State: A possible state of a block, a combination of variants
 # - Block: Has properties and states.
 
-def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings):
+
+def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: list[str], mappings: Mappings):
     with open(BLOCKS_RS_DIR, 'r') as f:
         existing_code = f.read().splitlines()
 
@@ -20,13 +21,15 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings
     def get_property_struct_name(property: dict, block_data_burger: dict) -> str:
         property_name = None
         for class_name in [block_data_burger['class']] + block_data_burger['super']:
-            property_name = mappings.get_field(class_name, property['field_name'])
+            property_name = mappings.get_field(
+                class_name, property['field_name'])
             if property_name:
                 break
         assert property_name
         property_name = to_camel_case(property_name.lower())
         if property['type'] == 'int':
-            property_name = to_camel_case(block_data_burger['text_id']) + property_name
+            property_name = to_camel_case(
+                block_data_burger['text_id']) + property_name
         return property_name
 
     # Find properties
@@ -34,7 +37,8 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings
 
     # This dict looks like { 'FloweringAzaleaLeavesDistance': 'distance' }
     property_struct_names_to_names = {}
-    for block_id, block_data_burger in blocks_burger.items():
+    for block_id in ordered_blocks:
+        block_data_burger = blocks_burger[block_id]
         block_data_report = blocks_report[f'minecraft:{block_id}']
 
         block_properties = {}
@@ -45,14 +49,16 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings
                     property_burger = property
                     break
             if property_burger is None:
-                print('Error: The reports have states for a block, but Burger doesn\'t!', block_data_burger)
+                print(
+                    'Error: The reports have states for a block, but Burger doesn\'t!', block_data_burger)
                 continue
             # assert property_burger is not None
             property_variants = block_data_report['properties'][property_struct_name]
-            property_struct_name = get_property_struct_name(property_burger, block_data_burger)
+            property_struct_name = get_property_struct_name(
+                property_burger, block_data_burger)
 
             block_properties[property_struct_name] = property_variants
-            
+
             property_name = property_burger['name']
             # if the name ends with _<number>, remove that part
             ending = property_name.split('_')[-1]
@@ -84,7 +90,8 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings
 
     # Block codegen
     new_make_block_states_macro_code.append('    Blocks => {')
-    for block_id, block_data_burger in blocks_burger.items():
+    for block_id in ordered_blocks:
+        block_data_burger = blocks_burger[block_id]
         block_data_report = blocks_report['minecraft:' + block_id]
 
         block_properties_burger = block_data_burger['states']
@@ -99,7 +106,8 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, mappings: Mappings
             f'        {block_id} => BlockBehavior::default(), {{')
         for property in block_properties_burger:
             property_default = default_property_variants.get(property['name'])
-            property_struct_name = get_property_struct_name(property, block_data_burger)
+            property_struct_name = get_property_struct_name(
+                property, block_data_burger)
             assert property_default is not None
             new_make_block_states_macro_code.append(
                 f'            {property_struct_name}={to_camel_case(property_default)},')
