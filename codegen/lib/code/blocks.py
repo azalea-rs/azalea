@@ -1,3 +1,4 @@
+from typing import Optional
 from lib.utils import to_snake_case, upper_first_letter, get_dir_location, to_camel_case
 from ..mappings import Mappings
 import re
@@ -18,7 +19,10 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
     new_make_block_states_macro_code = []
     new_make_block_states_macro_code.append('make_block_states! {')
 
-    def get_property_struct_name(property: dict, block_data_burger: dict) -> str:
+    def get_property_struct_name(property: Optional[dict], block_data_burger: dict, property_variants: list[str]) -> str:
+        if property is None:
+            return '_'.join(map(to_camel_case, property_variants))
+            
         property_name = None
         for class_name in [block_data_burger['class']] + block_data_burger['super']:
             property_name = mappings.get_field(
@@ -42,24 +46,25 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
         block_data_report = blocks_report[f'minecraft:{block_id}']
 
         block_properties = {}
-        for property_struct_name in list(block_data_report.get('properties', {}).keys()):
+        for property_name in list(block_data_report.get('properties', {}).keys()):
             property_burger = None
-            for property in block_data_burger['states']:
-                if property['name'] == property_struct_name:
+            for property in block_data_burger.get('states', []):
+                if property['name'] == property_name:
                     property_burger = property
                     break
+
+            property_variants = block_data_report['properties'][property_name]
+
             if property_burger is None:
                 print(
-                    'Error: The reports have states for a block, but Burger doesn\'t!', block_data_burger)
-                continue
-            # assert property_burger is not None
-            property_variants = block_data_report['properties'][property_struct_name]
+                    'Warning: The reports have states for a block, but Burger doesn\'t!', block_data_burger)
+
             property_struct_name = get_property_struct_name(
-                property_burger, block_data_burger)
+                property_burger, block_data_burger, property_variants)
+            # assert property_name == property_burger['name']
 
             block_properties[property_struct_name] = property_variants
 
-            property_name = property_burger['name']
             # if the name ends with _<number>, remove that part
             ending = property_name.split('_')[-1]
             if ending.isdigit():
@@ -94,25 +99,32 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
         block_data_burger = blocks_burger[block_id]
         block_data_report = blocks_report['minecraft:' + block_id]
 
-        block_properties_burger = block_data_burger['states']
+        block_properties = block_data_burger.get('states', [])
+        block_properties_burger = block_data_burger.get('states', [])
 
         default_property_variants: dict[str, str] = {}
-        for property in block_data_report['states']:
-            if property.get('default'):
-                default_property_variants = property.get('properties', {})
+        for state in block_data_report['states']:
+            if state.get('default'):
+                default_property_variants = state.get('properties', {})
 
         # TODO: use burger to generate the blockbehavior
         new_make_block_states_macro_code.append(
             f'        {block_id} => BlockBehavior::default(), {{')
-        for property in block_properties_burger:
-            property_default = default_property_variants.get(property['name'])
+        for property_name in list(block_data_report.get('properties', {}).keys()):
+            property_burger = None
+            for property in block_data_burger.get('states', []):
+                if property['name'] == property_name:
+                    property_burger = property
+                    break
+
+            property_default = default_property_variants.get(property_name)
+            property_variants = block_data_report['properties'][property_name]
+
             property_struct_name = get_property_struct_name(
-                property, block_data_burger)
+                property_burger, block_data_burger, property_variants)
             assert property_default is not None
             new_make_block_states_macro_code.append(
                 f'            {property_struct_name}={to_camel_case(property_default)},')
-            # new_make_block_states_macro_code.append(
-            #     f'            {to_camel_case(state)}=TODO,')
         new_make_block_states_macro_code.append('        },')
     new_make_block_states_macro_code.append('    }')
     new_make_block_states_macro_code.append('}')
