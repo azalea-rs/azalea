@@ -21,6 +21,10 @@ async fn main() {
             // TODO: have a "loaded" or "ready" event that fires when all chunks are loaded
             Event::Login => {}
             Event::Chat(p) => {
+                let state = client.state.lock().await;
+                let world = state.world.as_ref().unwrap();
+                // println!("{:?}", state.player.entity);
+                // world.get_block_state(state.player.entity.pos);
                 // println!("{}", p.message.to_ansi(None));
                 // if p.message.to_ansi(None) == "<py5> ok" {
                 //     let state = client.state.lock().await;

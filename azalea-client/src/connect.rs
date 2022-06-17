@@ -1,5 +1,5 @@
 use crate::Player;
-use azalea_core::{resource_location::ResourceLocation, ChunkPos};
+use azalea_core::{resource_location::ResourceLocation, ChunkPos, EntityPos};
 use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
     packets::{
@@ -351,6 +351,11 @@ impl Client {
             }
             GamePacket::ClientboundAddEntityPacket(p) => {
                 println!("Got add entity packet {:?}", p);
+                let pos = EntityPos {
+                    x: p.x,
+                    y: p.y,
+                    z: p.z,
+                };
             }
             GamePacket::ClientboundSetEntityDataPacket(p) => {
                 // println!("Got set entity data packet {:?}", p);
