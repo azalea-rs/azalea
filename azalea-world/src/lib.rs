@@ -8,6 +8,7 @@ use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use azalea_protocol::mc_buf::{McBufReadable, McBufWritable};
 pub use bit_storage::BitStorage;
 use palette::PalettedContainer;
+use azalea_block::BlockState;
 use std::{
     io::{Read, Write},
     ops::{Index, IndexMut},
@@ -57,7 +58,7 @@ impl World {
         self.storage.view_center = *pos;
     }
 
-    pub fn get_block_state(&self, pos: &BlockPos) -> Option<u32> {
+    pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
         self.storage.get_block_state(pos, self.min_y)
     }
 }
@@ -122,7 +123,7 @@ impl ChunkStorage {
             && (chunk_pos.z - self.view_center.z).unsigned_abs() <= self.chunk_radius
     }
 
-    pub fn get_block_state(&self, pos: &BlockPos, min_y: i32) -> Option<u32> {
+    pub fn get_block_state(&self, pos: &BlockPos, min_y: i32) -> Option<BlockState> {
         let chunk_pos = ChunkPos::from(pos);
         println!("chunk_pos {:?} block_pos {:?}", chunk_pos, pos);
         let chunk = &self[&chunk_pos];
@@ -175,7 +176,7 @@ impl Chunk {
         (y.div_floor(16) - min_section_index) as u32
     }
 
-    pub fn get(&self, pos: &ChunkBlockPos, min_y: i32) -> u32 {
+    pub fn get(&self, pos: &ChunkBlockPos, min_y: i32) -> BlockState {
         let section_index = self.section_index(pos.y, min_y);
         // TODO: make sure the section exists
         let section = &self.sections[section_index as usize];
@@ -210,6 +211,14 @@ impl McBufReadable for Section {
         //     "A section has more blocks than what should be possible. This is a bug!"
         // );
         let states = PalettedContainer::read_with_type(buf, &PalettedContainerType::BlockStates)?;
+        for i in 0..states.storage.size() {
+            if !BlockState::is_valid_state(states.storage.get(i) as u32) {
+                return Err(format!(
+                    "Invalid block state {} (index {}) found in section.",
+                    states.storage.get(i), i
+                ));
+            }
+        }
         let biomes = PalettedContainer::read_with_type(buf, &PalettedContainerType::Biomes)?;
         Ok(Section {
             block_count,
@@ -229,9 +238,9 @@ impl McBufWritable for Section {
 }
 
 impl Section {
-    // TODO: return a BlockState instead of a u32
-    fn get(&self, pos: ChunkSectionBlockPos) -> u32 {
+    fn get(&self, pos: ChunkSectionBlockPos) -> BlockState {
+        // TODO: use the unsafe method and do the check earlier
         self.states
-            .get(pos.x as usize, pos.y as usize, pos.z as usize)
+            .get(pos.x as usize, pos.y as usize, pos.z as usize).try_into().expect("Invalid block state.")
     }
 }

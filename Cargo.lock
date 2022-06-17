@@ -183,6 +183,7 @@ dependencies = [
 name = "azalea-world"
 version = "0.1.0"
 dependencies = [
+ "azalea-block",
  "azalea-core",
  "azalea-nbt",
  "azalea-protocol",

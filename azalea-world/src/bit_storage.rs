@@ -188,6 +188,12 @@ impl BitStorage {
         let bit_index = (index - cell_index * self.values_per_long as usize) * self.bits;
         *cell = *cell & !(self.mask << bit_index) | (value & self.mask) << bit_index;
     }
+
+    /// The number of entries.
+    #[inline]
+    pub fn size(&self) -> usize {
+        self.size
+    }
 }
 
 #[cfg(test)]

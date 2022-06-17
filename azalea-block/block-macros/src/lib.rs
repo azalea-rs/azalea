@@ -461,9 +461,12 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         block_structs.extend(block_struct);
     }
 
+    let last_state_id = (state_id - 1) as u32;
     quote! {
         #property_enums
 
+        #[repr(u32)]
+        #[derive(Copy, Clone, PartialEq, Eq, Debug)]
         pub enum BlockState {
             #block_state_enum_variants
         }
@@ -479,6 +482,15 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 }
             }
         }
+
+        impl BlockState {
+            /// Returns the highest possible state
+            #[inline]
+            pub fn max_state() -> u32 {
+                #last_state_id
+            }
+        }
+
     }
     .into()
 }
