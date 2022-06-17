@@ -485,8 +485,8 @@ impl McBufReadable for BlockPos {
 impl McBufReadable for GlobalPos {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
         Ok(GlobalPos {
-            pos: BlockPos::read_into(buf)?,
             dimension: ResourceLocation::read_into(buf)?,
+            pos: BlockPos::read_into(buf)?,
         })
     }
 }
