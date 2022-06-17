@@ -205,12 +205,15 @@ pub struct Section {
 impl McBufReadable for Section {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
         let block_count = u16::read_into(buf)?;
+
         // this is commented out because the vanilla server is wrong
         // assert!(
         //     block_count <= 16 * 16 * 16,
         //     "A section has more blocks than what should be possible. This is a bug!"
         // );
+
         let states = PalettedContainer::read_with_type(buf, &PalettedContainerType::BlockStates)?;
+
         for i in 0..states.storage.size() {
             if !BlockState::is_valid_state(states.storage.get(i) as u32) {
                 return Err(format!(
@@ -219,6 +222,7 @@ impl McBufReadable for Section {
                 ));
             }
         }
+
         let biomes = PalettedContainer::read_with_type(buf, &PalettedContainerType::Biomes)?;
         Ok(Section {
             block_count,
