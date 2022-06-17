@@ -272,7 +272,7 @@ make_block_states! {
             Upper,
             Lower,
         },
-        "type" => PistonType {
+        "kind" => PistonType {
             Normal,
             Sticky,
         },
@@ -333,7 +333,7 @@ make_block_states! {
             OuterLeft,
             OuterRight,
         },
-        "type" => ChestType {
+        "kind" => ChestType {
             Single,
             Left,
             Right,
@@ -936,7 +936,7 @@ make_block_states! {
             _14,
             _15,
         },
-        "type" => Type {
+        "kind" => Type {
             Top,
             Bottom,
             Double,

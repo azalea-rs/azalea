@@ -103,6 +103,10 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
             ending = property_name.split('_')[-1]
             if ending.isdigit():
                 property_name = property_name[:-(len(ending) + 1)]
+            
+            # `type` is a reserved keyword, so we use kind instead ¯\_(ツ)_/¯
+            if property_name == 'type':
+                property_name = 'kind'
             property_struct_names_to_names[property_struct_name] = property_name
 
         properties.update(block_properties)
