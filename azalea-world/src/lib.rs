@@ -4,11 +4,11 @@ mod bit_storage;
 mod palette;
 
 use crate::palette::PalettedContainerType;
+use azalea_block::BlockState;
 use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use azalea_protocol::mc_buf::{McBufReadable, McBufWritable};
 pub use bit_storage::BitStorage;
 use palette::PalettedContainer;
-use azalea_block::BlockState;
 use std::{
     io::{Read, Write},
     ops::{Index, IndexMut},
@@ -218,7 +218,8 @@ impl McBufReadable for Section {
             if !BlockState::is_valid_state(states.storage.get(i) as u32) {
                 return Err(format!(
                     "Invalid block state {} (index {}) found in section.",
-                    states.storage.get(i), i
+                    states.storage.get(i),
+                    i
                 ));
             }
         }
@@ -245,6 +246,8 @@ impl Section {
     fn get(&self, pos: ChunkSectionBlockPos) -> BlockState {
         // TODO: use the unsafe method and do the check earlier
         self.states
-            .get(pos.x as usize, pos.y as usize, pos.z as usize).try_into().expect("Invalid block state.")
+            .get(pos.x as usize, pos.y as usize, pos.z as usize)
+            .try_into()
+            .expect("Invalid block state.")
     }
 }
