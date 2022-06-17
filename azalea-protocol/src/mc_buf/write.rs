@@ -398,8 +398,8 @@ impl McBufWritable for BlockPos {
 
 impl McBufWritable for GlobalPos {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        BlockPos::write_into(&self.pos, buf)?;
         ResourceLocation::write_into(&self.dimension, buf)?;
+        BlockPos::write_into(&self.pos, buf)?;
 
         Ok(())
     }
