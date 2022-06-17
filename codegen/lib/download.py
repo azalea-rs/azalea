@@ -23,7 +23,7 @@ def get_version_manifest():
         print(
             f'\033[92mDownloading version manifest...\033[m')
         version_manifest_data = requests.get(
-            'https://launchermeta.mojang.com/mc/game/version_manifest.json').json()
+            'https://piston-meta.mojang.com/mc/game/version_manifest.json').json()
         with open(f'downloads/version_manifest.json', 'w') as f:
             json.dump(version_manifest_data, f)
     else:

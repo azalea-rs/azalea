@@ -19,18 +19,24 @@ new_packet_list = list(new_burger_data[0]['packets']['packet'].values())
 
 
 old_packets: dict[PacketIdentifier, str] = {}
+old_packets_data: dict[PacketIdentifier, dict] = {}
 new_packets: dict[PacketIdentifier, str] = {}
+new_packets_data: dict[PacketIdentifier, dict] = {}
 
 for packet in old_packet_list:
     assert packet['class'].endswith('.class')
     packet_name = old_mappings.get_class(packet['class'][:-6])
-    old_packets[PacketIdentifier(
-        packet['id'], packet['direction'].lower(), fix_state(packet['state']))] = packet_name
+    packet_ident = PacketIdentifier(
+        packet['id'], packet['direction'].lower(), fix_state(packet['state']))
+    old_packets[packet_ident] = packet_name
+    old_packets_data[packet_ident] = packet
 for packet in new_packet_list:
     assert packet['class'].endswith('.class')
     packet_name = new_mappings.get_class(packet['class'][:-6])
-    new_packets[PacketIdentifier(
-        packet['id'], packet['direction'].lower(), fix_state(packet['state']))] = packet_name
+    packet_ident = PacketIdentifier(
+        packet['id'], packet['direction'].lower(), fix_state(packet['state']))
+    new_packets[packet_ident] = packet_name
+    new_packets_data[packet_ident] = packet
 
 # find removed packets
 removed_packets: list[PacketIdentifier] = []
@@ -63,13 +69,15 @@ for (direction, state), packets in group_packets(list(changed_packets.keys())).i
 
 print()
 
-# find added packets
-added_packets: list[PacketIdentifier] = []
+# find added/changed packets
+added_or_changed_packets: list[PacketIdentifier] = []
 for packet, packet_name in new_packets.items():
     if packet_name not in old_packets.values():
-        added_packets.append(packet)
+        added_or_changed_packets.append(packet)
         print('Added packet:', packet, packet_name)
-for packet in added_packets:
+    if new_packets_data[packet].get('instructions') != old_packets_data[packet].get('instructions'):
+        print('hmm')
+for packet in added_or_changed_packets:
     lib.code.packet.generate_packet(
         new_burger_data[0]['packets']['packet'], new_mappings, packet.packet_id, packet.direction, packet.state)
 
