@@ -20,8 +20,29 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
     new_make_block_states_macro_code.append('make_block_states! {')
 
     def get_property_struct_name(property: Optional[dict], block_data_burger: dict, property_variants: list[str]) -> str:
+        # these are hardcoded because otherwise they cause conflicts
+        # some names inspired by https://github.com/feather-rs/feather/blob/main/feather/blocks/src/generated/table.rs
+        if property_variants == ['north', 'east', 'south', 'west', 'up', 'down']:
+            return 'FacingCubic'
+        if property_variants == ['north', 'south', 'west', 'east']:
+            return 'FacingCardinal'
+        if property_variants == ['top', 'bottom']:
+            return 'TopBottom'
+        if property_variants == ['north_south', 'east_west', 'ascending_east', 'ascending_west', 'ascending_north', 'ascending_south']:
+            return 'RailShape'
+        if property_variants == ['straight', 'inner_left', 'inner_right', 'outer_left', 'outer_right']:
+            return 'StairShape'
+        if property_variants == ['normal', 'sticky']:
+            return 'PistonType'
+        if property_variants == ['x', 'z']:
+            return 'AxisXZ'
+        if property_variants == ['single', 'left', 'right']:
+            return 'ChestType'
+        if property_variants == ['compare', 'subtract']:
+            return 'ComparatorType'
+
         if property is None:
-            return '_'.join(map(to_camel_case, property_variants))
+            return '_'.join(map(to_camel_case, property_variants)).replace('__', '_')
             
         property_name = None
         for class_name in [block_data_burger['class']] + block_data_burger['super']:
@@ -34,6 +55,12 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
         if property['type'] == 'int':
             property_name = to_camel_case(
                 block_data_burger['text_id']) + property_name
+
+        # if property_variants == ['none', 'low', 'tall']:
+
+        if property_variants == ['up', 'side', 'none']:
+            property_name = 'Wire' + to_camel_case(property_name)
+
         return property_name
 
     # Find properties
@@ -61,7 +88,14 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
 
             property_struct_name = get_property_struct_name(
                 property_burger, block_data_burger, property_variants)
-            # assert property_name == property_burger['name']
+
+            if property_struct_name in properties:
+                if not properties[property_struct_name] == property_variants:
+                    raise Exception(
+                        'There are multiple enums with the same name! '
+                        f'Name: {property_struct_name}, variants: {property_variants}/{properties[property_struct_name]}. '
+                        'This can be fixed by hardcoding a name in the get_property_struct_name function.'
+                    )
 
             block_properties[property_struct_name] = property_variants
 

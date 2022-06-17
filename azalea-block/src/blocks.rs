@@ -181,11 +181,13 @@ make_block_states! {
             _6,
             _7,
         },
-        "facing" => Facing {
+        "facing" => FacingCubic {
             North,
+            East,
             South,
             West,
-            East,
+            Up,
+            Down,
         },
         "triggered" => Triggered {
             True,
@@ -240,6 +242,12 @@ make_block_states! {
             True,
             False,
         },
+        "facing" => FacingCardinal {
+            North,
+            South,
+            West,
+            East,
+        },
         "occupied" => Occupied {
             True,
             False,
@@ -248,25 +256,25 @@ make_block_states! {
             Head,
             Foot,
         },
-        "shape" => Shape {
-            Straight,
-            InnerLeft,
-            InnerRight,
-            OuterLeft,
-            OuterRight,
+        "shape" => RailShape {
+            NorthSouth,
+            EastWest,
+            AscendingEast,
+            AscendingWest,
+            AscendingNorth,
+            AscendingSouth,
         },
         "extended" => Extended {
             True,
             False,
         },
         "half" => Half {
-            Top,
-            Bottom,
+            Upper,
+            Lower,
         },
-        "type" => Type {
-            Top,
-            Bottom,
-            Double,
+        "type" => PistonType {
+            Normal,
+            Sticky,
         },
         "short" => Short {
             True,
@@ -314,6 +322,32 @@ make_block_states! {
             True,
             False,
         },
+        "half" => TopBottom {
+            Top,
+            Bottom,
+        },
+        "shape" => StairShape {
+            Straight,
+            InnerLeft,
+            InnerRight,
+            OuterLeft,
+            OuterRight,
+        },
+        "type" => ChestType {
+            Single,
+            Left,
+            Right,
+        },
+        "east" => WireEast {
+            Up,
+            Side,
+            None,
+        },
+        "north" => WireNorth {
+            Up,
+            Side,
+            None,
+        },
         "power" => RedstoneWirePower {
             _0,
             _1,
@@ -331,6 +365,16 @@ make_block_states! {
             _13,
             _14,
             _15,
+        },
+        "south" => WireSouth {
+            Up,
+            Side,
+            None,
+        },
+        "west" => WireWest {
+            Up,
+            Side,
+            None,
         },
         "age" => WheatAge {
             _0,
@@ -490,6 +534,18 @@ make_block_states! {
             True,
             False,
         },
+        "shape" => Shape {
+            NorthSouth,
+            EastWest,
+            AscendingEast,
+            AscendingWest,
+            AscendingNorth,
+            AscendingSouth,
+            SouthEast,
+            SouthWest,
+            NorthWest,
+            NorthEast,
+        },
         "face" => Face {
             Floor,
             Wall,
@@ -544,6 +600,10 @@ make_block_states! {
         "has_record" => HasRecord {
             True,
             False,
+        },
+        "axis" => AxisXZ {
+            X,
+            Z,
         },
         "bites" => CakeBites {
             _0,
@@ -821,11 +881,9 @@ make_block_states! {
             _14,
             _15,
         },
-        "mode" => Mode {
-            Save,
-            Load,
-            Corner,
-            Data,
+        "mode" => ComparatorType {
+            Compare,
+            Subtract,
         },
         "inverted" => Inverted {
             True,
@@ -853,6 +911,13 @@ make_block_states! {
             True,
             False,
         },
+        "facing" => Facing {
+            Down,
+            North,
+            South,
+            West,
+            East,
+        },
         "level" => LightLevel {
             _0,
             _1,
@@ -870,6 +935,11 @@ make_block_states! {
             _13,
             _14,
             _15,
+        },
+        "type" => Type {
+            Top,
+            Bottom,
+            Double,
         },
         "rotation" => WhiteBannerRotation {
             _0,
@@ -1367,6 +1437,12 @@ make_block_states! {
             _14,
             _15,
         },
+        "mode" => Mode {
+            Save,
+            Load,
+            Corner,
+            Data,
+        },
         "orientation" => Orientation {
             DownEast,
             DownNorth,
@@ -1581,7 +1657,7 @@ make_block_states! {
             Up,
             Down,
         },
-        "age" => _0__1__2__3__4__5__6__7__8__9__10__11__12__13__14__15__16__17__18__19__20__21__22__23__24__25 {
+        "age" => _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15_16_17_18_19_20_21_22_23_24_25 {
             _0,
             _1,
             _2,
@@ -1864,7 +1940,7 @@ make_block_states! {
         lapis_block => BlockBehavior::default(), {
         },
         dispenser => BlockBehavior::default(), {
-            Facing=North,
+            FacingCubic=North,
             Triggered=False,
         },
         sandstone => BlockBehavior::default(), {
@@ -1879,98 +1955,98 @@ make_block_states! {
             Powered=False,
         },
         white_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         orange_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         magenta_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         light_blue_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         yellow_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         lime_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         pink_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         gray_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         light_gray_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         cyan_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         purple_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         blue_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         brown_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         green_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         red_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         black_bed => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Occupied=False,
             Part=Foot,
         },
         powered_rail => BlockBehavior::default(), {
             Powered=False,
-            Shape=NorthSouth,
+            RailShape=NorthSouth,
             Waterlogged=False,
         },
         detector_rail => BlockBehavior::default(), {
             Powered=False,
-            Shape=NorthSouth,
+            RailShape=NorthSouth,
             Waterlogged=False,
         },
         sticky_piston => BlockBehavior::default(), {
             Extended=False,
-            Facing=North,
+            FacingCubic=North,
         },
         cobweb => BlockBehavior::default(), {
         },
@@ -1987,11 +2063,11 @@ make_block_states! {
         },
         piston => BlockBehavior::default(), {
             Extended=False,
-            Facing=North,
+            FacingCubic=North,
         },
         piston_head => BlockBehavior::default(), {
-            Type=Normal,
-            Facing=North,
+            PistonType=Normal,
+            FacingCubic=North,
             Short=False,
         },
         white_wool => BlockBehavior::default(), {
@@ -2027,8 +2103,8 @@ make_block_states! {
         black_wool => BlockBehavior::default(), {
         },
         moving_piston => BlockBehavior::default(), {
-            Type=Normal,
-            Facing=North,
+            PistonType=Normal,
+            FacingCubic=North,
         },
         dandelion => BlockBehavior::default(), {
         },
@@ -2078,7 +2154,7 @@ make_block_states! {
         torch => BlockBehavior::default(), {
         },
         wall_torch => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         fire => BlockBehavior::default(), {
             FireAge=_0,
@@ -2093,22 +2169,22 @@ make_block_states! {
         spawner => BlockBehavior::default(), {
         },
         oak_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         chest => BlockBehavior::default(), {
-            Type=Single,
-            Facing=North,
+            ChestType=Single,
+            FacingCardinal=North,
             Waterlogged=False,
         },
         redstone_wire => BlockBehavior::default(), {
-            East=None,
-            North=None,
+            WireEast=None,
+            WireNorth=None,
             RedstoneWirePower=_0,
-            South=None,
-            West=None,
+            WireSouth=None,
+            WireWest=None,
         },
         diamond_ore => BlockBehavior::default(), {
         },
@@ -2125,7 +2201,7 @@ make_block_states! {
             FarmlandMoisture=_0,
         },
         furnace => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Lit=False,
         },
         oak_sign => BlockBehavior::default(), {
@@ -2157,14 +2233,14 @@ make_block_states! {
             Waterlogged=False,
         },
         oak_door => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Half=Lower,
             Hinge=Left,
             Open=False,
             Powered=False,
         },
         ladder => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=False,
         },
         rail => BlockBehavior::default(), {
@@ -2172,49 +2248,49 @@ make_block_states! {
             Waterlogged=False,
         },
         cobblestone_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         oak_wall_sign => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=False,
         },
         spruce_wall_sign => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=False,
         },
         birch_wall_sign => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=False,
         },
         acacia_wall_sign => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=False,
         },
         jungle_wall_sign => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=False,
         },
         dark_oak_wall_sign => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=False,
         },
         mangrove_wall_sign => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=False,
         },
         lever => BlockBehavior::default(), {
             Face=Wall,
-            Facing=North,
+            FacingCardinal=North,
             Powered=False,
         },
         stone_pressure_plate => BlockBehavior::default(), {
             Powered=False,
         },
         iron_door => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Half=Lower,
             Hinge=Left,
             Open=False,
@@ -2251,12 +2327,12 @@ make_block_states! {
             Lit=True,
         },
         redstone_wall_torch => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Lit=True,
         },
         stone_button => BlockBehavior::default(), {
             Face=Wall,
-            Facing=North,
+            FacingCardinal=North,
             Powered=False,
         },
         snow => BlockBehavior::default(), {
@@ -2301,25 +2377,25 @@ make_block_states! {
         soul_torch => BlockBehavior::default(), {
         },
         soul_wall_torch => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         glowstone => BlockBehavior::default(), {
         },
         nether_portal => BlockBehavior::default(), {
-            Axis=X,
+            AxisXZ=X,
         },
         carved_pumpkin => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         jack_o_lantern => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         cake => BlockBehavior::default(), {
             CakeBites=_0,
         },
         repeater => BlockBehavior::default(), {
             RepeaterDelay=_1,
-            Facing=North,
+            FacingCardinal=North,
             Locked=False,
             Powered=False,
         },
@@ -2356,50 +2432,50 @@ make_block_states! {
         black_stained_glass => BlockBehavior::default(), {
         },
         oak_trapdoor => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
+            FacingCardinal=North,
+            TopBottom=Bottom,
             Open=False,
             Powered=False,
             Waterlogged=False,
         },
         spruce_trapdoor => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
+            FacingCardinal=North,
+            TopBottom=Bottom,
             Open=False,
             Powered=False,
             Waterlogged=False,
         },
         birch_trapdoor => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
+            FacingCardinal=North,
+            TopBottom=Bottom,
             Open=False,
             Powered=False,
             Waterlogged=False,
         },
         jungle_trapdoor => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
+            FacingCardinal=North,
+            TopBottom=Bottom,
             Open=False,
             Powered=False,
             Waterlogged=False,
         },
         acacia_trapdoor => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
+            FacingCardinal=North,
+            TopBottom=Bottom,
             Open=False,
             Powered=False,
             Waterlogged=False,
         },
         dark_oak_trapdoor => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
+            FacingCardinal=North,
+            TopBottom=Bottom,
             Open=False,
             Powered=False,
             Waterlogged=False,
         },
         mangrove_trapdoor => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
+            FacingCardinal=North,
+            TopBottom=Bottom,
             Open=False,
             Powered=False,
             Waterlogged=False,
@@ -2473,10 +2549,10 @@ make_block_states! {
         melon => BlockBehavior::default(), {
         },
         attached_pumpkin_stem => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         attached_melon_stem => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         pumpkin_stem => BlockBehavior::default(), {
             PumpkinStemAge=_0,
@@ -2501,27 +2577,27 @@ make_block_states! {
             True_False=False,
         },
         oak_fence_gate => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             InWall=False,
             Open=False,
             Powered=False,
         },
         brick_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         stone_brick_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         mud_brick_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         mycelium => BlockBehavior::default(), {
@@ -2539,9 +2615,9 @@ make_block_states! {
             West=False,
         },
         nether_brick_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         nether_wart => BlockBehavior::default(), {
@@ -2568,7 +2644,7 @@ make_block_states! {
         },
         end_portal_frame => BlockBehavior::default(), {
             HasEye=False,
-            Facing=North,
+            FacingCardinal=North,
         },
         end_stone => BlockBehavior::default(), {
         },
@@ -2579,12 +2655,12 @@ make_block_states! {
         },
         cocoa => BlockBehavior::default(), {
             CocoaAge=_0,
-            Facing=North,
+            FacingCardinal=North,
         },
         sandstone_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         emerald_ore => BlockBehavior::default(), {
@@ -2592,12 +2668,12 @@ make_block_states! {
         deepslate_emerald_ore => BlockBehavior::default(), {
         },
         ender_chest => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=False,
         },
         tripwire_hook => BlockBehavior::default(), {
             Attached=False,
-            Facing=North,
+            FacingCardinal=North,
             Powered=False,
         },
         tripwire => BlockBehavior::default(), {
@@ -2612,26 +2688,26 @@ make_block_states! {
         emerald_block => BlockBehavior::default(), {
         },
         spruce_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         birch_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         jungle_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         command_block => BlockBehavior::default(), {
             Conditional=False,
-            Facing=North,
+            FacingCubic=North,
         },
         beacon => BlockBehavior::default(), {
         },
@@ -2711,87 +2787,87 @@ make_block_states! {
         },
         oak_button => BlockBehavior::default(), {
             Face=Wall,
-            Facing=North,
+            FacingCardinal=North,
             Powered=False,
         },
         spruce_button => BlockBehavior::default(), {
             Face=Wall,
-            Facing=North,
+            FacingCardinal=North,
             Powered=False,
         },
         birch_button => BlockBehavior::default(), {
             Face=Wall,
-            Facing=North,
+            FacingCardinal=North,
             Powered=False,
         },
         jungle_button => BlockBehavior::default(), {
             Face=Wall,
-            Facing=North,
+            FacingCardinal=North,
             Powered=False,
         },
         acacia_button => BlockBehavior::default(), {
             Face=Wall,
-            Facing=North,
+            FacingCardinal=North,
             Powered=False,
         },
         dark_oak_button => BlockBehavior::default(), {
             Face=Wall,
-            Facing=North,
+            FacingCardinal=North,
             Powered=False,
         },
         mangrove_button => BlockBehavior::default(), {
             Face=Wall,
-            Facing=North,
+            FacingCardinal=North,
             Powered=False,
         },
         skeleton_skull => BlockBehavior::default(), {
             SkeletonSkullRotation=_0,
         },
         skeleton_wall_skull => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         wither_skeleton_skull => BlockBehavior::default(), {
             WitherSkeletonSkullRotation=_0,
         },
         wither_skeleton_wall_skull => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         zombie_head => BlockBehavior::default(), {
             ZombieHeadRotation=_0,
         },
         zombie_wall_head => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         player_head => BlockBehavior::default(), {
             PlayerHeadRotation=_0,
         },
         player_wall_head => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         creeper_head => BlockBehavior::default(), {
             CreeperHeadRotation=_0,
         },
         creeper_wall_head => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         dragon_head => BlockBehavior::default(), {
             DragonHeadRotation=_0,
         },
         dragon_wall_head => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         anvil => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         chipped_anvil => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         damaged_anvil => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         trapped_chest => BlockBehavior::default(), {
-            Type=Single,
-            Facing=North,
+            ChestType=Single,
+            FacingCardinal=North,
             Waterlogged=False,
         },
         light_weighted_pressure_plate => BlockBehavior::default(), {
@@ -2801,8 +2877,8 @@ make_block_states! {
             HeavyWeightedPressurePlatePower=_0,
         },
         comparator => BlockBehavior::default(), {
-            Facing=North,
-            Mode=Compare,
+            FacingCardinal=North,
+            ComparatorType=Compare,
             Powered=False,
         },
         daylight_detector => BlockBehavior::default(), {
@@ -2825,18 +2901,18 @@ make_block_states! {
             Axis=Y,
         },
         quartz_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         activator_rail => BlockBehavior::default(), {
             Powered=False,
-            Shape=NorthSouth,
+            RailShape=NorthSouth,
             Waterlogged=False,
         },
         dropper => BlockBehavior::default(), {
-            Facing=North,
+            FacingCubic=North,
             Triggered=False,
         },
         white_terracotta => BlockBehavior::default(), {
@@ -2984,21 +3060,21 @@ make_block_states! {
             West=False,
         },
         acacia_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         dark_oak_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         mangrove_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         slime_block => BlockBehavior::default(), {
@@ -3010,8 +3086,8 @@ make_block_states! {
             Waterlogged=False,
         },
         iron_trapdoor => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
+            FacingCardinal=North,
+            TopBottom=Bottom,
             Open=False,
             Powered=False,
             Waterlogged=False,
@@ -3023,21 +3099,21 @@ make_block_states! {
         dark_prismarine => BlockBehavior::default(), {
         },
         prismarine_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         prismarine_brick_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         dark_prismarine_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         prismarine_slab => BlockBehavior::default(), {
@@ -3162,52 +3238,52 @@ make_block_states! {
             BlackBannerRotation=_0,
         },
         white_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         orange_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         magenta_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         light_blue_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         yellow_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         lime_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         pink_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         gray_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         light_gray_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         cyan_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         purple_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         blue_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         brown_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         green_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         red_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         black_wall_banner => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         red_sandstone => BlockBehavior::default(), {
         },
@@ -3216,9 +3292,9 @@ make_block_states! {
         cut_red_sandstone => BlockBehavior::default(), {
         },
         red_sandstone_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         oak_slab => BlockBehavior::default(), {
@@ -3314,37 +3390,37 @@ make_block_states! {
         smooth_red_sandstone => BlockBehavior::default(), {
         },
         spruce_fence_gate => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             InWall=False,
             Open=False,
             Powered=False,
         },
         birch_fence_gate => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             InWall=False,
             Open=False,
             Powered=False,
         },
         jungle_fence_gate => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             InWall=False,
             Open=False,
             Powered=False,
         },
         acacia_fence_gate => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             InWall=False,
             Open=False,
             Powered=False,
         },
         dark_oak_fence_gate => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             InWall=False,
             Open=False,
             Powered=False,
         },
         mangrove_fence_gate => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             InWall=False,
             Open=False,
             Powered=False,
@@ -3392,49 +3468,49 @@ make_block_states! {
             West=False,
         },
         spruce_door => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Half=Lower,
             Hinge=Left,
             Open=False,
             Powered=False,
         },
         birch_door => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Half=Lower,
             Hinge=Left,
             Open=False,
             Powered=False,
         },
         jungle_door => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Half=Lower,
             Hinge=Left,
             Open=False,
             Powered=False,
         },
         acacia_door => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Half=Lower,
             Hinge=Left,
             Open=False,
             Powered=False,
         },
         dark_oak_door => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Half=Lower,
             Hinge=Left,
             Open=False,
             Powered=False,
         },
         mangrove_door => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Half=Lower,
             Hinge=Left,
             Open=False,
             Powered=False,
         },
         end_rod => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         chorus_plant => BlockBehavior::default(), {
             Down=False,
@@ -3453,9 +3529,9 @@ make_block_states! {
             Axis=Y,
         },
         purpur_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         end_stone_bricks => BlockBehavior::default(), {
@@ -3469,11 +3545,11 @@ make_block_states! {
         },
         repeating_command_block => BlockBehavior::default(), {
             Conditional=False,
-            Facing=North,
+            FacingCubic=North,
         },
         chain_command_block => BlockBehavior::default(), {
             Conditional=False,
-            Facing=North,
+            FacingCubic=North,
         },
         frosted_ice => BlockBehavior::default(), {
             FrostedIceAge=_0,
@@ -3490,107 +3566,107 @@ make_block_states! {
         structure_void => BlockBehavior::default(), {
         },
         observer => BlockBehavior::default(), {
-            Facing=South,
+            FacingCubic=South,
             Powered=False,
         },
         shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         white_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         orange_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         magenta_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         light_blue_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         yellow_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         lime_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         pink_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         gray_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         light_gray_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         cyan_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         purple_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         blue_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         brown_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         green_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         red_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         black_shulker_box => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
         },
         white_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         orange_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         magenta_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         light_blue_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         yellow_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         lime_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         pink_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         gray_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         light_gray_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         cyan_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         purple_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         blue_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         brown_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         green_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         red_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         black_glazed_terracotta => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         white_concrete => BlockBehavior::default(), {
         },
@@ -3748,43 +3824,43 @@ make_block_states! {
             Waterlogged=True,
         },
         dead_tube_coral_wall_fan => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=True,
         },
         dead_brain_coral_wall_fan => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=True,
         },
         dead_bubble_coral_wall_fan => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=True,
         },
         dead_fire_coral_wall_fan => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=True,
         },
         dead_horn_coral_wall_fan => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=True,
         },
         tube_coral_wall_fan => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=True,
         },
         brain_coral_wall_fan => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=True,
         },
         bubble_coral_wall_fan => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=True,
         },
         fire_coral_wall_fan => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=True,
         },
         horn_coral_wall_fan => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=True,
         },
         sea_pickle => BlockBehavior::default(), {
@@ -3813,87 +3889,87 @@ make_block_states! {
             DragDown=True,
         },
         polished_granite_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         smooth_red_sandstone_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         mossy_stone_brick_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         polished_diorite_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         mossy_cobblestone_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         end_stone_brick_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         stone_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         smooth_sandstone_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         smooth_quartz_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         granite_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         andesite_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         red_nether_brick_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         polished_andesite_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         diorite_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         polished_granite_slab => BlockBehavior::default(), {
@@ -4058,18 +4134,18 @@ make_block_states! {
             Waterlogged=False,
         },
         loom => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         barrel => BlockBehavior::default(), {
-            Facing=North,
+            FacingCubic=North,
             Open=False,
         },
         smoker => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Lit=False,
         },
         blast_furnace => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Lit=False,
         },
         cartography_table => BlockBehavior::default(), {
@@ -4078,21 +4154,21 @@ make_block_states! {
         },
         grindstone => BlockBehavior::default(), {
             Face=Wall,
-            Facing=North,
+            FacingCardinal=North,
         },
         lectern => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             HasBook=False,
             Powered=False,
         },
         smithing_table => BlockBehavior::default(), {
         },
         stonecutter => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
         },
         bell => BlockBehavior::default(), {
             Attachment=Floor,
-            Facing=North,
+            FacingCardinal=North,
             Powered=False,
         },
         lantern => BlockBehavior::default(), {
@@ -4104,13 +4180,13 @@ make_block_states! {
             Waterlogged=False,
         },
         campfire => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Lit=True,
             SignalFire=False,
             Waterlogged=False,
         },
         soul_campfire => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Lit=True,
             SignalFire=False,
             Waterlogged=False,
@@ -4203,62 +4279,62 @@ make_block_states! {
             West=False,
         },
         crimson_trapdoor => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
+            FacingCardinal=North,
+            TopBottom=Bottom,
             Open=False,
             Powered=False,
             Waterlogged=False,
         },
         warped_trapdoor => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
+            FacingCardinal=North,
+            TopBottom=Bottom,
             Open=False,
             Powered=False,
             Waterlogged=False,
         },
         crimson_fence_gate => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             InWall=False,
             Open=False,
             Powered=False,
         },
         warped_fence_gate => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             InWall=False,
             Open=False,
             Powered=False,
         },
         crimson_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         warped_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         crimson_button => BlockBehavior::default(), {
             Face=Wall,
-            Facing=North,
+            FacingCardinal=North,
             Powered=False,
         },
         warped_button => BlockBehavior::default(), {
             Face=Wall,
-            Facing=North,
+            FacingCardinal=North,
             Powered=False,
         },
         crimson_door => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Half=Lower,
             Hinge=Left,
             Open=False,
             Powered=False,
         },
         warped_door => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Half=Lower,
             Hinge=Left,
             Open=False,
@@ -4273,11 +4349,11 @@ make_block_states! {
             Waterlogged=False,
         },
         crimson_wall_sign => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=False,
         },
         warped_wall_sign => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=False,
         },
         structure_block => BlockBehavior::default(), {
@@ -4293,11 +4369,11 @@ make_block_states! {
             TargetOutputPower=_0,
         },
         bee_nest => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             BeeNestHoneyLevel=_0,
         },
         beehive => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             BeehiveHoneyLevel=_0,
         },
         honey_block => BlockBehavior::default(), {
@@ -4326,9 +4402,9 @@ make_block_states! {
         blackstone => BlockBehavior::default(), {
         },
         blackstone_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         blackstone_wall => BlockBehavior::default(), {
@@ -4356,9 +4432,9 @@ make_block_states! {
             Waterlogged=False,
         },
         polished_blackstone_brick_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         polished_blackstone_brick_wall => BlockBehavior::default(), {
@@ -4372,9 +4448,9 @@ make_block_states! {
         gilded_blackstone => BlockBehavior::default(), {
         },
         polished_blackstone_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         polished_blackstone_slab => BlockBehavior::default(), {
@@ -4386,7 +4462,7 @@ make_block_states! {
         },
         polished_blackstone_button => BlockBehavior::default(), {
             Face=Wall,
-            Facing=North,
+            FacingCardinal=North,
             Powered=False,
         },
         polished_blackstone_wall => BlockBehavior::default(), {
@@ -4544,19 +4620,19 @@ make_block_states! {
         budding_amethyst => BlockBehavior::default(), {
         },
         amethyst_cluster => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
             Waterlogged=False,
         },
         large_amethyst_bud => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
             Waterlogged=False,
         },
         medium_amethyst_bud => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
             Waterlogged=False,
         },
         small_amethyst_bud => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
             Waterlogged=False,
         },
         tuff => BlockBehavior::default(), {
@@ -4612,27 +4688,27 @@ make_block_states! {
         cut_copper => BlockBehavior::default(), {
         },
         oxidized_cut_copper_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         weathered_cut_copper_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         exposed_cut_copper_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         cut_copper_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         oxidized_cut_copper_slab => BlockBehavior::default(), {
@@ -4668,27 +4744,27 @@ make_block_states! {
         waxed_cut_copper => BlockBehavior::default(), {
         },
         waxed_oxidized_cut_copper_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         waxed_weathered_cut_copper_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         waxed_exposed_cut_copper_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         waxed_cut_copper_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         waxed_oxidized_cut_copper_slab => BlockBehavior::default(), {
@@ -4708,7 +4784,7 @@ make_block_states! {
             Waterlogged=False,
         },
         lightning_rod => BlockBehavior::default(), {
-            Facing=Up,
+            FacingCubic=Up,
             Powered=False,
             Waterlogged=False,
         },
@@ -4720,7 +4796,7 @@ make_block_states! {
         dripstone_block => BlockBehavior::default(), {
         },
         cave_vines => BlockBehavior::default(), {
-            _0__1__2__3__4__5__6__7__8__9__10__11__12__13__14__15__16__17__18__19__20__21__22__23__24__25=_0,
+            _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15_16_17_18_19_20_21_22_23_24_25=_0,
             True_False=False,
         },
         cave_vines_plant => BlockBehavior::default(), {
@@ -4737,16 +4813,16 @@ make_block_states! {
         moss_block => BlockBehavior::default(), {
         },
         big_dripleaf => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Tilt=None,
             Waterlogged=False,
         },
         big_dripleaf_stem => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Waterlogged=False,
         },
         small_dripleaf => BlockBehavior::default(), {
-            Facing=North,
+            FacingCardinal=North,
             Half=Lower,
             Waterlogged=False,
         },
@@ -4763,9 +4839,9 @@ make_block_states! {
         cobbled_deepslate => BlockBehavior::default(), {
         },
         cobbled_deepslate_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         cobbled_deepslate_slab => BlockBehavior::default(), {
@@ -4783,9 +4859,9 @@ make_block_states! {
         polished_deepslate => BlockBehavior::default(), {
         },
         polished_deepslate_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         polished_deepslate_slab => BlockBehavior::default(), {
@@ -4803,9 +4879,9 @@ make_block_states! {
         deepslate_tiles => BlockBehavior::default(), {
         },
         deepslate_tile_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         deepslate_tile_slab => BlockBehavior::default(), {
@@ -4823,9 +4899,9 @@ make_block_states! {
         deepslate_bricks => BlockBehavior::default(), {
         },
         deepslate_brick_stairs => BlockBehavior::default(), {
-            Facing=North,
-            Half=Bottom,
-            Shape=Straight,
+            FacingCardinal=North,
+            TopBottom=Bottom,
+            StairShape=Straight,
             Waterlogged=False,
         },
         deepslate_brick_slab => BlockBehavior::default(), {
