@@ -447,6 +447,9 @@ impl Client {
             GamePacket::ClientboundServerDataPacket(p) => {
                 println!("Got server data packet {:?}", p);
             }
+            GamePacket::ClientboundSetEquipmentPacket(p) => {
+                println!("Got set equipment packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
     }
