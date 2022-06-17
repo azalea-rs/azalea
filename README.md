@@ -1,6 +1,6 @@
 # Azalea
 
-A collection of Rust crates for creating Minecraft bots and other utilities.
+A collection of Rust crates primarily for creating Minecraft bots.
 
 <p align="center">
     <img src="https://cdn.matdoes.dev/images/flowering_azalea.webp" alt="Azalea" height="200">
