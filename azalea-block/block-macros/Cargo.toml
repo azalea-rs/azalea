@@ -1,0 +1,14 @@
+[package]
+edition = "2021"
+name = "block-macros"
+version = "0.1.0"
+
+[lib]
+proc-macro = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+proc-macro2 = "1.0.39"
+quote = "1.0.18"
+syn = "1.0.95"

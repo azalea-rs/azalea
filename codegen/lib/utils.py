@@ -1,4 +1,5 @@
 import re
+import os
 
 # utilities that could be used for things other than codegen
 
@@ -10,8 +11,15 @@ def to_snake_case(name: str):
 
 def to_camel_case(name: str):
     s = re.sub('_([a-z])', lambda m: m.group(1).upper(), name)
-    return s[0].upper() + s[1:]
+    s = upper_first_letter(s)
+    # if the first character is a number, we need to add an underscore
+    # maybe we could convert it to the number name (like 2 would become "two")?
+    if s[0].isdigit():
+        s = f'_{s}'
+    return s
 
+def upper_first_letter(name: str):
+    return name[0].upper() + name[1:]
 
 def padded_hex(n: int):
     return f'0x{n:02x}'
@@ -44,3 +52,7 @@ def group_packets(packets: list[PacketIdentifier]):
             packet_groups[key] = []
         packet_groups[key].append(packet.packet_id)
     return packet_groups
+
+
+def get_dir_location(name: str):
+    return os.path.join(os.path.dirname(__file__), '..', name)

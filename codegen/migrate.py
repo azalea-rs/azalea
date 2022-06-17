@@ -4,17 +4,18 @@ import lib.code.utils
 import lib.code.version
 import lib.code.packet
 import lib.download
+import lib.extract
 import sys
 import os
 
 old_version_id = lib.code.version.get_version_id()
 old_mappings = lib.download.get_mappings_for_version(old_version_id)
-old_burger_data = lib.download.get_burger_data_for_version(old_version_id)
+old_burger_data = lib.extract.get_burger_data_for_version(old_version_id)
 old_packet_list = list(old_burger_data[0]['packets']['packet'].values())
 
 new_version_id = sys.argv[1]
 new_mappings = lib.download.get_mappings_for_version(new_version_id)
-new_burger_data = lib.download.get_burger_data_for_version(new_version_id)
+new_burger_data = lib.extract.get_burger_data_for_version(new_version_id)
 new_packet_list = list(new_burger_data[0]['packets']['packet'].values())
 
 

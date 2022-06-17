@@ -11,6 +11,7 @@ members = [
   "azalea-crypto",
   "azalea-world",
   "azalea-language",
+  "azalea-block",
 ]
 
 [profile.release]

@@ -14,7 +14,7 @@ loop {
                     pathfinder::Goals::NearXZ(5, azalea::BlockXZ(0, 0))
                 ).await;
                 let chest = bot.open_chest(&bot.world.find_one_block(|b| b.id == "minecraft:chest")).await.unwrap();
-                bot.take_amount(&chest, 3, |i| i.id == "#minecraft:planks").await;
+                bot.take_amount(&chest, 5, |i| i.id == "#minecraft:planks").await;
                 // when rust adds async drop this won't be necessary
                 chest.close().await;
 

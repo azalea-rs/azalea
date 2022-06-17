@@ -11,9 +11,7 @@ mod slot;
 pub use slot::{Slot, SlotData};
 
 mod position;
-pub use position::{
-    BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos, GlobalPos,
-};
+pub use position::*;
 
 mod direction;
 pub use direction::Direction;

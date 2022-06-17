@@ -77,8 +77,8 @@ pub struct BitStorage {
     mask: u64,
     size: usize,
     values_per_long: u8,
-    divide_mul: i32,
-    divide_add: i32,
+    divide_mul: u64,
+    divide_add: u64,
     divide_shift: i32,
 }
 
@@ -138,16 +138,16 @@ impl BitStorage {
             mask,
             size,
             values_per_long: values_per_long as u8,
-            divide_mul,
-            divide_add,
+            divide_mul: divide_mul as u32 as u64,
+            divide_add: divide_add as u32 as u64,
             divide_shift,
         })
     }
 
     pub fn cell_index(&self, index: u64) -> usize {
         // as unsigned wrap
-        let first = self.divide_mul as u32 as u64;
-        let second = self.divide_add as u64;
+        let first = self.divide_mul;
+        let second = self.divide_add;
 
         (((index * first) + second) >> 32 >> self.divide_shift)
             .try_into()
@@ -187,6 +187,12 @@ impl BitStorage {
         let cell = &mut self.data[cell_index as usize];
         let bit_index = (index - cell_index * self.values_per_long as usize) * self.bits;
         *cell = *cell & !(self.mask << bit_index) | (value & self.mask) << bit_index;
+    }
+
+    /// The number of entries.
+    #[inline]
+    pub fn size(&self) -> usize {
+        self.size
     }
 }
 
