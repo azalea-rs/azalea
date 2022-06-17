@@ -42,7 +42,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
             return 'ComparatorType'
 
         if property is None:
-            return '_'.join(map(to_camel_case, property_variants)).replace('__', '_')
+            return ''.join(map(to_camel_case, property_variants))
             
         property_name = None
         for class_name in [block_data_burger['class']] + block_data_burger['super']:

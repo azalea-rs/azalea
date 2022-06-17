@@ -648,7 +648,7 @@ make_block_states! {
             _6,
             _7,
         },
-        "berries" => True_False {
+        "berries" => TrueFalse {
             True,
             False,
         },
@@ -1691,7 +1691,7 @@ make_block_states! {
             Partial,
             Full,
         },
-        "axis" => X_Y_Z {
+        "axis" => XYZ {
             X,
             Y,
             Z,
@@ -2568,13 +2568,13 @@ make_block_states! {
             West=False,
         },
         glow_lichen => BlockBehavior::default(), {
-            True_False=False,
-            True_False=False,
-            True_False=False,
-            True_False=False,
-            True_False=False,
-            True_False=False,
-            True_False=False,
+            TrueFalse=False,
+            TrueFalse=False,
+            TrueFalse=False,
+            TrueFalse=False,
+            TrueFalse=False,
+            TrueFalse=False,
+            TrueFalse=False,
         },
         oak_fence_gate => BlockBehavior::default(), {
             FacingCardinal=North,
@@ -4651,13 +4651,13 @@ make_block_states! {
         sculk => BlockBehavior::default(), {
         },
         sculk_vein => BlockBehavior::default(), {
-            True_False=False,
-            True_False=False,
-            True_False=False,
-            True_False=False,
-            True_False=False,
-            True_False=False,
-            True_False=False,
+            TrueFalse=False,
+            TrueFalse=False,
+            TrueFalse=False,
+            TrueFalse=False,
+            TrueFalse=False,
+            TrueFalse=False,
+            TrueFalse=False,
         },
         sculk_catalyst => BlockBehavior::default(), {
             Pulse=False,
@@ -4797,10 +4797,10 @@ make_block_states! {
         },
         cave_vines => BlockBehavior::default(), {
             _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15_16_17_18_19_20_21_22_23_24_25=_0,
-            True_False=False,
+            TrueFalse=False,
         },
         cave_vines_plant => BlockBehavior::default(), {
-            True_False=False,
+            TrueFalse=False,
         },
         spore_blossom => BlockBehavior::default(), {
         },
@@ -4923,7 +4923,7 @@ make_block_states! {
         cracked_deepslate_tiles => BlockBehavior::default(), {
         },
         infested_deepslate => BlockBehavior::default(), {
-            X_Y_Z=Y,
+            XYZ=Y,
         },
         smooth_basalt => BlockBehavior::default(), {
         },
