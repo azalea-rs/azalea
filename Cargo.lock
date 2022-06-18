@@ -106,6 +106,7 @@ dependencies = [
  "azalea-auth",
  "azalea-core",
  "azalea-crypto",
+ "azalea-entity",
  "azalea-protocol",
  "azalea-world",
  "tokio",
@@ -130,6 +131,13 @@ dependencies = [
  "rand",
  "rsa_public_encrypt_pkcs1",
  "sha-1",
+]
+
+[[package]]
+name = "azalea-entity"
+version = "0.1.0"
+dependencies = [
+ "azalea-core",
 ]
 
 [[package]]

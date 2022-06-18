@@ -1,4 +1,4 @@
-use crate::Entity;
+use azalea_entity::Entity;
 
 #[derive(Default, Debug)]
 pub struct Player {

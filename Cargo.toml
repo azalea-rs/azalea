@@ -12,6 +12,7 @@ members = [
   "azalea-world",
   "azalea-language",
   "azalea-block",
+  "azalea-entity",
 ]
 
 [profile.release]
