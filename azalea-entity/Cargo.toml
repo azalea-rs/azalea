@@ -7,3 +7,9 @@ version = "0.1.0"
 
 [dependencies]
 azalea-core = {path = "../azalea-core"}
+azalea-protocol = {path = "../azalea-protocol", optional = true}
+uuid = "^1.1.2"
+
+[features]
+default = ["protocol"]
+protocol = ["dep:azalea-protocol"]
