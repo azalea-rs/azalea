@@ -19,7 +19,7 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use azalea_world::{ChunkStorage, World};
+use azalea_world::{ChunkStorage, EntityStorage, World};
 use std::{fmt::Debug, sync::Arc};
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use tokio::sync::Mutex;
@@ -266,6 +266,7 @@ impl Client {
                     height,
                     min_y,
                     storage: ChunkStorage::new(16),
+                    entities: EntityStorage::new(),
                 });
 
                 conn.lock()
@@ -356,6 +357,7 @@ impl Client {
                     y: p.y,
                     z: p.z,
                 };
+                p.id;
             }
             GamePacket::ClientboundSetEntityDataPacket(p) => {
                 // println!("Got set entity data packet {:?}", p);

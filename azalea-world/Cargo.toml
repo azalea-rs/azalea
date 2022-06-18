@@ -6,7 +6,12 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+azalea-block = {path = "../azalea-block"}
 azalea-core = {path = "../azalea-core"}
+azalea-entity = {path = "../azalea-entity"}
 azalea-nbt = {path = "../azalea-nbt"}
 azalea-protocol = {path = "../azalea-protocol"}
-azalea-block = {path = "../azalea-block"}
+nohash-hasher = "0.2.0"
+
+[profile.release]
+lto = true
