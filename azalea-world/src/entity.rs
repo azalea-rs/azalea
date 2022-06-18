@@ -4,6 +4,7 @@ use azalea_core::ChunkPos;
 use azalea_entity::Entity;
 use nohash_hasher::IntMap;
 
+#[derive(Debug)]
 pub struct EntityStorage {
     by_id: IntMap<u32, Entity>,
     // TODO: this doesn't work yet (should be updated in the set_pos method in azalea-entity)

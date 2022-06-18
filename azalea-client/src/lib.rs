@@ -1,10 +1,12 @@
 //! Significantly abstract azalea-protocol so it's actually useable for bots.
 
-mod connect;
+mod account;
+mod client;
 pub mod ping;
 mod player;
 
-pub use connect::{Account, Client, Event};
+pub use account::Account;
+pub use client::{Client, Event};
 pub use player::Player;
 
 #[cfg(test)]

@@ -1,5 +1,5 @@
-use crate::Player;
-use azalea_core::{resource_location::ResourceLocation, ChunkPos, EntityPos};
+use crate::{Account, Player};
+use azalea_core::{resource_location::ResourceLocation, ChunkPos};
 use azalea_entity::Entity;
 use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
@@ -25,25 +25,16 @@ use std::{fmt::Debug, sync::Arc};
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use tokio::sync::Mutex;
 
-///! Connect to Minecraft servers.
-
-/// Something that can join Minecraft servers.
-pub struct Account {
-    username: String,
-}
-
 #[derive(Default)]
 pub struct ClientState {
     pub player: Player,
     pub world: Option<World>,
 }
 
-/// A player that you can control that is currently in a Minecraft server.
-pub struct Client {
-    event_receiver: UnboundedReceiver<Event>,
-    pub conn: Arc<Mutex<GameConnection>>,
-    pub state: Arc<Mutex<ClientState>>,
-    // game_loop
+#[derive(Debug, Clone)]
+pub enum Event {
+    Login,
+    Chat(ChatPacket),
 }
 
 #[derive(Debug, Clone)]
@@ -61,17 +52,20 @@ pub enum ChatPacket {
 //     }
 // }
 
-#[derive(Debug, Clone)]
-pub enum Event {
-    Login,
-    Chat(ChatPacket),
+/// A player that you can control that is currently in a Minecraft server.
+pub struct Client {
+    event_receiver: UnboundedReceiver<Event>,
+    pub conn: Arc<Mutex<GameConnection>>,
+    pub state: Arc<Mutex<ClientState>>,
+    // game_loop
 }
 
 /// Whether we should ignore errors when decoding packets.
-const IGNORE_ERRORS: bool = false;
+const IGNORE_ERRORS: bool = !cfg!(debug_assertions);
 
 impl Client {
-    async fn join(account: &Account, address: &ServerAddress) -> Result<Self, String> {
+    /// Connect to a Minecraft server with an account.
+    pub async fn join(account: &Account, address: &ServerAddress) -> Result<Self, String> {
         let resolved_address = resolver::resolve_address(address).await?;
 
         let mut conn = HandshakeConnection::new(&resolved_address).await?;
@@ -467,17 +461,5 @@ impl Client {
 
     pub async fn next(&mut self) -> Option<Event> {
         self.event_receiver.recv().await
-    }
-}
-
-impl Account {
-    pub fn offline(username: &str) -> Self {
-        Self {
-            username: username.to_string(),
-        }
-    }
-
-    pub async fn join(&self, address: &ServerAddress) -> Result<Client, String> {
-        Client::join(self, address).await
     }
 }

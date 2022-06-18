@@ -1,5 +1,4 @@
 use azalea_client::{Account, Event};
-use azalea_core::BlockPos;
 
 #[tokio::main]
 async fn main() {
@@ -20,10 +19,10 @@ async fn main() {
         match e {
             // TODO: have a "loaded" or "ready" event that fires when all chunks are loaded
             Event::Login => {}
-            Event::Chat(p) => {
+            Event::Chat(_p) => {
                 let state = client.state.lock().await;
                 let world = state.world.as_ref().unwrap();
-                println!("{:?}", state.world.entities.get_player(player));
+                println!("{:?}", world.entities);
                 // world.get_block_state(state.player.entity.pos);
                 // println!("{}", p.message.to_ansi(None));
                 // if p.message.to_ansi(None) == "<py5> ok" {
