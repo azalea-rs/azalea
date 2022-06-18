@@ -23,7 +23,7 @@ async fn main() {
             Event::Chat(p) => {
                 let state = client.state.lock().await;
                 let world = state.world.as_ref().unwrap();
-                println!("{:?}", state.player.entity());
+                println!("{:?}", state.world.entities.get_player(player));
                 // world.get_block_state(state.player.entity.pos);
                 // println!("{}", p.message.to_ansi(None));
                 // if p.message.to_ansi(None) == "<py5> ok" {
