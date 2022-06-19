@@ -4,6 +4,7 @@ use crate::World;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use azalea_protocol::mc_buf::{McBufReadable, McBufWritable};
+use std::fmt::Debug;
 use std::{
     io::{Read, Write},
     ops::{Index, IndexMut},
@@ -12,7 +13,6 @@ use std::{
 
 const SECTION_HEIGHT: u32 = 16;
 
-#[derive(Debug)]
 pub struct ChunkStorage {
     pub view_center: ChunkPos,
     chunk_radius: u32,
@@ -148,6 +148,20 @@ impl McBufWritable for Chunk {
             section.write_into(buf)?;
         }
         Ok(())
+    }
+}
+
+impl Debug for ChunkStorage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ChunkStorage")
+            .field("view_center", &self.view_center)
+            .field("chunk_radius", &self.chunk_radius)
+            .field("view_range", &self.view_range)
+            .field("height", &self.height)
+            .field("min_y", &self.min_y)
+            // .field("chunks", &self.chunks)
+            .field("chunks", &format_args!("{} items", self.chunks.len()))
+            .finish()
     }
 }
 

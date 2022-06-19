@@ -2,7 +2,7 @@ use std::ops::Rem;
 
 use crate::resource_location::ResourceLocation;
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct BlockPos {
     pub x: i32,
     pub y: i32,
@@ -157,9 +157,9 @@ pub struct EntityPos {
 impl From<&EntityPos> for BlockPos {
     fn from(pos: &EntityPos) -> Self {
         BlockPos {
-            x: pos.x as i32,
-            y: pos.y as i32,
-            z: pos.z as i32,
+            x: pos.x.floor() as i32,
+            y: pos.y.floor() as i32,
+            z: pos.z.floor() as i32,
         }
     }
 }
@@ -189,13 +189,24 @@ mod tests {
     }
 
     #[test]
+    fn test_from_entity_pos_to_block_pos() {
+        let entity_pos = EntityPos {
+            x: 31.5,
+            y: 80.0,
+            z: -16.1,
+        };
+        let block_pos = BlockPos::from(&entity_pos);
+        assert_eq!(block_pos, BlockPos::new(31, 80, -17));
+    }
+
+    #[test]
     fn test_from_entity_pos_to_chunk_pos() {
         let entity_pos = EntityPos {
-            x: 33.5,
-            y: 77.0,
-            z: -19.6,
+            x: 31.5,
+            y: 80.0,
+            z: -16.1,
         };
         let chunk_pos = ChunkPos::from(&entity_pos);
-        assert_eq!(chunk_pos, ChunkPos::new(2, -2));
+        assert_eq!(chunk_pos, ChunkPos::new(1, -2));
     }
 }

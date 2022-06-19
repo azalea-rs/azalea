@@ -5,7 +5,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Hello, world!");
 
     // let address = "95.111.249.143:10000";
-    let address = "localhost:52909";
+    let address = "localhost:61146";
     // let response = azalea_client::ping::ping_server(&address.try_into().unwrap())
     //     .await
     //     .unwrap();
@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Event::Chat(_p) => {
                 let state = client.state.lock().unwrap();
                 let world = state.world.as_ref().unwrap();
-                println!("{:?}", world);
+                println!("{:#?}", world);
                 // world.get_block_state(state.player.entity.pos);
                 // println!("{}", p.message.to_ansi(None));
                 // if p.message.to_ansi(None) == "<py5> ok" {
