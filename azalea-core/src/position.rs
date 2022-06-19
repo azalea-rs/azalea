@@ -27,7 +27,7 @@ impl Rem<i32> for BlockPos {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ChunkPos {
     pub x: i32,
     pub z: i32,
@@ -164,6 +164,12 @@ impl From<&EntityPos> for BlockPos {
     }
 }
 
+impl From<&EntityPos> for ChunkPos {
+    fn from(pos: &EntityPos) -> Self {
+        ChunkPos::from(&BlockPos::from(pos))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -180,5 +186,16 @@ mod tests {
         let block_pos = BlockPos::new(5, 78, -2);
         let chunk_block_pos = ChunkBlockPos::from(&block_pos);
         assert_eq!(chunk_block_pos, ChunkBlockPos::new(5, 78, 14));
+    }
+
+    #[test]
+    fn test_from_entity_pos_to_chunk_pos() {
+        let entity_pos = EntityPos {
+            x: 33.5,
+            y: 77.0,
+            z: -19.6,
+        };
+        let chunk_pos = ChunkPos::from(&entity_pos);
+        assert_eq!(chunk_pos, ChunkPos::new(2, -2));
     }
 }

@@ -1,4 +1,3 @@
-use crate::bit_storage::BitStorage;
 use crate::palette::PalettedContainer;
 use crate::palette::PalettedContainerType;
 use crate::World;
@@ -13,10 +12,13 @@ use std::{
 
 const SECTION_HEIGHT: u32 = 16;
 
+#[derive(Debug)]
 pub struct ChunkStorage {
     pub view_center: ChunkPos,
     chunk_radius: u32,
     view_range: u32,
+    pub height: u32,
+    pub min_y: i32,
     // chunks is a list of size chunk_radius * chunk_radius
     chunks: Vec<Option<Arc<Mutex<Chunk>>>>,
 }
@@ -32,12 +34,14 @@ fn floor_mod(x: i32, y: u32) -> u32 {
 }
 
 impl ChunkStorage {
-    pub fn new(chunk_radius: u32) -> Self {
+    pub fn new(chunk_radius: u32, height: u32, min_y: i32) -> Self {
         let view_range = chunk_radius * 2 + 1;
         ChunkStorage {
             view_center: ChunkPos::new(0, 0),
             chunk_radius,
             view_range,
+            height,
+            min_y,
             chunks: vec![None; (view_range * view_range) as usize],
         }
     }
@@ -60,6 +64,29 @@ impl ChunkStorage {
             Some(chunk) => Some(chunk.lock().unwrap().get(&ChunkBlockPos::from(pos), min_y)),
             None => None,
         }
+    }
+
+    pub fn replace_with_packet_data(
+        &mut self,
+        pos: &ChunkPos,
+        data: &mut impl Read,
+    ) -> Result<(), String> {
+        if !self.in_range(pos) {
+            println!(
+                "Ignoring chunk since it's not in the view range: {}, {}",
+                pos.x, pos.z
+            );
+            return Ok(());
+        }
+
+        let chunk = Arc::new(Mutex::new(Chunk::read_with_world_height(
+            data,
+            self.height,
+        )?));
+        println!("Loaded chunk {:?}", pos);
+        self[pos] = Some(chunk);
+
+        Ok(())
     }
 }
 
@@ -84,7 +111,7 @@ pub struct Chunk {
 
 impl Chunk {
     pub fn read_with_world(buf: &mut impl Read, data: &World) -> Result<Self, String> {
-        Self::read_with_world_height(buf, data.height)
+        Self::read_with_world_height(buf, data.height())
     }
 
     pub fn read_with_world_height(buf: &mut impl Read, world_height: u32) -> Result<Self, String> {

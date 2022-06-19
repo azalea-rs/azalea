@@ -198,6 +198,7 @@ dependencies = [
  "azalea-entity",
  "azalea-nbt",
  "azalea-protocol",
+ "log",
  "nohash-hasher",
 ]
 

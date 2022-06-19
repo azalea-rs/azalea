@@ -21,7 +21,7 @@ async fn main() {
                     if bot.entity.can_reach(target.bounding_box) {
                         bot.swing();
                     }
-                    if !h.using_held_item() && bot.state.lock().await.hunger <= 17 {
+                    if !h.using_held_item() && bot.state.lock().hunger <= 17 {
                         bot.hold(azalea::ItemGroup::Food);
                         tokio::task::spawn(bot.use_held_item());
                     }

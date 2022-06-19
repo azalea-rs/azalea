@@ -21,9 +21,11 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{ChunkStorage, EntityStorage, World};
-use std::{fmt::Debug, sync::Arc};
+use std::{
+    fmt::Debug,
+    sync::{Arc, Mutex},
+};
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
-use tokio::sync::Mutex;
 
 #[derive(Default)]
 pub struct ClientState {
@@ -55,13 +57,15 @@ pub enum ChatPacket {
 /// A player that you can control that is currently in a Minecraft server.
 pub struct Client {
     event_receiver: UnboundedReceiver<Event>,
-    pub conn: Arc<Mutex<GameConnection>>,
+    pub conn: Arc<tokio::sync::Mutex<GameConnection>>,
     pub state: Arc<Mutex<ClientState>>,
     // game_loop
 }
 
 /// Whether we should ignore errors when decoding packets.
 const IGNORE_ERRORS: bool = !cfg!(debug_assertions);
+
+struct HandleError(String);
 
 impl Client {
     /// Connect to a Minecraft server with an account.
@@ -137,7 +141,7 @@ impl Client {
             }
         };
 
-        let conn = Arc::new(Mutex::new(conn));
+        let conn = Arc::new(tokio::sync::Mutex::new(conn));
 
         let (tx, rx) = mpsc::unbounded_channel();
 
@@ -161,14 +165,16 @@ impl Client {
     }
 
     async fn game_loop(
-        conn: Arc<Mutex<GameConnection>>,
+        conn: Arc<tokio::sync::Mutex<GameConnection>>,
         tx: UnboundedSender<Event>,
         state: Arc<Mutex<ClientState>>,
     ) {
         loop {
             let r = conn.lock().await.read().await;
             match r {
-                Ok(packet) => Self::handle(&packet, &tx, &state, &conn).await,
+                Ok(packet) => {
+                    Self::handle(&packet, &tx, &state, &conn).await;
+                }
                 Err(e) => {
                     if IGNORE_ERRORS {
                         println!("Error: {:?}", e);
@@ -187,82 +193,79 @@ impl Client {
         packet: &GamePacket,
         tx: &UnboundedSender<Event>,
         state: &Arc<Mutex<ClientState>>,
-        conn: &Arc<Mutex<GameConnection>>,
-    ) {
+        conn: &Arc<tokio::sync::Mutex<GameConnection>>,
+    ) -> Result<(), HandleError> {
         match packet {
             GamePacket::ClientboundLoginPacket(p) => {
                 println!("Got login packet {:?}", p);
 
-                let mut state = state.lock().await;
+                {
+                    let mut state = state.lock()?;
 
-                // // write p into login.txt
-                // std::io::Write::write_all(
-                //     &mut std::fs::File::create("login.txt").unwrap(),
-                //     format!("{:#?}", p).as_bytes(),
-                // )
-                // .unwrap();
+                    // // write p into login.txt
+                    // std::io::Write::write_all(
+                    //     &mut std::fs::File::create("login.txt").unwrap(),
+                    //     format!("{:#?}", p).as_bytes(),
+                    // )
+                    // .unwrap();
 
-                state.player.entity.id = p.player_id;
+                    state.player.entity.id = p.player_id;
 
-                // TODO: have registry_holder be a struct because this sucks rn
-                // best way would be to add serde support to azalea-nbt
+                    // TODO: have registry_holder be a struct because this sucks rn
+                    // best way would be to add serde support to azalea-nbt
 
-                let registry_holder = p
-                    .registry_holder
-                    .as_compound()
-                    .expect("Registry holder is not a compound")
-                    .get("")
-                    .expect("No \"\" tag")
-                    .as_compound()
-                    .expect("\"\" tag is not a compound");
-                let dimension_types = registry_holder
-                    .get("minecraft:dimension_type")
-                    .expect("No dimension_type tag")
-                    .as_compound()
-                    .expect("dimension_type is not a compound")
-                    .get("value")
-                    .expect("No dimension_type value")
-                    .as_list()
-                    .expect("dimension_type value is not a list");
-                let dimension_type = dimension_types
-                    .iter()
-                    .find(|t| {
-                        t.as_compound()
-                            .expect("dimension_type value is not a compound")
-                            .get("name")
-                            .expect("No name tag")
-                            .as_string()
-                            .expect("name is not a string")
-                            == p.dimension_type.to_string()
-                    })
-                    .expect(&format!("No dimension_type with name {}", p.dimension_type))
-                    .as_compound()
-                    .unwrap()
-                    .get("element")
-                    .expect("No element tag")
-                    .as_compound()
-                    .expect("element is not a compound");
-                let height = (*dimension_type
-                    .get("height")
-                    .expect("No height tag")
-                    .as_int()
-                    .expect("height tag is not an int"))
-                .try_into()
-                .expect("height is not a u32");
-                let min_y = (*dimension_type
-                    .get("min_y")
-                    .expect("No min_y tag")
-                    .as_int()
-                    .expect("min_y tag is not an int"))
-                .try_into()
-                .expect("min_y is not an i32");
+                    let registry_holder = p
+                        .registry_holder
+                        .as_compound()
+                        .expect("Registry holder is not a compound")
+                        .get("")
+                        .expect("No \"\" tag")
+                        .as_compound()
+                        .expect("\"\" tag is not a compound");
+                    let dimension_types = registry_holder
+                        .get("minecraft:dimension_type")
+                        .expect("No dimension_type tag")
+                        .as_compound()
+                        .expect("dimension_type is not a compound")
+                        .get("value")
+                        .expect("No dimension_type value")
+                        .as_list()
+                        .expect("dimension_type value is not a list");
+                    let dimension_type = dimension_types
+                        .iter()
+                        .find(|t| {
+                            t.as_compound()
+                                .expect("dimension_type value is not a compound")
+                                .get("name")
+                                .expect("No name tag")
+                                .as_string()
+                                .expect("name is not a string")
+                                == p.dimension_type.to_string()
+                        })
+                        .expect(&format!("No dimension_type with name {}", p.dimension_type))
+                        .as_compound()
+                        .unwrap()
+                        .get("element")
+                        .expect("No element tag")
+                        .as_compound()
+                        .expect("element is not a compound");
+                    let height = (*dimension_type
+                        .get("height")
+                        .expect("No height tag")
+                        .as_int()
+                        .expect("height tag is not an int"))
+                    .try_into()
+                    .expect("height is not a u32");
+                    let min_y = (*dimension_type
+                        .get("min_y")
+                        .expect("No min_y tag")
+                        .as_int()
+                        .expect("min_y tag is not an int"))
+                    .try_into()
+                    .expect("min_y is not an i32");
 
-                state.world = Some(World {
-                    height,
-                    min_y,
-                    storage: ChunkStorage::new(16),
-                    entities: EntityStorage::new(),
-                });
+                    state.world = Some(World::new(16, height, min_y));
+                }
 
                 conn.lock()
                     .await
@@ -321,8 +324,7 @@ impl Client {
             GamePacket::ClientboundSetChunkCacheCenterPacket(p) => {
                 println!("Got chunk cache center packet {:?}", p);
                 state
-                    .lock()
-                    .await
+                    .lock()?
                     .world
                     .as_mut()
                     .unwrap()
@@ -334,8 +336,7 @@ impl Client {
                 // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
                 // println("chunk {:?}")
                 state
-                    .lock()
-                    .await
+                    .lock()?
                     .world
                     .as_mut()
                     .expect("World doesn't exist! We should've gotten a login packet by now.")
@@ -349,13 +350,11 @@ impl Client {
                 println!("Got add entity packet {:?}", p);
                 let entity = Entity::from(p);
                 state
-                    .lock()
-                    .await
+                    .lock()?
                     .world
                     .as_mut()
                     .expect("World doesn't exist! We should've gotten a login packet by now.")
-                    .entities
-                    .insert(entity);
+                    .add_entity(entity);
             }
             GamePacket::ClientboundSetEntityDataPacket(p) => {
                 // println!("Got set entity data packet {:?}", p);
@@ -392,6 +391,18 @@ impl Client {
             }
             GamePacket::ClientboundTeleportEntityPacket(p) => {
                 // println!("Got teleport entity packet {:?}", p);
+                let state_lock = state.lock()?;
+
+                // let entity = state_lock
+                //     .world
+                //     .unwrap()
+                //     .entity_by_id(p.id)
+                //     .ok_or("Teleporting entity that doesn't exist.".to_string())?;
+                // state_lock
+                //     .world
+                //     .as_mut()
+                //     .expect("World doesn't exist! We should've gotten a login packet by now.")
+                //     .move_entity(&mut entity, new_pos)
             }
             GamePacket::ClientboundUpdateAdvancementsPacket(p) => {
                 println!("Got update advancements packet {:?}", p);
@@ -457,9 +468,23 @@ impl Client {
             }
             _ => panic!("Unexpected packet {:?}", packet),
         }
+
+        Ok(())
     }
 
     pub async fn next(&mut self) -> Option<Event> {
         self.event_receiver.recv().await
+    }
+}
+
+impl<T> From<std::sync::PoisonError<T>> for HandleError {
+    fn from(e: std::sync::PoisonError<T>) -> Self {
+        HandleError(e.to_string())
+    }
+}
+
+impl From<String> for HandleError {
+    fn from(e: String) -> Self {
+        HandleError(e)
     }
 }

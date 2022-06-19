@@ -1,4 +1,4 @@
-use azalea_core::EntityPos;
+use azalea_core::{ChunkPos, EntityPos};
 #[cfg(feature = "protocol")]
 use azalea_protocol::packets::game::clientbound_add_entity_packet::ClientboundAddEntityPacket;
 use uuid::Uuid;
@@ -16,19 +16,16 @@ impl Entity {
         &self.pos
     }
 
-    pub fn set_pos(&mut self, pos: EntityPos) {
-        // TODO: check if it moved to another chunk
-        self.pos = pos;
+    /// Sets the position of the entity. This doesn't update the cache in
+    /// azalea-world, and should only be used within azalea-world!
+    pub fn unsafe_move(&mut self, new_pos: EntityPos) {
+        self.pos = new_pos;
     }
 }
 
 #[cfg(feature = "protocol")]
-impl From<&azalea_protocol::packets::game::clientbound_add_entity_packet::ClientboundAddEntityPacket>
-    for Entity
-{
-    fn from(
-        p: &azalea_protocol::packets::game::clientbound_add_entity_packet::ClientboundAddEntityPacket,
-    ) -> Self {
+impl From<&ClientboundAddEntityPacket> for Entity {
+    fn from(p: &ClientboundAddEntityPacket) -> Self {
         Self {
             id: p.id,
             uuid: p.uuid,
