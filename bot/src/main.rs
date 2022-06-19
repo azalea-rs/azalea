@@ -20,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             // TODO: have a "loaded" or "ready" event that fires when all chunks are loaded
             Event::Login => {}
             Event::Chat(_p) => {
-                let state = &client.state.lock()?;
+                let state = client.state.lock().unwrap();
                 let world = state.world.as_ref().unwrap();
                 println!("{:?}", world);
                 // world.get_block_state(state.player.entity.pos);
