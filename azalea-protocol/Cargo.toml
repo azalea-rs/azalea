@@ -23,7 +23,7 @@ packet-macros = {path = "./packet-macros"}
 serde = {version = "1.0.130", features = ["serde_derive"]}
 serde_json = "^1.0.72"
 thiserror = "^1.0.30"
-tokio = {version = "^1.14.0", features = ["io-util", "net", "macros"]}
+tokio = {version = "^1.19.2", features = ["io-util", "net", "macros"]}
 tokio-util = "^0.6.9"
 trust-dns-resolver = "^0.20.3"
 uuid = "^1.1.2"
