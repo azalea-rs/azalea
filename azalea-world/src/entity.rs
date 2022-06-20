@@ -79,6 +79,40 @@ impl EntityStorage {
             .or_default()
             .insert(entity_id);
     }
+
+    /// Get an iterator over all entities.
+    #[inline]
+    pub fn entities(&self) -> std::collections::hash_map::Values<'_, u32, Entity> {
+        self.by_id.values()
+    }
+
+    pub fn find_one_entity<F>(&self, mut f: F) -> Option<&Entity>
+    where
+        F: FnMut(&Entity) -> bool,
+    {
+        for entity in self.entities() {
+            if f(entity) {
+                return Some(entity);
+            }
+        }
+        None
+    }
+
+    pub fn find_one_entity_in_chunk<F>(&self, chunk: &ChunkPos, mut f: F) -> Option<&Entity>
+    where
+        F: FnMut(&Entity) -> bool,
+    {
+        if let Some(entities) = self.by_chunk.get(chunk) {
+            for entity_id in entities {
+                if let Some(entity) = self.by_id.get(entity_id) {
+                    if f(entity) {
+                        return Some(entity);
+                    }
+                }
+            }
+        }
+        None
+    }
 }
 
 impl Default for EntityStorage {

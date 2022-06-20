@@ -87,6 +87,19 @@ impl World {
     pub fn entity_by_id(&self, id: u32) -> Option<&Entity> {
         self.entity_storage.get_by_id(id)
     }
+
+    /// Get an iterator over all entities.
+    #[inline]
+    pub fn entities(&self) -> std::collections::hash_map::Values<'_, u32, Entity> {
+        self.entity_storage.entities()
+    }
+
+    pub fn find_one_entity<F>(&self, mut f: F) -> Option<&Entity>
+    where
+        F: FnMut(&Entity) -> bool,
+    {
+        self.entity_storage.find_one_entity(|entity| f(entity))
+    }
 }
 
 impl Index<&ChunkPos> for World {

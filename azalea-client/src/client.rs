@@ -26,7 +26,10 @@ use std::{
     fmt::Debug,
     sync::{Arc, Mutex},
 };
-use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
+use tokio::{
+    sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
+    time::{self, MissedTickBehavior},
+};
 
 #[derive(Default)]
 pub struct ClientState {
@@ -38,6 +41,8 @@ pub struct ClientState {
 pub enum Event {
     Login,
     Chat(ChatPacket),
+    /// A game tick, happens 20 times per second.
+    GameTick,
 }
 
 #[derive(Debug, Clone)]
@@ -153,20 +158,22 @@ impl Client {
             conn: conn.clone(),
             state: Arc::new(Mutex::new(ClientState::default())),
         };
-        // let client = Arc::new(Mutex::new(client));
-        // let weak_client = Arc::<_>::downgrade(&client);
 
         // just start up the game loop and we're ready!
-        // tokio::spawn(Self::game_loop(conn, tx, handler, state))
 
         let game_loop_state = client.state.clone();
 
-        tokio::spawn(Self::game_loop(conn, tx, game_loop_state));
+        tokio::spawn(Self::protocol_loop(
+            conn.clone(),
+            tx.clone(),
+            game_loop_state.clone(),
+        ));
+        tokio::spawn(Self::game_tick_loop(conn, tx, game_loop_state));
 
         Ok(client)
     }
 
-    async fn game_loop(
+    async fn protocol_loop(
         conn: Arc<tokio::sync::Mutex<GameConnection>>,
         tx: UnboundedSender<Event>,
         state: Arc<Mutex<ClientState>>,
@@ -485,6 +492,33 @@ impl Client {
 
     pub async fn next(&mut self) -> Option<Event> {
         self.event_receiver.recv().await
+    }
+
+    /// Runs game_tick every 50 milliseconds.
+    async fn game_tick_loop(
+        conn: Arc<tokio::sync::Mutex<GameConnection>>,
+        tx: UnboundedSender<Event>,
+        state: Arc<Mutex<ClientState>>,
+    ) {
+        let mut game_tick_interval = time::interval(time::Duration::from_millis(50));
+        // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
+        game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
+        loop {
+            game_tick_interval.tick().await;
+            Self::game_tick(&conn, &tx, &state).await;
+        }
+    }
+
+    /// Runs every 50 milliseconds.
+    async fn game_tick(
+        conn: &Arc<tokio::sync::Mutex<GameConnection>>,
+        tx: &UnboundedSender<Event>,
+        state: &Arc<Mutex<ClientState>>,
+    ) {
+        if state.lock().unwrap().world.is_none() {
+            return;
+        }
+        tx.send(Event::GameTick).unwrap();
     }
 
     /// Gets the `World` the client is in.

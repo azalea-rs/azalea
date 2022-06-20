@@ -10,3 +10,4 @@ azalea-client = {path = "../azalea-client"}
 azalea-core = {path = "../azalea-core"}
 azalea-protocol = {path = "../azalea-protocol"}
 tokio = "^1.19.2"
+uuid = "^1.1.2"

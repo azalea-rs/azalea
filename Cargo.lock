@@ -235,6 +235,7 @@ dependencies = [
  "azalea-core",
  "azalea-protocol",
  "tokio",
+ "uuid",
 ]
 
 [[package]]

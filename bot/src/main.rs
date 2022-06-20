@@ -20,12 +20,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         match e {
             // TODO: have a "loaded" or "ready" event that fires when all chunks are loaded
             Event::Login => {}
-            Event::Chat(_p) => {
+            Event::GameTick => {
                 let world = client.world();
-                let b = world.get_block_state(&BlockPos::new(0, 0, 0)).unwrap();
-                // let world = state.world.as_ref().unwrap();
-                // world.
-                println!("{:?}", b);
+                if let Some(b) = world.find_one_entity(|e| {
+                    e.uuid == uuid::uuid!("6536bfed-8695-48fd-83a1-ecd24cf2a0fd")
+                }) {
+                    // let world = state.world.as_ref().unwrap();
+                    // world.
+                    println!("{:?}", b);
+                }
                 // world.get_block_state(state.player.entity.pos);
                 // println!("{}", p.message.to_ansi(None));
                 // if p.message.to_ansi(None) == "<py5> ok" {
@@ -35,6 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 //     println!("block state: {:?}", c);
                 // }
             }
+            _ => {}
         }
     }
 
