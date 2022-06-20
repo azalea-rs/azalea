@@ -34,7 +34,7 @@ impl EntityStorage {
     pub fn remove_by_id(&mut self, id: u32) {
         if let Some(entity) = self.by_id.remove(&id) {
             let entity_chunk = ChunkPos::from(entity.pos());
-            if let None = self.by_chunk.remove(&entity_chunk) {
+            if self.by_chunk.remove(&entity_chunk).is_none() {
                 warn!("Tried to remove entity with id {id} from chunk {entity_chunk:?} but it was not found.");
             }
         } else {
@@ -78,5 +78,11 @@ impl EntityStorage {
             .entry(*new_chunk)
             .or_default()
             .insert(entity_id);
+    }
+}
+
+impl Default for EntityStorage {
+    fn default() -> Self {
+        Self::new()
     }
 }

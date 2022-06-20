@@ -60,10 +60,9 @@ impl ChunkStorage {
         let chunk_pos = ChunkPos::from(pos);
         println!("chunk_pos {:?} block_pos {:?}", chunk_pos, pos);
         let chunk = &self[&chunk_pos];
-        match chunk {
-            Some(chunk) => Some(chunk.lock().unwrap().get(&ChunkBlockPos::from(pos), min_y)),
-            None => None,
-        }
+        chunk
+            .as_ref()
+            .map(|chunk| chunk.lock().unwrap().get(&ChunkBlockPos::from(pos), min_y))
     }
 
     pub fn replace_with_packet_data(
@@ -137,8 +136,7 @@ impl Chunk {
         // TODO: make sure the section exists
         let section = &self.sections[section_index as usize];
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
-        let block_state = section.get(chunk_section_pos);
-        block_state
+        section.get(chunk_section_pos)
     }
 }
 

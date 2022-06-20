@@ -6,14 +6,13 @@ mod entity;
 mod palette;
 
 use azalea_block::BlockState;
-use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos, EntityPos};
+use azalea_core::{BlockPos, ChunkPos, EntityPos};
 use azalea_entity::Entity;
-use azalea_protocol::mc_buf::{McBufReadable, McBufWritable};
 pub use bit_storage::BitStorage;
 pub use chunk::{Chunk, ChunkStorage};
 pub use entity::EntityStorage;
 use std::{
-    io::{Read, Write},
+    io::Read,
     ops::{Index, IndexMut},
     sync::{Arc, Mutex},
 };
@@ -61,7 +60,7 @@ impl World {
         let entity = self
             .entity_storage
             .get_mut_by_id(entity_id)
-            .ok_or("Moving entity that doesn't exist".to_string())?;
+            .ok_or_else(|| "Moving entity that doesn't exist".to_string())?;
         let old_chunk = ChunkPos::from(entity.pos());
         let new_chunk = ChunkPos::from(&new_pos);
         // this is fine because we update the chunk below

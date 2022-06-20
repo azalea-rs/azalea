@@ -1,12 +1,5 @@
 use crate::Client;
-use azalea_protocol::{
-    packets::game::{
-        clientbound_player_chat_packet::ClientboundPlayerChatPacket,
-        clientbound_system_chat_packet::ClientboundSystemChatPacket,
-    },
-    ServerAddress,
-};
-use std::fmt::Debug;
+use azalea_protocol::ServerAddress;
 
 ///! Connect to Minecraft servers.
 

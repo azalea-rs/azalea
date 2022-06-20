@@ -20,7 +20,8 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use azalea_world::{ChunkStorage, EntityStorage, World};
+use azalea_world::World;
+use owning_ref::OwningRef;
 use std::{
     fmt::Debug,
     sync::{Arc, Mutex},
@@ -42,7 +43,7 @@ pub enum Event {
 #[derive(Debug, Clone)]
 pub enum ChatPacket {
     System(ClientboundSystemChatPacket),
-    Player(ClientboundPlayerChatPacket),
+    Player(Box<ClientboundPlayerChatPacket>),
 }
 
 // impl ChatPacket {
@@ -65,6 +66,7 @@ pub struct Client {
 /// Whether we should ignore errors when decoding packets.
 const IGNORE_ERRORS: bool = !cfg!(debug_assertions);
 
+#[derive(Debug)]
 struct HandleError(String);
 
 impl Client {
@@ -172,9 +174,17 @@ impl Client {
         loop {
             let r = conn.lock().await.read().await;
             match r {
-                Ok(packet) => {
-                    Self::handle(&packet, &tx, &state, &conn).await;
-                }
+                Ok(packet) => match Self::handle(&packet, &tx, &state, &conn).await {
+                    Ok(_) => {}
+                    Err(e) => {
+                        println!("Error handling packet: {:?}", e);
+                        if IGNORE_ERRORS {
+                            continue;
+                        } else {
+                            panic!("Error handling packet: {:?}", e);
+                        }
+                    }
+                },
                 Err(e) => {
                     if IGNORE_ERRORS {
                         println!("Error: {:?}", e);
@@ -242,7 +252,9 @@ impl Client {
                                 .expect("name is not a string")
                                 == p.dimension_type.to_string()
                         })
-                        .expect(&format!("No dimension_type with name {}", p.dimension_type))
+                        .unwrap_or_else(|| {
+                            panic!("No dimension_type with name {}", p.dimension_type)
+                        })
                         .as_compound()
                         .unwrap()
                         .get("element")
@@ -256,13 +268,11 @@ impl Client {
                         .expect("height tag is not an int"))
                     .try_into()
                     .expect("height is not a u32");
-                    let min_y = (*dimension_type
+                    let min_y = *dimension_type
                         .get("min_y")
                         .expect("No min_y tag")
                         .as_int()
-                        .expect("min_y tag is not an int"))
-                    .try_into()
-                    .expect("min_y is not an i32");
+                        .expect("min_y tag is not an int");
 
                     state.world = Some(World::new(16, height, min_y));
                 }
@@ -308,7 +318,7 @@ impl Client {
             GamePacket::ClientboundUpdateRecipesPacket(_p) => {
                 println!("Got update recipes packet");
             }
-            GamePacket::ClientboundEntityEventPacket(p) => {
+            GamePacket::ClientboundEntityEventPacket(_p) => {
                 // println!("Got entity event packet {:?}", p);
             }
             GamePacket::ClientboundRecipePacket(_p) => {
@@ -356,13 +366,13 @@ impl Client {
                     .expect("World doesn't exist! We should've gotten a login packet by now.")
                     .add_entity(entity);
             }
-            GamePacket::ClientboundSetEntityDataPacket(p) => {
+            GamePacket::ClientboundSetEntityDataPacket(_p) => {
                 // println!("Got set entity data packet {:?}", p);
             }
-            GamePacket::ClientboundUpdateAttributesPacket(p) => {
+            GamePacket::ClientboundUpdateAttributesPacket(_p) => {
                 // println!("Got update attributes packet {:?}", p);
             }
-            GamePacket::ClientboundEntityVelocityPacket(p) => {
+            GamePacket::ClientboundEntityVelocityPacket(_p) => {
                 // println!("Got entity velocity packet {:?}", p);
             }
             GamePacket::ClientboundSetEntityLinkPacket(p) => {
@@ -389,9 +399,9 @@ impl Client {
             GamePacket::ClientboundSetExperiencePacket(p) => {
                 println!("Got set experience packet {:?}", p);
             }
-            GamePacket::ClientboundTeleportEntityPacket(p) => {
+            GamePacket::ClientboundTeleportEntityPacket(_p) => {
                 // println!("Got teleport entity packet {:?}", p);
-                let state_lock = state.lock()?;
+                // let state_lock = state.lock()?;
 
                 // let entity = state_lock
                 //     .world
@@ -407,13 +417,13 @@ impl Client {
             GamePacket::ClientboundUpdateAdvancementsPacket(p) => {
                 println!("Got update advancements packet {:?}", p);
             }
-            GamePacket::ClientboundRotateHeadPacket(p) => {
+            GamePacket::ClientboundRotateHeadPacket(_p) => {
                 // println!("Got rotate head packet {:?}", p);
             }
-            GamePacket::ClientboundMoveEntityPosPacket(p) => {
+            GamePacket::ClientboundMoveEntityPosPacket(_p) => {
                 // println!("Got move entity pos packet {:?}", p);
             }
-            GamePacket::ClientboundMoveEntityPosRotPacket(p) => {
+            GamePacket::ClientboundMoveEntityPosRotPacket(_p) => {
                 // println!("Got move entity pos rot packet {:?}", p);
             }
             GamePacket::ClientboundMoveEntityRotPacket(p) => {
@@ -431,7 +441,8 @@ impl Client {
             }
             GamePacket::ClientboundPlayerChatPacket(p) => {
                 println!("Got player chat packet {:?}", p);
-                tx.send(Event::Chat(ChatPacket::Player(p.clone()))).unwrap();
+                tx.send(Event::Chat(ChatPacket::Player(Box::new(p.clone()))))
+                    .unwrap();
             }
             GamePacket::ClientboundSystemChatPacket(p) => {
                 println!("Got system chat packet {:?}", p);
@@ -474,6 +485,16 @@ impl Client {
 
     pub async fn next(&mut self) -> Option<Event> {
         self.event_receiver.recv().await
+    }
+
+    /// Gets the `World` the client is in.
+    ///
+    /// This is basically a shortcut for `let world = client.state.lock().unwrap().world.as_ref().unwrap()`.
+    /// If the client hasn't received a login packet yet, this will panic.
+    pub fn world(&self) -> OwningRef<std::sync::MutexGuard<ClientState>, World> {
+        let state_lock: std::sync::MutexGuard<ClientState> = self.state.lock().unwrap();
+        let state_lock_ref = OwningRef::new(state_lock);
+        state_lock_ref.map(|state| state.world.as_ref().expect("World doesn't exist!"))
     }
 }
 

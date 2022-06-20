@@ -1,4 +1,4 @@
-use azalea_core::{ChunkPos, EntityPos};
+use azalea_core::EntityPos;
 #[cfg(feature = "protocol")]
 use azalea_protocol::packets::game::clientbound_add_entity_packet::ClientboundAddEntityPacket;
 use uuid::Uuid;
