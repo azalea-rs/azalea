@@ -1,6 +1,6 @@
 use crate::Entity;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Player {
     /// The entity attached to the player. There's some useful fields here.
     pub entity: Entity,

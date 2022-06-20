@@ -1,4 +1,5 @@
 
+from lib.utils import get_dir_location
 import os
 
 # utilities specifically for codegen
@@ -67,9 +68,9 @@ def burger_type_to_rust_type(burger_type):
 
 
 def write_packet_file(state, packet_name_snake_case, code):
-    with open(f'../azalea-protocol/src/packets/{state}/{packet_name_snake_case}.rs', 'w') as f:
+    with open(get_dir_location(f'../azalea-protocol/src/packets/{state}/{packet_name_snake_case}.rs'), 'w') as f:
         f.write(code)
 
 
 def fmt():
-    os.system('cd .. && cargo fmt')
+    os.system(f'cd {get_dir_location("..")} && cargo fmt')

@@ -147,6 +147,23 @@ pub struct GlobalPos {
     pub dimension: ResourceLocation,
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct EntityPos {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+}
+
+impl From<&EntityPos> for BlockPos {
+    fn from(pos: &EntityPos) -> Self {
+        BlockPos {
+            x: pos.x as i32,
+            y: pos.y as i32,
+            z: pos.z as i32,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,0 +1,74 @@
+use azalea_core::Slot;
+use packet_macros::{GamePacket, McBuf};
+
+use crate::mc_buf::{McBufReadable, McBufWritable};
+
+#[derive(Clone, Debug, McBuf, GamePacket)]
+pub struct ClientboundSetEquipmentPacket {
+    #[var]
+    pub entity: i32,
+    pub slots: EquipmentSlots,
+}
+
+#[derive(Clone, Debug)]
+pub struct EquipmentSlots {
+    pub slots: Vec<(EquipmentSlot, Slot)>,
+}
+
+impl McBufReadable for EquipmentSlots {
+    fn read_into(buf: &mut impl std::io::Read) -> Result<Self, String> {
+        let mut slots = vec![];
+
+        loop {
+            let equipment_byte = u8::read_into(buf)?;
+            let equipment_slot = EquipmentSlot::from_byte(equipment_byte & 127)
+                .ok_or_else(|| format!("Invalid equipment slot byte {}", equipment_byte))?;
+            let item = Slot::read_into(buf)?;
+            slots.push((equipment_slot, item));
+            if equipment_byte & 128 == 0 {
+                break;
+            };
+        }
+
+        Ok(EquipmentSlots { slots })
+    }
+}
+impl McBufWritable for EquipmentSlots {
+    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+        for i in 0..self.slots.len() {
+            let (equipment_slot, item) = &self.slots[i];
+            let mut equipment_byte = *equipment_slot as u8;
+            if i != self.slots.len() - 1 {
+                equipment_byte |= 128;
+            }
+            equipment_byte.write_into(buf)?;
+            item.write_into(buf)?;
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug, Copy, McBuf)]
+pub enum EquipmentSlot {
+    MainHand = 0,
+    OffHand = 1,
+    Feet = 2,
+    Legs = 3,
+    Chest = 4,
+    Head = 5,
+}
+
+impl EquipmentSlot {
+    pub fn from_byte(byte: u8) -> Option<Self> {
+        match byte {
+            0 => Some(EquipmentSlot::MainHand),
+            1 => Some(EquipmentSlot::OffHand),
+            2 => Some(EquipmentSlot::Feet),
+            3 => Some(EquipmentSlot::Legs),
+            4 => Some(EquipmentSlot::Chest),
+            5 => Some(EquipmentSlot::Head),
+            _ => None,
+        }
+    }
+}

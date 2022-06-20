@@ -1,6 +1,6 @@
-from .utils import burger_type_to_rust_type, write_packet_file
-from ..utils import padded_hex, to_snake_case, to_camel_case
-from ..mappings import Mappings
+from lib.code.utils import burger_type_to_rust_type, write_packet_file
+from lib.utils import padded_hex, to_snake_case, to_camel_case, get_dir_location
+from lib.mappings import Mappings
 import os
 
 
@@ -74,7 +74,8 @@ def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target
                           '\n'.join(generated_packet_code))
         print()
 
-        mod_rs_dir = f'../azalea-protocol/src/packets/{state}/mod.rs'
+        mod_rs_dir = get_dir_location(
+            f'../azalea-protocol/src/packets/{state}/mod.rs')
         with open(mod_rs_dir, 'r') as f:
             mod_rs = f.read().splitlines()
 

@@ -1,0 +1,11 @@
+[package]
+edition = "2021"
+name = "azalea-block"
+version = "0.1.0"
+
+[lib]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+block-macros = {path = "./block-macros"}

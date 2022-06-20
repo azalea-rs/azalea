@@ -3,6 +3,7 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundAddEntityPacket {
+    /// The id of the entity.
     #[var]
     pub id: u32,
     pub uuid: Uuid,
