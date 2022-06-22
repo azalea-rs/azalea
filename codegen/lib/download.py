@@ -5,7 +5,9 @@ import json
 import os
 
 # make sure the downloads directory exists
+print('Making downloads')
 if not os.path.exists(get_dir_location('downloads')):
+    print('Made downloads directory.', get_dir_location('downloads'))
     os.mkdir(get_dir_location('downloads'))
 
 
@@ -117,7 +119,16 @@ def get_yarn_data(version_id: str):
 
 
 def clear_version_cache():
+    print('\033[92mClearing version cache...\033[m')
     files = [
         'version_manifest.json',
         'yarn_versions.json'
     ]
+    for file in files:
+        if os.path.exists(get_dir_location(f'downloads/{file}')):
+            os.remove(get_dir_location(f'downloads/{file}'))
+
+    os.system(
+        f'cd {get_dir_location("downloads/Burger")} && git pull')
+    os.system(
+        f'cd {get_dir_location("downloads/minecraft-data-generator-server")} && git pull')

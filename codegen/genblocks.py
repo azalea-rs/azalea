@@ -5,10 +5,9 @@ import lib.code.utils
 import lib.download
 import lib.extract
 import lib.utils
-import sys
-import os
 
 version_id = lib.code.version.get_version_id()
+
 
 lib.extract.get_generator_mod_data(version_id, 'blockCollisionShapes')
 
