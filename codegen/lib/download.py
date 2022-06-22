@@ -129,7 +129,13 @@ def get_fabric_api_versions():
         fabric_api_versions_data_xml = ET.fromstring(
             fabric_api_versions_xml_text)
         fabric_api_versions = []
-        for version_el in fabric_api_versions_data_xml.find('versioning').find('versions').findall('version'):
+
+        versioning_el = fabric_api_versions_data_xml.find('versioning')
+        assert versioning_el
+        versions_el = versioning_el.find('versions')
+        assert versions_el
+
+        for version_el in versions_el.findall('version'):
             fabric_api_versions.append(version_el.text)
 
         with open(get_dir_location('downloads/fabric_api_versions.json'), 'w') as f:

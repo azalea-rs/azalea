@@ -9,6 +9,14 @@ import sys
 
 lib.download.clear_version_cache()
 
+if len(sys.argv) == 1:
+    print('\033[91mYou must provide a version to migrate to.\033[m')
+    version_manifest = lib.download.get_version_manifest()
+    newest_version = version_manifest['latest']['snapshot']
+    print(f'Hint: newest version is \033[1m{newest_version}\033[m')
+    exit()
+
+
 old_version_id = lib.code.version.get_version_id()
 old_mappings = lib.download.get_mappings_for_version(old_version_id)
 old_burger_data = lib.extract.get_burger_data_for_version(old_version_id)
