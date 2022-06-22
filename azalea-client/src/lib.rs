@@ -2,6 +2,7 @@
 
 mod account;
 mod client;
+mod movement;
 pub mod ping;
 mod player;
 
