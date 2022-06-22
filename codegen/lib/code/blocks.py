@@ -43,7 +43,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
 
         if property is None:
             return ''.join(map(to_camel_case, property_variants))
-            
+
         property_name = None
         for class_name in [block_data_burger['class']] + block_data_burger['super']:
             property_name = mappings.get_field(
@@ -103,7 +103,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
             ending = property_name.split('_')[-1]
             if ending.isdigit():
                 property_name = property_name[:-(len(ending) + 1)]
-            
+
             # `type` is a reserved keyword, so we use kind instead ¯\_(ツ)_/¯
             if property_name == 'type':
                 property_name = 'kind'
@@ -180,6 +180,8 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
         if in_macro:
             continue
         new_code.append(line)
+    # empty line at the end
+    new_code.append('')
 
     with open(BLOCKS_RS_DIR, 'w') as f:
         f.write('\n'.join(new_code))

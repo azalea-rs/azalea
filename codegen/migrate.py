@@ -6,7 +6,8 @@ import lib.code.packet
 import lib.download
 import lib.extract
 import sys
-import os
+
+lib.download.clear_version_cache()
 
 old_version_id = lib.code.version.get_version_id()
 old_mappings = lib.download.get_mappings_for_version(old_version_id)

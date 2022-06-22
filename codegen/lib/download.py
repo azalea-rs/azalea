@@ -5,7 +5,9 @@ import json
 import os
 
 # make sure the downloads directory exists
+print('Making downloads')
 if not os.path.exists(get_dir_location('downloads')):
+    print('Made downloads directory.', get_dir_location('downloads'))
     os.mkdir(get_dir_location('downloads'))
 
 
@@ -19,12 +21,20 @@ def get_burger():
         os.system('cd downloads/Burger && pip install six jawa')
 
 
+def get_generator_mod():
+    if not os.path.exists(get_dir_location('downloads/minecraft-data-generator-server')):
+        print('\033[92mDownloading u9g/minecraft-data-generator-server...\033[m')
+        os.system(
+            f'cd {get_dir_location("downloads")} && git clone https://github.com/u9g/minecraft-data-generator-server && cd minecraft-data-generator-server && git pull')
+    return get_dir_location('downloads/minecraft-data-generator-server')
+
+
 def get_version_manifest():
     if not os.path.exists(get_dir_location(f'downloads/version_manifest.json')):
         print(
             f'\033[92mDownloading version manifest...\033[m')
         version_manifest_data = requests.get(
-            'https://piston-meta.mojang.com/mc/game/version_manifest.json').json()
+            'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json').json()
         with open(get_dir_location(f'downloads/version_manifest.json'), 'w') as f:
             json.dump(version_manifest_data, f)
     else:
@@ -86,3 +96,39 @@ def get_mappings_for_version(version_id: str):
         with open(get_dir_location(f'downloads/mappings-{version_id}.txt'), 'r') as f:
             mappings_text = f.read()
     return Mappings.parse(mappings_text)
+
+
+def get_yarn_versions():
+    # https://meta.fabricmc.net/v2/versions/yarn
+    if not os.path.exists(get_dir_location('downloads/yarn_versions.json')):
+        print('\033[92mDownloading yarn versions...\033[m')
+        yarn_versions_data = requests.get(
+            'https://meta.fabricmc.net/v2/versions/yarn').json()
+        with open(get_dir_location('downloads/yarn_versions.json'), 'w') as f:
+            json.dump(yarn_versions_data, f)
+    else:
+        with open(get_dir_location('downloads/yarn_versions.json'), 'r') as f:
+            yarn_versions_data = json.load(f)
+    return yarn_versions_data
+
+
+def get_yarn_data(version_id: str):
+    for version in get_yarn_versions():
+        if version['gameVersion'] == version_id:
+            return version
+
+
+def clear_version_cache():
+    print('\033[92mClearing version cache...\033[m')
+    files = [
+        'version_manifest.json',
+        'yarn_versions.json'
+    ]
+    for file in files:
+        if os.path.exists(get_dir_location(f'downloads/{file}')):
+            os.remove(get_dir_location(f'downloads/{file}'))
+
+    os.system(
+        f'cd {get_dir_location("downloads/Burger")} && git pull')
+    os.system(
+        f'cd {get_dir_location("downloads/minecraft-data-generator-server")} && git pull')

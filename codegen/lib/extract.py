@@ -1,6 +1,6 @@
 # Extracting data from the Minecraft jars
 
-from lib.download import get_server_jar, get_burger, get_client_jar
+from lib.download import get_server_jar, get_burger, get_client_jar, get_generator_mod, get_yarn_data
 from lib.utils import get_dir_location
 import json
 import os
@@ -41,4 +41,48 @@ def get_burger_data_for_version(version_id: str):
             f'cd {get_dir_location("downloads/Burger")} && python munch.py ../client-{version_id}.jar --output ../burger-{version_id}.json'
         )
     with open(get_dir_location(f'downloads/burger-{version_id}.json'), 'r') as f:
+        return json.load(f)
+
+
+def get_generator_mod_data(version_id: str, category: str):
+    '''
+    Gets data from u9g's data generator mod. Note that this is not very stable, and it requires Yarn to release updates first.
+    '''
+
+    target_dir = get_dir_location(f'downloads/generator-mod-{version_id}')
+
+    if not os.path.exists(get_dir_location(target_dir)):
+        generator_mod_dir = get_generator_mod()
+
+        yarn_data = get_yarn_data(version_id)
+        if not yarn_data:
+            raise Exception(
+                'Fabric/Yarn hasn\'t been updated to this version yet.')
+        # looks like 1.19+build.1
+        yarn_version = yarn_data['version']
+
+        # the mod has the minecraft version hard-coded by default, so we just change the gradle.properties
+        with open(get_dir_location(f'{generator_mod_dir}/gradle.properties'), 'r') as f:
+            lines = f.readlines()
+        with open(get_dir_location(f'{generator_mod_dir}/gradle.properties'), 'w') as f:
+            for line in lines:
+                if line.startswith('minecraft_version='):
+                    line = f'minecraft_version={version_id}\n'
+                if line.startswith('yarn_mappings='):
+                    line = f'yarn_mappings={yarn_version}\n'
+                f.write(line)
+
+        os.system(
+            f'cd {generator_mod_dir} && gradlew runServer'
+        )
+
+        if os.path.exists(target_dir):
+            os.unlink(target_dir)
+        os.rename(
+            get_dir_location(
+                f'{generator_mod_dir}/run/minecraft-data/{version_id}'),
+            target_dir
+        )
+
+    with open(f'{target_dir}/{category}.json', 'r') as f:
         return json.load(f)
