@@ -53,6 +53,10 @@ pub mod serverbound_chat_command_packet;
 pub mod serverbound_chat_preview_packet;
 pub mod serverbound_custom_payload_packet;
 pub mod serverbound_keep_alive_packet;
+pub mod serverbound_move_player_packet_pos;
+pub mod serverbound_move_player_packet_pos_rot;
+pub mod serverbound_move_player_packet_rot;
+pub mod serverbound_move_player_packet_status_only;
 
 use packet_macros::declare_state_packets;
 
@@ -63,6 +67,10 @@ declare_state_packets!(
         0x05: serverbound_chat_preview_packet::ServerboundChatPreviewPacket,
         0x0c: serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
         0x11: serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
+        0x13: serverbound_move_player_packet_pos::ServerboundMovePlayerPacketPos,
+        0x14: serverbound_move_player_packet_pos_rot::ServerboundMovePlayerPacketPosRot,
+        0x15: serverbound_move_player_packet_rot::ServerboundMovePlayerPacketRot,
+        0x16: serverbound_move_player_packet_status_only::ServerboundMovePlayerPacketStatusOnly,
     },
     Clientbound => {
         0x00: clientbound_add_entity_packet::ClientboundAddEntityPacket,
