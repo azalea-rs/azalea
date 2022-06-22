@@ -18,8 +18,10 @@ def to_camel_case(name: str):
         s = f'_{s}'
     return s
 
+
 def upper_first_letter(name: str):
     return name[0].upper() + name[1:]
+
 
 def padded_hex(n: int):
     return f'0x{n:02x}'
@@ -55,4 +57,4 @@ def group_packets(packets: list[PacketIdentifier]):
 
 
 def get_dir_location(name: str):
-    return os.path.join(os.path.dirname(__file__), '..', name)
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), name)
