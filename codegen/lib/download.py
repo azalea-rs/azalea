@@ -1,4 +1,5 @@
 from lib.utils import get_dir_location
+import xml.etree.ElementTree as ET
 from .mappings import Mappings
 import requests
 import json
@@ -118,11 +119,33 @@ def get_yarn_data(version_id: str):
             return version
 
 
+def get_fabric_api_versions():
+    # https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml
+    if not os.path.exists(get_dir_location('downloads/fabric_api_versions.json')):
+        print('\033[92mDownloading Fabric API versions...\033[m')
+        fabric_api_versions_xml_text = requests.get(
+            'https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml').text
+        # parse xml
+        fabric_api_versions_data_xml = ET.fromstring(
+            fabric_api_versions_xml_text)
+        fabric_api_versions = []
+        for version_el in fabric_api_versions_data_xml.find('versioning').find('versions').findall('version'):
+            fabric_api_versions.append(version_el.text)
+
+        with open(get_dir_location('downloads/fabric_api_versions.json'), 'w') as f:
+            f.write(json.dumps(fabric_api_versions))
+    else:
+        with open(get_dir_location('downloads/fabric_api_versions.json'), 'r') as f:
+            fabric_api_versions = json.loads(f.read())
+    return fabric_api_versions
+
+
 def clear_version_cache():
     print('\033[92mClearing version cache...\033[m')
     files = [
         'version_manifest.json',
-        'yarn_versions.json'
+        'yarn_versions.json',
+        'fabric_api_versions.json'
     ]
     for file in files:
         if os.path.exists(get_dir_location(f'downloads/{file}')):
