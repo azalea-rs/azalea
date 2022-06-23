@@ -21,11 +21,11 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         syn::Type::Path(_) => {
                             if f.attrs.iter().any(|a| a.path.is_ident("var")) {
                                 quote! {
-                                    let #field_name = crate::McBufVarReadable::var_read_into(buf)?;
+                                    let #field_name = azalea_buf::McBufVarReadable::var_read_into(buf)?;
                                 }
                             } else {
                                 quote! {
-                                    let #field_name = crate::McBufReadable::read_into(buf)?;
+                                    let #field_name = azalea_buf::McBufReadable::read_into(buf)?;
                                 }
                             }
                         }
@@ -40,7 +40,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             let read_field_names = named.iter().map(|f| &f.ident).collect::<Vec<_>>();
 
             quote! {
-            impl crate::McBufReadable for #ident {
+            impl azalea_buf::McBufReadable for #ident {
                 fn read_into(buf: &mut impl std::io::Read) -> Result<Self, String> {
                     #(#read_fields)*
                     Ok(#ident {
@@ -75,10 +75,10 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             }
 
             quote! {
-            impl crate::McBufReadable for #ident {
+            impl azalea_buf::McBufReadable for #ident {
                 fn read_into(buf: &mut impl std::io::Read) -> Result<Self, String>
                 {
-                    let id = crate::McBufVarReadable::var_read_into(buf)?;
+                    let id = azalea_buf::McBufVarReadable::var_read_into(buf)?;
                     match id {
                         #match_contents
                         _ => Err(format!("Unknown enum variant {}", id)),
@@ -110,11 +110,11 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                     syn::Type::Path(_) => {
                         if f.attrs.iter().any(|attr| attr.path.is_ident("var")) {
                             quote! {
-                                crate::McBufVarWritable::var_write_into(&self.#field_name, buf)?;
+                                azalea_buf::McBufVarWritable::var_write_into(&self.#field_name, buf)?;
                             }
                         } else {
                             quote! {
-                                crate::McBufWritable::write_into(&self.#field_name, buf)?;
+                                azalea_buf::McBufWritable::write_into(&self.#field_name, buf)?;
                             }
                         }
                     }
@@ -128,7 +128,7 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             .collect::<Vec<_>>();
 
             quote! {
-                impl crate::McBufWritable for #ident {
+                impl azalea_buf::McBufWritable for #ident {
                     fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
                         #(#write_fields)*
                         Ok(())
@@ -138,9 +138,9 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
         }
         syn::Data::Enum(syn::DataEnum { .. }) => {
             quote! {
-                impl crate::McBufWritable for #ident {
+                impl azalea_buf::McBufWritable for #ident {
                     fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-                        crate::Writable::write_varint(buf, *self as i32)
+                        azalea_buf::Writable::write_varint(buf, *self as i32)
                     }
                 }
             }

@@ -7,6 +7,7 @@ mod definitions;
 mod read;
 mod write;
 
+pub use buf_macros::*;
 pub use definitions::*;
 pub use read::{read_varint_async, McBufReadable, McBufVarReadable, Readable};
 pub use write::{McBufVarWritable, McBufWritable, Writable};
@@ -18,7 +19,7 @@ const MAX_STRING_LENGTH: u16 = 32767;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{collections::HashMap, io::Cursor};
+    use std::io::Cursor;
 
     #[test]
     fn test_write_varint() {

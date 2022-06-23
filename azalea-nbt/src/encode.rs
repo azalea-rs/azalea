@@ -1,5 +1,6 @@
 use crate::Error;
 use crate::Tag;
+use azalea_buf::McBufWritable;
 use byteorder::{WriteBytesExt, BE};
 use flate2::write::{GzEncoder, ZlibEncoder};
 use std::collections::HashMap;
