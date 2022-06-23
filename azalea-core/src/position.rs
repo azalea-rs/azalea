@@ -170,6 +170,65 @@ impl From<&EntityPos> for ChunkPos {
     }
 }
 
+impl McBufReadable for BlockPos {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let val = u64::read_into(buf)?;
+        let x = (val >> 38) as i32;
+        let y = (val & 0xFFF) as i32;
+        let z = ((val >> 12) & 0x3FFFFFF) as i32;
+        Ok(BlockPos { x, y, z })
+    }
+}
+
+impl McBufReadable for GlobalPos {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        Ok(GlobalPos {
+            dimension: ResourceLocation::read_into(buf)?,
+            pos: BlockPos::read_into(buf)?,
+        })
+    }
+}
+
+impl McBufReadable for ChunkSectionPos {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let long = i64::read_into(buf)?;
+        Ok(ChunkSectionPos {
+            x: (long >> 42) as i32,
+            y: (long << 44 >> 44) as i32,
+            z: (long << 22 >> 42) as i32,
+        })
+    }
+}
+
+impl McBufWritable for BlockPos {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        buf.write_long(
+            (((self.x & 0x3FFFFFF) as i64) << 38)
+                | (((self.z & 0x3FFFFFF) as i64) << 12)
+                | ((self.y & 0xFFF) as i64),
+        )
+    }
+}
+
+impl McBufWritable for GlobalPos {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        ResourceLocation::write_into(&self.dimension, buf)?;
+        BlockPos::write_into(&self.pos, buf)?;
+
+        Ok(())
+    }
+}
+
+impl McBufWritable for ChunkSectionPos {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        let long = (((self.x & 0x3FFFFF) as i64) << 42)
+            | (self.y & 0xFFFFF) as i64
+            | (((self.z & 0x3FFFFF) as i64) << 20);
+        long.write_into(buf)?;
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

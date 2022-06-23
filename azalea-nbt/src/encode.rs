@@ -217,3 +217,10 @@ impl Tag {
         self.write(&mut encoder)
     }
 }
+
+impl McBufWritable for Tag {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.write(buf)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
+    }
+}

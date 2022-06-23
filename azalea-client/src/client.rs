@@ -1,5 +1,5 @@
 use crate::{Account, Player};
-use azalea_core::{resource_location::ResourceLocation, ChunkPos};
+use azalea_core::{resource_location::ResourceLocation, ChunkPos, EntityPos};
 use azalea_entity::Entity;
 use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
@@ -387,6 +387,13 @@ impl Client {
             }
             GamePacket::ClientboundAddPlayerPacket(p) => {
                 println!("Got add player packet {:?}", p);
+                let entity = Entity::from(p);
+                state
+                    .lock()?
+                    .world
+                    .as_mut()
+                    .expect("World doesn't exist! We should've gotten a login packet by now.")
+                    .add_entity(entity);
             }
             GamePacket::ClientboundInitializeBorderPacket(p) => {
                 println!("Got initialize border packet {:?}", p);
@@ -406,20 +413,18 @@ impl Client {
             GamePacket::ClientboundSetExperiencePacket(p) => {
                 println!("Got set experience packet {:?}", p);
             }
-            GamePacket::ClientboundTeleportEntityPacket(_p) => {
-                // println!("Got teleport entity packet {:?}", p);
-                // let state_lock = state.lock()?;
+            GamePacket::ClientboundTeleportEntityPacket(p) => {
+                let mut state_lock = state.lock()?;
+                let world = state_lock.world.as_mut().unwrap();
 
-                // let entity = state_lock
-                //     .world
-                //     .unwrap()
-                //     .entity_by_id(p.id)
-                //     .ok_or("Teleporting entity that doesn't exist.".to_string())?;
-                // state_lock
-                //     .world
-                //     .as_mut()
-                //     .expect("World doesn't exist! We should've gotten a login packet by now.")
-                //     .move_entity(&mut entity, new_pos)
+                world.move_entity(
+                    p.id,
+                    EntityPos {
+                        x: p.x,
+                        y: p.y,
+                        z: p.z,
+                    },
+                )?;
             }
             GamePacket::ClientboundUpdateAdvancementsPacket(p) => {
                 println!("Got update advancements packet {:?}", p);
@@ -427,11 +432,21 @@ impl Client {
             GamePacket::ClientboundRotateHeadPacket(_p) => {
                 // println!("Got rotate head packet {:?}", p);
             }
-            GamePacket::ClientboundMoveEntityPosPacket(_p) => {
+            GamePacket::ClientboundMoveEntityPosPacket(p) => {
                 // println!("Got move entity pos packet {:?}", p);
             }
-            GamePacket::ClientboundMoveEntityPosRotPacket(_p) => {
-                // println!("Got move entity pos rot packet {:?}", p);
+            GamePacket::ClientboundMoveEntityPosRotPacket(p) => {
+                let mut state_lock = state.lock()?;
+                let world = state_lock.world.as_mut().unwrap();
+
+                world.move_entity(
+                    p.entity_id,
+                    EntityPos {
+                        x: p.x,
+                        y: p.y,
+                        z: p.z,
+                    },
+                )?;
             }
             GamePacket::ClientboundMoveEntityRotPacket(p) => {
                 println!("Got move entity rot packet {:?}", p);

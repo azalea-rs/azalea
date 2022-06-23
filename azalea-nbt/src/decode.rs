@@ -136,3 +136,13 @@ impl Tag {
         Tag::read(&mut gz)
     }
 }
+
+impl McBufReadable for Tag {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        match Tag::read(self) {
+            Ok(r) => Ok(r),
+            // Err(e) => Err(e.to_string()),
+            Err(e) => Err(e.to_string()).unwrap(),
+        }
+    }
+}

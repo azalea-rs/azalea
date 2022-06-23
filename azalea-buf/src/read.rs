@@ -1,16 +1,9 @@
 use super::{UnsizedByteArray, MAX_STRING_LENGTH};
-use azalea_chat::component::Component;
-use azalea_core::{
-    difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
-    serializable_uuid::SerializableUuid, BlockPos, ChunkSectionPos, Direction, GlobalPos, Slot,
-    SlotData,
-};
-use azalea_crypto::SaltSignaturePair;
 use byteorder::{ReadBytesExt, BE};
-use serde::Deserialize;
 use std::{collections::HashMap, hash::Hash, io::Read};
 use tokio::io::{AsyncRead, AsyncReadExt};
-use uuid::Uuid;
+
+// TODO: get rid of Readable and use McBufReadable everywhere
 
 pub trait Readable {
     fn read_int_id_list(&mut self) -> Result<Vec<i32>, String>;
@@ -25,13 +18,10 @@ pub trait Readable {
     fn read_byte(&mut self) -> Result<u8, String>;
     fn read_int(&mut self) -> Result<i32, String>;
     fn read_boolean(&mut self) -> Result<bool, String>;
-    fn read_nbt(&mut self) -> Result<azalea_nbt::Tag, String>;
     fn read_long(&mut self) -> Result<i64, String>;
-    fn read_resource_location(&mut self) -> Result<ResourceLocation, String>;
     fn read_short(&mut self) -> Result<i16, String>;
     fn read_float(&mut self) -> Result<f32, String>;
     fn read_double(&mut self) -> Result<f64, String>;
-    fn read_uuid(&mut self) -> Result<Uuid, String>;
 }
 
 impl<R> Readable for R
@@ -160,26 +150,11 @@ where
         }
     }
 
-    fn read_nbt(&mut self) -> Result<azalea_nbt::Tag, String> {
-        match azalea_nbt::Tag::read(self) {
-            Ok(r) => Ok(r),
-            // Err(e) => Err(e.to_string()),
-            Err(e) => Err(e.to_string()).unwrap(),
-        }
-    }
-
     fn read_long(&mut self) -> Result<i64, String> {
         match self.read_i64::<BE>() {
             Ok(r) => Ok(r),
             Err(_) => Err("Error reading long".to_string()),
         }
-    }
-
-    fn read_resource_location(&mut self) -> Result<ResourceLocation, String> {
-        // get the resource location from the string
-        let location_string = self.read_utf()?;
-        let location = ResourceLocation::new(&location_string)?;
-        Ok(location)
     }
 
     fn read_short(&mut self) -> Result<i16, String> {
@@ -201,15 +176,6 @@ where
             Ok(r) => Ok(r),
             Err(_) => Err("Error reading double".to_string()),
         }
-    }
-
-    fn read_uuid(&mut self) -> Result<Uuid, String> {
-        Ok(Uuid::from_int_array([
-            Readable::read_int(self)? as u32,
-            Readable::read_int(self)? as u32,
-            Readable::read_int(self)? as u32,
-            Readable::read_int(self)? as u32,
-        ]))
     }
 }
 
@@ -319,12 +285,6 @@ impl McBufReadable for String {
     }
 }
 
-impl McBufReadable for ResourceLocation {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        buf.read_resource_location()
-    }
-}
-
 impl McBufReadable for u32 {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
         Readable::read_int(buf).map(|i| i as u32)
@@ -408,18 +368,6 @@ impl McBufReadable for f64 {
     }
 }
 
-impl McBufReadable for GameType {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        GameType::from_id(buf.read_byte()?)
-    }
-}
-
-impl McBufReadable for Option<GameType> {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        GameType::from_optional_id(buf.read_byte()? as i8)
-    }
-}
-
 impl<T: McBufReadable> McBufReadable for Option<T> {
     default fn read_into(buf: &mut impl Read) -> Result<Self, String> {
         let present = buf.read_boolean()?;
@@ -428,98 +376,5 @@ impl<T: McBufReadable> McBufReadable for Option<T> {
         } else {
             None
         })
-    }
-}
-
-impl McBufReadable for azalea_nbt::Tag {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        buf.read_nbt()
-    }
-}
-
-impl McBufReadable for Difficulty {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        Ok(Difficulty::by_id(u8::read_into(buf)?))
-    }
-}
-
-impl McBufReadable for Component {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let string = buf.read_utf()?;
-        let json: serde_json::Value = serde_json::from_str(string.as_str())
-            .map_err(|_| "Component isn't valid JSON".to_string())?;
-        let component = Component::deserialize(json).map_err(|e| e.to_string())?;
-        Ok(component)
-    }
-}
-
-impl McBufReadable for Slot {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let present = buf.read_boolean()?;
-        if !present {
-            return Ok(Slot::Empty);
-        }
-        let id = buf.read_varint()?;
-        let count = buf.read_byte()?;
-        let nbt = buf.read_nbt()?;
-        Ok(Slot::Present(SlotData { id, count, nbt }))
-    }
-}
-
-impl McBufReadable for Uuid {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        buf.read_uuid()
-    }
-}
-
-impl McBufReadable for BlockPos {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let val = u64::read_into(buf)?;
-        let x = (val >> 38) as i32;
-        let y = (val & 0xFFF) as i32;
-        let z = ((val >> 12) & 0x3FFFFFF) as i32;
-        Ok(BlockPos { x, y, z })
-    }
-}
-
-impl McBufReadable for GlobalPos {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        Ok(GlobalPos {
-            dimension: ResourceLocation::read_into(buf)?,
-            pos: BlockPos::read_into(buf)?,
-        })
-    }
-}
-
-impl McBufReadable for Direction {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        match buf.read_varint()? {
-            0 => Ok(Self::Down),
-            1 => Ok(Self::Up),
-            2 => Ok(Self::North),
-            3 => Ok(Self::South),
-            4 => Ok(Self::West),
-            5 => Ok(Self::East),
-            _ => Err("Invalid direction".to_string()),
-        }
-    }
-}
-
-impl McBufReadable for ChunkSectionPos {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let long = i64::read_into(buf)?;
-        Ok(ChunkSectionPos {
-            x: (long >> 42) as i32,
-            y: (long << 44 >> 44) as i32,
-            z: (long << 22 >> 42) as i32,
-        })
-    }
-}
-
-impl McBufReadable for SaltSignaturePair {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let salt = u64::read_into(buf)?;
-        let signature = Vec::<u8>::read_into(buf)?;
-        Ok(SaltSignaturePair { salt, signature })
     }
 }

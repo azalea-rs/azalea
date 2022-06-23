@@ -1,13 +1,8 @@
 use super::{UnsizedByteArray, MAX_STRING_LENGTH};
-use azalea_chat::component::Component;
-use azalea_core::{
-    difficulty::Difficulty, game_type::GameType, resource_location::ResourceLocation,
-    serializable_uuid::SerializableUuid, BlockPos, ChunkSectionPos, Direction, GlobalPos, Slot,
-};
-use azalea_crypto::SaltSignaturePair;
 use byteorder::{BigEndian, WriteBytesExt};
 use std::{collections::HashMap, io::Write};
-use uuid::Uuid;
+
+// TODO: get rid of Writable and use McBufWritable everywhere
 
 pub trait Writable: Write {
     fn write_list<F, T>(&mut self, list: &[T], writer: F) -> Result<(), std::io::Error>
@@ -101,14 +96,6 @@ pub trait Writable: Write {
         self.write_byte(if b { 1 } else { 0 })
     }
 
-    fn write_nbt(&mut self, nbt: &azalea_nbt::Tag) -> Result<(), std::io::Error>
-    where
-        Self: Sized,
-    {
-        nbt.write(self)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
-    }
-
     fn write_long(&mut self, n: i64) -> Result<(), std::io::Error> {
         WriteBytesExt::write_i64::<BigEndian>(self, n)
     }
@@ -119,25 +106,6 @@ pub trait Writable: Write {
 
     fn write_double(&mut self, n: f64) -> Result<(), std::io::Error> {
         WriteBytesExt::write_f64::<BigEndian>(self, n)
-    }
-
-    fn write_resource_location(
-        &mut self,
-        location: &ResourceLocation,
-    ) -> Result<(), std::io::Error> {
-        self.write_utf(&location.to_string())
-    }
-
-    fn write_uuid(&mut self, uuid: &Uuid) -> Result<(), std::io::Error>
-    where
-        Self: Sized,
-    {
-        let [a, b, c, d] = uuid.to_int_array();
-        a.write_into(self)?;
-        b.write_into(self)?;
-        c.write_into(self)?;
-        d.write_into(self)?;
-        Ok(())
     }
 }
 
@@ -199,12 +167,6 @@ impl McBufWritable for String {
     }
 }
 
-impl McBufWritable for ResourceLocation {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_resource_location(self)
-    }
-}
-
 impl McBufWritable for u32 {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         i16::write_into(&(*self as i16), buf)
@@ -220,7 +182,6 @@ impl McBufVarWritable for u32 {
 impl McBufVarWritable for i64 {
     fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut buffer = [0];
-        let mut cnt = 0;
         let mut value = *self;
         while value != 0 {
             buffer[0] = (value & 0b0111_1111) as u8;
@@ -228,7 +189,7 @@ impl McBufVarWritable for i64 {
             if value != 0 {
                 buffer[0] |= 0b1000_0000;
             }
-            cnt += buf.write(&mut buffer)?;
+            buf.write(&mut buffer)?;
         }
         Ok(())
     }
@@ -310,18 +271,6 @@ impl McBufWritable for f64 {
     }
 }
 
-impl McBufWritable for GameType {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        u8::write_into(&self.to_id(), buf)
-    }
-}
-
-impl McBufWritable for Option<GameType> {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_byte(GameType::to_optional_id(self) as u8)
-    }
-}
-
 impl<T: McBufWritable> McBufWritable for Option<T> {
     default fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         if let Some(s) = self {
@@ -330,101 +279,6 @@ impl<T: McBufWritable> McBufWritable for Option<T> {
         } else {
             buf.write_boolean(false)?;
         };
-        Ok(())
-    }
-}
-
-impl McBufWritable for azalea_nbt::Tag {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_nbt(self)
-    }
-}
-
-impl McBufWritable for Difficulty {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        u8::write_into(&self.id(), buf)
-    }
-}
-
-impl McBufWritable for Component {
-    // async fn read_into(buf: &mut impl Read) -> Result<Self, String>
-    // where
-    //     R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    // {
-    //     let string = buf.read_utf().await?;
-    //     let json: serde_json::Value = serde_json::from_str(string.as_str())
-    //         .map_err(|e| "Component isn't valid JSON".to_string())?;
-    //     let component = Component::deserialize(json).map_err(|e| e.to_string())?;
-    //     Ok(component)
-    // }
-    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
-        // component doesn't have serialize implemented yet
-        todo!()
-    }
-}
-
-impl McBufWritable for Slot {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        match self {
-            Slot::Empty => buf.write_byte(0)?,
-            Slot::Present(i) => {
-                buf.write_varint(i.id)?;
-                buf.write_byte(i.count)?;
-                buf.write_nbt(&i.nbt)?;
-            }
-        }
-
-        Ok(())
-    }
-}
-
-impl McBufWritable for Uuid {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_uuid(self)?;
-
-        Ok(())
-    }
-}
-
-impl McBufWritable for BlockPos {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_long(
-            (((self.x & 0x3FFFFFF) as i64) << 38)
-                | (((self.z & 0x3FFFFFF) as i64) << 12)
-                | ((self.y & 0xFFF) as i64),
-        )
-    }
-}
-
-impl McBufWritable for GlobalPos {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        ResourceLocation::write_into(&self.dimension, buf)?;
-        BlockPos::write_into(&self.pos, buf)?;
-
-        Ok(())
-    }
-}
-
-impl McBufWritable for Direction {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_varint(*self as i32)
-    }
-}
-
-impl McBufWritable for ChunkSectionPos {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let long = (((self.x & 0x3FFFFF) as i64) << 42)
-            | (self.y & 0xFFFFF) as i64
-            | (((self.z & 0x3FFFFF) as i64) << 20);
-        long.write_into(buf)?;
-        Ok(())
-    }
-}
-
-impl McBufWritable for SaltSignaturePair {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.salt.write_into(buf)?;
-        self.signature.write_into(buf)?;
         Ok(())
     }
 }

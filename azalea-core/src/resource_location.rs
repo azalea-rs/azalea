@@ -42,6 +42,18 @@ impl std::fmt::Debug for ResourceLocation {
     }
 }
 
+impl McBufReadable for ResourceLocation {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let location_string = self.read_utf()?;
+        ResourceLocation::new(&location_string)
+    }
+}
+impl McBufWritable for ResourceLocation {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        buf.write_utf(&self.to_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -69,5 +81,19 @@ mod tests {
         let r = ResourceLocation::new("azalea:").unwrap();
         assert_eq!(r.namespace, "azalea");
         assert_eq!(r.path, "");
+    }
+
+    #[test]
+    fn mcbuf_resource_location() {
+        let mut buf = Vec::new();
+        buf.write_resource_location(&ResourceLocation::new("minecraft:dirt").unwrap())
+            .unwrap();
+
+        let mut buf = Cursor::new(buf);
+
+        assert_eq!(
+            buf.read_resource_location().unwrap(),
+            ResourceLocation::new("minecraft:dirt").unwrap()
+        );
     }
 }

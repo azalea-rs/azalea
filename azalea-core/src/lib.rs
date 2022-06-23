@@ -15,3 +15,9 @@ pub use position::*;
 
 mod direction;
 pub use direction::Direction;
+
+mod delta;
+pub use delta::*;
+
+mod particle;
+pub use particle::*;

@@ -71,3 +71,27 @@ impl GameType {
         }
     }
 }
+
+impl McBufReadable for GameType {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        GameType::from_id(buf.read_byte()?)
+    }
+}
+
+impl McBufReadable for Option<GameType> {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        GameType::from_optional_id(buf.read_byte()? as i8)
+    }
+}
+
+impl McBufWritable for GameType {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        u8::write_into(&self.to_id(), buf)
+    }
+}
+
+impl McBufWritable for Option<GameType> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        buf.write_byte(GameType::to_optional_id(self) as u8)
+    }
+}

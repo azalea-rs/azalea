@@ -1,10 +1,13 @@
 //! Utilities for reading and writing for the Minecraft protocol
 
+#![feature(min_specialization)]
+#![feature(arbitrary_enum_discriminant)]
+
 mod definitions;
 mod read;
 mod write;
 
-pub use definitions::{BitSet, EntityMetadata, ParticleData, UnsizedByteArray};
+pub use definitions::*;
 pub use read::{read_varint_async, McBufReadable, McBufVarReadable, Readable};
 pub use write::{McBufVarWritable, McBufWritable, Writable};
 
@@ -12,14 +15,9 @@ pub use write::{McBufVarWritable, McBufWritable, Writable};
 const MAX_STRING_LENGTH: u16 = 32767;
 // const MAX_COMPONENT_STRING_LENGTH: u32 = 262144;
 
-// TODO: maybe get rid of the readable/writable traits so there's not two ways to do the same thing and improve McBufReadable/McBufWritable
-
-// TODO: have a definitions.rs in mc_buf that contains UnsizedByteArray and BitSet
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use azalea_core::resource_location::ResourceLocation;
     use std::{collections::HashMap, io::Cursor};
 
     #[test]
@@ -181,33 +179,6 @@ mod tests {
     }
 
     #[test]
-    fn test_nbt() {
-        let mut buf = Vec::new();
-        buf.write_nbt(&azalea_nbt::Tag::Compound(HashMap::from_iter(vec![(
-            "hello world".to_string(),
-            azalea_nbt::Tag::Compound(HashMap::from_iter(vec![(
-                "name".to_string(),
-                azalea_nbt::Tag::String("Bananrama".to_string()),
-            )])),
-        )])))
-        .unwrap();
-
-        let mut buf = Cursor::new(buf);
-
-        let result = buf.read_nbt().unwrap();
-        assert_eq!(
-            result,
-            azalea_nbt::Tag::Compound(HashMap::from_iter(vec![(
-                "hello world".to_string(),
-                azalea_nbt::Tag::Compound(HashMap::from_iter(vec![(
-                    "name".to_string(),
-                    azalea_nbt::Tag::String("Bananrama".to_string()),
-                )])),
-            )]))
-        );
-    }
-
-    #[test]
     fn test_long() {
         let mut buf = Vec::new();
         buf.write_long(123456).unwrap();
@@ -215,19 +186,5 @@ mod tests {
         let mut buf = Cursor::new(buf);
 
         assert_eq!(buf.read_long().unwrap(), 123456);
-    }
-
-    #[test]
-    fn test_resource_location() {
-        let mut buf = Vec::new();
-        buf.write_resource_location(&ResourceLocation::new("minecraft:dirt").unwrap())
-            .unwrap();
-
-        let mut buf = Cursor::new(buf);
-
-        assert_eq!(
-            buf.read_resource_location().unwrap(),
-            ResourceLocation::new("minecraft:dirt").unwrap()
-        );
     }
 }

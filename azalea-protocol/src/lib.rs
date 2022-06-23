@@ -1,13 +1,12 @@
 //! This lib is responsible for parsing Minecraft packets.
 
-#![feature(min_specialization)]
-#![feature(arbitrary_enum_discriminant)]
-
 use std::net::IpAddr;
 use std::str::FromStr;
 
+#[cfg(feature = "connecting")]
 pub mod connect;
 pub mod mc_buf;
+#[cfg(feature = "packets")]
 pub mod packets;
 pub mod read;
 pub mod resolver;
@@ -43,6 +42,7 @@ impl<'a> TryFrom<&'a str> for ServerAddress {
     }
 }
 
+#[cfg(feature = "connecting")]
 pub async fn connect(address: ServerAddress) -> Result<(), Box<dyn std::error::Error>> {
     let resolved_address = resolver::resolve_address(&address).await;
     println!("Resolved address: {:?}", resolved_address);

@@ -61,6 +61,18 @@ impl Difficulty {
     }
 }
 
+impl McBufReadable for Difficulty {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        Ok(Difficulty::by_id(u8::read_into(buf)?))
+    }
+}
+
+impl McBufWritable for Difficulty {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        u8::write_into(&self.id(), buf)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

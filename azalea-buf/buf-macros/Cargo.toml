@@ -1,12 +1,13 @@
 [package]
 edition = "2021"
-name = "azalea-core"
+name = "buf-macros"
 version = "0.1.0"
 
+[lib]
+proc-macro = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-buf = {path = "../azalea-buf"}
-azalea-chat = {path = "../azalea-chat"}
-azalea-nbt = {path = "../azalea-nbt"}
-uuid = "^1.1.2"
+proc-macro2 = "^1.0.36"
+quote = "^1.0.10"
+syn = "^1.0.82"

@@ -264,3 +264,30 @@ impl<'de> Deserialize<'de> for Component {
         Ok(component)
     }
 }
+
+impl McBufReadable for Component {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        let string = buf.read_utf()?;
+        let json: serde_json::Value = serde_json::from_str(string.as_str())
+            .map_err(|_| "Component isn't valid JSON".to_string())?;
+        let component = Component::deserialize(json).map_err(|e| e.to_string())?;
+        Ok(component)
+    }
+}
+
+impl McBufWritable for Component {
+    // async fn read_into(buf: &mut impl Read) -> Result<Self, String>
+    // where
+    //     R: AsyncRead + std::marker::Unpin + std::marker::Send,
+    // {
+    //     let string = buf.read_utf().await?;
+    //     let json: serde_json::Value = serde_json::from_str(string.as_str())
+    //         .map_err(|e| "Component isn't valid JSON".to_string())?;
+    //     let component = Component::deserialize(json).map_err(|e| e.to_string())?;
+    //     Ok(component)
+    // }
+    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
+        // component doesn't have serialize implemented yet
+        todo!()
+    }
+}

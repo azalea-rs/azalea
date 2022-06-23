@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, McBuf)]
 pub enum Direction {
     Down = 0,
     Up = 1,
