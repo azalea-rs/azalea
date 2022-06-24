@@ -189,7 +189,9 @@ impl McBufVarWritable for i64 {
             if value != 0 {
                 buffer[0] |= 0b1000_0000;
             }
-            buf.write(&mut buffer)?;
+            // this only writes a single byte, so write_all isn't necessary
+            // the let _ = is so clippy doesn't complain
+            let _ = buf.write(&mut buffer)?;
         }
         Ok(())
     }

@@ -1,5 +1,5 @@
 use crate::{Account, Player};
-use azalea_core::{resource_location::ResourceLocation, ChunkPos, EntityPos};
+use azalea_core::{ChunkPos, EntityPos, ResourceLocation};
 use azalea_entity::Entity;
 use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
@@ -439,14 +439,14 @@ impl Client {
                 let mut state_lock = state.lock()?;
                 let world = state_lock.world.as_mut().unwrap();
 
-                world.move_entity(
-                    p.entity_id,
-                    EntityPos {
-                        x: p.x,
-                        y: p.y,
-                        z: p.z,
-                    },
-                )?;
+                // world.move_entity(
+                //     p.entity_id,
+                //     EntityPos {
+                //         x: p.x,
+                //         y: p.y,
+                //         z: p.z,
+                //     },
+                // )?;
             }
             GamePacket::ClientboundMoveEntityRotPacket(p) => {
                 println!("Got move entity rot packet {:?}", p);

@@ -1,5 +1,6 @@
+use azalea_buf::McBuf;
 use azalea_core::BlockPos;
-use packet_macros::{GamePacket, McBuf};
+use packet_macros::GamePacket;
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundBlockUpdatePacket {

@@ -1,5 +1,5 @@
-use crate::mc_buf::McBufVarReadable;
-use crate::mc_buf::{McBufReadable, McBufWritable, ParticleData};
+use azalea_buf::{McBufReadable, McBufVarReadable, McBufWritable};
+use azalea_core::ParticleData;
 use packet_macros::GamePacket;
 use std::io::{Read, Write};
 

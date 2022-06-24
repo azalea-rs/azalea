@@ -5,11 +5,13 @@
 
 mod definitions;
 mod read;
+mod serializable_uuid;
 mod write;
 
 pub use buf_macros::*;
 pub use definitions::*;
 pub use read::{read_varint_async, McBufReadable, McBufVarReadable, Readable};
+pub use serializable_uuid::*;
 pub use write::{McBufVarWritable, McBufWritable, Writable};
 
 // const DEFAULT_NBT_QUOTA: u32 = 2097152;

@@ -1,6 +1,7 @@
-use crate::mc_buf::{McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_buf::McBuf;
+use azalea_buf::{McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_core::{ChunkSectionBlockPos, ChunkSectionPos};
-use packet_macros::{GamePacket, McBuf};
+use packet_macros::GamePacket;
 use std::io::{Read, Write};
 
 #[derive(Clone, Debug, McBuf, GamePacket)]

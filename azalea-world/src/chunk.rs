@@ -2,8 +2,8 @@ use crate::palette::PalettedContainer;
 use crate::palette::PalettedContainerType;
 use crate::World;
 use azalea_block::BlockState;
+use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
-use azalea_protocol::mc_buf::{McBufReadable, McBufWritable};
 use std::fmt::Debug;
 use std::{
     io::{Read, Write},

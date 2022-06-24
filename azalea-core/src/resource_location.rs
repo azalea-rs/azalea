@@ -1,5 +1,8 @@
 //! A resource, like minecraft:stone
 
+use azalea_buf::{McBufReadable, McBufWritable};
+use std::io::{Read, Write};
+
 #[derive(Hash, Clone, PartialEq, Eq)]
 pub struct ResourceLocation {
     pub namespace: String,
@@ -44,18 +47,20 @@ impl std::fmt::Debug for ResourceLocation {
 
 impl McBufReadable for ResourceLocation {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let location_string = self.read_utf()?;
+        let location_string = String::read_into(buf)?;
         ResourceLocation::new(&location_string)
     }
 }
 impl McBufWritable for ResourceLocation {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_utf(&self.to_string())
+        self.to_string().write_into(buf)
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+
     use super::*;
 
     #[test]
@@ -86,13 +91,14 @@ mod tests {
     #[test]
     fn mcbuf_resource_location() {
         let mut buf = Vec::new();
-        buf.write_resource_location(&ResourceLocation::new("minecraft:dirt").unwrap())
-            .unwrap();
+        ResourceLocation::new("minecraft:dirt")
+            .unwrap()
+            .write_into(&mut buf)?;
 
         let mut buf = Cursor::new(buf);
 
         assert_eq!(
-            buf.read_resource_location().unwrap(),
+            ResourceLocation::read_into(&mut buf).unwrap(),
             ResourceLocation::new("minecraft:dirt").unwrap()
         );
     }

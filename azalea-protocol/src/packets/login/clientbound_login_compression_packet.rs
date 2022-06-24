@@ -3,7 +3,7 @@ use std::{
     io::{Read, Write},
 };
 
-use crate::mc_buf::{Readable, Writable};
+use azalea_buf::{Readable, Writable};
 
 use super::LoginPacket;
 

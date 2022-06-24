@@ -1,3 +1,4 @@
+use crate::EntityPos;
 pub use azalea_buf::McBuf;
 
 /// Only works for up to 8 blocks

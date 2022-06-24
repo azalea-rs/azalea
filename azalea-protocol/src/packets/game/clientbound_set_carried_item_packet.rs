@@ -1,4 +1,5 @@
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use packet_macros::GamePacket;
 
 /// Sent to change the player's slot selection.
 #[derive(Clone, Debug, McBuf, GamePacket)]

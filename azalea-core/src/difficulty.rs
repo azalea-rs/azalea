@@ -1,11 +1,16 @@
-use std::fmt::{Debug, Error, Formatter};
+use std::{
+    fmt::{Debug, Error, Formatter},
+    io::{Read, Write},
+};
+
+use azalea_buf::{McBufReadable, McBufWritable};
 
 #[derive(Hash, Clone, Debug, PartialEq)]
 pub enum Difficulty {
-    PEACEFUL,
-    EASY,
-    NORMAL,
-    HARD,
+    PEACEFUL = 0,
+    EASY = 1,
+    NORMAL = 2,
+    HARD = 3,
 }
 
 pub enum Err {

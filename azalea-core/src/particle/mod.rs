@@ -1,4 +1,5 @@
-use azalea_buf::{McBufReadable, McBufWritable};
+use crate::{BlockPos, Slot};
+use azalea_buf::{McBuf, McBufReadable, McBufVarReadable, McBufWritable};
 use std::io::{Read, Write};
 
 #[derive(Debug, Clone, McBuf)]

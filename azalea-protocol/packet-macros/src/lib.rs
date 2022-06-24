@@ -25,13 +25,13 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
             }
 
             pub fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-                crate::mc_buf::McBufWritable::write_into(self, buf)
+                azalea_buf::McBufWritable::write_into(self, buf)
             }
 
             pub fn read(
                 buf: &mut impl std::io::Read,
             ) -> Result<#state, String> {
-                use crate::mc_buf::McBufReadable;
+                use azalea_buf::McBufReadable;
                 Ok(Self::read_into(buf)?.get())
             }
         }

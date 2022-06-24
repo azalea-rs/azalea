@@ -6,6 +6,7 @@ use azalea_protocol::packets::game::{
     clientbound_add_entity_packet::ClientboundAddEntityPacket,
     clientbound_add_player_packet::ClientboundAddPlayerPacket,
 };
+pub use data::*;
 use uuid::Uuid;
 
 #[derive(Default, Debug)]
@@ -13,10 +14,14 @@ pub struct Entity {
     /// The incrementing numerical id of the entity.
     pub id: u32,
     pub uuid: Uuid,
-    pos: EntityPos,
+    pub pos: EntityPos,
 }
 
 impl Entity {
+    pub fn new(id: u32, uuid: Uuid, pos: EntityPos) -> Self {
+        Self { id, uuid, pos }
+    }
+
     pub fn pos(&self) -> &EntityPos {
         &self.pos
     }
@@ -25,36 +30,6 @@ impl Entity {
     /// azalea-world, and should only be used within azalea-world!
     pub fn unsafe_move(&mut self, new_pos: EntityPos) {
         self.pos = new_pos;
-    }
-}
-
-#[cfg(feature = "protocol")]
-impl From<&ClientboundAddEntityPacket> for Entity {
-    fn from(p: &ClientboundAddEntityPacket) -> Self {
-        Self {
-            id: p.id,
-            uuid: p.uuid,
-            pos: EntityPos {
-                x: p.x,
-                y: p.y,
-                z: p.z,
-            },
-        }
-    }
-}
-
-#[cfg(feature = "protocol")]
-impl From<&ClientboundAddPlayerPacket> for Entity {
-    fn from(p: &ClientboundAddPlayerPacket) -> Self {
-        Self {
-            id: p.id,
-            uuid: p.uuid,
-            pos: EntityPos {
-                x: p.x,
-                y: p.y,
-                z: p.z,
-            },
-        }
     }
 }
 

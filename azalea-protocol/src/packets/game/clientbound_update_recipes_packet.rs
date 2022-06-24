@@ -1,9 +1,10 @@
 use std::io::{Read, Write};
 
-use azalea_core::{resource_location::ResourceLocation, Slot};
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use azalea_core::{ResourceLocation, Slot};
+use packet_macros::GamePacket;
 
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundUpdateRecipesPacket {
@@ -129,8 +130,8 @@ impl McBufWritable for Recipe {
 
 impl McBufReadable for Recipe {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let recipe_type = buf.read_resource_location()?;
-        let identifier = buf.read_resource_location()?;
+        let recipe_type = ResourceLocation::read_into(buf)?;
+        let identifier = ResourceLocation::read_into(buf)?;
 
         // rust doesn't let us match ResourceLocation so we have to do a big
         // if-else chain :(

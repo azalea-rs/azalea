@@ -1,4 +1,7 @@
-#[derive(Hash, Clone, Debug)]
+use azalea_buf::{McBufReadable, McBufWritable};
+use std::io::{Read, Write};
+
+#[derive(Hash, Copy, Clone, Debug)]
 pub enum GameType {
     SURVIVAL,
     CREATIVE,
@@ -17,8 +20,8 @@ impl GameType {
     }
 
     /// Get the id of the game type, but return -1 if the game type is invalid.
-    pub fn to_optional_id(game_type: &Option<GameType>) -> i8 {
-        match game_type {
+    pub fn to_optional_id<T: Into<Option<GameType>>>(game_type: T) -> i8 {
+        match game_type.into() {
             Some(game_type) => game_type.to_id() as i8,
             None => -1,
         }
@@ -34,11 +37,12 @@ impl GameType {
         })
     }
 
-    pub fn from_optional_id(id: i8) -> Result<Option<GameType>, String> {
+    pub fn from_optional_id(id: i8) -> Result<OptionalGameType, String> {
         Ok(match id {
             -1 => None,
             id => Some(GameType::from_id(id as u8)?),
-        })
+        }
+        .into())
     }
 
     pub fn short_name(&self) -> &'static str {
@@ -74,13 +78,7 @@ impl GameType {
 
 impl McBufReadable for GameType {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        GameType::from_id(buf.read_byte()?)
-    }
-}
-
-impl McBufReadable for Option<GameType> {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        GameType::from_optional_id(buf.read_byte()? as i8)
+        GameType::from_id(u8::read_into(buf)?)
     }
 }
 
@@ -90,8 +88,30 @@ impl McBufWritable for GameType {
     }
 }
 
-impl McBufWritable for Option<GameType> {
+/// Rust doesn't let us `impl McBufReadable for Option<GameType>` so we have to make a new type :(
+#[derive(Hash, Copy, Clone, Debug)]
+pub struct OptionalGameType(Option<GameType>);
+
+impl From<Option<GameType>> for OptionalGameType {
+    fn from(game_type: Option<GameType>) -> Self {
+        OptionalGameType(game_type)
+    }
+}
+
+impl From<OptionalGameType> for Option<GameType> {
+    fn from(optional_game_type: OptionalGameType) -> Self {
+        optional_game_type.0
+    }
+}
+
+impl McBufReadable for OptionalGameType {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        GameType::from_optional_id(i8::read_into(buf)?)
+    }
+}
+
+impl McBufWritable for OptionalGameType {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_byte(GameType::to_optional_id(self) as u8)
+        GameType::to_optional_id(*self).write_into(buf)
     }
 }

@@ -2,10 +2,14 @@
 
 #![feature(int_roundings)]
 
-pub mod difficulty;
-pub mod game_type;
-pub mod resource_location;
-pub mod serializable_uuid;
+mod difficulty;
+pub use difficulty::*;
+
+mod resource_location;
+pub use resource_location::*;
+
+mod game_type;
+pub use game_type::*;
 
 mod slot;
 pub use slot::{Slot, SlotData};

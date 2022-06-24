@@ -1,6 +1,7 @@
-use crate::mc_buf::UnsizedByteArray;
-use azalea_core::resource_location::ResourceLocation;
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use azalea_buf::UnsizedByteArray;
+use azalea_core::ResourceLocation;
+use packet_macros::GamePacket;
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ServerboundCustomPayloadPacket {

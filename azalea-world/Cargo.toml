@@ -7,10 +7,10 @@ version = "0.1.0"
 
 [dependencies]
 azalea-block = {path = "../azalea-block"}
+azalea-buf = {path = "../azalea-buf"}
 azalea-core = {path = "../azalea-core"}
 azalea-entity = {path = "../azalea-entity"}
 azalea-nbt = {path = "../azalea-nbt"}
-azalea-protocol = {path = "../azalea-protocol"}
 log = "0.4.17"
 nohash-hasher = "0.2.0"
 

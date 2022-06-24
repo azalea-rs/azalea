@@ -5,7 +5,6 @@ use std::str::FromStr;
 
 #[cfg(feature = "connecting")]
 pub mod connect;
-pub mod mc_buf;
 #[cfg(feature = "packets")]
 pub mod packets;
 pub mod read;

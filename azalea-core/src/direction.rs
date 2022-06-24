@@ -1,3 +1,5 @@
+use azalea_buf::McBuf;
+
 #[derive(Clone, Copy, Debug, McBuf)]
 pub enum Direction {
     Down = 0,

@@ -1,8 +1,9 @@
 use super::GamePacket;
-use crate::mc_buf::McBufVarReadable;
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
-use azalea_core::resource_location::ResourceLocation;
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use azalea_buf::McBufVarReadable;
+use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use azalea_core::ResourceLocation;
+use packet_macros::GamePacket;
 use std::{
     hash::Hash,
     io::{Read, Write},
@@ -182,10 +183,10 @@ impl McBufReadable for BrigadierParser {
             41 => Ok(BrigadierParser::Dimension),
             42 => Ok(BrigadierParser::Time),
             43 => Ok(BrigadierParser::ResourceOrTag {
-                registry_key: buf.read_resource_location()?,
+                registry_key: ResourceLocation::read_into(buf)?,
             }),
             44 => Ok(BrigadierParser::Resource {
-                registry_key: buf.read_resource_location()?,
+                registry_key: ResourceLocation::read_into(buf)?,
             }),
             45 => Ok(BrigadierParser::TemplateMirror),
             46 => Ok(BrigadierParser::TemplateRotation),
@@ -218,7 +219,7 @@ impl McBufReadable for BrigadierNodeStub {
             let _name = buf.read_utf()?;
             let _parser = BrigadierParser::read_into(buf)?;
             let _suggestions_type = if has_suggestions_type {
-                Some(buf.read_resource_location()?)
+                Some(ResourceLocation::read_into(buf)?)
             } else {
                 None
             };

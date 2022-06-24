@@ -1,4 +1,12 @@
-pub type EntityMetadata = Vec<EntityDataItem>;
+use azalea_buf::McBufVarReadable;
+use azalea_buf::{McBuf, McBufReadable, McBufWritable};
+use azalea_chat::component::Component;
+use azalea_core::{BlockPos, Direction, Particle, Slot};
+use std::io::{Read, Write};
+use uuid::Uuid;
+
+#[derive(Clone, Debug)]
+pub struct EntityMetadata(Vec<EntityDataItem>);
 
 #[derive(Clone, Debug)]
 pub struct EntityDataItem {
@@ -8,7 +16,7 @@ pub struct EntityDataItem {
     pub value: EntityDataValue,
 }
 
-impl McBufReadable for Vec<EntityDataItem> {
+impl McBufReadable for EntityMetadata {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
         let mut metadata = Vec::new();
         loop {
@@ -19,17 +27,17 @@ impl McBufReadable for Vec<EntityDataItem> {
             let value = EntityDataValue::read_into(buf)?;
             metadata.push(EntityDataItem { index, value });
         }
-        Ok(metadata)
+        Ok(EntityMetadata(metadata))
     }
 }
 
-impl McBufWritable for Vec<EntityDataItem> {
+impl McBufWritable for EntityMetadata {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        for item in self {
-            buf.write_byte(item.index)?;
+        for item in &self.0 {
+            item.index.write_into(buf)?;
             item.value.write_into(buf)?;
         }
-        buf.write_byte(0xff)?;
+        0xffu8.write_into(buf)?;
         Ok(())
     }
 }
@@ -63,20 +71,20 @@ pub enum EntityDataValue {
 
 impl McBufReadable for EntityDataValue {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let type_ = buf.read_varint()?;
-        Ok(match type_ {
-            0 => EntityDataValue::Byte(buf.read_byte()?),
-            1 => EntityDataValue::Int(buf.read_varint()?),
-            2 => EntityDataValue::Float(buf.read_float()?),
-            3 => EntityDataValue::String(buf.read_utf()?),
+        let data_type = i32::var_read_into(buf)?;
+        Ok(match data_type {
+            0 => EntityDataValue::Byte(u8::read_into(buf)?),
+            1 => EntityDataValue::Int(i32::read_into(buf)?),
+            2 => EntityDataValue::Float(f32::read_into(buf)?),
+            3 => EntityDataValue::String(String::read_into(buf)?),
             4 => EntityDataValue::Component(Component::read_into(buf)?),
             5 => EntityDataValue::OptionalComponent(Option::<Component>::read_into(buf)?),
             6 => EntityDataValue::ItemStack(Slot::read_into(buf)?),
-            7 => EntityDataValue::Boolean(buf.read_boolean()?),
+            7 => EntityDataValue::Boolean(bool::read_into(buf)?),
             8 => EntityDataValue::Rotations {
-                x: buf.read_float()?,
-                y: buf.read_float()?,
-                z: buf.read_float()?,
+                x: f32::read_into(buf)?,
+                y: f32::read_into(buf)?,
+                z: f32::read_into(buf)?,
             },
             9 => EntityDataValue::BlockPos(BlockPos::read_into(buf)?),
             10 => EntityDataValue::OptionalBlockPos(Option::<BlockPos>::read_into(buf)?),
@@ -94,7 +102,7 @@ impl McBufReadable for EntityDataValue {
             15 => EntityDataValue::Particle(Particle::read_into(buf)?),
             16 => EntityDataValue::VillagerData(VillagerData::read_into(buf)?),
             17 => EntityDataValue::OptionalUnsignedInt({
-                let val = buf.read_varint()?;
+                let val = u32::var_read_into(buf)?;
                 if val == 0 {
                     None
                 } else {
@@ -102,7 +110,7 @@ impl McBufReadable for EntityDataValue {
                 }
             }),
             18 => EntityDataValue::Pose(Pose::read_into(buf)?),
-            _ => return Err(format!("Unknown entity data type: {}", type_)),
+            _ => return Err(format!("Unknown entity data type: {}", data_type)),
         })
     }
 }

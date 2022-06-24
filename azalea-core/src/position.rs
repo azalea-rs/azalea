@@ -1,6 +1,9 @@
-use std::ops::Rem;
-
-use crate::resource_location::ResourceLocation;
+use crate::ResourceLocation;
+use azalea_buf::{McBufReadable, McBufWritable};
+use std::{
+    io::{Read, Write},
+    ops::Rem,
+};
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct BlockPos {
@@ -202,11 +205,10 @@ impl McBufReadable for ChunkSectionPos {
 
 impl McBufWritable for BlockPos {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_long(
-            (((self.x & 0x3FFFFFF) as i64) << 38)
-                | (((self.z & 0x3FFFFFF) as i64) << 12)
-                | ((self.y & 0xFFF) as i64),
-        )
+        let data = (((self.x & 0x3FFFFFF) as i64) << 38)
+            | (((self.z & 0x3FFFFFF) as i64) << 12)
+            | ((self.y & 0xFFF) as i64);
+        data.write_into(buf)
     }
 }
 

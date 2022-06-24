@@ -1,7 +1,7 @@
-use crate::packets::{McBufReadable, McBufWritable};
+use azalea_buf::{McBuf, McBufReadable, McBufWritable};
 use azalea_chat::component::Component;
-use azalea_core::{resource_location::ResourceLocation, Slot};
-use packet_macros::{GamePacket, McBuf};
+use azalea_core::{ResourceLocation, Slot};
+use packet_macros::GamePacket;
 use std::{
     collections::HashMap,
     io::{Read, Write},

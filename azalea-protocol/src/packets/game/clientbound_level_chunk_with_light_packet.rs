@@ -1,4 +1,5 @@
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use packet_macros::GamePacket;
 
 use super::clientbound_light_update_packet::ClientboundLightUpdatePacketData;
 

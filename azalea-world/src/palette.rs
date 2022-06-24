@@ -1,4 +1,4 @@
-use azalea_protocol::mc_buf::{McBufReadable, McBufVarReadable, McBufWritable, Readable, Writable};
+use azalea_buf::{McBufReadable, McBufVarReadable, McBufWritable, Readable, Writable};
 use std::io::{Read, Write};
 
 use crate::BitStorage;

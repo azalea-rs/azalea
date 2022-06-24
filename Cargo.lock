@@ -96,6 +96,7 @@ dependencies = [
  "buf-macros",
  "byteorder",
  "tokio",
+ "uuid",
 ]
 
 [[package]]
@@ -150,8 +151,10 @@ dependencies = [
 name = "azalea-entity"
 version = "0.1.0"
 dependencies = [
+ "azalea-buf",
+ "azalea-chat",
  "azalea-core",
- "azalea-protocol",
+ "azalea-nbt",
  "uuid",
 ]
 
@@ -188,6 +191,7 @@ dependencies = [
  "azalea-chat",
  "azalea-core",
  "azalea-crypto",
+ "azalea-entity",
  "azalea-nbt",
  "byteorder",
  "bytes",
@@ -209,10 +213,10 @@ name = "azalea-world"
 version = "0.1.0"
 dependencies = [
  "azalea-block",
+ "azalea-buf",
  "azalea-core",
  "azalea-entity",
  "azalea-nbt",
- "azalea-protocol",
  "log",
  "nohash-hasher",
 ]
