@@ -28,3 +28,5 @@ opt-level = 3
 opt-level = 3
 [profile.dev.package.aes]
 opt-level = 3
+[profile.dev.package.flate2]
+opt-level = 3
