@@ -79,8 +79,6 @@ pub fn decrypt_packet(cipher: &mut Aes128CfbDec, packet: &mut [u8]) {
     cipher.decrypt_blocks_inout_mut(chunks);
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;

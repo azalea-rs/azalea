@@ -1,5 +1,5 @@
-use azalea_core::EntityPos;
 use crate::Client;
+use azalea_core::EntityPos;
 use azalea_protocol::packets::game::serverbound_move_player_packet_pos_rot::ServerboundMovePlayerPacketPosRot;
 
 impl Client {
