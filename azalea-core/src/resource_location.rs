@@ -93,7 +93,8 @@ mod tests {
         let mut buf = Vec::new();
         ResourceLocation::new("minecraft:dirt")
             .unwrap()
-            .write_into(&mut buf)?;
+            .write_into(&mut buf)
+            .unwrap();
 
         let mut buf = Cursor::new(buf);
 

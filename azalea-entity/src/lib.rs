@@ -14,7 +14,7 @@ pub struct Entity {
     /// The incrementing numerical id of the entity.
     pub id: u32,
     pub uuid: Uuid,
-    pub pos: EntityPos,
+    pos: EntityPos,
 }
 
 impl Entity {

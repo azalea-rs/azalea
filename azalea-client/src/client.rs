@@ -433,20 +433,16 @@ impl Client {
                 // println!("Got rotate head packet {:?}", p);
             }
             GamePacket::ClientboundMoveEntityPosPacket(p) => {
-                // println!("Got move entity pos packet {:?}", p);
+                let mut state_lock = state.lock()?;
+                let world = state_lock.world.as_mut().unwrap();
+
+                world.move_entity_with_delta(p.entity_id, &p.delta)?;
             }
             GamePacket::ClientboundMoveEntityPosRotPacket(p) => {
                 let mut state_lock = state.lock()?;
                 let world = state_lock.world.as_mut().unwrap();
 
-                // world.move_entity(
-                //     p.entity_id,
-                //     EntityPos {
-                //         x: p.x,
-                //         y: p.y,
-                //         z: p.z,
-                //     },
-                // )?;
+                world.move_entity_with_delta(p.entity_id, &p.delta)?;
             }
             GamePacket::ClientboundMoveEntityRotPacket(p) => {
                 println!("Got move entity rot packet {:?}", p);

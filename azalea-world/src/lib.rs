@@ -6,7 +6,7 @@ mod entity;
 mod palette;
 
 use azalea_block::BlockState;
-use azalea_core::{BlockPos, ChunkPos, EntityPos};
+use azalea_core::{BlockPos, ChunkPos, EntityPos, PositionDelta};
 use azalea_entity::Entity;
 pub use bit_storage::BitStorage;
 pub use chunk::{Chunk, ChunkStorage};
@@ -61,6 +61,7 @@ impl World {
             .entity_storage
             .get_mut_by_id(entity_id)
             .ok_or_else(|| "Moving entity that doesn't exist".to_string())?;
+
         let old_chunk = ChunkPos::from(entity.pos());
         let new_chunk = ChunkPos::from(&new_pos);
         // this is fine because we update the chunk below
@@ -72,21 +73,28 @@ impl World {
         Ok(())
     }
 
-    // pub fn move_entity_with_delta(&mut self, entity_id: u32, delta: PositionDelta) -> Result<(), String> {
-    //     let entity = self
-    //         .entity_storage
-    //         .get_mut_by_id(entity_id)
-    //         .ok_or_else(|| "Moving entity that doesn't exist".to_string())?;
-    //     let old_chunk = ChunkPos::from(entity.pos());
-    //     let new_chunk = ChunkPos::from(&new_pos);
-    //     // this is fine because we update the chunk below
-    //     entity.unsafe_move(new_pos);
-    //     if old_chunk != new_chunk {
-    //         self.entity_storage
-    //             .update_entity_chunk(entity_id, &old_chunk, &new_chunk);
-    //     }
-    //     Ok(())
-    // }
+    pub fn move_entity_with_delta(
+        &mut self,
+        entity_id: u32,
+        delta: &PositionDelta,
+    ) -> Result<(), String> {
+        let entity = self
+            .entity_storage
+            .get_mut_by_id(entity_id)
+            .ok_or_else(|| "Moving entity that doesn't exist".to_string())?;
+        let new_pos = entity.pos().with_delta(delta);
+
+        let old_chunk = ChunkPos::from(entity.pos());
+        let new_chunk = ChunkPos::from(&new_pos);
+        // this is fine because we update the chunk below
+
+        entity.unsafe_move(new_pos);
+        if old_chunk != new_chunk {
+            self.entity_storage
+                .update_entity_chunk(entity_id, &old_chunk, &new_chunk);
+        }
+        Ok(())
+    }
 
     pub fn add_entity(&mut self, entity: Entity) {
         self.entity_storage.insert(entity);

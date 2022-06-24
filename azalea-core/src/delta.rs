@@ -20,10 +20,12 @@ impl PositionDelta {
 }
 
 impl EntityPos {
-    pub fn apply_delta(&mut self, delta: &PositionDelta) {
+    pub fn with_delta(&self, delta: &PositionDelta) -> EntityPos {
         let (x, y, z) = delta.float();
-        self.x += x;
-        self.y += y;
-        self.z += z;
+        EntityPos {
+            x: self.x + x,
+            y: self.y + y,
+            z: self.z + z,
+        }
     }
 }
