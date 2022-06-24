@@ -85,8 +85,9 @@ for packet, packet_name in new_packets.items():
     if packet_name not in old_packets.values():
         added_or_changed_packets.append(packet)
         print('Added packet:', packet, packet_name)
-    if new_packets_data[packet].get('instructions') != old_packets_data[packet].get('instructions'):
-        print('hmm')
+    if not lib.code.packet.are_packet_instructions_identical(new_packets_data[packet].get('instructions'), old_packets_data[packet].get('instructions')):
+        added_or_changed_packets.append(packet)
+        print('Changed packet:', packet, packet_name)
 for packet in added_or_changed_packets:
     lib.code.packet.generate_packet(
         new_burger_data[0]['packets']['packet'], new_mappings, packet.packet_id, packet.direction, packet.state)
