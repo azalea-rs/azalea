@@ -74,7 +74,7 @@ impl McBufReadable for EntityDataValue {
         let data_type = i32::var_read_into(buf)?;
         Ok(match data_type {
             0 => EntityDataValue::Byte(u8::read_into(buf)?),
-            1 => EntityDataValue::Int(i32::read_into(buf)?),
+            1 => EntityDataValue::Int(i32::var_read_into(buf)?),
             2 => EntityDataValue::Float(f32::read_into(buf)?),
             3 => EntityDataValue::String(String::read_into(buf)?),
             4 => EntityDataValue::Component(Component::read_into(buf)?),

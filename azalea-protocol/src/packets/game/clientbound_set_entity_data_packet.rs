@@ -5,6 +5,6 @@ use packet_macros::GamePacket;
 #[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundSetEntityDataPacket {
     #[var]
-    pub id: i32,
+    pub id: u32,
     pub metadata: EntityMetadata,
 }
