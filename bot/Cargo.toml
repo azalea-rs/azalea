@@ -9,4 +9,4 @@ version = "0.1.0"
 azalea-client = {path = "../azalea-client"}
 azalea-core = {path = "../azalea-core"}
 azalea-protocol = {path = "../azalea-protocol"}
-tokio = "^1.14.0"
+tokio = "1.19.2"

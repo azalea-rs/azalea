@@ -17,13 +17,10 @@ azalea-nbt = {path = "../azalea-nbt"}
 byteorder = "^1.4.3"
 bytes = "^1.1.0"
 flate2 = "1.0.23"
-num-derive = "^0.3.3"
-num-traits = "^0.2.14"
 packet-macros = {path = "./packet-macros"}
 serde = {version = "1.0.130", features = ["serde_derive"]}
 serde_json = "^1.0.72"
-thiserror = "^1.0.30"
-tokio = {version = "^1.14.0", features = ["io-util", "net", "macros"]}
+tokio = {version = "1.19.2", features = ["io-util", "net", "macros"]}
 tokio-util = "^0.6.9"
 trust-dns-resolver = "^0.20.3"
-uuid = "^0.8.2"
+uuid = "^1.1.2"
