@@ -3,12 +3,11 @@ pub mod handshake;
 pub mod login;
 pub mod status;
 
+use crate::connect::PacketFlow;
+use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use num_derive::FromPrimitive;
+use num_traits::FromPrimitive;
 use std::io::{Read, Write};
-
-use crate::{
-    connect::PacketFlow,
-    mc_buf::{McBufReadable, McBufWritable, Readable, Writable},
-};
 
 pub const PROTOCOL_VERSION: u32 = 759;
 
@@ -53,7 +52,7 @@ where
     fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
 }
 
-impl crate::mc_buf::McBufReadable for ConnectionProtocol {
+impl azalea_buf::McBufReadable for ConnectionProtocol {
     fn read_into(buf: &mut impl Read) -> Result<Self, String> {
         ConnectionProtocol::from_i32(buf.read_varint()?)
             .ok_or_else(|| "Invalid intention".to_string())

@@ -1,5 +1,6 @@
-use crate::mc_buf::BitSet;
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::BitSet;
+use azalea_buf::McBuf;
+use packet_macros::GamePacket;
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundLightUpdatePacket {

@@ -1,3 +1,5 @@
+use crate::{McBufReadable, McBufWritable, Readable};
+use std::io::{Read, Write};
 use uuid::Uuid;
 
 pub trait SerializableUuid {
@@ -30,7 +32,30 @@ impl SerializableUuid for Uuid {
     }
 }
 
-#[cfg(tests)]
+impl McBufReadable for Uuid {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        Ok(Uuid::from_int_array([
+            Readable::read_int(buf)? as u32,
+            Readable::read_int(buf)? as u32,
+            Readable::read_int(buf)? as u32,
+            Readable::read_int(buf)? as u32,
+        ]))
+    }
+}
+
+impl McBufWritable for Uuid {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        let [a, b, c, d] = self.to_int_array();
+        a.write_into(buf)?;
+        b.write_into(buf)?;
+        c.write_into(buf)?;
+        d.write_into(buf)?;
+        Ok(())
+    }
+}
+
+// TODO: add a test for Uuid in McBuf
+#[cfg(test)]
 mod tests {
     use super::*;
 

@@ -1,6 +1,7 @@
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use azalea_buf::McBuf;
+use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_chat::component::Component;
-use packet_macros::{GamePacket, McBuf};
+use packet_macros::GamePacket;
 use std::io::{Read, Write};
 use uuid::Uuid;
 

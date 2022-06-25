@@ -1,7 +1,8 @@
+use azalea_buf::McBuf;
 use azalea_core::Slot;
-use packet_macros::{GamePacket, McBuf};
+use packet_macros::GamePacket;
 
-use crate::mc_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{McBufReadable, McBufWritable};
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundSetEquipmentPacket {

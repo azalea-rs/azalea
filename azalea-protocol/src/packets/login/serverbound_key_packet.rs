@@ -1,8 +1,9 @@
+use azalea_buf::McBuf;
 use azalea_crypto::SaltSignaturePair;
-use packet_macros::{LoginPacket, McBuf};
+use packet_macros::LoginPacket;
 use std::io::{Read, Write};
 
-use crate::mc_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{McBufReadable, McBufWritable};
 
 #[derive(Clone, Debug, McBuf, LoginPacket)]
 pub struct ServerboundKeyPacket {

@@ -1,5 +1,6 @@
 use crate::Error;
 use crate::Tag;
+use azalea_buf::McBufReadable;
 use byteorder::{ReadBytesExt, BE};
 use flate2::read::{GzDecoder, ZlibDecoder};
 use std::collections::HashMap;
@@ -134,5 +135,15 @@ impl Tag {
     pub fn read_gzip(stream: &mut impl Read) -> Result<Tag, Error> {
         let mut gz = GzDecoder::new(stream);
         Tag::read(&mut gz)
+    }
+}
+
+impl McBufReadable for Tag {
+    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+        match Tag::read(buf) {
+            Ok(r) => Ok(r),
+            // Err(e) => Err(e.to_string()),
+            Err(e) => Err(e.to_string()).unwrap(),
+        }
     }
 }

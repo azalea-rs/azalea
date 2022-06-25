@@ -1,4 +1,7 @@
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use azalea_core::EntityPos;
+use azalea_entity::Entity;
+use packet_macros::GamePacket;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
@@ -21,4 +24,18 @@ pub struct ClientboundAddEntityPacket {
     pub x_vel: i16,
     pub y_vel: i16,
     pub z_vel: i16,
+}
+
+impl From<&ClientboundAddEntityPacket> for Entity {
+    fn from(p: &ClientboundAddEntityPacket) -> Self {
+        Self::new(
+            p.id,
+            p.uuid,
+            EntityPos {
+                x: p.x,
+                y: p.y,
+                z: p.z,
+            },
+        )
+    }
 }

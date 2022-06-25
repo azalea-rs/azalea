@@ -1,4 +1,5 @@
-use packet_macros::{LoginPacket, McBuf};
+use azalea_buf::McBuf;
+use packet_macros::LoginPacket;
 
 #[derive(Clone, Debug, McBuf, LoginPacket)]
 pub struct ServerboundHelloPacket {

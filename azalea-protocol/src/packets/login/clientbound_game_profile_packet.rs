@@ -1,10 +1,8 @@
 use std::io::{Read, Write};
 
 use super::LoginPacket;
-use crate::mc_buf::McBufReadable;
-use crate::mc_buf::{Readable, Writable};
 use azalea_auth::game_profile::GameProfile;
-use azalea_core::serializable_uuid::SerializableUuid;
+use azalea_buf::{McBufReadable, Readable, SerializableUuid, Writable};
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]

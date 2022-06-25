@@ -1,5 +1,6 @@
 use crate::packets::ConnectionProtocol;
-use packet_macros::{HandshakePacket, McBuf};
+use azalea_buf::McBuf;
+use packet_macros::HandshakePacket;
 use std::hash::Hash;
 
 #[derive(Hash, Clone, Debug, McBuf, HandshakePacket)]

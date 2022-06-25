@@ -1,6 +1,6 @@
-use crate::mc_buf::UnsizedByteArray;
-use azalea_core::resource_location::ResourceLocation;
-use packet_macros::{LoginPacket, McBuf};
+use azalea_buf::{McBuf, UnsizedByteArray};
+use azalea_core::ResourceLocation;
+use packet_macros::LoginPacket;
 use std::hash::Hash;
 
 #[derive(Hash, Clone, Debug, McBuf, LoginPacket)]

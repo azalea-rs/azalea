@@ -8,12 +8,12 @@ bot.join("localhost".try_into().unwrap()).await.unwrap();
 loop {
     match bot.next().await {
         Event::Message(m) {
-            if m.username == bot.username { return };
+            if m.username == bot.player.username { return };
             if m.message = "go" {
                 bot.goto_goal(
                     pathfinder::Goals::NearXZ(5, azalea::BlockXZ(0, 0))
                 ).await;
-                let chest = bot.open_chest(&bot.world.find_one_block(|b| b.id == "minecraft:chest")).await.unwrap();
+                let chest = bot.open_container(&bot.world.find_one_block(|b| b.id == "minecraft:chest")).await.unwrap();
                 bot.take_amount(&chest, 5, |i| i.id == "#minecraft:planks").await;
                 // when rust adds async drop this won't be necessary
                 chest.close().await;
@@ -25,7 +25,7 @@ loop {
 
                 bot.hold(&pickaxe);
                 loop {
-                    if let Err(e) = bot.dig(bot.feet_coords().down(1)).await {
+                    if let Err(e) = bot.dig(bot.entity.feet_pos().down(1)).await {
                         println!("{:?}", e);
                         break;
                     }

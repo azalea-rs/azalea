@@ -1,5 +1,6 @@
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable};
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use azalea_buf::{McBufReadable, McBufWritable, Readable};
+use packet_macros::GamePacket;
 use std::io::{Read, Write};
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
