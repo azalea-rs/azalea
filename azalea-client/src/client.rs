@@ -8,8 +8,10 @@ use azalea_protocol::{
         game::{
             clientbound_player_chat_packet::ClientboundPlayerChatPacket,
             clientbound_system_chat_packet::ClientboundSystemChatPacket,
+            serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
-            serverbound_keep_alive_packet::ServerboundKeepAlivePacket, GamePacket,
+            serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
+            serverbound_move_player_packet_pos_rot::ServerboundMovePlayerPacketPosRot, GamePacket,
         },
         handshake::client_intention_packet::ClientIntentionPacket,
         login::{
@@ -166,6 +168,9 @@ impl Client {
 
         let game_loop_state = client.state.clone();
 
+        // if you get an error right here that means you're doing something with locks wrong
+        // read the error to see where the issue is
+        // you might be able to just drop the lock or put it in its own scope to fix
         tokio::spawn(Self::protocol_loop(
             conn.clone(),
             tx.clone(),
@@ -352,94 +357,84 @@ impl Client {
                 // TODO: reply with teleport confirm
                 println!("Got player position packet {:?}", p);
 
-                let mut state_lock = state.lock()?;
-                let player_entity_id = state_lock.player.entity_id;
-                let world = state_lock.world.as_mut().unwrap();
-                let player_entity = world
-                    .mut_entity_by_id(player_entity_id)
-                    .expect("Player entity doesn't exist");
-                let delta_movement = &player_entity.delta;
+                let (new_pos, y_rot, x_rot) = {
+                    let mut state_lock = state.lock()?;
+                    let player_entity_id = state_lock.player.entity_id;
+                    let world = state_lock.world.as_mut().unwrap();
+                    let player_entity = world
+                        .mut_entity_by_id(player_entity_id)
+                        .expect("Player entity doesn't exist");
+                    let delta_movement = &player_entity.delta;
 
-                let is_x_relative = p.relative_arguments.x;
-                let is_y_relative = p.relative_arguments.y;
-                let is_z_relative = p.relative_arguments.z;
+                    let is_x_relative = p.relative_arguments.x;
+                    let is_y_relative = p.relative_arguments.y;
+                    let is_z_relative = p.relative_arguments.z;
 
-                let (delta_x, new_pos_x) = if is_x_relative {
-                    player_entity.old_pos.x += p.x;
-                    (delta_movement.x(), player_entity.pos().x + p.x)
-                } else {
-                    player_entity.old_pos.x = p.x;
-                    (0.0, p.x)
+                    let (delta_x, new_pos_x) = if is_x_relative {
+                        player_entity.old_pos.x += p.x;
+                        (delta_movement.x(), player_entity.pos().x + p.x)
+                    } else {
+                        player_entity.old_pos.x = p.x;
+                        (0.0, p.x)
+                    };
+                    let (delta_y, new_pos_y) = if is_y_relative {
+                        player_entity.old_pos.y += p.y;
+                        (delta_movement.y(), player_entity.pos().y + p.y)
+                    } else {
+                        player_entity.old_pos.y = p.y;
+                        (0.0, p.y)
+                    };
+                    let (delta_z, new_pos_z) = if is_z_relative {
+                        player_entity.old_pos.z += p.z;
+                        (delta_movement.z(), player_entity.pos().z + p.z)
+                    } else {
+                        player_entity.old_pos.z = p.z;
+                        (0.0, p.z)
+                    };
+
+                    let mut y_rot = p.y_rot;
+                    let mut x_rot = p.x_rot;
+                    if p.relative_arguments.x_rot {
+                        y_rot += player_entity.x_rot;
+                    }
+                    if p.relative_arguments.y_rot {
+                        x_rot += player_entity.y_rot;
+                    }
+
+                    player_entity.delta = PositionDelta {
+                        xa: delta_x,
+                        ya: delta_y,
+                        za: delta_z,
+                    };
+                    player_entity.set_rotation(y_rot, x_rot);
+                    // TODO: minecraft sets "xo", "yo", and "zo" here but idk what that means
+                    // so investigate that ig
+                    let new_pos = EntityPos {
+                        x: new_pos_x,
+                        y: new_pos_y,
+                        z: new_pos_z,
+                    };
+                    world
+                        .move_entity(player_entity_id, new_pos)
+                        .expect("The player entity should always exist");
+
+                    (new_pos, y_rot, x_rot)
                 };
-                let (delta_y, new_pos_y) = if is_y_relative {
-                    player_entity.old_pos.y += p.y;
-                    (delta_movement.y(), player_entity.pos().y + p.y)
-                } else {
-                    player_entity.old_pos.y = p.y;
-                    (0.0, p.y)
-                };
-                let (delta_z, new_pos_z) = if is_z_relative {
-                    player_entity.old_pos.z += p.z;
-                    (delta_movement.z(), player_entity.pos().z + p.z)
-                } else {
-                    player_entity.old_pos.z = p.z;
-                    (0.0, p.z)
-                };
 
-                let mut y_rot = p.y_rot;
-                let mut x_rot = p.x_rot;
-                if p.relative_arguments.x_rot {
-                    y_rot += player_entity.x_rot;
-                }
-                if p.relative_arguments.y_rot {
-                    x_rot += player_entity.y_rot;
-                }
-
-                player_entity.delta = PositionDelta {
-                    xa: delta_x,
-                    ya: delta_y,
-                    za: delta_z,
-                };
-                player_entity.set_rotation(x_rot, y_rot);
-                // TODO: minecraft sets "xo", "yo", and "zo" here but idk what that means
-                // so investigate that ig
-                world
-                    .move_entity(
-                        player_entity_id,
-                        EntityPos {
-                            x: new_pos_x,
-                            y: new_pos_y,
-                            z: new_pos_z,
-                        },
-                    )
-                    .expect("The player entity should always exist");
-
-                let mut state_lock = state.lock()?;
-
-                let player = &state_lock.player;
-                let player_entity_id = player.entity_id;
-
-                let world = state_lock.world.as_mut().unwrap();
-                world.move_entity(
-                    player_entity_id,
-                    EntityPos {
-                        x: p.x,
-                        y: p.y,
-                        z: p.z,
-                    },
-                )?;
-
-                conn.lock()
-                    .await
-                    .write(ServerboundAcceptTeleportationPacket {}.get())
+                let mut conn_lock = conn.lock().await;
+                conn_lock
+                    .write(ServerboundAcceptTeleportationPacket { id: p.id }.get())
                     .await;
-                conn.lock()
-                    .await
+                conn_lock
                     .write(
                         ServerboundMovePlayerPacketPosRot {
-                            identifier: ResourceLocation::new("brand").unwrap(),
-                            // they don't have to know :)
-                            data: "vanilla".into(),
+                            x: new_pos.x,
+                            y: new_pos.y,
+                            z: new_pos.z,
+                            y_rot,
+                            x_rot,
+                            // this is always false
+                            on_ground: false,
                         }
                         .get(),
                     )

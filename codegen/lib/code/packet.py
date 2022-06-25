@@ -30,7 +30,7 @@ def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target
         generated_packet_code.append(
             f'#[derive(Clone, Debug, McBuf, {to_camel_case(state)}Packet)]')
         uses.add(f'packet_macros::{to_camel_case(state)}Packet')
-        uses.add(f'packet_buf::McBuf')
+        uses.add(f'azalea_buf::McBuf')
 
         obfuscated_class_name = packet['class'].split('.')[0]
         class_name = mappings.get_class(

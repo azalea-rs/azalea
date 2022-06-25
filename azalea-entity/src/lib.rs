@@ -42,9 +42,9 @@ impl Entity {
         self.pos = new_pos;
     }
 
-    pub fn set_rotation(&mut self, x_rot: f32, y_rot: f32) {
-        self.x_rot = x_rot % 360.0;
+    pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
         self.y_rot = y_rot.clamp(-90.0, 90.0) % 360.0;
+        self.x_rot = x_rot % 360.0;
         // TODO: minecraft also sets yRotO and xRotO to xRot and yRot ... but idk what they're used for so
     }
 }

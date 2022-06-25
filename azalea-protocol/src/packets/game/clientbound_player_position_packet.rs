@@ -14,7 +14,7 @@ pub struct ClientboundPlayerPositionPacket {
     /// Client should confirm this packet with Teleport Confirm containing the
     /// same Teleport ID.
     #[var]
-    pub id: i32,
+    pub id: u32,
     pub dismount_vehicle: bool,
 }
 

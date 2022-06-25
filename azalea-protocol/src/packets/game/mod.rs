@@ -49,6 +49,7 @@ pub mod clientbound_update_attributes_packet;
 pub mod clientbound_update_recipes_packet;
 pub mod clientbound_update_tags_packet;
 pub mod clientbound_update_view_distance_packet;
+pub mod serverbound_accept_teleportation_packet;
 pub mod serverbound_chat_command_packet;
 pub mod serverbound_chat_preview_packet;
 pub mod serverbound_custom_payload_packet;
@@ -63,6 +64,7 @@ use packet_macros::declare_state_packets;
 declare_state_packets!(
     GamePacket,
     Serverbound => {
+        0x00: serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
         0x03: serverbound_chat_command_packet::ServerboundChatCommandPacket,
         0x05: serverbound_chat_preview_packet::ServerboundChatPreviewPacket,
         0x0c: serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
