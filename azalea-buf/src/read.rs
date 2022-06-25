@@ -201,31 +201,31 @@ pub trait McBufReadable
 where
     Self: Sized,
 {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String>;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String>;
 }
 
 pub trait McBufVarReadable
 where
     Self: Sized,
 {
-    fn var_read_into(buf: &mut impl Read) -> Result<Self, String>;
+    fn var_read_from(buf: &mut impl Read) -> Result<Self, String>;
 }
 
 impl McBufReadable for i32 {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         Readable::read_int(buf)
     }
 }
 
 impl McBufVarReadable for i32 {
-    fn var_read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn var_read_from(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_varint()
     }
 }
 
 impl McBufVarReadable for i64 {
     // fast varints modified from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L54
-    fn var_read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn var_read_from(buf: &mut impl Read) -> Result<Self, String> {
         let mut buffer = [0];
         let mut ans = 0;
         for i in 0..8 {
@@ -240,139 +240,139 @@ impl McBufVarReadable for i64 {
     }
 }
 impl McBufVarReadable for u64 {
-    fn var_read_into(buf: &mut impl Read) -> Result<Self, String> {
-        i64::var_read_into(buf).map(|i| i as u64)
+    fn var_read_from(buf: &mut impl Read) -> Result<Self, String> {
+        i64::var_read_from(buf).map(|i| i as u64)
     }
 }
 
 impl McBufReadable for UnsizedByteArray {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         Ok(buf.read_bytes()?.into())
     }
 }
 
 impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
-    default fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    default fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         let length = buf.read_varint()? as usize;
         let mut contents = Vec::with_capacity(length);
         for _ in 0..length {
-            contents.push(T::read_into(buf)?);
+            contents.push(T::read_from(buf)?);
         }
         Ok(contents)
     }
 }
 
 impl<K: McBufReadable + Send + Eq + Hash, V: McBufReadable + Send> McBufReadable for HashMap<K, V> {
-    default fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    default fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         let length = buf.read_varint()? as usize;
         let mut contents = HashMap::with_capacity(length);
         for _ in 0..length {
-            contents.insert(K::read_into(buf)?, V::read_into(buf)?);
+            contents.insert(K::read_from(buf)?, V::read_from(buf)?);
         }
         Ok(contents)
     }
 }
 
 impl McBufReadable for Vec<u8> {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_byte_array()
     }
 }
 
 impl McBufReadable for String {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_utf()
     }
 }
 
 impl McBufReadable for u32 {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         Readable::read_int(buf).map(|i| i as u32)
     }
 }
 
 impl McBufVarReadable for u32 {
-    fn var_read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn var_read_from(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_varint().map(|i| i as u32)
     }
 }
 
 impl McBufReadable for u16 {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_short().map(|i| i as u16)
     }
 }
 
 impl McBufReadable for i16 {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_short()
     }
 }
 
 impl McBufVarReadable for u16 {
-    fn var_read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn var_read_from(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_varint().map(|i| i as u16)
     }
 }
 
 impl<T: McBufVarReadable> McBufVarReadable for Vec<T> {
-    fn var_read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn var_read_from(buf: &mut impl Read) -> Result<Self, String> {
         let length = buf.read_varint()? as usize;
         let mut contents = Vec::with_capacity(length);
         for _ in 0..length {
-            contents.push(T::var_read_into(buf)?);
+            contents.push(T::var_read_from(buf)?);
         }
         Ok(contents)
     }
 }
 
 impl McBufReadable for i64 {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_long()
     }
 }
 
 impl McBufReadable for u64 {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        i64::read_into(buf).map(|i| i as u64)
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        i64::read_from(buf).map(|i| i as u64)
     }
 }
 
 impl McBufReadable for bool {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_boolean()
     }
 }
 
 impl McBufReadable for u8 {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_byte()
     }
 }
 
 impl McBufReadable for i8 {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_byte().map(|i| i as i8)
     }
 }
 
 impl McBufReadable for f32 {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_float()
     }
 }
 
 impl McBufReadable for f64 {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         buf.read_double()
     }
 }
 
 impl<T: McBufReadable> McBufReadable for Option<T> {
-    default fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    default fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         let present = buf.read_boolean()?;
         Ok(if present {
-            Some(T::read_into(buf)?)
+            Some(T::read_from(buf)?)
         } else {
             None
         })

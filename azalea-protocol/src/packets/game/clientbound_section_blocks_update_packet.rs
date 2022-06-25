@@ -18,8 +18,8 @@ pub struct BlockStateWithPosition {
 }
 
 impl McBufReadable for BlockStateWithPosition {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let data = u64::var_read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let data = u64::var_read_from(buf)?;
         let position_part = data & 4095;
         let state = (data >> 12) as u32;
         let position = ChunkSectionBlockPos {

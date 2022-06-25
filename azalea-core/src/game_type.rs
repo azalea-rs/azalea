@@ -77,8 +77,8 @@ impl GameType {
 }
 
 impl McBufReadable for GameType {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        GameType::from_id(u8::read_into(buf)?)
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        GameType::from_id(u8::read_from(buf)?)
     }
 }
 
@@ -105,8 +105,8 @@ impl From<OptionalGameType> for Option<GameType> {
 }
 
 impl McBufReadable for OptionalGameType {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        GameType::from_optional_id(i8::read_into(buf)?)
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        GameType::from_optional_id(i8::read_from(buf)?)
     }
 }
 

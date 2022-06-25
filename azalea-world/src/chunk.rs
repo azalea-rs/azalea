@@ -117,7 +117,7 @@ impl Chunk {
         let section_count = world_height / SECTION_HEIGHT;
         let mut sections = Vec::with_capacity(section_count as usize);
         for _ in 0..section_count {
-            let section = Section::read_into(buf)?;
+            let section = Section::read_from(buf)?;
             sections.push(section);
         }
         Ok(Chunk { sections })
@@ -171,8 +171,8 @@ pub struct Section {
 }
 
 impl McBufReadable for Section {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let block_count = u16::read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let block_count = u16::read_from(buf)?;
 
         // this is commented out because the vanilla server is wrong
         // assert!(

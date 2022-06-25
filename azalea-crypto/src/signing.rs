@@ -8,9 +8,9 @@ pub struct SaltSignaturePair {
 }
 
 impl McBufReadable for SaltSignaturePair {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let salt = u64::read_into(buf)?;
-        let signature = Vec::<u8>::read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let salt = u64::read_from(buf)?;
+        let signature = Vec::<u8>::read_from(buf)?;
         Ok(SaltSignaturePair { salt, signature })
     }
 }

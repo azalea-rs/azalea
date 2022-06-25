@@ -33,7 +33,7 @@ impl SerializableUuid for Uuid {
 }
 
 impl McBufReadable for Uuid {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         Ok(Uuid::from_int_array([
             Readable::read_int(buf)? as u32,
             Readable::read_int(buf)? as u32,

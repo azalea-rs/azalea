@@ -26,7 +26,7 @@ mod tests {
 
         let mut buf = Cursor::new(buf);
 
-        let result = Tag::read_into(&mut buf).unwrap();
+        let result = Tag::read_from(&mut buf).unwrap();
         assert_eq!(
             result,
             Tag::Compound(HashMap::from_iter(vec![(

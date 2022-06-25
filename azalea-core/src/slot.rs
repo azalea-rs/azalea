@@ -18,12 +18,12 @@ pub struct SlotData {
 }
 
 impl McBufReadable for Slot {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let present = bool::read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let present = bool::read_from(buf)?;
         if !present {
             return Ok(Slot::Empty);
         }
-        let slot = SlotData::read_into(buf)?;
+        let slot = SlotData::read_from(buf)?;
         Ok(Slot::Present(slot))
     }
 }

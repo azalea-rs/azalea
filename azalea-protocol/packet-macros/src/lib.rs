@@ -32,7 +32,7 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
                 buf: &mut impl std::io::Read,
             ) -> Result<#state, String> {
                 use azalea_buf::McBufReadable;
-                Ok(Self::read_into(buf)?.get())
+                Ok(Self::read_from(buf)?.get())
             }
         }
     };

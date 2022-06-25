@@ -34,7 +34,7 @@ enum Operation {
 }
 
 impl McBufReadable for Operation {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         match buf.read_byte()? {
             0 => Ok(Operation::Addition),
             1 => Ok(Operation::MultiplyBase),

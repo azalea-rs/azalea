@@ -46,8 +46,8 @@ impl std::fmt::Debug for ResourceLocation {
 }
 
 impl McBufReadable for ResourceLocation {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let location_string = String::read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let location_string = String::read_from(buf)?;
         ResourceLocation::new(&location_string)
     }
 }
@@ -99,7 +99,7 @@ mod tests {
         let mut buf = Cursor::new(buf);
 
         assert_eq!(
-            ResourceLocation::read_into(&mut buf).unwrap(),
+            ResourceLocation::read_from(&mut buf).unwrap(),
             ResourceLocation::new("minecraft:dirt").unwrap()
         );
     }

@@ -45,8 +45,8 @@ pub struct DisplayFlags {
 }
 
 impl McBufReadable for DisplayFlags {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let data = u32::read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let data = u32::read_from(buf)?;
         Ok(DisplayFlags {
             background: (data & 0b1) != 0,
             show_toast: (data & 0b10) != 0,

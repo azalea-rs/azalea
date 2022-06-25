@@ -157,8 +157,8 @@ impl ParticleData {
         Ok(match id {
             0 => ParticleData::AmbientEntityEffect,
             1 => ParticleData::AngryVillager,
-            2 => ParticleData::Block(BlockParticle::read_into(buf)?),
-            3 => ParticleData::BlockMarker(BlockParticle::read_into(buf)?),
+            2 => ParticleData::Block(BlockParticle::read_from(buf)?),
+            3 => ParticleData::BlockMarker(BlockParticle::read_from(buf)?),
             4 => ParticleData::Bubble,
             5 => ParticleData::Cloud,
             6 => ParticleData::Crit,
@@ -169,8 +169,8 @@ impl ParticleData {
             11 => ParticleData::LandingLava,
             12 => ParticleData::DrippingWater,
             13 => ParticleData::FallingWater,
-            14 => ParticleData::Dust(DustParticle::read_into(buf)?),
-            15 => ParticleData::DustColorTransition(DustColorTransitionParticle::read_into(buf)?),
+            14 => ParticleData::Dust(DustParticle::read_from(buf)?),
+            15 => ParticleData::DustColorTransition(DustColorTransitionParticle::read_from(buf)?),
             16 => ParticleData::Effect,
             17 => ParticleData::ElderGuardian,
             18 => ParticleData::EnchantedHit,
@@ -179,7 +179,7 @@ impl ParticleData {
             21 => ParticleData::EntityEffect,
             22 => ParticleData::ExplosionEmitter,
             23 => ParticleData::Explosion,
-            24 => ParticleData::FallingDust(BlockParticle::read_into(buf)?),
+            24 => ParticleData::FallingDust(BlockParticle::read_from(buf)?),
             25 => ParticleData::Firework,
             26 => ParticleData::Fishing,
             27 => ParticleData::Flame,
@@ -190,8 +190,8 @@ impl ParticleData {
             32 => ParticleData::Composter,
             33 => ParticleData::Heart,
             34 => ParticleData::InstantEffect,
-            35 => ParticleData::Item(ItemParticle::read_into(buf)?),
-            36 => ParticleData::Vibration(VibrationParticle::read_into(buf)?),
+            35 => ParticleData::Item(ItemParticle::read_from(buf)?),
+            36 => ParticleData::Vibration(VibrationParticle::read_from(buf)?),
             37 => ParticleData::ItemSlime,
             38 => ParticleData::ItemSnowball,
             39 => ParticleData::LargeSmoke,
@@ -249,8 +249,8 @@ impl ParticleData {
 }
 
 impl McBufReadable for ParticleData {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let id = u32::var_read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let id = u32::var_read_from(buf)?;
         ParticleData::read_from_particle_id(buf, id)
     }
 }

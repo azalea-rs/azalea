@@ -23,15 +23,15 @@ pub struct Tags {
 pub struct TagMap(HashMap<ResourceLocation, Vec<Tags>>);
 
 impl McBufReadable for TagMap {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         let length = buf.read_varint()? as usize;
         let mut data = HashMap::with_capacity(length);
         for _ in 0..length {
-            let tag_type = ResourceLocation::read_into(buf)?;
+            let tag_type = ResourceLocation::read_from(buf)?;
             let tags_count = buf.read_varint()? as usize;
             let mut tags_vec = Vec::with_capacity(tags_count);
             for _ in 0..tags_count {
-                let tags = Tags::read_into(buf)?;
+                let tags = Tags::read_from(buf)?;
                 tags_vec.push(tags);
             }
             data.insert(tag_type, tags_vec);
@@ -51,8 +51,8 @@ impl McBufWritable for TagMap {
     }
 }
 impl McBufReadable for Tags {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let name = ResourceLocation::read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let name = ResourceLocation::read_from(buf)?;
         let elements = buf.read_int_id_list()?;
         Ok(Tags { name, elements })
     }

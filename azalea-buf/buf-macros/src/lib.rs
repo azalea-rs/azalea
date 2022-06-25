@@ -21,11 +21,11 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         syn::Type::Path(_) => {
                             if f.attrs.iter().any(|a| a.path.is_ident("var")) {
                                 quote! {
-                                    let #field_name = azalea_buf::McBufVarReadable::var_read_into(buf)?;
+                                    let #field_name = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                                 }
                             } else {
                                 quote! {
-                                    let #field_name = azalea_buf::McBufReadable::read_into(buf)?;
+                                    let #field_name = azalea_buf::McBufReadable::read_from(buf)?;
                                 }
                             }
                         }
@@ -41,7 +41,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
 
             quote! {
             impl azalea_buf::McBufReadable for #ident {
-                fn read_into(buf: &mut impl std::io::Read) -> Result<Self, String> {
+                fn read_from(buf: &mut impl std::io::Read) -> Result<Self, String> {
                     #(#read_fields)*
                     Ok(#ident {
                         #(#read_field_names: #read_field_names),*
@@ -76,9 +76,9 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
 
             quote! {
             impl azalea_buf::McBufReadable for #ident {
-                fn read_into(buf: &mut impl std::io::Read) -> Result<Self, String>
+                fn read_from(buf: &mut impl std::io::Read) -> Result<Self, String>
                 {
-                    let id = azalea_buf::McBufVarReadable::var_read_into(buf)?;
+                    let id = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                     match id {
                         #match_contents
                         _ => Err(format!("Unknown enum variant {}", id)),

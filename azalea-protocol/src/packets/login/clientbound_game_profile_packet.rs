@@ -25,7 +25,7 @@ impl ClientboundGameProfilePacket {
     }
 
     pub fn read(buf: &mut impl Read) -> Result<LoginPacket, String> {
-        let uuid = Uuid::read_into(buf)?;
+        let uuid = Uuid::read_from(buf)?;
         let name = buf.read_utf_with_len(16)?;
         Ok(ClientboundGameProfilePacket {
             game_profile: GameProfile::new(uuid, name),

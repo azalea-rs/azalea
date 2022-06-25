@@ -28,7 +28,7 @@ pub struct RelativeArguments {
 }
 
 impl McBufReadable for RelativeArguments {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         let byte = buf.read_byte()?;
         Ok(RelativeArguments {
             x: byte & 0b1 != 0,

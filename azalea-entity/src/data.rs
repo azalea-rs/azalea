@@ -17,14 +17,14 @@ pub struct EntityDataItem {
 }
 
 impl McBufReadable for EntityMetadata {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         let mut metadata = Vec::new();
         loop {
-            let index = u8::read_into(buf)?;
+            let index = u8::read_from(buf)?;
             if index == 0xff {
                 break;
             }
-            let value = EntityDataValue::read_into(buf)?;
+            let value = EntityDataValue::read_from(buf)?;
             metadata.push(EntityDataItem { index, value });
         }
         Ok(EntityMetadata(metadata))
@@ -70,46 +70,46 @@ pub enum EntityDataValue {
 }
 
 impl McBufReadable for EntityDataValue {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let data_type = i32::var_read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let data_type = i32::var_read_from(buf)?;
         Ok(match data_type {
-            0 => EntityDataValue::Byte(u8::read_into(buf)?),
-            1 => EntityDataValue::Int(i32::var_read_into(buf)?),
-            2 => EntityDataValue::Float(f32::read_into(buf)?),
-            3 => EntityDataValue::String(String::read_into(buf)?),
-            4 => EntityDataValue::Component(Component::read_into(buf)?),
-            5 => EntityDataValue::OptionalComponent(Option::<Component>::read_into(buf)?),
-            6 => EntityDataValue::ItemStack(Slot::read_into(buf)?),
-            7 => EntityDataValue::Boolean(bool::read_into(buf)?),
+            0 => EntityDataValue::Byte(u8::read_from(buf)?),
+            1 => EntityDataValue::Int(i32::var_read_from(buf)?),
+            2 => EntityDataValue::Float(f32::read_from(buf)?),
+            3 => EntityDataValue::String(String::read_from(buf)?),
+            4 => EntityDataValue::Component(Component::read_from(buf)?),
+            5 => EntityDataValue::OptionalComponent(Option::<Component>::read_from(buf)?),
+            6 => EntityDataValue::ItemStack(Slot::read_from(buf)?),
+            7 => EntityDataValue::Boolean(bool::read_from(buf)?),
             8 => EntityDataValue::Rotations {
-                x: f32::read_into(buf)?,
-                y: f32::read_into(buf)?,
-                z: f32::read_into(buf)?,
+                x: f32::read_from(buf)?,
+                y: f32::read_from(buf)?,
+                z: f32::read_from(buf)?,
             },
-            9 => EntityDataValue::BlockPos(BlockPos::read_into(buf)?),
-            10 => EntityDataValue::OptionalBlockPos(Option::<BlockPos>::read_into(buf)?),
-            11 => EntityDataValue::Direction(Direction::read_into(buf)?),
-            12 => EntityDataValue::OptionalUuid(Option::<Uuid>::read_into(buf)?),
+            9 => EntityDataValue::BlockPos(BlockPos::read_from(buf)?),
+            10 => EntityDataValue::OptionalBlockPos(Option::<BlockPos>::read_from(buf)?),
+            11 => EntityDataValue::Direction(Direction::read_from(buf)?),
+            12 => EntityDataValue::OptionalUuid(Option::<Uuid>::read_from(buf)?),
             13 => EntityDataValue::OptionalBlockState({
-                let val = i32::read_into(buf)?;
+                let val = i32::read_from(buf)?;
                 if val == 0 {
                     None
                 } else {
                     Some(val)
                 }
             }),
-            14 => EntityDataValue::CompoundTag(azalea_nbt::Tag::read_into(buf)?),
-            15 => EntityDataValue::Particle(Particle::read_into(buf)?),
-            16 => EntityDataValue::VillagerData(VillagerData::read_into(buf)?),
+            14 => EntityDataValue::CompoundTag(azalea_nbt::Tag::read_from(buf)?),
+            15 => EntityDataValue::Particle(Particle::read_from(buf)?),
+            16 => EntityDataValue::VillagerData(VillagerData::read_from(buf)?),
             17 => EntityDataValue::OptionalUnsignedInt({
-                let val = u32::var_read_into(buf)?;
+                let val = u32::var_read_from(buf)?;
                 if val == 0 {
                     None
                 } else {
                     Some((val - 1) as u32)
                 }
             }),
-            18 => EntityDataValue::Pose(Pose::read_into(buf)?),
+            18 => EntityDataValue::Pose(Pose::read_from(buf)?),
             _ => return Err(format!("Unknown entity data type: {}", data_type)),
         })
     }

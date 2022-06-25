@@ -269,8 +269,8 @@ impl<'de> Deserialize<'de> for Component {
 }
 
 impl McBufReadable for Component {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let string = String::read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let string = String::read_from(buf)?;
         let json: serde_json::Value = serde_json::from_str(string.as_str())
             .map_err(|_| "Component isn't valid JSON".to_string())?;
         let component = Component::deserialize(json).map_err(|e| e.to_string())?;
@@ -279,7 +279,7 @@ impl McBufReadable for Component {
 }
 
 impl McBufWritable for Component {
-    // async fn read_into(buf: &mut impl Read) -> Result<Self, String>
+    // async fn read_from(buf: &mut impl Read) -> Result<Self, String>
     // where
     //     R: AsyncRead + std::marker::Unpin + std::marker::Send,
     // {

@@ -20,7 +20,7 @@ pub struct PlayerAbilitiesFlags {
 }
 
 impl McBufReadable for PlayerAbilitiesFlags {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         let byte = buf.read_byte()?;
         Ok(PlayerAbilitiesFlags {
             invulnerable: byte & 1 != 0,

@@ -67,8 +67,8 @@ impl Difficulty {
 }
 
 impl McBufReadable for Difficulty {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        Ok(Difficulty::by_id(u8::read_into(buf)?))
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        Ok(Difficulty::by_id(u8::read_from(buf)?))
     }
 }
 

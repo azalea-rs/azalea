@@ -225,8 +225,8 @@ impl From<&EntityPos> for ChunkPos {
 }
 
 impl McBufReadable for BlockPos {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let val = u64::read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let val = u64::read_from(buf)?;
         let x = (val >> 38) as i32;
         let y = (val & 0xFFF) as i32;
         let z = ((val >> 12) & 0x3FFFFFF) as i32;
@@ -235,17 +235,17 @@ impl McBufReadable for BlockPos {
 }
 
 impl McBufReadable for GlobalPos {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         Ok(GlobalPos {
-            dimension: ResourceLocation::read_into(buf)?,
-            pos: BlockPos::read_into(buf)?,
+            dimension: ResourceLocation::read_from(buf)?,
+            pos: BlockPos::read_from(buf)?,
         })
     }
 }
 
 impl McBufReadable for ChunkSectionPos {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let long = i64::read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let long = i64::read_from(buf)?;
         Ok(ChunkSectionPos {
             x: (long >> 42) as i32,
             y: (long << 44 >> 44) as i32,

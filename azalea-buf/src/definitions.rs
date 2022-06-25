@@ -42,9 +42,9 @@ impl BitSet {
 }
 
 impl McBufReadable for BitSet {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         Ok(Self {
-            data: Vec::<u64>::read_into(buf)?,
+            data: Vec::<u64>::read_from(buf)?,
         })
     }
 }
