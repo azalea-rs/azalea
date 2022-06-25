@@ -5,6 +5,12 @@ use std::{
     ops::Rem,
 };
 
+pub trait PositionXYZ<T> {
+    fn add_x(&self, n: T) -> Self;
+    fn add_y(&self, n: T) -> Self;
+    fn add_z(&self, n: T) -> Self;
+}
+
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct BlockPos {
     pub x: i32,
@@ -30,6 +36,30 @@ impl Rem<i32> for BlockPos {
     }
 }
 
+impl PositionXYZ<i32> for BlockPos {
+    fn add_x(&self, n: i32) -> Self {
+        BlockPos {
+            x: self.x + n,
+            y: self.y,
+            z: self.z,
+        }
+    }
+    fn add_y(&self, n: i32) -> Self {
+        BlockPos {
+            x: self.x,
+            y: self.y + n,
+            z: self.z,
+        }
+    }
+    fn add_z(&self, n: i32) -> Self {
+        BlockPos {
+            x: self.x,
+            y: self.y,
+            z: self.z + n,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ChunkPos {
     pub x: i32,
@@ -39,15 +69,6 @@ pub struct ChunkPos {
 impl ChunkPos {
     pub fn new(x: i32, z: i32) -> Self {
         ChunkPos { x, z }
-    }
-}
-
-impl From<&BlockPos> for ChunkPos {
-    fn from(pos: &BlockPos) -> Self {
-        ChunkPos {
-            x: pos.x.div_floor(16),
-            z: pos.z.div_floor(16),
-        }
     }
 }
 
@@ -62,6 +83,83 @@ pub struct ChunkSectionPos {
 impl ChunkSectionPos {
     pub fn new(x: i32, y: i32, z: i32) -> Self {
         ChunkSectionPos { x, y, z }
+    }
+}
+/// The coordinates of a block inside a chunk.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct ChunkBlockPos {
+    pub x: u8,
+    pub y: i32,
+    pub z: u8,
+}
+
+impl ChunkBlockPos {
+    pub fn new(x: u8, y: i32, z: u8) -> Self {
+        ChunkBlockPos { x, y, z }
+    }
+}
+/// The coordinates of a block inside a chunk section.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ChunkSectionBlockPos {
+    /// A number between 0 and 16.
+    pub x: u8,
+    /// A number between 0 and 16.
+    pub y: u8,
+    /// A number between 0 and 16.
+    pub z: u8,
+}
+
+impl ChunkSectionBlockPos {
+    pub fn new(x: u8, y: u8, z: u8) -> Self {
+        ChunkSectionBlockPos { x, y, z }
+    }
+}
+
+/// A block pos with an attached dimension
+#[derive(Debug, Clone)]
+pub struct GlobalPos {
+    pub pos: BlockPos,
+    // this is actually a ResourceKey in Minecraft, but i don't think it matters?
+    pub dimension: ResourceLocation,
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct EntityPos {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+}
+
+impl PositionXYZ<f64> for EntityPos {
+    fn add_x(&self, n: f64) -> Self {
+        EntityPos {
+            x: self.x + n,
+            y: self.y,
+            z: self.z,
+        }
+    }
+    fn add_y(&self, n: f64) -> Self {
+        EntityPos {
+            x: self.x,
+            y: self.y + n,
+            z: self.z,
+        }
+    }
+    fn add_z(&self, n: f64) -> Self {
+        EntityPos {
+            x: self.x,
+            y: self.y,
+            z: self.z + n,
+        }
+    }
+}
+
+impl From<&BlockPos> for ChunkPos {
+    fn from(pos: &BlockPos) -> Self {
+        ChunkPos {
+            x: pos.x.div_floor(16),
+            z: pos.z.div_floor(16),
+        }
     }
 }
 
@@ -81,20 +179,6 @@ impl From<ChunkSectionPos> for ChunkPos {
     }
 }
 
-/// The coordinates of a block inside a chunk.
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct ChunkBlockPos {
-    pub x: u8,
-    pub y: i32,
-    pub z: u8,
-}
-
-impl ChunkBlockPos {
-    pub fn new(x: u8, y: i32, z: u8) -> Self {
-        ChunkBlockPos { x, y, z }
-    }
-}
-
 impl From<&BlockPos> for ChunkBlockPos {
     fn from(pos: &BlockPos) -> Self {
         ChunkBlockPos {
@@ -102,23 +186,6 @@ impl From<&BlockPos> for ChunkBlockPos {
             y: pos.y,
             z: pos.z.rem_euclid(16).abs() as u8,
         }
-    }
-}
-
-/// The coordinates of a block inside a chunk section.
-#[derive(Clone, Copy, Debug, Default)]
-pub struct ChunkSectionBlockPos {
-    /// A number between 0 and 16.
-    pub x: u8,
-    /// A number between 0 and 16.
-    pub y: u8,
-    /// A number between 0 and 16.
-    pub z: u8,
-}
-
-impl ChunkSectionBlockPos {
-    pub fn new(x: u8, y: u8, z: u8) -> Self {
-        ChunkSectionBlockPos { x, y, z }
     }
 }
 
@@ -141,22 +208,6 @@ impl From<&ChunkBlockPos> for ChunkSectionBlockPos {
         }
     }
 }
-
-/// A block pos with an attached dimension
-#[derive(Debug, Clone)]
-pub struct GlobalPos {
-    pub pos: BlockPos,
-    // this is actually a ResourceKey in Minecraft, but i don't think it matters?
-    pub dimension: ResourceLocation,
-}
-
-#[derive(Debug, Clone, Default)]
-pub struct EntityPos {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
-}
-
 impl From<&EntityPos> for BlockPos {
     fn from(pos: &EntityPos) -> Self {
         BlockPos {

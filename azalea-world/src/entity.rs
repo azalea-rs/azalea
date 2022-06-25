@@ -3,12 +3,13 @@ use azalea_entity::Entity;
 use log::warn;
 use nohash_hasher::{IntMap, IntSet};
 use std::collections::HashMap;
+use uuid::Uuid;
 
 #[derive(Debug)]
 pub struct EntityStorage {
     by_id: IntMap<u32, Entity>,
-    // TODO: this doesn't work yet (should be updated in the set_pos method in azalea-entity)
     by_chunk: HashMap<ChunkPos, IntSet<u32>>,
+    by_uuid: HashMap<Uuid, u32>,
 }
 
 impl EntityStorage {
@@ -16,6 +17,7 @@ impl EntityStorage {
         Self {
             by_id: IntMap::default(),
             by_chunk: HashMap::default(),
+            by_uuid: HashMap::default(),
         }
     }
 
@@ -26,6 +28,7 @@ impl EntityStorage {
             .entry(ChunkPos::from(entity.pos()))
             .or_default()
             .insert(entity.id);
+        self.by_uuid.insert(entity.uuid, entity.id);
         self.by_id.insert(entity.id, entity);
     }
 
@@ -34,8 +37,12 @@ impl EntityStorage {
     pub fn remove_by_id(&mut self, id: u32) {
         if let Some(entity) = self.by_id.remove(&id) {
             let entity_chunk = ChunkPos::from(entity.pos());
+            let entity_uuid = entity.uuid;
             if self.by_chunk.remove(&entity_chunk).is_none() {
                 warn!("Tried to remove entity with id {id} from chunk {entity_chunk:?} but it was not found.");
+            }
+            if self.by_uuid.remove(&entity_uuid).is_none() {
+                warn!("Tried to remove entity with id {id} from uuid {entity_uuid:?} but it was not found.");
             }
         } else {
             warn!("Tried to remove entity with id {id} but it was not found.")
@@ -54,11 +61,27 @@ impl EntityStorage {
         self.by_id.get_mut(&id)
     }
 
+    /// Get a reference to an entity by its uuid.
+    #[inline]
+    pub fn get_by_uuid(&self, uuid: &Uuid) -> Option<&Entity> {
+        self.by_uuid.get(uuid).and_then(|id| self.by_id.get(id))
+    }
+
+    /// Get a mutable reference to an entity by its uuid.
+    #[inline]
+    pub fn get_mut_by_uuid(&mut self, uuid: &Uuid) -> Option<&mut Entity> {
+        self.by_uuid.get(uuid).and_then(|id| self.by_id.get_mut(id))
+    }
+
     /// Clear all entities in a chunk.
     pub fn clear_chunk(&mut self, chunk: &ChunkPos) {
         if let Some(entities) = self.by_chunk.remove(chunk) {
             for entity_id in entities {
-                self.by_id.remove(&entity_id);
+                if let Some(entity) = self.by_id.remove(&entity_id) {
+                    self.by_uuid.remove(&entity.uuid);
+                } else {
+                    warn!("While clearing chunk {chunk:?}, found an entity that isn't in by_id {entity_id}.");
+                }
             }
         }
     }

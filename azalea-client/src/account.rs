@@ -1,7 +1,7 @@
+//! Connect to Minecraft servers.
+
 use crate::Client;
 use azalea_protocol::ServerAddress;
-
-///! Connect to Minecraft servers.
 
 /// Something that can join Minecraft servers.
 pub struct Account {

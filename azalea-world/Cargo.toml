@@ -13,6 +13,7 @@ azalea-entity = {path = "../azalea-entity"}
 azalea-nbt = {path = "../azalea-nbt"}
 log = "0.4.17"
 nohash-hasher = "0.2.0"
+uuid = "1.1.2"
 
 [profile.release]
 lto = true

@@ -122,6 +122,7 @@ dependencies = [
  "azalea-world",
  "owning_ref",
  "tokio",
+ "uuid",
 ]
 
 [[package]]
@@ -219,6 +220,7 @@ dependencies = [
  "azalea-nbt",
  "log",
  "nohash-hasher",
+ "uuid",
 ]
 
 [[package]]

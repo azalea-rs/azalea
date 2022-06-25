@@ -14,3 +14,4 @@ azalea-protocol = {path = "../azalea-protocol"}
 azalea-world = {path = "../azalea-world"}
 owning_ref = "0.4.1"
 tokio = {version = "1.19.2", features = ["sync"]}
+uuid = "1.1.2"

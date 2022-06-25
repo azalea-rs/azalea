@@ -6,7 +6,7 @@ mod entity;
 mod palette;
 
 use azalea_block::BlockState;
-use azalea_core::{BlockPos, ChunkPos, EntityPos, PositionDelta};
+use azalea_core::{BlockPos, ChunkPos, EntityPos, PositionDelta8};
 use azalea_entity::Entity;
 pub use bit_storage::BitStorage;
 pub use chunk::{Chunk, ChunkStorage};
@@ -16,6 +16,7 @@ use std::{
     ops::{Index, IndexMut},
     sync::{Arc, Mutex},
 };
+use uuid::Uuid;
 
 #[cfg(test)]
 mod tests {
@@ -76,7 +77,7 @@ impl World {
     pub fn move_entity_with_delta(
         &mut self,
         entity_id: u32,
-        delta: &PositionDelta,
+        delta: &PositionDelta8,
     ) -> Result<(), String> {
         let entity = self
             .entity_storage
@@ -110,6 +111,14 @@ impl World {
 
     pub fn entity_by_id(&self, id: u32) -> Option<&Entity> {
         self.entity_storage.get_by_id(id)
+    }
+
+    pub fn mut_entity_by_id(&mut self, id: u32) -> Option<&mut Entity> {
+        self.entity_storage.get_mut_by_id(id)
+    }
+
+    pub fn entity_by_uuid(&self, uuid: &Uuid) -> Option<&Entity> {
+        self.entity_storage.get_by_uuid(uuid)
     }
 
     /// Get an iterator over all entities.

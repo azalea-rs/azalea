@@ -1,5 +1,6 @@
 use crate::{Account, Player};
-use azalea_core::{ChunkPos, EntityPos, ResourceLocation};
+use azalea_auth::game_profile::GameProfile;
+use azalea_core::{ChunkPos, EntityPos, PositionDelta, PositionDeltaTrait, ResourceLocation};
 use azalea_entity::Entity;
 use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
@@ -63,6 +64,7 @@ pub enum ChatPacket {
 /// A player that you can control that is currently in a Minecraft server.
 pub struct Client {
     event_receiver: UnboundedReceiver<Event>,
+    game_profile: GameProfile,
     pub conn: Arc<tokio::sync::Mutex<GameConnection>>,
     pub state: Arc<Mutex<ClientState>>,
     // game_loop
@@ -104,7 +106,7 @@ impl Client {
         )
         .await;
 
-        let conn = loop {
+        let (conn, game_profile) = loop {
             let packet_result = conn.read().await;
             match packet_result {
                 Ok(packet) => match packet {
@@ -132,7 +134,7 @@ impl Client {
                     }
                     LoginPacket::ClientboundGameProfilePacket(p) => {
                         println!("Got profile {:?}", p.game_profile);
-                        break conn.game();
+                        break (conn.game(), p.game_profile);
                     }
                     LoginPacket::ClientboundLoginDisconnectPacket(p) => {
                         println!("Got disconnect {:?}", p);
@@ -154,6 +156,7 @@ impl Client {
 
         // we got the GameConnection, so the server is now connected :)
         let client = Client {
+            game_profile: game_profile.clone(),
             event_receiver: rx,
             conn: conn.clone(),
             state: Arc::new(Mutex::new(ClientState::default())),
@@ -167,6 +170,7 @@ impl Client {
             conn.clone(),
             tx.clone(),
             game_loop_state.clone(),
+            game_profile.clone(),
         ));
         tokio::spawn(Self::game_tick_loop(conn, tx, game_loop_state));
 
@@ -177,21 +181,24 @@ impl Client {
         conn: Arc<tokio::sync::Mutex<GameConnection>>,
         tx: UnboundedSender<Event>,
         state: Arc<Mutex<ClientState>>,
+        game_profile: GameProfile,
     ) {
         loop {
             let r = conn.lock().await.read().await;
             match r {
-                Ok(packet) => match Self::handle(&packet, &tx, &state, &conn).await {
-                    Ok(_) => {}
-                    Err(e) => {
-                        println!("Error handling packet: {:?}", e);
-                        if IGNORE_ERRORS {
-                            continue;
-                        } else {
-                            panic!("Error handling packet: {:?}", e);
+                Ok(packet) => {
+                    match Self::handle(&packet, &tx, &state, &conn, &game_profile).await {
+                        Ok(_) => {}
+                        Err(e) => {
+                            println!("Error handling packet: {:?}", e);
+                            if IGNORE_ERRORS {
+                                continue;
+                            } else {
+                                panic!("Error handling packet: {:?}", e);
+                            }
                         }
                     }
-                },
+                }
                 Err(e) => {
                     if IGNORE_ERRORS {
                         println!("Error: {:?}", e);
@@ -211,13 +218,14 @@ impl Client {
         tx: &UnboundedSender<Event>,
         state: &Arc<Mutex<ClientState>>,
         conn: &Arc<tokio::sync::Mutex<GameConnection>>,
+        game_profile: &GameProfile,
     ) -> Result<(), HandleError> {
         match packet {
             GamePacket::ClientboundLoginPacket(p) => {
                 println!("Got login packet {:?}", p);
 
                 {
-                    let mut state = state.lock()?;
+                    let mut state_lock = state.lock()?;
 
                     // // write p into login.txt
                     // std::io::Write::write_all(
@@ -225,8 +233,6 @@ impl Client {
                     //     format!("{:#?}", p).as_bytes(),
                     // )
                     // .unwrap();
-
-                    state.player.entity.id = p.player_id;
 
                     // TODO: have registry_holder be a struct because this sucks rn
                     // best way would be to add serde support to azalea-nbt
@@ -281,7 +287,18 @@ impl Client {
                         .as_int()
                         .expect("min_y tag is not an int");
 
-                    state.world = Some(World::new(16, height, min_y));
+                    // the 16 here is our render distance
+                    // i'll make this an actual setting later
+                    state_lock.world = Some(World::new(16, height, min_y));
+
+                    let entity = Entity::new(p.player_id, game_profile.uuid, EntityPos::default());
+                    state_lock
+                        .world
+                        .as_mut()
+                        .expect("World doesn't exist! We should've gotten a login packet by now.")
+                        .add_entity(entity);
+
+                    state_lock.player.set_entity_id(p.player_id);
                 }
 
                 conn.lock()
@@ -334,6 +351,99 @@ impl Client {
             GamePacket::ClientboundPlayerPositionPacket(p) => {
                 // TODO: reply with teleport confirm
                 println!("Got player position packet {:?}", p);
+
+                let mut state_lock = state.lock()?;
+                let player_entity_id = state_lock.player.entity_id;
+                let world = state_lock.world.as_mut().unwrap();
+                let player_entity = world
+                    .mut_entity_by_id(player_entity_id)
+                    .expect("Player entity doesn't exist");
+                let delta_movement = &player_entity.delta;
+
+                let is_x_relative = p.relative_arguments.x;
+                let is_y_relative = p.relative_arguments.y;
+                let is_z_relative = p.relative_arguments.z;
+
+                let (delta_x, new_pos_x) = if is_x_relative {
+                    player_entity.old_pos.x += p.x;
+                    (delta_movement.x(), player_entity.pos().x + p.x)
+                } else {
+                    player_entity.old_pos.x = p.x;
+                    (0.0, p.x)
+                };
+                let (delta_y, new_pos_y) = if is_y_relative {
+                    player_entity.old_pos.y += p.y;
+                    (delta_movement.y(), player_entity.pos().y + p.y)
+                } else {
+                    player_entity.old_pos.y = p.y;
+                    (0.0, p.y)
+                };
+                let (delta_z, new_pos_z) = if is_z_relative {
+                    player_entity.old_pos.z += p.z;
+                    (delta_movement.z(), player_entity.pos().z + p.z)
+                } else {
+                    player_entity.old_pos.z = p.z;
+                    (0.0, p.z)
+                };
+
+                let mut y_rot = p.y_rot;
+                let mut x_rot = p.x_rot;
+                if p.relative_arguments.x_rot {
+                    y_rot += player_entity.x_rot;
+                }
+                if p.relative_arguments.y_rot {
+                    x_rot += player_entity.y_rot;
+                }
+
+                player_entity.delta = PositionDelta {
+                    xa: delta_x,
+                    ya: delta_y,
+                    za: delta_z,
+                };
+                player_entity.set_rotation(x_rot, y_rot);
+                // TODO: minecraft sets "xo", "yo", and "zo" here but idk what that means
+                // so investigate that ig
+                world
+                    .move_entity(
+                        player_entity_id,
+                        EntityPos {
+                            x: new_pos_x,
+                            y: new_pos_y,
+                            z: new_pos_z,
+                        },
+                    )
+                    .expect("The player entity should always exist");
+
+                let mut state_lock = state.lock()?;
+
+                let player = &state_lock.player;
+                let player_entity_id = player.entity_id;
+
+                let world = state_lock.world.as_mut().unwrap();
+                world.move_entity(
+                    player_entity_id,
+                    EntityPos {
+                        x: p.x,
+                        y: p.y,
+                        z: p.z,
+                    },
+                )?;
+
+                conn.lock()
+                    .await
+                    .write(ServerboundAcceptTeleportationPacket {}.get())
+                    .await;
+                conn.lock()
+                    .await
+                    .write(
+                        ServerboundMovePlayerPacketPosRot {
+                            identifier: ResourceLocation::new("brand").unwrap(),
+                            // they don't have to know :)
+                            data: "vanilla".into(),
+                        }
+                        .get(),
+                    )
+                    .await;
             }
             GamePacket::ClientboundPlayerInfoPacket(p) => {
                 println!("Got player info packet {:?}", p);
@@ -534,12 +644,21 @@ impl Client {
 
     /// Gets the `World` the client is in.
     ///
-    /// This is basically a shortcut for `let world = client.state.lock().unwrap().world.as_ref().unwrap()`.
+    /// This is basically a shortcut for `client.state.lock().unwrap().world.as_ref().unwrap()`.
     /// If the client hasn't received a login packet yet, this will panic.
     pub fn world(&self) -> OwningRef<std::sync::MutexGuard<ClientState>, World> {
         let state_lock: std::sync::MutexGuard<ClientState> = self.state.lock().unwrap();
         let state_lock_ref = OwningRef::new(state_lock);
         state_lock_ref.map(|state| state.world.as_ref().expect("World doesn't exist!"))
+    }
+
+    /// Gets the `Player` struct for our player.
+    ///
+    /// This is basically a shortcut for `client.state.lock().unwrap().player`.
+    pub fn player(&self) -> OwningRef<std::sync::MutexGuard<ClientState>, Player> {
+        let state_lock: std::sync::MutexGuard<ClientState> = self.state.lock().unwrap();
+        let state_lock_ref = OwningRef::new(state_lock);
+        state_lock_ref.map(|state| &state.player)
     }
 }
 
