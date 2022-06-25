@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             //     //     println!("block state: {:?}", c);
             //     // }
             // }
-            Event::Chat(msg) => {
+            Event::Chat(_m) => {
                 let new_pos = {
                     let dimension_lock = client.dimension.lock().unwrap();
                     let dimension = dimension_lock.as_ref().unwrap();

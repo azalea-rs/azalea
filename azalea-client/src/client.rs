@@ -163,8 +163,6 @@ impl Client {
 
         // just start up the game loop and we're ready!
 
-        let game_loop_state = client.clone();
-
         // if you get an error right here that means you're doing something with locks wrong
         // read the error to see where the issue is
         // you might be able to just drop the lock or put it in its own scope to fix

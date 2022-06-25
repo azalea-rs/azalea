@@ -1,4 +1,3 @@
-use super::GamePacket;
 use azalea_buf::McBuf;
 use azalea_buf::McBufVarReadable;
 use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
@@ -236,7 +235,7 @@ impl McBufReadable for BrigadierNodeStub {
 }
 
 impl McBufWritable for BrigadierNodeStub {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
         todo!()
     }
 }

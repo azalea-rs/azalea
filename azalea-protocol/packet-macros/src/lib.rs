@@ -1,9 +1,9 @@
 use proc_macro::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::{
     self, braced,
     parse::{Parse, ParseStream, Result},
-    parse_macro_input, Data, DeriveInput, FieldsNamed, Ident, LitInt, Token,
+    parse_macro_input, DeriveInput, FieldsNamed, Ident, LitInt, Token,
 };
 
 fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> TokenStream {

@@ -8,7 +8,7 @@ impl Client {
         let mut dimension_lock = self.dimension.lock().unwrap();
         let dimension = dimension_lock.as_mut().unwrap();
 
-        let mut player_lock = self.player.lock().unwrap();
+        let player_lock = self.player.lock().unwrap();
 
         let player_id = if let Some(player_lock) = player_lock.entity(dimension) {
             player_lock.id
@@ -35,7 +35,6 @@ impl Client {
                 .get(),
             )
             .await;
-        println!("obtained lock on conn");
 
         Ok(())
     }
