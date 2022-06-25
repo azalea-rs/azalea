@@ -23,7 +23,7 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use azalea_world::World;
+use azalea_world::Dimension;
 use owning_ref::OwningRef;
 use std::{
     fmt::Debug,
@@ -37,7 +37,7 @@ use tokio::{
 #[derive(Default)]
 pub struct ClientState {
     pub player: Player,
-    pub world: Option<World>,
+    pub world: Option<Dimension>,
 }
 
 #[derive(Debug, Clone)]
@@ -294,13 +294,15 @@ impl Client {
 
                     // the 16 here is our render distance
                     // i'll make this an actual setting later
-                    state_lock.world = Some(World::new(16, height, min_y));
+                    state_lock.world = Some(Dimension::new(16, height, min_y));
 
                     let entity = Entity::new(p.player_id, game_profile.uuid, EntityPos::default());
                     state_lock
                         .world
                         .as_mut()
-                        .expect("World doesn't exist! We should've gotten a login packet by now.")
+                        .expect(
+                            "Dimension doesn't exist! We should've gotten a login packet by now.",
+                        )
                         .add_entity(entity);
 
                     state_lock.player.set_entity_id(p.player_id);
@@ -461,7 +463,7 @@ impl Client {
                     .lock()?
                     .world
                     .as_mut()
-                    .expect("World doesn't exist! We should've gotten a login packet by now.")
+                    .expect("Dimension doesn't exist! We should've gotten a login packet by now.")
                     .replace_with_packet_data(&pos, &mut p.chunk_data.data.as_slice())
                     .unwrap();
             }
@@ -475,7 +477,7 @@ impl Client {
                     .lock()?
                     .world
                     .as_mut()
-                    .expect("World doesn't exist! We should've gotten a login packet by now.")
+                    .expect("Dimension doesn't exist! We should've gotten a login packet by now.")
                     .add_entity(entity);
             }
             GamePacket::ClientboundSetEntityDataPacket(_p) => {
@@ -497,7 +499,7 @@ impl Client {
                     .lock()?
                     .world
                     .as_mut()
-                    .expect("World doesn't exist! We should've gotten a login packet by now.")
+                    .expect("Dimension doesn't exist! We should've gotten a login packet by now.")
                     .add_entity(entity);
             }
             GamePacket::ClientboundInitializeBorderPacket(p) => {
@@ -640,14 +642,14 @@ impl Client {
         tx.send(Event::GameTick).unwrap();
     }
 
-    /// Gets the `World` the client is in.
+    /// Gets the `Dimension` the client is in.
     ///
     /// This is basically a shortcut for `client.state.lock().unwrap().world.as_ref().unwrap()`.
     /// If the client hasn't received a login packet yet, this will panic.
-    pub fn world(&self) -> OwningRef<std::sync::MutexGuard<ClientState>, World> {
+    pub fn world(&self) -> OwningRef<std::sync::MutexGuard<ClientState>, Dimension> {
         let state_lock: std::sync::MutexGuard<ClientState> = self.state.lock().unwrap();
         let state_lock_ref = OwningRef::new(state_lock);
-        state_lock_ref.map(|state| state.world.as_ref().expect("World doesn't exist!"))
+        state_lock_ref.map(|state| state.world.as_ref().expect("Dimension doesn't exist!"))
     }
 
     /// Gets the `Player` struct for our player.

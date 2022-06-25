@@ -1,5 +1,5 @@
 use azalea_entity::Entity;
-use azalea_world::World;
+use azalea_world::Dimension;
 use uuid::Uuid;
 
 #[derive(Default, Debug)]
@@ -12,7 +12,7 @@ pub struct Player {
 
 impl Player {
     /// Get the entity of the player in the world.
-    pub fn entity<'a>(&self, world: &'a World) -> Option<&'a Entity> {
+    pub fn entity<'a>(&self, world: &'a Dimension) -> Option<&'a Entity> {
         // world.entity_by_uuid(&self.uuid)
         world.entity_by_id(self.entity_id)
     }

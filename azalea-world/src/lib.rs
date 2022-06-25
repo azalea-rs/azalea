@@ -27,15 +27,16 @@ mod tests {
     }
 }
 
+/// A dimension is a collection of chunks and entities.
 #[derive(Debug)]
-pub struct World {
+pub struct Dimension {
     chunk_storage: ChunkStorage,
     entity_storage: EntityStorage,
 }
 
-impl World {
+impl Dimension {
     pub fn new(chunk_radius: u32, height: u32, min_y: i32) -> Self {
-        World {
+        Dimension {
             chunk_storage: ChunkStorage::new(chunk_radius, height, min_y),
             entity_storage: EntityStorage::new(),
         }
@@ -135,14 +136,14 @@ impl World {
     }
 }
 
-impl Index<&ChunkPos> for World {
+impl Index<&ChunkPos> for Dimension {
     type Output = Option<Arc<Mutex<Chunk>>>;
 
     fn index(&self, pos: &ChunkPos) -> &Self::Output {
         &self.chunk_storage[pos]
     }
 }
-impl IndexMut<&ChunkPos> for World {
+impl IndexMut<&ChunkPos> for Dimension {
     fn index_mut<'a>(&'a mut self, pos: &ChunkPos) -> &'a mut Self::Output {
         &mut self.chunk_storage[pos]
     }

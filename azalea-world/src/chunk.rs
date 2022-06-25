@@ -1,6 +1,6 @@
 use crate::palette::PalettedContainer;
 use crate::palette::PalettedContainerType;
-use crate::World;
+use crate::Dimension;
 use azalea_block::BlockState;
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
@@ -78,7 +78,7 @@ impl ChunkStorage {
             return Ok(());
         }
 
-        let chunk = Arc::new(Mutex::new(Chunk::read_with_world_height(
+        let chunk = Arc::new(Mutex::new(Chunk::read_with_dimension_height(
             data,
             self.height,
         )?));
@@ -109,12 +109,15 @@ pub struct Chunk {
 }
 
 impl Chunk {
-    pub fn read_with_world(buf: &mut impl Read, data: &World) -> Result<Self, String> {
-        Self::read_with_world_height(buf, data.height())
+    pub fn read_with_dimension(buf: &mut impl Read, data: &Dimension) -> Result<Self, String> {
+        Self::read_with_dimension_height(buf, data.height())
     }
 
-    pub fn read_with_world_height(buf: &mut impl Read, world_height: u32) -> Result<Self, String> {
-        let section_count = world_height / SECTION_HEIGHT;
+    pub fn read_with_dimension_height(
+        buf: &mut impl Read,
+        dimension_height: u32,
+    ) -> Result<Self, String> {
+        let section_count = dimension_height / SECTION_HEIGHT;
         let mut sections = Vec::with_capacity(section_count as usize);
         for _ in 0..section_count {
             let section = Section::read_from(buf)?;
