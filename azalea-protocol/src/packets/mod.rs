@@ -4,9 +4,7 @@ pub mod login;
 pub mod status;
 
 use crate::connect::PacketFlow;
-use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
-use num_derive::FromPrimitive;
-use num_traits::FromPrimitive;
+use azalea_buf::{McBufWritable, Readable, Writable};
 use std::io::{Read, Write};
 
 pub const PROTOCOL_VERSION: u32 = 759;
