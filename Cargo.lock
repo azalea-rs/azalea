@@ -34,9 +34,9 @@ dependencies = [
 
 [[package]]
 name = "async-recursion"
-version = "0.3.2"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7d78656ba01f1b93024b7c3a0467f1608e4be67d725749fdcd7d2c7678fd7a2"
+checksum = "2cda8f4bcc10624c4e85bc66b3f452cca98cfa5ca002dc83a16aad2367641bea"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -90,9 +90,20 @@ name = "azalea-brigadier"
 version = "0.1.0"
 
 [[package]]
+name = "azalea-buf"
+version = "0.1.0"
+dependencies = [
+ "buf-macros",
+ "byteorder",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "azalea-chat"
 version = "0.1.0"
 dependencies = [
+ "azalea-buf",
  "azalea-language",
  "lazy_static",
  "serde",
@@ -106,15 +117,19 @@ dependencies = [
  "azalea-auth",
  "azalea-core",
  "azalea-crypto",
+ "azalea-entity",
  "azalea-protocol",
  "azalea-world",
+ "owning_ref",
  "tokio",
+ "uuid",
 ]
 
 [[package]]
 name = "azalea-core"
 version = "0.1.0"
 dependencies = [
+ "azalea-buf",
  "azalea-chat",
  "azalea-nbt",
  "uuid",
@@ -125,11 +140,23 @@ name = "azalea-crypto"
 version = "0.1.0"
 dependencies = [
  "aes",
+ "azalea-buf",
  "cfb8",
  "num-bigint",
  "rand",
  "rsa_public_encrypt_pkcs1",
  "sha-1",
+]
+
+[[package]]
+name = "azalea-entity"
+version = "0.1.0"
+dependencies = [
+ "azalea-buf",
+ "azalea-chat",
+ "azalea-core",
+ "azalea-nbt",
+ "uuid",
 ]
 
 [[package]]
@@ -145,6 +172,7 @@ dependencies = [
 name = "azalea-nbt"
 version = "0.1.0"
 dependencies = [
+ "azalea-buf",
  "byteorder",
  "criterion",
  "flate2",
@@ -160,15 +188,15 @@ dependencies = [
  "async-recursion",
  "azalea-auth",
  "azalea-brigadier",
+ "azalea-buf",
  "azalea-chat",
  "azalea-core",
  "azalea-crypto",
+ "azalea-entity",
  "azalea-nbt",
  "byteorder",
  "bytes",
  "flate2",
- "num-derive",
- "num-traits",
  "packet-macros",
  "serde",
  "serde_json",
@@ -184,9 +212,13 @@ name = "azalea-world"
 version = "0.1.0"
 dependencies = [
  "azalea-block",
+ "azalea-buf",
  "azalea-core",
+ "azalea-entity",
  "azalea-nbt",
- "azalea-protocol",
+ "log",
+ "nohash-hasher",
+ "uuid",
 ]
 
 [[package]]
@@ -221,6 +253,7 @@ dependencies = [
  "azalea-core",
  "azalea-protocol",
  "tokio",
+ "uuid",
 ]
 
 [[package]]
@@ -233,6 +266,15 @@ dependencies = [
  "memchr",
  "regex-automata",
  "serde",
+]
+
+[[package]]
+name = "buf-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -764,6 +806,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "nohash-hasher"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2bf50223579dc7cdcfb3bfcacf7069ff68243f8c363f62ffa99cf000a6b9c451"
+
+[[package]]
 name = "num"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -871,6 +919,15 @@ name = "oorandom"
 version = "11.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ab1bc2a289d34bd04a330323ac98a1b4bc82c9d9fcb1e66b63caa84da26b575"
+
+[[package]]
+name = "owning_ref"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6ff55baddef9e4ad00f88b6c743a2a8062d4c6ade126c2a528644b8e444d52ce"
+dependencies = [
+ "stable_deref_trait",
+]
 
 [[package]]
 name = "packet-macros"
@@ -1221,6 +1278,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "stable_deref_trait"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
+
+[[package]]
 name = "syn"
 version = "1.0.96"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1420,9 +1483,9 @@ dependencies = [
 
 [[package]]
 name = "uuid"
-version = "0.8.2"
+version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
+checksum = "dd6469f4314d5f1ffec476e05f17cc9a78bc7a27a6a857842170bdf8d6f98d2f"
 
 [[package]]
 name = "version_check"

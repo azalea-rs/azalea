@@ -1,5 +1,6 @@
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable};
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use azalea_buf::{McBufReadable, McBufWritable, Readable};
+use packet_macros::GamePacket;
 use std::io::{Read, Write};
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
@@ -19,7 +20,7 @@ pub struct PlayerAbilitiesFlags {
 }
 
 impl McBufReadable for PlayerAbilitiesFlags {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         let byte = buf.read_byte()?;
         Ok(PlayerAbilitiesFlags {
             invulnerable: byte & 1 != 0,

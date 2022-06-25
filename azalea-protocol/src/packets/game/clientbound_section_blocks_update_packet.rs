@@ -1,6 +1,7 @@
-use crate::mc_buf::{McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_buf::McBuf;
+use azalea_buf::{McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_core::{ChunkSectionBlockPos, ChunkSectionPos};
-use packet_macros::{GamePacket, McBuf};
+use packet_macros::GamePacket;
 use std::io::{Read, Write};
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
@@ -17,8 +18,8 @@ pub struct BlockStateWithPosition {
 }
 
 impl McBufReadable for BlockStateWithPosition {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let data = u64::var_read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let data = u64::var_read_from(buf)?;
         let position_part = data & 4095;
         let state = (data >> 12) as u32;
         let position = ChunkSectionBlockPos {

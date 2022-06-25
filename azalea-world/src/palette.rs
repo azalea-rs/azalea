@@ -1,4 +1,4 @@
-use azalea_protocol::mc_buf::{McBufReadable, McBufVarReadable, McBufWritable, Readable, Writable};
+use azalea_buf::{McBufReadable, McBufVarReadable, McBufWritable, Readable, Writable};
 use std::io::{Read, Write};
 
 use crate::BitStorage;
@@ -37,7 +37,7 @@ impl PalettedContainer {
             PalettedContainerType::Biomes => 64,
         };
 
-        let data = Vec::<u64>::read_into(buf)?;
+        let data = Vec::<u64>::read_from(buf)?;
         debug_assert!(
             bits_per_entry != 0 || data.is_empty(),
             "Bits per entry is 0 but data is not empty."
@@ -92,9 +92,9 @@ impl Palette {
         bits_per_entry: u8,
     ) -> Result<Palette, String> {
         Ok(match bits_per_entry {
-            0 => Palette::SingleValue(u32::var_read_into(buf)?),
-            1..=4 => Palette::Linear(Vec::<u32>::var_read_into(buf)?),
-            5..=8 => Palette::Hashmap(Vec::<u32>::var_read_into(buf)?),
+            0 => Palette::SingleValue(u32::var_read_from(buf)?),
+            1..=4 => Palette::Linear(Vec::<u32>::var_read_from(buf)?),
+            5..=8 => Palette::Hashmap(Vec::<u32>::var_read_from(buf)?),
             _ => Palette::Global,
         })
     }
@@ -104,8 +104,8 @@ impl Palette {
         bits_per_entry: u8,
     ) -> Result<Palette, String> {
         Ok(match bits_per_entry {
-            0 => Palette::SingleValue(u32::var_read_into(buf)?),
-            1..=3 => Palette::Linear(Vec::<u32>::var_read_into(buf)?),
+            0 => Palette::SingleValue(u32::var_read_from(buf)?),
+            1..=3 => Palette::Linear(Vec::<u32>::var_read_from(buf)?),
             _ => Palette::Global,
         })
     }

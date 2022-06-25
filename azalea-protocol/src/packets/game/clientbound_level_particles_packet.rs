@@ -1,5 +1,5 @@
-use crate::mc_buf::McBufVarReadable;
-use crate::mc_buf::{McBufReadable, McBufWritable, ParticleData};
+use azalea_buf::{McBufReadable, McBufVarReadable, McBufWritable};
+use azalea_core::ParticleData;
 use packet_macros::GamePacket;
 use std::io::{Read, Write};
 
@@ -20,17 +20,17 @@ pub struct ClientboundLevelParticlesPacket {
 }
 
 impl McBufReadable for ClientboundLevelParticlesPacket {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let particle_id = u32::var_read_into(buf)?;
-        let override_limiter = bool::read_into(buf)?;
-        let x = f64::read_into(buf)?;
-        let y = f64::read_into(buf)?;
-        let z = f64::read_into(buf)?;
-        let x_dist = f32::read_into(buf)?;
-        let y_dist = f32::read_into(buf)?;
-        let z_dist = f32::read_into(buf)?;
-        let max_speed = f32::read_into(buf)?;
-        let count = u32::read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let particle_id = u32::var_read_from(buf)?;
+        let override_limiter = bool::read_from(buf)?;
+        let x = f64::read_from(buf)?;
+        let y = f64::read_from(buf)?;
+        let z = f64::read_from(buf)?;
+        let x_dist = f32::read_from(buf)?;
+        let y_dist = f32::read_from(buf)?;
+        let z_dist = f32::read_from(buf)?;
+        let max_speed = f32::read_from(buf)?;
+        let count = u32::read_from(buf)?;
 
         let data = ParticleData::read_from_particle_id(buf, particle_id)?;
 

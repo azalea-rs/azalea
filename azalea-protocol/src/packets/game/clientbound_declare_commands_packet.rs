@@ -1,8 +1,9 @@
 use super::GamePacket;
-use crate::mc_buf::McBufVarReadable;
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
-use azalea_core::resource_location::ResourceLocation;
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use azalea_buf::McBufVarReadable;
+use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use azalea_core::ResourceLocation;
+use packet_macros::GamePacket;
 use std::{
     hash::Hash,
     io::{Read, Write},
@@ -24,15 +25,15 @@ pub struct BrigadierNumber<T> {
     max: Option<T>,
 }
 impl<T: McBufReadable> McBufReadable for BrigadierNumber<T> {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         let flags = buf.read_byte()?;
         let min = if flags & 0x01 != 0 {
-            Some(T::read_into(buf)?)
+            Some(T::read_from(buf)?)
         } else {
             None
         };
         let max = if flags & 0x02 != 0 {
-            Some(T::read_into(buf)?)
+            Some(T::read_from(buf)?)
         } else {
             None
         };
@@ -123,16 +124,16 @@ pub enum BrigadierParser {
 }
 
 impl McBufReadable for BrigadierParser {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let parser_type = u32::var_read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let parser_type = u32::var_read_from(buf)?;
 
         match parser_type {
             0 => Ok(BrigadierParser::Bool),
-            1 => Ok(BrigadierParser::Float(BrigadierNumber::read_into(buf)?)),
-            2 => Ok(BrigadierParser::Double(BrigadierNumber::read_into(buf)?)),
-            3 => Ok(BrigadierParser::Integer(BrigadierNumber::read_into(buf)?)),
-            4 => Ok(BrigadierParser::Long(BrigadierNumber::read_into(buf)?)),
-            5 => Ok(BrigadierParser::String(BrigadierString::read_into(buf)?)),
+            1 => Ok(BrigadierParser::Float(BrigadierNumber::read_from(buf)?)),
+            2 => Ok(BrigadierParser::Double(BrigadierNumber::read_from(buf)?)),
+            3 => Ok(BrigadierParser::Integer(BrigadierNumber::read_from(buf)?)),
+            4 => Ok(BrigadierParser::Long(BrigadierNumber::read_from(buf)?)),
+            5 => Ok(BrigadierParser::String(BrigadierString::read_from(buf)?)),
             6 => {
                 let flags = buf.read_byte()?;
                 Ok(BrigadierParser::Entity {
@@ -182,10 +183,10 @@ impl McBufReadable for BrigadierParser {
             41 => Ok(BrigadierParser::Dimension),
             42 => Ok(BrigadierParser::Time),
             43 => Ok(BrigadierParser::ResourceOrTag {
-                registry_key: buf.read_resource_location()?,
+                registry_key: ResourceLocation::read_from(buf)?,
             }),
             44 => Ok(BrigadierParser::Resource {
-                registry_key: buf.read_resource_location()?,
+                registry_key: ResourceLocation::read_from(buf)?,
             }),
             45 => Ok(BrigadierParser::TemplateMirror),
             46 => Ok(BrigadierParser::TemplateRotation),
@@ -197,8 +198,8 @@ impl McBufReadable for BrigadierParser {
 
 // TODO: BrigadierNodeStub should have more stuff
 impl McBufReadable for BrigadierNodeStub {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let flags = u8::read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let flags = u8::read_from(buf)?;
         if flags > 31 {
             println!(
                 "Warning: The flags from a Brigadier node are over 31 ({flags}; {flags:#b}). This is probably a bug.",
@@ -216,9 +217,9 @@ impl McBufReadable for BrigadierNodeStub {
         // argument node
         if node_type == 2 {
             let _name = buf.read_utf()?;
-            let _parser = BrigadierParser::read_into(buf)?;
+            let _parser = BrigadierParser::read_from(buf)?;
             let _suggestions_type = if has_suggestions_type {
-                Some(buf.read_resource_location()?)
+                Some(ResourceLocation::read_from(buf)?)
             } else {
                 None
             };

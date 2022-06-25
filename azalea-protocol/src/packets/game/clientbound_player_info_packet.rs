@@ -1,6 +1,7 @@
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use azalea_buf::McBuf;
+use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_chat::component::Component;
-use packet_macros::{GamePacket, McBuf};
+use packet_macros::GamePacket;
 use std::io::{Read, Write};
 use uuid::Uuid;
 
@@ -62,14 +63,14 @@ pub struct RemovePlayer {
 }
 
 impl McBufReadable for Action {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         let id = buf.read_byte()?;
         Ok(match id {
-            0 => Action::AddPlayer(Vec::<AddPlayer>::read_into(buf)?),
-            1 => Action::UpdateGameMode(Vec::<UpdateGameMode>::read_into(buf)?),
-            2 => Action::UpdateLatency(Vec::<UpdateLatency>::read_into(buf)?),
-            3 => Action::UpdateDisplayName(Vec::<UpdateDisplayName>::read_into(buf)?),
-            4 => Action::RemovePlayer(Vec::<RemovePlayer>::read_into(buf)?),
+            0 => Action::AddPlayer(Vec::<AddPlayer>::read_from(buf)?),
+            1 => Action::UpdateGameMode(Vec::<UpdateGameMode>::read_from(buf)?),
+            2 => Action::UpdateLatency(Vec::<UpdateLatency>::read_from(buf)?),
+            3 => Action::UpdateDisplayName(Vec::<UpdateDisplayName>::read_from(buf)?),
+            4 => Action::RemovePlayer(Vec::<RemovePlayer>::read_from(buf)?),
             _ => panic!("Unknown player info action id: {}", id),
         })
     }

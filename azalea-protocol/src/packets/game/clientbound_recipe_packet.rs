@@ -1,6 +1,7 @@
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
-use azalea_core::resource_location::ResourceLocation;
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use azalea_core::ResourceLocation;
+use packet_macros::GamePacket;
 use std::io::{Read, Write};
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
@@ -40,7 +41,7 @@ impl McBufWritable for State {
     }
 }
 impl McBufReadable for State {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         let state = buf.read_varint()?;
         Ok(match state {
             0 => State::Init,

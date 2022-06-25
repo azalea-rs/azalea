@@ -1,8 +1,5 @@
-use crate::{
-    connect::PacketFlow,
-    mc_buf::{read_varint_async, Readable},
-    packets::ProtocolPacket,
-};
+use crate::{connect::PacketFlow, packets::ProtocolPacket};
+use azalea_buf::{read_varint_async, Readable};
 use azalea_crypto::Aes128CfbDec;
 use flate2::read::ZlibDecoder;
 use std::{

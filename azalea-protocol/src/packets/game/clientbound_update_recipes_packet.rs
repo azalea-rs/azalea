@@ -1,9 +1,10 @@
 use std::io::{Read, Write};
 
-use azalea_core::{resource_location::ResourceLocation, Slot};
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use azalea_core::{ResourceLocation, Slot};
+use packet_macros::GamePacket;
 
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundUpdateRecipesPacket {
@@ -48,15 +49,15 @@ impl McBufWritable for ShapedRecipe {
     }
 }
 impl McBufReadable for ShapedRecipe {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         let width = buf.read_varint()?.try_into().unwrap();
         let height = buf.read_varint()?.try_into().unwrap();
         let group = buf.read_utf()?;
         let mut ingredients = Vec::with_capacity(width * height);
         for _ in 0..width * height {
-            ingredients.push(Ingredient::read_into(buf)?);
+            ingredients.push(Ingredient::read_from(buf)?);
         }
-        let result = Slot::read_into(buf)?;
+        let result = Slot::read_from(buf)?;
 
         Ok(ShapedRecipe {
             width,
@@ -128,17 +129,17 @@ impl McBufWritable for Recipe {
 }
 
 impl McBufReadable for Recipe {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let recipe_type = buf.read_resource_location()?;
-        let identifier = buf.read_resource_location()?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let recipe_type = ResourceLocation::read_from(buf)?;
+        let identifier = ResourceLocation::read_from(buf)?;
 
         // rust doesn't let us match ResourceLocation so we have to do a big
         // if-else chain :(
         let data = if recipe_type == ResourceLocation::new("minecraft:crafting_shapeless").unwrap()
         {
-            RecipeData::CraftingShapeless(ShapelessRecipe::read_into(buf)?)
+            RecipeData::CraftingShapeless(ShapelessRecipe::read_from(buf)?)
         } else if recipe_type == ResourceLocation::new("minecraft:crafting_shaped").unwrap() {
-            RecipeData::CraftingShaped(ShapedRecipe::read_into(buf)?)
+            RecipeData::CraftingShaped(ShapedRecipe::read_from(buf)?)
         } else if recipe_type
             == ResourceLocation::new("minecraft:crafting_special_armordye").unwrap()
         {
@@ -196,17 +197,17 @@ impl McBufReadable for Recipe {
         {
             RecipeData::CraftingSpecialSuspiciousStew
         } else if recipe_type == ResourceLocation::new("minecraft:smelting").unwrap() {
-            RecipeData::Smelting(CookingRecipe::read_into(buf)?)
+            RecipeData::Smelting(CookingRecipe::read_from(buf)?)
         } else if recipe_type == ResourceLocation::new("minecraft:blasting").unwrap() {
-            RecipeData::Blasting(CookingRecipe::read_into(buf)?)
+            RecipeData::Blasting(CookingRecipe::read_from(buf)?)
         } else if recipe_type == ResourceLocation::new("minecraft:smoking").unwrap() {
-            RecipeData::Smoking(CookingRecipe::read_into(buf)?)
+            RecipeData::Smoking(CookingRecipe::read_from(buf)?)
         } else if recipe_type == ResourceLocation::new("minecraft:campfire_cooking").unwrap() {
-            RecipeData::CampfireCooking(CookingRecipe::read_into(buf)?)
+            RecipeData::CampfireCooking(CookingRecipe::read_from(buf)?)
         } else if recipe_type == ResourceLocation::new("minecraft:stonecutting").unwrap() {
-            RecipeData::Stonecutting(StoneCuttingRecipe::read_into(buf)?)
+            RecipeData::Stonecutting(StoneCuttingRecipe::read_from(buf)?)
         } else if recipe_type == ResourceLocation::new("minecraft:smithing").unwrap() {
-            RecipeData::Smithing(SmithingRecipe::read_into(buf)?)
+            RecipeData::Smithing(SmithingRecipe::read_from(buf)?)
         } else {
             panic!("Unknown recipe type sent by server: {}", recipe_type);
         };

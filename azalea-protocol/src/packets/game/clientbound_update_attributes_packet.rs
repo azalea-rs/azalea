@@ -1,6 +1,7 @@
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable, Writable};
-use azalea_core::resource_location::ResourceLocation;
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use azalea_core::ResourceLocation;
+use packet_macros::GamePacket;
 use std::io::{Read, Write};
 use uuid::Uuid;
 
@@ -33,7 +34,7 @@ enum Operation {
 }
 
 impl McBufReadable for Operation {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         match buf.read_byte()? {
             0 => Ok(Operation::Addition),
             1 => Ok(Operation::MultiplyBase),

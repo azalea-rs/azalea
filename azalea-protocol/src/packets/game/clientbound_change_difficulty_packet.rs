@@ -1,5 +1,6 @@
-use azalea_core::difficulty::Difficulty;
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use azalea_core::Difficulty;
+use packet_macros::GamePacket;
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundChangeDifficultyPacket {

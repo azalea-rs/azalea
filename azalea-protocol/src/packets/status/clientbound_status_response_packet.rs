@@ -4,7 +4,7 @@ use azalea_chat::component::Component;
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::mc_buf::Readable;
+use azalea_buf::Readable;
 
 use super::StatusPacket;
 

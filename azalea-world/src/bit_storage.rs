@@ -107,7 +107,7 @@ impl BitStorage {
         // assert!(bits >= 1 && bits <= 32);
 
         if let Some(data) = &data {
-            if data.len() == 0 {
+            if data.is_empty() {
                 // TODO: make 0 bit storage actually work
                 return Ok(BitStorage::default());
             }
@@ -162,7 +162,7 @@ impl BitStorage {
         // return (int)(var3 >> var5 & this.mask);
 
         assert!(
-            index <= self.size - 1,
+            index < self.size,
             "Index {} out of bounds (max is {})",
             index,
             self.size - 1
@@ -181,7 +181,7 @@ impl BitStorage {
         // int var6 = (var1 - var3 * this.valuesPerLong) * this.bits;
         // this.data[var3] = var4 & ~(this.mask << var6) | ((long)var2 & this.mask) << var6;
 
-        assert!(index <= self.size - 1);
+        assert!(index < self.size);
         assert!(value <= self.mask);
         let cell_index = self.cell_index(index as u64);
         let cell = &mut self.data[cell_index as usize];

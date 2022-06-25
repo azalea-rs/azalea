@@ -1,5 +1,6 @@
-use crate::mc_buf::{McBufReadable, McBufWritable, Readable};
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use azalea_buf::{McBufReadable, McBufWritable, Readable};
+use packet_macros::GamePacket;
 use std::io::{Read, Write};
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
@@ -13,7 +14,7 @@ pub struct ClientboundPlayerPositionPacket {
     /// Client should confirm this packet with Teleport Confirm containing the
     /// same Teleport ID.
     #[var]
-    pub id: i32,
+    pub id: u32,
     pub dismount_vehicle: bool,
 }
 
@@ -27,7 +28,7 @@ pub struct RelativeArguments {
 }
 
 impl McBufReadable for RelativeArguments {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         let byte = buf.read_byte()?;
         Ok(RelativeArguments {
             x: byte & 0b1 != 0,

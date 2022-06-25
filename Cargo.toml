@@ -12,6 +12,8 @@ members = [
   "azalea-world",
   "azalea-language",
   "azalea-block",
+  "azalea-entity",
+  "azalea-buf",
 ]
 
 [profile.release]
@@ -25,4 +27,6 @@ opt-level = 3
 [profile.dev.package.cfb8]
 opt-level = 3
 [profile.dev.package.aes]
+opt-level = 3
+[profile.dev.package.flate2]
 opt-level = 3

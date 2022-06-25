@@ -1,11 +1,16 @@
-use std::fmt::{Debug, Error, Formatter};
+use std::{
+    fmt::{Debug, Error, Formatter},
+    io::{Read, Write},
+};
+
+use azalea_buf::{McBufReadable, McBufWritable};
 
 #[derive(Hash, Clone, Debug, PartialEq)]
 pub enum Difficulty {
-    PEACEFUL,
-    EASY,
-    NORMAL,
-    HARD,
+    PEACEFUL = 0,
+    EASY = 1,
+    NORMAL = 2,
+    HARD = 3,
 }
 
 pub enum Err {
@@ -58,6 +63,18 @@ impl Difficulty {
             Difficulty::NORMAL => 2,
             Difficulty::HARD => 3,
         }
+    }
+}
+
+impl McBufReadable for Difficulty {
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        Ok(Difficulty::by_id(u8::read_from(buf)?))
+    }
+}
+
+impl McBufWritable for Difficulty {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        u8::write_into(&self.id(), buf)
     }
 }
 

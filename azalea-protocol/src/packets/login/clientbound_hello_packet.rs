@@ -1,5 +1,5 @@
+use azalea_buf::McBuf;
 use packet_macros::LoginPacket;
-use packet_macros::McBuf;
 
 #[derive(Clone, Debug, McBuf, LoginPacket)]
 pub struct ClientboundHelloPacket {

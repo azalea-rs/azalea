@@ -1,7 +1,8 @@
+use azalea_buf::McBuf;
 use azalea_core::Slot;
-use packet_macros::{GamePacket, McBuf};
+use packet_macros::GamePacket;
 
-use crate::mc_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{McBufReadable, McBufWritable};
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundSetEquipmentPacket {
@@ -16,14 +17,14 @@ pub struct EquipmentSlots {
 }
 
 impl McBufReadable for EquipmentSlots {
-    fn read_into(buf: &mut impl std::io::Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl std::io::Read) -> Result<Self, String> {
         let mut slots = vec![];
 
         loop {
-            let equipment_byte = u8::read_into(buf)?;
+            let equipment_byte = u8::read_from(buf)?;
             let equipment_slot = EquipmentSlot::from_byte(equipment_byte & 127)
                 .ok_or_else(|| format!("Invalid equipment slot byte {}", equipment_byte))?;
-            let item = Slot::read_into(buf)?;
+            let item = Slot::read_from(buf)?;
             slots.push((equipment_slot, item));
             if equipment_byte & 128 == 0 {
                 break;

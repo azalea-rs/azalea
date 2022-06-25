@@ -1,5 +1,6 @@
-use crate::{mc_buf::Writable, packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSED_LENGTH};
+use crate::{packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSED_LENGTH};
 use async_compression::tokio::bufread::ZlibEncoder;
+use azalea_buf::Writable;
 use azalea_crypto::Aes128CfbEnc;
 use std::fmt::Debug;
 use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};

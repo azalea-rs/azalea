@@ -1,8 +1,9 @@
+use azalea_buf::McBuf;
 use azalea_crypto::SaltSignaturePair;
-use packet_macros::{LoginPacket, McBuf};
+use packet_macros::LoginPacket;
 use std::io::{Read, Write};
 
-use crate::mc_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{McBufReadable, McBufWritable};
 
 #[derive(Clone, Debug, McBuf, LoginPacket)]
 pub struct ServerboundKeyPacket {
@@ -17,13 +18,13 @@ pub enum NonceOrSaltSignature {
 }
 
 impl McBufReadable for NonceOrSaltSignature {
-    fn read_into(buf: &mut impl Read) -> Result<Self, String> {
-        let is_nonce = bool::read_into(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+        let is_nonce = bool::read_from(buf)?;
         if is_nonce {
-            Ok(NonceOrSaltSignature::Nonce(Vec::<u8>::read_into(buf)?))
+            Ok(NonceOrSaltSignature::Nonce(Vec::<u8>::read_from(buf)?))
         } else {
             Ok(NonceOrSaltSignature::SaltSignature(
-                SaltSignaturePair::read_into(buf)?,
+                SaltSignaturePair::read_from(buf)?,
             ))
         }
     }

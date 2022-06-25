@@ -1,10 +1,8 @@
 use std::io::{Read, Write};
 
 use super::LoginPacket;
-use crate::mc_buf::McBufReadable;
-use crate::mc_buf::{Readable, Writable};
 use azalea_auth::game_profile::GameProfile;
-use azalea_core::serializable_uuid::SerializableUuid;
+use azalea_buf::{McBufReadable, Readable, SerializableUuid, Writable};
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]
@@ -27,7 +25,7 @@ impl ClientboundGameProfilePacket {
     }
 
     pub fn read(buf: &mut impl Read) -> Result<LoginPacket, String> {
-        let uuid = Uuid::read_into(buf)?;
+        let uuid = Uuid::read_from(buf)?;
         let name = buf.read_utf_with_len(16)?;
         Ok(ClientboundGameProfilePacket {
             game_profile: GameProfile::new(uuid, name),

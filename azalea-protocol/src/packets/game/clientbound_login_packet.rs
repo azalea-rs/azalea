@@ -1,12 +1,13 @@
-use azalea_core::{game_type::GameType, resource_location::ResourceLocation, GlobalPos};
-use packet_macros::{GamePacket, McBuf};
+use azalea_buf::McBuf;
+use azalea_core::{GameType, GlobalPos, OptionalGameType, ResourceLocation};
+use packet_macros::GamePacket;
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ClientboundLoginPacket {
     pub player_id: u32,
     pub hardcore: bool,
     pub game_type: GameType,
-    pub previous_game_type: Option<GameType>,
+    pub previous_game_type: OptionalGameType,
     pub levels: Vec<ResourceLocation>,
     pub registry_holder: azalea_nbt::Tag,
     pub dimension_type: ResourceLocation,

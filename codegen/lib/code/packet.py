@@ -1,7 +1,9 @@
+from typing import Optional
 from lib.code.utils import burger_type_to_rust_type, write_packet_file
 from lib.utils import padded_hex, to_snake_case, to_camel_case, get_dir_location
 from lib.mappings import Mappings
 import os
+import re
 
 
 def make_packet_mod_rs_line(packet_id: int, packet_class_name: str):
@@ -27,36 +29,22 @@ def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target
         uses = set()
         generated_packet_code.append(
             f'#[derive(Clone, Debug, McBuf, {to_camel_case(state)}Packet)]')
-        uses.add(f'packet_macros::{{{to_camel_case(state)}Packet, McBuf}}')
+        uses.add(f'packet_macros::{to_camel_case(state)}Packet')
+        uses.add(f'azalea_buf::McBuf')
 
-        obfuscated_class_name = packet['class'].split('.')[0].split('$')[0]
+        obfuscated_class_name = packet['class'].split('.')[0]
         class_name = mappings.get_class(
-            obfuscated_class_name).split('.')[-1].split('$')[0]
+            obfuscated_class_name).split('.')[-1]
+        if '$' in class_name:
+            class_name = class_name.replace('$', '')
 
         generated_packet_code.append(
             f'pub struct {to_camel_case(class_name)} {{')
 
         for instruction in packet.get('instructions', []):
             if instruction['operation'] == 'write':
-                obfuscated_field_name = instruction['field']
-                if '.' in obfuscated_field_name or ' ' in obfuscated_field_name or '(' in obfuscated_field_name:
-                    generated_packet_code.append(f'// TODO: {instruction}')
-                    continue
-                field_name = mappings.get_field(
-                    obfuscated_class_name, obfuscated_field_name)
-                if not field_name:
-                    generated_packet_code.append(
-                        f'// TODO: unknown field {instruction}')
-                    continue
-
-                field_type = instruction['type']
-                field_type_rs, is_var, instruction_uses = burger_type_to_rust_type(
-                    field_type)
-                if is_var:
-                    generated_packet_code.append('#[var]')
-                generated_packet_code.append(
-                    f'pub {to_snake_case(field_name)}: {field_type_rs},')
-                uses.update(instruction_uses)
+                burger_instruction_to_code(
+                    instruction, generated_packet_code, mappings, obfuscated_class_name, uses)
             else:
                 generated_packet_code.append(f'// TODO: {instruction}')
                 continue
@@ -211,6 +199,41 @@ def get_packets(direction: str, state: str):
         packet_class_names.append(packet_class_name)
 
     return packet_ids, packet_class_names
+
+
+def burger_instruction_to_code(instruction: dict, generated_packet_code: list[str], mappings: Mappings, obfuscated_class_name: str, uses: set):
+    field_type = instruction['type']
+    field_type_rs, is_var, instruction_uses = burger_type_to_rust_type(
+        field_type)
+
+    obfuscated_field_name = instruction['field']
+    if '.' in obfuscated_field_name or ' ' in obfuscated_field_name or '(' in obfuscated_field_name:
+        field_type_rs, obfuscated_field_name = burger_field_to_type(
+            obfuscated_field_name)
+        if not field_type_rs:
+            generated_packet_code.append(f'// TODO: {instruction}')
+            return
+    field_name = mappings.get_field(
+        obfuscated_class_name, obfuscated_field_name) or mappings.get_field(
+        obfuscated_class_name.split('$')[0], obfuscated_field_name)
+    if not field_name:
+        generated_packet_code.append(
+            f'// TODO: unknown field {instruction}')
+        return
+
+    if is_var:
+        generated_packet_code.append('#[var]')
+    generated_packet_code.append(
+        f'pub {to_snake_case(field_name)}: {field_type_rs},')
+    uses.update(instruction_uses)
+
+
+def burger_field_to_type(field) -> tuple[Optional[str], str]:
+    # match `(x) ? 1 : 0`
+    match = re.match(r'\((.*)\) \? 1 : 0', field)
+    if match:
+        return ('bool', match.group(1))
+    return None, field
 
 
 def change_packet_ids(id_map: dict[int, int], direction: str, state: str):
