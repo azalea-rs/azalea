@@ -11,12 +11,24 @@ use std::io::{Read, Write};
 
 pub const PROTOCOL_VERSION: u32 = 759;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, FromPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ConnectionProtocol {
     Handshake = -1,
     Game = 0,
     Status = 1,
     Login = 2,
+}
+
+impl ConnectionProtocol {
+    pub fn from_i32(i: i32) -> Option<Self> {
+        match i {
+            -1 => Some(ConnectionProtocol::Handshake),
+            0 => Some(ConnectionProtocol::Game),
+            1 => Some(ConnectionProtocol::Status),
+            2 => Some(ConnectionProtocol::Login),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Clone, Debug)]

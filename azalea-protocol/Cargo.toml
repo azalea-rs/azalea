@@ -7,7 +7,7 @@ version = "0.1.0"
 
 [dependencies]
 async-compression = {version = "^0.3.8", features = ["tokio", "zlib"], optional = true}
-async-recursion = "^0.3.2"
+async-recursion = "1.0.0"
 azalea-auth = {path = "../azalea-auth"}
 azalea-brigadier = {path = "../azalea-brigadier"}
 azalea-buf = {path = "../azalea-buf"}
@@ -19,8 +19,6 @@ azalea-nbt = {path = "../azalea-nbt"}
 byteorder = "^1.4.3"
 bytes = "^1.1.0"
 flate2 = "1.0.23"
-num-derive = "^0.3.3"
-num-traits = "^0.2.14"
 packet-macros = {path = "./packet-macros"}
 serde = {version = "1.0.130", features = ["serde_derive"]}
 serde_json = "^1.0.72"
@@ -28,7 +26,7 @@ thiserror = "^1.0.30"
 tokio = {version = "^1.19.2", features = ["io-util", "net", "macros"]}
 tokio-util = "^0.6.9"
 trust-dns-resolver = "^0.20.3"
-uuid = "^1.1.2"
+uuid = "1.1.2"
 
 [features]
 connecting = []
