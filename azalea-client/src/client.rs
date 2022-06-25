@@ -24,21 +24,14 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::Dimension;
-use owning_ref::OwningRef;
 use std::{
     fmt::Debug,
     sync::{Arc, Mutex},
 };
 use tokio::{
     sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
-    time::{self, MissedTickBehavior},
+    time::{self},
 };
-
-#[derive(Default)]
-pub struct ClientState {
-    pub player: Player,
-    pub world: Option<Dimension>,
-}
 
 #[derive(Debug, Clone)]
 pub enum Event {
@@ -64,11 +57,12 @@ pub enum ChatPacket {
 // }
 
 /// A player that you can control that is currently in a Minecraft server.
+#[derive(Clone)]
 pub struct Client {
-    event_receiver: UnboundedReceiver<Event>,
     game_profile: GameProfile,
     pub conn: Arc<tokio::sync::Mutex<GameConnection>>,
-    pub state: Arc<Mutex<ClientState>>,
+    pub player: Arc<Mutex<Player>>,
+    pub dimension: Arc<Mutex<Option<Dimension>>>,
     // game_loop
 }
 
@@ -80,7 +74,10 @@ struct HandleError(String);
 
 impl Client {
     /// Connect to a Minecraft server with an account.
-    pub async fn join(account: &Account, address: &ServerAddress) -> Result<Self, String> {
+    pub async fn join(
+        account: &Account,
+        address: &ServerAddress,
+    ) -> Result<(Self, UnboundedReceiver<Event>), String> {
         let resolved_address = resolver::resolve_address(address).await?;
 
         let mut conn = HandshakeConnection::new(&resolved_address).await?;
@@ -159,51 +156,39 @@ impl Client {
         // we got the GameConnection, so the server is now connected :)
         let client = Client {
             game_profile: game_profile.clone(),
-            event_receiver: rx,
             conn: conn.clone(),
-            state: Arc::new(Mutex::new(ClientState::default())),
+            player: Arc::new(Mutex::new(Player::default())),
+            dimension: Arc::new(Mutex::new(None)),
         };
 
         // just start up the game loop and we're ready!
 
-        let game_loop_state = client.state.clone();
+        let game_loop_state = client.clone();
 
         // if you get an error right here that means you're doing something with locks wrong
         // read the error to see where the issue is
         // you might be able to just drop the lock or put it in its own scope to fix
-        tokio::spawn(Self::protocol_loop(
-            conn.clone(),
-            tx.clone(),
-            game_loop_state.clone(),
-            game_profile.clone(),
-        ));
-        tokio::spawn(Self::game_tick_loop(conn, tx, game_loop_state));
+        tokio::spawn(Self::protocol_loop(client.clone(), tx.clone()));
+        tokio::spawn(Self::game_tick_loop(client.clone(), tx.clone()));
 
-        Ok(client)
+        Ok((client, rx))
     }
 
-    async fn protocol_loop(
-        conn: Arc<tokio::sync::Mutex<GameConnection>>,
-        tx: UnboundedSender<Event>,
-        state: Arc<Mutex<ClientState>>,
-        game_profile: GameProfile,
-    ) {
+    async fn protocol_loop(client: Client, tx: UnboundedSender<Event>) {
         loop {
-            let r = conn.lock().await.read().await;
+            let r = client.conn.lock().await.read().await;
             match r {
-                Ok(packet) => {
-                    match Self::handle(&packet, &tx, &state, &conn, &game_profile).await {
-                        Ok(_) => {}
-                        Err(e) => {
-                            println!("Error handling packet: {:?}", e);
-                            if IGNORE_ERRORS {
-                                continue;
-                            } else {
-                                panic!("Error handling packet: {:?}", e);
-                            }
+                Ok(packet) => match Self::handle(&packet, &client, &tx).await {
+                    Ok(_) => {}
+                    Err(e) => {
+                        println!("Error handling packet: {:?}", e);
+                        if IGNORE_ERRORS {
+                            continue;
+                        } else {
+                            panic!("Error handling packet: {:?}", e);
                         }
                     }
-                }
+                },
                 Err(e) => {
                     if IGNORE_ERRORS {
                         println!("Error: {:?}", e);
@@ -220,18 +205,14 @@ impl Client {
 
     async fn handle(
         packet: &GamePacket,
+        client: &Client,
         tx: &UnboundedSender<Event>,
-        state: &Arc<Mutex<ClientState>>,
-        conn: &Arc<tokio::sync::Mutex<GameConnection>>,
-        game_profile: &GameProfile,
     ) -> Result<(), HandleError> {
         match packet {
             GamePacket::ClientboundLoginPacket(p) => {
                 println!("Got login packet {:?}", p);
 
                 {
-                    let mut state_lock = state.lock()?;
-
                     // // write p into login.txt
                     // std::io::Write::write_all(
                     //     &mut std::fs::File::create("login.txt").unwrap(),
@@ -292,23 +273,28 @@ impl Client {
                         .as_int()
                         .expect("min_y tag is not an int");
 
+                    let mut dimension_lock = client.dimension.lock().unwrap();
                     // the 16 here is our render distance
                     // i'll make this an actual setting later
-                    state_lock.world = Some(Dimension::new(16, height, min_y));
+                    *dimension_lock = Some(Dimension::new(16, height, min_y));
 
-                    let entity = Entity::new(p.player_id, game_profile.uuid, EntityPos::default());
-                    state_lock
-                        .world
+                    let entity =
+                        Entity::new(p.player_id, client.game_profile.uuid, EntityPos::default());
+                    dimension_lock
                         .as_mut()
                         .expect(
                             "Dimension doesn't exist! We should've gotten a login packet by now.",
                         )
                         .add_entity(entity);
 
-                    state_lock.player.set_entity_id(p.player_id);
+                    let mut player_lock = client.player.lock().unwrap();
+
+                    player_lock.set_entity_id(p.player_id);
                 }
 
-                conn.lock()
+                client
+                    .conn
+                    .lock()
                     .await
                     .write(
                         ServerboundCustomPayloadPacket {
@@ -360,12 +346,17 @@ impl Client {
                 println!("Got player position packet {:?}", p);
 
                 let (new_pos, y_rot, x_rot) = {
-                    let mut state_lock = state.lock()?;
-                    let player_entity_id = state_lock.player.entity_id;
-                    let world = state_lock.world.as_mut().unwrap();
-                    let player_entity = world
+                    let player_lock = client.player.lock().unwrap();
+                    let player_entity_id = player_lock.entity_id;
+                    drop(player_lock);
+
+                    let mut dimension_lock = client.dimension.lock().unwrap();
+                    let dimension = dimension_lock.as_mut().unwrap();
+
+                    let player_entity = dimension
                         .mut_entity_by_id(player_entity_id)
                         .expect("Player entity doesn't exist");
+
                     let delta_movement = &player_entity.delta;
 
                     let is_x_relative = p.relative_arguments.x;
@@ -416,14 +407,14 @@ impl Client {
                         y: new_pos_y,
                         z: new_pos_z,
                     };
-                    world
+                    dimension
                         .move_entity(player_entity_id, new_pos)
                         .expect("The player entity should always exist");
 
                     (new_pos, y_rot, x_rot)
                 };
 
-                let mut conn_lock = conn.lock().await;
+                let mut conn_lock = client.conn.lock().await;
                 conn_lock
                     .write(ServerboundAcceptTeleportationPacket { id: p.id }.get())
                     .await;
@@ -447,9 +438,9 @@ impl Client {
             }
             GamePacket::ClientboundSetChunkCacheCenterPacket(p) => {
                 println!("Got chunk cache center packet {:?}", p);
-                state
+                client
+                    .dimension
                     .lock()?
-                    .world
                     .as_mut()
                     .unwrap()
                     .update_view_center(&ChunkPos::new(p.x, p.z));
@@ -459,9 +450,9 @@ impl Client {
                 let pos = ChunkPos::new(p.x, p.z);
                 // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
                 // println("chunk {:?}")
-                state
+                client
+                    .dimension
                     .lock()?
-                    .world
                     .as_mut()
                     .expect("Dimension doesn't exist! We should've gotten a login packet by now.")
                     .replace_with_packet_data(&pos, &mut p.chunk_data.data.as_slice())
@@ -473,9 +464,9 @@ impl Client {
             GamePacket::ClientboundAddEntityPacket(p) => {
                 println!("Got add entity packet {:?}", p);
                 let entity = Entity::from(p);
-                state
+                client
+                    .dimension
                     .lock()?
-                    .world
                     .as_mut()
                     .expect("Dimension doesn't exist! We should've gotten a login packet by now.")
                     .add_entity(entity);
@@ -495,9 +486,9 @@ impl Client {
             GamePacket::ClientboundAddPlayerPacket(p) => {
                 println!("Got add player packet {:?}", p);
                 let entity = Entity::from(p);
-                state
+                client
+                    .dimension
                     .lock()?
-                    .world
                     .as_mut()
                     .expect("Dimension doesn't exist! We should've gotten a login packet by now.")
                     .add_entity(entity);
@@ -521,10 +512,10 @@ impl Client {
                 println!("Got set experience packet {:?}", p);
             }
             GamePacket::ClientboundTeleportEntityPacket(p) => {
-                let mut state_lock = state.lock()?;
-                let world = state_lock.world.as_mut().unwrap();
+                let mut dimension_lock = client.dimension.lock()?;
+                let dimension = dimension_lock.as_mut().unwrap();
 
-                world.move_entity(
+                dimension.move_entity(
                     p.id,
                     EntityPos {
                         x: p.x,
@@ -540,23 +531,25 @@ impl Client {
                 // println!("Got rotate head packet {:?}", p);
             }
             GamePacket::ClientboundMoveEntityPosPacket(p) => {
-                let mut state_lock = state.lock()?;
-                let world = state_lock.world.as_mut().unwrap();
+                let mut dimension_lock = client.dimension.lock()?;
+                let dimension = dimension_lock.as_mut().unwrap();
 
-                world.move_entity_with_delta(p.entity_id, &p.delta)?;
+                dimension.move_entity_with_delta(p.entity_id, &p.delta)?;
             }
             GamePacket::ClientboundMoveEntityPosRotPacket(p) => {
-                let mut state_lock = state.lock()?;
-                let world = state_lock.world.as_mut().unwrap();
+                let mut dimension_lock = client.dimension.lock()?;
+                let dimension = dimension_lock.as_mut().unwrap();
 
-                world.move_entity_with_delta(p.entity_id, &p.delta)?;
+                dimension.move_entity_with_delta(p.entity_id, &p.delta)?;
             }
             GamePacket::ClientboundMoveEntityRotPacket(p) => {
                 println!("Got move entity rot packet {:?}", p);
             }
             GamePacket::ClientboundKeepAlivePacket(p) => {
                 println!("Got keep alive packet {:?}", p);
-                conn.lock()
+                client
+                    .conn
+                    .lock()
                     .await
                     .write(ServerboundKeepAlivePacket { id: p.id }.get())
                     .await;
@@ -611,54 +604,23 @@ impl Client {
         Ok(())
     }
 
-    pub async fn next(&mut self) -> Option<Event> {
-        self.event_receiver.recv().await
-    }
-
     /// Runs game_tick every 50 milliseconds.
-    async fn game_tick_loop(
-        conn: Arc<tokio::sync::Mutex<GameConnection>>,
-        tx: UnboundedSender<Event>,
-        state: Arc<Mutex<ClientState>>,
-    ) {
+    async fn game_tick_loop(client: Client, tx: UnboundedSender<Event>) {
         let mut game_tick_interval = time::interval(time::Duration::from_millis(50));
         // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
         game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
         loop {
             game_tick_interval.tick().await;
-            Self::game_tick(&conn, &tx, &state).await;
+            Self::game_tick(&client, &tx).await;
         }
     }
 
     /// Runs every 50 milliseconds.
-    async fn game_tick(
-        conn: &Arc<tokio::sync::Mutex<GameConnection>>,
-        tx: &UnboundedSender<Event>,
-        state: &Arc<Mutex<ClientState>>,
-    ) {
-        if state.lock().unwrap().world.is_none() {
+    async fn game_tick(client: &Client, tx: &UnboundedSender<Event>) {
+        if client.dimension.lock().unwrap().is_none() {
             return;
         }
         tx.send(Event::GameTick).unwrap();
-    }
-
-    /// Gets the `Dimension` the client is in.
-    ///
-    /// This is basically a shortcut for `client.state.lock().unwrap().world.as_ref().unwrap()`.
-    /// If the client hasn't received a login packet yet, this will panic.
-    pub fn world(&self) -> OwningRef<std::sync::MutexGuard<ClientState>, Dimension> {
-        let state_lock: std::sync::MutexGuard<ClientState> = self.state.lock().unwrap();
-        let state_lock_ref = OwningRef::new(state_lock);
-        state_lock_ref.map(|state| state.world.as_ref().expect("Dimension doesn't exist!"))
-    }
-
-    /// Gets the `Player` struct for our player.
-    ///
-    /// This is basically a shortcut for `client.state.lock().unwrap().player`.
-    pub fn player(&self) -> OwningRef<std::sync::MutexGuard<ClientState>, Player> {
-        let state_lock: std::sync::MutexGuard<ClientState> = self.state.lock().unwrap();
-        let state_lock_ref = OwningRef::new(state_lock);
-        state_lock_ref.map(|state| &state.player)
     }
 }
 

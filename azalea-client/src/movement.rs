@@ -5,24 +5,21 @@ use azalea_protocol::packets::game::serverbound_move_player_packet_pos_rot::Serv
 impl Client {
     /// Set the client's position to the given coordinates.
     pub async fn move_to(&mut self, new_pos: EntityPos) -> Result<(), String> {
-        println!("obtaining lock on state");
-        let mut state_lock = self.state.lock().unwrap();
-        println!("obtained lock on state");
+        let mut dimension_lock = self.dimension.lock().unwrap();
+        let dimension = dimension_lock.as_mut().unwrap();
 
-        let world = state_lock.world.as_ref().unwrap();
+        let mut player_lock = self.player.lock().unwrap();
 
-        let player = &state_lock.player;
-        let player_id = if let Some(player) = player.entity(world) {
-            player.id
+        let player_id = if let Some(player_lock) = player_lock.entity(dimension) {
+            player_lock.id
         } else {
             return Err("Player entity not found".to_string());
         };
 
-        let world = state_lock.world.as_mut().unwrap();
-        world.move_entity(player_id, new_pos)?;
-        drop(state_lock);
+        dimension.move_entity(player_id, new_pos)?;
+        drop(dimension_lock);
+        drop(player_lock);
 
-        println!("obtaining lock on conn");
         self.conn
             .lock()
             .await
