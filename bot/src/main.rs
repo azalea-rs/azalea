@@ -44,7 +44,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let dimension = dimension_lock.as_ref().unwrap();
                     let player = client.player.lock().unwrap();
                     let entity = player
-                        .entity(&dimension)
+                        .entity(dimension)
                         .expect("Player entity is not in world");
                     entity.pos().add_y(0.5)
                 };

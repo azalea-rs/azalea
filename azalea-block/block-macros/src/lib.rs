@@ -36,7 +36,7 @@ struct BlockDefinition {
     properties_and_defaults: Vec<PropertyAndDefault>,
 }
 impl PropertyAndDefault {
-    fn into_property_with_name_and_default(&self, name: String) -> PropertyWithNameAndDefault {
+    fn as_property_with_name_and_default(&self, name: String) -> PropertyWithNameAndDefault {
         PropertyWithNameAndDefault {
             name,
             struct_name: self.struct_name.clone(),
@@ -110,11 +110,7 @@ impl Parse for BlockDefinition {
 
         let mut properties_and_defaults = Vec::new();
 
-        loop {
-            let property = match content.parse() {
-                Ok(property) => property,
-                Err(_) => break,
-            };
+        while let Ok(property) = content.parse() {
             content.parse::<Token![=]>()?;
             let property_default = content.parse()?;
             properties_and_defaults.push(PropertyAndDefault {
@@ -248,7 +244,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         for property_name in block_property_names {
             let property_variants = properties_map
                 .get(property_name)
-                .expect(format!("Property '{}' not found", property_name).as_str())
+                .unwrap_or_else(|| panic!("Property '{}' not found", property_name))
                 .clone();
             block_properties_vec.push(property_variants);
         }
@@ -274,13 +270,13 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             };
             let mut property_name = property_struct_names_to_names
                 .get(&property.struct_name.to_string())
-                .expect(format!("Property '{}' is bad", property.struct_name).as_str())
+                .unwrap_or_else(|| panic!("Property '{}' is bad", property.struct_name))
                 .clone();
             if let Some(index) = index {
                 property_name.push_str(&format!("_{}", &index.to_string()));
             }
             properties_with_name
-                .push(property.into_property_with_name_and_default(property_name.clone()));
+                .push(property.as_property_with_name_and_default(property_name.clone()));
         }
 
         //     pub face: properties::Face,
@@ -297,7 +293,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         {
             // let property_name_snake =
             //     Ident::new(&property.to_string(), proc_macro2::Span::call_site());
-            let name_ident = Ident::new(&name, proc_macro2::Span::call_site());
+            let name_ident = Ident::new(name, proc_macro2::Span::call_site());
             block_struct_fields.extend(quote! {
                 pub #name_ident: #struct_name,
             })
@@ -317,7 +313,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         let first_state_id = state_id;
 
         // if there's no properties, then the block is just a single state
-        if block_properties_vec.len() == 0 {
+        if block_properties_vec.is_empty() {
             block_state_enum_variants.extend(quote! {
                 #block_name_pascal_case,
             });
@@ -418,7 +414,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         let block_behavior = &block.behavior;
         let block_id = block.name.to_string();
 
-        let from_block_to_state_match = if block.properties_and_defaults.len() > 0 {
+        let from_block_to_state_match = if !block.properties_and_defaults.is_empty() {
             quote! {
                 match b {
                     #from_block_to_state_match_inner

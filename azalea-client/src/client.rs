@@ -155,8 +155,8 @@ impl Client {
 
         // we got the GameConnection, so the server is now connected :)
         let client = Client {
-            game_profile: game_profile.clone(),
-            conn: conn.clone(),
+            game_profile,
+            conn,
             player: Arc::new(Mutex::new(Player::default())),
             dimension: Arc::new(Mutex::new(None)),
         };
@@ -167,7 +167,7 @@ impl Client {
         // read the error to see where the issue is
         // you might be able to just drop the lock or put it in its own scope to fix
         tokio::spawn(Self::protocol_loop(client.clone(), tx.clone()));
-        tokio::spawn(Self::game_tick_loop(client.clone(), tx.clone()));
+        tokio::spawn(Self::game_tick_loop(client.clone(), tx));
 
         Ok((client, rx))
     }

@@ -22,15 +22,12 @@ impl McBufReadable for BlockStateWithPosition {
         let data = u64::var_read_from(buf)?;
         let position_part = data & 4095;
         let state = (data >> 12) as u32;
-        let position = ChunkSectionBlockPos {
+        let pos = ChunkSectionBlockPos {
             x: (position_part >> 8 & 15) as u8,
-            y: (position_part >> 0 & 15) as u8,
+            y: (position_part & 15) as u8,
             z: (position_part >> 4 & 15) as u8,
         };
-        Ok(BlockStateWithPosition {
-            pos: position,
-            state: state,
-        })
+        Ok(BlockStateWithPosition { pos, state })
     }
 }
 
