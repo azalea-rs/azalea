@@ -600,6 +600,9 @@ impl Client {
             GamePacket::ClientboundSetEquipmentPacket(p) => {
                 println!("Got set equipment packet {:?}", p);
             }
+            GamePacket::ClientboundUpdateMobEffectPacket(p) => {
+                println!("Got update mob effect packet {:?}", p);
+            }
             _ => panic!("Unexpected packet {:?}", packet),
         }
 
