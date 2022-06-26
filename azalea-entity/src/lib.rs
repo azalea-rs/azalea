@@ -1,7 +1,7 @@
 mod data;
 mod physics;
 
-use azalea_core::{EntityPos, PositionDelta};
+use azalea_core::{PositionDelta, Vec3};
 pub use data::*;
 use uuid::Uuid;
 
@@ -11,9 +11,9 @@ pub struct Entity {
     pub id: u32,
     pub uuid: Uuid,
     /// The position of the entity right now.
-    pos: EntityPos,
+    pos: Vec3,
     /// The position of the entity last tick.
-    pub old_pos: EntityPos,
+    pub old_pos: Vec3,
     pub delta: PositionDelta,
 
     pub x_rot: f32,
@@ -21,7 +21,7 @@ pub struct Entity {
 }
 
 impl Entity {
-    pub fn new(id: u32, uuid: Uuid, pos: EntityPos) -> Self {
+    pub fn new(id: u32, uuid: Uuid, pos: Vec3) -> Self {
         Self {
             id,
             uuid,
@@ -33,13 +33,13 @@ impl Entity {
         }
     }
 
-    pub fn pos(&self) -> &EntityPos {
+    pub fn pos(&self) -> &Vec3 {
         &self.pos
     }
 
     /// Sets the position of the entity. This doesn't update the cache in
     /// azalea-world, and should only be used within azalea-world!
-    pub fn unsafe_move(&mut self, new_pos: EntityPos) {
+    pub fn unsafe_move(&mut self, new_pos: Vec3) {
         self.pos = new_pos;
     }
 

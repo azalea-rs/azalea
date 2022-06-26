@@ -1,4 +1,4 @@
-use crate::EntityPos;
+use crate::Vec3;
 pub use azalea_buf::McBuf;
 
 pub trait PositionDeltaTrait {
@@ -57,9 +57,9 @@ impl PositionDeltaTrait for PositionDelta8 {
     }
 }
 
-impl EntityPos {
-    pub fn with_delta(&self, delta: &dyn PositionDeltaTrait) -> EntityPos {
-        EntityPos {
+impl Vec3 {
+    pub fn with_delta(&self, delta: &dyn PositionDeltaTrait) -> Vec3 {
+        Vec3 {
             x: self.x + delta.x(),
             y: self.y + delta.y(),
             z: self.z + delta.z(),

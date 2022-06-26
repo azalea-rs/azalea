@@ -1,6 +1,6 @@
 use crate::{Account, Player};
 use azalea_auth::game_profile::GameProfile;
-use azalea_core::{ChunkPos, EntityPos, PositionDelta, PositionDeltaTrait, ResourceLocation};
+use azalea_core::{ChunkPos, PositionDelta, PositionDeltaTrait, ResourceLocation, Vec3};
 use azalea_entity::Entity;
 use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
@@ -277,7 +277,7 @@ impl Client {
                     *dimension_lock = Some(Dimension::new(16, height, min_y));
 
                     let entity =
-                        Entity::new(p.player_id, client.game_profile.uuid, EntityPos::default());
+                        Entity::new(p.player_id, client.game_profile.uuid, Vec3::default());
                     dimension_lock
                         .as_mut()
                         .expect(
@@ -400,7 +400,7 @@ impl Client {
                     player_entity.set_rotation(y_rot, x_rot);
                     // TODO: minecraft sets "xo", "yo", and "zo" here but idk what that means
                     // so investigate that ig
-                    let new_pos = EntityPos {
+                    let new_pos = Vec3 {
                         x: new_pos_x,
                         y: new_pos_y,
                         z: new_pos_z,
@@ -515,7 +515,7 @@ impl Client {
 
                 dimension.move_entity(
                     p.id,
-                    EntityPos {
+                    Vec3 {
                         x: p.x,
                         y: p.y,
                         z: p.z,
@@ -528,13 +528,13 @@ impl Client {
             GamePacket::ClientboundRotateHeadPacket(_p) => {
                 // println!("Got rotate head packet {:?}", p);
             }
-            GamePacket::ClientboundMoveEntityPosPacket(p) => {
+            GamePacket::ClientboundMoveVec3Packet(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
                 let dimension = dimension_lock.as_mut().unwrap();
 
                 dimension.move_entity_with_delta(p.entity_id, &p.delta)?;
             }
-            GamePacket::ClientboundMoveEntityPosRotPacket(p) => {
+            GamePacket::ClientboundMoveVec3RotPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
                 let dimension = dimension_lock.as_mut().unwrap();
 

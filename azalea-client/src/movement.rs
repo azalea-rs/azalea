@@ -1,10 +1,10 @@
 use crate::Client;
-use azalea_core::EntityPos;
+use azalea_core::Vec3;
 use azalea_protocol::packets::game::serverbound_move_player_packet_pos_rot::ServerboundMovePlayerPacketPosRot;
 
 impl Client {
     /// Set the client's position to the given coordinates.
-    pub async fn move_to(&mut self, new_pos: EntityPos) -> Result<(), String> {
+    pub async fn move_to(&mut self, new_pos: Vec3) -> Result<(), String> {
         {
             let mut dimension_lock = self.dimension.lock().unwrap();
             let dimension = dimension_lock.as_mut().unwrap();

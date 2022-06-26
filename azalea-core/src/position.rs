@@ -9,6 +9,12 @@ pub trait PositionXYZ<T> {
     fn add_x(&self, n: T) -> Self;
     fn add_y(&self, n: T) -> Self;
     fn add_z(&self, n: T) -> Self;
+    fn add(&self, x: T, y: T, z: T) -> Self
+    where
+        Self: Sized,
+    {
+        self.add_x(x).add_y(y).add_z(z)
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -123,30 +129,31 @@ pub struct GlobalPos {
     pub dimension: ResourceLocation,
 }
 
+/// An exact point in the world.
 #[derive(Debug, Clone, Copy, Default)]
-pub struct EntityPos {
+pub struct Vec3 {
     pub x: f64,
     pub y: f64,
     pub z: f64,
 }
 
-impl PositionXYZ<f64> for EntityPos {
+impl PositionXYZ<f64> for Vec3 {
     fn add_x(&self, n: f64) -> Self {
-        EntityPos {
+        Vec3 {
             x: self.x + n,
             y: self.y,
             z: self.z,
         }
     }
     fn add_y(&self, n: f64) -> Self {
-        EntityPos {
+        Vec3 {
             x: self.x,
             y: self.y + n,
             z: self.z,
         }
     }
     fn add_z(&self, n: f64) -> Self {
-        EntityPos {
+        Vec3 {
             x: self.x,
             y: self.y,
             z: self.z + n,
@@ -208,8 +215,8 @@ impl From<&ChunkBlockPos> for ChunkSectionBlockPos {
         }
     }
 }
-impl From<&EntityPos> for BlockPos {
-    fn from(pos: &EntityPos) -> Self {
+impl From<&Vec3> for BlockPos {
+    fn from(pos: &Vec3) -> Self {
         BlockPos {
             x: pos.x.floor() as i32,
             y: pos.y.floor() as i32,
@@ -218,8 +225,8 @@ impl From<&EntityPos> for BlockPos {
     }
 }
 
-impl From<&EntityPos> for ChunkPos {
-    fn from(pos: &EntityPos) -> Self {
+impl From<&Vec3> for ChunkPos {
+    fn from(pos: &Vec3) -> Self {
         ChunkPos::from(&BlockPos::from(pos))
     }
 }
@@ -302,7 +309,7 @@ mod tests {
 
     #[test]
     fn test_from_entity_pos_to_block_pos() {
-        let entity_pos = EntityPos {
+        let entity_pos = Vec3 {
             x: 31.5,
             y: 80.0,
             z: -16.1,
@@ -313,7 +320,7 @@ mod tests {
 
     #[test]
     fn test_from_entity_pos_to_chunk_pos() {
-        let entity_pos = EntityPos {
+        let entity_pos = Vec3 {
             x: 31.5,
             y: 80.0,
             z: -16.1,

@@ -6,7 +6,7 @@ mod entity;
 mod palette;
 
 use azalea_block::BlockState;
-use azalea_core::{BlockPos, ChunkPos, EntityPos, PositionDelta8};
+use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
 use azalea_entity::Entity;
 pub use bit_storage::BitStorage;
 pub use chunk::{Chunk, ChunkStorage};
@@ -58,7 +58,7 @@ impl Dimension {
         self.chunk_storage.get_block_state(pos, self.min_y())
     }
 
-    pub fn move_entity(&mut self, entity_id: u32, new_pos: EntityPos) -> Result<(), String> {
+    pub fn move_entity(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), String> {
         let entity = self
             .entity_storage
             .get_mut_by_id(entity_id)
