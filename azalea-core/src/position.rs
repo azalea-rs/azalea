@@ -2,18 +2,53 @@ use crate::ResourceLocation;
 use azalea_buf::{McBufReadable, McBufWritable};
 use std::{
     io::{Read, Write},
-    ops::Rem,
+    ops::{Add, Mul, Rem},
 };
 
-pub trait PositionXYZ<T> {
-    fn add_x(&self, n: T) -> Self;
-    fn add_y(&self, n: T) -> Self;
-    fn add_z(&self, n: T) -> Self;
+pub trait PositionXYZ<T>
+where
+    T: Add<T, Output = T> + Mul<T, Output = T>,
+{
+    fn x(&self) -> T;
+    fn y(&self) -> T;
+    fn z(&self) -> T;
+
+    fn set_x(&self, n: T) -> Self;
+    fn set_y(&self, n: T) -> Self;
+    fn set_z(&self, n: T) -> Self;
+
+    // hopefully these get optimized
+    fn add_x(&self, n: T) -> Self
+    where
+        Self: Sized,
+    {
+        self.set_x(self.x() + n)
+    }
+    fn add_y(&self, n: T) -> Self
+    where
+        Self: Sized,
+    {
+        self.set_y(self.y() + n)
+    }
+    fn add_z(&self, n: T) -> Self
+    where
+        Self: Sized,
+    {
+        self.set_z(self.z() + n)
+    }
+
     fn add(&self, x: T, y: T, z: T) -> Self
     where
         Self: Sized,
     {
         self.add_x(x).add_y(y).add_z(z)
+    }
+
+    fn length_sqr(&self) -> T
+    where
+        Self: Sized,
+    {
+        self.x() * self.x() + self.y() * self.y() + self.z() * self.z()
     }
 }
 
@@ -43,25 +78,34 @@ impl Rem<i32> for BlockPos {
 }
 
 impl PositionXYZ<i32> for BlockPos {
-    fn add_x(&self, n: i32) -> Self {
+    fn x(&self) -> i32 {
+        self.x
+    }
+    fn y(&self) -> i32 {
+        self.y
+    }
+    fn z(&self) -> i32 {
+        self.z
+    }
+    fn set_x(&self, n: i32) -> Self {
         BlockPos {
-            x: self.x + n,
+            x: n,
             y: self.y,
             z: self.z,
         }
     }
-    fn add_y(&self, n: i32) -> Self {
+    fn set_y(&self, n: i32) -> Self {
         BlockPos {
             x: self.x,
-            y: self.y + n,
+            y: n,
             z: self.z,
         }
     }
-    fn add_z(&self, n: i32) -> Self {
+    fn set_z(&self, n: i32) -> Self {
         BlockPos {
             x: self.x,
             y: self.y,
-            z: self.z + n,
+            z: n,
         }
     }
 }
@@ -138,25 +182,34 @@ pub struct Vec3 {
 }
 
 impl PositionXYZ<f64> for Vec3 {
-    fn add_x(&self, n: f64) -> Self {
+    fn x(&self) -> f64 {
+        self.x
+    }
+    fn y(&self) -> f64 {
+        self.y
+    }
+    fn z(&self) -> f64 {
+        self.z
+    }
+    fn set_x(&self, n: f64) -> Self {
         Vec3 {
-            x: self.x + n,
+            x: n,
             y: self.y,
             z: self.z,
         }
     }
-    fn add_y(&self, n: f64) -> Self {
+    fn set_y(&self, n: f64) -> Self {
         Vec3 {
             x: self.x,
-            y: self.y + n,
+            y: n,
             z: self.z,
         }
     }
-    fn add_z(&self, n: f64) -> Self {
+    fn set_z(&self, n: f64) -> Self {
         Vec3 {
             x: self.x,
             y: self.y,
-            z: self.z + n,
+            z: n,
         }
     }
 }

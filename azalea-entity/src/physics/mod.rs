@@ -3,7 +3,7 @@ mod block_hit_result;
 
 use crate::Entity;
 pub use aabb::AABB;
-use azalea_core::PositionDelta;
+use azalea_core::{PositionDelta, PositionXYZ, Vec3};
 pub use block_hit_result::BlockHitResult;
 
 pub enum MoverType {
@@ -15,6 +15,7 @@ pub enum MoverType {
 }
 
 impl Entity {
+    /// Move an entity by a given delta, checking for collisions.
     pub fn move_entity(&mut self, mover_type: &MoverType, movement: &PositionDelta) {
         // if self.no_physics {
         //     return;
@@ -35,4 +36,20 @@ impl Entity {
 
         // TODO
     }
+
+    // fn collide(movement: &Vec3, dimension: &Dimension) -> Vec3 {
+    //     if movement.length_sqr() == 0.0 {
+    //         *movement
+    //     } else {
+    //         // Self::collide_bounding_box(
+    //         //     Some(self),
+    //         //     movement,
+    //         //     entityBoundingBox,
+    //         //     this.level,
+    //         //     entityCollisions,
+    //         // )
+    //     }
+    // }
+
+    // fn collide_bounding_box(self: )
 }
