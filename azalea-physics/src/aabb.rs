@@ -1,4 +1,4 @@
-use crate::physics::BlockHitResult;
+use crate::BlockHitResult;
 use azalea_core::{BlockPos, Direction, PositionXYZ, Vec3};
 
 pub const EPSILON: f64 = 1.0E-7;
@@ -393,14 +393,14 @@ impl AABB {
         start_y: f64,
         start_z: f64,
     ) -> Option<Direction> {
-        let mut t_x = (begin - start_x) / delta_x;
-        let mut t_y = (begin - start_y) / delta_y;
-        let mut t_z = (begin - start_z) / delta_z;
+        let t_x = (begin - start_x) / delta_x;
+        let t_y = (start_y + t_x) / delta_y;
+        let t_z = (start_z + t_x) / delta_z;
         if 0.0 < t_x
             && t_x < t[0]
             && min_x - EPSILON < t_y
             && t_y < max_x + EPSILON
-            && max_x - EPSILON < t_z
+            && min_z - EPSILON < t_z
             && t_z < max_z + EPSILON
         {
             t[0] = t_x;

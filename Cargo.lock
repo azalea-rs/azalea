@@ -180,6 +180,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "azalea-physics"
+version = "0.1.0"
+dependencies = [
+ "azalea-core",
+ "azalea-entity",
+]
+
+[[package]]
 name = "azalea-protocol"
 version = "0.1.0"
 dependencies = [

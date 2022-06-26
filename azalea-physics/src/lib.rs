@@ -1,9 +1,9 @@
 mod aabb;
 mod block_hit_result;
 
-use crate::Entity;
 pub use aabb::AABB;
 use azalea_core::{PositionDelta, PositionXYZ, Vec3};
+use azalea_entity::Entity;
 pub use block_hit_result::BlockHitResult;
 
 pub enum MoverType {
@@ -14,9 +14,13 @@ pub enum MoverType {
     Shulker,
 }
 
-impl Entity {
+trait HasPhysics {
+    fn move_entity(&mut self, mover_type: &MoverType, movement: &PositionDelta);
+}
+
+impl HasPhysics for Entity {
     /// Move an entity by a given delta, checking for collisions.
-    pub fn move_entity(&mut self, mover_type: &MoverType, movement: &PositionDelta) {
+    fn move_entity(&mut self, mover_type: &MoverType, movement: &PositionDelta) {
         // if self.no_physics {
         //     return;
         // };
