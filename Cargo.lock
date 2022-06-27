@@ -183,6 +183,7 @@ dependencies = [
 name = "azalea-physics"
 version = "0.1.0"
 dependencies = [
+ "azalea-block",
  "azalea-core",
  "azalea-entity",
  "azalea-world",

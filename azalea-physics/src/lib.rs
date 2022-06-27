@@ -7,6 +7,7 @@ use azalea_core::{PositionDelta, PositionXYZ, Vec3};
 use azalea_entity::Entity;
 use azalea_world::Dimension;
 pub use block_hit_result::BlockHitResult;
+use dimension_collisions::CollisionGetter;
 
 pub enum MoverType {
     Own,
@@ -24,6 +25,11 @@ trait HasPhysics {
         entity_bounding_box: &AABB,
         dimension: &Dimension,
         // entity_collisions: Vec<VoxelShape>
+    ) -> Vec3;
+    fn collide_with_shapes(
+        movement: &Vec3,
+        entity_box: &AABB,
+        // collision_boxes: Vec<VoxelShape>,
     ) -> Vec3;
 }
 
@@ -80,6 +86,16 @@ impl HasPhysics for Entity {
         let block_collisions =
             dimension.get_block_collisions(entity, entity_bounding_box.expand_towards(movement));
         collision_boxes.extend(block_collisions);
-        Self::collide_with_shapes(movement, &entity_bounding_box, &collision_boxes)
+        // Self::collide_with_shapes(movement, &entity_bounding_box, &collision_boxes)
+        Self::collide_with_shapes(movement, &entity_bounding_box)
+    }
+
+    fn collide_with_shapes(
+        movement: &Vec3,
+        entity_box: &AABB,
+        // collision_boxes: Vec<VoxelShape>,
+    ) -> Vec3 {
+        // TODO
+        *movement
     }
 }

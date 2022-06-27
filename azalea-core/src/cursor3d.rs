@@ -1,3 +1,5 @@
+use crate::BlockPos;
+
 pub struct Cursor3d {
     index: usize,
 
@@ -37,15 +39,18 @@ impl Iterator for Cursor3d {
         }
 
         Some(CursorIteration {
-            x: self.origin_x + x as i32,
-            y: self.origin_y + y as i32,
-            z: self.origin_z + z as i32,
+            pos: BlockPos {
+                x: self.origin_x + x as i32,
+                y: self.origin_y + y as i32,
+                z: self.origin_z + z as i32,
+            },
             iteration_type: iteration_type.into(),
         })
     }
 }
 
 #[repr(u8)]
+#[derive(Eq, PartialEq, Debug)]
 pub enum CursorIterationType {
     Inside = 0,
     Face = 1,
@@ -54,9 +59,7 @@ pub enum CursorIterationType {
 }
 
 pub struct CursorIteration {
-    pub x: i32,
-    pub y: i32,
-    pub z: i32,
+    pub pos: BlockPos,
     pub iteration_type: CursorIterationType,
 }
 

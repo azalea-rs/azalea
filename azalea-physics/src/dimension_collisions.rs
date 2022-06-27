@@ -1,9 +1,11 @@
+use crate::{aabb::EPSILON, AABB};
+use azalea_block::{Block, BlockState};
+use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType};
 use azalea_entity::Entity;
-use azalea_world::Dimension;
+use azalea_world::{Chunk, Dimension};
+use std::sync::{Arc, Mutex};
 
-use crate::AABB;
-
-trait CollisionGetter {
+pub trait CollisionGetter {
     fn get_block_collisions<'a>(
         &'a self,
         entity: Option<&Entity>,
@@ -25,23 +27,103 @@ pub struct BlockCollisions<'a> {
     dimension: &'a Dimension,
     // context: CollisionContext,
     aabb: AABB,
+
+    cursor: Cursor3d,
+    only_suffocating_blocks: bool,
 }
 
 impl<'a> BlockCollisions<'a> {
     pub fn new(dimension: &'a Dimension, entity: Option<&Entity>, aabb: AABB) -> Self {
-        Self { dimension, aabb }
+        let origin_x = (aabb.min_x - EPSILON) as i32 - 1;
+        let origin_y = (aabb.max_x + EPSILON) as i32 + 1;
+        let origin_z = (aabb.min_y - EPSILON) as i32 - 1;
+
+        let end_x = (aabb.max_y + EPSILON) as i32 + 1;
+        let end_y = (aabb.min_z - EPSILON) as i32 - 1;
+        let end_z = (aabb.max_z + EPSILON) as i32 + 1;
+
+        let cursor = Cursor3d::new(origin_x, origin_y, origin_z, end_x, end_y, end_z);
+
+        Self {
+            dimension,
+            aabb,
+            cursor,
+            only_suffocating_blocks: false,
+        }
+    }
+
+    fn get_chunk(&self, block_x: i32, block_z: i32) -> Option<&Arc<Mutex<Chunk>>> {
+        let chunk_x = ChunkSectionPos::block_to_section_coord(block_x);
+        let chunk_z = ChunkSectionPos::block_to_section_coord(block_z);
+        let chunk_pos = ChunkPos::new(chunk_x, chunk_z);
+
+        // TODO: minecraft caches chunk here
+        // int chunkX = SectionPos.blockToSectionCoord(blockX);
+        // int chunkZ = SectionPos.blockToSectionCoord(blockZ);
+        // long chunkPosLong = ChunkPos.asLong(chunkX, chunkZ);
+        // if (this.cachedBlockGetter != null && this.cachedBlockGetterPos == var5) {
+        //    return this.cachedBlockGetter;
+        // } else {
+        //    BlockGetter var7 = this.collisionGetter.getChunkForCollisions(chunkX, chunkZ);
+        //    this.cachedBlockGetter = var7;
+        //    this.cachedBlockGetterPos = chunkPosLong;
+        //    return var7;
+        // }
+
+        let chunk = self.dimension[&chunk_pos].as_ref();
+        return chunk;
     }
 }
 
-impl Iterator for BlockCollisions<'a> {
+impl<'a> Iterator for BlockCollisions<'a> {
     type Item = VoxelShape;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            if !self.cursor.advance() {
-                return None;
+        while let Some(item) = self.cursor.next() {
+            if item.iteration_type == CursorIterationType::Corner {
+                continue;
             }
+
+            let chunk = self.get_chunk(item.pos.x, item.pos.z);
+            let chunk = match chunk {
+                Some(chunk) => chunk,
+                None => continue,
+            };
+            let chunk_lock = chunk.lock().unwrap();
+
+            let pos = item.pos;
+            let block_state: BlockState = chunk_lock.get(&(&pos).into(), self.dimension.min_y());
+            let block: &dyn Block = &block_state.into();
+
+            // TODO: continue if self.only_suffocating_blocks and the block is not suffocating
+
+            let block_shape = VoxelShape {};
+            // let block_shape = block.get_collision_shape();
+            // if block_shape == Shapes::block() {
+            if true {
+                if !self.aabb.intersects_aabb(&AABB {
+                    min_x: item.pos.x as f64,
+                    min_y: item.pos.y as f64,
+                    min_z: item.pos.z as f64,
+                    max_x: (item.pos.x + 1) as f64,
+                    max_y: (item.pos.y + 1) as f64,
+                    max_z: (item.pos.z + 1) as f64,
+                }) {
+                    continue;
+                }
+
+                return block_shape.move_relative(item.pos.x, item.pos.y, item.pos.z);
+            }
+
+            // let block_shape = block_shape.move_relative(item.pos.x, item.pos.y, item.pos.z);
+            // if (!Shapes.joinIsNotEmpty(block_shape, this.entityShape, BooleanOp.AND)) {
+            //     continue;
+            // }
+
+            // return block_shape;
         }
+
+        None
     }
 }
 

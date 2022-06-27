@@ -15,7 +15,7 @@ pub struct AABB {
 }
 
 impl AABB {
-    pub fn contract(&mut self, x: f64, y: f64, z: f64) -> AABB {
+    pub fn contract(&self, x: f64, y: f64, z: f64) -> AABB {
         let mut min_x = self.min_x;
         let mut min_y = self.min_y;
         let mut min_z = self.min_z;
@@ -53,7 +53,7 @@ impl AABB {
         }
     }
 
-    pub fn expand_towards(&mut self, other: &Vec3) -> AABB {
+    pub fn expand_towards(&self, other: &Vec3) -> AABB {
         let mut min_x = self.min_x;
         let mut min_y = self.min_y;
         let mut min_z = self.min_z;
@@ -91,7 +91,7 @@ impl AABB {
         }
     }
 
-    pub fn inflate(&mut self, x: f64, y: f64, z: f64) -> AABB {
+    pub fn inflate(&self, x: f64, y: f64, z: f64) -> AABB {
         let min_x = self.min_x - x;
         let min_y = self.min_y - y;
         let min_z = self.min_z - z;

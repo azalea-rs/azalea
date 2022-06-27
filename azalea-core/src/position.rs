@@ -134,6 +134,9 @@ impl ChunkSectionPos {
     pub fn new(x: i32, y: i32, z: i32) -> Self {
         ChunkSectionPos { x, y, z }
     }
+    pub fn block_to_section_coord(block: i32) -> i32 {
+        block >> 4
+    }
 }
 /// The coordinates of a block inside a chunk.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
