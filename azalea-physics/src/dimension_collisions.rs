@@ -1,4 +1,4 @@
-use crate::{aabb::EPSILON, AABB};
+use crate::{aabb::EPSILON, VoxelShape, AABB};
 use azalea_block::{Block, BlockState};
 use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType};
 use azalea_entity::Entity;
@@ -97,7 +97,7 @@ impl<'a> Iterator for BlockCollisions<'a> {
 
             // TODO: continue if self.only_suffocating_blocks and the block is not suffocating
 
-            let block_shape = VoxelShape {};
+            let block_shape = crate::block_shape();
             // let block_shape = block.get_collision_shape();
             // if block_shape == Shapes::block() {
             if true {
@@ -126,5 +126,3 @@ impl<'a> Iterator for BlockCollisions<'a> {
         None
     }
 }
-
-pub struct VoxelShape {}

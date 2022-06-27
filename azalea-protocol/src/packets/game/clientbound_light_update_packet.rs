@@ -1,5 +1,5 @@
-use azalea_buf::BitSet;
 use azalea_buf::McBuf;
+use azalea_core::BitSet;
 use packet_macros::GamePacket;
 
 #[derive(Clone, Debug, McBuf, GamePacket)]

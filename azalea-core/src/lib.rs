@@ -28,3 +28,6 @@ pub use particle::*;
 
 mod cursor3d;
 pub use cursor3d::*;
+
+mod bitset;
+pub use bitset::*;

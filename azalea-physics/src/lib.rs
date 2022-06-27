@@ -1,13 +1,17 @@
 mod aabb;
 mod block_hit_result;
 mod dimension_collisions;
+mod discrete_voxel_shape;
+mod shape;
 
-pub use aabb::AABB;
+pub use aabb::*;
 use azalea_core::{PositionDelta, PositionXYZ, Vec3};
 use azalea_entity::Entity;
 use azalea_world::Dimension;
-pub use block_hit_result::BlockHitResult;
+pub use block_hit_result::*;
 use dimension_collisions::CollisionGetter;
+pub use discrete_voxel_shape::*;
+pub use shape::*;
 
 pub enum MoverType {
     Own,
@@ -24,12 +28,12 @@ trait HasPhysics {
         movement: &Vec3,
         entity_bounding_box: &AABB,
         dimension: &Dimension,
-        // entity_collisions: Vec<VoxelShape>
+        entity_collisions: Vec<VoxelShape>,
     ) -> Vec3;
     fn collide_with_shapes(
         movement: &Vec3,
         entity_box: &AABB,
-        // collision_boxes: Vec<VoxelShape>,
+        collision_boxes: &Vec<VoxelShape>,
     ) -> Vec3;
 }
 
@@ -75,25 +79,26 @@ impl HasPhysics for Entity {
         movement: &Vec3,
         entity_bounding_box: &AABB,
         dimension: &Dimension,
-        // entity_collisions: Vec<VoxelShape>
+        entity_collisions: Vec<VoxelShape>,
     ) -> Vec3 {
         let mut collision_boxes = Vec::with_capacity(1); // entity_collisions.len() + 1
 
-        // if !entity_collisions.is_empty() { add to collision_boxes }
+        if !entity_collisions.is_empty() {
+            collision_boxes.extend(entity_collisions);
+        }
 
         // TODO: world border
 
         let block_collisions =
             dimension.get_block_collisions(entity, entity_bounding_box.expand_towards(movement));
         collision_boxes.extend(block_collisions);
-        // Self::collide_with_shapes(movement, &entity_bounding_box, &collision_boxes)
-        Self::collide_with_shapes(movement, &entity_bounding_box)
+        Self::collide_with_shapes(movement, &entity_bounding_box, &collision_boxes)
     }
 
     fn collide_with_shapes(
         movement: &Vec3,
         entity_box: &AABB,
-        // collision_boxes: Vec<VoxelShape>,
+        collision_boxes: &Vec<VoxelShape>,
     ) -> Vec3 {
         // TODO
         *movement
