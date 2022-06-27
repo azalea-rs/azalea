@@ -28,6 +28,8 @@ mod tests {
 }
 
 /// A dimension is a collection of chunks and entities.
+/// Minecraft calls these "Levels", Fabric calls them "Worlds", Minestom calls them "Instances".
+/// Yeah.
 #[derive(Debug)]
 pub struct Dimension {
     chunk_storage: ChunkStorage,

@@ -1,9 +1,11 @@
 mod aabb;
 mod block_hit_result;
+mod dimension_collisions;
 
 pub use aabb::AABB;
 use azalea_core::{PositionDelta, PositionXYZ, Vec3};
 use azalea_entity::Entity;
+use azalea_world::Dimension;
 pub use block_hit_result::BlockHitResult;
 
 pub enum MoverType {
@@ -16,6 +18,13 @@ pub enum MoverType {
 
 trait HasPhysics {
     fn move_entity(&mut self, mover_type: &MoverType, movement: &PositionDelta);
+    fn collide_bounding_box(
+        entity: Option<&Self>,
+        movement: &Vec3,
+        entity_bounding_box: &AABB,
+        dimension: &Dimension,
+        // entity_collisions: Vec<VoxelShape>
+    ) -> Vec3;
 }
 
 impl HasPhysics for Entity {
@@ -55,5 +64,22 @@ impl HasPhysics for Entity {
     //     }
     // }
 
-    // fn collide_bounding_box(self: )
+    fn collide_bounding_box(
+        entity: Option<&Self>,
+        movement: &Vec3,
+        entity_bounding_box: &AABB,
+        dimension: &Dimension,
+        // entity_collisions: Vec<VoxelShape>
+    ) -> Vec3 {
+        let mut collision_boxes = Vec::with_capacity(1); // entity_collisions.len() + 1
+
+        // if !entity_collisions.is_empty() { add to collision_boxes }
+
+        // TODO: world border
+
+        let block_collisions =
+            dimension.get_block_collisions(entity, entity_bounding_box.expand_towards(movement));
+        collision_boxes.extend(block_collisions);
+        Self::collide_with_shapes(movement, &entity_bounding_box, &collision_boxes)
+    }
 }

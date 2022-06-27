@@ -53,7 +53,7 @@ impl AABB {
         }
     }
 
-    pub fn expand_towards(&mut self, x: f64, y: f64, z: f64) -> AABB {
+    pub fn expand_towards(&mut self, other: &Vec3) -> AABB {
         let mut min_x = self.min_x;
         let mut min_y = self.min_y;
         let mut min_z = self.min_z;
@@ -62,22 +62,22 @@ impl AABB {
         let mut max_y = self.max_y;
         let mut max_z = self.max_z;
 
-        if x < 0.0 {
-            min_x += x;
-        } else if x > 0.0 {
-            max_x += x;
+        if other.x < 0.0 {
+            min_x += other.x;
+        } else if other.x > 0.0 {
+            max_x += other.x;
         }
 
-        if y < 0.0 {
-            min_y += y;
-        } else if y > 0.0 {
-            max_y += y;
+        if other.y < 0.0 {
+            min_y += other.y;
+        } else if other.y > 0.0 {
+            max_y += other.y;
         }
 
-        if z < 0.0 {
-            min_z += z;
-        } else if z > 0.0 {
-            max_z += z;
+        if other.z < 0.0 {
+            min_z += other.z;
+        } else if other.z > 0.0 {
+            max_z += other.z;
         }
 
         AABB {

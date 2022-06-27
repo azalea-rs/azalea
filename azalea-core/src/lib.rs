@@ -25,3 +25,6 @@ pub use delta::*;
 
 mod particle;
 pub use particle::*;
+
+mod cursor3d;
+pub use cursor3d::*;
