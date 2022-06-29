@@ -87,25 +87,25 @@ impl CubeVoxelShape {
 
 impl VoxelShape for ArrayVoxelShape {
     fn shape(&self) -> Box<dyn DiscreteVoxelShape> {
-        todo!()
+        self.shape.clone()
     }
 
     fn get_x_coords(&self) -> Vec<f64> {
-        todo!()
+        self.xs.clone()
     }
 
     fn get_y_coords(&self) -> Vec<f64> {
-        todo!()
+        self.ys.clone()
     }
 
     fn get_z_coords(&self) -> Vec<f64> {
-        todo!()
+        self.zs.clone()
     }
 }
 
 impl VoxelShape for CubeVoxelShape {
     fn shape(&self) -> Box<dyn DiscreteVoxelShape> {
-        todo!()
+        self.shape.clone()
     }
 
     fn get_x_coords(&self) -> Vec<f64> {

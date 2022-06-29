@@ -43,9 +43,12 @@ pub trait DiscreteVoxelShape {
         }
         false
     }
+
+    // i don't know how to do this properly
+    fn clone(&self) -> Box<dyn DiscreteVoxelShape>;
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct BitSetDiscreteVoxelShape {
     x_size: u32,
     y_size: u32,
@@ -151,5 +154,9 @@ impl DiscreteVoxelShape for BitSetDiscreteVoxelShape {
     }
     fn last_full_z(&self) -> u32 {
         self.z_max
+    }
+
+    fn clone(&self) -> Box<dyn DiscreteVoxelShape> {
+        Box::new(Clone::clone(self))
     }
 }
