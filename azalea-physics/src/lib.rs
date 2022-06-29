@@ -28,12 +28,12 @@ trait HasPhysics {
         movement: &Vec3,
         entity_bounding_box: &AABB,
         dimension: &Dimension,
-        entity_collisions: Vec<VoxelShape>,
+        entity_collisions: Vec<Box<dyn VoxelShape>>,
     ) -> Vec3;
     fn collide_with_shapes(
         movement: &Vec3,
         entity_box: &AABB,
-        collision_boxes: &Vec<VoxelShape>,
+        collision_boxes: &Vec<Box<dyn VoxelShape>>,
     ) -> Vec3;
 }
 
@@ -79,7 +79,7 @@ impl HasPhysics for Entity {
         movement: &Vec3,
         entity_bounding_box: &AABB,
         dimension: &Dimension,
-        entity_collisions: Vec<VoxelShape>,
+        entity_collisions: Vec<Box<dyn VoxelShape>>,
     ) -> Vec3 {
         let mut collision_boxes = Vec::with_capacity(1); // entity_collisions.len() + 1
 
@@ -98,7 +98,7 @@ impl HasPhysics for Entity {
     fn collide_with_shapes(
         movement: &Vec3,
         entity_box: &AABB,
-        collision_boxes: &Vec<VoxelShape>,
+        collision_boxes: &Vec<Box<dyn VoxelShape>>,
     ) -> Vec3 {
         // TODO
         *movement

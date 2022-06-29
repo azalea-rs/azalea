@@ -1,4 +1,4 @@
-use crate::{aabb::EPSILON, VoxelShape, AABB};
+use crate::{aabb::EPSILON, ArrayVoxelShape, VoxelShape, AABB};
 use azalea_block::{Block, BlockState};
 use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType};
 use azalea_entity::Entity;
@@ -76,7 +76,7 @@ impl<'a> BlockCollisions<'a> {
 }
 
 impl<'a> Iterator for BlockCollisions<'a> {
-    type Item = VoxelShape;
+    type Item = ArrayVoxelShape;
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(item) = self.cursor.next() {
@@ -93,7 +93,7 @@ impl<'a> Iterator for BlockCollisions<'a> {
 
             let pos = item.pos;
             let block_state: BlockState = chunk_lock.get(&(&pos).into(), self.dimension.min_y());
-            let block: &dyn Block = &block_state.into();
+            let block: Box<dyn Block> = block_state.into();
 
             // TODO: continue if self.only_suffocating_blocks and the block is not suffocating
 
@@ -101,6 +101,7 @@ impl<'a> Iterator for BlockCollisions<'a> {
             // let block_shape = block.get_collision_shape();
             // if block_shape == Shapes::block() {
             if true {
+                // TODO: this can be optimized
                 if !self.aabb.intersects_aabb(&AABB {
                     min_x: item.pos.x as f64,
                     min_y: item.pos.y as f64,
@@ -112,7 +113,11 @@ impl<'a> Iterator for BlockCollisions<'a> {
                     continue;
                 }
 
-                return block_shape.move_relative(item.pos.x, item.pos.y, item.pos.z);
+                return Some(block_shape.move_relative(
+                    item.pos.x as f64,
+                    item.pos.y as f64,
+                    item.pos.z as f64,
+                ));
             }
 
             // let block_shape = block_shape.move_relative(item.pos.x, item.pos.y, item.pos.z);

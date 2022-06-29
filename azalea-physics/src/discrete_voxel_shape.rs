@@ -1,5 +1,7 @@
 use azalea_core::BitSet;
 
+// TODO: every impl of DiscreteVoxelShape could be turned into a single enum as an optimization
+
 pub trait DiscreteVoxelShape {
     // public boolean isFullWide(int var1, int var2, int var3) {
     // 	if (var1 >= 0 && var2 >= 0 && var3 >= 0) {
@@ -17,6 +19,30 @@ pub trait DiscreteVoxelShape {
     //     }
     //     return false;
     // }
+    fn x_size(&self) -> usize;
+    fn y_size(&self) -> usize;
+    fn z_size(&self) -> usize;
+
+    fn first_full_x(&self) -> usize;
+    fn first_full_y(&self) -> usize;
+    fn first_full_z(&self) -> usize;
+
+    fn last_full_x(&self) -> usize;
+    fn last_full_y(&self) -> usize;
+    fn last_full_z(&self) -> usize;
+
+    fn is_empty(&self) -> bool {
+        if self.first_full_x() >= self.last_full_x() {
+            return true;
+        }
+        if self.first_full_y() >= self.last_full_y() {
+            return true;
+        }
+        if self.first_full_x() >= self.last_full_x() {
+            return true;
+        }
+        false
+    }
 }
 
 #[derive(Default)]
