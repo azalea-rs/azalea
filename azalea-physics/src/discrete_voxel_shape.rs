@@ -1,4 +1,4 @@
-use azalea_core::BitSet;
+use azalea_core::{Axis, BitSet};
 
 // TODO: every impl of DiscreteVoxelShape could be turned into a single enum as an optimization
 
@@ -19,9 +19,7 @@ pub trait DiscreteVoxelShape {
     //     }
     //     return false;
     // }
-    fn x_size(&self) -> u32;
-    fn y_size(&self) -> u32;
-    fn z_size(&self) -> u32;
+    fn size(&self, axis: Axis) -> u32;
 
     fn first_full_x(&self) -> u32;
     fn first_full_y(&self) -> u32;
@@ -126,14 +124,8 @@ impl BitSetDiscreteVoxelShape {
 }
 
 impl DiscreteVoxelShape for BitSetDiscreteVoxelShape {
-    fn x_size(&self) -> u32 {
-        self.x_size
-    }
-    fn y_size(&self) -> u32 {
-        self.y_size
-    }
-    fn z_size(&self) -> u32 {
-        self.z_size
+    fn size(&self, axis: Axis) -> u32 {
+        axis.choose(self.x_size, self.y_size, self.z_size)
     }
 
     fn first_full_x(&self) -> u32 {

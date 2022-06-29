@@ -14,16 +14,16 @@ pub enum Direction {
 
 #[derive(Clone, Copy, Debug)]
 pub enum Axis {
-    X,
-    Y,
-    Z,
+    X = 0,
+    Y = 1,
+    Z = 2,
 }
 
 #[derive(Clone, Copy, Debug)]
 pub enum AxisCycle {
-    None,
-    Forward,
-    Backward,
+    None = 0,
+    Forward = 1,
+    Backward = 2,
 }
 
 impl Axis {
@@ -34,6 +34,15 @@ impl Axis {
             Axis::X => x,
             Axis::Y => y,
             Axis::Z => z,
+        }
+    }
+
+    pub fn from_ordinal(ordinal: u32) -> Self {
+        match ordinal {
+            0 => Axis::X,
+            1 => Axis::Y,
+            2 => Axis::Z,
+            _ => panic!("Invalid ordinal {}", ordinal),
         }
     }
 }
@@ -57,11 +66,11 @@ impl AxisCycle {
             Self::Backward => Self::Forward,
         }
     }
-    pub fn cycle(self, axis: Axis) -> Self {
+    pub fn cycle(self, axis: Axis) -> Axis {
         match self {
-            Self::None => Self::None,
-            Self::Forward => Self::from_ordinal(floor_mod(axis as i32 + 1, 3)),
-            Self::Backward => Self::from_ordinal(floor_mod(axis as i32 - 1, 3)),
+            Self::None => axis,
+            Self::Forward => Axis::from_ordinal(floor_mod(axis as i32 + 1, 3)),
+            Self::Backward => Axis::from_ordinal(floor_mod(axis as i32 - 1, 3)),
         }
     }
 }
