@@ -91,7 +91,7 @@ impl HasPhysics for Entity {
 
         let block_collisions =
             dimension.get_block_collisions(entity, entity_bounding_box.expand_towards(movement));
-        collision_boxes.extend(block_collisions.map(Box::new).collect::<Vec<_>>());
+        collision_boxes.extend(block_collisions);
         Self::collide_with_shapes(movement, &entity_bounding_box, &collision_boxes)
     }
 

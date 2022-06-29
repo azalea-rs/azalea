@@ -24,6 +24,8 @@ pub trait VoxelShape {
     fn get_y_coords(&self) -> Vec<f64>;
     fn get_z_coords(&self) -> Vec<f64>;
 
+    // TODO: optimization: should this be changed to return ArrayVoxelShape?
+    // i might change the implementation of empty_shape in the future so not 100% sure
     fn move_relative(&self, x: f64, y: f64, z: f64) -> Box<dyn VoxelShape> {
         if self.shape().is_empty() {
             return empty_shape();

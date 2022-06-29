@@ -76,7 +76,7 @@ impl<'a> BlockCollisions<'a> {
 }
 
 impl<'a> Iterator for BlockCollisions<'a> {
-    type Item = ArrayVoxelShape;
+    type Item = Box<dyn VoxelShape>;
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(item) = self.cursor.next() {
