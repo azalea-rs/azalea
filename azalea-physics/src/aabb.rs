@@ -1,5 +1,5 @@
 use crate::BlockHitResult;
-use azalea_core::{BlockPos, Direction, PositionXYZ, Vec3};
+use azalea_core::{Axis, BlockPos, Direction, PositionXYZ, Vec3};
 
 pub const EPSILON: f64 = 1.0E-7;
 
@@ -193,20 +193,18 @@ impl AABB {
     }
 
     pub fn size(&self) -> f64 {
-        let x = self.get_xsize();
-        let y = self.get_ysize();
-        let z = self.get_zsize();
+        let x = self.get_size(Axis::X);
+        let y = self.get_size(Axis::Y);
+        let z = self.get_size(Axis::Z);
         (x + y + z) / 3.0
     }
 
-    pub fn get_xsize(&self) -> f64 {
-        self.max_x - self.min_x
-    }
-    pub fn get_ysize(&self) -> f64 {
-        self.max_y - self.min_y
-    }
-    pub fn get_zsize(&self) -> f64 {
-        self.max_z - self.min_z
+    pub fn get_size(&self, axis: Axis) -> f64 {
+        axis.choose(
+            self.max_x - self.min_x,
+            self.max_y - self.min_y,
+            self.max_z - self.min_z,
+        )
     }
 
     pub fn deflate(&mut self, x: f64, y: f64, z: f64) -> AABB {
@@ -436,5 +434,12 @@ impl AABB {
             max_y: center.y + dy / 2.0,
             max_z: center.z + dz / 2.0,
         }
+    }
+
+    pub fn max(&self, axis: &Axis) -> f64 {
+        axis.choose(self.max_x, self.max_y, self.max_z)
+    }
+    pub fn min(&self, axis: &Axis) -> f64 {
+        axis.choose(self.min_x, self.min_y, self.min_z)
     }
 }
