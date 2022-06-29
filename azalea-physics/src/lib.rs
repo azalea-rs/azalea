@@ -81,7 +81,7 @@ impl HasPhysics for Entity {
         dimension: &Dimension,
         entity_collisions: Vec<Box<dyn VoxelShape>>,
     ) -> Vec3 {
-        let mut collision_boxes = Vec::with_capacity(1); // entity_collisions.len() + 1
+        let mut collision_boxes: Vec<Box<dyn VoxelShape>> = Vec::with_capacity(1); // entity_collisions.len() + 1
 
         if !entity_collisions.is_empty() {
             collision_boxes.extend(entity_collisions);
@@ -91,7 +91,7 @@ impl HasPhysics for Entity {
 
         let block_collisions =
             dimension.get_block_collisions(entity, entity_bounding_box.expand_towards(movement));
-        collision_boxes.extend(block_collisions);
+        collision_boxes.extend(block_collisions.map(Box::new).collect::<Vec<_>>());
         Self::collide_with_shapes(movement, &entity_bounding_box, &collision_boxes)
     }
 

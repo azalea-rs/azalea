@@ -19,17 +19,17 @@ pub trait DiscreteVoxelShape {
     //     }
     //     return false;
     // }
-    fn x_size(&self) -> usize;
-    fn y_size(&self) -> usize;
-    fn z_size(&self) -> usize;
+    fn x_size(&self) -> u32;
+    fn y_size(&self) -> u32;
+    fn z_size(&self) -> u32;
 
-    fn first_full_x(&self) -> usize;
-    fn first_full_y(&self) -> usize;
-    fn first_full_z(&self) -> usize;
+    fn first_full_x(&self) -> u32;
+    fn first_full_y(&self) -> u32;
+    fn first_full_z(&self) -> u32;
 
-    fn last_full_x(&self) -> usize;
-    fn last_full_y(&self) -> usize;
-    fn last_full_z(&self) -> usize;
+    fn last_full_x(&self) -> u32;
+    fn last_full_y(&self) -> u32;
+    fn last_full_z(&self) -> u32;
 
     fn is_empty(&self) -> bool {
         if self.first_full_x() >= self.last_full_x() {
@@ -119,5 +119,37 @@ impl BitSetDiscreteVoxelShape {
     // }
     fn get_index(&self, x: u32, y: u32, z: u32) -> usize {
         ((x * self.y_size + y) * self.z_size + z) as usize
+    }
+}
+
+impl DiscreteVoxelShape for BitSetDiscreteVoxelShape {
+    fn x_size(&self) -> u32 {
+        self.x_size
+    }
+    fn y_size(&self) -> u32 {
+        self.y_size
+    }
+    fn z_size(&self) -> u32 {
+        self.z_size
+    }
+
+    fn first_full_x(&self) -> u32 {
+        self.x_min
+    }
+    fn first_full_y(&self) -> u32 {
+        self.y_min
+    }
+    fn first_full_z(&self) -> u32 {
+        self.z_min
+    }
+
+    fn last_full_x(&self) -> u32 {
+        self.x_max
+    }
+    fn last_full_y(&self) -> u32 {
+        self.y_max
+    }
+    fn last_full_z(&self) -> u32 {
+        self.z_max
     }
 }

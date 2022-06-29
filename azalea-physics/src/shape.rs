@@ -1,15 +1,20 @@
-use std::ops::{Add, Index};
-
-use azalea_core::Direction;
-
 use crate::{BitSetDiscreteVoxelShape, DiscreteVoxelShape};
+use std::ops::Add;
 
 pub struct Shapes {}
 
 pub fn block_shape() -> Box<dyn VoxelShape> {
     let mut shape = BitSetDiscreteVoxelShape::new(1, 1, 1);
     shape.fill(0, 0, 0);
-    VoxelShape::new(Box::new(shape))
+    Box::new(CubeVoxelShape::new(Box::new(shape)))
+}
+pub fn empty_shape() -> Box<dyn VoxelShape> {
+    Box::new(ArrayVoxelShape::new(
+        Box::new(BitSetDiscreteVoxelShape::new(0, 0, 0)),
+        vec![0.],
+        vec![0.],
+        vec![0.],
+    ))
 }
 
 pub trait VoxelShape {
@@ -19,17 +24,16 @@ pub trait VoxelShape {
     fn get_y_coords(&self) -> Vec<f64>;
     fn get_z_coords(&self) -> Vec<f64>;
 
-    fn move_relative(&self, x: f64, y: f64, z: f64) -> ArrayVoxelShape {
+    fn move_relative(&self, x: f64, y: f64, z: f64) -> Box<dyn VoxelShape> {
         if self.shape().is_empty() {
-            return Shapes::empty();
+            return empty_shape();
         }
-        // TODO: just offset the vecs now instead of using an OffsetVec
-        ArrayVoxelShape::new(
+        Box::new(ArrayVoxelShape::new(
             self.shape(),
             self.get_x_coords().iter().map(|c| c + x).collect(),
             self.get_y_coords().iter().map(|c| c + y).collect(),
             self.get_z_coords().iter().map(|c| c + z).collect(),
-        )
+        ))
     }
 }
 
@@ -42,20 +46,12 @@ pub struct ArrayVoxelShape {
     pub zs: Vec<f64>,
 }
 
+pub struct CubeVoxelShape {
+    shape: Box<dyn DiscreteVoxelShape>,
+    faces: Option<Vec<Box<dyn VoxelShape>>>,
+}
+
 impl ArrayVoxelShape {
-    // ArrayVoxelShape(DiscreteVoxelShape var1, DoubleList var2, DoubleList var3, DoubleList var4) {
-    //     super(var1);
-    //     int var5 = var1.getXSize() + 1;
-    //     int var6 = var1.getYSize() + 1;
-    //     int var7 = var1.getZSize() + 1;
-    //     if (var5 == var2.size() && var6 == var3.size() && var7 == var4.size()) {
-    //        this.xs = var2;
-    //        this.ys = var3;
-    //        this.zs = var4;
-    //     } else {
-    //        throw (IllegalArgumentException)Util.pauseInIde(new IllegalArgumentException("Lengths of point arrays must be consistent with the size of the VoxelShape."));
-    //     }
-    // }
     pub fn new(
         shape: Box<dyn DiscreteVoxelShape>,
         xs: Vec<f64>,
@@ -67,9 +63,9 @@ impl ArrayVoxelShape {
         let z_size = shape.z_size() + 1;
 
         // Lengths of point arrays must be consistent with the size of the VoxelShape.
-        assert_eq!(x_size, xs.len());
-        assert_eq!(y_size, ys.len());
-        assert_eq!(z_size, zs.len());
+        assert_eq!(x_size, xs.len() as u32);
+        assert_eq!(y_size, ys.len() as u32);
+        assert_eq!(z_size, zs.len() as u32);
 
         Self {
             faces: None,
@@ -81,25 +77,59 @@ impl ArrayVoxelShape {
     }
 }
 
-// mojang moment
-// this is probably for an optimization and could probably be optimized more
-/// A Vec that adds the given offset when indexing into it.
-pub struct OffsetVec<T> {
-    delegate: Vec<T>,
-    offset: T,
+impl CubeVoxelShape {
+    pub fn new(shape: Box<dyn DiscreteVoxelShape>) -> Self {
+        Self { shape, faces: None }
+    }
 }
 
-impl<T> OffsetVec<T>
-where
-    T: Add<Output = T>,
-{
-    pub fn new(delegate: Vec<T>, offset: T) -> Self {
-        Self { delegate, offset }
+impl VoxelShape for ArrayVoxelShape {
+    fn shape(&self) -> Box<dyn DiscreteVoxelShape> {
+        todo!()
     }
-    pub fn index(&self, index: usize) -> T {
-        self.delegate[index] + self.offset
+
+    fn get_x_coords(&self) -> Vec<f64> {
+        todo!()
     }
-    pub fn len(&self) -> usize {
-        self.delegate.len()
+
+    fn get_y_coords(&self) -> Vec<f64> {
+        todo!()
+    }
+
+    fn get_z_coords(&self) -> Vec<f64> {
+        todo!()
+    }
+}
+
+impl VoxelShape for CubeVoxelShape {
+    fn shape(&self) -> Box<dyn DiscreteVoxelShape> {
+        todo!()
+    }
+
+    fn get_x_coords(&self) -> Vec<f64> {
+        let size = self.shape.x_size();
+        let mut parts = Vec::with_capacity(size as usize);
+        for i in 0..size {
+            parts.push(i as f64 / size as f64);
+        }
+        parts
+    }
+
+    fn get_y_coords(&self) -> Vec<f64> {
+        let size = self.shape.y_size();
+        let mut parts = Vec::with_capacity(size as usize);
+        for i in 0..size {
+            parts.push(i as f64 / size as f64);
+        }
+        parts
+    }
+
+    fn get_z_coords(&self) -> Vec<f64> {
+        let size = self.shape.z_size();
+        let mut parts = Vec::with_capacity(size as usize);
+        for i in 0..size {
+            parts.push(i as f64 / size as f64);
+        }
+        parts
     }
 }
