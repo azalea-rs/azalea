@@ -1,4 +1,6 @@
-use crate::{BitSetDiscreteVoxelShape, DiscreteVoxelShape};
+use azalea_core::Axis;
+
+use crate::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB, EPSILON};
 use std::ops::Add;
 
 pub struct Shapes {}
@@ -15,6 +17,23 @@ pub fn empty_shape() -> Box<dyn VoxelShape> {
         vec![0.],
         vec![0.],
     ))
+}
+
+impl Shapes {
+    pub fn collide_x(
+        entity_box: &AABB,
+        collision_boxes: &Vec<Box<dyn VoxelShape>>,
+        movement: f64,
+    ) -> f64 {
+        let mut shape: Box<dyn VoxelShape>;
+        for shape in collision_boxes {
+            if movement.abs() < EPSILON {
+                return 0.;
+            }
+            movement = shape.collide_x(entity_box, movement);
+        }
+        movement
+    }
 }
 
 pub trait VoxelShape {
@@ -36,6 +55,10 @@ pub trait VoxelShape {
             self.get_y_coords().iter().map(|c| c + y).collect(),
             self.get_z_coords().iter().map(|c| c + z).collect(),
         ))
+    }
+
+    fn collide(axis: &Axis, entity_box: &AABB, movement: f64) {
+        self.collide_x()
     }
 }
 

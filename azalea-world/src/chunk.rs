@@ -3,6 +3,7 @@ use crate::palette::PalettedContainerType;
 use crate::Dimension;
 use azalea_block::BlockState;
 use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_core::floor_mod;
 use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use std::fmt::Debug;
 use std::{
@@ -21,16 +22,6 @@ pub struct ChunkStorage {
     pub min_y: i32,
     // chunks is a list of size chunk_radius * chunk_radius
     chunks: Vec<Option<Arc<Mutex<Chunk>>>>,
-}
-
-// java moment
-// it might be possible to replace this with just a modulo, but i copied java's floorMod just in case
-fn floor_mod(x: i32, y: u32) -> u32 {
-    if x < 0 {
-        y - ((-x) as u32 % y)
-    } else {
-        x as u32 % y
-    }
 }
 
 impl ChunkStorage {

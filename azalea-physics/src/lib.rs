@@ -100,7 +100,46 @@ impl HasPhysics for Entity {
         entity_box: &AABB,
         collision_boxes: &Vec<Box<dyn VoxelShape>>,
     ) -> Vec3 {
-        // TODO
-        *movement
+        if collision_boxes.is_empty() {
+            return *movement;
+        }
+
+        let mut x_movement = movement.x;
+        let mut y_movement = movement.y;
+        let mut z_movement = movement.z;
+        if y_movement != 0. {
+            y_movement = Shapes::collide_y(entity_box, collision_boxes, y_movement);
+            if y_movement != 0. {
+                *entity_box = entity_box.move_relative(0., y_movement, 0.);
+            }
+        }
+
+        // whether the player is moving more in the z axis than x
+        // this is done to fix a movement bug, minecraft does this too
+        let more_z_movement = x_movement.abs() < z_movement.abs();
+
+        if more_z_movement && z_movement != 0. {
+            z_movement = Shapes::collide_z(entity_box, collision_boxes, z_movement);
+            if z_movement != 0. {
+                *entity_box = entity_box.move_relative(0., 0., z_movement);
+            }
+        }
+
+        if x_movement != 0. {
+            x_movement = Shapes::collide_x(entity_box, collision_boxes, x_movement);
+            if x_movement != 0. {
+                *entity_box = entity_box.move_relative(x_movement, 0., 0.);
+            }
+        }
+
+        if !more_z_movement && z_movement != 0. {
+            z_movement = Shapes::collide_z(entity_box, collision_boxes, z_movement);
+        }
+
+        Vec3 {
+            x: x_movement,
+            y: y_movement,
+            z: z_movement,
+        }
     }
 }
