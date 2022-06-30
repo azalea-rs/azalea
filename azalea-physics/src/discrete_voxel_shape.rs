@@ -27,8 +27,7 @@ pub trait DiscreteVoxelShape {
     }
 
     fn is_full_wide(&self, x: u32, y: u32, z: u32) -> bool {
-        (x >= 0 && y >= 0 && z >= 0)
-            && (x < self.size(Axis::X) && y < self.size(Axis::Y) && z < self.size(Axis::Z))
+        (x < self.size(Axis::X) && y < self.size(Axis::Y) && z < self.size(Axis::Z))
             && (self.is_full(x, y, z))
     }
     fn is_full_wide_axis_cycle(&self, axis_cycle: AxisCycle, x: u32, y: u32, z: u32) -> bool {
