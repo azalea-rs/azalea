@@ -4,6 +4,10 @@ jobs:
   clippy_check:
     runs-on: ubuntu-latest
     steps:
+      - name: Cache
+        uses: actions/cache@v3.0.4
+        with:
+          path: target
       - uses: actions/checkout@v1
       - run: rustup component add clippy
       - uses: actions-rs/clippy-check@v1
