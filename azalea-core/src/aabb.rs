@@ -1,9 +1,9 @@
-use crate::BlockHitResult;
-use azalea_core::{Axis, BlockPos, Direction, PositionXYZ, Vec3};
+use crate::{Axis, BlockHitResult, BlockPos, Direction, PositionXYZ, Vec3};
 
 pub const EPSILON: f64 = 1.0E-7;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+/// A rectangular prism with a starting and ending point.
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct AABB {
     pub min_x: f64,
     pub min_y: f64,

@@ -1,7 +1,9 @@
 mod data;
+mod dimensions;
 
-use azalea_core::{PositionDelta, Vec3};
+use azalea_core::{PositionDelta, Vec3, AABB};
 pub use data::*;
+pub use dimensions::*;
 use uuid::Uuid;
 
 #[derive(Default, Debug)]
@@ -17,10 +19,19 @@ pub struct Entity {
 
     pub x_rot: f32,
     pub y_rot: f32,
+
+    /// The width and height of the entity.
+    pub dimensions: EntityDimensions,
+    /// The bounding box of the entity. This is more than just width and height, unlike dimensions.
+    pub bounding_box: AABB,
 }
 
 impl Entity {
     pub fn new(id: u32, uuid: Uuid, pos: Vec3) -> Self {
+        let dimensions = EntityDimensions {
+            width: 0.8,
+            height: 1.8,
+        };
         Self {
             id,
             uuid,
@@ -29,6 +40,9 @@ impl Entity {
             delta: PositionDelta::default(),
             x_rot: 0.0,
             y_rot: 0.0,
+            // TODO: have this be based on the entity type
+            bounding_box: dimensions.make_bounding_box(&pos),
+            dimensions: dimensions,
         }
     }
 

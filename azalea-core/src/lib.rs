@@ -32,6 +32,12 @@ pub use cursor3d::*;
 mod bitset;
 pub use bitset::*;
 
+mod aabb;
+pub use aabb::*;
+
+mod block_hit_result;
+pub use block_hit_result::*;
+
 // java moment
 // TODO: add tests and optimize/simplify this
 pub fn floor_mod(x: i32, y: u32) -> u32 {

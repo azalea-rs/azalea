@@ -1,6 +1,5 @@
-use azalea_core::{binary_search, Axis, AxisCycle};
-
-use crate::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB, EPSILON};
+use crate::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB};
+use azalea_core::{binary_search, Axis, AxisCycle, EPSILON};
 use std::{cmp, ops::Add};
 
 pub struct Shapes {}

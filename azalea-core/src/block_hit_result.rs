@@ -1,4 +1,4 @@
-use azalea_core::{BlockPos, Direction, Vec3};
+use crate::{BlockPos, Direction, Vec3};
 
 pub struct BlockHitResult {
     pub location: Vec3,

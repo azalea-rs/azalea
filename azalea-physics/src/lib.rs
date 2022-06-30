@@ -1,14 +1,10 @@
-mod aabb;
-mod block_hit_result;
 mod dimension_collisions;
 mod discrete_voxel_shape;
 mod shape;
 
-pub use aabb::*;
-use azalea_core::{Axis, PositionDelta, PositionXYZ, Vec3};
+use azalea_core::{Axis, PositionDelta, PositionXYZ, Vec3, AABB};
 use azalea_entity::Entity;
 use azalea_world::Dimension;
-pub use block_hit_result::*;
 use dimension_collisions::CollisionGetter;
 pub use discrete_voxel_shape::*;
 pub use shape::*;
@@ -23,6 +19,7 @@ pub enum MoverType {
 
 trait HasPhysics {
     fn move_entity(&mut self, mover_type: &MoverType, movement: &PositionDelta);
+    fn collide(&self, movement: &Vec3, dimension: &Dimension) -> Vec3;
     fn collide_bounding_box(
         entity: Option<&Self>,
         movement: &Vec3,
@@ -60,19 +57,52 @@ impl HasPhysics for Entity {
         // TODO
     }
 
-    // fn collide(movement: &Vec3, dimension: &Dimension) -> Vec3 {
-    //     if movement.length_sqr() == 0.0 {
-    //         *movement
-    //     } else {
-    //         // Self::collide_bounding_box(
-    //         //     Some(self),
-    //         //     movement,
-    //         //     entityBoundingBox,
-    //         //     this.level,
-    //         //     entityCollisions,
-    //         // )
+    // private Vec3 collide(Vec3 var1) {
+    //     AABB var2 = this.getBoundingBox();
+    //     List var3 = this.level.getEntityCollisions(this, var2.expandTowards(var1));
+    //     Vec3 var4 = var1.lengthSqr() == 0.0D ? var1 : collideBoundingBox(this, var1, var2, this.level, var3);
+    //     boolean var5 = var1.x != var4.x;
+    //     boolean var6 = var1.y != var4.y;
+    //     boolean var7 = var1.z != var4.z;
+    //     boolean var8 = this.onGround || var6 && var1.y < 0.0D;
+    //     if (this.maxUpStep > 0.0F && var8 && (var5 || var7)) {
+    //        Vec3 var9 = collideBoundingBox(this, new Vec3(var1.x, (double)this.maxUpStep, var1.z), var2, this.level, var3);
+    //        Vec3 var10 = collideBoundingBox(this, new Vec3(0.0D, (double)this.maxUpStep, 0.0D), var2.expandTowards(var1.x, 0.0D, var1.z), this.level, var3);
+    //        if (var10.y < (double)this.maxUpStep) {
+    //           Vec3 var11 = collideBoundingBox(this, new Vec3(var1.x, 0.0D, var1.z), var2.move(var10), this.level, var3).add(var10);
+    //           if (var11.horizontalDistanceSqr() > var9.horizontalDistanceSqr()) {
+    //              var9 = var11;
+    //           }
+    //        }
+
+    //        if (var9.horizontalDistanceSqr() > var4.horizontalDistanceSqr()) {
+    //           return var9.add(collideBoundingBox(this, new Vec3(0.0D, -var9.y + var1.y, 0.0D), var2.move(var9), this.level, var3));
+    //        }
     //     }
+
+    //     return var4;
     // }
+    fn collide(&self, movement: &Vec3, dimension: &Dimension) -> Vec3 {
+        let entity_bounding_box = self.bounding_box;
+        // TODO: get_entity_collisions
+        // let entity_collisions = dimension.get_entity_collisions(self, entity_bounding_box.expand_towards(movement));
+        let entity_collisions = Vec::new();
+        let collided_movement = if movement.length_sqr() == 0.0 {
+            *movement
+        } else {
+            Self::collide_bounding_box(
+                Some(self),
+                movement,
+                &entity_bounding_box,
+                dimension,
+                entity_collisions,
+            )
+        };
+
+        // TODO: stepping (for stairs and stuff)
+
+        collided_movement
+    }
 
     fn collide_bounding_box(
         entity: Option<&Self>,
