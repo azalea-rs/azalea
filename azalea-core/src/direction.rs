@@ -73,4 +73,11 @@ impl AxisCycle {
             Self::Backward => Axis::from_ordinal(floor_mod(axis as i32 - 1, 3)),
         }
     }
+    pub fn cycle_xyz(self, x: u32, y: u32, z: u32, axis: Axis) -> u32 {
+        match self {
+            Self::None => axis.choose(x, y, z),
+            Self::Forward => axis.choose(z, x, y),
+            Self::Backward => axis.choose(y, z, x),
+        }
+    }
 }

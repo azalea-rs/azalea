@@ -1,24 +1,8 @@
-use azalea_core::{Axis, BitSet};
+use azalea_core::{Axis, AxisCycle, BitSet};
 
 // TODO: every impl of DiscreteVoxelShape could be turned into a single enum as an optimization
 
 pub trait DiscreteVoxelShape {
-    // public boolean isFullWide(int var1, int var2, int var3) {
-    // 	if (var1 >= 0 && var2 >= 0 && var3 >= 0) {
-    // 	   return var1 < this.xSize && var2 < this.ySize && var3 < this.zSize ? this.isFull(var1, var2, var3) : false;
-    // 	} else {
-    // 	   return false;
-    // 	}
-    //  }
-    // pub fn is_full_wide(&self, x: i32, y: i32, z: i32) -> bool {
-    //     // TODO: can this be u32 instead of i32?
-    //     if x >= 0 && y >= 0 && z >= 0 {
-    //         if x < self.x_size as i32 && y < self.y_size as i32 && z < self.z_size as i32 {
-    //             return self.is_full(x, y, z);
-    //         }
-    //     }
-    //     return false;
-    // }
     fn size(&self, axis: Axis) -> u32;
 
     fn first_full_x(&self) -> u32;
@@ -41,6 +25,21 @@ pub trait DiscreteVoxelShape {
         }
         false
     }
+
+    fn is_full_wide(&self, x: u32, y: u32, z: u32) -> bool {
+        (x >= 0 && y >= 0 && z >= 0)
+            && (x < self.size(Axis::X) && y < self.size(Axis::Y) && z < self.size(Axis::Z))
+            && (self.is_full(x, y, z))
+    }
+    fn is_full_wide_axis_cycle(&self, axis_cycle: AxisCycle, x: u32, y: u32, z: u32) -> bool {
+        self.is_full_wide(
+            axis_cycle.cycle_xyz(x, y, z, Axis::X),
+            axis_cycle.cycle_xyz(x, y, z, Axis::Y),
+            axis_cycle.cycle_xyz(x, y, z, Axis::Z),
+        )
+    }
+
+    fn is_full(&self, x: u32, y: u32, z: u32) -> bool;
 
     // i don't know how to do this properly
     fn clone(&self) -> Box<dyn DiscreteVoxelShape>;
@@ -150,5 +149,9 @@ impl DiscreteVoxelShape for BitSetDiscreteVoxelShape {
 
     fn clone(&self) -> Box<dyn DiscreteVoxelShape> {
         Box::new(Clone::clone(self))
+    }
+
+    fn is_full(&self, x: u32, y: u32, z: u32) -> bool {
+        self.storage.index(self.get_index(x, y, z))
     }
 }

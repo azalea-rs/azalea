@@ -5,7 +5,7 @@ mod discrete_voxel_shape;
 mod shape;
 
 pub use aabb::*;
-use azalea_core::{PositionDelta, PositionXYZ, Vec3};
+use azalea_core::{Axis, PositionDelta, PositionXYZ, Vec3};
 use azalea_entity::Entity;
 use azalea_world::Dimension;
 pub use block_hit_result::*;
@@ -32,7 +32,7 @@ trait HasPhysics {
     ) -> Vec3;
     fn collide_with_shapes(
         movement: &Vec3,
-        entity_box: &AABB,
+        entity_box: AABB,
         collision_boxes: &Vec<Box<dyn VoxelShape>>,
     ) -> Vec3;
 }
@@ -92,12 +92,12 @@ impl HasPhysics for Entity {
         let block_collisions =
             dimension.get_block_collisions(entity, entity_bounding_box.expand_towards(movement));
         collision_boxes.extend(block_collisions);
-        Self::collide_with_shapes(movement, &entity_bounding_box, &collision_boxes)
+        Self::collide_with_shapes(movement, *entity_bounding_box, &collision_boxes)
     }
 
     fn collide_with_shapes(
         movement: &Vec3,
-        entity_box: &AABB,
+        mut entity_box: AABB,
         collision_boxes: &Vec<Box<dyn VoxelShape>>,
     ) -> Vec3 {
         if collision_boxes.is_empty() {
@@ -108,9 +108,9 @@ impl HasPhysics for Entity {
         let mut y_movement = movement.y;
         let mut z_movement = movement.z;
         if y_movement != 0. {
-            y_movement = Shapes::collide_y(entity_box, collision_boxes, y_movement);
+            y_movement = Shapes::collide(&Axis::Y, &entity_box, collision_boxes, y_movement);
             if y_movement != 0. {
-                *entity_box = entity_box.move_relative(0., y_movement, 0.);
+                entity_box = entity_box.move_relative(0., y_movement, 0.);
             }
         }
 
@@ -119,21 +119,21 @@ impl HasPhysics for Entity {
         let more_z_movement = x_movement.abs() < z_movement.abs();
 
         if more_z_movement && z_movement != 0. {
-            z_movement = Shapes::collide_z(entity_box, collision_boxes, z_movement);
+            z_movement = Shapes::collide(&Axis::Z, &entity_box, collision_boxes, z_movement);
             if z_movement != 0. {
-                *entity_box = entity_box.move_relative(0., 0., z_movement);
+                entity_box = entity_box.move_relative(0., 0., z_movement);
             }
         }
 
         if x_movement != 0. {
-            x_movement = Shapes::collide_x(entity_box, collision_boxes, x_movement);
+            x_movement = Shapes::collide(&Axis::X, &entity_box, collision_boxes, x_movement);
             if x_movement != 0. {
-                *entity_box = entity_box.move_relative(x_movement, 0., 0.);
+                entity_box = entity_box.move_relative(x_movement, 0., 0.);
             }
         }
 
         if !more_z_movement && z_movement != 0. {
-            z_movement = Shapes::collide_z(entity_box, collision_boxes, z_movement);
+            z_movement = Shapes::collide(&Axis::Z, &entity_box, collision_boxes, z_movement);
         }
 
         Vec3 {

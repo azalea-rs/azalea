@@ -24,9 +24,8 @@ impl Shapes {
         axis: &Axis,
         entity_box: &AABB,
         collision_boxes: &Vec<Box<dyn VoxelShape>>,
-        movement: f64,
+        mut movement: f64,
     ) -> f64 {
-        let mut shape: Box<dyn VoxelShape>;
         for shape in collision_boxes {
             if movement.abs() < EPSILON {
                 return 0.;
@@ -69,7 +68,7 @@ pub trait VoxelShape {
     fn collide(&self, axis: &Axis, entity_box: &AABB, movement: f64) -> f64 {
         self.collide_x(AxisCycle::between(*axis, Axis::X), entity_box, movement)
     }
-    fn collide_x(&self, axis_cycle: AxisCycle, entity_box: &AABB, movement: f64) -> f64 {
+    fn collide_x(&self, axis_cycle: AxisCycle, entity_box: &AABB, mut movement: f64) -> f64 {
         if self.shape().is_empty() {
             return movement;
         }
@@ -115,13 +114,15 @@ pub trait VoxelShape {
             for var20 in var14 + 1..var19 {
                 for var21 in var15..var16 {
                     for var22 in var17..var18 {
-                        if self
-                            .shape()
-                            .is_full_wide(inverse_axis_cycle, var20, var21, var22)
-                        {
+                        if self.shape().is_full_wide_axis_cycle(
+                            inverse_axis_cycle,
+                            var20,
+                            var21,
+                            var22,
+                        ) {
                             let var23 = self.get(x_axis, var20 as usize) - var9;
                             if var23 >= -EPSILON {
-                                movement = cmp::min(movement, var23);
+                                movement = f64::min(movement, var23);
                             }
                             return movement;
                         }
@@ -132,13 +133,15 @@ pub trait VoxelShape {
             for var20 in (var13 - 1)..=0 {
                 for var21 in var15..var16 {
                     for var22 in var17..var18 {
-                        if self
-                            .shape()
-                            .is_full_wide(inverse_axis_cycle, var20, var21, var22)
-                        {
-                            let var23 = self.get(x_axis, var20 + 1) - var11;
+                        if self.shape().is_full_wide_axis_cycle(
+                            inverse_axis_cycle,
+                            var20,
+                            var21,
+                            var22,
+                        ) {
+                            let var23 = self.get(x_axis, (var20 + 1) as usize) - var11;
                             if var23 <= EPSILON {
-                                movement = cmp::max(movement, var23);
+                                movement = f64::max(movement, var23);
                             }
                             return movement;
                         }
