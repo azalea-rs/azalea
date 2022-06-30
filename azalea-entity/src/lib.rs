@@ -25,9 +25,9 @@ pub struct Entity {
     /// The bounding box of the entity. This is more than just width and height, unlike dimensions.
     pub bounding_box: AABB,
 }
-
 impl Entity {
     pub fn new(id: u32, uuid: Uuid, pos: Vec3) -> Self {
+        // TODO: have this be based on the entity type
         let dimensions = EntityDimensions {
             width: 0.8,
             height: 1.8,
@@ -42,7 +42,7 @@ impl Entity {
             y_rot: 0.0,
             // TODO: have this be based on the entity type
             bounding_box: dimensions.make_bounding_box(&pos),
-            dimensions: dimensions,
+            dimensions,
         }
     }
 
@@ -54,12 +54,17 @@ impl Entity {
     /// azalea-world, and should only be used within azalea-world!
     pub fn unsafe_move(&mut self, new_pos: Vec3) {
         self.pos = new_pos;
+        self.bounding_box = self.make_bounding_box();
     }
 
     pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
         self.y_rot = y_rot.clamp(-90.0, 90.0) % 360.0;
         self.x_rot = x_rot % 360.0;
         // TODO: minecraft also sets yRotO and xRotO to xRot and yRot ... but idk what they're used for so
+    }
+
+    fn make_bounding_box(&self) -> AABB {
+        self.dimensions.make_bounding_box(&self.pos)
     }
 }
 
