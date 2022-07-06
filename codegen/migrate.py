@@ -81,13 +81,19 @@ print()
 
 # find added/changed packets
 added_or_changed_packets: list[PacketIdentifier] = []
-for packet, packet_name in new_packets.items():
+for new_packet, packet_name in new_packets.items():
+    old_packet = None
+    for old_packet_tmp, old_packet_name in old_packets.items():
+        if old_packet_name == packet_name:
+            old_packet = old_packet_tmp
+            break
+
     if packet_name not in old_packets.values():
-        added_or_changed_packets.append(packet)
-        print('Added packet:', packet, packet_name)
-    if not lib.code.packet.are_packet_instructions_identical(new_packets_data[packet].get('instructions'), old_packets_data[packet].get('instructions')):
-        added_or_changed_packets.append(packet)
-        print('Changed packet:', packet, packet_name)
+        added_or_changed_packets.append(new_packet)
+        print('Added packet:', new_packet, packet_name)
+    elif old_packet and not lib.code.packet.are_packet_instructions_identical(new_packets_data[new_packet].get('instructions'), old_packets_data[old_packet].get('instructions')):
+        added_or_changed_packets.append(new_packet)
+        print('Changed packet:', new_packet, packet_name)
 for packet in added_or_changed_packets:
     lib.code.packet.generate_packet(
         new_burger_data[0]['packets']['packet'], new_mappings, packet.packet_id, packet.direction, packet.state)

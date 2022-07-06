@@ -110,7 +110,8 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
     packet_ids, packet_class_names = [list(x) for x in zip(
         *sorted(zip(packet_ids, packet_class_names), key=lambda pair: pair[0]))]  # type: ignore
 
-    mod_rs_dir = f'../azalea-protocol/src/packets/{state}/mod.rs'
+    mod_rs_dir = get_dir_location(
+        f'../azalea-protocol/src/packets/{state}/mod.rs')
     with open(mod_rs_dir, 'r') as f:
         mod_rs = f.read().splitlines()
     new_mod_rs = []
@@ -164,7 +165,8 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
 
 
 def get_packets(direction: str, state: str):
-    mod_rs_dir = f'../azalea-protocol/src/packets/{state}/mod.rs'
+    mod_rs_dir = get_dir_location(
+        f'../azalea-protocol/src/packets/{state}/mod.rs')
     with open(mod_rs_dir, 'r') as f:
         mod_rs = f.read().splitlines()
 
