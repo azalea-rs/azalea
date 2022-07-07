@@ -191,7 +191,7 @@ impl McBufVarWritable for i64 {
             }
             // this only writes a single byte, so write_all isn't necessary
             // the let _ = is so clippy doesn't complain
-            let _ = buf.write(&mut buffer)?;
+            let _ = buf.write(&buffer)?;
         }
         Ok(())
     }

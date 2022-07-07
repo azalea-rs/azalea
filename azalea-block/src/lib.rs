@@ -7,8 +7,10 @@ pub use blocks::*;
 use std::mem;
 
 impl BlockState {
-    /// Transmutes a u32 to a block state. UB if the value is not a valid block
-    /// state.
+    /// Transmutes a u32 to a block state.
+    /// 
+    /// # Safety
+    /// The `state_id` should be a valid block state.
     #[inline]
     pub unsafe fn from_u32_unsafe(state_id: u32) -> Self {
         mem::transmute::<u32, BlockState>(state_id)

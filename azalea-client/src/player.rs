@@ -2,6 +2,11 @@ use azalea_entity::Entity;
 use azalea_world::Dimension;
 use uuid::Uuid;
 
+/// Something that has a dimension associated to it. Usually, this is a `Client`.
+pub trait DimensionHaver {
+    fn dimension(&self) -> &Dimension;
+}
+
 #[derive(Default, Debug)]
 pub struct Player {
     /// The player's uuid.

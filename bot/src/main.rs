@@ -6,17 +6,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Hello, world!");
 
     // let address = "95.111.249.143:10000";
-    let address = "localhost:65399";
+    let address = "localhost:56150";
     // let response = azalea_client::ping::ping_server(&address.try_into().unwrap())
     //     .await
     //     .unwrap();
 
     // println!("{}", response.description.to_ansi(None));
     let account = Account::offline("bot");
-    let mut client = account.join(&address.try_into().unwrap()).await.unwrap();
+    let (mut client, mut rx) = account.join(&address.try_into().unwrap()).await.unwrap();
     println!("connected");
 
-    while let Some(e) = &client.next().await {
+    while let Some(e) = &rx.recv().await {
         match e {
             // TODO: have a "loaded" or "ready" event that fires when all chunks are loaded
             Event::Login => {}
@@ -38,13 +38,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             //     //     println!("block state: {:?}", c);
             //     // }
             // }
-            Event::Chat(msg) => {
+            Event::Chat(_m) => {
                 let new_pos = {
-                    let state_lock = client.state.lock().unwrap();
-                    let world = state_lock.world.as_ref().unwrap();
-                    let player = &state_lock.player;
+                    let dimension_lock = client.dimension.lock().unwrap();
+                    let dimension = dimension_lock.as_ref().unwrap();
+                    let player = client.player.lock().unwrap();
                     let entity = player
-                        .entity(&world)
+                        .entity(dimension)
                         .expect("Player entity is not in world");
                     entity.pos().add_y(0.5)
                 };

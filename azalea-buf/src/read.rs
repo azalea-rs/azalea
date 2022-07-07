@@ -231,7 +231,7 @@ impl McBufVarReadable for i64 {
         for i in 0..8 {
             buf.read_exact(&mut buffer)
                 .map_err(|_| "Invalid VarLong".to_string())?;
-            ans |= ((buffer[0] & 0b0111_1111) as i64) << 7 * i;
+            ans |= ((buffer[0] & 0b0111_1111) as i64) << (7 * i);
             if buffer[0] & 0b1000_0000 == 0 {
                 break;
             }

@@ -1,7 +1,8 @@
 //! Connect to Minecraft servers.
 
-use crate::Client;
+use crate::{Client, Event};
 use azalea_protocol::ServerAddress;
+use tokio::sync::mpsc::UnboundedReceiver;
 
 /// Something that can join Minecraft servers.
 pub struct Account {
@@ -14,7 +15,11 @@ impl Account {
         }
     }
 
-    pub async fn join(&self, address: &ServerAddress) -> Result<Client, String> {
+    /// Joins the Minecraft server on the given address using this account.
+    pub async fn join(
+        &self,
+        address: &ServerAddress,
+    ) -> Result<(Client, UnboundedReceiver<Event>), String> {
         Client::join(self, address).await
     }
 }

@@ -256,7 +256,7 @@ impl McBufReadable for ParticleData {
 }
 
 impl McBufWritable for ParticleData {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
         todo!()
     }
 }

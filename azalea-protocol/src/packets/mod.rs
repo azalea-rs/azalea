@@ -31,9 +31,9 @@ impl ConnectionProtocol {
 
 #[derive(Clone, Debug)]
 pub enum Packet {
-    Game(game::GamePacket),
-    Handshake(handshake::HandshakePacket),
-    Login(login::LoginPacket),
+    Game(Box<game::GamePacket>),
+    Handshake(Box<handshake::HandshakePacket>),
+    Login(Box<login::LoginPacket>),
     Status(Box<status::StatusPacket>),
 }
 

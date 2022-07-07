@@ -25,7 +25,7 @@ impl TranslatableComponent {
     }
 
     pub fn read(&self) -> Result<String, fmt::Error> {
-        let template = azalea_language::get(&self.key).unwrap_or_else(|| &self.key);
+        let template = azalea_language::get(&self.key).unwrap_or(&self.key);
         // decode the % things
 
         let mut result = String::new();

@@ -1,6 +1,6 @@
 pub fn combinations_of<T: Clone>(items: &[Vec<T>]) -> Vec<Vec<T>> {
     let mut combinations = Vec::new();
-    if items.len() == 0 {
+    if items.is_empty() {
         return combinations;
     };
     if items.len() == 1 {
@@ -13,8 +13,7 @@ pub fn combinations_of<T: Clone>(items: &[Vec<T>]) -> Vec<Vec<T>> {
     for i in 0..items[0].len() {
         let item = &items[0][i];
         for other_combinations in combinations_of(&items[1..]) {
-            let mut combination = Vec::new();
-            combination.push(item.clone());
+            let mut combination = vec![item.clone()];
             combination.extend(other_combinations);
             combinations.push(combination);
         }
@@ -29,13 +28,11 @@ pub fn to_pascal_case(s: &str) -> String {
     for c in s.chars() {
         if c == '_' {
             prev_was_underscore = true;
+        } else if prev_was_underscore {
+            result.push(c.to_ascii_uppercase());
+            prev_was_underscore = false;
         } else {
-            if prev_was_underscore {
-                result.push(c.to_ascii_uppercase());
-                prev_was_underscore = false;
-            } else {
-                result.push(c);
-            }
+            result.push(c);
         }
     }
     result
