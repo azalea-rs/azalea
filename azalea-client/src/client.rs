@@ -100,6 +100,7 @@ impl Client {
             ServerboundHelloPacket {
                 username: account.username.clone(),
                 public_key: None,
+                profile_id: None,
             }
             .get(),
         )
