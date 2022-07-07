@@ -7,7 +7,7 @@ pub struct ClientboundCustomChatCompletionsPacket {
     pub entries: Vec<String>,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, McBuf, Copy)]
 pub enum Action {
     Add = 0,
     Remove = 1,

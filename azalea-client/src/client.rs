@@ -545,7 +545,7 @@ impl Client {
 
                 world.move_entity_with_delta(p.entity_id, &p.delta)?;
             }
-            GamePacket::ClientboundMoveEntityPosRotPacket(p) => {
+            GamePacket::ClientboundMoveEntityPosrotPacket(p) => {
                 let mut state_lock = state.lock()?;
                 let world = state_lock.world.as_mut().unwrap();
 
