@@ -141,6 +141,7 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
                     new_mod_rs.append(
                         make_packet_mod_rs_line(packet_id, packet_class_name)
                     )
+                    required_modules.append(packet_class_name)
             else:
                 ignore_lines = False
             continue
