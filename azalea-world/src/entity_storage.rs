@@ -1,5 +1,5 @@
+use crate::entity::Entity;
 use azalea_core::ChunkPos;
-use azalea_entity::Entity;
 use log::warn;
 use nohash_hasher::{IntMap, IntSet};
 use std::collections::HashMap;

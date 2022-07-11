@@ -1,7 +1,6 @@
 use crate::{Account, Player};
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, PositionDelta, PositionDeltaTrait, ResourceLocation, Vec3};
-use azalea_entity::Entity;
 use azalea_protocol::{
     connect::{GameConnection, HandshakeConnection},
     packets::{
@@ -23,6 +22,7 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
+use azalea_world::entity::Entity;
 use azalea_world::Dimension;
 use std::{
     fmt::Debug,

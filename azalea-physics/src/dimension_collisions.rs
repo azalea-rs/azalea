@@ -1,7 +1,7 @@
 use crate::{ArrayVoxelShape, VoxelShape, AABB};
 use azalea_block::{Block, BlockState};
 use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType, EPSILON};
-use azalea_entity::Entity;
+use azalea_world::entity::Entity;
 use azalea_world::{Chunk, Dimension};
 use std::sync::{Arc, Mutex};
 

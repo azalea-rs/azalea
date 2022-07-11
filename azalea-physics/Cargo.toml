@@ -8,5 +8,4 @@ version = "0.1.0"
 [dependencies]
 azalea-block = {path = "../azalea-block"}
 azalea-core = {path = "../azalea-core"}
-azalea-entity = {path = "../azalea-entity"}
 azalea-world = {path = "../azalea-world"}

@@ -1,6 +1,6 @@
 use azalea_buf::McBuf;
 use azalea_core::Vec3;
-use azalea_entity::Entity;
+use azalea_world::entity::Entity;
 use packet_macros::GamePacket;
 use uuid::Uuid;
 

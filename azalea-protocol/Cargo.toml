@@ -14,8 +14,8 @@ azalea-buf = {path = "../azalea-buf"}
 azalea-chat = {path = "../azalea-chat"}
 azalea-core = {path = "../azalea-core", optional = true}
 azalea-crypto = {path = "../azalea-crypto"}
-azalea-entity = {path = "../azalea-entity"}
 azalea-nbt = {path = "../azalea-nbt"}
+azalea-world = {path = "../azalea-world"}
 byteorder = "^1.4.3"
 bytes = "^1.1.0"
 flate2 = "1.0.23"

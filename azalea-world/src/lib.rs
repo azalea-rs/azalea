@@ -1,16 +1,17 @@
 #![feature(int_roundings)]
 
 mod bit_storage;
-mod chunk;
-mod entity;
+mod chunk_storage;
+pub mod entity;
+mod entity_storage;
 mod palette;
 
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
-use azalea_entity::Entity;
 pub use bit_storage::BitStorage;
-pub use chunk::{Chunk, ChunkStorage};
-pub use entity::EntityStorage;
+pub use chunk_storage::{Chunk, ChunkStorage};
+use entity::Entity;
+pub use entity_storage::EntityStorage;
 use std::{
     io::Read,
     ops::{Index, IndexMut},
@@ -30,7 +31,7 @@ mod tests {
 /// A dimension is a collection of chunks and entities.
 /// Minecraft calls these "Levels", Fabric calls them "Worlds", Minestom calls them "Instances".
 /// Yeah.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Dimension {
     chunk_storage: ChunkStorage,
     entity_storage: EntityStorage,

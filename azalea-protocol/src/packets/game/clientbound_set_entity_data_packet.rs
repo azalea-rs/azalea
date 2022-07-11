@@ -1,5 +1,5 @@
 use azalea_buf::McBuf;
-use azalea_entity::EntityMetadata;
+use azalea_world::entity::EntityMetadata;
 use packet_macros::GamePacket;
 
 #[derive(Clone, Debug, McBuf, GamePacket)]

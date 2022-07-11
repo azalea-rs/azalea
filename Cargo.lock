@@ -117,7 +117,6 @@ dependencies = [
  "azalea-auth",
  "azalea-core",
  "azalea-crypto",
- "azalea-entity",
  "azalea-protocol",
  "azalea-world",
  "tokio",
@@ -148,17 +147,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "azalea-entity"
-version = "0.1.0"
-dependencies = [
- "azalea-buf",
- "azalea-chat",
- "azalea-core",
- "azalea-nbt",
- "uuid",
-]
-
-[[package]]
 name = "azalea-language"
 version = "0.1.0"
 dependencies = [
@@ -185,7 +173,6 @@ version = "0.1.0"
 dependencies = [
  "azalea-block",
  "azalea-core",
- "azalea-entity",
  "azalea-world",
 ]
 
@@ -201,8 +188,8 @@ dependencies = [
  "azalea-chat",
  "azalea-core",
  "azalea-crypto",
- "azalea-entity",
  "azalea-nbt",
+ "azalea-world",
  "byteorder",
  "bytes",
  "flate2",
@@ -222,8 +209,8 @@ version = "0.1.0"
 dependencies = [
  "azalea-block",
  "azalea-buf",
+ "azalea-chat",
  "azalea-core",
- "azalea-entity",
  "azalea-nbt",
  "log",
  "nohash-hasher",

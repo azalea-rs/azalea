@@ -24,6 +24,18 @@ pub struct ChunkStorage {
     chunks: Vec<Option<Arc<Mutex<Chunk>>>>,
 }
 
+#[derive(Debug)]
+pub struct Chunk {
+    pub sections: Vec<Section>,
+}
+
+#[derive(Clone, Debug)]
+pub struct Section {
+    pub block_count: u16,
+    pub states: PalettedContainer,
+    pub biomes: PalettedContainer,
+}
+
 impl ChunkStorage {
     pub fn new(chunk_radius: u32, height: u32, min_y: i32) -> Self {
         let view_range = chunk_radius * 2 + 1;
@@ -94,11 +106,6 @@ impl IndexMut<&ChunkPos> for ChunkStorage {
     }
 }
 
-#[derive(Debug)]
-pub struct Chunk {
-    pub sections: Vec<Section>,
-}
-
 impl Chunk {
     pub fn read_with_dimension(buf: &mut impl Read, data: &Dimension) -> Result<Self, String> {
         Self::read_with_dimension_height(buf, data.height())
@@ -157,13 +164,6 @@ impl Debug for ChunkStorage {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct Section {
-    pub block_count: u16,
-    pub states: PalettedContainer,
-    pub biomes: PalettedContainer,
-}
-
 impl McBufReadable for Section {
     fn read_from(buf: &mut impl Read) -> Result<Self, String> {
         let block_count = u16::read_from(buf)?;
@@ -211,5 +211,11 @@ impl Section {
             .get(pos.x as usize, pos.y as usize, pos.z as usize)
             .try_into()
             .expect("Invalid block state.")
+    }
+}
+
+impl Default for ChunkStorage {
+    fn default() -> Self {
+        Self::new(8, 384, -64)
     }
 }

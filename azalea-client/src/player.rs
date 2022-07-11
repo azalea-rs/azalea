@@ -1,4 +1,4 @@
-use azalea_entity::Entity;
+use azalea_world::entity::Entity;
 use azalea_world::Dimension;
 use uuid::Uuid;
 

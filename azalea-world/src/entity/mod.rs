@@ -1,6 +1,7 @@
 mod data;
 mod dimensions;
 
+use crate::Dimension;
 use azalea_core::{BlockPos, PositionDelta, Vec3, AABB};
 pub use data::*;
 pub use dimensions::*;
@@ -21,10 +22,13 @@ pub struct Entity {
     pub x_rot: f32,
     pub y_rot: f32,
 
-    /// The width and height of the entity.
+    /// The width and height of the entity. Don't confuse this with `dimension`!
     pub dimensions: EntityDimensions,
     /// The bounding box of the entity. This is more than just width and height, unlike dimensions.
     pub bounding_box: AABB,
+
+    /// The dimension (level, world) the entity is in. Don't confuse this with `dimensions`!
+    pub dimension: Dimension,
 }
 impl Entity {
     pub fn new(id: u32, uuid: Uuid, pos: Vec3) -> Self {

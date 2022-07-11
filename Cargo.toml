@@ -12,7 +12,6 @@ members = [
   "azalea-world",
   "azalea-language",
   "azalea-block",
-  "azalea-entity",
   "azalea-buf",
   "azalea-physics",
 ]
