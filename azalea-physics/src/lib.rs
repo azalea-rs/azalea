@@ -2,7 +2,8 @@ mod dimension_collisions;
 mod discrete_voxel_shape;
 mod shape;
 
-use azalea_core::{Axis, PositionDelta, PositionXYZ, Vec3, AABB};
+use azalea_block::BlockState;
+use azalea_core::{Axis, PositionDelta, PositionXYZ, Vec3, AABB, EPSILON};
 use azalea_entity::Entity;
 use azalea_world::Dimension;
 use dimension_collisions::CollisionGetter;
@@ -18,7 +19,12 @@ pub enum MoverType {
 }
 
 trait HasPhysics {
-    fn move_entity(&mut self, mover_type: &MoverType, movement: &PositionDelta);
+    fn move_entity(
+        &mut self,
+        mover_type: &MoverType,
+        movement: &Vec3,
+        dimension: &mut Dimension,
+    ) -> Result<(), String>;
     fn collide(&self, movement: &Vec3, dimension: &Dimension) -> Vec3;
     fn collide_bounding_box(
         entity: Option<&Self>,
@@ -36,7 +42,14 @@ trait HasPhysics {
 
 impl HasPhysics for Entity {
     /// Move an entity by a given delta, checking for collisions.
-    fn move_entity(&mut self, mover_type: &MoverType, movement: &PositionDelta) {
+    fn move_entity(
+        &mut self,
+        mover_type: &MoverType,
+        mut movement: &Vec3,
+        dimension: &mut Dimension,
+    ) -> Result<(), String> {
+        // TODO: do all these
+
         // if self.no_physics {
         //     return;
         // };
@@ -54,7 +67,56 @@ impl HasPhysics for Entity {
         //     this.setDeltaMovement(Vec3.ZERO);
         // }
 
-        // TODO
+        // movement = this.maybeBackOffFromEdge(movement, moverType);
+
+        let collide_result = self.collide(&movement, &dimension);
+
+        let move_distance = collide_result.length_sqr();
+        if move_distance > EPSILON {
+            // TODO: fall damage
+
+            dimension.move_entity(
+                self.id,
+                Vec3 {
+                    x: self.pos().x + collide_result.x,
+                    y: self.pos().y + collide_result.y,
+                    z: self.pos().z + collide_result.z,
+                },
+            )?;
+        }
+
+        let x_collision = movement.x != collide_result.x;
+        let z_collision = movement.z != collide_result.z;
+        let horizontal_collision = x_collision || z_collision;
+        let vertical_collision = movement.y != collide_result.y;
+        let on_ground = vertical_collision && movement.y < 0.;
+        // self.on_ground = on_ground;
+
+        // TODO: minecraft checks for a "minor" horizontal collision here
+
+        let block_pos_below = self.on_pos_legacy();
+        let block_state_below = dimension
+            .get_block_state(&block_pos_below)
+            .expect("Couldn't get block state below");
+        // self.check_fall_damage(collide_result.y, on_ground, block_state_below, block_pos_below);
+
+        // if self.isRemoved() { return; }
+
+        if horizontal_collision {
+            let delta_movement = self.delta;
+            self.delta = PositionDelta {
+                xa: if x_collision { 0. } else { delta_movement.xa },
+                ya: delta_movement.ya,
+                za: if z_collision { 0. } else { delta_movement.za },
+            }
+        }
+
+        let block_below = block_state_below;
+        if vertical_collision {
+            block_below
+        }
+
+        Ok(())
     }
 
     // private Vec3 collide(Vec3 var1) {

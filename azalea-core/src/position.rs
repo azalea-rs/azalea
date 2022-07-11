@@ -63,6 +63,10 @@ impl BlockPos {
     pub fn new(x: i32, y: i32, z: i32) -> Self {
         BlockPos { x, y, z }
     }
+
+    pub fn below(&self) -> Self {
+        self.add(0, -1, 0)
+    }
 }
 
 impl Rem<i32> for BlockPos {

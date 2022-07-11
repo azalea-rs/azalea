@@ -1,7 +1,7 @@
 mod data;
 mod dimensions;
 
-use azalea_core::{PositionDelta, Vec3, AABB};
+use azalea_core::{BlockPos, PositionDelta, Vec3, AABB};
 pub use data::*;
 pub use dimensions::*;
 use uuid::Uuid;
@@ -12,6 +12,7 @@ pub struct Entity {
     pub id: u32,
     pub uuid: Uuid,
     /// The position of the entity right now.
+    /// This can be changde with unsafe_move, but the correct way is with dimension.move_entity
     pos: Vec3,
     /// The position of the entity last tick.
     pub old_pos: Vec3,
@@ -65,6 +66,43 @@ impl Entity {
 
     fn make_bounding_box(&self) -> AABB {
         self.dimensions.make_bounding_box(&self.pos)
+    }
+
+    /// Get the position of the block below the entity, but a little lower.
+    pub fn on_pos_legacy(&self) -> Vec3 {
+        self.on_pos(0.2)
+    }
+
+    // int x = Mth.floor(this.position.x);
+    // int y = Mth.floor(this.position.y - (double)var1);
+    // int z = Mth.floor(this.position.z);
+    // BlockPos var5 = new BlockPos(x, y, z);
+    // if (this.level.getBlockState(var5).isAir()) {
+    //    BlockPos var6 = var5.below();
+    //    BlockState var7 = this.level.getBlockState(var6);
+    //    if (var7.is(BlockTags.FENCES) || var7.is(BlockTags.WALLS) || var7.getBlock() instanceof FenceGateBlock) {
+    //       return var6;
+    //    }
+    // }
+    // return var5;
+    pub fn on_pos(&self, offset: f32) -> Vec3 {
+        let x = self.pos.x.floor() as i32;
+        let y = (self.pos.y - offset as f64).floor() as i32;
+        let z = self.pos.z.floor() as i32;
+        let pos = BlockPos { x, y, z };
+        let block_pos = pos.below();
+        let block_state = self.level.get_block_state(block_pos);
+        if block_state.is_air() {
+            let block_pos_below = block_pos.below();
+            let block_state_below = self.level.get_block_state(block_pos_below);
+            if block_state_below.is_fence()
+                || block_state_below.is_wall()
+                || block_state_below.is_fence_gate()
+            {
+                return block_pos_below;
+            }
+        }
+        pos
     }
 }
 
