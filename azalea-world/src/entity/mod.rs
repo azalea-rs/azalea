@@ -2,6 +2,7 @@ mod data;
 mod dimensions;
 
 use crate::Dimension;
+use azalea_block::BlockState;
 use azalea_core::{BlockPos, PositionDelta, Vec3, AABB};
 pub use data::*;
 pub use dimensions::*;
@@ -22,13 +23,10 @@ pub struct Entity {
     pub x_rot: f32,
     pub y_rot: f32,
 
-    /// The width and height of the entity. Don't confuse this with `dimension`!
+    /// The width and height of the entity.
     pub dimensions: EntityDimensions,
     /// The bounding box of the entity. This is more than just width and height, unlike dimensions.
     pub bounding_box: AABB,
-
-    /// The dimension (level, world) the entity is in. Don't confuse this with `dimensions`!
-    pub dimension: Dimension,
 }
 impl Entity {
     pub fn new(id: u32, uuid: Uuid, pos: Vec3) -> Self {
@@ -73,8 +71,8 @@ impl Entity {
     }
 
     /// Get the position of the block below the entity, but a little lower.
-    pub fn on_pos_legacy(&self) -> Vec3 {
-        self.on_pos(0.2)
+    pub fn on_pos_legacy(&self, dimension: &Dimension) -> BlockPos {
+        self.on_pos(0.2, dimension)
     }
 
     // int x = Mth.floor(this.position.x);
@@ -89,23 +87,28 @@ impl Entity {
     //    }
     // }
     // return var5;
-    pub fn on_pos(&self, offset: f32) -> Vec3 {
+    pub fn on_pos(&self, offset: f32, dimension: &Dimension) -> BlockPos {
         let x = self.pos.x.floor() as i32;
         let y = (self.pos.y - offset as f64).floor() as i32;
         let z = self.pos.z.floor() as i32;
         let pos = BlockPos { x, y, z };
         let block_pos = pos.below();
-        let block_state = self.level.get_block_state(block_pos);
-        if block_state.is_air() {
-            let block_pos_below = block_pos.below();
-            let block_state_below = self.level.get_block_state(block_pos_below);
-            if block_state_below.is_fence()
-                || block_state_below.is_wall()
-                || block_state_below.is_fence_gate()
-            {
-                return block_pos_below;
-            }
-        }
+        let block_state = dimension.get_block_state(&block_pos);
+
+        // TODO: check if block below is a fence, wall, or fence gate
+        // if block_state == Some(BlockState::Air) {
+        //     let block_pos_below = block_pos.below();
+        //     let block_state_below = dimension.get_block_state(&block_pos_below);
+        //     if let Some(block_state_below) = block_state_below {
+        //         if block_state_below.is_fence()
+        //             || block_state_below.is_wall()
+        //             || block_state_below.is_fence_gate()
+        //         {
+        //             return block_pos_below;
+        //         }
+        //     }
+        // }
+
         pos
     }
 }

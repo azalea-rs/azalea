@@ -94,7 +94,7 @@ impl HasPhysics for Entity {
 
         // TODO: minecraft checks for a "minor" horizontal collision here
 
-        let block_pos_below = self.on_pos_legacy();
+        let block_pos_below = self.on_pos_legacy(dimension);
         let block_state_below = dimension
             .get_block_state(&block_pos_below)
             .expect("Couldn't get block state below");
@@ -103,7 +103,7 @@ impl HasPhysics for Entity {
         // if self.isRemoved() { return; }
 
         if horizontal_collision {
-            let delta_movement = self.delta;
+            let delta_movement = &self.delta;
             self.delta = PositionDelta {
                 xa: if x_collision { 0. } else { delta_movement.xa },
                 ya: delta_movement.ya,
@@ -113,8 +113,34 @@ impl HasPhysics for Entity {
 
         let block_below = block_state_below;
         if vertical_collision {
-            block_below
+            // blockBelow.updateEntityAfterFallOn(this.level, this);
         }
+
+        if on_ground {
+            // blockBelow.stepOn(this.level, blockPosBelow, blockStateBelow, this);
+        }
+
+        // sounds
+
+        // this.tryCheckInsideBlocks();
+
+        // float var25 = this.getBlockSpeedFactor();
+        // this.setDeltaMovement(this.getDeltaMovement().multiply((double)var25, 1.0D, (double)var25));
+        // if (this.level.getBlockStatesIfLoaded(this.getBoundingBox().deflate(1.0E-6D)).noneMatch((var0) -> {
+        //    return var0.is(BlockTags.FIRE) || var0.is(Blocks.LAVA);
+        // })) {
+        //    if (this.remainingFireTicks <= 0) {
+        //       this.setRemainingFireTicks(-this.getFireImmuneTicks());
+        //    }
+
+        //    if (this.wasOnFire && (this.isInPowderSnow || this.isInWaterRainOrBubble())) {
+        //       this.playEntityOnFireExtinguishedSound();
+        //    }
+        // }
+
+        // if (this.isOnFire() && (this.isInPowderSnow || this.isInWaterRainOrBubble())) {
+        //    this.setRemainingFireTicks(-this.getFireImmuneTicks());
+        // }
 
         Ok(())
     }
