@@ -41,10 +41,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Event::Chat(_m) => {
                 let new_pos = {
                     let dimension_lock = client.dimension.lock().unwrap();
-                    let dimension = dimension_lock.as_ref().unwrap();
                     let player = client.player.lock().unwrap();
                     let entity = player
-                        .entity(dimension)
+                        .entity(&dimension_lock)
                         .expect("Player entity is not in world");
                     entity.pos().add_y(-0.5)
                 };

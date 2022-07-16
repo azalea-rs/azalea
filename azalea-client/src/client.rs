@@ -62,7 +62,7 @@ pub struct Client {
     game_profile: GameProfile,
     pub conn: Arc<tokio::sync::Mutex<GameConnection>>,
     pub player: Arc<Mutex<Player>>,
-    pub dimension: Arc<Mutex<Option<Dimension>>>,
+    pub dimension: Arc<Mutex<Dimension>>,
 
     /// Minecraft only sends a movement packet either after 20 ticks or if the player moved enough. This is that tick counter.
     pub position_remainder: u32,
@@ -160,7 +160,7 @@ impl Client {
             game_profile,
             conn,
             player: Arc::new(Mutex::new(Player::default())),
-            dimension: Arc::new(Mutex::new(None)),
+            dimension: Arc::new(Mutex::new(Dimension::default())),
 
             position_remainder: 0,
         };
@@ -278,16 +278,11 @@ impl Client {
                     let mut dimension_lock = client.dimension.lock().unwrap();
                     // the 16 here is our render distance
                     // i'll make this an actual setting later
-                    *dimension_lock = Some(Dimension::new(16, height, min_y));
+                    *dimension_lock = Dimension::new(16, height, min_y);
 
                     let entity =
                         Entity::new(p.player_id, client.game_profile.uuid, Vec3::default());
-                    dimension_lock
-                        .as_mut()
-                        .expect(
-                            "Dimension doesn't exist! We should've gotten a login packet by now.",
-                        )
-                        .add_entity(entity);
+                    dimension_lock.add_entity(entity);
 
                     let mut player_lock = client.player.lock().unwrap();
 
@@ -353,9 +348,8 @@ impl Client {
                     drop(player_lock);
 
                     let mut dimension_lock = client.dimension.lock().unwrap();
-                    let dimension = dimension_lock.as_mut().unwrap();
 
-                    let player_entity = dimension
+                    let player_entity = dimension_lock
                         .mut_entity_by_id(player_entity_id)
                         .expect("Player entity doesn't exist");
 
@@ -409,7 +403,7 @@ impl Client {
                         y: new_pos_y,
                         z: new_pos_z,
                     };
-                    dimension
+                    dimension_lock
                         .move_entity(player_entity_id, new_pos)
                         .expect("The player entity should always exist");
 
@@ -443,8 +437,6 @@ impl Client {
                 client
                     .dimension
                     .lock()?
-                    .as_mut()
-                    .unwrap()
                     .update_view_center(&ChunkPos::new(p.x, p.z));
             }
             GamePacket::ClientboundLevelChunkWithLightPacket(p) => {
@@ -455,8 +447,6 @@ impl Client {
                 client
                     .dimension
                     .lock()?
-                    .as_mut()
-                    .expect("Dimension doesn't exist! We should've gotten a login packet by now.")
                     .replace_with_packet_data(&pos, &mut p.chunk_data.data.as_slice())
                     .unwrap();
             }
@@ -466,12 +456,7 @@ impl Client {
             GamePacket::ClientboundAddEntityPacket(p) => {
                 println!("Got add entity packet {:?}", p);
                 let entity = Entity::from(p);
-                client
-                    .dimension
-                    .lock()?
-                    .as_mut()
-                    .expect("Dimension doesn't exist! We should've gotten a login packet by now.")
-                    .add_entity(entity);
+                client.dimension.lock()?.add_entity(entity);
             }
             GamePacket::ClientboundSetEntityDataPacket(_p) => {
                 // println!("Got set entity data packet {:?}", p);
@@ -488,12 +473,7 @@ impl Client {
             GamePacket::ClientboundAddPlayerPacket(p) => {
                 println!("Got add player packet {:?}", p);
                 let entity = Entity::from(p);
-                client
-                    .dimension
-                    .lock()?
-                    .as_mut()
-                    .expect("Dimension doesn't exist! We should've gotten a login packet by now.")
-                    .add_entity(entity);
+                client.dimension.lock()?.add_entity(entity);
             }
             GamePacket::ClientboundInitializeBorderPacket(p) => {
                 println!("Got initialize border packet {:?}", p);
@@ -515,9 +495,8 @@ impl Client {
             }
             GamePacket::ClientboundTeleportEntityPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
-                let dimension = dimension_lock.as_mut().unwrap();
 
-                dimension.move_entity(
+                dimension_lock.move_entity(
                     p.id,
                     Vec3 {
                         x: p.x,
@@ -534,15 +513,13 @@ impl Client {
             }
             GamePacket::ClientboundMoveVec3Packet(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
-                let dimension = dimension_lock.as_mut().unwrap();
 
-                dimension.move_entity_with_delta(p.entity_id, &p.delta)?;
+                dimension_lock.move_entity_with_delta(p.entity_id, &p.delta)?;
             }
             GamePacket::ClientboundMoveVec3RotPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
-                let dimension = dimension_lock.as_mut().unwrap();
 
-                dimension.move_entity_with_delta(p.entity_id, &p.delta)?;
+                dimension_lock.move_entity_with_delta(p.entity_id, &p.delta)?;
             }
             GamePacket::ClientboundMoveEntityRotPacket(p) => {
                 println!("Got move entity rot packet {:?}", p);
@@ -619,10 +596,16 @@ impl Client {
 
     /// Runs every 50 milliseconds.
     async fn game_tick(client: &mut Client, tx: &UnboundedSender<Event>) {
-        if client.dimension.lock().unwrap().is_none() {
-            return;
+        // return if there's no chunk at the player's position
+        {
+            let dimension_lock = client.dimension.lock().unwrap();
+            let player_lock = client.player.lock().unwrap();
+            let player_entity = player_lock.entity(&dimension_lock).unwrap();
+            let player_chunk_pos: ChunkPos = player_entity.pos().into();
+            if dimension_lock[&player_chunk_pos].is_none() {
+                return;
+            }
         }
-        // TODO: return if we don't have the chunk at the player's position
 
         // TODO: if we're a passenger, send the required packets
 

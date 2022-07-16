@@ -14,10 +14,9 @@ impl Client {
             let player_lock = self.player.lock().unwrap();
 
             let mut dimension_lock = self.dimension.lock().unwrap();
-            let dimension_lock = dimension_lock.as_mut().expect("Dimension must exist");
 
             let player_entity = player_lock
-                .mut_entity(dimension_lock)
+                .mut_entity(&mut dimension_lock)
                 .expect("Player must exist");
             let player_pos = player_entity.pos();
             let player_old_pos = player_entity.last_pos;
@@ -112,7 +111,6 @@ impl Client {
     pub async fn set_pos(&mut self, new_pos: Vec3) -> Result<(), String> {
         let player_lock = self.player.lock().unwrap();
         let mut dimension_lock = self.dimension.lock().unwrap();
-        let dimension_lock = dimension_lock.as_mut().expect("Dimension must exist");
 
         dimension_lock.move_entity(player_lock.entity_id, new_pos)?;
 
