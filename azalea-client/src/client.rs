@@ -626,7 +626,9 @@ impl Client {
 
         // TODO: if we're a passenger, send the required packets
 
-        client.send_position();
+        if let Err(e) = client.send_position().await {
+            println!("Error sending position: {:?}", e);
+        }
 
         // TODO: minecraft does ambient sounds here
 

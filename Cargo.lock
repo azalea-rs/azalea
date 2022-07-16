@@ -117,6 +117,7 @@ dependencies = [
  "azalea-auth",
  "azalea-core",
  "azalea-crypto",
+ "azalea-physics",
  "azalea-protocol",
  "azalea-world",
  "tokio",

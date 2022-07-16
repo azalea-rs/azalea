@@ -6,7 +6,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Hello, world!");
 
     // let address = "95.111.249.143:10000";
-    let address = "localhost:56150";
+    let address = "localhost";
     // let response = azalea_client::ping::ping_server(&address.try_into().unwrap())
     //     .await
     //     .unwrap();
@@ -46,11 +46,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let entity = player
                         .entity(dimension)
                         .expect("Player entity is not in world");
-                    entity.pos().add_y(0.5)
+                    entity.pos().add_y(-0.5)
                 };
 
                 println!("{:?}", new_pos);
-                client.move_to(new_pos).await.unwrap();
+                client.set_pos(new_pos).await.unwrap();
             }
             _ => {}
         }
