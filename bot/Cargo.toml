@@ -8,6 +8,7 @@ version = "0.1.0"
 [dependencies]
 azalea-client = {path = "../azalea-client"}
 azalea-core = {path = "../azalea-core"}
+azalea-physics = {path = "../azalea-physics"}
 azalea-protocol = {path = "../azalea-protocol"}
 tokio = "1.19.2"
 uuid = "1.1.2"

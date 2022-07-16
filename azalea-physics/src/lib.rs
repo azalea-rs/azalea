@@ -1,4 +1,4 @@
-mod collision;
+pub mod collision;
 
 use azalea_core::{BlockPos, Vec3};
 use azalea_world::{entity::Entity, Dimension};
@@ -9,7 +9,6 @@ trait HasPhysics {
     fn get_block_pos_below_that_affects_movement(&self) -> BlockPos;
 }
 
-// a
 // impl HasPhysics for Entity {
 //     fn travel(&self, acceleration: &Vec3, dimension: &Dimension) -> Result<(), String> {
 //         // if !self.is_effective_ai() && !self.is_controlled_by_local_instance() {

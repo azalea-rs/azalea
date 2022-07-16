@@ -1,5 +1,6 @@
 use azalea_client::{Account, Event};
-use azalea_core::PositionXYZ;
+use azalea_core::{PositionXYZ, Vec3};
+use azalea_physics::collision::{HasCollision, MoverType};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -39,17 +40,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             //     // }
             // }
             Event::Chat(_m) => {
-                let new_pos = {
-                    let dimension_lock = client.dimension.lock().unwrap();
-                    let player = client.player.lock().unwrap();
-                    let entity = player
-                        .entity(&dimension_lock)
-                        .expect("Player entity is not in world");
-                    entity.pos().add_y(-0.5)
-                };
+                //     let new_pos = {
+                //         let dimension_lock = client.dimension.lock().unwrap();
+                //         let player = client.player.lock().unwrap();
+                //         let entity = player
+                //             .entity(&dimension_lock)
+                //             .expect("Player entity is not in world");
+                //         entity.pos().add_y(-0.5)
+                //     };
 
-                println!("{:?}", new_pos);
-                client.set_pos(new_pos).await.unwrap();
+                // println!("{:?}", new_pos);
+                // client.set_pos(new_pos).await.unwrap();
+                // client.move_entity()
+
+                let mut dimension_lock = client.dimension.lock().unwrap();
+                let player = client.player.lock().unwrap();
+                let entity = player
+                    .mut_entity(&mut dimension_lock)
+                    .expect("Player entity is not in world");
+                entity.move_entity(
+                    &MoverType::Own,
+                    &Vec3 {
+                        x: 0.,
+                        y: -0.5,
+                        z: 0.,
+                    },
+                    &mut dimension_lock,
+                );
             }
             _ => {}
         }

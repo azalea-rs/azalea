@@ -1,5 +1,6 @@
 use crate::Client;
 use azalea_core::Vec3;
+use azalea_physics::collision::{HasCollision, MoverType};
 use azalea_protocol::packets::game::{
     serverbound_move_player_packet_pos::ServerboundMovePlayerPacketPos,
     serverbound_move_player_packet_pos_rot::ServerboundMovePlayerPacketPosRot,
@@ -113,6 +114,25 @@ impl Client {
         let mut dimension_lock = self.dimension.lock().unwrap();
 
         dimension_lock.move_entity(player_lock.entity_id, new_pos)?;
+
+        Ok(())
+    }
+
+    pub async fn move_entity(&mut self, movement: Vec3) -> Result<(), String> {
+        let mut dimension_lock = self.dimension.lock().unwrap();
+        let player = self.player.lock().unwrap();
+        let entity = player
+            .mut_entity(&mut dimension_lock)
+            .expect("Player entity is not in world");
+        entity.move_entity(
+            &MoverType::Own,
+            &Vec3 {
+                x: 0.,
+                y: -0.5,
+                z: 0.,
+            },
+            &mut dimension_lock,
+        );
 
         Ok(())
     }

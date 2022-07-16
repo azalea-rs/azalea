@@ -18,7 +18,7 @@ pub enum MoverType {
     Shulker,
 }
 
-trait HasCollision {
+pub trait HasCollision {
     fn move_entity(
         &mut self,
         mover_type: &MoverType,

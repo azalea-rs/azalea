@@ -248,6 +248,7 @@ version = "0.1.0"
 dependencies = [
  "azalea-client",
  "azalea-core",
+ "azalea-physics",
  "azalea-protocol",
  "tokio",
  "uuid",
