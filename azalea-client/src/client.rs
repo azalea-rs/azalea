@@ -63,7 +63,9 @@ pub struct Client {
     pub conn: Arc<tokio::sync::Mutex<GameConnection>>,
     pub player: Arc<Mutex<Player>>,
     pub dimension: Arc<Mutex<Option<Dimension>>>,
-    // game_loop
+
+    /// Minecraft only sends a movement packet either after 20 ticks or if the player moved enough. This is that tick counter.
+    pub position_remainder: u32,
 }
 
 /// Whether we should ignore errors when decoding packets.
@@ -159,6 +161,8 @@ impl Client {
             conn,
             player: Arc::new(Mutex::new(Player::default())),
             dimension: Arc::new(Mutex::new(None)),
+
+            position_remainder: 0,
         };
 
         // just start up the game loop and we're ready!
@@ -362,24 +366,24 @@ impl Client {
                     let is_z_relative = p.relative_arguments.z;
 
                     let (delta_x, new_pos_x) = if is_x_relative {
-                        player_entity.old_pos.x += p.x;
+                        player_entity.last_pos.x += p.x;
                         (delta_movement.x(), player_entity.pos().x + p.x)
                     } else {
-                        player_entity.old_pos.x = p.x;
+                        player_entity.last_pos.x = p.x;
                         (0.0, p.x)
                     };
                     let (delta_y, new_pos_y) = if is_y_relative {
-                        player_entity.old_pos.y += p.y;
+                        player_entity.last_pos.y += p.y;
                         (delta_movement.y(), player_entity.pos().y + p.y)
                     } else {
-                        player_entity.old_pos.y = p.y;
+                        player_entity.last_pos.y = p.y;
                         (0.0, p.y)
                     };
                     let (delta_z, new_pos_z) = if is_z_relative {
-                        player_entity.old_pos.z += p.z;
+                        player_entity.last_pos.z += p.z;
                         (delta_movement.z(), player_entity.pos().z + p.z)
                     } else {
-                        player_entity.old_pos.z = p.z;
+                        player_entity.last_pos.z = p.z;
                         (0.0, p.z)
                     };
 
@@ -603,21 +607,29 @@ impl Client {
     }
 
     /// Runs game_tick every 50 milliseconds.
-    async fn game_tick_loop(client: Client, tx: UnboundedSender<Event>) {
+    async fn game_tick_loop(mut client: Client, tx: UnboundedSender<Event>) {
         let mut game_tick_interval = time::interval(time::Duration::from_millis(50));
         // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
         game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
         loop {
             game_tick_interval.tick().await;
-            Self::game_tick(&client, &tx).await;
+            Self::game_tick(&mut client, &tx).await;
         }
     }
 
     /// Runs every 50 milliseconds.
-    async fn game_tick(client: &Client, tx: &UnboundedSender<Event>) {
+    async fn game_tick(client: &mut Client, tx: &UnboundedSender<Event>) {
         if client.dimension.lock().unwrap().is_none() {
             return;
         }
+        // TODO: return if we don't have the chunk at the player's position
+
+        // TODO: if we're a passenger, send the required packets
+
+        client.send_position();
+
+        // TODO: minecraft does ambient sounds here
+
         tx.send(Event::GameTick).unwrap();
     }
 }

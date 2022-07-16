@@ -17,11 +17,17 @@ pub struct Entity {
     /// This can be changde with unsafe_move, but the correct way is with dimension.move_entity
     pos: Vec3,
     /// The position of the entity last tick.
-    pub old_pos: Vec3,
+    pub last_pos: Vec3,
     pub delta: PositionDelta,
 
     pub x_rot: f32,
     pub y_rot: f32,
+
+    pub x_rot_last: f32,
+    pub y_rot_last: f32,
+
+    pub on_ground: bool,
+    pub last_on_ground: bool,
 
     /// The width and height of the entity.
     pub dimensions: EntityDimensions,
@@ -39,10 +45,18 @@ impl Entity {
             id,
             uuid,
             pos,
-            old_pos: pos,
+            last_pos: pos,
             delta: PositionDelta::default(),
+
             x_rot: 0.0,
             y_rot: 0.0,
+
+            y_rot_last: 0.0,
+            x_rot_last: 0.0,
+
+            on_ground: false,
+            last_on_ground: false,
+
             // TODO: have this be based on the entity type
             bounding_box: dimensions.make_bounding_box(&pos),
             dimensions,
