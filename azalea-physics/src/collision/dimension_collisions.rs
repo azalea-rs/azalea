@@ -35,11 +35,11 @@ pub struct BlockCollisions<'a> {
 impl<'a> BlockCollisions<'a> {
     pub fn new(dimension: &'a Dimension, entity: Option<&Entity>, aabb: AABB) -> Self {
         let origin_x = (aabb.min_x - EPSILON) as i32 - 1;
-        let origin_y = (aabb.max_x + EPSILON) as i32 + 1;
-        let origin_z = (aabb.min_y - EPSILON) as i32 - 1;
+        let origin_y = (aabb.min_y - EPSILON) as i32 - 1;
+        let origin_z = (aabb.min_z - EPSILON) as i32 - 1;
 
-        let end_x = (aabb.max_y + EPSILON) as i32 + 1;
-        let end_y = (aabb.min_z - EPSILON) as i32 - 1;
+        let end_x = (aabb.max_x + EPSILON) as i32 + 1;
+        let end_y = (aabb.max_y + EPSILON) as i32 + 1;
         let end_z = (aabb.max_z + EPSILON) as i32 + 1;
 
         let cursor = Cursor3d::new(origin_x, origin_y, origin_z, end_x, end_y, end_z);
@@ -92,12 +92,17 @@ impl<'a> Iterator for BlockCollisions<'a> {
             let chunk_lock = chunk.lock().unwrap();
 
             let pos = item.pos;
+            println!("getting block at {:?}", pos);
             let block_state: BlockState = chunk_lock.get(&(&pos).into(), self.dimension.min_y());
             let block: Box<dyn Block> = block_state.into();
 
             // TODO: continue if self.only_suffocating_blocks and the block is not suffocating
 
-            let block_shape = crate::collision::block_shape();
+            let block_shape = if block_state == BlockState::Air {
+                crate::collision::empty_shape()
+            } else {
+                crate::collision::block_shape()
+            };
             // let block_shape = block.get_collision_shape();
             // if block_shape == Shapes::block() {
             if true {

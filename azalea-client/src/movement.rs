@@ -113,26 +113,20 @@ impl Client {
         let player_lock = self.player.lock().unwrap();
         let mut dimension_lock = self.dimension.lock().unwrap();
 
-        dimension_lock.move_entity(player_lock.entity_id, new_pos)?;
+        dimension_lock.set_entity_pos(player_lock.entity_id, new_pos)?;
 
         Ok(())
     }
 
-    pub async fn move_entity(&mut self, movement: Vec3) -> Result<(), String> {
+    pub async fn move_entity(&mut self, movement: &Vec3) -> Result<(), String> {
         let mut dimension_lock = self.dimension.lock().unwrap();
         let player = self.player.lock().unwrap();
         let entity = player
-            .mut_entity(&mut dimension_lock)
+            .entity(&mut dimension_lock)
             .expect("Player entity is not in world");
-        entity.move_entity(
-            &MoverType::Own,
-            &Vec3 {
-                x: 0.,
-                y: -0.5,
-                z: 0.,
-            },
-            &mut dimension_lock,
-        );
+        let entity_id = entity.id;
+        // entity.move_entity(&MoverType::Own, movement, &self.dimension)?;
+        dimension_lock.move_entity(&MoverType::Own, movement, entity_id)?;
 
         Ok(())
     }

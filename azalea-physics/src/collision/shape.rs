@@ -46,6 +46,14 @@ pub trait VoxelShape {
         if self.shape().is_empty() {
             return empty_shape();
         }
+
+        println!(
+            "making new voxel shape {:?} {:?} {:?}",
+            self.get_coords(Axis::X),
+            self.get_coords(Axis::Y),
+            self.get_coords(Axis::Z)
+        );
+
         Box::new(ArrayVoxelShape::new(
             self.shape(),
             self.get_coords(Axis::X).iter().map(|c| c + x).collect(),
@@ -217,9 +225,26 @@ impl VoxelShape for CubeVoxelShape {
     fn get_coords(&self, axis: Axis) -> Vec<f64> {
         let size = self.shape.size(axis);
         let mut parts = Vec::with_capacity(size as usize);
-        for i in 0..size {
+        for i in 0..=size {
             parts.push(i as f64 / size as f64);
         }
         parts
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_block_shape() {
+        let shape = block_shape();
+        assert_eq!(shape.shape().size(Axis::X), 1);
+        assert_eq!(shape.shape().size(Axis::Y), 1);
+        assert_eq!(shape.shape().size(Axis::Z), 1);
+
+        assert_eq!(shape.get_coords(Axis::X).len(), 2);
+        assert_eq!(shape.get_coords(Axis::Y).len(), 2);
+        assert_eq!(shape.get_coords(Axis::Z).len(), 2);
     }
 }

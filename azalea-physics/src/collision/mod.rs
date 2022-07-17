@@ -2,6 +2,8 @@ mod dimension_collisions;
 mod discrete_voxel_shape;
 mod shape;
 
+use std::sync::{Arc, Mutex};
+
 use azalea_block::BlockState;
 use azalea_core::{Axis, PositionDelta, PositionXYZ, Vec3, AABB, EPSILON};
 use azalea_world::entity::Entity;
@@ -23,30 +25,18 @@ pub trait HasCollision {
         &mut self,
         mover_type: &MoverType,
         movement: &Vec3,
-        dimension: &mut Dimension,
+        entity_id: u32,
     ) -> Result<(), String>;
-    fn collide(&self, movement: &Vec3, dimension: &Dimension) -> Vec3;
-    fn collide_bounding_box(
-        entity: Option<&Self>,
-        movement: &Vec3,
-        entity_bounding_box: &AABB,
-        dimension: &Dimension,
-        entity_collisions: Vec<Box<dyn VoxelShape>>,
-    ) -> Vec3;
-    fn collide_with_shapes(
-        movement: &Vec3,
-        entity_box: AABB,
-        collision_boxes: &Vec<Box<dyn VoxelShape>>,
-    ) -> Vec3;
+    fn collide(&self, movement: &Vec3, entity: &Entity) -> Vec3;
 }
 
-impl HasCollision for Entity {
+impl HasCollision for Dimension {
     /// Move an entity by a given delta, checking for collisions.
     fn move_entity(
         &mut self,
         mover_type: &MoverType,
-        mut movement: &Vec3,
-        dimension: &mut Dimension,
+        movement: &Vec3,
+        entity_id: u32,
     ) -> Result<(), String> {
         // TODO: do all these
 
@@ -69,20 +59,44 @@ impl HasCollision for Entity {
 
         // movement = this.maybeBackOffFromEdge(movement, moverType);
 
-        let collide_result = self.collide(&movement, &dimension);
+        println!("move_entity {:?}", movement);
+
+        let collide_result = {
+            let entity = self
+                .entity_by_id(entity_id)
+                .expect("There exists no entity with this id.");
+
+            self.collide(&movement, entity)
+        };
 
         let move_distance = collide_result.length_sqr();
+
+        println!("move_entity move_distance: {}", move_distance);
+
         if move_distance > EPSILON {
             // TODO: fall damage
 
-            dimension.move_entity(
-                self.id,
+            let entity_pos = *self
+                .entity_by_id(entity_id)
+                .expect("There exists no entity with this id.")
+                .pos();
+
+            self.set_entity_pos(
+                entity_id,
                 Vec3 {
-                    x: self.pos().x + collide_result.x,
-                    y: self.pos().y + collide_result.y,
-                    z: self.pos().z + collide_result.z,
+                    x: entity_pos.x + collide_result.x,
+                    y: entity_pos.y + collide_result.y,
+                    z: entity_pos.z + collide_result.z,
                 },
             )?;
+            println!(
+                "move_entity set_entity_pos {:?}",
+                Vec3 {
+                    x: entity_pos.x + collide_result.x,
+                    y: entity_pos.y + collide_result.y,
+                    z: entity_pos.z + collide_result.z,
+                }
+            )
         }
 
         let x_collision = movement.x != collide_result.x;
@@ -92,19 +106,34 @@ impl HasCollision for Entity {
         let on_ground = vertical_collision && movement.y < 0.;
         // self.on_ground = on_ground;
 
+        println!(
+            "move_entity {} {} {}",
+            x_collision, z_collision, vertical_collision
+        );
+
         // TODO: minecraft checks for a "minor" horizontal collision here
 
-        let block_pos_below = self.on_pos_legacy(dimension);
-        let block_state_below = dimension
+        let block_pos_below = {
+            let entity = self
+                .entity_by_id(entity_id)
+                .expect("There exists no entity with this id.");
+            entity.on_pos_legacy(&self)
+        };
+        let block_state_below = self
             .get_block_state(&block_pos_below)
             .expect("Couldn't get block state below");
+
+        println!("move_entity 4");
         // self.check_fall_damage(collide_result.y, on_ground, block_state_below, block_pos_below);
 
         // if self.isRemoved() { return; }
 
         if horizontal_collision {
-            let delta_movement = &self.delta;
-            self.delta = PositionDelta {
+            let entity = self
+                .mut_entity_by_id(entity_id)
+                .expect("There exists no entity with this id.");
+            let delta_movement = &entity.delta;
+            entity.delta = PositionDelta {
                 xa: if x_collision { 0. } else { delta_movement.xa },
                 ya: delta_movement.ya,
                 za: if z_collision { 0. } else { delta_movement.za },
@@ -142,6 +171,8 @@ impl HasCollision for Entity {
         //    this.setRemainingFireTicks(-this.getFireImmuneTicks());
         // }
 
+        println!("move_entity 5");
+
         Ok(())
     }
 
@@ -170,19 +201,19 @@ impl HasCollision for Entity {
 
     //     return var4;
     // }
-    fn collide(&self, movement: &Vec3, dimension: &Dimension) -> Vec3 {
-        let entity_bounding_box = self.bounding_box;
+    fn collide(&self, movement: &Vec3, entity: &Entity) -> Vec3 {
+        let entity_bounding_box = entity.bounding_box;
         // TODO: get_entity_collisions
         // let entity_collisions = dimension.get_entity_collisions(self, entity_bounding_box.expand_towards(movement));
         let entity_collisions = Vec::new();
         let collided_movement = if movement.length_sqr() == 0.0 {
             *movement
         } else {
-            Self::collide_bounding_box(
-                Some(self),
+            collide_bounding_box(
+                Some(entity),
                 movement,
                 &entity_bounding_box,
-                dimension,
+                self,
                 entity_collisions,
             )
         };
@@ -191,73 +222,73 @@ impl HasCollision for Entity {
 
         collided_movement
     }
+}
 
-    fn collide_bounding_box(
-        entity: Option<&Self>,
-        movement: &Vec3,
-        entity_bounding_box: &AABB,
-        dimension: &Dimension,
-        entity_collisions: Vec<Box<dyn VoxelShape>>,
-    ) -> Vec3 {
-        let mut collision_boxes: Vec<Box<dyn VoxelShape>> = Vec::with_capacity(1); // entity_collisions.len() + 1
+fn collide_bounding_box(
+    entity: Option<&Entity>,
+    movement: &Vec3,
+    entity_bounding_box: &AABB,
+    dimension: &Dimension,
+    entity_collisions: Vec<Box<dyn VoxelShape>>,
+) -> Vec3 {
+    let mut collision_boxes: Vec<Box<dyn VoxelShape>> = Vec::with_capacity(1); // entity_collisions.len() + 1
 
-        if !entity_collisions.is_empty() {
-            collision_boxes.extend(entity_collisions);
-        }
-
-        // TODO: world border
-
-        let block_collisions =
-            dimension.get_block_collisions(entity, entity_bounding_box.expand_towards(movement));
-        collision_boxes.extend(block_collisions);
-        Self::collide_with_shapes(movement, *entity_bounding_box, &collision_boxes)
+    if !entity_collisions.is_empty() {
+        collision_boxes.extend(entity_collisions);
     }
 
-    fn collide_with_shapes(
-        movement: &Vec3,
-        mut entity_box: AABB,
-        collision_boxes: &Vec<Box<dyn VoxelShape>>,
-    ) -> Vec3 {
-        if collision_boxes.is_empty() {
-            return *movement;
-        }
+    // TODO: world border
 
-        let mut x_movement = movement.x;
-        let mut y_movement = movement.y;
-        let mut z_movement = movement.z;
+    let block_collisions =
+        dimension.get_block_collisions(entity, entity_bounding_box.expand_towards(movement));
+    collision_boxes.extend(block_collisions);
+    collide_with_shapes(movement, *entity_bounding_box, &collision_boxes)
+}
+
+fn collide_with_shapes(
+    movement: &Vec3,
+    mut entity_box: AABB,
+    collision_boxes: &Vec<Box<dyn VoxelShape>>,
+) -> Vec3 {
+    if collision_boxes.is_empty() {
+        return *movement;
+    }
+
+    let mut x_movement = movement.x;
+    let mut y_movement = movement.y;
+    let mut z_movement = movement.z;
+    if y_movement != 0. {
+        y_movement = Shapes::collide(&Axis::Y, &entity_box, collision_boxes, y_movement);
         if y_movement != 0. {
-            y_movement = Shapes::collide(&Axis::Y, &entity_box, collision_boxes, y_movement);
-            if y_movement != 0. {
-                entity_box = entity_box.move_relative(0., y_movement, 0.);
-            }
+            entity_box = entity_box.move_relative(0., y_movement, 0.);
         }
+    }
 
-        // whether the player is moving more in the z axis than x
-        // this is done to fix a movement bug, minecraft does this too
-        let more_z_movement = x_movement.abs() < z_movement.abs();
+    // whether the player is moving more in the z axis than x
+    // this is done to fix a movement bug, minecraft does this too
+    let more_z_movement = x_movement.abs() < z_movement.abs();
 
-        if more_z_movement && z_movement != 0. {
-            z_movement = Shapes::collide(&Axis::Z, &entity_box, collision_boxes, z_movement);
-            if z_movement != 0. {
-                entity_box = entity_box.move_relative(0., 0., z_movement);
-            }
+    if more_z_movement && z_movement != 0. {
+        z_movement = Shapes::collide(&Axis::Z, &entity_box, collision_boxes, z_movement);
+        if z_movement != 0. {
+            entity_box = entity_box.move_relative(0., 0., z_movement);
         }
+    }
 
+    if x_movement != 0. {
+        x_movement = Shapes::collide(&Axis::X, &entity_box, collision_boxes, x_movement);
         if x_movement != 0. {
-            x_movement = Shapes::collide(&Axis::X, &entity_box, collision_boxes, x_movement);
-            if x_movement != 0. {
-                entity_box = entity_box.move_relative(x_movement, 0., 0.);
-            }
+            entity_box = entity_box.move_relative(x_movement, 0., 0.);
         }
+    }
 
-        if !more_z_movement && z_movement != 0. {
-            z_movement = Shapes::collide(&Axis::Z, &entity_box, collision_boxes, z_movement);
-        }
+    if !more_z_movement && z_movement != 0. {
+        z_movement = Shapes::collide(&Axis::Z, &entity_box, collision_boxes, z_movement);
+    }
 
-        Vec3 {
-            x: x_movement,
-            y: y_movement,
-            z: z_movement,
-        }
+    Vec3 {
+        x: x_movement,
+        y: y_movement,
+        z: z_movement,
     }
 }

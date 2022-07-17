@@ -404,7 +404,7 @@ impl Client {
                         z: new_pos_z,
                     };
                     dimension_lock
-                        .move_entity(player_entity_id, new_pos)
+                        .set_entity_pos(player_entity_id, new_pos)
                         .expect("The player entity should always exist");
 
                     (new_pos, y_rot, x_rot)
@@ -496,7 +496,7 @@ impl Client {
             GamePacket::ClientboundTeleportEntityPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
 
-                dimension_lock.move_entity(
+                dimension_lock.set_entity_pos(
                     p.id,
                     Vec3 {
                         x: p.x,
@@ -600,7 +600,12 @@ impl Client {
         {
             let dimension_lock = client.dimension.lock().unwrap();
             let player_lock = client.player.lock().unwrap();
-            let player_entity = player_lock.entity(&dimension_lock).unwrap();
+            let player_entity = player_lock.entity(&dimension_lock);
+            let player_entity = if let Some(player_entity) = player_entity {
+                player_entity
+            } else {
+                return;
+            };
             let player_chunk_pos: ChunkPos = player_entity.pos().into();
             if dimension_lock[&player_chunk_pos].is_none() {
                 return;

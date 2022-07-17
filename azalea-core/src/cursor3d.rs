@@ -72,6 +72,10 @@ impl Cursor3d {
         end_y: i32,
         end_z: i32,
     ) -> Self {
+        println!(
+            "making cursor3d with origin: {}, {}, {} and end: {}, {}, {}",
+            origin_x, origin_y, origin_z, end_x, end_y, end_z
+        );
         let width = (end_x - origin_x + 1)
             .try_into()
             .expect("Impossible width.");

@@ -39,7 +39,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             //     //     println!("block state: {:?}", c);
             //     // }
             // }
-            Event::Chat(_m) => {
+            Event::Chat(m) => {
                 //     let new_pos = {
                 //         let dimension_lock = client.dimension.lock().unwrap();
                 //         let player = client.player.lock().unwrap();
@@ -53,20 +53,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // client.set_pos(new_pos).await.unwrap();
                 // client.move_entity()
 
-                let mut dimension_lock = client.dimension.lock().unwrap();
-                let player = client.player.lock().unwrap();
-                let entity = player
-                    .mut_entity(&mut dimension_lock)
-                    .expect("Player entity is not in world");
-                entity.move_entity(
-                    &MoverType::Own,
-                    &Vec3 {
+                // println!("{}", m.to_ansi(None));
+                if let Err(e) = client
+                    .move_entity(&Vec3 {
                         x: 0.,
                         y: -0.5,
                         z: 0.,
-                    },
-                    &mut dimension_lock,
-                );
+                    })
+                    .await
+                {
+                    eprintln!("{:?}", e);
+                }
             }
             _ => {}
         }

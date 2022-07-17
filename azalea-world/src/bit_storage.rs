@@ -109,7 +109,12 @@ impl BitStorage {
         if let Some(data) = &data {
             if data.is_empty() {
                 // TODO: make 0 bit storage actually work
-                return Ok(BitStorage::default());
+                return Ok(BitStorage {
+                    data: Vec::with_capacity(0),
+                    bits,
+                    size,
+                    ..Default::default()
+                });
             }
         }
 
@@ -163,10 +168,16 @@ impl BitStorage {
 
         assert!(
             index < self.size,
-            "Index {} out of bounds (max is {})",
+            "Index {} out of bounds (must be less than {})",
             index,
-            self.size - 1
+            self.size
         );
+
+        // 0 bit storage
+        if self.data.is_empty() {
+            return 0;
+        }
+
         let cell_index = self.cell_index(index as u64);
         let cell = &self.data[cell_index as usize];
         let bit_index = (index - cell_index * self.values_per_long as usize) * self.bits;

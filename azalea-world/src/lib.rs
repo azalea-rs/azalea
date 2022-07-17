@@ -61,7 +61,7 @@ impl Dimension {
         self.chunk_storage.get_block_state(pos, self.min_y())
     }
 
-    pub fn move_entity(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), String> {
+    pub fn set_entity_pos(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), String> {
         let entity = self
             .entity_storage
             .get_mut_by_id(entity_id)
