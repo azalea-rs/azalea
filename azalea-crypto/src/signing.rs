@@ -15,5 +15,5 @@ pub struct MessageSignature {
 #[derive(Clone, Debug, McBuf)]
 pub struct SignedMessageHeader {
     pub previous_signature: Option<MessageSignature>,
-    pub uuid: Uuid,
+    pub sender: Uuid,
 }

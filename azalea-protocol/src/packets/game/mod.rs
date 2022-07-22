@@ -54,7 +54,9 @@ pub mod clientbound_update_recipes_packet;
 pub mod clientbound_update_tags_packet;
 pub mod clientbound_update_view_distance_packet;
 pub mod serverbound_accept_teleportation_packet;
+pub mod serverbound_chat_ack_packet;
 pub mod serverbound_chat_command_packet;
+pub mod serverbound_chat_packet;
 pub mod serverbound_chat_preview_packet;
 pub mod serverbound_custom_payload_packet;
 pub mod serverbound_keep_alive_packet;
@@ -69,14 +71,16 @@ declare_state_packets!(
     GamePacket,
     Serverbound => {
         0x00: serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
-        0x03: serverbound_chat_command_packet::ServerboundChatCommandPacket,
-        0x05: serverbound_chat_preview_packet::ServerboundChatPreviewPacket,
-        0x0c: serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
-        0x11: serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
-        0x13: serverbound_move_player_packet_pos::ServerboundMovePlayerPacketPos,
-        0x14: serverbound_move_player_packet_pos_rot::ServerboundMovePlayerPacketPosRot,
-        0x15: serverbound_move_player_packet_rot::ServerboundMovePlayerPacketRot,
-        0x16: serverbound_move_player_packet_status_only::ServerboundMovePlayerPacketStatusOnly,
+        0x03: serverbound_chat_ack_packet::ServerboundChatAckPacket,
+        0x04: serverbound_chat_command_packet::ServerboundChatCommandPacket,
+        0x05: serverbound_chat_packet::ServerboundChatPacket,
+        0x06: serverbound_chat_preview_packet::ServerboundChatPreviewPacket,
+        0x0d: serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
+        0x12: serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
+        0x14: serverbound_move_player_packet_pos::ServerboundMovePlayerPacketPos,
+        0x15: serverbound_move_player_packet_pos_rot::ServerboundMovePlayerPacketPosRot,
+        0x16: serverbound_move_player_packet_rot::ServerboundMovePlayerPacketRot,
+        0x17: serverbound_move_player_packet_status_only::ServerboundMovePlayerPacketStatusOnly,
     },
     Clientbound => {
         0x00: clientbound_add_entity_packet::ClientboundAddEntityPacket,
@@ -105,8 +109,8 @@ declare_state_packets!(
         0x29: clientbound_move_entity_posrot_packet::ClientboundMoveEntityPosrotPacket,
         0x2a: clientbound_move_entity_rot_packet::ClientboundMoveEntityRotPacket,
         0x31: clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
-        0x32: clientbound_player_chat_packet::ClientboundPlayerChatPacket,
-        0x33: clientbound_player_chat_header_packet::ClientboundPlayerChatHeaderPacket,
+        0x32: clientbound_player_chat_header_packet::ClientboundPlayerChatHeaderPacket,
+        0x33: clientbound_player_chat_packet::ClientboundPlayerChatPacket,
         0x37: clientbound_player_info_packet::ClientboundPlayerInfoPacket,
         0x39: clientbound_player_position_packet::ClientboundPlayerPositionPacket,
         0x3a: clientbound_recipe_packet::ClientboundRecipePacket,

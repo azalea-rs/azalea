@@ -17,7 +17,8 @@ pub enum ChatType {
     MsgCommandIncoming = 2,
     MsgCommandOutgoing = 3,
     TeamMsgCommandIncoming = 4,
-    EmoteCommand = 5,
+    TeamMsgCommandOutgoing = 5,
+    EmoteCommand = 6,
 }
 
 #[derive(Clone, Debug, McBuf)]
@@ -37,14 +38,27 @@ pub struct PlayerChatMessage {
 
 #[derive(Clone, Debug, McBuf)]
 pub struct SignedMessageBody {
-    pub content: Component,
+    pub content: ChatMessageContent,
     pub timestamp: u64,
     pub salt: u64,
-    pub last_seen: Vec<LastSeen>,
+    pub last_seen: Vec<LastSeenMessagesEntry>,
 }
 
 #[derive(Clone, Debug, McBuf)]
-pub struct LastSeen {
+pub struct LastSeenMessagesEntry {
     pub profile_id: Uuid,
     pub last_signature: MessageSignature,
+}
+
+#[derive(Clone, Debug, McBuf)]
+pub struct LastSeenMessagesUpdate {
+    pub last_seen: Vec<LastSeenMessagesEntry>,
+    pub last_received: Option<LastSeenMessagesEntry>,
+}
+
+#[derive(Clone, Debug, McBuf)]
+pub struct ChatMessageContent {
+    pub plain: String,
+    /// Only sent if the decorated message is different than the plain.
+    pub decorated: Option<Component>,
 }
