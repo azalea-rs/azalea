@@ -106,6 +106,8 @@ impl BitStorage {
         // vanilla has this assert but it's not always true for some reason??
         // assert!(bits >= 1 && bits <= 32);
 
+        println!("bits: {}", bits);
+
         if let Some(data) = &data {
             if data.is_empty() {
                 // TODO: make 0 bit storage actually work

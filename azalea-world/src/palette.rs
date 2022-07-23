@@ -19,6 +19,19 @@ pub struct PalettedContainer {
 }
 
 impl PalettedContainer {
+    pub fn new(container_type: &'static PalettedContainerType) -> Result<Self, String> {
+        let palette = Palette::SingleValue(0);
+        let size = container_type.size();
+        let storage = BitStorage::new(0, size, Some(vec![])).unwrap();
+
+        Ok(PalettedContainer {
+            bits_per_entry: 0,
+            palette,
+            storage,
+            container_type: *container_type,
+        })
+    }
+
     pub fn read_with_type(
         buf: &mut impl Read,
         container_type: &'static PalettedContainerType,
@@ -26,10 +39,7 @@ impl PalettedContainer {
         let bits_per_entry = buf.read_byte()?;
         let palette_type = PaletteType::from_bits_and_type(bits_per_entry, container_type);
         let palette = palette_type.read(buf)?;
-        let size = match container_type {
-            PalettedContainerType::BlockStates => 4096,
-            PalettedContainerType::Biomes => 64,
-        };
+        let size = container_type.size();
 
         let data = Vec::<u64>::read_from(buf)?;
         debug_assert!(
@@ -60,8 +70,7 @@ impl PalettedContainer {
 
     /// Sets the id at the given coordinates and return the previous id
     pub fn get_and_set(&mut self, x: usize, y: usize, z: usize, value: u32) -> u32 {
-        let palette = self.palette.clone();
-        let paletted_value = palette.id_for(value, self);
+        let paletted_value = self.id_for(value);
         self.storage
             .get_and_set(self.get_index(x, y, z), paletted_value as u64) as u32
     }
@@ -69,24 +78,29 @@ impl PalettedContainer {
     /// Sets the id at the given coordinates and return the previous id
     pub fn set(&mut self, x: usize, y: usize, z: usize, value: u32) {
         let palette = self.palette.clone();
-        let paletted_value = palette.id_for(value, self);
+        let paletted_value = self.id_for(value);
         self.storage
             .set(self.get_index(x, y, z), paletted_value as u64)
     }
 
     fn create_or_reuse_data(&self, bits_per_entry: u8) -> PalettedContainer {
+        println!("create_or_reuse_data {:?}", bits_per_entry);
         let new_palette_type =
             PaletteType::from_bits_and_type(bits_per_entry, &self.container_type);
-        let old_palette_type: PaletteType = self.palette.clone().into();
+        let old_palette_type: PaletteType = (&self.palette).into();
         if new_palette_type == old_palette_type {
             return self.clone();
         }
-        let storage = BitStorage::new(
-            self.bits_per_entry as usize,
-            self.container_type.size(),
-            None,
-        )
-        .unwrap();
+        println!(
+            "self.container_type.size(): {:?}",
+            self.container_type.size()
+        );
+        let storage =
+            BitStorage::new(bits_per_entry as usize, self.container_type.size(), None).unwrap();
+
+        // sanity check
+        debug_assert_eq!(storage.size(), self.container_type.size());
+
         let palette = new_palette_type.into_empty_palette();
         PalettedContainer {
             bits_per_entry,
@@ -97,18 +111,59 @@ impl PalettedContainer {
     }
 
     fn on_resize(&mut self, bits_per_entry: u8, value: u32) -> usize {
+        println!("resizing! {} {}", bits_per_entry, value);
         let mut new_data = self.create_or_reuse_data(bits_per_entry);
         new_data.copy_from(&self.palette, &self.storage);
+        println!("copied to new data: {:?}", new_data);
         *self = new_data;
-        self.palette.clone().id_for(value, self)
+        self.id_for(value)
     }
 
     fn copy_from(&mut self, palette: &Palette, storage: &BitStorage) {
-        let old_palette = self.palette.clone();
+        // println!("old_palette: {:?}", old_palette);
+        // println!("palette: {:?}", palette);
         for i in 0..storage.size() {
             let value = palette.value_for(storage.get(i) as usize);
-            let id = old_palette.id_for(value, self) as u64;
+            let id = self.id_for(value) as u64;
+            println!("index: {}, storage size {}", i, self.storage.size());
             self.storage.set(i, id);
+        }
+    }
+
+    pub fn id_for(&mut self, value: u32) -> usize {
+        match &mut self.palette {
+            Palette::SingleValue(v) => {
+                if *v != value {
+                    self.on_resize(1, value)
+                } else {
+                    0
+                }
+            }
+            Palette::Linear(palette) => {
+                println!("finding {:?} in linear palette: {:?}", value, palette);
+                if let Some(index) = palette.iter().position(|v| *v == value) {
+                    return index as usize;
+                }
+                let capacity = 2usize.pow(self.bits_per_entry.into());
+                println!("capacity: {}, palette.len: {}", capacity, palette.len());
+                if capacity > palette.len() {
+                    palette.push(value);
+                    println!("palette: {:?}", palette);
+                    palette.len() - 1
+                } else {
+                    // vanilla uses LinearPalette.bits but i think this is the same
+                    self.on_resize(self.bits_per_entry + 1, value)
+                }
+            }
+            Palette::Hashmap(palette) => {
+                // TODO? vanilla keeps this in memory as a hashmap, but also i don't care
+                if let Some(index) = palette.iter().position(|v| *v == value) {
+                    return index as usize;
+                }
+                // vanilla uses LinearPalette.bits but i think this is the same
+                self.on_resize(self.bits_per_entry + 1, value)
+            }
+            Palette::Global => value as usize,
         }
     }
 }
@@ -147,34 +202,6 @@ impl Palette {
             Palette::Linear(v) => v[id],
             Palette::Hashmap(v) => v[id],
             Palette::Global => id as u32,
-        }
-    }
-
-    pub fn id_for(&self, value: u32, container: &mut PalettedContainer) -> usize {
-        match self {
-            Palette::SingleValue(v) => {
-                if *v != value {
-                    container.on_resize(1, value)
-                } else {
-                    0
-                }
-            }
-            Palette::Linear(palette) => {
-                if let Some(index) = palette.iter().position(|v| *v == value) {
-                    return index as usize;
-                }
-                // vanilla uses LinearPalette.bits but i think this is the same
-                container.on_resize(container.bits_per_entry + 1, value)
-            }
-            Palette::Hashmap(palette) => {
-                // TODO? vanilla keeps this in memory as a hashmap, but also i don't care
-                if let Some(index) = palette.iter().position(|v| *v == value) {
-                    return index as usize;
-                }
-                // vanilla uses LinearPalette.bits but i think this is the same
-                container.on_resize(container.bits_per_entry + 1, value)
-            }
-            Palette::Global => value as usize,
         }
     }
 }
@@ -233,8 +260,8 @@ impl PaletteType {
     }
 }
 
-impl From<Palette> for PaletteType {
-    fn from(palette: Palette) -> Self {
+impl From<&Palette> for PaletteType {
+    fn from(palette: &Palette) -> Self {
         match palette {
             Palette::SingleValue(_) => PaletteType::SingleValue,
             Palette::Linear(_) => PaletteType::Linear,
@@ -254,5 +281,29 @@ impl PalettedContainerType {
 
     fn size(&self) -> usize {
         1 << self.size_bits() * 3
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_palette_resizing() {
+        let mut palette_container =
+            PalettedContainer::new(&PalettedContainerType::BlockStates).unwrap();
+
+        assert_eq!(palette_container.bits_per_entry, 0);
+        assert_eq!(palette_container.get(8, 8, 8), 0);
+        assert_eq!(
+            PaletteType::from(&palette_container.palette),
+            PaletteType::SingleValue
+        );
+        palette_container.set(8, 8, 8, 1);
+        assert_eq!(palette_container.get(8, 8, 8), 1);
+        assert_eq!(
+            PaletteType::from(&palette_container.palette),
+            PaletteType::Linear
+        );
     }
 }
