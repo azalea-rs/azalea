@@ -64,7 +64,6 @@ impl PalettedContainer {
 
     pub fn get(&self, x: usize, y: usize, z: usize) -> u32 {
         let paletted_value = self.storage.get(self.get_index(x, y, z));
-        println!("palette: {:?}", self.palette);
         self.palette.value_for(paletted_value as usize)
     }
 
@@ -84,17 +83,12 @@ impl PalettedContainer {
     }
 
     fn create_or_reuse_data(&self, bits_per_entry: u8) -> PalettedContainer {
-        println!("create_or_reuse_data {:?}", bits_per_entry);
         let new_palette_type =
             PaletteType::from_bits_and_type(bits_per_entry, &self.container_type);
         let old_palette_type: PaletteType = (&self.palette).into();
         if new_palette_type == old_palette_type {
             return self.clone();
         }
-        println!(
-            "self.container_type.size(): {:?}",
-            self.container_type.size()
-        );
         let storage =
             BitStorage::new(bits_per_entry as usize, self.container_type.size(), None).unwrap();
 
@@ -111,21 +105,16 @@ impl PalettedContainer {
     }
 
     fn on_resize(&mut self, bits_per_entry: u8, value: u32) -> usize {
-        println!("resizing! {} {}", bits_per_entry, value);
         let mut new_data = self.create_or_reuse_data(bits_per_entry);
         new_data.copy_from(&self.palette, &self.storage);
-        println!("copied to new data: {:?}", new_data);
         *self = new_data;
         self.id_for(value)
     }
 
     fn copy_from(&mut self, palette: &Palette, storage: &BitStorage) {
-        // println!("old_palette: {:?}", old_palette);
-        // println!("palette: {:?}", palette);
         for i in 0..storage.size() {
             let value = palette.value_for(storage.get(i) as usize);
             let id = self.id_for(value) as u64;
-            println!("index: {}, storage size {}", i, self.storage.size());
             self.storage.set(i, id);
         }
     }
@@ -140,15 +129,12 @@ impl PalettedContainer {
                 }
             }
             Palette::Linear(palette) => {
-                println!("finding {:?} in linear palette: {:?}", value, palette);
                 if let Some(index) = palette.iter().position(|v| *v == value) {
                     return index as usize;
                 }
                 let capacity = 2usize.pow(self.bits_per_entry.into());
-                println!("capacity: {}, palette.len: {}", capacity, palette.len());
                 if capacity > palette.len() {
                     palette.push(value);
-                    println!("palette: {:?}", palette);
                     palette.len() - 1
                 } else {
                     // vanilla uses LinearPalette.bits but i think this is the same
