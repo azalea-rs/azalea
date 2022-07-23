@@ -60,27 +60,26 @@ impl PalettedContainer {
 
     /// Sets the id at the given coordinates and return the previous id
     pub fn get_and_set(&mut self, x: usize, y: usize, z: usize, value: u32) -> u32 {
-        let paletted_value = self.palette.id_for(value, self);
+        let palette = self.palette.clone();
+        let paletted_value = palette.id_for(value, self);
         self.storage
             .get_and_set(self.get_index(x, y, z), paletted_value as u64) as u32
     }
 
     /// Sets the id at the given coordinates and return the previous id
     pub fn set(&mut self, x: usize, y: usize, z: usize, value: u32) {
-        let paletted_value = self.palette.id_for(value, self);
+        let palette = self.palette.clone();
+        let paletted_value = palette.id_for(value, self);
         self.storage
             .set(self.get_index(x, y, z), paletted_value as u64)
     }
 
-    fn create_or_reuse_data(
-        &self,
-        old_data: &mut PalettedContainer,
-        bits_per_entry: u8,
-    ) -> PalettedContainer {
+    fn create_or_reuse_data(&self, bits_per_entry: u8) -> PalettedContainer {
         let new_palette_type =
             PaletteType::from_bits_and_type(bits_per_entry, &self.container_type);
-        if new_palette_type == self.palette.into() {
-            return old_data.clone();
+        let old_palette_type: PaletteType = self.palette.clone().into();
+        if new_palette_type == old_palette_type {
+            return self.clone();
         }
         let storage = BitStorage::new(
             self.bits_per_entry as usize,
@@ -98,16 +97,18 @@ impl PalettedContainer {
     }
 
     fn on_resize(&mut self, bits_per_entry: u8, value: u32) -> usize {
-        let new_data = self.create_or_reuse_data(self, bits_per_entry);
-        new_data.copy_from(self.palette, self.storage);
+        let mut new_data = self.create_or_reuse_data(bits_per_entry);
+        new_data.copy_from(&self.palette, &self.storage);
         *self = new_data;
-        self.palette.id_for(value, self)
+        self.palette.clone().id_for(value, self)
     }
 
-    fn copy_from(&mut self, palette: Palette, storage: BitStorage) {
+    fn copy_from(&mut self, palette: &Palette, storage: &BitStorage) {
+        let old_palette = self.palette.clone();
         for i in 0..storage.size() {
             let value = palette.value_for(storage.get(i) as usize);
-            self.storage.set(i, self.palette.id_for(value, self) as u64);
+            let id = old_palette.id_for(value, self) as u64;
+            self.storage.set(i, id);
         }
     }
 }
