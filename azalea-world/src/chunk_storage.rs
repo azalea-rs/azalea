@@ -67,11 +67,11 @@ impl ChunkStorage {
             .map(|chunk| chunk.lock().unwrap().get(&ChunkBlockPos::from(pos), min_y))
     }
 
-    pub fn set_block_state(&self, pos: &BlockPos, state: BlockState, min_y: i32) {
+    pub fn set_block_state(&self, pos: &BlockPos, state: BlockState, min_y: i32) -> BlockState {
         let chunk_pos = ChunkPos::from(pos);
         let chunk = &self[&chunk_pos];
-        let chunk = chunk.unwrap().lock().unwrap();
-        chunk.set(&ChunkBlockPos::from(pos), min_y, state);
+        let mut chunk = chunk.as_ref().unwrap().lock().unwrap();
+        chunk.get_and_set(&ChunkBlockPos::from(pos), state, min_y)
     }
 
     pub fn replace_with_packet_data(
@@ -146,7 +146,20 @@ impl Chunk {
         section.get(chunk_section_pos)
     }
 
-    pub fn set(&self, pos: &ChunkBlockPos, state: BlockState, min_y: i32) {
+    pub fn get_and_set(
+        &mut self,
+        pos: &ChunkBlockPos,
+        state: BlockState,
+        min_y: i32,
+    ) -> BlockState {
+        let section_index = self.section_index(pos.y, min_y);
+        // TODO: make sure the section exists
+        let section = &mut self.sections[section_index as usize];
+        let chunk_section_pos = ChunkSectionBlockPos::from(pos);
+        section.get_and_set(chunk_section_pos, state)
+    }
+
+    pub fn set(&mut self, pos: &ChunkBlockPos, state: BlockState, min_y: i32) {
         let section_index = self.section_index(pos.y, min_y);
         // TODO: make sure the section exists
         let section = &mut self.sections[section_index as usize];
@@ -221,10 +234,19 @@ impl McBufWritable for Section {
 impl Section {
     fn get(&self, pos: ChunkSectionBlockPos) -> BlockState {
         // TODO: use the unsafe method and do the check earlier
-        self.states
-            .get(pos.x as usize, pos.y as usize, pos.z as usize)
-            .try_into()
-            .expect("Invalid block state.")
+        let state = self
+            .states
+            .get(pos.x as usize, pos.y as usize, pos.z as usize);
+        // if there's an unknown block assume it's air
+        BlockState::try_from(state).unwrap_or(BlockState::Air)
+    }
+
+    fn get_and_set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) -> BlockState {
+        let previous_state =
+            self.states
+                .get_and_set(pos.x as usize, pos.y as usize, pos.z as usize, state as u32);
+        // if there's an unknown block assume it's air
+        BlockState::try_from(previous_state).unwrap_or(BlockState::Air)
     }
 
     fn set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) {

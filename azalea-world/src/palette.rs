@@ -58,10 +58,18 @@ impl PalettedContainer {
         self.palette.value_for(paletted_value as usize)
     }
 
-    pub fn set(&mut self, x: usize, y: usize, z: usize, value: u32) {
-        let paletted_value = self.palette.id_for(value);
+    /// Sets the id at the given coordinates and return the previous id
+    pub fn get_and_set(&mut self, x: usize, y: usize, z: usize, value: u32) -> u32 {
+        let paletted_value = self.palette.id_for(value, self);
         self.storage
-            .set(self.get_index(x, y, z), paletted_value as u64);
+            .get_and_set(self.get_index(x, y, z), paletted_value as u64) as u32
+    }
+
+    /// Sets the id at the given coordinates and return the previous id
+    pub fn set(&mut self, x: usize, y: usize, z: usize, value: u32) {
+        let paletted_value = self.palette.id_for(value, self);
+        self.storage
+            .set(self.get_index(x, y, z), paletted_value as u64)
     }
 
     fn create_or_reuse_data(
@@ -93,13 +101,13 @@ impl PalettedContainer {
         let new_data = self.create_or_reuse_data(self, bits_per_entry);
         new_data.copy_from(self.palette, self.storage);
         *self = new_data;
-        self.palette.id_for(value)
+        self.palette.id_for(value, self)
     }
 
     fn copy_from(&mut self, palette: Palette, storage: BitStorage) {
         for i in 0..storage.size() {
             let value = palette.value_for(storage.get(i) as usize);
-            self.storage.set(i, self.palette.id_for(value) as u64);
+            self.storage.set(i, self.palette.id_for(value, self) as u64);
         }
     }
 }
@@ -125,6 +133,7 @@ pub enum PaletteType {
 pub enum Palette {
     /// ID of the corresponding entry in its global palette
     SingleValue(u32),
+    // in vanilla this keeps a `size` field that might be less than the length, but i'm not sure it's actually needed?
     Linear(Vec<u32>),
     Hashmap(Vec<u32>),
     Global,
@@ -144,15 +153,27 @@ impl Palette {
         match self {
             Palette::SingleValue(v) => {
                 if *v != value {
-                    // on resize
                     container.on_resize(1, value)
                 } else {
                     0
                 }
             }
-            Palette::Linear(_) => todo!(),
-            Palette::Hashmap(_) => todo!(),
-            Palette::Global => todo!(),
+            Palette::Linear(palette) => {
+                if let Some(index) = palette.iter().position(|v| *v == value) {
+                    return index as usize;
+                }
+                // vanilla uses LinearPalette.bits but i think this is the same
+                container.on_resize(container.bits_per_entry + 1, value)
+            }
+            Palette::Hashmap(palette) => {
+                // TODO? vanilla keeps this in memory as a hashmap, but also i don't care
+                if let Some(index) = palette.iter().position(|v| *v == value) {
+                    return index as usize;
+                }
+                // vanilla uses LinearPalette.bits but i think this is the same
+                container.on_resize(container.bits_per_entry + 1, value)
+            }
+            Palette::Global => value as usize,
         }
     }
 }

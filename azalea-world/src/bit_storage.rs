@@ -184,14 +184,18 @@ impl BitStorage {
         cell >> bit_index & self.mask
     }
 
-    pub fn set(&mut self, index: usize, value: u64) {
-        // Validate.inclusiveBetween(0L, (long)(this.size - 1), (long)var1);
-        // Validate.inclusiveBetween(0L, this.mask, (long)var2);
-        // int var3 = this.cellIndex(var1);
-        // long var4 = this.data[var3];
-        // int var6 = (var1 - var3 * this.valuesPerLong) * this.bits;
-        // this.data[var3] = var4 & ~(this.mask << var6) | ((long)var2 & this.mask) << var6;
+    pub fn get_and_set(&mut self, index: usize, value: u64) -> u64 {
+        assert!(index < self.size);
+        assert!(value <= self.mask);
+        let cell_index = self.cell_index(index as u64);
+        let cell = &mut self.data[cell_index as usize];
+        let bit_index = (index - cell_index * self.values_per_long as usize) * self.bits;
+        let old_value = *cell >> (bit_index as u64) * self.mask;
+        *cell = *cell & !(self.mask << bit_index) | (value & self.mask) << bit_index;
+        old_value
+    }
 
+    pub fn set(&mut self, index: usize, value: u64) {
         assert!(index < self.size);
         assert!(value <= self.mask);
         let cell_index = self.cell_index(index as u64);

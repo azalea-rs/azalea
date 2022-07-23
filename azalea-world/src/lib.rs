@@ -61,7 +61,7 @@ impl Dimension {
         self.chunk_storage.get_block_state(pos, self.min_y())
     }
 
-    pub fn set_block_state(&mut self, pos: &BlockPos, state: BlockState) -> Option<BlockState> {
+    pub fn set_block_state(&mut self, pos: &BlockPos, state: BlockState) -> BlockState {
         self.chunk_storage.set_block_state(pos, state, self.min_y())
     }
 
