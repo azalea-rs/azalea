@@ -554,6 +554,8 @@ impl Client {
             GamePacket::ClientboundBlockUpdatePacket(p) => {
                 println!("Got block update packet {:?}", p);
                 // TODO: update world
+                let mut dimension = client.dimension.lock()?;
+                dimension.get_block_state(pos)
             }
             GamePacket::ClientboundAnimatePacket(p) => {
                 println!("Got animate packet {:?}", p);

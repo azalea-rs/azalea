@@ -61,11 +61,17 @@ impl ChunkStorage {
 
     pub fn get_block_state(&self, pos: &BlockPos, min_y: i32) -> Option<BlockState> {
         let chunk_pos = ChunkPos::from(pos);
-        println!("chunk_pos {:?} block_pos {:?}", chunk_pos, pos);
         let chunk = &self[&chunk_pos];
         chunk
             .as_ref()
             .map(|chunk| chunk.lock().unwrap().get(&ChunkBlockPos::from(pos), min_y))
+    }
+
+    pub fn set_block_state(&self, pos: &BlockPos, state: BlockState, min_y: i32) {
+        let chunk_pos = ChunkPos::from(pos);
+        let chunk = &self[&chunk_pos];
+        let chunk = chunk.unwrap().lock().unwrap();
+        chunk.set(&ChunkBlockPos::from(pos), min_y, state);
     }
 
     pub fn replace_with_packet_data(
@@ -139,6 +145,14 @@ impl Chunk {
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
         section.get(chunk_section_pos)
     }
+
+    pub fn set(&self, pos: &ChunkBlockPos, state: BlockState, min_y: i32) {
+        let section_index = self.section_index(pos.y, min_y);
+        // TODO: make sure the section exists
+        let section = &mut self.sections[section_index as usize];
+        let chunk_section_pos = ChunkSectionBlockPos::from(pos);
+        section.set(chunk_section_pos, state)
+    }
 }
 
 impl McBufWritable for Chunk {
@@ -211,6 +225,11 @@ impl Section {
             .get(pos.x as usize, pos.y as usize, pos.z as usize)
             .try_into()
             .expect("Invalid block state.")
+    }
+
+    fn set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) {
+        self.states
+            .set(pos.x as usize, pos.y as usize, pos.z as usize, state as u32);
     }
 }
 
