@@ -62,8 +62,7 @@ def burger_type_to_rust_type(burger_type):
             burger_type[:-2])
         field_type_rs = f'Vec<{field_type_rs}>'
     else:
-        print('Unknown field type:', burger_type)
-        exit()
+        raise Exception(f'Unknown field type: {burger_type}')
     return field_type_rs, is_var, uses
 
 

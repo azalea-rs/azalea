@@ -1,19 +1,22 @@
-use std::collections::HashMap;
-
 use azalea_buf::McBuf;
+use azalea_crypto::MessageSignature;
 use packet_macros::GamePacket;
+
+use super::clientbound_player_chat_packet::LastSeenMessagesUpdate;
 
 #[derive(Clone, Debug, McBuf, GamePacket)]
 pub struct ServerboundChatCommandPacket {
     pub command: String,
     // TODO: Choose a real timestamp type
     pub timestamp: u64,
-    pub argument_signatures: ArgumentSignatures,
+    pub salt: i64,
+    pub argument_signatures: Vec<ArgumentSignature>,
     pub signed_preview: bool,
+    pub last_seen_messages: LastSeenMessagesUpdate,
 }
 
 #[derive(Clone, Debug, McBuf)]
-pub struct ArgumentSignatures {
-    pub salt: u64,
-    pub signatures: HashMap<String, Vec<u8>>,
+pub struct ArgumentSignature {
+    pub name: String,
+    pub signature: MessageSignature,
 }

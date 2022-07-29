@@ -9,6 +9,14 @@ import sys
 
 lib.download.clear_version_cache()
 
+if len(sys.argv) == 1:
+    print('\033[91mYou must provide a version to migrate to.\033[m')
+    version_manifest = lib.download.get_version_manifest()
+    newest_version = version_manifest['latest']['snapshot']
+    print(f'Hint: newest version is \033[1m{newest_version}\033[m')
+    exit()
+
+
 old_version_id = lib.code.version.get_version_id()
 old_mappings = lib.download.get_mappings_for_version(old_version_id)
 old_burger_data = lib.extract.get_burger_data_for_version(old_version_id)
@@ -21,18 +29,24 @@ new_packet_list = list(new_burger_data[0]['packets']['packet'].values())
 
 
 old_packets: dict[PacketIdentifier, str] = {}
+old_packets_data: dict[PacketIdentifier, dict] = {}
 new_packets: dict[PacketIdentifier, str] = {}
+new_packets_data: dict[PacketIdentifier, dict] = {}
 
 for packet in old_packet_list:
     assert packet['class'].endswith('.class')
     packet_name = old_mappings.get_class(packet['class'][:-6])
-    old_packets[PacketIdentifier(
-        packet['id'], packet['direction'].lower(), fix_state(packet['state']))] = packet_name
+    packet_ident = PacketIdentifier(
+        packet['id'], packet['direction'].lower(), fix_state(packet['state']))
+    old_packets[packet_ident] = packet_name
+    old_packets_data[packet_ident] = packet
 for packet in new_packet_list:
     assert packet['class'].endswith('.class')
     packet_name = new_mappings.get_class(packet['class'][:-6])
-    new_packets[PacketIdentifier(
-        packet['id'], packet['direction'].lower(), fix_state(packet['state']))] = packet_name
+    packet_ident = PacketIdentifier(
+        packet['id'], packet['direction'].lower(), fix_state(packet['state']))
+    new_packets[packet_ident] = packet_name
+    new_packets_data[packet_ident] = packet
 
 # find removed packets
 removed_packets: list[PacketIdentifier] = []
@@ -65,13 +79,22 @@ for (direction, state), packets in group_packets(list(changed_packets.keys())).i
 
 print()
 
-# find added packets
-added_packets: list[PacketIdentifier] = []
-for packet, packet_name in new_packets.items():
+# find added/changed packets
+added_or_changed_packets: list[PacketIdentifier] = []
+for new_packet, packet_name in new_packets.items():
+    old_packet = None
+    for old_packet_tmp, old_packet_name in old_packets.items():
+        if old_packet_name == packet_name:
+            old_packet = old_packet_tmp
+            break
+
     if packet_name not in old_packets.values():
-        added_packets.append(packet)
-        print('Added packet:', packet, packet_name)
-for packet in added_packets:
+        added_or_changed_packets.append(new_packet)
+        print('Added packet:', new_packet, packet_name)
+    elif old_packet and not lib.code.packet.are_packet_instructions_identical(new_packets_data[new_packet].get('instructions'), old_packets_data[old_packet].get('instructions')):
+        added_or_changed_packets.append(new_packet)
+        print('Changed packet:', new_packet, packet_name)
+for packet in added_or_changed_packets:
     lib.code.packet.generate_packet(
         new_burger_data[0]['packets']['packet'], new_mappings, packet.packet_id, packet.direction, packet.state)
 

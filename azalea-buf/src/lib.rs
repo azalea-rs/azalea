@@ -1,7 +1,6 @@
 //! Utilities for reading and writing for the Minecraft protocol
 
 #![feature(min_specialization)]
-#![feature(arbitrary_enum_discriminant)]
 
 mod definitions;
 mod read;

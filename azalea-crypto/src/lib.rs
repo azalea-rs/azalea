@@ -7,7 +7,7 @@ use aes::{
 };
 use rand::{rngs::OsRng, RngCore};
 use sha1::{Digest, Sha1};
-pub use signing::SaltSignaturePair;
+pub use signing::*;
 
 fn generate_secret_key() -> [u8; 16] {
     let mut key = [0u8; 16];

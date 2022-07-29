@@ -102,6 +102,7 @@ impl Client {
             ServerboundHelloPacket {
                 username: account.username.clone(),
                 public_key: None,
+                profile_id: None,
             }
             .get(),
         )
@@ -511,12 +512,12 @@ impl Client {
             GamePacket::ClientboundRotateHeadPacket(_p) => {
                 // println!("Got rotate head packet {:?}", p);
             }
-            GamePacket::ClientboundMoveVec3Packet(p) => {
+            GamePacket::ClientboundMoveEntityPosPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
 
                 dimension_lock.move_entity_with_delta(p.entity_id, &p.delta)?;
             }
-            GamePacket::ClientboundMoveVec3RotPacket(p) => {
+            GamePacket::ClientboundMoveEntityPosrotPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
 
                 dimension_lock.move_entity_with_delta(p.entity_id, &p.delta)?;
