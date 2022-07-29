@@ -13,11 +13,6 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 use tokio::net::TcpStream;
 
-pub struct Handshake;
-pub struct Game;
-pub struct Status;
-pub struct Login;
-
 pub struct Connection<R: ProtocolPacket, W: ProtocolPacket> {
     /// The buffered writer
     pub stream: TcpStream,
