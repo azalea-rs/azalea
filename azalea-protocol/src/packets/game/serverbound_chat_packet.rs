@@ -1,9 +1,9 @@
 use crate::packets::game::clientbound_player_chat_packet::LastSeenMessagesUpdate;
 use azalea_buf::McBuf;
 use azalea_crypto::MessageSignature;
-use packet_macros::GamePacket;
+use packet_macros::ServerboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundChatPacket {
     pub message: String,
     pub timestamp: u64,

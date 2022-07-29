@@ -1,8 +1,8 @@
 use azalea_buf::McBuf;
-use packet_macros::LoginPacket;
+use packet_macros::ServerboundLoginPacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, McBuf, LoginPacket)]
+#[derive(Clone, Debug, McBuf, ServerboundLoginPacket)]
 pub struct ServerboundHelloPacket {
     pub username: String,
     pub public_key: Option<ProfilePublicKeyData>,

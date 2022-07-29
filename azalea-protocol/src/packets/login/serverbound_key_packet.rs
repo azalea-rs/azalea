@@ -1,11 +1,11 @@
 use azalea_buf::McBuf;
 use azalea_crypto::SaltSignaturePair;
-use packet_macros::LoginPacket;
+use packet_macros::ServerboundLoginPacket;
 use std::io::{Read, Write};
 
 use azalea_buf::{McBufReadable, McBufWritable};
 
-#[derive(Clone, Debug, McBuf, LoginPacket)]
+#[derive(Clone, Debug, McBuf, ServerboundLoginPacket)]
 pub struct ServerboundKeyPacket {
     pub key_bytes: Vec<u8>,
     pub nonce_or_salt_signature: NonceOrSaltSignature,

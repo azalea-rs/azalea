@@ -1,10 +1,10 @@
 use azalea_buf::McBuf;
 use azalea_core::Slot;
-use packet_macros::GamePacket;
+use packet_macros::ClientboundGamePacket;
 
 use azalea_buf::{McBufReadable, McBufWritable};
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSetEquipmentPacket {
     #[var]
     pub entity: i32,

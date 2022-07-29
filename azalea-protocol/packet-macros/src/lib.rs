@@ -40,24 +40,56 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
     contents.into()
 }
 
-#[proc_macro_derive(GamePacket, attributes(var))]
-pub fn derive_game_packet(input: TokenStream) -> TokenStream {
-    as_packet_derive(input, quote! {crate::packets::game::GamePacket})
+#[proc_macro_derive(ServerboundGamePacket, attributes(var))]
+pub fn derive_serverbound_game_packet(input: TokenStream) -> TokenStream {
+    as_packet_derive(input, quote! {crate::packets::game::ServerboundGamePacket})
+}
+#[proc_macro_derive(ServerboundHandshakePacket, attributes(var))]
+pub fn derive_serverbound_handshake_packet(input: TokenStream) -> TokenStream {
+    as_packet_derive(
+        input,
+        quote! {crate::packets::handshake::ServerboundHandshakePacket},
+    )
+}
+#[proc_macro_derive(ServerboundLoginPacket, attributes(var))]
+pub fn derive_serverbound_login_packet(input: TokenStream) -> TokenStream {
+    as_packet_derive(
+        input,
+        quote! {crate::packets::login::ServerboundLoginPacket},
+    )
+}
+#[proc_macro_derive(ServerboundStatusPacket, attributes(var))]
+pub fn derive_serverbound_status_packet(input: TokenStream) -> TokenStream {
+    as_packet_derive(
+        input,
+        quote! {crate::packets::status::ServerboundStatusPacket},
+    )
 }
 
-#[proc_macro_derive(HandshakePacket, attributes(var))]
-pub fn derive_handshake_packet(input: TokenStream) -> TokenStream {
-    as_packet_derive(input, quote! {crate::packets::handshake::HandshakePacket})
+#[proc_macro_derive(ClientboundGamePacket, attributes(var))]
+pub fn derive_clientbound_game_packet(input: TokenStream) -> TokenStream {
+    as_packet_derive(input, quote! {crate::packets::game::ClientboundGamePacket})
 }
-
-#[proc_macro_derive(LoginPacket, attributes(var))]
-pub fn derive_login_packet(input: TokenStream) -> TokenStream {
-    as_packet_derive(input, quote! {crate::packets::login::LoginPacket})
+#[proc_macro_derive(ClientboundHandshakePacket, attributes(var))]
+pub fn derive_clientbound_handshake_packet(input: TokenStream) -> TokenStream {
+    as_packet_derive(
+        input,
+        quote! {crate::packets::handshake::ClientboundHandshakePacket},
+    )
 }
-
-#[proc_macro_derive(StatusPacket, attributes(var))]
-pub fn derive_status_packet(input: TokenStream) -> TokenStream {
-    as_packet_derive(input, quote! {crate::packets::status::StatusPacket})
+#[proc_macro_derive(ClientboundLoginPacket, attributes(var))]
+pub fn derive_clientbound_login_packet(input: TokenStream) -> TokenStream {
+    as_packet_derive(
+        input,
+        quote! {crate::packets::login::ClientboundLoginPacket},
+    )
+}
+#[proc_macro_derive(ClientboundStatusPacket, attributes(var))]
+pub fn derive_clientbound_status_packet(input: TokenStream) -> TokenStream {
+    as_packet_derive(
+        input,
+        quote! {crate::packets::status::ClientboundStatusPacket},
+    )
 }
 
 #[derive(Debug)]
@@ -154,23 +186,34 @@ impl Parse for DeclareStatePackets {
 pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeclareStatePackets);
 
-    let state_name = input.name;
-    let state_name_litstr = syn::LitStr::new(&state_name.to_string(), state_name.span());
+    let serverbound_state_name =
+        Ident::new(&format!("Serverbound{}", input.name), input.name.span());
+    let clientbound_state_name =
+        Ident::new(&format!("Clientbound{}", input.name), input.name.span());
 
-    let mut enum_contents = quote!();
-    let mut id_match_contents = quote!();
-    let mut write_match_contents = quote!();
+    let state_name_litstr = syn::LitStr::new(&input.name.to_string(), input.name.span());
+
+    let has_serverbound_packets = !input.serverbound.packets.is_empty();
+    let has_clientbound_packets = !input.clientbound.packets.is_empty();
+
+    let mut serverbound_enum_contents = quote!();
+    let mut clientbound_enum_contents = quote!();
+    let mut serverbound_id_match_contents = quote!();
+    let mut clientbound_id_match_contents = quote!();
+    let mut serverbound_write_match_contents = quote!();
+    let mut clientbound_write_match_contents = quote!();
     let mut serverbound_read_match_contents = quote!();
     let mut clientbound_read_match_contents = quote!();
+
     for PacketIdPair { id, module, name } in input.serverbound.packets {
-        enum_contents.extend(quote! {
+        serverbound_enum_contents.extend(quote! {
             #name(#module::#name),
         });
-        id_match_contents.extend(quote! {
-            #state_name::#name(_packet) => #id,
+        serverbound_id_match_contents.extend(quote! {
+            #serverbound_state_name::#name(_packet) => #id,
         });
-        write_match_contents.extend(quote! {
-            #state_name::#name(packet) => packet.write(buf),
+        serverbound_write_match_contents.extend(quote! {
+            #serverbound_state_name::#name(packet) => packet.write(buf),
         });
         serverbound_read_match_contents.extend(quote! {
             #id => #module::#name::read(buf)?,
@@ -178,63 +221,100 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     }
     for PacketIdPair { id, module, name } in input.clientbound.packets {
         // let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
-        enum_contents.extend(quote! {
+        clientbound_enum_contents.extend(quote! {
             #name(#module::#name),
         });
-        id_match_contents.extend(quote! {
-            #state_name::#name(_packet) => #id,
+        clientbound_id_match_contents.extend(quote! {
+            #clientbound_state_name::#name(_packet) => #id,
         });
-        write_match_contents.extend(quote! {
-            #state_name::#name(packet) => packet.write(buf),
+        clientbound_write_match_contents.extend(quote! {
+            #clientbound_state_name::#name(packet) => packet.write(buf),
         });
         clientbound_read_match_contents.extend(quote! {
             #id => #module::#name::read(buf)?,
         });
     }
 
-    quote! {
+    let mut contents = quote! {
         #[derive(Clone, Debug)]
-        pub enum #state_name
+        pub enum #serverbound_state_name
+        where
+        Self: Sized,
+        {
+            #serverbound_enum_contents
+        }
+        #[derive(Clone, Debug)]
+        pub enum #clientbound_state_name
         where
             Self: Sized,
         {
-            #enum_contents
+            #clientbound_enum_contents
         }
+    };
 
-        impl crate::packets::ProtocolPacket for #state_name {
-            fn id(&self) -> u32 {
-                match self {
-                    #id_match_contents
+    contents.extend(quote!{
+            impl crate::packets::ProtocolPacket for #serverbound_state_name {
+                fn id(&self) -> u32 {
+                    match self {
+                        #serverbound_id_match_contents
+                        _ => panic!("Impossible state, this packet shouldn't exist.")
+                    }
                 }
-            }
 
-            fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-                match self {
-                    #write_match_contents
+                fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                    match self {
+                        #serverbound_write_match_contents
+                        _ => panic!("Impossible state, this packet shouldn't exist.")
+                    }
                 }
-            }
 
-            /// Read a packet by its id, ConnectionProtocol, and flow
-            fn read(
-                id: u32,
-                flow: &crate::connect::PacketFlow,
-                buf: &mut impl std::io::Read,
-            ) -> Result<#state_name, String>
-            where
-                Self: Sized,
-            {
-                Ok(match flow {
-                    crate::connect::PacketFlow::ServerToClient => match id {
-                        #clientbound_read_match_contents
-                        _ => return Err(format!("Unknown ServerToClient {} packet id: {}", #state_name_litstr, id)),
-                    },
-                    crate::connect::PacketFlow::ClientToServer => match id {
+                /// Read a packet by its id, ConnectionProtocol, and flow
+                fn read(
+                    id: u32,
+                    buf: &mut impl std::io::Read,
+                ) -> Result<#serverbound_state_name, String>
+                where
+                    Self: Sized,
+                {
+                    Ok(match id {
                         #serverbound_read_match_contents
-                        _ => return Err(format!("Unknown ClientToServer {} packet id: {}", #state_name_litstr, id)),
-                    },
-                })
+                        _ => return Err(format!("Unknown Serverbound {} packet id: {}", #state_name_litstr, id)),
+                    })
+                }
             }
-        }
-    }
-    .into()
+        });
+
+    contents.extend(quote!{
+            impl crate::packets::ProtocolPacket for #clientbound_state_name {
+                fn id(&self) -> u32 {
+                    match self {
+                        #clientbound_id_match_contents
+                        _ => panic!("Impossible state, this packet shouldn't exist.")
+                    }
+                }
+
+                fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                    match self {
+                        #clientbound_write_match_contents
+                        _ => panic!("Impossible state, this packet shouldn't exist.")
+                    }
+                }
+
+                /// Read a packet by its id, ConnectionProtocol, and flow
+                fn read(
+                    id: u32,
+                    buf: &mut impl std::io::Read,
+                ) -> Result<#clientbound_state_name, String>
+                where
+                    Self: Sized,
+                {
+                    Ok(match id {
+                        #clientbound_read_match_contents
+                        _ => return Err(format!("Unknown Clientbound {} packet id: {}", #state_name_litstr, id)),
+                    })
+                }
+            }
+        });
+
+    contents.into()
 }

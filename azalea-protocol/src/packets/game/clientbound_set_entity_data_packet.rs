@@ -1,8 +1,8 @@
 use azalea_buf::McBuf;
 use azalea_entity::EntityMetadata;
-use packet_macros::GamePacket;
+use packet_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSetEntityDataPacket {
     #[var]
     pub id: u32,

@@ -2,13 +2,13 @@ use azalea_buf::McBuf;
 use azalea_buf::McBufVarReadable;
 use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::ResourceLocation;
-use packet_macros::GamePacket;
+use packet_macros::ClientboundGamePacket;
 use std::{
     hash::Hash,
     io::{Read, Write},
 };
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundDeclareCommandsPacket {
     pub entries: Vec<BrigadierNodeStub>,
     #[var]
