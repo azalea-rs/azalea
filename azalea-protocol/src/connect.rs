@@ -74,25 +74,11 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
     }
 
     pub fn login(self) -> Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
-        Connection {
-            stream: self.stream,
-            compression_threshold: self.compression_threshold,
-            enc_cipher: self.enc_cipher,
-            dec_cipher: self.dec_cipher,
-            _reading: PhantomData,
-            _writing: PhantomData,
-        }
+        Connection::from(self)
     }
 
     pub fn status(self) -> Connection<ClientboundStatusPacket, ServerboundStatusPacket> {
-        Connection {
-            stream: self.stream,
-            compression_threshold: self.compression_threshold,
-            enc_cipher: self.enc_cipher,
-            dec_cipher: self.dec_cipher,
-            _reading: PhantomData,
-            _writing: PhantomData,
-        }
+        Connection::from(self)
     }
 }
 
@@ -118,11 +104,27 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     }
 
     pub fn game(self) -> Connection<ClientboundGamePacket, ServerboundGamePacket> {
+        Connection::from(self)
+    }
+}
+
+// rust doesn't let us implement From because allegedly it conflicts with
+// `core`'s "impl<T> From<T> for T" so we do this instead
+impl<R1, W1> Connection<R1, W1>
+where
+    R1: ProtocolPacket + Debug,
+    W1: ProtocolPacket + Debug,
+{
+    fn from<R2, W2>(connection: Connection<R1, W1>) -> Connection<R2, W2>
+    where
+        R2: ProtocolPacket + Debug,
+        W2: ProtocolPacket + Debug,
+    {
         Connection {
-            stream: self.stream,
-            compression_threshold: self.compression_threshold,
-            enc_cipher: self.enc_cipher,
-            dec_cipher: self.dec_cipher,
+            stream: connection.stream,
+            compression_threshold: connection.compression_threshold,
+            enc_cipher: connection.enc_cipher,
+            dec_cipher: connection.dec_cipher,
             _reading: PhantomData,
             _writing: PhantomData,
         }
