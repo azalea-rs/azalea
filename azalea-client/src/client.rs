@@ -3,7 +3,7 @@ use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, EntityPos, PositionDelta, PositionDeltaTrait, ResourceLocation};
 use azalea_entity::Entity;
 use azalea_protocol::{
-    connect::{GameConnection, HandshakeConnection},
+    connect::Connection,
     packets::{
         game::{
             clientbound_player_chat_packet::ClientboundPlayerChatPacket,
@@ -12,7 +12,7 @@ use azalea_protocol::{
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
             serverbound_move_player_packet_pos_rot::ServerboundMovePlayerPacketPosRot,
-            ClientboundGamePacket,
+            ClientboundGamePacket, ServerboundGamePacket,
         },
         handshake::client_intention_packet::ClientIntentionPacket,
         login::{
@@ -61,7 +61,7 @@ pub enum ChatPacket {
 #[derive(Clone)]
 pub struct Client {
     game_profile: GameProfile,
-    pub conn: Arc<tokio::sync::Mutex<GameConnection>>,
+    pub conn: Arc<tokio::sync::Mutex<Connection<ClientboundGamePacket, ServerboundGamePacket>>>,
     pub player: Arc<Mutex<Player>>,
     pub dimension: Arc<Mutex<Option<Dimension>>>,
     // game_loop
@@ -81,7 +81,7 @@ impl Client {
     ) -> Result<(Self, UnboundedReceiver<Event>), String> {
         let resolved_address = resolver::resolve_address(address).await?;
 
-        let mut conn = HandshakeConnection::new(&resolved_address).await?;
+        let mut conn = Connection::new(&resolved_address).await?;
 
         // handshake
         conn.write(

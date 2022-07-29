@@ -1,6 +1,6 @@
 ///! Ping Minecraft servers.
 use azalea_protocol::{
-    connect::HandshakeConnection,
+    connect::Connection,
     packets::{
         handshake::client_intention_packet::ClientIntentionPacket,
         status::{
@@ -18,7 +18,7 @@ pub async fn ping_server(
 ) -> Result<ClientboundStatusResponsePacket, String> {
     let resolved_address = resolver::resolve_address(address).await?;
 
-    let mut conn = HandshakeConnection::new(&resolved_address).await?;
+    let mut conn = Connection::new(&resolved_address).await?;
 
     // send the client intention packet and switch to the status state
     conn.write(
