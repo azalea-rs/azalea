@@ -235,6 +235,23 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
         });
     }
 
+    if !has_serverbound_packets {
+        serverbound_id_match_contents.extend(quote! {
+            _ => panic!("This enum is empty and can't exist.")
+        });
+        serverbound_write_match_contents.extend(quote! {
+            _ => panic!("This enum is empty and can't exist.")
+        });
+    }
+    if !has_clientbound_packets {
+        clientbound_id_match_contents.extend(quote! {
+            _ => panic!("This enum is empty and can't exist.")
+        });
+        clientbound_write_match_contents.extend(quote! {
+            _ => panic!("This enum is empty and can't exist.")
+        });
+    }
+
     let mut contents = quote! {
         #[derive(Clone, Debug)]
         pub enum #serverbound_state_name
@@ -252,69 +269,67 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
         }
     };
 
-    contents.extend(quote!{
-            impl crate::packets::ProtocolPacket for #serverbound_state_name {
-                fn id(&self) -> u32 {
-                    match self {
-                        #serverbound_id_match_contents
-                        _ => panic!("Impossible state, this packet shouldn't exist.")
-                    }
-                }
-
-                fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-                    match self {
-                        #serverbound_write_match_contents
-                        _ => panic!("Impossible state, this packet shouldn't exist.")
-                    }
-                }
-
-                /// Read a packet by its id, ConnectionProtocol, and flow
-                fn read(
-                    id: u32,
-                    buf: &mut impl std::io::Read,
-                ) -> Result<#serverbound_state_name, String>
-                where
-                    Self: Sized,
-                {
-                    Ok(match id {
-                        #serverbound_read_match_contents
-                        _ => return Err(format!("Unknown Serverbound {} packet id: {}", #state_name_litstr, id)),
-                    })
+    contents.extend(quote! {
+        #[allow(unreachable_code)]
+        impl crate::packets::ProtocolPacket for #serverbound_state_name {
+            fn id(&self) -> u32 {
+                match self {
+                    #serverbound_id_match_contents
                 }
             }
-        });
 
-    contents.extend(quote!{
-            impl crate::packets::ProtocolPacket for #clientbound_state_name {
-                fn id(&self) -> u32 {
-                    match self {
-                        #clientbound_id_match_contents
-                        _ => panic!("Impossible state, this packet shouldn't exist.")
-                    }
-                }
-
-                fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-                    match self {
-                        #clientbound_write_match_contents
-                        _ => panic!("Impossible state, this packet shouldn't exist.")
-                    }
-                }
-
-                /// Read a packet by its id, ConnectionProtocol, and flow
-                fn read(
-                    id: u32,
-                    buf: &mut impl std::io::Read,
-                ) -> Result<#clientbound_state_name, String>
-                where
-                    Self: Sized,
-                {
-                    Ok(match id {
-                        #clientbound_read_match_contents
-                        _ => return Err(format!("Unknown Clientbound {} packet id: {}", #state_name_litstr, id)),
-                    })
+            fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                match self {
+                    #serverbound_write_match_contents
                 }
             }
-        });
+
+            /// Read a packet by its id, ConnectionProtocol, and flow
+            fn read(
+                id: u32,
+                buf: &mut impl std::io::Read,
+            ) -> Result<#serverbound_state_name, String>
+            where
+                Self: Sized,
+            {
+                Ok(match id {
+                    #serverbound_read_match_contents
+                    _ => return Err(format!("Unknown Serverbound {} packet id: {}", #state_name_litstr, id)),
+                })
+            }
+        }
+    });
+
+    contents.extend(quote! {
+        #[allow(unreachable_code)]
+        impl crate::packets::ProtocolPacket for #clientbound_state_name {
+            fn id(&self) -> u32 {
+                match self {
+                    #clientbound_id_match_contents
+                }
+            }
+
+            fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                match self {
+                    #clientbound_write_match_contents
+                }
+            }
+
+            /// Read a packet by its id, ConnectionProtocol, and flow
+            fn read(
+                id: u32,
+                buf: &mut impl std::io::Read,
+            ) -> Result<#clientbound_state_name, String>
+            where
+                Self: Sized,
+            {
+                Ok(match id {
+                    #clientbound_read_match_contents
+                    _ => return Err(format!("Unknown Clientbound {} packet id: {}", #state_name_litstr, id)),
+                })
+            }
+        }
+    });
 
     contents.into()
 }

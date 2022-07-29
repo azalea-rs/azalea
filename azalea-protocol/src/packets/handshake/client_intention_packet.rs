@@ -1,9 +1,9 @@
 use crate::packets::ConnectionProtocol;
 use azalea_buf::McBuf;
-use packet_macros::ClientboundHandshakePacket;
+use packet_macros::ServerboundHandshakePacket;
 use std::hash::Hash;
 
-#[derive(Hash, Clone, Debug, McBuf, ClientboundHandshakePacket)]
+#[derive(Hash, Clone, Debug, McBuf, ServerboundHandshakePacket)]
 pub struct ClientIntentionPacket {
     #[var]
     pub protocol_version: u32,
