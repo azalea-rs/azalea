@@ -8,7 +8,7 @@ use std::mem;
 
 impl BlockState {
     /// Transmutes a u32 to a block state.
-    /// 
+    ///
     /// # Safety
     /// The `state_id` should be a valid block state.
     #[inline]

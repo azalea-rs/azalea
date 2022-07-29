@@ -145,6 +145,7 @@ dependencies = [
  "rand",
  "rsa_public_encrypt_pkcs1",
  "sha-1",
+ "uuid",
 ]
 
 [[package]]

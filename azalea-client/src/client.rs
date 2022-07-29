@@ -100,6 +100,7 @@ impl Client {
             ServerboundHelloPacket {
                 username: account.username.clone(),
                 public_key: None,
+                profile_id: None,
             }
             .get(),
         )
@@ -534,7 +535,7 @@ impl Client {
 
                 dimension.move_entity_with_delta(p.entity_id, &p.delta)?;
             }
-            GamePacket::ClientboundMoveEntityPosRotPacket(p) => {
+            GamePacket::ClientboundMoveEntityPosrotPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
                 let dimension = dimension_lock.as_mut().unwrap();
 

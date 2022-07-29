@@ -1,6 +1,6 @@
 # Extracting data from the Minecraft jars
 
-from lib.download import get_server_jar, get_burger, get_client_jar, get_generator_mod, get_yarn_data
+from lib.download import get_server_jar, get_burger, get_client_jar, get_generator_mod, get_yarn_data, get_fabric_api_versions
 from lib.utils import get_dir_location
 import json
 import os
@@ -61,7 +61,9 @@ def get_generator_mod_data(version_id: str, category: str):
         # looks like 1.19+build.1
         yarn_version = yarn_data['version']
 
-        # the mod has the minecraft version hard-coded by default, so we just change the gradle.properties
+        fabric_api_version = get_fabric_api_versions()[-1]
+
+        # the mod has the minecraft version hard-coded by default, so we just change the gradle.properties and fabric.mod.json
         with open(get_dir_location(f'{generator_mod_dir}/gradle.properties'), 'r') as f:
             lines = f.readlines()
         with open(get_dir_location(f'{generator_mod_dir}/gradle.properties'), 'w') as f:
@@ -70,7 +72,15 @@ def get_generator_mod_data(version_id: str, category: str):
                     line = f'minecraft_version={version_id}\n'
                 if line.startswith('yarn_mappings='):
                     line = f'yarn_mappings={yarn_version}\n'
+                if line.startswith('fabric_version='):
+                    line = f'fabric_version={fabric_api_version}\n'
                 f.write(line)
+        # edit the fabric.mod.json to support this version
+        with open(get_dir_location(f'{generator_mod_dir}/src/main/resources/fabric.mod.json'), 'r') as f:
+            fabric_mod_json = json.load(f)
+        fabric_mod_json['depends']['minecraft'] = '*'
+        with open(get_dir_location(f'{generator_mod_dir}/src/main/resources/fabric.mod.json'), 'w') as f:
+            json.dump(fabric_mod_json, f, indent=2)
 
         os.system(
             f'cd {generator_mod_dir} && gradlew runServer'

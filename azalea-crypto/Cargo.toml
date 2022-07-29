@@ -13,3 +13,4 @@ num-bigint = "^0.4.3"
 rand = {version = "^0.8.4", features = ["getrandom"]}
 rsa_public_encrypt_pkcs1 = "0.4.0"
 sha-1 = "^0.10.0"
+uuid = "^1.1.2"

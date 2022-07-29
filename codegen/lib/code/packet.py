@@ -110,7 +110,8 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
     packet_ids, packet_class_names = [list(x) for x in zip(
         *sorted(zip(packet_ids, packet_class_names), key=lambda pair: pair[0]))]  # type: ignore
 
-    mod_rs_dir = f'../azalea-protocol/src/packets/{state}/mod.rs'
+    mod_rs_dir = get_dir_location(
+        f'../azalea-protocol/src/packets/{state}/mod.rs')
     with open(mod_rs_dir, 'r') as f:
         mod_rs = f.read().splitlines()
     new_mod_rs = []
@@ -140,6 +141,7 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
                     new_mod_rs.append(
                         make_packet_mod_rs_line(packet_id, packet_class_name)
                     )
+                    required_modules.append(packet_class_name)
             else:
                 ignore_lines = False
             continue
@@ -164,7 +166,8 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
 
 
 def get_packets(direction: str, state: str):
-    mod_rs_dir = f'../azalea-protocol/src/packets/{state}/mod.rs'
+    mod_rs_dir = get_dir_location(
+        f'../azalea-protocol/src/packets/{state}/mod.rs')
     with open(mod_rs_dir, 'r') as f:
         mod_rs = f.read().splitlines()
 
@@ -268,3 +271,28 @@ def remove_packet_ids(removing_packet_ids: list[int], direction: str, state: str
             new_packet_class_names.append(packet_class_name)
 
     set_packets(new_packet_ids, new_packet_class_names, direction, state)
+
+
+def are_packet_instructions_identical(old_packet, new_packet):
+    old_packet = old_packet or []
+    new_packet = new_packet or []
+
+    if len(old_packet) != len(new_packet):
+        return False
+
+    for old_field, new_field in zip(old_packet, new_packet):
+        if old_field['operation'] != new_field['operation']:
+            return False
+        if new_field['operation'] == 'write':
+            if burger_type_to_rust_type(old_field.get('type')) != burger_type_to_rust_type(new_field.get('type')):
+                return False
+        else:
+            # comparing is too complicated here since it's possible the type has variables
+            # so we just don't
+            pass
+
+        if 'instructions' in old_field and 'instructions' in new_field:
+            if not are_packet_instructions_identical(old_field['instructions'], new_field['instructions']):
+                return False
+
+    return True
