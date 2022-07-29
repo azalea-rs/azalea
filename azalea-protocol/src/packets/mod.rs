@@ -7,7 +7,7 @@ use crate::connect::PacketFlow;
 use azalea_buf::{McBufWritable, Readable, Writable};
 use std::io::{Read, Write};
 
-pub const PROTOCOL_VERSION: u32 = 759;
+pub const PROTOCOL_VERSION: u32 = 760;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ConnectionProtocol {

@@ -1,3 +1,3 @@
 # Azalea Crypto
 
-Cryprography features used in Minecraft.
+Cryptography features used in Minecraft.

@@ -1,15 +1,35 @@
 use azalea::{Bot, Event};
 
-let bot = Bot::offline("bot");
-// or let bot = azalea::Bot::microsoft("access token").await;
+struct Context {
+    pub started: bool
+}
 
-bot.join("localhost".try_into().unwrap()).await.unwrap();
+#[tokio::main]
+async fn main() {
+    let bot = Bot::offline("bot");
+    // or let bot = azalea::Bot::microsoft("access token").await;
 
-loop {
-    match bot.next().await {
+    bot.join("localhost".try_into().unwrap()).await.unwrap();
+
+    let ctx = Arc::new(Mutex::new(Context { started: false }));
+
+    loop {
+       tokio::spawn(handle_event(bot.next().await, bot, ctx.clone()));
+    }
+}
+
+
+async fn handle_event(event: &Event, bot: &Bot, ctx: Arc<Context>) {
+    match event {
         Event::Message(m) {
             if m.username == bot.player.username { return };
             if m.message = "go" {
+                // make sure we only start once
+                let ctx_lock = ctx.lock().unwrap();
+                if ctx_lock.started { return };
+                ctx_lock.started = true;
+                drop(ctx_lock);
+
                 bot.goto_goal(
                     pathfinder::Goals::NearXZ(5, azalea::BlockXZ(0, 0))
                 ).await;

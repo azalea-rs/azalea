@@ -1,24 +1,19 @@
-use azalea_buf::{McBufReadable, McBufWritable};
-use std::io::{Read, Write};
+use azalea_buf::McBuf;
+use uuid::Uuid;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, McBuf)]
 pub struct SaltSignaturePair {
     pub salt: u64,
     pub signature: Vec<u8>,
 }
 
-impl McBufReadable for SaltSignaturePair {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
-        let salt = u64::read_from(buf)?;
-        let signature = Vec::<u8>::read_from(buf)?;
-        Ok(SaltSignaturePair { salt, signature })
-    }
+#[derive(Clone, Debug, Default, McBuf)]
+pub struct MessageSignature {
+    pub bytes: Vec<u8>,
 }
 
-impl McBufWritable for SaltSignaturePair {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.salt.write_into(buf)?;
-        self.signature.write_into(buf)?;
-        Ok(())
-    }
+#[derive(Clone, Debug, McBuf)]
+pub struct SignedMessageHeader {
+    pub previous_signature: Option<MessageSignature>,
+    pub sender: Uuid,
 }

@@ -7,7 +7,10 @@ A collection of Rust crates primarily for creating Minecraft bots.
 </p>
 
 <!-- The line below is automatically read and updated by the migrate script, so don't change it manually. -->
-*Currently supported Minecraft version: `1.19`.*
+*Currently supported Minecraft version: `1.19.1`.*
+
+## ⚠️ Azalea is still super unfinished, you probably shouldn't use it
+
 
 I named this Azalea because it sounds like a cool word and this is a cool library. This project was heavily inspired by PrismarineJS.
 
