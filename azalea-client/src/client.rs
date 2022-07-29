@@ -18,6 +18,7 @@ use azalea_protocol::{
         login::{
             serverbound_hello_packet::ServerboundHelloPacket,
             serverbound_key_packet::{NonceOrSaltSignature, ServerboundKeyPacket},
+            ClientboundLoginPacket,
         },
         ConnectionProtocol, PROTOCOL_VERSION,
     },
@@ -110,7 +111,7 @@ impl Client {
             let packet_result = conn.read().await;
             match packet_result {
                 Ok(packet) => match packet {
-                    LoginPacket::ClientboundHelloPacket(p) => {
+                    ClientboundLoginPacket::ClientboundHelloPacket(p) => {
                         println!("Got encryption request");
                         let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
 
@@ -128,21 +129,20 @@ impl Client {
                         .await;
                         conn.set_encryption_key(e.secret_key);
                     }
-                    LoginPacket::ClientboundLoginCompressionPacket(p) => {
+                    ClientboundLoginPacket::ClientboundLoginCompressionPacket(p) => {
                         println!("Got compression request {:?}", p.compression_threshold);
                         conn.set_compression_threshold(p.compression_threshold);
                     }
-                    LoginPacket::ClientboundGameProfilePacket(p) => {
+                    ClientboundLoginPacket::ClientboundGameProfilePacket(p) => {
                         println!("Got profile {:?}", p.game_profile);
                         break (conn.game(), p.game_profile);
                     }
-                    LoginPacket::ClientboundLoginDisconnectPacket(p) => {
+                    ClientboundLoginPacket::ClientboundLoginDisconnectPacket(p) => {
                         println!("Got disconnect {:?}", p);
                     }
-                    LoginPacket::ClientboundCustomQueryPacket(p) => {
+                    ClientboundLoginPacket::ClientboundCustomQueryPacket(p) => {
                         println!("Got custom query {:?}", p);
                     }
-                    _ => panic!("Unexpected packet {:?}", packet),
                 },
                 Err(e) => {
                     panic!("Error: {:?}", e);

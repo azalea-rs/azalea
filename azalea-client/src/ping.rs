@@ -5,7 +5,8 @@ use azalea_protocol::{
         handshake::client_intention_packet::ClientIntentionPacket,
         status::{
             clientbound_status_response_packet::ClientboundStatusResponsePacket,
-            serverbound_status_request_packet::ServerboundStatusRequestPacket, StatusPacket,
+            serverbound_status_request_packet::ServerboundStatusRequestPacket,
+            ClientboundStatusPacket,
         },
         ConnectionProtocol, PROTOCOL_VERSION,
     },
@@ -38,7 +39,6 @@ pub async fn ping_server(
     let packet = conn.read().await.unwrap();
 
     match packet {
-        StatusPacket::ClientboundStatusResponsePacket(p) => Ok(p),
-        _ => Err("Invalid packet type".to_string()),
+        ClientboundStatusPacket::ClientboundStatusResponsePacket(p) => Ok(p),
     }
 }
