@@ -56,15 +56,24 @@ impl PalettedContainer {
         })
     }
 
+    /// Calculates the index of the given coordinates.
     pub fn get_index(&self, x: usize, y: usize, z: usize) -> usize {
         let size_bits = self.container_type.size_bits();
 
         (((y << size_bits) | z) << size_bits) | x
     }
 
-    pub fn get(&self, x: usize, y: usize, z: usize) -> u32 {
-        let paletted_value = self.storage.get(self.get_index(x, y, z));
+    /// Returns the value at the given index.
+    pub fn get_at_index(&self, index: usize) -> u32 {
+        let paletted_value = self.storage.get(index);
         self.palette.value_for(paletted_value as usize)
+    }
+
+    /// Returns the value at the given coordinates.
+    pub fn get(&self, x: usize, y: usize, z: usize) -> u32 {
+        // let paletted_value = self.storage.get(self.get_index(x, y, z));
+        // self.palette.value_for(paletted_value as usize)
+        self.get_at_index(self.get_index(x, y, z))
     }
 
     /// Sets the id at the given coordinates and return the previous id
@@ -74,12 +83,17 @@ impl PalettedContainer {
             .get_and_set(self.get_index(x, y, z), paletted_value as u64) as u32
     }
 
+    /// Sets the id at the given index and return the previous id. You probably want `.set` instead.
+    pub fn set_at_index(&mut self, index: usize, value: u32) {
+        println!("doing set_at_index");
+        let paletted_value = self.id_for(value);
+        println!("paletted_value: {}", paletted_value);
+        self.storage.set(index, paletted_value as u64)
+    }
+
     /// Sets the id at the given coordinates and return the previous id
     pub fn set(&mut self, x: usize, y: usize, z: usize, value: u32) {
-        let palette = self.palette.clone();
-        let paletted_value = self.id_for(value);
-        self.storage
-            .set(self.get_index(x, y, z), paletted_value as u64)
+        self.set_at_index(self.get_index(x, y, z), value);
     }
 
     fn create_or_reuse_data(&self, bits_per_entry: u8) -> PalettedContainer {
@@ -105,10 +119,16 @@ impl PalettedContainer {
     }
 
     fn on_resize(&mut self, bits_per_entry: u8, value: u32) -> usize {
+        println!("resizing to {}", bits_per_entry);
         let mut new_data = self.create_or_reuse_data(bits_per_entry);
+        println!("ok made new data, now copying..");
         new_data.copy_from(&self.palette, &self.storage);
+        println!("copied, now setting self to the new data {:?}", new_data);
         *self = new_data;
-        self.id_for(value)
+        println!("done, just getting/setting id");
+        let id = self.id_for(value);
+        println!("id: {}", id);
+        id
     }
 
     fn copy_from(&mut self, palette: &Palette, storage: &BitStorage) {
@@ -120,6 +140,10 @@ impl PalettedContainer {
     }
 
     pub fn id_for(&mut self, value: u32) -> usize {
+        // println!(
+        //     "getting id for value: {} (palette: {:?})",
+        //     value, self.palette
+        // );
         match &mut self.palette {
             Palette::SingleValue(v) => {
                 if *v != value {
@@ -133,11 +157,12 @@ impl PalettedContainer {
                     return index as usize;
                 }
                 let capacity = 2usize.pow(self.bits_per_entry.into());
+                println!("getting id for value: {} (palette: {:?})", value, palette);
+                println!("capacity: {}, palette len: {}", capacity, palette.len());
                 if capacity > palette.len() {
                     palette.push(value);
                     palette.len() - 1
                 } else {
-                    // vanilla uses LinearPalette.bits but i think this is the same
                     self.on_resize(self.bits_per_entry + 1, value)
                 }
             }
@@ -275,21 +300,56 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_palette_resizing() {
+    fn test_resize_0_bits_to_1() {
         let mut palette_container =
             PalettedContainer::new(&PalettedContainerType::BlockStates).unwrap();
 
         assert_eq!(palette_container.bits_per_entry, 0);
-        assert_eq!(palette_container.get(8, 8, 8), 0);
+        assert_eq!(palette_container.get_at_index(0), 0);
         assert_eq!(
             PaletteType::from(&palette_container.palette),
             PaletteType::SingleValue
         );
-        palette_container.set(8, 8, 8, 1);
-        assert_eq!(palette_container.get(8, 8, 8), 1);
+        palette_container.set_at_index(0, 1);
+        assert_eq!(palette_container.get_at_index(0), 1);
         assert_eq!(
             PaletteType::from(&palette_container.palette),
             PaletteType::Linear
         );
+    }
+
+    #[test]
+    fn test_resize_0_bits_to_5() {
+        let mut palette_container =
+            PalettedContainer::new(&PalettedContainerType::BlockStates).unwrap();
+
+        palette_container.set_at_index(0, 0); // 0 bits
+        assert_eq!(palette_container.bits_per_entry, 0);
+
+        palette_container.set_at_index(1, 1); // 1 bit
+        assert_eq!(palette_container.bits_per_entry, 1);
+
+        palette_container.set_at_index(2, 2); // 2 bits
+        assert_eq!(palette_container.bits_per_entry, 2);
+        // palette_container.set_at_index(3, 3);
+
+        // palette_container.set_at_index(4, 4); // 3 bits
+        // assert_eq!(palette_container.bits_per_entry, 3);
+        // palette_container.set_at_index(5, 5);
+        // palette_container.set_at_index(6, 6);
+        // palette_container.set_at_index(7, 7);
+
+        // palette_container.set_at_index(8, 8); // 4 bits
+        // assert_eq!(palette_container.bits_per_entry, 4);
+        // palette_container.set_at_index(9, 9);
+        // palette_container.set_at_index(10, 10);
+        // palette_container.set_at_index(11, 11);
+        // palette_container.set_at_index(12, 12);
+        // palette_container.set_at_index(13, 13);
+        // palette_container.set_at_index(14, 14);
+        // palette_container.set_at_index(15, 15);
+
+        // palette_container.set_at_index(16, 16); // 5 bits
+        // assert_eq!(palette_container.bits_per_entry, 5);
     }
 }

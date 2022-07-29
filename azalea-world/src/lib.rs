@@ -19,15 +19,6 @@ use std::{
 };
 use uuid::Uuid;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
-
 /// A dimension is a collection of chunks and entities.
 /// Minecraft calls these "Levels", Fabric calls them "Worlds", Minestom calls them "Instances".
 /// Yeah.
