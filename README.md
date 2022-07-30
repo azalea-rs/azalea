@@ -26,3 +26,7 @@ I wanted a fun excuse to do something cool with Rust, and I also felt like I cou
 - Support the latest Minecraft version.
 - Be fast and memory efficient.
 
+## Non-goals
+
+- Supporting many versions of Minecraft (but there might be branches made in the future for some popular versions).
+- Graphics.
