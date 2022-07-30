@@ -82,10 +82,6 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
     }
 }
 
-impl Connection<ClientboundGamePacket, ServerboundGamePacket> {}
-
-impl Connection<ClientboundStatusPacket, ServerboundStatusPacket> {}
-
 impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     pub fn set_compression_threshold(&mut self, threshold: i32) {
         // if you pass a threshold of 0 or less, compression is disabled
