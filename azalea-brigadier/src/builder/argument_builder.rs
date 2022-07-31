@@ -1,4 +1,8 @@
-use crate::{context::CommandContext, modifier::RedirectModifier, tree::CommandNode};
+use crate::{
+    context::CommandContext,
+    modifier::RedirectModifier,
+    tree::{Command, CommandNode},
+};
 
 use super::{literal_argument_builder::Literal, required_argument_builder::Argument};
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
@@ -13,7 +17,7 @@ pub enum ArgumentBuilderType {
 pub struct ArgumentBuilder<S> {
     arguments: CommandNode<S>,
 
-    command: Option<Rc<dyn Fn(&CommandContext<S>) -> i32>>,
+    command: Command<S>,
     requirement: Rc<dyn Fn(Rc<S>) -> bool>,
     target: Option<Rc<RefCell<CommandNode<S>>>>,
 

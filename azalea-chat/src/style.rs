@@ -2,7 +2,7 @@ use std::{collections::HashMap, fmt};
 
 use serde_json::Value;
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct TextColor {
     pub value: u32,
     pub name: Option<String>,

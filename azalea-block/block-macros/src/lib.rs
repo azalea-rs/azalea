@@ -3,6 +3,7 @@ mod utils;
 use proc_macro::TokenStream;
 use quote::quote;
 use std::collections::HashMap;
+use std::fmt::Write;
 use syn::{
     self, braced,
     parse::{Parse, ParseStream, Result},
@@ -273,7 +274,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 .unwrap_or_else(|| panic!("Property '{}' is bad", property.struct_name))
                 .clone();
             if let Some(index) = index {
-                property_name.push_str(&format!("_{}", &index.to_string()));
+                // property_name.push_str(&format!("_{}", &index.to_string()));
+                write!(property_name, "_{}", index).unwrap();
             }
             properties_with_name
                 .push(property.as_property_with_name_and_default(property_name.clone()));

@@ -54,7 +54,7 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
     final_component
 }
 
-impl<'a> TextComponent {
+impl TextComponent {
     pub fn new(text: String) -> Self {
         // if it contains a LEGACY_FORMATTING_CODE_SYMBOL, format it
         if text.contains(LEGACY_FORMATTING_CODE_SYMBOL) {
