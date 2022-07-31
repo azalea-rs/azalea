@@ -19,15 +19,6 @@ use std::{
 };
 use uuid::Uuid;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
-
 /// A dimension is a collection of chunks and entities.
 /// Minecraft calls these "Levels", Fabric calls them "Worlds", Minestom calls them "Instances".
 /// Yeah.
@@ -59,6 +50,10 @@ impl Dimension {
 
     pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
         self.chunk_storage.get_block_state(pos, self.min_y())
+    }
+
+    pub fn set_block_state(&mut self, pos: &BlockPos, state: BlockState) -> BlockState {
+        self.chunk_storage.set_block_state(pos, state, self.min_y())
     }
 
     pub fn set_entity_pos(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), String> {

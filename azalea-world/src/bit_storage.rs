@@ -103,12 +103,11 @@ impl BitStorage {
     /// Create a new BitStorage with the given number of bits per entry.
     /// `size` is the number of entries in the BitStorage.
     pub fn new(bits: usize, size: usize, data: Option<Vec<u64>>) -> Result<Self, BitStorageError> {
-        // vanilla has this assert but it's not always true for some reason??
-        // assert!(bits >= 1 && bits <= 32);
+        println!("bits: {}", bits);
 
         if let Some(data) = &data {
+            // 0 bit storage
             if data.is_empty() {
-                // TODO: make 0 bit storage actually work
                 return Ok(BitStorage {
                     data: Vec::with_capacity(0),
                     bits,
@@ -117,6 +116,9 @@ impl BitStorage {
                 });
             }
         }
+
+        // vanilla has this assert but it's not always true for some reason??
+        // assert!(bits >= 1 && bits <= 32);
 
         let values_per_long = 64 / bits;
         let magic_index = values_per_long - 1;
@@ -184,13 +186,27 @@ impl BitStorage {
         cell >> bit_index & self.mask
     }
 
+    pub fn get_and_set(&mut self, index: usize, value: u64) -> u64 {
+        // 0 bit storage
+        if self.data.is_empty() {
+            return 0;
+        }
+
+        assert!(index < self.size);
+        assert!(value <= self.mask);
+        let cell_index = self.cell_index(index as u64);
+        let cell = &mut self.data[cell_index as usize];
+        let bit_index = (index - cell_index * self.values_per_long as usize) * self.bits;
+        let old_value = *cell >> (bit_index as u64) * self.mask;
+        *cell = *cell & !(self.mask << bit_index) | (value & self.mask) << bit_index;
+        old_value
+    }
+
     pub fn set(&mut self, index: usize, value: u64) {
-        // Validate.inclusiveBetween(0L, (long)(this.size - 1), (long)var1);
-        // Validate.inclusiveBetween(0L, this.mask, (long)var2);
-        // int var3 = this.cellIndex(var1);
-        // long var4 = this.data[var3];
-        // int var6 = (var1 - var3 * this.valuesPerLong) * this.bits;
-        // this.data[var3] = var4 & ~(this.mask << var6) | ((long)var2 & this.mask) << var6;
+        // 0 bit storage
+        if self.data.is_empty() {
+            return;
+        }
 
         assert!(index < self.size);
         assert!(value <= self.mask);
