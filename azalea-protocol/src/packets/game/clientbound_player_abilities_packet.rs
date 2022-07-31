@@ -1,9 +1,9 @@
 use azalea_buf::McBuf;
 use azalea_buf::{McBufReadable, McBufWritable, Readable};
-use packet_macros::GamePacket;
+use packet_macros::ClientboundGamePacket;
 use std::io::{Read, Write};
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundPlayerAbilitiesPacket {
     pub flags: PlayerAbilitiesFlags,
     pub flying_speed: f32,

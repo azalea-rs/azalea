@@ -1,13 +1,13 @@
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
 use azalea_chat::component::Component;
 use azalea_core::{ResourceLocation, Slot};
-use packet_macros::GamePacket;
+use packet_macros::ClientboundGamePacket;
 use std::{
     collections::HashMap,
     io::{Read, Write},
 };
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundUpdateAdvancementsPacket {
     pub reset: bool,
     pub added: HashMap<ResourceLocation, Advancement>,

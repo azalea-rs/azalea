@@ -1,9 +1,9 @@
 use azalea_buf::McBuf;
-use packet_macros::GamePacket;
+use packet_macros::ClientboundGamePacket;
 
 use super::clientbound_light_update_packet::ClientboundLightUpdatePacketData;
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundLevelChunkWithLightPacket {
     pub x: i32,
     pub z: i32,

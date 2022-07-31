@@ -1,10 +1,10 @@
 use azalea_buf::McBuf;
 use azalea_core::Vec3;
 use azalea_world::entity::Entity;
-use packet_macros::GamePacket;
+use packet_macros::ClientboundGamePacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundAddEntityPacket {
     /// The id of the entity.
     #[var]

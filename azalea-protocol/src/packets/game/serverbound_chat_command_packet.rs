@@ -1,10 +1,10 @@
 use azalea_buf::McBuf;
 use azalea_crypto::MessageSignature;
-use packet_macros::GamePacket;
+use packet_macros::ServerboundGamePacket;
 
 use super::clientbound_player_chat_packet::LastSeenMessagesUpdate;
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundChatCommandPacket {
     pub command: String,
     // TODO: Choose a real timestamp type
