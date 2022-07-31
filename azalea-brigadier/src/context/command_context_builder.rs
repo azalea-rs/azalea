@@ -2,7 +2,11 @@ use super::{
     command_context::CommandContext, parsed_command_node::ParsedCommandNode,
     string_range::StringRange, ParsedArgument,
 };
-use crate::{command_dispatcher::CommandDispatcher, modifier::RedirectModifier, tree::CommandNode};
+use crate::{
+    command_dispatcher::CommandDispatcher,
+    modifier::RedirectModifier,
+    tree::{Command, CommandNode},
+};
 use std::{cell::RefCell, collections::HashMap, fmt::Debug, rc::Rc};
 
 pub struct CommandContextBuilder<S> {
@@ -11,7 +15,7 @@ pub struct CommandContextBuilder<S> {
     pub nodes: Vec<ParsedCommandNode<S>>,
     pub dispatcher: Rc<CommandDispatcher<S>>,
     pub source: Rc<S>,
-    pub command: Option<Rc<dyn Fn(&CommandContext<S>) -> i32>>,
+    pub command: Command<S>,
     pub child: Option<Rc<CommandContextBuilder<S>>>,
     pub range: StringRange,
     pub modifier: Option<Rc<RedirectModifier<S>>>,
@@ -56,10 +60,7 @@ impl<S> CommandContextBuilder<S> {
         }
     }
 
-    pub fn with_command(
-        &mut self,
-        command: &Option<Rc<dyn Fn(&CommandContext<S>) -> i32>>,
-    ) -> &Self {
+    pub fn with_command(&mut self, command: &Command<S>) -> &Self {
         self.command = command.clone();
         self
     }

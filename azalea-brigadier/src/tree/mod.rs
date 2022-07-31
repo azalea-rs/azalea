@@ -10,6 +10,8 @@ use crate::{
 };
 use std::{cell::RefCell, collections::HashMap, fmt::Debug, hash::Hash, ptr, rc::Rc};
 
+pub type Command<S> = Option<Rc<dyn Fn(&CommandContext<S>) -> i32>>;
+
 /// An ArgumentBuilder that has been built.
 #[non_exhaustive]
 pub struct CommandNode<S> {
@@ -19,7 +21,7 @@ pub struct CommandNode<S> {
     pub literals: HashMap<String, Rc<RefCell<CommandNode<S>>>>,
     pub arguments: HashMap<String, Rc<RefCell<CommandNode<S>>>>,
 
-    pub command: Option<Rc<dyn Fn(&CommandContext<S>) -> i32>>,
+    pub command: Command<S>,
     pub requirement: Rc<dyn Fn(Rc<S>) -> bool>,
     pub redirect: Option<Rc<RefCell<CommandNode<S>>>>,
     pub forks: bool,
@@ -75,9 +77,9 @@ impl<S> CommandNode<S> {
             input.cursor = cursor;
             let literal = literals.get(&text);
             if let Some(literal) = literal {
-                return vec![literal.clone()];
+                vec![literal.clone()]
             } else {
-                return self.arguments.values().cloned().collect();
+                self.arguments.values().cloned().collect()
             }
         } else {
             self.arguments.values().cloned().collect()
