@@ -85,9 +85,7 @@ impl PalettedContainer {
 
     /// Sets the id at the given index and return the previous id. You probably want `.set` instead.
     pub fn set_at_index(&mut self, index: usize, value: u32) {
-        println!("doing set_at_index");
         let paletted_value = self.id_for(value);
-        println!("paletted_value: {}", paletted_value);
         self.storage.set(index, paletted_value as u64)
     }
 
@@ -126,15 +124,10 @@ impl PalettedContainer {
         if bits_per_entry > 5 {
             panic!("bits_per_entry must be <= 5");
         }
-        println!("resizing to {}", bits_per_entry);
         let mut new_data = self.create_or_reuse_data(bits_per_entry);
-        println!("ok made new data, now copying..");
         new_data.copy_from(&self.palette, &self.storage);
-        println!("copied, now setting self to the new data {:?}", new_data);
         *self = new_data;
-        println!("done, just getting/setting id");
         let id = self.id_for(value);
-        println!("id: {}", id);
         id
     }
 
@@ -147,10 +140,6 @@ impl PalettedContainer {
     }
 
     pub fn id_for(&mut self, value: u32) -> usize {
-        // println!(
-        //     "getting id for value: {} (palette: {:?})",
-        //     value, self.palette
-        // );
         match &mut self.palette {
             Palette::SingleValue(v) => {
                 if *v != value {
@@ -164,8 +153,6 @@ impl PalettedContainer {
                     return index as usize;
                 }
                 let capacity = 2usize.pow(self.bits_per_entry.into());
-                println!("getting id for value: {} (palette: {:?})", value, palette);
-                println!("capacity: {}, palette len: {}", capacity, palette.len());
                 if capacity > palette.len() {
                     palette.push(value);
                     palette.len() - 1
@@ -179,8 +166,6 @@ impl PalettedContainer {
                     return index as usize;
                 }
                 let capacity = 2usize.pow(self.bits_per_entry.into());
-                println!("getting id for value: {} (palette: {:?})", value, palette);
-                println!("capacity: {}, palette len: {}", capacity, palette.len());
                 if capacity > palette.len() {
                     palette.push(value);
                     palette.len() - 1
