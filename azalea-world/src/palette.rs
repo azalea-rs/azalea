@@ -100,15 +100,19 @@ impl PalettedContainer {
         let new_palette_type =
             PaletteType::from_bits_and_type(bits_per_entry, &self.container_type);
         let old_palette_type: PaletteType = (&self.palette).into();
-        if new_palette_type == old_palette_type {
-            return self.clone();
-        }
+        // note for whoever is trying to optimize this: vanilla has this line
+        // but it causes a stack overflow since it's not changing the bits per entry
+        // i don't know how to fix this properly so glhf
+        // if new_palette_type == old_palette_type {
+        //     return self.clone();
+        // }
         let storage =
             BitStorage::new(bits_per_entry as usize, self.container_type.size(), None).unwrap();
 
         // sanity check
         debug_assert_eq!(storage.size(), self.container_type.size());
 
+        // let palette = new_palette_type.into_empty_palette(1usize << (bits_per_entry as usize));
         let palette = new_palette_type.into_empty_palette();
         PalettedContainer {
             bits_per_entry,
@@ -119,6 +123,9 @@ impl PalettedContainer {
     }
 
     fn on_resize(&mut self, bits_per_entry: u8, value: u32) -> usize {
+        if bits_per_entry > 5 {
+            panic!("bits_per_entry must be <= 5");
+        }
         println!("resizing to {}", bits_per_entry);
         let mut new_data = self.create_or_reuse_data(bits_per_entry);
         println!("ok made new data, now copying..");
@@ -171,8 +178,15 @@ impl PalettedContainer {
                 if let Some(index) = palette.iter().position(|v| *v == value) {
                     return index as usize;
                 }
-                // vanilla uses LinearPalette.bits but i think this is the same
-                self.on_resize(self.bits_per_entry + 1, value)
+                let capacity = 2usize.pow(self.bits_per_entry.into());
+                println!("getting id for value: {} (palette: {:?})", value, palette);
+                println!("capacity: {}, palette len: {}", capacity, palette.len());
+                if capacity > palette.len() {
+                    palette.push(value);
+                    palette.len() - 1
+                } else {
+                    self.on_resize(self.bits_per_entry + 1, value)
+                }
             }
             Palette::Global => value as usize,
         }
@@ -211,7 +225,13 @@ impl Palette {
         match self {
             Palette::SingleValue(v) => *v,
             Palette::Linear(v) => v[id],
-            Palette::Hashmap(v) => v[id],
+            Palette::Hashmap(v) => {
+                if id >= v.len() {
+                    0
+                } else {
+                    v[id]
+                }
+            }
             Palette::Global => id as u32,
         }
     }
@@ -331,25 +351,26 @@ mod tests {
 
         palette_container.set_at_index(2, 2); // 2 bits
         assert_eq!(palette_container.bits_per_entry, 2);
-        // palette_container.set_at_index(3, 3);
+        palette_container.set_at_index(3, 3);
 
-        // palette_container.set_at_index(4, 4); // 3 bits
-        // assert_eq!(palette_container.bits_per_entry, 3);
-        // palette_container.set_at_index(5, 5);
-        // palette_container.set_at_index(6, 6);
-        // palette_container.set_at_index(7, 7);
+        palette_container.set_at_index(4, 4); // 3 bits
+        assert_eq!(palette_container.bits_per_entry, 3);
+        palette_container.set_at_index(5, 5);
+        palette_container.set_at_index(6, 6);
+        palette_container.set_at_index(7, 7);
 
-        // palette_container.set_at_index(8, 8); // 4 bits
-        // assert_eq!(palette_container.bits_per_entry, 4);
-        // palette_container.set_at_index(9, 9);
-        // palette_container.set_at_index(10, 10);
-        // palette_container.set_at_index(11, 11);
-        // palette_container.set_at_index(12, 12);
-        // palette_container.set_at_index(13, 13);
-        // palette_container.set_at_index(14, 14);
-        // palette_container.set_at_index(15, 15);
+        palette_container.set_at_index(8, 8); // 4 bits
+        assert_eq!(palette_container.bits_per_entry, 4);
+        palette_container.set_at_index(9, 9);
+        palette_container.set_at_index(10, 10);
+        palette_container.set_at_index(11, 11);
+        palette_container.set_at_index(12, 12);
+        palette_container.set_at_index(13, 13);
+        palette_container.set_at_index(14, 14);
+        palette_container.set_at_index(15, 15);
+        assert_eq!(palette_container.bits_per_entry, 4);
 
-        // palette_container.set_at_index(16, 16); // 5 bits
-        // assert_eq!(palette_container.bits_per_entry, 5);
+        palette_container.set_at_index(16, 16); // 5 bits
+        assert_eq!(palette_container.bits_per_entry, 5);
     }
 }
