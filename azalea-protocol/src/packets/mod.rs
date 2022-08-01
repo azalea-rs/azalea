@@ -45,7 +45,7 @@ where
 impl azalea_buf::McBufReadable for ConnectionProtocol {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let id = buf.read_varint()?;
-        ConnectionProtocol::from_i32(id).ok_or_else(|| BufReadError::UnexpectedEnumVariant { id })
+        ConnectionProtocol::from_i32(id).ok_or(BufReadError::UnexpectedEnumVariant { id })
     }
 }
 
