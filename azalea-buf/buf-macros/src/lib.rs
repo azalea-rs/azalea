@@ -60,9 +60,14 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         variant_discrim = match &d.1 {
                             syn::Expr::Lit(e) => match &e.lit {
                                 syn::Lit::Int(i) => i.base10_parse().unwrap(),
-                                _ => panic!("Error parsing enum discriminant"),
+                                _ => panic!("Error parsing enum discriminant as int"),
                             },
-                            _ => panic!("Error parsing enum discriminant"),
+                            syn::Expr::Unary(_) => {
+                                panic!("Negative enum discriminants are not supported")
+                            }
+                            _ => {
+                                panic!("Error parsing enum discriminant as literal (is {:?})", d.1)
+                            }
                         }
                     }
                     None => {
@@ -81,7 +86,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                     let id = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                     match id {
                         #match_contents
-                        _ => Err(azalea_buf::BufReadError::UnexpectedEnumVariant { id }),
+                        _ => Err(azalea_buf::BufReadError::UnexpectedEnumVariant { id: id as i32 }),
                     }
                 }
             }

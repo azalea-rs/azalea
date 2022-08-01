@@ -3,7 +3,8 @@ pub mod handshake;
 pub mod login;
 pub mod status;
 
-use azalea_buf::{McBufWritable, Readable, Writable};
+use crate::read::ReadPacketError;
+use azalea_buf::{BufReadError, McBufWritable, Readable, Writable};
 use std::io::{Read, Write};
 
 pub const PROTOCOL_VERSION: u32 = 760;
@@ -36,15 +37,15 @@ where
     fn id(&self) -> u32;
 
     /// Read a packet by its id, ConnectionProtocol, and flow
-    fn read(id: u32, buf: &mut impl Read) -> Result<Self, String>;
+    fn read(id: u32, buf: &mut impl Read) -> Result<Self, ReadPacketError>;
 
     fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
 }
 
 impl azalea_buf::McBufReadable for ConnectionProtocol {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
-        ConnectionProtocol::from_i32(buf.read_varint()?)
-            .ok_or_else(|| "Invalid intention".to_string())
+        let id = buf.read_varint()?;
+        ConnectionProtocol::from_i32(id).ok_or_else(|| BufReadError::UnexpectedEnumVariant { id })
     }
 }
 

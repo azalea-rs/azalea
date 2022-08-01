@@ -1,4 +1,4 @@
-use azalea_buf::{BitSet, McBuf, McBufReadable, McBufVarWritable};
+use azalea_buf::{BitSet, BufReadError, McBuf, McBufReadable, McBufVarWritable};
 use azalea_buf::{McBufVarReadable, McBufWritable};
 use azalea_chat::component::Component;
 use azalea_crypto::{MessageSignature, SignedMessageHeader};
@@ -80,7 +80,9 @@ impl McBufReadable for FilterMask {
             0 => Ok(FilterMask::PassThrough),
             1 => Ok(FilterMask::FullyFiltered),
             2 => Ok(FilterMask::PartiallyFiltered(BitSet::read_from(buf)?)),
-            _ => Err("Invalid filter mask".to_string()),
+            _ => Err(BufReadError::UnexpectedEnumVariant {
+                id: filter_mask as i32,
+            }),
         }
     }
 }

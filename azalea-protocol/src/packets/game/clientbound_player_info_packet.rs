@@ -1,4 +1,4 @@
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_chat::component::Component;
 use packet_macros::ClientboundGamePacket;
@@ -71,7 +71,7 @@ impl McBufReadable for Action {
             2 => Action::UpdateLatency(Vec::<UpdateLatency>::read_from(buf)?),
             3 => Action::UpdateDisplayName(Vec::<UpdateDisplayName>::read_from(buf)?),
             4 => Action::RemovePlayer(Vec::<RemovePlayer>::read_from(buf)?),
-            _ => panic!("Unknown player info action id: {}", id),
+            _ => return Err(BufReadError::UnexpectedEnumVariant { id: id.into() }),
         })
     }
 }

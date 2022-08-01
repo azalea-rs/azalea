@@ -1,4 +1,4 @@
-use azalea_buf::{McBufReadable, McBufVarReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
 use azalea_core::ParticleData;
 use packet_macros::ClientboundGamePacket;
 use std::io::{Read, Write};

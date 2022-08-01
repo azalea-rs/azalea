@@ -1,6 +1,6 @@
 use std::io::{Read, Write};
 
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf};
 use azalea_core::{ResourceLocation, Slot};
 use packet_macros::ClientboundGamePacket;
 

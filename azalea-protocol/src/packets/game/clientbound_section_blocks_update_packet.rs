@@ -1,4 +1,4 @@
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_core::{ChunkSectionBlockPos, ChunkSectionPos};
 use packet_macros::ClientboundGamePacket;

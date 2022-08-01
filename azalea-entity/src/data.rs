@@ -110,7 +110,11 @@ impl McBufReadable for EntityDataValue {
                 }
             }),
             18 => EntityDataValue::Pose(Pose::read_from(buf)?),
-            _ => return Err(BufReadError::UnexpectedEnumVariant { id: data_type }),
+            _ => {
+                return Err(BufReadError::UnexpectedEnumVariant {
+                    id: data_type as i32,
+                })
+            }
         })
     }
 }

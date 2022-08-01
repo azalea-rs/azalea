@@ -1,3 +1,4 @@
+use azalea_buf::BufReadError;
 use azalea_buf::McBuf;
 use azalea_buf::McBufVarReadable;
 use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
@@ -190,7 +191,9 @@ impl McBufReadable for BrigadierParser {
             45 => Ok(BrigadierParser::TemplateMirror),
             46 => Ok(BrigadierParser::TemplateRotation),
             47 => Ok(BrigadierParser::Uuid),
-            _ => Err(format!("Unknown BrigadierParser type: {}", parser_type)),
+            _ => Err(BufReadError::UnexpectedEnumVariant {
+                id: parser_type as i32,
+            }),
         }
     }
 }

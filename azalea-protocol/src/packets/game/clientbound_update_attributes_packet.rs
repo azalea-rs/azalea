@@ -1,4 +1,4 @@
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::ResourceLocation;
 use packet_macros::ClientboundGamePacket;
@@ -39,7 +39,7 @@ impl McBufReadable for Operation {
             0 => Ok(Operation::Addition),
             1 => Ok(Operation::MultiplyBase),
             2 => Ok(Operation::MultiplyTotal),
-            op => Err(format!("Unknown operation: {}", op)),
+            id => Err(BufReadError::UnexpectedEnumVariant { id: id.into() }),
         }
     }
 }

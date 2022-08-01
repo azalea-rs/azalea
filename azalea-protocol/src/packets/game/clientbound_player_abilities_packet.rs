@@ -1,4 +1,4 @@
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable, Readable};
 use packet_macros::ClientboundGamePacket;
 use std::io::{Read, Write};

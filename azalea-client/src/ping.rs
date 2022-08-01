@@ -15,7 +15,7 @@ use azalea_protocol::{
 
 pub async fn ping_server(
     address: &ServerAddress,
-) -> Result<ClientboundStatusResponsePacket, String> {
+) -> Result<ClientboundStatusResponsePacket, BufReadError> {
     let resolved_address = resolver::resolve_address(address).await?;
 
     let mut conn = Connection::new(&resolved_address).await?;

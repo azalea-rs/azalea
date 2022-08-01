@@ -1,4 +1,4 @@
-use azalea_buf::{McBuf, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use azalea_chat::component::Component;
 use azalea_core::{ResourceLocation, Slot};
 use packet_macros::ClientboundGamePacket;

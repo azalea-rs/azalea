@@ -2,7 +2,7 @@ use std::io::{Read, Write};
 
 use super::ClientboundLoginPacket;
 use azalea_auth::game_profile::GameProfile;
-use azalea_buf::{McBufReadable, Readable, SerializableUuid, Writable};
+use azalea_buf::{BufReadError, McBufReadable, Readable, SerializableUuid, Writable};
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]
@@ -24,7 +24,7 @@ impl ClientboundGameProfilePacket {
         Ok(())
     }
 
-    pub fn read(buf: &mut impl Read) -> Result<ClientboundLoginPacket, String> {
+    pub fn read(buf: &mut impl Read) -> Result<ClientboundLoginPacket, BufReadError> {
         let uuid = Uuid::read_from(buf)?;
         let name = buf.read_utf_with_len(16)?;
         Ok(ClientboundGameProfilePacket {

@@ -5,7 +5,7 @@ use crate::packets::handshake::{ClientboundHandshakePacket, ServerboundHandshake
 use crate::packets::login::{ClientboundLoginPacket, ServerboundLoginPacket};
 use crate::packets::status::{ClientboundStatusPacket, ServerboundStatusPacket};
 use crate::packets::ProtocolPacket;
-use crate::read::read_packet;
+use crate::read::{read_packet, ReadPacketError};
 use crate::write::write_packet;
 use crate::ServerIpAddress;
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
@@ -28,7 +28,7 @@ where
     R: ProtocolPacket + Debug,
     W: ProtocolPacket + Debug,
 {
-    pub async fn read(&mut self) -> Result<R, String> {
+    pub async fn read(&mut self) -> Result<R, ReadPacketError> {
         read_packet::<R, _>(
             &mut self.stream,
             self.compression_threshold,
