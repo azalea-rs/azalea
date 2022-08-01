@@ -18,7 +18,7 @@ pub enum NonceOrSaltSignature {
 }
 
 impl McBufReadable for NonceOrSaltSignature {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let is_nonce = bool::read_from(buf)?;
         if is_nonce {
             Ok(NonceOrSaltSignature::Nonce(Vec::<u8>::read_from(buf)?))

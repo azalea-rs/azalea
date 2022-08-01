@@ -1,4 +1,4 @@
-use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use std::io::{Read, Write};
 
 #[derive(Hash, Copy, Clone, Debug)]
@@ -27,22 +27,24 @@ impl GameType {
         }
     }
 
-    pub fn from_id(id: u8) -> Result<GameType, String> {
-        Ok(match id {
+    pub fn from_id(id: u8) -> Option<GameType> {
+        Some(match id {
             0 => GameType::SURVIVAL,
             1 => GameType::CREATIVE,
             2 => GameType::ADVENTURE,
             3 => GameType::SPECTATOR,
-            _ => return Err(format!("Unknown game type id: {}", id)),
+            _ => return None,
         })
     }
 
-    pub fn from_optional_id(id: i8) -> Result<OptionalGameType, String> {
-        Ok(match id {
-            -1 => None,
-            id => Some(GameType::from_id(id as u8)?),
-        }
-        .into())
+    pub fn from_optional_id(id: i8) -> Option<OptionalGameType> {
+        Some(
+            match id {
+                -1 => None,
+                id => Some(GameType::from_id(id as u8)?),
+            }
+            .into(),
+        )
     }
 
     pub fn short_name(&self) -> &'static str {
@@ -77,8 +79,9 @@ impl GameType {
 }
 
 impl McBufReadable for GameType {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         GameType::from_id(u8::read_from(buf)?)
+            .ok_or(BufReadError::Custom("Invalid game type".to_string()))
     }
 }
 
@@ -105,8 +108,9 @@ impl From<OptionalGameType> for Option<GameType> {
 }
 
 impl McBufReadable for OptionalGameType {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         GameType::from_optional_id(i8::read_from(buf)?)
+            .ok_or(BufReadError::Custom("Invalid game type".to_string()))
     }
 }
 

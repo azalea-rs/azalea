@@ -1,4 +1,4 @@
-use azalea_buf::McBufVarReadable;
+use azalea_buf::{BufReadError, McBufVarReadable};
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
 use azalea_chat::component::Component;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
@@ -17,7 +17,7 @@ pub struct EntityDataItem {
 }
 
 impl McBufReadable for EntityMetadata {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let mut metadata = Vec::new();
         loop {
             let index = u8::read_from(buf)?;
@@ -70,8 +70,8 @@ pub enum EntityDataValue {
 }
 
 impl McBufReadable for EntityDataValue {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
-        let data_type = i32::var_read_from(buf)?;
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+        let data_type = u32::var_read_from(buf)?;
         Ok(match data_type {
             0 => EntityDataValue::Byte(u8::read_from(buf)?),
             1 => EntityDataValue::Int(i32::var_read_from(buf)?),
@@ -110,7 +110,7 @@ impl McBufReadable for EntityDataValue {
                 }
             }),
             18 => EntityDataValue::Pose(Pose::read_from(buf)?),
-            _ => return Err(format!("Unknown entity data type: {}", data_type)),
+            _ => return Err(BufReadError::UnexpectedEnumVariant { id: data_type }),
         })
     }
 }

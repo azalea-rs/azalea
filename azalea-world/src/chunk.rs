@@ -174,7 +174,7 @@ pub struct Section {
 }
 
 impl McBufReadable for Section {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let block_count = u16::read_from(buf)?;
 
         // this is commented out because the vanilla server is wrong

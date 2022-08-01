@@ -74,7 +74,7 @@ pub enum FilterMask {
 }
 
 impl McBufReadable for FilterMask {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let filter_mask = u32::var_read_from(buf)?;
         match filter_mask {
             0 => Ok(FilterMask::PassThrough),

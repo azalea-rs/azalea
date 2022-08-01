@@ -30,7 +30,7 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
 
             pub fn read(
                 buf: &mut impl std::io::Read,
-            ) -> Result<#state, String> {
+            ) -> Result<#state, azalea_buf::BufReadError> {
                 use azalea_buf::McBufReadable;
                 Ok(Self::read_from(buf)?.get())
             }
@@ -219,7 +219,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 id: u32,
                 flow: &crate::connect::PacketFlow,
                 buf: &mut impl std::io::Read,
-            ) -> Result<#state_name, String>
+            ) -> Result<#state_name, azalea_buf::BufReadError>
             where
                 Self: Sized,
             {

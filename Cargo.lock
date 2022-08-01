@@ -95,6 +95,8 @@ version = "0.1.0"
 dependencies = [
  "buf-macros",
  "byteorder",
+ "serde_json",
+ "thiserror",
  "tokio",
  "uuid",
 ]

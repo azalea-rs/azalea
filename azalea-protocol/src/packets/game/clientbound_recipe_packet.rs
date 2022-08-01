@@ -41,7 +41,7 @@ impl McBufWritable for State {
     }
 }
 impl McBufReadable for State {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let state = buf.read_varint()?;
         Ok(match state {
             0 => State::Init,

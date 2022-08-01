@@ -20,7 +20,7 @@ pub struct ClientboundLevelParticlesPacket {
 }
 
 impl McBufReadable for ClientboundLevelParticlesPacket {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let particle_id = u32::var_read_from(buf)?;
         let override_limiter = bool::read_from(buf)?;
         let x = f64::read_from(buf)?;

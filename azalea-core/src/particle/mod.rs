@@ -1,5 +1,5 @@
 use crate::{BlockPos, Slot};
-use azalea_buf::{McBuf, McBufReadable, McBufVarReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufWritable};
 use std::io::{Read, Write};
 
 #[derive(Debug, Clone, McBuf)]
@@ -153,7 +153,7 @@ pub struct VibrationParticle {
 }
 
 impl ParticleData {
-    pub fn read_from_particle_id(buf: &mut impl Read, id: u32) -> Result<Self, String> {
+    pub fn read_from_particle_id(buf: &mut impl Read, id: u32) -> Result<Self, BufReadError> {
         Ok(match id {
             0 => ParticleData::AmbientEntityEffect,
             1 => ParticleData::AngryVillager,
@@ -243,13 +243,13 @@ impl ParticleData {
             85 => ParticleData::WaxOff,
             86 => ParticleData::ElectricSpark,
             87 => ParticleData::Scrape,
-            _ => return Err(format!("Unknown particle id: {}", id)),
+            _ => return Err(BufReadError::Custom(format!("Unknown particle id: {}", id))),
         })
     }
 }
 
 impl McBufReadable for ParticleData {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let id = u32::var_read_from(buf)?;
         ParticleData::read_from_particle_id(buf, id)
     }

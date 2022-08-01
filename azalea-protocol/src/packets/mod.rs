@@ -51,7 +51,7 @@ where
 }
 
 impl azalea_buf::McBufReadable for ConnectionProtocol {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         ConnectionProtocol::from_i32(buf.read_varint()?)
             .ok_or_else(|| "Invalid intention".to_string())
     }
