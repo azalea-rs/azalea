@@ -22,6 +22,7 @@ use azalea_protocol::{
         },
         ConnectionProtocol, PROTOCOL_VERSION,
     },
+    read::ReadPacketError,
     resolver, ServerAddress,
 };
 use azalea_world::Dimension;
@@ -191,8 +192,9 @@ impl Client {
                 Err(e) => {
                     if IGNORE_ERRORS {
                         println!("Error: {:?}", e);
-                        if e == "length wider than 21-bit" {
-                            panic!();
+                        match e {
+                            ReadPacketError::FrameSplitterError { .. } => panic!("Error: {:?}", e),
+                            _ => continue,
                         }
                     } else {
                         panic!("Error: {:?}", e);

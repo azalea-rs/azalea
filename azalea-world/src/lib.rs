@@ -6,6 +6,7 @@ mod entity;
 mod palette;
 
 use azalea_block::BlockState;
+use azalea_buf::BufReadError;
 use azalea_core::{BlockPos, ChunkPos, EntityPos, PositionDelta8};
 use azalea_entity::Entity;
 pub use bit_storage::BitStorage;
@@ -46,7 +47,7 @@ impl Dimension {
         &mut self,
         pos: &ChunkPos,
         data: &mut impl Read,
-    ) -> Result<(), String> {
+    ) -> Result<(), BufReadError> {
         self.chunk_storage.replace_with_packet_data(pos, data)
     }
 
