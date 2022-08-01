@@ -1,8 +1,8 @@
 use azalea_buf::McBuf;
 use azalea_crypto::{MessageSignature, SignedMessageHeader};
-use packet_macros::GamePacket;
+use packet_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundPlayerChatHeaderPacket {
     pub header: SignedMessageHeader,
     pub header_signature: MessageSignature,

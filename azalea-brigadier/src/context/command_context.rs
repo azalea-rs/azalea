@@ -1,5 +1,8 @@
 use super::{parsed_command_node::ParsedCommandNode, string_range::StringRange, ParsedArgument};
-use crate::{modifier::RedirectModifier, tree::CommandNode};
+use crate::{
+    modifier::RedirectModifier,
+    tree::{Command, CommandNode},
+};
 use std::{any::Any, cell::RefCell, collections::HashMap, fmt::Debug, rc::Rc};
 
 /// A built `CommandContextBuilder`.
@@ -7,7 +10,7 @@ pub struct CommandContext<S> {
     pub source: Rc<S>,
     pub input: String,
     pub arguments: HashMap<String, ParsedArgument>,
-    pub command: Option<Rc<dyn Fn(&CommandContext<S>) -> i32>>,
+    pub command: Command<S>,
     pub root_node: Rc<RefCell<CommandNode<S>>>,
     pub nodes: Vec<ParsedCommandNode<S>>,
     pub range: StringRange,

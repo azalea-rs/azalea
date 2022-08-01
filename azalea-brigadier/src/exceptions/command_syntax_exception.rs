@@ -1,7 +1,9 @@
-use std::{cmp, fmt};
-
 use super::builtin_exceptions::BuiltInExceptions;
 use crate::message::Message;
+use std::{
+    cmp,
+    fmt::{self, Write},
+};
 
 #[derive(Clone, PartialEq)]
 pub struct CommandSyntaxException {
@@ -36,11 +38,13 @@ impl CommandSyntaxException {
         let mut message = self.message.string();
         let context = self.context();
         if let Some(context) = context {
-            message.push_str(&format!(
+            write!(
+                message,
                 " at position {}: {}",
                 self.cursor.unwrap_or(usize::MAX),
                 context
-            ));
+            )
+            .unwrap();
         }
         message
     }

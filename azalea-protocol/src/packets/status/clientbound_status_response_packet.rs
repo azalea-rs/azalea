@@ -1,12 +1,9 @@
-use std::io::{Read, Write};
-
+use super::ClientboundStatusPacket;
+use azalea_buf::Readable;
 use azalea_chat::component::Component;
 use serde::Deserialize;
 use serde_json::Value;
-
-use azalea_buf::Readable;
-
-use super::StatusPacket;
+use std::io::{Read, Write};
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Version {
@@ -37,15 +34,15 @@ pub struct ClientboundStatusResponsePacket {
 }
 
 impl ClientboundStatusResponsePacket {
-    pub fn get(self) -> StatusPacket {
-        StatusPacket::ClientboundStatusResponsePacket(self)
+    pub fn get(self) -> ClientboundStatusPacket {
+        ClientboundStatusPacket::ClientboundStatusResponsePacket(self)
     }
 
     pub fn write(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
         Ok(())
     }
 
-    pub fn read(buf: &mut impl Read) -> Result<StatusPacket, String> {
+    pub fn read(buf: &mut impl Read) -> Result<ClientboundStatusPacket, String> {
         let status_string = buf.read_utf()?;
         let status_json: Value =
             serde_json::from_str(status_string.as_str()).expect("Server status isn't valid JSON");

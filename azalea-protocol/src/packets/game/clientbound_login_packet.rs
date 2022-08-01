@@ -1,8 +1,8 @@
 use azalea_buf::McBuf;
 use azalea_core::{GameType, GlobalPos, OptionalGameType, ResourceLocation};
-use packet_macros::GamePacket;
+use packet_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundLoginPacket {
     pub player_id: u32,
     pub hardcore: bool,

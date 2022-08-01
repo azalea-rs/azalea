@@ -1,9 +1,9 @@
 use azalea_buf::{McBufReadable, McBufVarReadable, McBufWritable};
 use azalea_core::ParticleData;
-use packet_macros::GamePacket;
+use packet_macros::ClientboundGamePacket;
 use std::io::{Read, Write};
 
-#[derive(Clone, Debug, GamePacket)]
+#[derive(Clone, Debug, ClientboundGamePacket)]
 pub struct ClientboundLevelParticlesPacket {
     #[var]
     pub particle_id: u32,

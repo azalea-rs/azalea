@@ -3,7 +3,6 @@ pub mod handshake;
 pub mod login;
 pub mod status;
 
-use crate::connect::PacketFlow;
 use azalea_buf::{McBufWritable, Readable, Writable};
 use std::io::{Read, Write};
 
@@ -29,14 +28,6 @@ impl ConnectionProtocol {
     }
 }
 
-#[derive(Clone, Debug)]
-pub enum Packet {
-    Game(Box<game::GamePacket>),
-    Handshake(Box<handshake::HandshakePacket>),
-    Login(Box<login::LoginPacket>),
-    Status(Box<status::StatusPacket>),
-}
-
 /// An enum of packets for a certain protocol
 pub trait ProtocolPacket
 where
@@ -45,7 +36,7 @@ where
     fn id(&self) -> u32;
 
     /// Read a packet by its id, ConnectionProtocol, and flow
-    fn read(id: u32, flow: &PacketFlow, buf: &mut impl Read) -> Result<Self, String>;
+    fn read(id: u32, buf: &mut impl Read) -> Result<Self, String>;
 
     fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
 }

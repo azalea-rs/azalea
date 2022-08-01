@@ -2,11 +2,11 @@ use azalea_buf::{BitSet, McBuf, McBufReadable, McBufVarWritable};
 use azalea_buf::{McBufVarReadable, McBufWritable};
 use azalea_chat::component::Component;
 use azalea_crypto::{MessageSignature, SignedMessageHeader};
-use packet_macros::GamePacket;
+use packet_macros::ClientboundGamePacket;
 use std::io::{Read, Write};
 use uuid::Uuid;
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundPlayerChatPacket {
     pub message: PlayerChatMessage,
     pub chat_type: ChatTypeBound,

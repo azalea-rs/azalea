@@ -1,7 +1,7 @@
 use azalea_buf::McBuf;
-use packet_macros::GamePacket;
+use packet_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundAnimatePacket {
     #[var]
     pub id: u32,

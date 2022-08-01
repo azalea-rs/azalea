@@ -1,10 +1,10 @@
 use azalea_buf::McBuf;
 use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::ResourceLocation;
-use packet_macros::GamePacket;
+use packet_macros::ClientboundGamePacket;
 use std::io::{Read, Write};
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundRecipePacket {
     pub action: State,
     pub settings: RecipeBookSettings,

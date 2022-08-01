@@ -2,11 +2,11 @@ use std::io::{Read, Write};
 
 use azalea_buf::McBuf;
 use azalea_core::{ResourceLocation, Slot};
-use packet_macros::GamePacket;
+use packet_macros::ClientboundGamePacket;
 
 use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
 
-#[derive(Clone, Debug, McBuf, GamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundUpdateRecipesPacket {
     pub recipes: Vec<Recipe>,
 }

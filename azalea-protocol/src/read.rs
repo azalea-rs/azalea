@@ -1,4 +1,4 @@
-use crate::{connect::PacketFlow, packets::ProtocolPacket};
+use crate::packets::ProtocolPacket;
 use azalea_buf::{read_varint_async, Readable};
 use azalea_crypto::Aes128CfbDec;
 use flate2::read::ZlibDecoder;
@@ -31,13 +31,10 @@ where
     }
 }
 
-fn packet_decoder<P: ProtocolPacket>(
-    stream: &mut impl Read,
-    flow: &PacketFlow,
-) -> Result<P, String> {
+fn packet_decoder<P: ProtocolPacket>(stream: &mut impl Read) -> Result<P, String> {
     // Packet ID
     let packet_id = stream.read_varint()?;
-    P::read(packet_id.try_into().unwrap(), flow, stream)
+    P::read(packet_id.try_into().unwrap(), stream)
 }
 
 // this is always true in multiplayer, false in singleplayer
@@ -121,7 +118,6 @@ where
 }
 
 pub async fn read_packet<'a, P: ProtocolPacket, R>(
-    flow: &PacketFlow,
     stream: &'a mut R,
     compression_threshold: Option<u32>,
     cipher: &mut Option<Aes128CfbDec>,
@@ -150,7 +146,7 @@ where
     }
 
     // println!("decoding packet ({}ms)", start_time.elapsed().as_millis());
-    let packet = packet_decoder(&mut buf.as_slice(), flow)?;
+    let packet = packet_decoder(&mut buf.as_slice())?;
     // println!("decoded packet ({}ms)", start_time.elapsed().as_millis());
 
     Ok(packet)

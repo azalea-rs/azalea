@@ -5,7 +5,7 @@ use std::{
 
 use azalea_buf::{Readable, Writable};
 
-use super::LoginPacket;
+use super::ClientboundLoginPacket;
 
 #[derive(Hash, Clone, Debug)]
 pub struct ClientboundLoginCompressionPacket {
@@ -13,8 +13,8 @@ pub struct ClientboundLoginCompressionPacket {
 }
 
 impl ClientboundLoginCompressionPacket {
-    pub fn get(self) -> LoginPacket {
-        LoginPacket::ClientboundLoginCompressionPacket(self)
+    pub fn get(self) -> ClientboundLoginPacket {
+        ClientboundLoginPacket::ClientboundLoginCompressionPacket(self)
     }
 
     pub fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
@@ -22,7 +22,7 @@ impl ClientboundLoginCompressionPacket {
         Ok(())
     }
 
-    pub fn read(buf: &mut impl Read) -> Result<LoginPacket, String> {
+    pub fn read(buf: &mut impl Read) -> Result<ClientboundLoginPacket, String> {
         let compression_threshold = buf.read_varint()?;
 
         Ok(ClientboundLoginCompressionPacket {
