@@ -4,7 +4,6 @@ use azalea_buf::{read_varint_async, BufReadError, Readable};
 use azalea_crypto::Aes128CfbDec;
 use flate2::read::ZlibDecoder;
 use std::{
-    backtrace::Backtrace,
     cell::Cell,
     io::Read,
     pin::Pin,
@@ -19,7 +18,6 @@ pub enum ReadPacketError {
     ParseError {
         #[from]
         source: BufReadError,
-        backtrace: Backtrace,
     },
     #[error("Unknown packet id")]
     UnknownPacketId { state_name: String, id: u32 },
@@ -27,13 +25,11 @@ pub enum ReadPacketError {
     DecompressError {
         #[from]
         source: DecompressionError,
-        backtrace: Backtrace,
     },
     #[error("Frame splitter error")]
     FrameSplitterError {
         #[from]
         source: FrameSplitterError,
-        backtrace: Backtrace,
     },
 }
 
@@ -43,13 +39,11 @@ pub enum FrameSplitterError {
     LengthReadError {
         #[from]
         source: BufReadError,
-        backtrace: Backtrace,
     },
     #[error("Io error")]
     Io {
         #[from]
         source: std::io::Error,
-        backtrace: Backtrace,
     },
 }
 
@@ -83,13 +77,11 @@ pub enum DecompressionError {
     LengthReadError {
         #[from]
         source: BufReadError,
-        backtrace: Backtrace,
     },
     #[error("Io error")]
     Io {
         #[from]
         source: std::io::Error,
-        backtrace: Backtrace,
     },
     #[error("Badly compressed packet - size of {size} is below server threshold of {threshold}")]
     BelowCompressionThreshold { size: u32, threshold: u32 },

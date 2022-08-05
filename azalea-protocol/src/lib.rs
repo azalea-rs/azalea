@@ -1,7 +1,5 @@
 //! This lib is responsible for parsing Minecraft packets.
 
-#![feature(backtrace)]
-
 use std::net::IpAddr;
 use std::str::FromStr;
 
