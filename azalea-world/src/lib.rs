@@ -74,7 +74,7 @@ impl Dimension {
         let entity = self
             .entity_storage
             .get_mut_by_id(entity_id)
-            .ok_or_else(|| MoveEntityError::EntityDoesNotExist)?;
+            .ok_or(MoveEntityError::EntityDoesNotExist)?;
 
         let old_chunk = ChunkPos::from(entity.pos());
         let new_chunk = ChunkPos::from(&new_pos);
@@ -95,7 +95,7 @@ impl Dimension {
         let entity = self
             .entity_storage
             .get_mut_by_id(entity_id)
-            .ok_or_else(|| MoveEntityError::EntityDoesNotExist)?;
+            .ok_or(MoveEntityError::EntityDoesNotExist)?;
         let new_pos = entity.pos().with_delta(delta);
 
         let old_chunk = ChunkPos::from(entity.pos());
