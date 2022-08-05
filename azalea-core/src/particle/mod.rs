@@ -243,7 +243,7 @@ impl ParticleData {
             85 => ParticleData::WaxOff,
             86 => ParticleData::ElectricSpark,
             87 => ParticleData::Scrape,
-            _ => return Err(BufReadError::Custom(format!("Unknown particle id: {}", id))),
+            _ => return Err(BufReadError::UnexpectedEnumVariant { id: id as i32 }),
         })
     }
 }

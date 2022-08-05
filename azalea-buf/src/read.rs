@@ -11,13 +11,13 @@ pub enum BufReadError {
     #[error("Invalid VarLong")]
     InvalidVarLong,
     #[error("Error reading bytes")]
-    CouldntReadBytes,
+    CouldNotReadBytes,
     #[error("The received encoded string buffer length is less than zero! Weird string!")]
     StringLengthLessThanZero,
     #[error("The received encoded string buffer length is longer than maximum allowed ({length} > {max_length})")]
     StringLengthTooLong { length: i32, max_length: u32 },
-    #[error("Unexpected end of file")]
-    IoError(#[from] std::io::Error),
+    #[error("{0}")]
+    Io(#[from] std::io::Error),
     #[error("Boolean value is not 0 or 1")]
     InvalidBoolean,
     #[error("Invalid UTF-8")]
@@ -26,10 +26,9 @@ pub enum BufReadError {
     UnexpectedEnumVariant { id: i32 },
     #[error("{0}")]
     Custom(String),
-    // if serde feature is enabled
     #[cfg(feature = "serde_json")]
     #[error("{0}")]
-    DeserializationError(#[from] serde_json::Error),
+    Deserialization(#[from] serde_json::Error),
 }
 
 // TODO: get rid of Readable and use McBufReadable everywhere
@@ -110,7 +109,7 @@ where
     fn read_bytes_with_len(&mut self, n: usize) -> Result<Vec<u8>, BufReadError> {
         let mut buffer = vec![0; n];
         self.read_exact(&mut buffer)
-            .map_err(|_| BufReadError::CouldntReadBytes)?;
+            .map_err(|_| BufReadError::CouldNotReadBytes)?;
         Ok(buffer)
     }
 
@@ -118,7 +117,7 @@ where
         // read to end of the buffer
         let mut bytes = vec![];
         self.read_to_end(&mut bytes)
-            .map_err(|_| BufReadError::CouldntReadBytes)?;
+            .map_err(|_| BufReadError::CouldNotReadBytes)?;
         Ok(bytes)
     }
 
