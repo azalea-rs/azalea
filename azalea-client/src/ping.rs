@@ -1,6 +1,6 @@
 ///! Ping Minecraft servers.
 use azalea_protocol::{
-    connect::Connection,
+    connect::{Connection, ConnectionError},
     packets::{
         handshake::client_intention_packet::ClientIntentionPacket,
         status::{
@@ -12,10 +12,21 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum PingError {
+    #[error("{0}")]
+    Resolver(#[from] resolver::ResolverError),
+    #[error("{0}")]
+    Connection(#[from] ConnectionError),
+    #[error("{0}")]
+    ReadPacket(#[from] azalea_protocol::read::ReadPacketError),
+}
 
 pub async fn ping_server(
     address: &ServerAddress,
-) -> Result<ClientboundStatusResponsePacket, String> {
+) -> Result<ClientboundStatusResponsePacket, PingError> {
     let resolved_address = resolver::resolve_address(address).await?;
 
     let mut conn = Connection::new(&resolved_address).await?;
@@ -36,7 +47,7 @@ pub async fn ping_server(
     // send the empty status request packet
     conn.write(ServerboundStatusRequestPacket {}.get()).await;
 
-    let packet = conn.read().await.unwrap();
+    let packet = conn.read().await?;
 
     match packet {
         ClientboundStatusPacket::ClientboundStatusResponsePacket(p) => Ok(p),

@@ -17,6 +17,7 @@ use std::{
     ops::{Index, IndexMut},
     sync::{Arc, Mutex},
 };
+use thiserror::Error;
 use uuid::Uuid;
 
 #[cfg(test)]
@@ -33,6 +34,12 @@ mod tests {
 pub struct Dimension {
     chunk_storage: ChunkStorage,
     entity_storage: EntityStorage,
+}
+
+#[derive(Error, Debug)]
+pub enum MoveEntityError {
+    #[error("Entity doesn't exist")]
+    EntityDoesNotExist,
 }
 
 impl Dimension {
@@ -59,11 +66,15 @@ impl Dimension {
         self.chunk_storage.get_block_state(pos, self.min_y())
     }
 
-    pub fn move_entity(&mut self, entity_id: u32, new_pos: EntityPos) -> Result<(), String> {
+    pub fn move_entity(
+        &mut self,
+        entity_id: u32,
+        new_pos: EntityPos,
+    ) -> Result<(), MoveEntityError> {
         let entity = self
             .entity_storage
             .get_mut_by_id(entity_id)
-            .ok_or_else(|| "Moving entity that doesn't exist".to_string())?;
+            .ok_or_else(|| MoveEntityError::EntityDoesNotExist)?;
 
         let old_chunk = ChunkPos::from(entity.pos());
         let new_chunk = ChunkPos::from(&new_pos);
@@ -80,11 +91,11 @@ impl Dimension {
         &mut self,
         entity_id: u32,
         delta: &PositionDelta8,
-    ) -> Result<(), String> {
+    ) -> Result<(), MoveEntityError> {
         let entity = self
             .entity_storage
             .get_mut_by_id(entity_id)
-            .ok_or_else(|| "Moving entity that doesn't exist".to_string())?;
+            .ok_or_else(|| MoveEntityError::EntityDoesNotExist)?;
         let new_pos = entity.pos().with_delta(delta);
 
         let old_chunk = ChunkPos::from(entity.pos());

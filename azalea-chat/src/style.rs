@@ -9,17 +9,17 @@ pub struct TextColor {
 }
 
 impl TextColor {
-    pub fn parse(value: String) -> Result<TextColor, String> {
+    pub fn parse(value: String) -> Option<TextColor> {
         if value.starts_with('#') {
             let n = value.chars().skip(1).collect::<String>();
             let n = u32::from_str_radix(&n, 16).unwrap();
-            return Ok(TextColor::from_rgb(n));
+            return Some(TextColor::from_rgb(n));
         }
         let color_option = NAMED_COLORS.get(&value.to_ascii_uppercase());
         if let Some(color) = color_option {
-            return Ok(color.clone());
+            return Some(color.clone());
         }
-        Err(format!("Invalid color {}", value))
+        None
     }
 
     fn from_rgb(value: u32) -> TextColor {
@@ -157,13 +157,14 @@ impl<'a> ChatFormatting<'a> {
         }
     }
 
-    pub fn from_code(code: char) -> Result<&'static ChatFormatting<'static>, String> {
+    pub fn from_code(code: char) -> Option<&'static ChatFormatting<'static>> {
         for formatter in &ChatFormatting::FORMATTERS {
             if formatter.code == code {
-                return Ok(formatter);
+                return Some(formatter);
             }
         }
-        Err(format!("Invalid formatting code {}", code))
+
+        None
     }
 }
 
@@ -241,7 +242,7 @@ impl Style {
             let color: Option<TextColor> = json_object
                 .get("color")
                 .and_then(|v| v.as_str())
-                .and_then(|v| TextColor::parse(v.to_string()).ok());
+                .and_then(|v| TextColor::parse(v.to_string()));
             Style {
                 color,
                 bold,

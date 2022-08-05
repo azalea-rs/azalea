@@ -11,6 +11,7 @@ use crate::ServerIpAddress;
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use std::fmt::Debug;
 use std::marker::PhantomData;
+use thiserror::Error;
 use tokio::net::TcpStream;
 
 pub struct Connection<R: ProtocolPacket, W: ProtocolPacket> {
@@ -49,19 +50,21 @@ where
     }
 }
 
+#[derive(Error, Debug)]
+pub enum ConnectionError {
+    #[error("{0}")]
+    Io(#[from] std::io::Error),
+}
+
 impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
-    pub async fn new(address: &ServerIpAddress) -> Result<Self, String> {
+    pub async fn new(address: &ServerIpAddress) -> Result<Self, ConnectionError> {
         let ip = address.ip;
         let port = address.port;
 
-        let stream = TcpStream::connect(format!("{}:{}", ip, port))
-            .await
-            .map_err(|_| "Failed to connect to server")?;
+        let stream = TcpStream::connect(format!("{}:{}", ip, port)).await?;
 
         // enable tcp_nodelay
-        stream
-            .set_nodelay(true)
-            .expect("Error enabling tcp_nodelay");
+        stream.set_nodelay(true)?;
 
         Ok(Connection {
             stream,
