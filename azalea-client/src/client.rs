@@ -28,6 +28,7 @@ use azalea_protocol::{
 use azalea_world::Dimension;
 use std::{
     fmt::Debug,
+    io,
     sync::{Arc, Mutex},
 };
 use thiserror::Error;
@@ -80,12 +81,16 @@ pub enum JoinError {
     Connection(#[from] ConnectionError),
     #[error("{0}")]
     ReadPacket(#[from] azalea_protocol::read::ReadPacketError),
+    #[error("{0}")]
+    Io(#[from] io::Error),
 }
 
 #[derive(Error, Debug)]
 pub enum HandleError {
     #[error("{0}")]
     Poison(String),
+    #[error("{0}")]
+    Io(#[from] io::Error),
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }
@@ -110,7 +115,7 @@ impl Client {
             }
             .get(),
         )
-        .await;
+        .await?;
         let mut conn = conn.login();
 
         // login
@@ -122,7 +127,7 @@ impl Client {
             }
             .get(),
         )
-        .await;
+        .await?;
 
         let (conn, game_profile) = loop {
             let packet_result = conn.read().await;
@@ -143,7 +148,7 @@ impl Client {
                             }
                             .get(),
                         )
-                        .await;
+                        .await?;
                         conn.set_encryption_key(e.secret_key);
                     }
                     ClientboundLoginPacket::ClientboundLoginCompressionPacket(p) => {
@@ -321,7 +326,7 @@ impl Client {
                         }
                         .get(),
                     )
-                    .await;
+                    .await?;
 
                 tx.send(Event::Login).unwrap();
             }
@@ -434,7 +439,7 @@ impl Client {
                 let mut conn_lock = client.conn.lock().await;
                 conn_lock
                     .write(ServerboundAcceptTeleportationPacket { id: p.id }.get())
-                    .await;
+                    .await?;
                 conn_lock
                     .write(
                         ServerboundMovePlayerPacketPosRot {
@@ -448,7 +453,7 @@ impl Client {
                         }
                         .get(),
                     )
-                    .await;
+                    .await?;
             }
             ClientboundGamePacket::ClientboundPlayerInfoPacket(p) => {
                 println!("Got player info packet {:?}", p);
@@ -575,7 +580,7 @@ impl Client {
                     .lock()
                     .await
                     .write(ServerboundKeepAlivePacket { id: p.id }.get())
-                    .await;
+                    .await?;
             }
             ClientboundGamePacket::ClientboundRemoveEntitiesPacket(p) => {
                 println!("Got remove entities packet {:?}", p);

@@ -39,14 +39,14 @@ where
     }
 
     /// Write a packet to the server
-    pub async fn write(&mut self, packet: W) {
+    pub async fn write(&mut self, packet: W) -> std::io::Result<()> {
         write_packet(
             packet,
             &mut self.stream,
             self.compression_threshold,
             &mut self.enc_cipher,
         )
-        .await;
+        .await
     }
 }
 

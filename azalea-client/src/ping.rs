@@ -12,6 +12,7 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
+use std::io;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -22,6 +23,8 @@ pub enum PingError {
     Connection(#[from] ConnectionError),
     #[error("{0}")]
     ReadPacket(#[from] azalea_protocol::read::ReadPacketError),
+    #[error("{0}")]
+    WritePacket(#[from] io::Error),
 }
 
 pub async fn ping_server(
@@ -41,11 +44,11 @@ pub async fn ping_server(
         }
         .get(),
     )
-    .await;
+    .await?;
     let mut conn = conn.status();
 
     // send the empty status request packet
-    conn.write(ServerboundStatusRequestPacket {}.get()).await;
+    conn.write(ServerboundStatusRequestPacket {}.get()).await?;
 
     let packet = conn.read().await?;
 
