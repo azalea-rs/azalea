@@ -68,6 +68,8 @@ pub mod serverbound_container_click_packet;
 pub mod serverbound_container_close_packet;
 pub mod serverbound_custom_payload_packet;
 pub mod serverbound_edit_book_packet;
+pub mod serverbound_entity_tag_query;
+pub mod serverbound_interact_packet;
 pub mod serverbound_keep_alive_packet;
 pub mod serverbound_move_player_packet_pos;
 pub mod serverbound_move_player_packet_pos_rot;
@@ -94,6 +96,8 @@ declare_state_packets!(
         0x0c: serverbound_container_close_packet::ServerboundContainerClosePacket,
         0x0d: serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
         0x0e: serverbound_edit_book_packet::ServerboundEditBookPacket,
+        0x0f: serverbound_entity_tag_query::ServerboundEntityTagQuery,
+        0x10: serverbound_interact_packet::ServerboundInteractPacket,
         0x12: serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
         0x14: serverbound_move_player_packet_pos::ServerboundMovePlayerPacketPos,
         0x15: serverbound_move_player_packet_pos_rot::ServerboundMovePlayerPacketPosRot,

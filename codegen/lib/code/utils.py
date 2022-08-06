@@ -66,10 +66,27 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
             field_type_rs = 'todo!("enum")'
         else:
             # generate the whole enum :)
-            enum_name = mappings.get_field_type(
-                obfuscated_class_name, instruction['field'])
+            print(instruction)
+            enum_field = instruction['field']
+            # enums with a.b() as the field
+            if '.' in enum_field:
+                enum_first_part_name = mappings.get_field_type(
+                    obfuscated_class_name, enum_field.split('.')[0])
+                enum_first_part_obfuscated_name = mappings.get_class_from_deobfuscated_name(
+                    enum_first_part_name)
+                print('enum_first_part_obfuscated_name',
+                      enum_first_part_obfuscated_name)
+                enum_name = mappings.get_method_type(
+                    enum_first_part_obfuscated_name, enum_field.split('.')[1].split('(')[0], '')
+
+                print('hm', enum_name)
+            else:
+                enum_name = mappings.get_field_type(
+                    obfuscated_class_name, enum_field)
+            print('enum_name', enum_name)
             enum_obfuscated_name = mappings.get_class_from_deobfuscated_name(
                 enum_name)
+            print('enum_obfuscated_name', enum_obfuscated_name)
             enum_variants = []
             for obfuscated_field_name in mappings.fields[enum_obfuscated_name]:
                 field_name = mappings.get_field(

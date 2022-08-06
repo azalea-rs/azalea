@@ -2,13 +2,14 @@ from typing import Optional
 
 
 class Mappings:
-    __slots__ = ('classes', 'fields', 'methods', 'field_types')
+    __slots__ = ('classes', 'fields', 'methods', 'field_types', 'method_types')
 
-    def __init__(self, classes, fields, methods, field_types):
+    def __init__(self, classes, fields, methods, field_types, method_types):
         self.classes = classes
         self.fields = fields
         self.methods = methods
         self.field_types = field_types
+        self.method_types = method_types
 
     @staticmethod
     def parse(mappings_txt):
@@ -16,6 +17,7 @@ class Mappings:
         fields = {}
         methods = {}
         field_types = {}
+        method_types = {}
 
         current_obfuscated_class_name = None
 
@@ -38,8 +40,11 @@ class Mappings:
 
                     if current_obfuscated_class_name not in methods:
                         methods[current_obfuscated_class_name] = {}
+                        method_types[current_obfuscated_class_name] = {}
                     methods[current_obfuscated_class_name][
                         f'{obfuscated_name}({parameters})'] = real_name
+                    method_types[current_obfuscated_class_name][
+                        f'{obfuscated_name}({parameters})'] = real_type
                 else:
                     # otherwise, it's a field
                     real_name_with_type, obfuscated_name = line.strip().split(' -> ')
@@ -57,7 +62,7 @@ class Mappings:
 
                 classes[obfuscated_name] = real_name
 
-        return Mappings(classes, fields, methods, field_types)
+        return Mappings(classes, fields, methods, field_types, method_types)
 
     def get_field(self, obfuscated_class_name, obfuscated_field_name):
         return self.fields.get(obfuscated_class_name, {}).get(obfuscated_field_name)
@@ -70,6 +75,9 @@ class Mappings:
 
     def get_field_type(self, obfuscated_class_name, obfuscated_field_name) -> str:
         return self.field_types[obfuscated_class_name][obfuscated_field_name]
+
+    def get_method_type(self, obfuscated_class_name, obfuscated_method_name, obfuscated_signature) -> str:
+        return self.method_types[obfuscated_class_name][f'{obfuscated_method_name}({obfuscated_signature})']
 
     def get_class_from_deobfuscated_name(self, deobfuscated_name) -> Optional[str]:
         for obfuscated_name, real_name in self.classes.items():

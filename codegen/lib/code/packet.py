@@ -294,9 +294,9 @@ def burger_instruction_to_code(instructions: list[dict], index: int, generated_p
             field_type, field_name, instruction, mappings, obfuscated_class_name)
 
         if '.' in obfuscated_field_name or ' ' in obfuscated_field_name or '(' in obfuscated_field_name:
-            field_type_rs, obfuscated_field_name, field_comment = burger_field_to_type(
+            field_type_rs2, obfuscated_field_name, field_comment = burger_field_to_type(
                 obfuscated_field_name, mappings, obfuscated_class_name)
-            if not field_type_rs:
+            if not field_type_rs2:
                 generated_packet_code.append(f'// TODO: {instruction}')
                 return
             # try to get the field name again with the new stuff we know
