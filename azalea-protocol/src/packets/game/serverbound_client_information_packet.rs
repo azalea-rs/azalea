@@ -4,10 +4,10 @@ use packet_macros::ServerboundGamePacket;
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundClientInformationPacket {
     pub language: String,
-    pub view_distance: i8,
+    pub view_distance: u8,
     pub chat_visibility: ChatVisiblity,
     pub chat_colors: bool,
-    pub model_customisation: i8,
+    pub model_customisation: u8,
     pub main_hand: HumanoidArm,
     pub text_filtering_enabled: bool,
     pub allows_listing: bool,

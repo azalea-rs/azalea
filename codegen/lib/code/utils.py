@@ -14,17 +14,17 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
     # extra code, like enum definitions
     extra_code = []
 
-    should_be_unsigned = field_name is not None and (
-        field_name == 'id' or field_name.endswith('_id'))
+    print(field_name)
+    should_be_signed = False
 
     if burger_type == 'byte':
-        field_type_rs = 'u8' if should_be_unsigned else 'i8'
+        field_type_rs = 'i8' if should_be_signed else 'u8'
     elif burger_type == 'short':
-        field_type_rs = 'u16' if should_be_unsigned else 'i16'
+        field_type_rs = 'i16' if should_be_signed else 'u16'
     elif burger_type == 'int':
-        field_type_rs = 'u32' if should_be_unsigned else 'i32'
+        field_type_rs = 'i32' if should_be_signed else 'u32'
     elif burger_type == 'long':
-        field_type_rs = 'u64' if should_be_unsigned else 'i64'
+        field_type_rs = 'i64' if should_be_signed else 'u64'
     elif burger_type == 'float':
         field_type_rs = 'f32'
     elif burger_type == 'double':
@@ -32,10 +32,10 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
 
     elif burger_type == 'varint':
         is_var = True
-        field_type_rs = 'u32' if should_be_unsigned else 'i32'
+        field_type_rs = 'i32' if should_be_signed else 'u32'
     elif burger_type == 'varlong':
         is_var = True
-        field_type_rs = 'u64' if should_be_unsigned else 'i64'
+        field_type_rs = 'i64' if should_be_signed else 'u64'
 
     elif burger_type == 'boolean':
         field_type_rs = 'bool'
@@ -95,7 +95,7 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
             extra_code.append('}')
 
     elif burger_type.endswith('[]'):
-        field_type_rs, is_var, uses = burger_type_to_rust_type(
+        field_type_rs, is_var, uses, extra_code = burger_type_to_rust_type(
             burger_type[:-2])
         field_type_rs = f'Vec<{field_type_rs}>'
     else:
