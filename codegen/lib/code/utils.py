@@ -46,7 +46,7 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
         uses.add('azalea_chat::component::Component')
     elif burger_type == 'identifier':
         field_type_rs = 'ResourceLocation'
-        uses.add('azalea_core::resource_location::ResourceLocation')
+        uses.add('azalea_core::ResourceLocation')
     elif burger_type == 'uuid':
         field_type_rs = 'Uuid'
         uses.add('uuid::Uuid')
@@ -97,6 +97,16 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
         field_type_rs, is_var, uses, extra_code = burger_type_to_rust_type(
             burger_type[:-2])
         field_type_rs = f'Vec<{field_type_rs}>'
+
+        # sometimes burger gives us a slightly incorrect type
+        if mappings and instruction:
+            if field_type_rs == 'Vec<u8>':
+                array_type = mappings.get_field_type(
+                    obfuscated_class_name, instruction['field'])
+                if array_type == 'net.minecraft.network.FriendlyByteBuf':
+                    field_type_rs = 'UnsizedByteArray'
+                    uses.add('azalea_buf::UnsizedByteArray')
+
     else:
         raise Exception(f'Unknown field type: {burger_type}')
     return field_type_rs, is_var, uses, extra_code

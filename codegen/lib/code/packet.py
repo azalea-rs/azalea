@@ -45,61 +45,19 @@ def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target
         generated_packet_code.append(
             f'pub struct {to_camel_case(class_name)} {{')
 
+        # call burger_instruction_to_code for each instruction
         i = -1
         instructions = packet.get('instructions', [])
-        while (i + 2) < len(instructions):
+        while (i + 1) < len(instructions):
             i += 1
-            instruction = instructions[i]
-            try:
-                next_instruction = instructions[i + 1]
-            except IndexError:
-                next_instruction = None
-            try:
-                next_next_instruction = instructions[i + 2]
-            except IndexError:
-                next_next_instruction = None
 
-            if instruction['operation'] == 'write' and instruction['field'].endswith('.size()') and next_instruction and next_instruction['type'] == 'Iterator' and next_next_instruction and next_next_instruction['operation'] == 'loop':
-                # it's an iterator, figure out what kind
-                loop_instructions = next_next_instruction['instructions']
-                if len(loop_instructions) == 3:
-                    is_map = loop_instructions[0]['type'].startswith(
-                        'Map.Entry<')
-                    if is_map:
-                        assert loop_instructions[1]['field'].endswith(
-                            '.getKey()')
-                        assert loop_instructions[2]['field'].endswith(
-                            '.getValue()')
-
-                        # generate the type for the key
-                        key_type_rs, is_key_var, key_uses, key_extra_code = burger_type_to_rust_type(
-                            loop_instructions[1]['type'], None, loop_instructions[1], mappings, obfuscated_class_name)
-                        uses.update(key_uses)
-                        extra_code.extend(key_extra_code)
-
-                        # generate the type for the value
-                        value_type_rs, is_value_var, value_uses, value_extra_code = burger_type_to_rust_type(
-                            loop_instructions[2]['type'], None, loop_instructions[2], mappings, obfuscated_class_name)
-                        uses.update(value_uses)
-                        extra_code.extend(value_extra_code)
-
-                        field_obfuscated_name = instruction['field'].split('.')[
-                            0]
-                        field_name = mappings.get_field(
-                            obfuscated_class_name, field_obfuscated_name)
-
-                        generated_packet_code.append(
-                            f'pub {to_snake_case(field_name)}: HashMap<{key_type_rs}, {value_type_rs}>,')
-                        uses.add('std::collections::HashMap')
-                        i += 2
-                        continue
-
-            elif instruction['operation'] == 'write':
-                burger_instruction_to_code(
-                    instruction, generated_packet_code, mappings, obfuscated_class_name, uses, extra_code)
-                continue
-
-            generated_packet_code.append(f'// TODO: {instruction}')
+            if instructions[i]['operation'] == 'write':
+                skip = burger_instruction_to_code(
+                    instructions, i, generated_packet_code, mappings, obfuscated_class_name, uses, extra_code)
+                if skip:
+                    i += skip
+            else:
+                generated_packet_code.append(f'// TODO: {instructions[i]}')
 
         generated_packet_code.append('}')
 
@@ -258,27 +216,81 @@ def get_packets(direction: str, state: str):
     return packet_ids, packet_class_names
 
 
-def burger_instruction_to_code(instruction: dict, generated_packet_code: list[str], mappings: Mappings, obfuscated_class_name: str, uses: set, extra_code: list[str]):
-    field_type = instruction['type']
-    obfuscated_field_name = instruction['field']
-    field_name = mappings.get_field(
-        obfuscated_class_name, obfuscated_field_name) or mappings.get_field(
-        obfuscated_class_name.split('$')[0], obfuscated_field_name)
+def burger_instruction_to_code(instructions: list[dict], index: int, generated_packet_code: list[str], mappings: Mappings, obfuscated_class_name: str, uses: set, extra_code: list[str]) -> Optional[int]:
+    '''
+    Generate a field for an instruction, returns the number of instructions to skip (if any).
+    '''
+    instruction = instructions[index]
+    next_instruction = instructions[index +
+                                    1] if index + 1 < len(instructions) else None
+    next_next_instruction = instructions[index +
+                                         2] if index + 2 < len(instructions) else None
 
-    field_type_rs, is_var, instruction_uses, instruction_extra_code = burger_type_to_rust_type(
-        field_type, field_name, instruction, mappings, obfuscated_class_name)
-
+    is_var = False
+    skip = 0
+    field_type_rs = None
     field_comment = None
-    if '.' in obfuscated_field_name or ' ' in obfuscated_field_name or '(' in obfuscated_field_name:
-        field_type_rs, obfuscated_field_name, field_comment = burger_field_to_type(
-            obfuscated_field_name, mappings, obfuscated_class_name)
-        if not field_type_rs:
-            generated_packet_code.append(f'// TODO: {instruction}')
-            return
-        # try to get the field name again with the new stuff we know
+
+    # iterators
+    if instruction['operation'] == 'write' and instruction['field'].endswith('.size()') and next_instruction and next_instruction['type'] == 'Iterator' and next_next_instruction and next_next_instruction['operation'] == 'loop':
+        field_obfuscated_name = instruction['field'].split('.')[
+            0]
+        field_name = mappings.get_field(
+            obfuscated_class_name, field_obfuscated_name)
+
+        # figure out what kind of iterator it is
+        loop_instructions = next_next_instruction['instructions']
+        if len(loop_instructions) == 3:
+
+            is_map = loop_instructions[0]['type'].startswith(
+                'Map.Entry<')
+            if is_map:
+                assert loop_instructions[1]['field'].endswith(
+                    '.getKey()')
+                assert loop_instructions[2]['field'].endswith(
+                    '.getValue()')
+
+                # generate the type for the key
+                key_type_rs, is_key_var, key_uses, key_extra_code = burger_type_to_rust_type(
+                    loop_instructions[1]['type'], None, loop_instructions[1], mappings, obfuscated_class_name)
+                uses.update(key_uses)
+                extra_code.extend(key_extra_code)
+
+                # generate the type for the value
+                value_type_rs, is_value_var, value_uses, value_extra_code = burger_type_to_rust_type(
+                    loop_instructions[2]['type'], None, loop_instructions[2], mappings, obfuscated_class_name)
+                uses.update(value_uses)
+                extra_code.extend(value_extra_code)
+
+                field_type_rs = f'HashMap<{key_type_rs}, {value_type_rs}>'
+                uses.add('std::collections::HashMap')
+
+                is_var = is_key_var or is_value_var
+
+                skip = 2  # skip the next 2 instructions
+
+    else:
+        field_type = instruction['type']
+        obfuscated_field_name = instruction['field']
         field_name = mappings.get_field(
             obfuscated_class_name, obfuscated_field_name) or mappings.get_field(
             obfuscated_class_name.split('$')[0], obfuscated_field_name)
+
+        field_type_rs, is_var, instruction_uses, instruction_extra_code = burger_type_to_rust_type(
+            field_type, field_name, instruction, mappings, obfuscated_class_name)
+
+        if '.' in obfuscated_field_name or ' ' in obfuscated_field_name or '(' in obfuscated_field_name:
+            field_type_rs, obfuscated_field_name, field_comment = burger_field_to_type(
+                obfuscated_field_name, mappings, obfuscated_class_name)
+            if not field_type_rs:
+                generated_packet_code.append(f'// TODO: {instruction}')
+                return
+            # try to get the field name again with the new stuff we know
+            field_name = mappings.get_field(
+                obfuscated_class_name, obfuscated_field_name) or mappings.get_field(
+                obfuscated_class_name.split('$')[0], obfuscated_field_name)
+        uses.update(instruction_uses)
+        extra_code.extend(instruction_extra_code)
 
     if not field_name:
         generated_packet_code.append(
@@ -291,8 +303,8 @@ def burger_instruction_to_code(instruction: dict, generated_packet_code: list[st
     if field_comment:
         line += f' // {field_comment}'
     generated_packet_code.append(line)
-    uses.update(instruction_uses)
-    extra_code.extend(instruction_extra_code)
+
+    return skip
 
 
 def burger_field_to_type(field, mappings: Mappings, obfuscated_class_name: str) -> tuple[Optional[str], str, Optional[str]]:

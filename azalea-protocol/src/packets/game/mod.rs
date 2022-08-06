@@ -65,6 +65,7 @@ pub mod serverbound_client_information_packet;
 pub mod serverbound_command_suggestion_packet;
 pub mod serverbound_container_button_click_packet;
 pub mod serverbound_container_click_packet;
+pub mod serverbound_container_close_packet;
 pub mod serverbound_custom_payload_packet;
 pub mod serverbound_keep_alive_packet;
 pub mod serverbound_move_player_packet_pos;
@@ -89,6 +90,7 @@ declare_state_packets!(
         0x09: serverbound_command_suggestion_packet::ServerboundCommandSuggestionPacket,
         0x0a: serverbound_container_button_click_packet::ServerboundContainerButtonClickPacket,
         0x0b: serverbound_container_click_packet::ServerboundContainerClickPacket,
+        0x0c: serverbound_container_close_packet::ServerboundContainerClosePacket,
         0x0d: serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
         0x12: serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
         0x14: serverbound_move_player_packet_pos::ServerboundMovePlayerPacketPos,
