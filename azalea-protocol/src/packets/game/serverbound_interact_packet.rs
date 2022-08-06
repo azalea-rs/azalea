@@ -1,3 +1,4 @@
+use crate::packets::BufReadError;
 use azalea_buf::McBufVarReadable;
 use azalea_buf::{McBuf, McBufReadable, McBufVarWritable, McBufWritable};
 use azalea_core::EntityPos;
@@ -48,7 +49,7 @@ impl McBufWritable for ActionType {
 }
 
 impl McBufReadable for ActionType {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let action_type = u32::var_read_from(buf)?;
         match action_type {
             0 => {
@@ -70,7 +71,9 @@ impl McBufReadable for ActionType {
                     hand,
                 })
             }
-            _ => Err(format!("Invalid action type: {}", action_type)),
+            _ => Err(BufReadError::UnexpectedEnumVariant {
+                id: action_type as i32,
+            }),
         }
     }
 }
