@@ -27,6 +27,7 @@ def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target
 
         generated_packet_code = []
         uses = set()
+        extra_code = []
 
         packet_derive_name = f'{to_camel_case(direction)}{to_camel_case(state)}Packet'
 
@@ -47,7 +48,7 @@ def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target
         for instruction in packet.get('instructions', []):
             if instruction['operation'] == 'write':
                 burger_instruction_to_code(
-                    instruction, generated_packet_code, mappings, obfuscated_class_name, uses)
+                    instruction, generated_packet_code, mappings, obfuscated_class_name, uses, extra_code)
             else:
                 generated_packet_code.append(f'// TODO: {instruction}')
                 continue
@@ -59,6 +60,8 @@ def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target
             generated_packet_code.insert(0, '')
         for use in uses:
             generated_packet_code.insert(0, f'use {use};')
+        for line in extra_code:
+            generated_packet_code.append(line)
 
         print(generated_packet_code)
         write_packet_file(state, to_snake_case(class_name),
@@ -207,15 +210,15 @@ def get_packets(direction: str, state: str):
     return packet_ids, packet_class_names
 
 
-def burger_instruction_to_code(instruction: dict, generated_packet_code: list[str], mappings: Mappings, obfuscated_class_name: str, uses: set):
+def burger_instruction_to_code(instruction: dict, generated_packet_code: list[str], mappings: Mappings, obfuscated_class_name: str, uses: set, extra_code: list[str]):
     field_type = instruction['type']
     obfuscated_field_name = instruction['field']
     field_name = mappings.get_field(
         obfuscated_class_name, obfuscated_field_name) or mappings.get_field(
         obfuscated_class_name.split('$')[0], obfuscated_field_name)
 
-    field_type_rs, is_var, instruction_uses = burger_type_to_rust_type(
-        field_type, field_name)
+    field_type_rs, is_var, instruction_uses, instruction_extra_code = burger_type_to_rust_type(
+        field_type, field_name, instruction, mappings, obfuscated_class_name)
 
     field_comment = None
     if '.' in obfuscated_field_name or ' ' in obfuscated_field_name or '(' in obfuscated_field_name:
@@ -241,6 +244,7 @@ def burger_instruction_to_code(instruction: dict, generated_packet_code: list[st
         line += f' // {field_comment}'
     generated_packet_code.append(line)
     uses.update(instruction_uses)
+    extra_code.extend(instruction_extra_code)
 
 
 def burger_field_to_type(field, mappings: Mappings, obfuscated_class_name: str) -> tuple[Optional[str], str, Optional[str]]:
