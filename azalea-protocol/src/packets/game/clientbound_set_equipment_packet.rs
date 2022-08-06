@@ -1,4 +1,4 @@
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf};
 use azalea_core::Slot;
 use packet_macros::ClientboundGamePacket;
 
@@ -17,13 +17,17 @@ pub struct EquipmentSlots {
 }
 
 impl McBufReadable for EquipmentSlots {
-    fn read_from(buf: &mut impl std::io::Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl std::io::Read) -> Result<Self, BufReadError> {
         let mut slots = vec![];
 
         loop {
             let equipment_byte = u8::read_from(buf)?;
-            let equipment_slot = EquipmentSlot::from_byte(equipment_byte & 127)
-                .ok_or_else(|| format!("Invalid equipment slot byte {}", equipment_byte))?;
+            let equipment_slot =
+                EquipmentSlot::from_byte(equipment_byte & 127).ok_or_else(|| {
+                    BufReadError::UnexpectedEnumVariant {
+                        id: equipment_byte.into(),
+                    }
+                })?;
             let item = Slot::read_from(buf)?;
             slots.push((equipment_slot, item));
             if equipment_byte & 128 == 0 {

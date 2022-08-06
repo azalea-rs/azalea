@@ -1,6 +1,6 @@
 //! A resource, like minecraft:stone
 
-use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use std::io::{Read, Write};
 
 #[derive(Hash, Clone, PartialEq, Eq)]
@@ -13,7 +13,7 @@ static DEFAULT_NAMESPACE: &str = "minecraft";
 // static REALMS_NAMESPACE: &str = "realms";
 
 impl ResourceLocation {
-    pub fn new(resource_string: &str) -> Result<ResourceLocation, String> {
+    pub fn new(resource_string: &str) -> Result<ResourceLocation, BufReadError> {
         let sep_byte_position_option = resource_string.chars().position(|c| c == ':');
         let (namespace, path) = if let Some(sep_byte_position) = sep_byte_position_option {
             if sep_byte_position == 0 {
@@ -46,7 +46,7 @@ impl std::fmt::Debug for ResourceLocation {
 }
 
 impl McBufReadable for ResourceLocation {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let location_string = String::read_from(buf)?;
         ResourceLocation::new(&location_string)
     }

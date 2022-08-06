@@ -1,4 +1,4 @@
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_chat::component::Component;
 use packet_macros::ClientboundGamePacket;
@@ -63,7 +63,7 @@ pub struct RemovePlayer {
 }
 
 impl McBufReadable for Action {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let id = buf.read_byte()?;
         Ok(match id {
             0 => Action::AddPlayer(Vec::<AddPlayer>::read_from(buf)?),
@@ -71,7 +71,7 @@ impl McBufReadable for Action {
             2 => Action::UpdateLatency(Vec::<UpdateLatency>::read_from(buf)?),
             3 => Action::UpdateDisplayName(Vec::<UpdateDisplayName>::read_from(buf)?),
             4 => Action::RemovePlayer(Vec::<RemovePlayer>::read_from(buf)?),
-            _ => panic!("Unknown player info action id: {}", id),
+            _ => return Err(BufReadError::UnexpectedEnumVariant { id: id.into() }),
         })
     }
 }

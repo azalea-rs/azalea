@@ -1,6 +1,6 @@
 use std::io::{Read, Write};
 
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf};
 use azalea_core::{ResourceLocation, Slot};
 use packet_macros::ClientboundGamePacket;
 
@@ -49,7 +49,7 @@ impl McBufWritable for ShapedRecipe {
     }
 }
 impl McBufReadable for ShapedRecipe {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let width = buf.read_varint()?.try_into().unwrap();
         let height = buf.read_varint()?.try_into().unwrap();
         let group = buf.read_utf()?;
@@ -129,7 +129,7 @@ impl McBufWritable for Recipe {
 }
 
 impl McBufReadable for Recipe {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let recipe_type = ResourceLocation::read_from(buf)?;
         let identifier = ResourceLocation::read_from(buf)?;
 

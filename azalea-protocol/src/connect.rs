@@ -5,12 +5,13 @@ use crate::packets::handshake::{ClientboundHandshakePacket, ServerboundHandshake
 use crate::packets::login::{ClientboundLoginPacket, ServerboundLoginPacket};
 use crate::packets::status::{ClientboundStatusPacket, ServerboundStatusPacket};
 use crate::packets::ProtocolPacket;
-use crate::read::read_packet;
+use crate::read::{read_packet, ReadPacketError};
 use crate::write::write_packet;
 use crate::ServerIpAddress;
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use std::fmt::Debug;
 use std::marker::PhantomData;
+use thiserror::Error;
 use tokio::net::TcpStream;
 
 pub struct Connection<R: ProtocolPacket, W: ProtocolPacket> {
@@ -28,7 +29,7 @@ where
     R: ProtocolPacket + Debug,
     W: ProtocolPacket + Debug,
 {
-    pub async fn read(&mut self) -> Result<R, String> {
+    pub async fn read(&mut self) -> Result<R, ReadPacketError> {
         read_packet::<R, _>(
             &mut self.stream,
             self.compression_threshold,
@@ -38,30 +39,32 @@ where
     }
 
     /// Write a packet to the server
-    pub async fn write(&mut self, packet: W) {
+    pub async fn write(&mut self, packet: W) -> std::io::Result<()> {
         write_packet(
             packet,
             &mut self.stream,
             self.compression_threshold,
             &mut self.enc_cipher,
         )
-        .await;
+        .await
     }
 }
 
+#[derive(Error, Debug)]
+pub enum ConnectionError {
+    #[error("{0}")]
+    Io(#[from] std::io::Error),
+}
+
 impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
-    pub async fn new(address: &ServerIpAddress) -> Result<Self, String> {
+    pub async fn new(address: &ServerIpAddress) -> Result<Self, ConnectionError> {
         let ip = address.ip;
         let port = address.port;
 
-        let stream = TcpStream::connect(format!("{}:{}", ip, port))
-            .await
-            .map_err(|_| "Failed to connect to server")?;
+        let stream = TcpStream::connect(format!("{}:{}", ip, port)).await?;
 
         // enable tcp_nodelay
-        stream
-            .set_nodelay(true)
-            .expect("Error enabling tcp_nodelay");
+        stream.set_nodelay(true)?;
 
         Ok(Connection {
             stream,

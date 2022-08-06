@@ -1,5 +1,5 @@
 use crate::ResourceLocation;
-use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use std::{
     io::{Read, Write},
     ops::Rem,
@@ -225,7 +225,7 @@ impl From<&EntityPos> for ChunkPos {
 }
 
 impl McBufReadable for BlockPos {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let val = u64::read_from(buf)?;
         let x = (val >> 38) as i32;
         let y = (val & 0xFFF) as i32;
@@ -235,7 +235,7 @@ impl McBufReadable for BlockPos {
 }
 
 impl McBufReadable for GlobalPos {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         Ok(GlobalPos {
             dimension: ResourceLocation::read_from(buf)?,
             pos: BlockPos::read_from(buf)?,
@@ -244,7 +244,7 @@ impl McBufReadable for GlobalPos {
 }
 
 impl McBufReadable for ChunkSectionPos {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let long = i64::read_from(buf)?;
         Ok(ChunkSectionPos {
             x: (long >> 42) as i32,

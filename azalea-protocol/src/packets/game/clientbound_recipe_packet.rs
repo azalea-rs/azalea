@@ -1,4 +1,4 @@
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::ResourceLocation;
 use packet_macros::ClientboundGamePacket;
@@ -41,7 +41,7 @@ impl McBufWritable for State {
     }
 }
 impl McBufReadable for State {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let state = buf.read_varint()?;
         Ok(match state {
             0 => State::Init,

@@ -9,7 +9,7 @@ mod write;
 
 pub use buf_macros::*;
 pub use definitions::*;
-pub use read::{read_varint_async, McBufReadable, McBufVarReadable, Readable};
+pub use read::{read_varint_async, BufReadError, McBufReadable, McBufVarReadable, Readable};
 pub use serializable_uuid::*;
 pub use write::{McBufVarWritable, McBufWritable, Writable};
 

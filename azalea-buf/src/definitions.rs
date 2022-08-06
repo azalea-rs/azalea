@@ -1,4 +1,4 @@
-use crate::{McBufReadable, McBufWritable};
+use crate::{read::BufReadError, McBufReadable, McBufWritable};
 use std::{
     io::{Read, Write},
     ops::Deref,
@@ -42,7 +42,7 @@ impl BitSet {
 }
 
 impl McBufReadable for BitSet {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         Ok(Self {
             data: Vec::<u64>::read_from(buf)?,
         })
