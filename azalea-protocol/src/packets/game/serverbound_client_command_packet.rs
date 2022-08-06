@@ -5,8 +5,9 @@ use packet_macros::ServerboundGamePacket;
 pub struct ServerboundClientCommandPacket {
     pub action: Action,
 }
-#[derive(McBuf, Copy, Debug)]
-enum Action {
+
+#[derive(McBuf, Clone, Copy, Debug)]
+pub enum Action {
     PerformRespawn = 0,
     RequestStats = 1,
 }

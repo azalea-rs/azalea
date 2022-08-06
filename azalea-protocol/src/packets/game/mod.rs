@@ -61,6 +61,8 @@ pub mod serverbound_chat_command_packet;
 pub mod serverbound_chat_packet;
 pub mod serverbound_chat_preview_packet;
 pub mod serverbound_client_command_packet;
+pub mod serverbound_client_information_packet;
+pub mod serverbound_command_suggestion_packet;
 pub mod serverbound_custom_payload_packet;
 pub mod serverbound_keep_alive_packet;
 pub mod serverbound_move_player_packet_pos;
@@ -81,6 +83,8 @@ declare_state_packets!(
         0x05: serverbound_chat_packet::ServerboundChatPacket,
         0x06: serverbound_chat_preview_packet::ServerboundChatPreviewPacket,
         0x07: serverbound_client_command_packet::ServerboundClientCommandPacket,
+        0x08: serverbound_client_information_packet::ServerboundClientInformationPacket,
+        0x09: serverbound_command_suggestion_packet::ServerboundCommandSuggestionPacket,
         0x0d: serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
         0x12: serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
         0x14: serverbound_move_player_packet_pos::ServerboundMovePlayerPacketPos,
