@@ -217,7 +217,15 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #serverbound_state_name::#name(packet) => packet.write(buf),
         });
         serverbound_read_match_contents.extend(quote! {
-            #id => #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse { source: e, packet_id: #id, packet_name: #name_litstr.to_string() })?,
+            #id => {
+                let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse { source: e, packet_id: #id, packet_name: #name_litstr.to_string() })?;
+                let mut leftover = Vec::new();
+                let _ = buf.read_to_end(&mut leftover);
+                if !leftover.is_empty() {
+                    return Err(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover });
+                }
+                data
+            },
         });
     }
     for PacketIdPair { id, module, name } in input.clientbound.packets {
@@ -232,7 +240,15 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #clientbound_state_name::#name(packet) => packet.write(buf),
         });
         clientbound_read_match_contents.extend(quote! {
-            #id => #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse { source: e, packet_id: #id, packet_name: #name_litstr.to_string() })?,
+            #id => {
+                let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse { source: e, packet_id: #id, packet_name: #name_litstr.to_string() })?;
+                let mut leftover = Vec::new();
+                let _ = buf.read_to_end(&mut leftover);
+                if !leftover.is_empty() {
+                    return Err(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover });
+                }
+                data
+            },
         });
     }
 

@@ -2,34 +2,11 @@ use std::io::{Read, Write};
 
 use super::ClientboundLoginPacket;
 use azalea_auth::game_profile::GameProfile;
-use azalea_buf::{BufReadError, McBufReadable, Readable, SerializableUuid, Writable};
+use azalea_buf::{BufReadError, McBuf, McBufReadable, Readable, SerializableUuid, Writable};
+use packet_macros::ClientboundLoginPacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, McBuf, ClientboundLoginPacket)]
 pub struct ClientboundGameProfilePacket {
     pub game_profile: GameProfile,
-}
-
-// TODO: add derives to GameProfile and have an impl McBufReadable/Writable for GameProfile
-impl ClientboundGameProfilePacket {
-    pub fn get(self) -> ClientboundLoginPacket {
-        ClientboundLoginPacket::ClientboundGameProfilePacket(self)
-    }
-
-    pub fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        for n in self.game_profile.uuid.to_int_array() {
-            buf.write_int(n as i32).unwrap();
-        }
-        buf.write_utf(self.game_profile.name.as_str()).unwrap();
-        Ok(())
-    }
-
-    pub fn read(buf: &mut impl Read) -> Result<ClientboundLoginPacket, BufReadError> {
-        let uuid = Uuid::read_from(buf)?;
-        let name = buf.read_utf_with_len(16)?;
-        Ok(ClientboundGameProfilePacket {
-            game_profile: GameProfile::new(uuid, name),
-        }
-        .get())
-    }
 }

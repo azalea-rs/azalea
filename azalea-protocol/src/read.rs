@@ -20,7 +20,7 @@ pub enum ReadPacketError {
         packet_name: String,
         source: BufReadError,
     },
-    #[error("Unknown packet id")]
+    #[error("Unknown packet id {id} in state {state_name}")]
     UnknownPacketId { state_name: String, id: u32 },
     #[error("Couldn't read packet id")]
     ReadPacketId { source: BufReadError },
@@ -34,6 +34,8 @@ pub enum ReadPacketError {
         #[from]
         source: FrameSplitterError,
     },
+    #[error("Leftover data after reading packet {packet_name}: {data:?}")]
+    LeftoverData { data: Vec<u8>, packet_name: String },
 }
 
 #[derive(Error, Debug)]
@@ -200,6 +202,8 @@ where
     // println!("decoding packet ({}ms)", start_time.elapsed().as_millis());
     let packet = packet_decoder(&mut buf.as_slice())?;
     // println!("decoded packet ({}ms)", start_time.elapsed().as_millis());
+
+    if !buf.is_empty() {}
 
     Ok(packet)
 }
