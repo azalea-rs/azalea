@@ -1,3 +1,6 @@
+from typing import Optional
+
+
 class Mappings:
     __slots__ = ('classes', 'fields', 'methods', 'field_types')
 
@@ -63,13 +66,12 @@ class Mappings:
         return self.classes[obfuscated_class_name]
 
     def get_method(self, obfuscated_class_name, obfuscated_method_name, obfuscated_signature):
-        print(self.methods[obfuscated_class_name])
         return self.methods[obfuscated_class_name][f'{obfuscated_method_name}({obfuscated_signature})']
 
-    def get_field_type(self, obfuscated_class_name, obfuscated_field_name):
+    def get_field_type(self, obfuscated_class_name, obfuscated_field_name) -> str:
         return self.field_types[obfuscated_class_name][obfuscated_field_name]
 
-    def get_class_from_deobfuscated_name(self, deobfuscated_name):
+    def get_class_from_deobfuscated_name(self, deobfuscated_name) -> Optional[str]:
         for obfuscated_name, real_name in self.classes.items():
             if real_name == deobfuscated_name:
                 return obfuscated_name

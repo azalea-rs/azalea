@@ -14,7 +14,6 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
     # extra code, like enum definitions
     extra_code = []
 
-    print(field_name)
     should_be_signed = False
 
     if burger_type == 'byte':
