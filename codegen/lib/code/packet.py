@@ -240,8 +240,11 @@ def burger_instruction_to_code(instructions: list[dict], index: int, generated_p
 
         # figure out what kind of iterator it is
         loop_instructions = next_next_instruction['instructions']
-        if len(loop_instructions) == 3:
-
+        if len(loop_instructions) == 2:
+            entry_type_rs, is_var, uses, extra_code = burger_type_to_rust_type(
+                loop_instructions[1]['type'], None, loop_instructions[1], mappings, obfuscated_class_name)
+            field_type_rs = f'Vec<{entry_type_rs}>'
+        elif len(loop_instructions) == 3:
             is_map = loop_instructions[0]['type'].startswith(
                 'Map.Entry<')
             if is_map:
@@ -267,8 +270,19 @@ def burger_instruction_to_code(instructions: list[dict], index: int, generated_p
 
                 is_var = is_key_var or is_value_var
 
-                skip = 2  # skip the next 2 instructions
+        skip = 2  # skip the next 2 instructions
 
+    # Option<T>
+    elif instruction['operation'] == 'write' and instruction['field'].endswith('.isPresent()') and next_instruction and next_instruction.get('condition', '').endswith('.isPresent()'):
+        field_obfuscated_name = instruction['field'].split('.')[0]
+        field_name = mappings.get_field(
+            obfuscated_class_name, field_obfuscated_name)
+        condition_instructions = next_instruction['instructions']
+        if len(condition_instructions) == 1:
+            condition_type_rs, is_var, uses, extra_code = burger_type_to_rust_type(
+                condition_instructions[0]['type'], None, condition_instructions[0], mappings, obfuscated_class_name)
+            field_type_rs = f'Option<{condition_type_rs}>'
+            skip = 1
     else:
         field_type = instruction['type']
         obfuscated_field_name = instruction['field']
@@ -299,7 +313,7 @@ def burger_instruction_to_code(instructions: list[dict], index: int, generated_p
 
     if is_var:
         generated_packet_code.append('#[var]')
-    line = f'pub {to_snake_case(field_name)}: {field_type_rs},'
+    line = f'pub {to_snake_case(field_name)}: {field_type_rs or "todo!()"},'
     if field_comment:
         line += f' // {field_comment}'
     generated_packet_code.append(line)
