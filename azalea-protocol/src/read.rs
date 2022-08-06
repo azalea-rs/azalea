@@ -14,20 +14,23 @@ use tokio::io::{AsyncRead, AsyncReadExt};
 
 #[derive(Error, Debug)]
 pub enum ReadPacketError {
-    #[error("Error reading packet")]
-    ParseError {
-        #[from]
+    #[error("Error reading packet {packet_name} ({packet_id}): {source}")]
+    Parse {
+        packet_id: u32,
+        packet_name: String,
         source: BufReadError,
     },
     #[error("Unknown packet id")]
     UnknownPacketId { state_name: String, id: u32 },
+    #[error("Couldn't read packet id")]
+    ReadPacketId { source: BufReadError },
     #[error("Couldn't decompress packet")]
-    DecompressError {
+    Decompress {
         #[from]
         source: DecompressionError,
     },
     #[error("Frame splitter error")]
-    FrameSplitterError {
+    FrameSplitter {
         #[from]
         source: FrameSplitterError,
     },
@@ -36,7 +39,7 @@ pub enum ReadPacketError {
 #[derive(Error, Debug)]
 pub enum FrameSplitterError {
     #[error("Couldn't read VarInt length for packet. The previous packet may have been corrupted")]
-    LengthReadError {
+    LengthRead {
         #[from]
         source: BufReadError,
     },
@@ -62,7 +65,9 @@ where
 
 fn packet_decoder<P: ProtocolPacket>(stream: &mut impl Read) -> Result<P, ReadPacketError> {
     // Packet ID
-    let packet_id = stream.read_varint()?;
+    let packet_id = stream
+        .read_varint()
+        .map_err(|e| ReadPacketError::ReadPacketId { source: e })?;
     P::read(packet_id.try_into().unwrap(), stream)
 }
 

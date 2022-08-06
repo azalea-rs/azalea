@@ -206,6 +206,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     let mut clientbound_read_match_contents = quote!();
 
     for PacketIdPair { id, module, name } in input.serverbound.packets {
+        let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
         serverbound_enum_contents.extend(quote! {
             #name(#module::#name),
         });
@@ -216,11 +217,11 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #serverbound_state_name::#name(packet) => packet.write(buf),
         });
         serverbound_read_match_contents.extend(quote! {
-            #id => #module::#name::read(buf)?,
+            #id => #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse { source: e, packet_id: #id, packet_name: #name_litstr.to_string() })?,
         });
     }
     for PacketIdPair { id, module, name } in input.clientbound.packets {
-        // let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
+        let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
         clientbound_enum_contents.extend(quote! {
             #name(#module::#name),
         });
@@ -231,7 +232,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #clientbound_state_name::#name(packet) => packet.write(buf),
         });
         clientbound_read_match_contents.extend(quote! {
-            #id => #module::#name::read(buf)?,
+            #id => #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse { source: e, packet_id: #id, packet_name: #name_litstr.to_string() })?,
         });
     }
 

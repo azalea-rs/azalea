@@ -202,23 +202,23 @@ impl Client {
                 Ok(packet) => match Self::handle(&packet, &client, &tx).await {
                     Ok(_) => {}
                     Err(e) => {
-                        println!("Error handling packet: {:?}", e);
+                        println!("Error handling packet: {}", e);
                         if IGNORE_ERRORS {
                             continue;
                         } else {
-                            panic!("Error handling packet: {:?}", e);
+                            panic!("Error handling packet: {}", e);
                         }
                     }
                 },
                 Err(e) => {
                     if IGNORE_ERRORS {
-                        println!("Error: {:?}", e);
+                        println!("{}", e);
                         match e {
-                            ReadPacketError::FrameSplitterError { .. } => panic!("Error: {:?}", e),
+                            ReadPacketError::FrameSplitter { .. } => panic!("Error: {:?}", e),
                             _ => continue,
                         }
                     } else {
-                        panic!("Error: {:?}", e);
+                        panic!("{}", e);
                     }
                 }
             };
