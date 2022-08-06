@@ -27,9 +27,12 @@ def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target
 
         generated_packet_code = []
         uses = set()
+
+        packet_derive_name = f'{to_camel_case(direction)}{to_camel_case(state)}Packet'
+
         generated_packet_code.append(
-            f'#[derive(Clone, Debug, McBuf, {to_camel_case(state)}Packet)]')
-        uses.add(f'packet_macros::{to_camel_case(state)}Packet')
+            f'#[derive(Clone, Debug, McBuf, {packet_derive_name})]')
+        uses.add(f'packet_macros::{packet_derive_name}')
         uses.add(f'azalea_buf::McBuf')
 
         obfuscated_class_name = packet['class'].split('.')[0]
@@ -206,19 +209,26 @@ def get_packets(direction: str, state: str):
 
 def burger_instruction_to_code(instruction: dict, generated_packet_code: list[str], mappings: Mappings, obfuscated_class_name: str, uses: set):
     field_type = instruction['type']
-    field_type_rs, is_var, instruction_uses = burger_type_to_rust_type(
-        field_type)
-
     obfuscated_field_name = instruction['field']
-    if '.' in obfuscated_field_name or ' ' in obfuscated_field_name or '(' in obfuscated_field_name:
-        field_type_rs, obfuscated_field_name = burger_field_to_type(
-            obfuscated_field_name)
-        if not field_type_rs:
-            generated_packet_code.append(f'// TODO: {instruction}')
-            return
     field_name = mappings.get_field(
         obfuscated_class_name, obfuscated_field_name) or mappings.get_field(
         obfuscated_class_name.split('$')[0], obfuscated_field_name)
+
+    field_type_rs, is_var, instruction_uses = burger_type_to_rust_type(
+        field_type, field_name)
+
+    field_comment = None
+    if '.' in obfuscated_field_name or ' ' in obfuscated_field_name or '(' in obfuscated_field_name:
+        field_type_rs, obfuscated_field_name, field_comment = burger_field_to_type(
+            obfuscated_field_name, mappings, obfuscated_class_name)
+        if not field_type_rs:
+            generated_packet_code.append(f'// TODO: {instruction}')
+            return
+        # try to get the field name again with the new stuff we know
+        field_name = mappings.get_field(
+            obfuscated_class_name, obfuscated_field_name) or mappings.get_field(
+            obfuscated_class_name.split('$')[0], obfuscated_field_name)
+
     if not field_name:
         generated_packet_code.append(
             f'// TODO: unknown field {instruction}')
@@ -226,17 +236,30 @@ def burger_instruction_to_code(instruction: dict, generated_packet_code: list[st
 
     if is_var:
         generated_packet_code.append('#[var]')
-    generated_packet_code.append(
-        f'pub {to_snake_case(field_name)}: {field_type_rs},')
+    line = f'pub {to_snake_case(field_name)}: {field_type_rs},'
+    if field_comment:
+        line += f' // {field_comment}'
+    generated_packet_code.append(line)
     uses.update(instruction_uses)
 
 
-def burger_field_to_type(field) -> tuple[Optional[str], str]:
+def burger_field_to_type(field, mappings: Mappings, obfuscated_class_name: str) -> tuple[Optional[str], str, Optional[str]]:
     # match `(x) ? 1 : 0`
     match = re.match(r'\((.*)\) \? 1 : 0', field)
     if match:
-        return ('bool', match.group(1))
-    return None, field
+        return ('bool', match.group(1), None)
+    match = re.match(r'^\w+\.\w+\(\)$', field)
+    if match:
+        obfuscated_first = field.split('.')[0]
+        obfuscated_second = field.split('.')[1].split('(')[0]
+        first = mappings.get_field(obfuscated_class_name, obfuscated_first)
+        first_type = mappings.get_field_type(
+            obfuscated_class_name, obfuscated_first)
+        second = mappings.get_method(
+            mappings.get_class_from_deobfuscated_name(first_type), obfuscated_second, '')
+        first_type_short = first_type.split('.')[-1]
+        return (first_type_short, obfuscated_first, f'TODO: Does {first_type_short}::{second}, may not be implemented')
+    return None, field, None
 
 
 def change_packet_ids(id_map: dict[int, int], direction: str, state: str):

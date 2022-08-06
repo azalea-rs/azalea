@@ -1,22 +1,26 @@
 
+from typing import Optional
 from lib.utils import get_dir_location
 import os
 
 # utilities specifically for codegen
 
 
-def burger_type_to_rust_type(burger_type):
+def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None):
     is_var = False
     uses = set()
 
+    should_be_unsigned = field_name is not None and (
+        field_name == 'id' or field_name.endswith('_id'))
+
     if burger_type == 'byte':
-        field_type_rs = 'i8'
+        field_type_rs = 'u8' if should_be_unsigned else 'i8'
     elif burger_type == 'short':
-        field_type_rs = 'i16'
+        field_type_rs = 'u16' if should_be_unsigned else 'i16'
     elif burger_type == 'int':
-        field_type_rs = 'i32'
+        field_type_rs = 'u32' if should_be_unsigned else 'i32'
     elif burger_type == 'long':
-        field_type_rs = 'i64'
+        field_type_rs = 'u64' if should_be_unsigned else 'i64'
     elif burger_type == 'float':
         field_type_rs = 'f32'
     elif burger_type == 'double':
@@ -24,10 +28,10 @@ def burger_type_to_rust_type(burger_type):
 
     elif burger_type == 'varint':
         is_var = True
-        field_type_rs = 'i32'
+        field_type_rs = 'u32' if should_be_unsigned else 'i32'
     elif burger_type == 'varlong':
         is_var = True
-        field_type_rs = 'i64'
+        field_type_rs = 'u64' if should_be_unsigned else 'i64'
 
     elif burger_type == 'boolean':
         field_type_rs = 'bool'

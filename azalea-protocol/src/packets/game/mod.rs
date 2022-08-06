@@ -54,6 +54,8 @@ pub mod clientbound_update_recipes_packet;
 pub mod clientbound_update_tags_packet;
 pub mod clientbound_update_view_distance_packet;
 pub mod serverbound_accept_teleportation_packet;
+pub mod serverbound_block_entity_tag_query;
+pub mod serverbound_change_difficulty_packet;
 pub mod serverbound_chat_ack_packet;
 pub mod serverbound_chat_command_packet;
 pub mod serverbound_chat_packet;
@@ -71,6 +73,8 @@ declare_state_packets!(
     GamePacket,
     Serverbound => {
         0x00: serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
+        0x01: serverbound_block_entity_tag_query::ServerboundBlockEntityTagQuery,
+        0x02: serverbound_change_difficulty_packet::ServerboundChangeDifficultyPacket,
         0x03: serverbound_chat_ack_packet::ServerboundChatAckPacket,
         0x04: serverbound_chat_command_packet::ServerboundChatCommandPacket,
         0x05: serverbound_chat_packet::ServerboundChatPacket,
