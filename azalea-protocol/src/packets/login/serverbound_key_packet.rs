@@ -1,4 +1,4 @@
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf};
 use azalea_crypto::SaltSignaturePair;
 use packet_macros::ServerboundLoginPacket;
 use std::io::{Read, Write};
@@ -18,7 +18,7 @@ pub enum NonceOrSaltSignature {
 }
 
 impl McBufReadable for NonceOrSaltSignature {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let is_nonce = bool::read_from(buf)?;
         if is_nonce {
             Ok(NonceOrSaltSignature::Nonce(Vec::<u8>::read_from(buf)?))

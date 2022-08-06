@@ -1,5 +1,6 @@
 use crate::Error;
 use crate::Tag;
+use azalea_buf::BufReadError;
 use azalea_buf::McBufReadable;
 use byteorder::{ReadBytesExt, BE};
 use flate2::read::{GzDecoder, ZlibDecoder};
@@ -139,7 +140,7 @@ impl Tag {
 }
 
 impl McBufReadable for Tag {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         match Tag::read(buf) {
             Ok(r) => Ok(r),
             // Err(e) => Err(e.to_string()),

@@ -1,4 +1,4 @@
-use azalea_buf::{McBufReadable, McBufVarReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
 use azalea_core::ParticleData;
 use packet_macros::ClientboundGamePacket;
 use std::io::{Read, Write};
@@ -20,7 +20,7 @@ pub struct ClientboundLevelParticlesPacket {
 }
 
 impl McBufReadable for ClientboundLevelParticlesPacket {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let particle_id = u32::var_read_from(buf)?;
         let override_limiter = bool::read_from(buf)?;
         let x = f64::read_from(buf)?;

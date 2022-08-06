@@ -1,4 +1,4 @@
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable, Readable};
 use packet_macros::ClientboundGamePacket;
 use std::io::{Read, Write};
@@ -20,7 +20,7 @@ pub struct PlayerAbilitiesFlags {
 }
 
 impl McBufReadable for PlayerAbilitiesFlags {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let byte = buf.read_byte()?;
         Ok(PlayerAbilitiesFlags {
             invulnerable: byte & 1 != 0,

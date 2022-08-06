@@ -1,4 +1,4 @@
-use crate::{McBufReadable, McBufWritable, Readable};
+use crate::{read::BufReadError, McBufReadable, McBufWritable, Readable};
 use std::io::{Read, Write};
 use uuid::Uuid;
 
@@ -33,7 +33,7 @@ impl SerializableUuid for Uuid {
 }
 
 impl McBufReadable for Uuid {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         Ok(Uuid::from_int_array([
             Readable::read_int(buf)? as u32,
             Readable::read_int(buf)? as u32,

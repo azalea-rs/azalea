@@ -3,7 +3,7 @@ use std::{
     io::{Read, Write},
 };
 
-use azalea_buf::{Readable, Writable};
+use azalea_buf::{BufReadError, Readable, Writable};
 
 use super::ClientboundLoginPacket;
 
@@ -22,7 +22,7 @@ impl ClientboundLoginCompressionPacket {
         Ok(())
     }
 
-    pub fn read(buf: &mut impl Read) -> Result<ClientboundLoginPacket, String> {
+    pub fn read(buf: &mut impl Read) -> Result<ClientboundLoginPacket, BufReadError> {
         let compression_threshold = buf.read_varint()?;
 
         Ok(ClientboundLoginCompressionPacket {

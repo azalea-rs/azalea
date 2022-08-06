@@ -30,7 +30,7 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
 
             pub fn read(
                 buf: &mut impl std::io::Read,
-            ) -> Result<#state, String> {
+            ) -> Result<#state, azalea_buf::BufReadError> {
                 use azalea_buf::McBufReadable;
                 Ok(Self::read_from(buf)?.get())
             }
@@ -206,6 +206,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     let mut clientbound_read_match_contents = quote!();
 
     for PacketIdPair { id, module, name } in input.serverbound.packets {
+        let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
         serverbound_enum_contents.extend(quote! {
             #name(#module::#name),
         });
@@ -216,11 +217,19 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #serverbound_state_name::#name(packet) => packet.write(buf),
         });
         serverbound_read_match_contents.extend(quote! {
-            #id => #module::#name::read(buf)?,
+            #id => {
+                let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse { source: e, packet_id: #id, packet_name: #name_litstr.to_string() })?;
+                let mut leftover = Vec::new();
+                let _ = buf.read_to_end(&mut leftover);
+                if !leftover.is_empty() {
+                    return Err(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover });
+                }
+                data
+            },
         });
     }
     for PacketIdPair { id, module, name } in input.clientbound.packets {
-        // let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
+        let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
         clientbound_enum_contents.extend(quote! {
             #name(#module::#name),
         });
@@ -231,7 +240,15 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #clientbound_state_name::#name(packet) => packet.write(buf),
         });
         clientbound_read_match_contents.extend(quote! {
-            #id => #module::#name::read(buf)?,
+            #id => {
+                let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse { source: e, packet_id: #id, packet_name: #name_litstr.to_string() })?;
+                let mut leftover = Vec::new();
+                let _ = buf.read_to_end(&mut leftover);
+                if !leftover.is_empty() {
+                    return Err(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover });
+                }
+                data
+            },
         });
     }
 
@@ -288,13 +305,13 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             fn read(
                 id: u32,
                 buf: &mut impl std::io::Read,
-            ) -> Result<#serverbound_state_name, String>
+            ) -> Result<#serverbound_state_name, crate::read::ReadPacketError>
             where
                 Self: Sized,
             {
                 Ok(match id {
                     #serverbound_read_match_contents
-                    _ => return Err(format!("Unknown Serverbound {} packet id: {}", #state_name_litstr, id)),
+                    _ => return Err(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id }),
                 })
             }
         }
@@ -319,13 +336,13 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             fn read(
                 id: u32,
                 buf: &mut impl std::io::Read,
-            ) -> Result<#clientbound_state_name, String>
+            ) -> Result<#clientbound_state_name, crate::read::ReadPacketError>
             where
                 Self: Sized,
             {
                 Ok(match id {
                     #clientbound_read_match_contents
-                    _ => return Err(format!("Unknown Clientbound {} packet id: {}", #state_name_litstr, id)),
+                    _ => return Err(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id }),
                 })
             }
         }
