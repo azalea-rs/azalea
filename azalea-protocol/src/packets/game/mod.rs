@@ -95,6 +95,9 @@ pub mod serverbound_select_trade_packet;
 pub mod serverbound_set_beacon_packet;
 pub mod serverbound_set_carried_item_packet;
 pub mod serverbound_set_command_block_packet;
+pub mod serverbound_set_command_minecart_packet;
+pub mod serverbound_set_creative_mode_slot_packet;
+pub mod serverbound_set_jigsaw_block_packet;
 
 use packet_macros::declare_state_packets;
 
@@ -143,6 +146,9 @@ declare_state_packets!(
         0x27: serverbound_set_beacon_packet::ServerboundSetBeaconPacket,
         0x28: serverbound_set_carried_item_packet::ServerboundSetCarriedItemPacket,
         0x29: serverbound_set_command_block_packet::ServerboundSetCommandBlockPacket,
+        0x2a: serverbound_set_command_minecart_packet::ServerboundSetCommandMinecartPacket,
+        0x2b: serverbound_set_creative_mode_slot_packet::ServerboundSetCreativeModeSlotPacket,
+        0x2c: serverbound_set_jigsaw_block_packet::ServerboundSetJigsawBlockPacket,
     },
     Clientbound => {
         0x00: clientbound_add_entity_packet::ClientboundAddEntityPacket,

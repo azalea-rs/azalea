@@ -24,6 +24,8 @@ pub enum BufReadError {
     InvalidUtf8,
     #[error("Unexpected enum variant {id}")]
     UnexpectedEnumVariant { id: i32 },
+    #[error("Unexpected enum variant {id}")]
+    UnexpectedStringEnumVariant { id: String },
     #[error("{0}")]
     Custom(String),
     #[cfg(feature = "serde_json")]
