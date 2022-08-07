@@ -71,6 +71,7 @@ class Mappings:
         return self.classes[obfuscated_class_name]
 
     def get_method(self, obfuscated_class_name, obfuscated_method_name, obfuscated_signature):
+        print(obfuscated_class_name, self.methods[obfuscated_class_name])
         return self.methods[obfuscated_class_name][f'{obfuscated_method_name}({obfuscated_signature})']
 
     def get_field_type(self, obfuscated_class_name, obfuscated_field_name) -> str:

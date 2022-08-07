@@ -399,3 +399,16 @@ impl<T: McBufVarReadable> McBufVarReadable for Option<T> {
         })
     }
 }
+
+// [String; 4]
+impl<T: McBufReadable, const N: usize> McBufReadable for [T; N] {
+    default fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+        let mut contents = Vec::with_capacity(N);
+        for _ in 0..N {
+            contents.push(T::read_from(buf)?);
+        }
+        contents.try_into().map_err(|_| {
+            panic!("Panic is not possible since the Vec is the same size as the array")
+        })
+    }
+}

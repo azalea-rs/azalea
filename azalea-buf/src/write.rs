@@ -296,3 +296,13 @@ impl<T: McBufVarWritable> McBufVarWritable for Option<T> {
         Ok(())
     }
 }
+
+// [T; N]
+impl<T: McBufWritable, const N: usize> McBufWritable for [T; N] {
+    default fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        for i in self {
+            i.write_into(buf)?;
+        }
+        Ok(())
+    }
+}

@@ -340,8 +340,12 @@ def burger_field_to_type(field, mappings: Mappings, obfuscated_class_name: str) 
         first_obfuscated_class_name: Optional[str] = mappings.get_class_from_deobfuscated_name(
             first_type)
         if first_obfuscated_class_name:
-            second = mappings.get_method(
-                first_obfuscated_class_name, obfuscated_second, '')
+            try:
+                second = mappings.get_method(
+                    first_obfuscated_class_name, obfuscated_second, '')
+            except:
+                # if this happens then the field is probably from a super class
+                second = obfuscated_second
         else:
             second = obfuscated_second
         first_type_short = first_type.split('.')[-1]

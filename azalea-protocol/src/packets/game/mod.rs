@@ -98,6 +98,8 @@ pub mod serverbound_set_command_block_packet;
 pub mod serverbound_set_command_minecart_packet;
 pub mod serverbound_set_creative_mode_slot_packet;
 pub mod serverbound_set_jigsaw_block_packet;
+pub mod serverbound_set_structure_block_packet;
+pub mod serverbound_sign_update_packet;
 
 use packet_macros::declare_state_packets;
 
@@ -149,6 +151,8 @@ declare_state_packets!(
         0x2a: serverbound_set_command_minecart_packet::ServerboundSetCommandMinecartPacket,
         0x2b: serverbound_set_creative_mode_slot_packet::ServerboundSetCreativeModeSlotPacket,
         0x2c: serverbound_set_jigsaw_block_packet::ServerboundSetJigsawBlockPacket,
+        0x2d: serverbound_set_structure_block_packet::ServerboundSetStructureBlockPacket,
+        0x2e: serverbound_sign_update_packet::ServerboundSignUpdatePacket,
     },
     Clientbound => {
         0x00: clientbound_add_entity_packet::ClientboundAddEntityPacket,
