@@ -386,3 +386,14 @@ impl<T: McBufReadable> McBufReadable for Option<T> {
         })
     }
 }
+
+impl<T: McBufVarReadable> McBufVarReadable for Option<T> {
+    default fn var_read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+        let present = buf.read_boolean()?;
+        Ok(if present {
+            Some(T::var_read_from(buf)?)
+        } else {
+            None
+        })
+    }
+}

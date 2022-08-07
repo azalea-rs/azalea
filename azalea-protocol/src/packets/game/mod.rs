@@ -82,6 +82,19 @@ pub mod serverbound_paddle_boat_packet;
 pub mod serverbound_pick_item_packet;
 pub mod serverbound_place_recipe_packet;
 pub mod serverbound_player_abilities_packet;
+pub mod serverbound_player_action_packet;
+pub mod serverbound_player_command_packet;
+pub mod serverbound_player_input_packet;
+pub mod serverbound_pong_packet;
+pub mod serverbound_recipe_book_change_settings_packet;
+pub mod serverbound_recipe_book_seen_recipe_packet;
+pub mod serverbound_rename_item_packet;
+pub mod serverbound_resource_pack_packet;
+pub mod serverbound_seen_advancements_packet;
+pub mod serverbound_select_trade_packet;
+pub mod serverbound_set_beacon_packet;
+pub mod serverbound_set_carried_item_packet;
+pub mod serverbound_set_command_block_packet;
 
 use packet_macros::declare_state_packets;
 
@@ -117,6 +130,19 @@ declare_state_packets!(
         0x1a: serverbound_pick_item_packet::ServerboundPickItemPacket,
         0x1b: serverbound_place_recipe_packet::ServerboundPlaceRecipePacket,
         0x1c: serverbound_player_abilities_packet::ServerboundPlayerAbilitiesPacket,
+        0x1d: serverbound_player_action_packet::ServerboundPlayerActionPacket,
+        0x1e: serverbound_player_command_packet::ServerboundPlayerCommandPacket,
+        0x1f: serverbound_player_input_packet::ServerboundPlayerInputPacket,
+        0x20: serverbound_pong_packet::ServerboundPongPacket,
+        0x21: serverbound_recipe_book_change_settings_packet::ServerboundRecipeBookChangeSettingsPacket,
+        0x22: serverbound_recipe_book_seen_recipe_packet::ServerboundRecipeBookSeenRecipePacket,
+        0x23: serverbound_rename_item_packet::ServerboundRenameItemPacket,
+        0x24: serverbound_resource_pack_packet::ServerboundResourcePackPacket,
+        0x25: serverbound_seen_advancements_packet::ServerboundSeenAdvancementsPacket,
+        0x26: serverbound_select_trade_packet::ServerboundSelectTradePacket,
+        0x27: serverbound_set_beacon_packet::ServerboundSetBeaconPacket,
+        0x28: serverbound_set_carried_item_packet::ServerboundSetCarriedItemPacket,
+        0x29: serverbound_set_command_block_packet::ServerboundSetCommandBlockPacket,
     },
     Clientbound => {
         0x00: clientbound_add_entity_packet::ClientboundAddEntityPacket,

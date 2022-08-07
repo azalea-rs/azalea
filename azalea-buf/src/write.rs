@@ -284,3 +284,15 @@ impl<T: McBufWritable> McBufWritable for Option<T> {
         Ok(())
     }
 }
+
+impl<T: McBufVarWritable> McBufVarWritable for Option<T> {
+    default fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        if let Some(s) = self {
+            buf.write_boolean(true)?;
+            s.var_write_into(buf)?;
+        } else {
+            buf.write_boolean(false)?;
+        };
+        Ok(())
+    }
+}
