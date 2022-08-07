@@ -70,11 +70,18 @@ pub mod serverbound_custom_payload_packet;
 pub mod serverbound_edit_book_packet;
 pub mod serverbound_entity_tag_query;
 pub mod serverbound_interact_packet;
+pub mod serverbound_jigsaw_generate_packet;
 pub mod serverbound_keep_alive_packet;
+pub mod serverbound_lock_difficulty_packet;
 pub mod serverbound_move_player_packet_pos;
 pub mod serverbound_move_player_packet_pos_rot;
 pub mod serverbound_move_player_packet_rot;
 pub mod serverbound_move_player_packet_status_only;
+pub mod serverbound_move_vehicle_packet;
+pub mod serverbound_paddle_boat_packet;
+pub mod serverbound_pick_item_packet;
+pub mod serverbound_place_recipe_packet;
+pub mod serverbound_player_abilities_packet;
 
 use packet_macros::declare_state_packets;
 
@@ -98,11 +105,18 @@ declare_state_packets!(
         0x0e: serverbound_edit_book_packet::ServerboundEditBookPacket,
         0x0f: serverbound_entity_tag_query::ServerboundEntityTagQuery,
         0x10: serverbound_interact_packet::ServerboundInteractPacket,
+        0x11: serverbound_jigsaw_generate_packet::ServerboundJigsawGeneratePacket,
         0x12: serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
+        0x13: serverbound_lock_difficulty_packet::ServerboundLockDifficultyPacket,
         0x14: serverbound_move_player_packet_pos::ServerboundMovePlayerPacketPos,
         0x15: serverbound_move_player_packet_pos_rot::ServerboundMovePlayerPacketPosRot,
         0x16: serverbound_move_player_packet_rot::ServerboundMovePlayerPacketRot,
         0x17: serverbound_move_player_packet_status_only::ServerboundMovePlayerPacketStatusOnly,
+        0x18: serverbound_move_vehicle_packet::ServerboundMoveVehiclePacket,
+        0x19: serverbound_paddle_boat_packet::ServerboundPaddleBoatPacket,
+        0x1a: serverbound_pick_item_packet::ServerboundPickItemPacket,
+        0x1b: serverbound_place_recipe_packet::ServerboundPlaceRecipePacket,
+        0x1c: serverbound_player_abilities_packet::ServerboundPlayerAbilitiesPacket,
     },
     Clientbound => {
         0x00: clientbound_add_entity_packet::ClientboundAddEntityPacket,
