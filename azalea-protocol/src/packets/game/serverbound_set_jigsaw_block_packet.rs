@@ -35,9 +35,10 @@ impl McBufReadable for JointType {
 
 impl McBufWritable for JointType {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        Ok(match self {
+        match self {
             JointType::Rollable => "rollable".to_string().write_into(buf)?,
             JointType::Aligned => "aligned".to_string().write_into(buf)?,
-        })
+        };
+        Ok(())
     }
 }

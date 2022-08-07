@@ -123,7 +123,6 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                             }
                         }
                     }
-                    
                     _ => panic!(
                         "Error writing field {}: {}",
                         field_name.clone().unwrap(),

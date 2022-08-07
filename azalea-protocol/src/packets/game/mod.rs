@@ -100,6 +100,10 @@ pub mod serverbound_set_creative_mode_slot_packet;
 pub mod serverbound_set_jigsaw_block_packet;
 pub mod serverbound_set_structure_block_packet;
 pub mod serverbound_sign_update_packet;
+pub mod serverbound_swing_packet;
+pub mod serverbound_teleport_to_entity_packet;
+pub mod serverbound_use_item_on_packet;
+pub mod serverbound_use_item_packet;
 
 use packet_macros::declare_state_packets;
 
@@ -153,6 +157,10 @@ declare_state_packets!(
         0x2c: serverbound_set_jigsaw_block_packet::ServerboundSetJigsawBlockPacket,
         0x2d: serverbound_set_structure_block_packet::ServerboundSetStructureBlockPacket,
         0x2e: serverbound_sign_update_packet::ServerboundSignUpdatePacket,
+        0x2f: serverbound_swing_packet::ServerboundSwingPacket,
+        0x30: serverbound_teleport_to_entity_packet::ServerboundTeleportToEntityPacket,
+        0x31: serverbound_use_item_on_packet::ServerboundUseItemOnPacket,
+        0x32: serverbound_use_item_packet::ServerboundUseItemPacket,
     },
     Clientbound => {
         0x00: clientbound_add_entity_packet::ClientboundAddEntityPacket,
