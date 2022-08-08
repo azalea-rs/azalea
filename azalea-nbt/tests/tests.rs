@@ -1,6 +1,6 @@
+use ahash::AHashMap;
 use azalea_nbt::Tag;
 use std::{
-    collections::AHashMap,
     fs::File,
     io::{Cursor, Read},
 };

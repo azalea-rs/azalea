@@ -10,10 +10,8 @@ use std::io::{BufRead, Read};
 fn read_string(stream: &mut impl Read) -> Result<String, Error> {
     let length = stream.read_u16::<BE>()?;
 
-    let mut buf = Vec::with_capacity(length as usize);
-    for _ in 0..length {
-        buf.push(stream.read_u8()?);
-    }
+    let mut buf = vec![0; length as usize];
+    stream.read_exact(&mut buf)?;
     Ok(String::from_utf8(buf)?)
 }
 
