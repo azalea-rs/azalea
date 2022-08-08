@@ -33,21 +33,21 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
         })
     });
 
-    // group.bench_function("Encode", |b| {
-    //     b.iter(|| {
-    //         nbt.write(&mut io::sink()).unwrap();
-    //     })
-    // });
+    group.bench_function("Encode", |b| {
+        b.iter(|| {
+            nbt.write(&mut io::sink()).unwrap();
+        })
+    });
     group.finish();
 }
 
 fn bench(c: &mut Criterion) {
-    // bench_serialize("tests/bigtest.nbt", c);
+    bench_serialize("tests/bigtest.nbt", c);
     bench_serialize("tests/simple_player.dat", c);
-    // bench_serialize("tests/complex_player.dat", c);
-    // bench_serialize("tests/level.dat", c);
-    // bench_serialize("tests/stringtest.nbt", c);
-    // bench_serialize("tests/inttest.nbt", c);
+    bench_serialize("tests/complex_player.dat", c);
+    bench_serialize("tests/level.dat", c);
+    bench_serialize("tests/stringtest.nbt", c);
+    bench_serialize("tests/inttest.nbt", c);
 }
 
 criterion_group!(benches, bench);
