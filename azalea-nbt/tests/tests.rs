@@ -1,6 +1,6 @@
 use azalea_nbt::Tag;
 use std::{
-    collections::HashMap,
+    collections::AHashMap,
     fs::File,
     io::{Cursor, Read},
 };
@@ -12,9 +12,9 @@ fn test_decode_hello_world() {
     let tag = Tag::read(&mut file).unwrap();
     assert_eq!(
         tag,
-        Tag::Compound(HashMap::from_iter(vec![(
+        Tag::Compound(AHashMap::from_iter(vec![(
             "hello world".to_string(),
-            Tag::Compound(HashMap::from_iter(vec![(
+            Tag::Compound(AHashMap::from_iter(vec![(
                 "name".to_string(),
                 Tag::String("Bananrama".to_string()),
             )]))
@@ -58,7 +58,7 @@ fn test_bigtest() {
 
 #[test]
 fn test_stringtest() {
-    let correct_tag = Tag::Compound(HashMap::from_iter(vec![(
+    let correct_tag = Tag::Compound(AHashMap::from_iter(vec![(
         "😃".to_string(),
         Tag::List(vec![
             Tag::String("asdfkghasfjgihsdfogjsndfg".to_string()),
