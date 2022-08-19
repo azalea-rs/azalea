@@ -11,6 +11,7 @@ pub mod clientbound_block_update_packet;
 pub mod clientbound_boss_event_packet;
 pub mod clientbound_change_difficulty_packet;
 pub mod clientbound_chat_preview_packet;
+pub mod clientbound_command_suggestions_packet;
 pub mod clientbound_container_set_content_packet;
 pub mod clientbound_custom_chat_completions_packet;
 pub mod clientbound_custom_payload_packet;
@@ -182,6 +183,7 @@ declare_state_packets!(
         0x0a: clientbound_boss_event_packet::ClientboundBossEventPacket,
         0x0b: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
         0x0c: clientbound_chat_preview_packet::ClientboundChatPreviewPacket,
+        0x0e: clientbound_command_suggestions_packet::ClientboundCommandSuggestionsPacket,
         0x0f: clientbound_declare_commands_packet::ClientboundDeclareCommandsPacket,
         0x11: clientbound_container_set_content_packet::ClientboundContainerSetContentPacket,
         0x15: clientbound_custom_chat_completions_packet::ClientboundCustomChatCompletionsPacket,
