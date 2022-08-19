@@ -283,6 +283,19 @@ impl<K: McBufReadable + Send + Eq + Hash, V: McBufReadable + Send> McBufReadable
     }
 }
 
+impl<K: McBufReadable + Send + Eq + Hash, V: McBufVarReadable + Send> McBufVarReadable
+    for HashMap<K, V>
+{
+    default fn var_read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+        let length = buf.read_varint()? as usize;
+        let mut contents = HashMap::with_capacity(length);
+        for _ in 0..length {
+            contents.insert(K::read_from(buf)?, V::var_read_from(buf)?);
+        }
+        Ok(contents)
+    }
+}
+
 impl McBufReadable for Vec<u8> {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         buf.read_byte_array()

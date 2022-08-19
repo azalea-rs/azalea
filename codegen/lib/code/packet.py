@@ -268,7 +268,8 @@ def burger_instruction_to_code(instructions: list[dict], index: int, generated_p
                 field_type_rs = f'HashMap<{key_type_rs}, {value_type_rs}>'
                 uses.add('std::collections::HashMap')
 
-                is_var = is_key_var or is_value_var
+                # only the key is var since the value can be made var in other ways
+                is_var = is_key_var
 
         skip = 2  # skip the next 2 instructions
 

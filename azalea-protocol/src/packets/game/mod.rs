@@ -1,6 +1,8 @@
 pub mod clientbound_add_entity_packet;
+pub mod clientbound_add_experience_orb_packet;
 pub mod clientbound_add_player_packet;
 pub mod clientbound_animate_packet;
+pub mod clientbound_award_stats_packet;
 pub mod clientbound_block_changed_ack_packet;
 pub mod clientbound_block_update_packet;
 pub mod clientbound_change_difficulty_packet;
@@ -164,8 +166,10 @@ declare_state_packets!(
     },
     Clientbound => {
         0x00: clientbound_add_entity_packet::ClientboundAddEntityPacket,
+        0x01: clientbound_add_experience_orb_packet::ClientboundAddExperienceOrbPacket,
         0x02: clientbound_add_player_packet::ClientboundAddPlayerPacket,
         0x03: clientbound_animate_packet::ClientboundAnimatePacket,
+        0x04: clientbound_award_stats_packet::ClientboundAwardStatsPacket,
         0x05: clientbound_block_changed_ack_packet::ClientboundBlockChangedAckPacket,
         0x09: clientbound_block_update_packet::ClientboundBlockUpdatePacket,
         0x0b: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
