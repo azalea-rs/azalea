@@ -4,6 +4,9 @@ pub mod clientbound_add_player_packet;
 pub mod clientbound_animate_packet;
 pub mod clientbound_award_stats_packet;
 pub mod clientbound_block_changed_ack_packet;
+pub mod clientbound_block_destruction_packet;
+pub mod clientbound_block_entity_data_packet;
+pub mod clientbound_block_event_packet;
 pub mod clientbound_block_update_packet;
 pub mod clientbound_change_difficulty_packet;
 pub mod clientbound_chat_preview_packet;
@@ -171,6 +174,9 @@ declare_state_packets!(
         0x03: clientbound_animate_packet::ClientboundAnimatePacket,
         0x04: clientbound_award_stats_packet::ClientboundAwardStatsPacket,
         0x05: clientbound_block_changed_ack_packet::ClientboundBlockChangedAckPacket,
+        0x06: clientbound_block_destruction_packet::ClientboundBlockDestructionPacket,
+        0x07: clientbound_block_entity_data_packet::ClientboundBlockEntityDataPacket,
+        0x08: clientbound_block_event_packet::ClientboundBlockEventPacket,
         0x09: clientbound_block_update_packet::ClientboundBlockUpdatePacket,
         0x0b: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
         0x0c: clientbound_chat_preview_packet::ClientboundChatPreviewPacket,
