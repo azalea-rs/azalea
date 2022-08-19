@@ -81,7 +81,7 @@ impl GameType {
 impl McBufReadable for GameType {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let id = u8::read_from(buf)?;
-        GameType::from_id(id).ok_or_else(|| BufReadError::UnexpectedEnumVariant { id: id as i32 })
+        GameType::from_id(id).ok_or(BufReadError::UnexpectedEnumVariant { id: id as i32 })
     }
 }
 
@@ -111,7 +111,7 @@ impl McBufReadable for OptionalGameType {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let id = i8::read_from(buf)?;
         GameType::from_optional_id(id)
-            .ok_or_else(|| BufReadError::UnexpectedEnumVariant { id: id as i32 })
+            .ok_or(BufReadError::UnexpectedEnumVariant { id: id as i32 })
     }
 }
 
