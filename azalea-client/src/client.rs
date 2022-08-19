@@ -339,7 +339,7 @@ impl Client {
             ClientboundGamePacket::ClientboundChangeDifficultyPacket(p) => {
                 println!("Got difficulty packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundDeclareCommandsPacket(_p) => {
+            ClientboundGamePacket::ClientboundCommandsPacket(_p) => {
                 println!("Got declare commands packet");
             }
             ClientboundGamePacket::ClientboundPlayerAbilitiesPacket(p) => {

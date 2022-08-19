@@ -1,10 +1,9 @@
-use std::io::{Read, Write};
-
 use azalea_brigadier::context::StringRange;
 use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
 use packet_macros::ClientboundGamePacket;
+use std::io::{Read, Write};
 
 #[derive(Clone, Debug, ClientboundGamePacket)]
 pub struct ClientboundCommandSuggestionsPacket {
