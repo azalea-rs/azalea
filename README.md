@@ -28,5 +28,14 @@ I wanted a fun excuse to do something cool with Rust, and I also felt like I cou
 
 ## Non-goals
 
-- Supporting many versions of Minecraft (but there might be branches made in the future for some popular versions).
+- Supporting several versions of Minecraft on the same branch.
+- Bedrock edition.
 - Graphics.
+
+
+## Stretch goals
+
+*I might not do these, but I still keep them in mind when writing the code.*
+
+- Server implementation.
+- Having branches for several popular Minecraft versions.
