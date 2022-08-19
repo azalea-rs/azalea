@@ -8,6 +8,7 @@ pub mod clientbound_block_destruction_packet;
 pub mod clientbound_block_entity_data_packet;
 pub mod clientbound_block_event_packet;
 pub mod clientbound_block_update_packet;
+pub mod clientbound_boss_event_packet;
 pub mod clientbound_change_difficulty_packet;
 pub mod clientbound_chat_preview_packet;
 pub mod clientbound_container_set_content_packet;
@@ -178,6 +179,7 @@ declare_state_packets!(
         0x07: clientbound_block_entity_data_packet::ClientboundBlockEntityDataPacket,
         0x08: clientbound_block_event_packet::ClientboundBlockEventPacket,
         0x09: clientbound_block_update_packet::ClientboundBlockUpdatePacket,
+        0x0a: clientbound_boss_event_packet::ClientboundBossEventPacket,
         0x0b: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
         0x0c: clientbound_chat_preview_packet::ClientboundChatPreviewPacket,
         0x0f: clientbound_declare_commands_packet::ClientboundDeclareCommandsPacket,
