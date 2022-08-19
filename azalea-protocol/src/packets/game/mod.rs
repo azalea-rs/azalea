@@ -14,6 +14,9 @@ pub mod clientbound_chat_preview_packet;
 pub mod clientbound_command_suggestions_packet;
 pub mod clientbound_commands_packet;
 pub mod clientbound_container_set_content_packet;
+pub mod clientbound_container_set_data_packet;
+pub mod clientbound_container_set_slot_packet;
+pub mod clientbound_cooldown_packet;
 pub mod clientbound_custom_chat_completions_packet;
 pub mod clientbound_custom_payload_packet;
 pub mod clientbound_delete_chat_packet;
@@ -186,6 +189,9 @@ declare_state_packets!(
         0x0e: clientbound_command_suggestions_packet::ClientboundCommandSuggestionsPacket,
         0x0f: clientbound_commands_packet::ClientboundCommandsPacket,
         0x11: clientbound_container_set_content_packet::ClientboundContainerSetContentPacket,
+        0x12: clientbound_container_set_data_packet::ClientboundContainerSetDataPacket,
+        0x13: clientbound_container_set_slot_packet::ClientboundContainerSetSlotPacket,
+        0x14: clientbound_cooldown_packet::ClientboundCooldownPacket,
         0x15: clientbound_custom_chat_completions_packet::ClientboundCustomChatCompletionsPacket,
         0x16: clientbound_custom_payload_packet::ClientboundCustomPayloadPacket,
         0x18: clientbound_delete_chat_packet::ClientboundDeleteChatPacket,
