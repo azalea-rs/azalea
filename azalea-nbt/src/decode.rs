@@ -1,21 +1,17 @@
 use crate::Error;
 use crate::Tag;
-use azalea_buf::BufReadError;
-use azalea_buf::McBufReadable;
+use ahash::AHashMap;
+use azalea_buf::{BufReadError, McBufReadable};
 use byteorder::{ReadBytesExt, BE};
 use flate2::read::{GzDecoder, ZlibDecoder};
-use std::collections::HashMap;
-use std::io::BufRead;
-use std::io::Read;
+use std::io::{BufRead, Read};
 
 #[inline]
 fn read_string(stream: &mut impl Read) -> Result<String, Error> {
     let length = stream.read_u16::<BE>()?;
 
-    let mut buf = Vec::with_capacity(length as usize);
-    for _ in 0..length {
-        buf.push(stream.read_u8()?);
-    }
+    let mut buf = vec![0; length as usize];
+    stream.read_exact(&mut buf)?;
     Ok(String::from_utf8(buf)?)
 }
 
@@ -74,7 +70,7 @@ impl Tag {
             // Effectively a list of a named tags. Order is not guaranteed.
             10 => {
                 // we default to capacity 4 because it'll probably not be empty
-                let mut map = HashMap::with_capacity(4);
+                let mut map = AHashMap::with_capacity(4);
                 loop {
                     let tag_id = stream.read_u8().unwrap_or(0);
                     if tag_id == 0 {
@@ -122,7 +118,7 @@ impl Tag {
         }
         let name = read_string(stream)?;
         let tag = Tag::read_known(stream, tag_id)?;
-        let mut map = HashMap::with_capacity(1);
+        let mut map = AHashMap::with_capacity(1);
         map.insert(name, tag);
 
         Ok(Tag::Compound(map))
