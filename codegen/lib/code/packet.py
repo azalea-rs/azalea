@@ -287,6 +287,10 @@ def burger_instruction_to_code(instructions: list[dict], index: int, generated_p
     else:
         field_type = instruction['type']
         obfuscated_field_name = instruction['field']
+
+        if obfuscated_field_name.startswith('(float)'):
+            obfuscated_field_name = obfuscated_field_name[len('(float)'):]
+
         field_name = mappings.get_field(
             obfuscated_class_name, obfuscated_field_name) or mappings.get_field(
             obfuscated_class_name.split('$')[0], obfuscated_field_name)

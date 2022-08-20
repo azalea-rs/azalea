@@ -19,10 +19,12 @@ pub mod clientbound_container_set_slot_packet;
 pub mod clientbound_cooldown_packet;
 pub mod clientbound_custom_chat_completions_packet;
 pub mod clientbound_custom_payload_packet;
+pub mod clientbound_custom_sound_packet;
 pub mod clientbound_delete_chat_packet;
 pub mod clientbound_disconnect_packet;
 pub mod clientbound_entity_event_packet;
 pub mod clientbound_entity_velocity_packet;
+pub mod clientbound_explode_packet;
 pub mod clientbound_game_event_packet;
 pub mod clientbound_initialize_border_packet;
 pub mod clientbound_keep_alive_packet;
@@ -194,9 +196,11 @@ declare_state_packets!(
         0x14: clientbound_cooldown_packet::ClientboundCooldownPacket,
         0x15: clientbound_custom_chat_completions_packet::ClientboundCustomChatCompletionsPacket,
         0x16: clientbound_custom_payload_packet::ClientboundCustomPayloadPacket,
+        0x17: clientbound_custom_sound_packet::ClientboundCustomSoundPacket,
         0x18: clientbound_delete_chat_packet::ClientboundDeleteChatPacket,
         0x19: clientbound_disconnect_packet::ClientboundDisconnectPacket,
         0x1a: clientbound_entity_event_packet::ClientboundEntityEventPacket,
+        0x1b: clientbound_explode_packet::ClientboundExplodePacket,
         0x1d: clientbound_game_event_packet::ClientboundGameEventPacket,
         0x1f: clientbound_initialize_border_packet::ClientboundInitializeBorderPacket,
         0x20: clientbound_keep_alive_packet::ClientboundKeepAlivePacket,
