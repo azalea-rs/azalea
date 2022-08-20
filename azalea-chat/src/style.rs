@@ -207,15 +207,15 @@ impl ChatFormatting {
     }
 
     pub fn is_format(&self) -> bool {
-        match self {
-            ChatFormatting::Obfuscated => true,
-            ChatFormatting::Strikethrough => true,
-            ChatFormatting::Bold => true,
-            ChatFormatting::Underline => true,
-            ChatFormatting::Italic => true,
-            ChatFormatting::Reset => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            ChatFormatting::Obfuscated
+                | ChatFormatting::Strikethrough
+                | ChatFormatting::Bold
+                | ChatFormatting::Underline
+                | ChatFormatting::Italic
+                | ChatFormatting::Reset
+        )
     }
 
     pub fn color(&self) -> Option<u32> {
