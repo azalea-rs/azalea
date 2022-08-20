@@ -25,7 +25,9 @@ pub mod clientbound_disconnect_packet;
 pub mod clientbound_entity_event_packet;
 pub mod clientbound_entity_velocity_packet;
 pub mod clientbound_explode_packet;
+pub mod clientbound_forget_level_chunk_packet;
 pub mod clientbound_game_event_packet;
+pub mod clientbound_horse_screen_open_packet;
 pub mod clientbound_initialize_border_packet;
 pub mod clientbound_keep_alive_packet;
 pub mod clientbound_level_chunk_with_light_packet;
@@ -33,6 +35,7 @@ pub mod clientbound_level_event_packet;
 pub mod clientbound_level_particles_packet;
 pub mod clientbound_light_update_packet;
 pub mod clientbound_login_packet;
+pub mod clientbound_map_item_data_packet;
 pub mod clientbound_move_entity_pos_packet;
 pub mod clientbound_move_entity_posrot_packet;
 pub mod clientbound_move_entity_rot_packet;
@@ -201,7 +204,9 @@ declare_state_packets!(
         0x19: clientbound_disconnect_packet::ClientboundDisconnectPacket,
         0x1a: clientbound_entity_event_packet::ClientboundEntityEventPacket,
         0x1b: clientbound_explode_packet::ClientboundExplodePacket,
+        0x1c: clientbound_forget_level_chunk_packet::ClientboundForgetLevelChunkPacket,
         0x1d: clientbound_game_event_packet::ClientboundGameEventPacket,
+        0x1e: clientbound_horse_screen_open_packet::ClientboundHorseScreenOpenPacket,
         0x1f: clientbound_initialize_border_packet::ClientboundInitializeBorderPacket,
         0x20: clientbound_keep_alive_packet::ClientboundKeepAlivePacket,
         0x21: clientbound_level_chunk_with_light_packet::ClientboundLevelChunkWithLightPacket,
@@ -209,6 +214,7 @@ declare_state_packets!(
         0x23: clientbound_level_particles_packet::ClientboundLevelParticlesPacket,
         0x24: clientbound_light_update_packet::ClientboundLightUpdatePacket,
         0x25: clientbound_login_packet::ClientboundLoginPacket,
+        0x26: clientbound_map_item_data_packet::ClientboundMapItemDataPacket,
         0x28: clientbound_move_entity_pos_packet::ClientboundMoveEntityPosPacket,
         0x29: clientbound_move_entity_posrot_packet::ClientboundMoveEntityPosrotPacket,
         0x2a: clientbound_move_entity_rot_packet::ClientboundMoveEntityRotPacket,

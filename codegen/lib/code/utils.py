@@ -15,6 +15,9 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
     extra_code = []
 
     should_be_signed = False
+    if field_name in {'x', 'y', 'z'}:
+        # coordinates are signed
+        should_be_signed = True
 
     if burger_type == 'byte':
         field_type_rs = 'i8' if should_be_signed else 'u8'
