@@ -40,6 +40,12 @@ pub mod clientbound_merchant_offers_packet;
 pub mod clientbound_move_entity_pos_packet;
 pub mod clientbound_move_entity_pos_rot_packet;
 pub mod clientbound_move_entity_rot_packet;
+pub mod clientbound_move_vehicle_packet;
+pub mod clientbound_open_book_packet;
+pub mod clientbound_open_screen_packet;
+pub mod clientbound_open_sign_editor_packet;
+pub mod clientbound_ping_packet;
+pub mod clientbound_place_ghost_recipe_packet;
 pub mod clientbound_player_abilities_packet;
 pub mod clientbound_player_chat_header_packet;
 pub mod clientbound_player_chat_packet;
@@ -220,6 +226,12 @@ declare_state_packets!(
         0x28: clientbound_move_entity_pos_packet::ClientboundMoveEntityPosPacket,
         0x29: clientbound_move_entity_pos_rot_packet::ClientboundMoveEntityPosRotPacket,
         0x2a: clientbound_move_entity_rot_packet::ClientboundMoveEntityRotPacket,
+        0x2b: clientbound_move_vehicle_packet::ClientboundMoveVehiclePacket,
+        0x2c: clientbound_open_book_packet::ClientboundOpenBookPacket,
+        0x2d: clientbound_open_screen_packet::ClientboundOpenScreenPacket,
+        0x2e: clientbound_open_sign_editor_packet::ClientboundOpenSignEditorPacket,
+        0x2f: clientbound_ping_packet::ClientboundPingPacket,
+        0x30: clientbound_place_ghost_recipe_packet::ClientboundPlaceGhostRecipePacket,
         0x31: clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
         0x32: clientbound_player_chat_header_packet::ClientboundPlayerChatHeaderPacket,
         0x33: clientbound_player_chat_packet::ClientboundPlayerChatPacket,

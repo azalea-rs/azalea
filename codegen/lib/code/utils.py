@@ -1,7 +1,6 @@
 
+from lib.utils import to_camel_case, to_snake_case, get_dir_location
 from lib.mappings import Mappings
-from lib.utils import to_camel_case
-from lib.utils import get_dir_location
 from typing import Optional
 import os
 
@@ -15,7 +14,7 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
     extra_code = []
 
     should_be_signed = False
-    if field_name in {'x', 'y', 'z', 'xa', 'ya', 'za'}:
+    if field_name and any(map(lambda w: w in {'x', 'y', 'z', 'xa', 'ya', 'za'}, to_snake_case(field_name).split('_'))):
         # coordinates are signed
         should_be_signed = True
 
