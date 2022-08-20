@@ -1,7 +1,7 @@
 use std::io::{Read, Write};
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use azalea_chat::component::Component;
+use azalea_chat::{component::Component, style::ChatFormatting};
 use packet_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
@@ -66,9 +66,7 @@ pub struct Parameters {
     pub options: u8,
     pub nametag_visibility: String,
     pub collision_rule: String,
-    // TODO: use chatformatting
-    #[var]
-    pub color: u32,
+    pub color: ChatFormatting,
     pub player_prefix: Component,
     pub player_suffix: Component,
 }
