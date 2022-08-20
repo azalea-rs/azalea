@@ -36,6 +36,8 @@ pub mod clientbound_level_particles_packet;
 pub mod clientbound_light_update_packet;
 pub mod clientbound_login_packet;
 pub mod clientbound_map_item_data_packet;
+pub mod clientbound_merchant_offers_packet;
+pub mod clientbound_move_entity_packet_pos;
 pub mod clientbound_move_entity_pos_packet;
 pub mod clientbound_move_entity_posrot_packet;
 pub mod clientbound_move_entity_rot_packet;
@@ -215,7 +217,9 @@ declare_state_packets!(
         0x24: clientbound_light_update_packet::ClientboundLightUpdatePacket,
         0x25: clientbound_login_packet::ClientboundLoginPacket,
         0x26: clientbound_map_item_data_packet::ClientboundMapItemDataPacket,
+        0x27: clientbound_merchant_offers_packet::ClientboundMerchantOffersPacket,
         0x28: clientbound_move_entity_pos_packet::ClientboundMoveEntityPosPacket,
+        0x28: clientbound_move_entity_packet_pos::ClientboundMoveEntityPacketPos,
         0x29: clientbound_move_entity_posrot_packet::ClientboundMoveEntityPosrotPacket,
         0x2a: clientbound_move_entity_rot_packet::ClientboundMoveEntityRotPacket,
         0x31: clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,

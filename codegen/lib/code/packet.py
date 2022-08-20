@@ -40,7 +40,11 @@ def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target
         class_name = mappings.get_class(
             obfuscated_class_name).split('.')[-1]
         if '$' in class_name:
-            class_name = class_name.replace('$', '')
+            print('class_name', class_name)
+            class_name, extra_part = class_name.split('$')
+            if class_name.endswith('Packet'):
+                class_name = class_name[:-
+                                        len('Packet')] + extra_part + 'Packet'
 
         generated_packet_code.append(
             f'pub struct {to_camel_case(class_name)} {{')
