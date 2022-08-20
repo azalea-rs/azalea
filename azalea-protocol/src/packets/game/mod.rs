@@ -37,9 +37,8 @@ pub mod clientbound_light_update_packet;
 pub mod clientbound_login_packet;
 pub mod clientbound_map_item_data_packet;
 pub mod clientbound_merchant_offers_packet;
-pub mod clientbound_move_entity_packet_pos;
 pub mod clientbound_move_entity_pos_packet;
-pub mod clientbound_move_entity_posrot_packet;
+pub mod clientbound_move_entity_pos_rot_packet;
 pub mod clientbound_move_entity_rot_packet;
 pub mod clientbound_player_abilities_packet;
 pub mod clientbound_player_chat_header_packet;
@@ -90,10 +89,10 @@ pub mod serverbound_interact_packet;
 pub mod serverbound_jigsaw_generate_packet;
 pub mod serverbound_keep_alive_packet;
 pub mod serverbound_lock_difficulty_packet;
-pub mod serverbound_move_player_packet_pos;
-pub mod serverbound_move_player_packet_pos_rot;
-pub mod serverbound_move_player_packet_rot;
-pub mod serverbound_move_player_packet_status_only;
+pub mod serverbound_move_player_pos_packet;
+pub mod serverbound_move_player_pos_rot_packet;
+pub mod serverbound_move_player_rot_packet;
+pub mod serverbound_move_player_status_only_packet;
 pub mod serverbound_move_vehicle_packet;
 pub mod serverbound_paddle_boat_packet;
 pub mod serverbound_pick_item_packet;
@@ -147,10 +146,10 @@ declare_state_packets!(
         0x11: serverbound_jigsaw_generate_packet::ServerboundJigsawGeneratePacket,
         0x12: serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
         0x13: serverbound_lock_difficulty_packet::ServerboundLockDifficultyPacket,
-        0x14: serverbound_move_player_packet_pos::ServerboundMovePlayerPacketPos,
-        0x15: serverbound_move_player_packet_pos_rot::ServerboundMovePlayerPacketPosRot,
-        0x16: serverbound_move_player_packet_rot::ServerboundMovePlayerPacketRot,
-        0x17: serverbound_move_player_packet_status_only::ServerboundMovePlayerPacketStatusOnly,
+        0x14: serverbound_move_player_pos_packet::ServerboundMovePlayerPacketPos,
+        0x15: serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPacketPosRot,
+        0x16: serverbound_move_player_rot_packet::ServerboundMovePlayerPacketRot,
+        0x17: serverbound_move_player_status_only_packet::ServerboundMovePlayerPacketStatusOnly,
         0x18: serverbound_move_vehicle_packet::ServerboundMoveVehiclePacket,
         0x19: serverbound_paddle_boat_packet::ServerboundPaddleBoatPacket,
         0x1a: serverbound_pick_item_packet::ServerboundPickItemPacket,
@@ -219,8 +218,7 @@ declare_state_packets!(
         0x26: clientbound_map_item_data_packet::ClientboundMapItemDataPacket,
         0x27: clientbound_merchant_offers_packet::ClientboundMerchantOffersPacket,
         0x28: clientbound_move_entity_pos_packet::ClientboundMoveEntityPosPacket,
-        0x28: clientbound_move_entity_packet_pos::ClientboundMoveEntityPacketPos,
-        0x29: clientbound_move_entity_posrot_packet::ClientboundMoveEntityPosrotPacket,
+        0x29: clientbound_move_entity_pos_rot_packet::ClientboundMoveEntityPosRotPacket,
         0x2a: clientbound_move_entity_rot_packet::ClientboundMoveEntityRotPacket,
         0x31: clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
         0x32: clientbound_player_chat_header_packet::ClientboundPlayerChatHeaderPacket,

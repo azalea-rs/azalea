@@ -1,6 +1,6 @@
 use crate::Client;
 use azalea_core::EntityPos;
-use azalea_protocol::packets::game::serverbound_move_player_packet_pos_rot::ServerboundMovePlayerPacketPosRot;
+use azalea_protocol::packets::game::serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPacketPosRot;
 use azalea_world::MoveEntityError;
 use thiserror::Error;
 

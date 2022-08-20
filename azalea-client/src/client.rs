@@ -11,7 +11,7 @@ use azalea_protocol::{
             serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
-            serverbound_move_player_packet_pos_rot::ServerboundMovePlayerPacketPosRot,
+            serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPacketPosRot,
             ClientboundGamePacket, ServerboundGamePacket,
         },
         handshake::client_intention_packet::ClientIntentionPacket,
@@ -562,7 +562,7 @@ impl Client {
                     .move_entity_with_delta(p.entity_id, &p.delta)
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
-            ClientboundGamePacket::ClientboundMoveEntityPosrotPacket(p) => {
+            ClientboundGamePacket::ClientboundMoveEntityPosRotPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
                 let dimension = dimension_lock.as_mut().unwrap();
 

@@ -4,7 +4,7 @@ use packet_macros::ClientboundGamePacket;
 
 /// This packet is sent by the server when an entity moves less then 8 blocks.
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
-pub struct ClientboundMoveEntityPosrotPacket {
+pub struct ClientboundMoveEntityPosRotPacket {
     #[var]
     pub entity_id: u32,
     pub delta: PositionDelta8,
