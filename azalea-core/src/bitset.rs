@@ -1,4 +1,4 @@
-use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use std::io::{Read, Write};
 
 /// Represents Java's BitSet, a list of bits.
@@ -21,7 +21,7 @@ impl BitSet {
 }
 
 impl McBufReadable for BitSet {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         Ok(Self {
             data: Vec::<u64>::read_from(buf)?,
         })

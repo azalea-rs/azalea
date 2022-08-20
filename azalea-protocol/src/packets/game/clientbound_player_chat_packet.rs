@@ -1,4 +1,6 @@
-use azalea_buf::{McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_buf::{
+    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
+};
 use azalea_chat::component::Component;
 use azalea_core::BitSet;
 use azalea_crypto::{MessageSignature, SignedMessageHeader};

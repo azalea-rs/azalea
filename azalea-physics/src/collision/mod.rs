@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex};
 use azalea_block::BlockState;
 use azalea_core::{Axis, PositionDelta, PositionXYZ, Vec3, AABB, EPSILON};
 use azalea_world::entity::Entity;
-use azalea_world::Dimension;
+use azalea_world::{Dimension, MoveEntityError};
 use dimension_collisions::CollisionGetter;
 pub use discrete_voxel_shape::*;
 pub use shape::*;
@@ -26,7 +26,7 @@ pub trait HasCollision {
         mover_type: &MoverType,
         movement: &Vec3,
         entity_id: u32,
-    ) -> Result<(), String>;
+    ) -> Result<(), MoveEntityError>;
     fn collide(&self, movement: &Vec3, entity: &Entity) -> Vec3;
 }
 
@@ -37,7 +37,7 @@ impl HasCollision for Dimension {
         mover_type: &MoverType,
         movement: &Vec3,
         entity_id: u32,
-    ) -> Result<(), String> {
+    ) -> Result<(), MoveEntityError> {
         // TODO: do all these
 
         // if self.no_physics {

@@ -1,6 +1,6 @@
 use crate::packets::game::serverbound_interact_packet::InteractionHand;
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use azalea_core::{BlockPos, Direction, EntityPos};
+use azalea_core::{BlockPos, Direction, Vec3};
 use packet_macros::ServerboundGamePacket;
 use std::io::{Read, Write};
 
@@ -16,7 +16,7 @@ pub struct ServerboundUseItemOnPacket {
 pub struct BlockHitResult {
     pub block_pos: BlockPos,
     pub direction: Direction,
-    pub location: EntityPos,
+    pub location: Vec3,
     pub inside: bool,
 }
 
@@ -43,7 +43,7 @@ impl McBufReadable for BlockHitResult {
         Ok(Self {
             block_pos,
             direction,
-            location: EntityPos {
+            location: Vec3 {
                 x: block_pos.x as f64 + cursor_x as f64,
                 y: block_pos.y as f64 + cursor_y as f64,
                 z: block_pos.z as f64 + cursor_z as f64,

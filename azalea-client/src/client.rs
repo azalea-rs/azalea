@@ -10,7 +10,7 @@ use azalea_protocol::{
             serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
-            serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPacketPosRot,
+            serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
             ClientboundGamePacket, ServerboundGamePacket,
         },
         handshake::client_intention_packet::ClientIntentionPacket,
@@ -440,7 +440,7 @@ impl Client {
                     .await?;
                 conn_lock
                     .write(
-                        ServerboundMovePlayerPacketPosRot {
+                        ServerboundMovePlayerPosRotPacket {
                             x: new_pos.x,
                             y: new_pos.y,
                             z: new_pos.z,

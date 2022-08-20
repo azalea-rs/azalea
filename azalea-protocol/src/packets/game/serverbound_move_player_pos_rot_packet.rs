@@ -2,7 +2,7 @@ use azalea_buf::McBuf;
 use packet_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
-pub struct ServerboundMovePlayerPacketPosRot {
+pub struct ServerboundMovePlayerPosRotPacket {
     pub x: f64,
     pub y: f64,
     pub z: f64,

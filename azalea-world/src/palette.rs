@@ -259,7 +259,7 @@ impl PaletteType {
         }
     }
 
-    pub fn read(&self, buf: &mut impl Read) -> Result<Palette, String> {
+    pub fn read(&self, buf: &mut impl Read) -> Result<Palette, BufReadError> {
         Ok(match self {
             PaletteType::SingleValue => Palette::SingleValue(u32::var_read_from(buf)?),
             PaletteType::Linear => Palette::Linear(Vec::<u32>::var_read_from(buf)?),

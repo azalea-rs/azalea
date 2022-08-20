@@ -2,7 +2,6 @@ mod data;
 mod dimensions;
 
 use crate::Dimension;
-use azalea_block::BlockState;
 use azalea_core::{BlockPos, PositionDelta, Vec3, AABB};
 pub use data::*;
 pub use dimensions::*;

@@ -7,6 +7,7 @@ mod entity_storage;
 mod palette;
 
 use azalea_block::BlockState;
+use azalea_buf::BufReadError;
 use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
 pub use bit_storage::BitStorage;
 pub use chunk_storage::{Chunk, ChunkStorage};

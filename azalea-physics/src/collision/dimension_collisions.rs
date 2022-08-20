@@ -1,4 +1,4 @@
-use crate::collision::{ArrayVoxelShape, VoxelShape, AABB};
+use crate::collision::{VoxelShape, AABB};
 use azalea_block::{Block, BlockState};
 use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType, EPSILON};
 use azalea_world::entity::Entity;
