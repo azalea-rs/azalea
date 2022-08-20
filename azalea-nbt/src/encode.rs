@@ -1,9 +1,9 @@
 use crate::Error;
 use crate::Tag;
+use ahash::AHashMap;
 use azalea_buf::McBufWritable;
 use byteorder::{WriteBytesExt, BE};
 use flate2::write::{GzEncoder, ZlibEncoder};
-use std::collections::HashMap;
 use std::io::Write;
 
 // who needs friends when you've got code that runs in nanoseconds?
@@ -19,7 +19,7 @@ fn write_string(writer: &mut dyn Write, string: &str) -> Result<(), Error> {
 #[inline]
 fn write_compound(
     writer: &mut dyn Write,
-    value: &HashMap<String, Tag>,
+    value: &AHashMap<String, Tag>,
     end_tag: bool,
 ) -> Result<(), Error> {
     for (key, tag) in value {
