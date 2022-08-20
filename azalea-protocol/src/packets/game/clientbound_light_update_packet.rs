@@ -3,7 +3,9 @@ use packet_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundLightUpdatePacket {
+    #[var]
     pub x: i32,
+    #[var]
     pub z: i32,
     pub light_data: ClientboundLightUpdatePacketData,
 }

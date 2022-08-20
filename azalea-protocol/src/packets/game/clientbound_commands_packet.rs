@@ -10,7 +10,7 @@ use std::{
 };
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
-pub struct ClientboundDeclareCommandsPacket {
+pub struct ClientboundCommandsPacket {
     pub entries: Vec<BrigadierNodeStub>,
     #[var]
     pub root_index: i32,

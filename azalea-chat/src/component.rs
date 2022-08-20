@@ -18,7 +18,7 @@ pub enum Component {
 
 lazy_static! {
     pub static ref DEFAULT_STYLE: Style = Style {
-        color: Some(ChatFormatting::WHITE.try_into().unwrap()),
+        color: Some(ChatFormatting::White.try_into().unwrap()),
         ..Style::default()
     };
 }

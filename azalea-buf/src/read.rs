@@ -24,6 +24,8 @@ pub enum BufReadError {
     InvalidUtf8,
     #[error("Unexpected enum variant {id}")]
     UnexpectedEnumVariant { id: i32 },
+    #[error("Unexpected enum variant {id}")]
+    UnexpectedStringEnumVariant { id: String },
     #[error("{0}")]
     Custom(String),
     #[cfg(feature = "serde_json")]
@@ -281,6 +283,19 @@ impl<K: McBufReadable + Send + Eq + Hash, V: McBufReadable + Send> McBufReadable
     }
 }
 
+impl<K: McBufReadable + Send + Eq + Hash, V: McBufVarReadable + Send> McBufVarReadable
+    for HashMap<K, V>
+{
+    default fn var_read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+        let length = buf.read_varint()? as usize;
+        let mut contents = HashMap::with_capacity(length);
+        for _ in 0..length {
+            contents.insert(K::read_from(buf)?, V::var_read_from(buf)?);
+        }
+        Ok(contents)
+    }
+}
+
 impl McBufReadable for Vec<u8> {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         buf.read_byte_array()
@@ -383,6 +398,30 @@ impl<T: McBufReadable> McBufReadable for Option<T> {
             Some(T::read_from(buf)?)
         } else {
             None
+        })
+    }
+}
+
+impl<T: McBufVarReadable> McBufVarReadable for Option<T> {
+    default fn var_read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+        let present = buf.read_boolean()?;
+        Ok(if present {
+            Some(T::var_read_from(buf)?)
+        } else {
+            None
+        })
+    }
+}
+
+// [String; 4]
+impl<T: McBufReadable, const N: usize> McBufReadable for [T; N] {
+    default fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+        let mut contents = Vec::with_capacity(N);
+        for _ in 0..N {
+            contents.push(T::read_from(buf)?);
+        }
+        contents.try_into().map_err(|_| {
+            panic!("Panic is not possible since the Vec is the same size as the array")
         })
     }
 }

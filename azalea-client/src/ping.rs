@@ -52,7 +52,12 @@ pub async fn ping_server(
 
     let packet = conn.read().await?;
 
-    match packet {
-        ClientboundStatusPacket::ClientboundStatusResponsePacket(p) => Ok(p),
+    loop {
+        match packet {
+            ClientboundStatusPacket::ClientboundStatusResponsePacket(p) => return Ok(p),
+            ClientboundStatusPacket::ClientboundPongResponsePacket(_) => {
+                // we should never get this packet since we didn't send a ping
+            }
+        }
     }
 }

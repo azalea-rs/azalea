@@ -27,27 +27,40 @@ def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target
 
         generated_packet_code = []
         uses = set()
+        extra_code = []
+
+        packet_derive_name = f'{to_camel_case(direction)}{to_camel_case(state)}Packet'
+
         generated_packet_code.append(
-            f'#[derive(Clone, Debug, McBuf, {to_camel_case(state)}Packet)]')
-        uses.add(f'packet_macros::{to_camel_case(state)}Packet')
+            f'#[derive(Clone, Debug, McBuf, {packet_derive_name})]')
+        uses.add(f'packet_macros::{packet_derive_name}')
         uses.add(f'azalea_buf::McBuf')
 
         obfuscated_class_name = packet['class'].split('.')[0]
         class_name = mappings.get_class(
             obfuscated_class_name).split('.')[-1]
         if '$' in class_name:
-            class_name = class_name.replace('$', '')
+            class_name, extra_part = class_name.split('$')
+            if class_name.endswith('Packet'):
+                class_name = class_name[:-
+                                        len('Packet')] + extra_part + 'Packet'
 
         generated_packet_code.append(
             f'pub struct {to_camel_case(class_name)} {{')
 
-        for instruction in packet.get('instructions', []):
-            if instruction['operation'] == 'write':
-                burger_instruction_to_code(
-                    instruction, generated_packet_code, mappings, obfuscated_class_name, uses)
+        # call burger_instruction_to_code for each instruction
+        i = -1
+        instructions = packet.get('instructions', [])
+        while (i + 1) < len(instructions):
+            i += 1
+
+            if instructions[i]['operation'] == 'write':
+                skip = burger_instruction_to_code(
+                    instructions, i, generated_packet_code, mappings, obfuscated_class_name, uses, extra_code)
+                if skip:
+                    i += skip
             else:
-                generated_packet_code.append(f'// TODO: {instruction}')
-                continue
+                generated_packet_code.append(f'// TODO: {instructions[i]}')
 
         generated_packet_code.append('}')
 
@@ -56,6 +69,8 @@ def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target
             generated_packet_code.insert(0, '')
         for use in uses:
             generated_packet_code.insert(0, f'use {use};')
+        for line in extra_code:
+            generated_packet_code.append(line)
 
         print(generated_packet_code)
         write_packet_file(state, to_snake_case(class_name),
@@ -204,21 +219,108 @@ def get_packets(direction: str, state: str):
     return packet_ids, packet_class_names
 
 
-def burger_instruction_to_code(instruction: dict, generated_packet_code: list[str], mappings: Mappings, obfuscated_class_name: str, uses: set):
-    field_type = instruction['type']
-    field_type_rs, is_var, instruction_uses = burger_type_to_rust_type(
-        field_type)
+def burger_instruction_to_code(instructions: list[dict], index: int, generated_packet_code: list[str], mappings: Mappings, obfuscated_class_name: str, uses: set, extra_code: list[str]) -> Optional[int]:
+    '''
+    Generate a field for an instruction, returns the number of instructions to skip (if any).
+    '''
+    instruction = instructions[index]
+    next_instruction = instructions[index +
+                                    1] if index + 1 < len(instructions) else None
+    next_next_instruction = instructions[index +
+                                         2] if index + 2 < len(instructions) else None
 
-    obfuscated_field_name = instruction['field']
-    if '.' in obfuscated_field_name or ' ' in obfuscated_field_name or '(' in obfuscated_field_name:
-        field_type_rs, obfuscated_field_name = burger_field_to_type(
-            obfuscated_field_name)
-        if not field_type_rs:
-            generated_packet_code.append(f'// TODO: {instruction}')
-            return
-    field_name = mappings.get_field(
-        obfuscated_class_name, obfuscated_field_name) or mappings.get_field(
-        obfuscated_class_name.split('$')[0], obfuscated_field_name)
+    is_var = False
+    skip = 0
+    field_type_rs = None
+    field_comment = None
+
+    # iterators
+    if instruction['operation'] == 'write' and instruction['field'].endswith('.size()') and next_instruction and next_instruction['type'] == 'Iterator' and next_next_instruction and next_next_instruction['operation'] == 'loop':
+        field_obfuscated_name = instruction['field'].split('.')[
+            0]
+        field_name = mappings.get_field(
+            obfuscated_class_name, field_obfuscated_name)
+
+        # figure out what kind of iterator it is
+        loop_instructions = next_next_instruction['instructions']
+        if len(loop_instructions) == 2:
+            entry_type_rs, is_var, uses, extra_code = burger_type_to_rust_type(
+                loop_instructions[1]['type'], None, loop_instructions[1], mappings, obfuscated_class_name)
+            field_type_rs = f'Vec<{entry_type_rs}>'
+        elif len(loop_instructions) == 3:
+            is_map = loop_instructions[0]['type'].startswith(
+                'Map.Entry<')
+            if is_map:
+                assert loop_instructions[1]['field'].endswith(
+                    '.getKey()')
+                assert loop_instructions[2]['field'].endswith(
+                    '.getValue()')
+
+                # generate the type for the key
+                key_type_rs, is_key_var, key_uses, key_extra_code = burger_type_to_rust_type(
+                    loop_instructions[1]['type'], None, loop_instructions[1], mappings, obfuscated_class_name)
+                uses.update(key_uses)
+                extra_code.extend(key_extra_code)
+
+                # generate the type for the value
+                value_type_rs, is_value_var, value_uses, value_extra_code = burger_type_to_rust_type(
+                    loop_instructions[2]['type'], None, loop_instructions[2], mappings, obfuscated_class_name)
+                uses.update(value_uses)
+                extra_code.extend(value_extra_code)
+
+                field_type_rs = f'HashMap<{key_type_rs}, {value_type_rs}>'
+                uses.add('std::collections::HashMap')
+
+                # only the key is var since the value can be made var in other ways
+                is_var = is_key_var
+
+        skip = 2  # skip the next 2 instructions
+
+    # Option<T>
+    elif instruction['operation'] == 'write' and (instruction['field'].endswith('.isPresent()') or instruction['field'].endswith(' != null')) and next_instruction and (next_instruction.get('condition', '').endswith('.isPresent()') or next_instruction.get('condition', '').endswith(' != null')):
+        field_obfuscated_name = instruction['field'].split('.')[
+            0].split(' ')[0]
+        field_name = mappings.get_field(
+            obfuscated_class_name, field_obfuscated_name)
+        condition_instructions = next_instruction['instructions']
+
+        condition_types_rs = []
+        for condition_instruction in condition_instructions:
+            condition_type_rs, is_var, this_uses, this_extra_code = burger_type_to_rust_type(
+                condition_instruction['type'], None, condition_instruction, mappings, obfuscated_class_name)
+            condition_types_rs.append(condition_type_rs)
+            uses.update(this_uses)
+            extra_code.extend(this_extra_code)
+        field_type_rs = f'Option<({", ".join(condition_types_rs)})>' if len(
+            condition_types_rs) != 1 else f'Option<{condition_types_rs[0]}>'
+        skip = 1
+    else:
+        field_type = instruction['type']
+        obfuscated_field_name = instruction['field']
+
+        if obfuscated_field_name.startswith('(float)'):
+            obfuscated_field_name = obfuscated_field_name[len('(float)'):]
+
+        field_name = mappings.get_field(
+            obfuscated_class_name, obfuscated_field_name) or mappings.get_field(
+            obfuscated_class_name.split('$')[0], obfuscated_field_name)
+
+        field_type_rs, is_var, instruction_uses, instruction_extra_code = burger_type_to_rust_type(
+            field_type, field_name, instruction, mappings, obfuscated_class_name)
+
+        if '.' in obfuscated_field_name or ' ' in obfuscated_field_name or '(' in obfuscated_field_name:
+            field_type_rs2, obfuscated_field_name, field_comment = burger_field_to_type(
+                obfuscated_field_name, mappings, obfuscated_class_name)
+            if not field_type_rs2:
+                generated_packet_code.append(f'// TODO: {instruction}')
+                return
+            # try to get the field name again with the new stuff we know
+            field_name = mappings.get_field(
+                obfuscated_class_name, obfuscated_field_name) or mappings.get_field(
+                obfuscated_class_name.split('$')[0], obfuscated_field_name)
+        uses.update(instruction_uses)
+        extra_code.extend(instruction_extra_code)
+
     if not field_name:
         generated_packet_code.append(
             f'// TODO: unknown field {instruction}')
@@ -226,17 +328,44 @@ def burger_instruction_to_code(instruction: dict, generated_packet_code: list[st
 
     if is_var:
         generated_packet_code.append('#[var]')
-    generated_packet_code.append(
-        f'pub {to_snake_case(field_name)}: {field_type_rs},')
-    uses.update(instruction_uses)
+    line = f'pub {to_snake_case(field_name)}: {field_type_rs or "todo!()"},'
+    if field_comment:
+        line += f' // {field_comment}'
+    generated_packet_code.append(line)
+
+    return skip
 
 
-def burger_field_to_type(field) -> tuple[Optional[str], str]:
+def burger_field_to_type(field, mappings: Mappings, obfuscated_class_name: str) -> tuple[Optional[str], str, Optional[str]]:
+    '''
+    Returns field_type_rs, obfuscated_field_name, field_comment
+    '''
     # match `(x) ? 1 : 0`
     match = re.match(r'\((.*)\) \? 1 : 0', field)
     if match:
-        return ('bool', match.group(1))
-    return None, field
+        return ('bool', match.group(1), None)
+    match = re.match(r'^\w+\.\w+\(\)$', field)
+    if match:
+        print('field', field)
+        obfuscated_first = field.split('.')[0]
+        obfuscated_second = field.split('.')[1].split('(')[0]
+        first = mappings.get_field(obfuscated_class_name, obfuscated_first)
+        first_type = mappings.get_field_type(
+            obfuscated_class_name, obfuscated_first)
+        first_obfuscated_class_name: Optional[str] = mappings.get_class_from_deobfuscated_name(
+            first_type)
+        if first_obfuscated_class_name:
+            try:
+                second = mappings.get_method(
+                    first_obfuscated_class_name, obfuscated_second, '')
+            except:
+                # if this happens then the field is probably from a super class
+                second = obfuscated_second
+        else:
+            second = obfuscated_second
+        first_type_short = first_type.split('.')[-1]
+        return (first_type_short, obfuscated_first, f'TODO: Does {first_type_short}::{second}, may not be implemented')
+    return None, field, None
 
 
 def change_packet_ids(id_map: dict[int, int], direction: str, state: str):

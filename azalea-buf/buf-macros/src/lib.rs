@@ -18,7 +18,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                     // do a different buf.write_* for each field depending on the type
                     // if it's a string, use buf.write_string
                     match field_type {
-                        syn::Type::Path(_) => {
+                        syn::Type::Path(_) | syn::Type::Array(_) => {
                             if f.attrs.iter().any(|a| a.path.is_ident("var")) {
                                 quote! {
                                     let #field_name = azalea_buf::McBufVarReadable::var_read_from(buf)?;
@@ -112,7 +112,7 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                 // do a different buf.write_* for each field depending on the type
                 // if it's a string, use buf.write_string
                 match field_type {
-                    syn::Type::Path(_) => {
+                    syn::Type::Path(_) | syn::Type::Array(_) => {
                         if f.attrs.iter().any(|attr| attr.path.is_ident("var")) {
                             quote! {
                                 azalea_buf::McBufVarWritable::var_write_into(&self.#field_name, buf)?;

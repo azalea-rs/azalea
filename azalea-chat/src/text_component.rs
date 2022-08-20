@@ -29,7 +29,7 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
 
                 let style = &mut components.last_mut().unwrap().base.style;
                 // if the formatter is a reset, then we need to reset the style to the default
-                style.apply_formatting(formatter);
+                style.apply_formatting(&formatter);
             }
             i += 1;
         } else {
@@ -93,9 +93,9 @@ mod tests {
             component.to_ansi(None),
             format!(
                 "{GREEN}Hypixel Network  {RED}[1.8-1.18]\n{BOLD}{AQUA}HAPPY HOLIDAYS{RESET}",
-                GREEN = Ansi::rgb(ChatFormatting::GREEN.color.unwrap()),
-                RED = Ansi::rgb(ChatFormatting::RED.color.unwrap()),
-                AQUA = Ansi::rgb(ChatFormatting::AQUA.color.unwrap()),
+                GREEN = Ansi::rgb(ChatFormatting::Green.color().unwrap()),
+                RED = Ansi::rgb(ChatFormatting::Red.color().unwrap()),
+                AQUA = Ansi::rgb(ChatFormatting::Aqua.color().unwrap()),
                 BOLD = Ansi::BOLD,
                 RESET = Ansi::RESET
             )
@@ -111,11 +111,11 @@ mod tests {
                 "{BOLD}Hello {RESET}{DARK_BLUE}w{DARK_GREEN}o{DARK_AQUA}r{DARK_RED}l{DARK_PURPLE}d{RESET}",
                 BOLD = Ansi::BOLD,
                 RESET = Ansi::RESET,
-                DARK_BLUE = Ansi::rgb(ChatFormatting::DARK_BLUE.color.unwrap()),
-                DARK_GREEN = Ansi::rgb(ChatFormatting::DARK_GREEN.color.unwrap()),
-                DARK_AQUA = Ansi::rgb(ChatFormatting::DARK_AQUA.color.unwrap()),
-                DARK_RED = Ansi::rgb(ChatFormatting::DARK_RED.color.unwrap()),
-                DARK_PURPLE = Ansi::rgb(ChatFormatting::DARK_PURPLE.color.unwrap())
+                DARK_BLUE = Ansi::rgb(ChatFormatting::DarkBlue.color().unwrap()),
+                DARK_GREEN = Ansi::rgb(ChatFormatting::DarkGreen.color().unwrap()),
+                DARK_AQUA = Ansi::rgb(ChatFormatting::DarkAqua.color().unwrap()),
+                DARK_RED = Ansi::rgb(ChatFormatting::DarkRed.color().unwrap()),
+                DARK_PURPLE = Ansi::rgb(ChatFormatting::DarkPurple.color().unwrap())
             )
         );
     }

@@ -6,8 +6,7 @@ use packet_macros::ClientboundGamePacket;
 pub struct ClientboundBlockUpdatePacket {
     pub pos: BlockPos,
     // TODO: in vanilla this is a BlockState, but here we just have it as a number.
-    // however, we can't add azalea-world as a dependency because it depends on us.
-    // we could have a crate that contains encoding/decoding and the definitions?
+    // perhaps we could make a crate that only handles block states? right now blockstates are handled in azalea-block
     #[var]
     pub block_state: u32,
 }

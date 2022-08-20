@@ -1,5 +1,6 @@
 use std::{collections::HashMap, fmt};
 
+use azalea_buf::McBuf;
 use serde_json::Value;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -28,15 +29,15 @@ impl TextColor {
 }
 
 lazy_static! {
-    static ref LEGACY_FORMAT_TO_COLOR: HashMap<&'static ChatFormatting<'static>, TextColor> = {
+    static ref LEGACY_FORMAT_TO_COLOR: HashMap<&'static ChatFormatting, TextColor> = {
         let mut legacy_format_to_color = HashMap::new();
         for formatter in &ChatFormatting::FORMATTERS {
-            if !formatter.is_format && *formatter != ChatFormatting::RESET {
+            if !formatter.is_format() && *formatter != ChatFormatting::Reset {
                 legacy_format_to_color.insert(
                     formatter,
                     TextColor {
-                        value: formatter.color.unwrap(),
-                        name: Some(formatter.name.to_string()),
+                        value: formatter.color().unwrap(),
+                        name: Some(formatter.name().to_string()),
                     },
                 );
             }
@@ -50,15 +51,6 @@ lazy_static! {
         }
         named_colors
     };
-}
-
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct ChatFormatting<'a> {
-    pub name: &'a str,
-    pub code: char,
-    pub is_format: bool,
-    pub id: i32,
-    pub color: Option<u32>,
 }
 
 pub struct Ansi {}
@@ -80,91 +72,172 @@ impl Ansi {
     }
 }
 
-impl<'a> ChatFormatting<'a> {
-    pub const BLACK: ChatFormatting<'a> = ChatFormatting::new("BLACK", '0', false, 0, Some(0));
-    pub const DARK_BLUE: ChatFormatting<'a> =
-        ChatFormatting::new("DARK_BLUE", '1', false, 1, Some(170));
-    pub const DARK_GREEN: ChatFormatting<'a> =
-        ChatFormatting::new("DARK_GREEN", '2', false, 2, Some(43520));
-    pub const DARK_AQUA: ChatFormatting<'a> =
-        ChatFormatting::new("DARK_AQUA", '3', false, 3, Some(43690));
-    pub const DARK_RED: ChatFormatting<'a> =
-        ChatFormatting::new("DARK_RED", '4', false, 4, Some(1114112));
-    pub const DARK_PURPLE: ChatFormatting<'a> =
-        ChatFormatting::new("DARK_PURPLE", '5', false, 5, Some(11141290));
-    pub const GOLD: ChatFormatting<'a> = ChatFormatting::new("GOLD", '6', false, 6, Some(16755200));
-    pub const GRAY: ChatFormatting<'a> = ChatFormatting::new("GRAY", '7', false, 7, Some(11184810));
-    pub const DARK_GRAY: ChatFormatting<'a> =
-        ChatFormatting::new("DARK_GRAY", '8', false, 8, Some(5592405));
-    pub const BLUE: ChatFormatting<'a> = ChatFormatting::new("BLUE", '9', false, 9, Some(5592575));
-    pub const GREEN: ChatFormatting<'a> =
-        ChatFormatting::new("GREEN", 'a', false, 10, Some(5635925));
-    pub const AQUA: ChatFormatting<'a> = ChatFormatting::new("AQUA", 'b', false, 11, Some(5636095));
-    pub const RED: ChatFormatting<'a> = ChatFormatting::new("RED", 'c', false, 12, Some(16733525));
-    pub const LIGHT_PURPLE: ChatFormatting<'a> =
-        ChatFormatting::new("LIGHT_PURPLE", 'd', false, 13, Some(16733695));
-    pub const YELLOW: ChatFormatting<'a> =
-        ChatFormatting::new("YELLOW", 'e', false, 14, Some(16777045));
-    pub const WHITE: ChatFormatting<'a> =
-        ChatFormatting::new("WHITE", 'f', false, 15, Some(16777215));
-    pub const OBFUSCATED: ChatFormatting<'a> =
-        ChatFormatting::new("OBFUSCATED", 'k', true, -1, None);
-    pub const STRIKETHROUGH: ChatFormatting<'a> =
-        ChatFormatting::new("STRIKETHROUGH", 'm', true, -1, None);
-    pub const BOLD: ChatFormatting<'a> = ChatFormatting::new("BOLD", 'l', true, -1, None);
-    pub const UNDERLINE: ChatFormatting<'a> = ChatFormatting::new("UNDERLINE", 'n', true, -1, None);
-    pub const ITALIC: ChatFormatting<'a> = ChatFormatting::new("ITALIC", 'o', true, -1, None);
-    pub const RESET: ChatFormatting<'a> = ChatFormatting::new("RESET", 'r', true, -1, None);
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, McBuf)]
+pub enum ChatFormatting {
+    Black,
+    DarkBlue,
+    DarkGreen,
+    DarkAqua,
+    DarkRed,
+    DarkPurple,
+    Gold,
+    Gray,
+    DarkGray,
+    Blue,
+    Green,
+    Aqua,
+    Red,
+    LightPurple,
+    Yellow,
+    White,
+    Obfuscated,
+    Strikethrough,
+    Bold,
+    Underline,
+    Italic,
+    Reset,
+}
 
-    pub const FORMATTERS: [ChatFormatting<'a>; 22] = [
-        ChatFormatting::BLACK,
-        ChatFormatting::DARK_BLUE,
-        ChatFormatting::DARK_GREEN,
-        ChatFormatting::DARK_AQUA,
-        ChatFormatting::DARK_RED,
-        ChatFormatting::DARK_PURPLE,
-        ChatFormatting::GOLD,
-        ChatFormatting::GRAY,
-        ChatFormatting::DARK_GRAY,
-        ChatFormatting::BLUE,
-        ChatFormatting::GREEN,
-        ChatFormatting::AQUA,
-        ChatFormatting::RED,
-        ChatFormatting::LIGHT_PURPLE,
-        ChatFormatting::YELLOW,
-        ChatFormatting::WHITE,
-        ChatFormatting::OBFUSCATED,
-        ChatFormatting::STRIKETHROUGH,
-        ChatFormatting::BOLD,
-        ChatFormatting::UNDERLINE,
-        ChatFormatting::ITALIC,
-        ChatFormatting::RESET,
+impl ChatFormatting {
+    pub const FORMATTERS: [ChatFormatting; 22] = [
+        ChatFormatting::Black,
+        ChatFormatting::DarkBlue,
+        ChatFormatting::DarkGreen,
+        ChatFormatting::DarkAqua,
+        ChatFormatting::DarkRed,
+        ChatFormatting::DarkPurple,
+        ChatFormatting::Gold,
+        ChatFormatting::Gray,
+        ChatFormatting::DarkGray,
+        ChatFormatting::Blue,
+        ChatFormatting::Green,
+        ChatFormatting::Aqua,
+        ChatFormatting::Red,
+        ChatFormatting::LightPurple,
+        ChatFormatting::Yellow,
+        ChatFormatting::White,
+        ChatFormatting::Obfuscated,
+        ChatFormatting::Strikethrough,
+        ChatFormatting::Bold,
+        ChatFormatting::Underline,
+        ChatFormatting::Italic,
+        ChatFormatting::Reset,
     ];
 
-    const fn new(
-        name: &str,
-        code: char,
-        is_format: bool,
-        id: i32,
-        color: Option<u32>,
-    ) -> ChatFormatting {
-        ChatFormatting {
-            name,
-            code,
-            is_format,
-            id,
-            color,
+    pub fn name(&self) -> &'static str {
+        match self {
+            ChatFormatting::Black => "BLACK",
+            ChatFormatting::DarkBlue => "DARK_BLUE",
+            ChatFormatting::DarkGreen => "DARK_GREEN",
+            ChatFormatting::DarkAqua => "DARK_AQUA",
+            ChatFormatting::DarkRed => "DARK_RED",
+            ChatFormatting::DarkPurple => "DARK_PURPLE",
+            ChatFormatting::Gold => "GOLD",
+            ChatFormatting::Gray => "GRAY",
+            ChatFormatting::DarkGray => "DARK_GRAY",
+            ChatFormatting::Blue => "BLUE",
+            ChatFormatting::Green => "GREEN",
+            ChatFormatting::Aqua => "AQUA",
+            ChatFormatting::Red => "RED",
+            ChatFormatting::LightPurple => "LIGHT_PURPLE",
+            ChatFormatting::Yellow => "YELLOW",
+            ChatFormatting::White => "WHITE",
+            ChatFormatting::Obfuscated => "OBFUSCATED",
+            ChatFormatting::Strikethrough => "STRIKETHROUGH",
+            ChatFormatting::Bold => "BOLD",
+            ChatFormatting::Underline => "UNDERLINE",
+            ChatFormatting::Italic => "ITALIC",
+            ChatFormatting::Reset => "RESET",
         }
     }
 
-    pub fn from_code(code: char) -> Option<&'static ChatFormatting<'static>> {
-        for formatter in &ChatFormatting::FORMATTERS {
-            if formatter.code == code {
-                return Some(formatter);
-            }
+    pub fn code(&self) -> char {
+        match self {
+            ChatFormatting::Black => '0',
+            ChatFormatting::DarkBlue => '1',
+            ChatFormatting::DarkGreen => '2',
+            ChatFormatting::DarkAqua => '3',
+            ChatFormatting::DarkRed => '4',
+            ChatFormatting::DarkPurple => '5',
+            ChatFormatting::Gold => '6',
+            ChatFormatting::Gray => '7',
+            ChatFormatting::DarkGray => '8',
+            ChatFormatting::Blue => '9',
+            ChatFormatting::Green => 'a',
+            ChatFormatting::Aqua => 'b',
+            ChatFormatting::Red => 'c',
+            ChatFormatting::LightPurple => 'd',
+            ChatFormatting::Yellow => 'e',
+            ChatFormatting::White => 'f',
+            ChatFormatting::Obfuscated => 'k',
+            ChatFormatting::Strikethrough => 'm',
+            ChatFormatting::Bold => 'l',
+            ChatFormatting::Underline => 'n',
+            ChatFormatting::Italic => 'o',
+            ChatFormatting::Reset => 'r',
         }
+    }
 
-        None
+    pub fn from_code(code: char) -> Option<ChatFormatting> {
+        match code {
+            '0' => Some(ChatFormatting::Black),
+            '1' => Some(ChatFormatting::DarkBlue),
+            '2' => Some(ChatFormatting::DarkGreen),
+            '3' => Some(ChatFormatting::DarkAqua),
+            '4' => Some(ChatFormatting::DarkRed),
+            '5' => Some(ChatFormatting::DarkPurple),
+            '6' => Some(ChatFormatting::Gold),
+            '7' => Some(ChatFormatting::Gray),
+            '8' => Some(ChatFormatting::DarkGray),
+            '9' => Some(ChatFormatting::Blue),
+            'a' => Some(ChatFormatting::Green),
+            'b' => Some(ChatFormatting::Aqua),
+            'c' => Some(ChatFormatting::Red),
+            'd' => Some(ChatFormatting::LightPurple),
+            'e' => Some(ChatFormatting::Yellow),
+            'f' => Some(ChatFormatting::White),
+            'k' => Some(ChatFormatting::Obfuscated),
+            'm' => Some(ChatFormatting::Strikethrough),
+            'l' => Some(ChatFormatting::Bold),
+            'n' => Some(ChatFormatting::Underline),
+            'o' => Some(ChatFormatting::Italic),
+            'r' => Some(ChatFormatting::Reset),
+            _ => None,
+        }
+    }
+
+    pub fn is_format(&self) -> bool {
+        matches!(
+            self,
+            ChatFormatting::Obfuscated
+                | ChatFormatting::Strikethrough
+                | ChatFormatting::Bold
+                | ChatFormatting::Underline
+                | ChatFormatting::Italic
+                | ChatFormatting::Reset
+        )
+    }
+
+    pub fn color(&self) -> Option<u32> {
+        match self {
+            ChatFormatting::Black => Some(0),
+            ChatFormatting::DarkBlue => Some(170),
+            ChatFormatting::DarkGreen => Some(43520),
+            ChatFormatting::DarkAqua => Some(43690),
+            ChatFormatting::DarkRed => Some(1114112),
+            ChatFormatting::DarkPurple => Some(11141290),
+            ChatFormatting::Gold => Some(16755200),
+            ChatFormatting::Gray => Some(11184810),
+            ChatFormatting::DarkGray => Some(5592405),
+            ChatFormatting::Blue => Some(5592575),
+            ChatFormatting::Green => Some(5635925),
+            ChatFormatting::Aqua => Some(5636095),
+            ChatFormatting::Red => Some(16733525),
+            ChatFormatting::LightPurple => Some(16733695),
+            ChatFormatting::Yellow => Some(16777045),
+            ChatFormatting::White => Some(16777215),
+            _ => None,
+        }
     }
 }
 
@@ -189,15 +262,15 @@ impl fmt::Display for TextColor {
 }
 
 // from ChatFormatting to TextColor
-impl TryFrom<ChatFormatting<'_>> for TextColor {
+impl TryFrom<ChatFormatting> for TextColor {
     type Error = String;
 
-    fn try_from(formatter: ChatFormatting<'_>) -> Result<Self, Self::Error> {
-        if formatter.is_format {
-            return Err(format!("{} is not a color", formatter.name));
+    fn try_from(formatter: ChatFormatting) -> Result<Self, Self::Error> {
+        if formatter.is_format() {
+            return Err(format!("{} is not a color", formatter.name()));
         }
-        let color = formatter.color.unwrap_or(0);
-        Ok(Self::new(color, Some(formatter.name.to_string())))
+        let color = formatter.color().unwrap_or(0);
+        Ok(Self::new(color, Some(formatter.name().to_string())))
     }
 }
 
@@ -363,21 +436,15 @@ impl Style {
     /// Apply a ChatFormatting to this style
     pub fn apply_formatting(&mut self, formatting: &ChatFormatting) {
         match *formatting {
-            ChatFormatting::BOLD => self.bold = Some(true),
-            ChatFormatting::ITALIC => self.italic = Some(true),
-            ChatFormatting::UNDERLINE => self.underlined = Some(true),
-            ChatFormatting::STRIKETHROUGH => self.strikethrough = Some(true),
-            ChatFormatting::OBFUSCATED => self.obfuscated = Some(true),
-            ChatFormatting::RESET => self.reset = true,
-            ChatFormatting {
-                name: _,
-                code: _,
-                is_format: _,
-                id: _,
-                color,
-            } => {
+            ChatFormatting::Bold => self.bold = Some(true),
+            ChatFormatting::Italic => self.italic = Some(true),
+            ChatFormatting::Underline => self.underlined = Some(true),
+            ChatFormatting::Strikethrough => self.strikethrough = Some(true),
+            ChatFormatting::Obfuscated => self.obfuscated = Some(true),
+            ChatFormatting::Reset => self.reset = true,
+            formatter => {
                 // if it's a color, set it
-                if let Some(color) = color {
+                if let Some(color) = formatter.color() {
                     self.color = Some(TextColor::from_rgb(color));
                 }
             }
@@ -455,7 +522,7 @@ mod tests {
             format!(
                 "{reset}{italic}{white}",
                 reset = Ansi::RESET,
-                white = Ansi::rgb(ChatFormatting::WHITE.color.unwrap()),
+                white = Ansi::rgb(ChatFormatting::White.color().unwrap()),
                 italic = Ansi::ITALIC
             )
         )
@@ -465,15 +532,15 @@ mod tests {
     fn test_from_code() {
         assert_eq!(
             ChatFormatting::from_code('a').unwrap(),
-            &ChatFormatting::GREEN
+            ChatFormatting::Green
         );
     }
 
     #[test]
     fn test_apply_formatting() {
         let mut style = Style::default();
-        style.apply_formatting(&ChatFormatting::BOLD);
-        style.apply_formatting(&ChatFormatting::RED);
+        style.apply_formatting(&ChatFormatting::Bold);
+        style.apply_formatting(&ChatFormatting::Red);
         assert_eq!(style.color, Some(TextColor::from_rgb(16733525)));
     }
 }

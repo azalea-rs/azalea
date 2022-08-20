@@ -16,9 +16,9 @@ pub struct ClientboundLoginPacket {
     #[var]
     pub max_players: i32,
     #[var]
-    pub chunk_radius: i32,
+    pub chunk_radius: u32,
     #[var]
-    pub simulation_distance: i32,
+    pub simulation_distance: u32,
     pub reduced_debug_info: bool,
     pub show_death_screen: bool,
     pub is_debug: bool,
