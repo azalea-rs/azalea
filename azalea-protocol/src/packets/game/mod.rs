@@ -49,10 +49,17 @@ pub mod clientbound_place_ghost_recipe_packet;
 pub mod clientbound_player_abilities_packet;
 pub mod clientbound_player_chat_header_packet;
 pub mod clientbound_player_chat_packet;
+pub mod clientbound_player_combat_end_packet;
+pub mod clientbound_player_combat_enter_packet;
+pub mod clientbound_player_combat_kill_packet;
 pub mod clientbound_player_info_packet;
+pub mod clientbound_player_look_at_packet;
 pub mod clientbound_player_position_packet;
 pub mod clientbound_recipe_packet;
 pub mod clientbound_remove_entities_packet;
+pub mod clientbound_remove_mob_effect_packet;
+pub mod clientbound_resource_pack_packet;
+pub mod clientbound_respawn_packet;
 pub mod clientbound_rotate_head_packet;
 pub mod clientbound_section_blocks_update_packet;
 pub mod clientbound_server_data_packet;
@@ -235,10 +242,17 @@ declare_state_packets!(
         0x31: clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
         0x32: clientbound_player_chat_header_packet::ClientboundPlayerChatHeaderPacket,
         0x33: clientbound_player_chat_packet::ClientboundPlayerChatPacket,
+        0x34: clientbound_player_combat_end_packet::ClientboundPlayerCombatEndPacket,
+        0x35: clientbound_player_combat_enter_packet::ClientboundPlayerCombatEnterPacket,
+        0x36: clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
         0x37: clientbound_player_info_packet::ClientboundPlayerInfoPacket,
+        0x38: clientbound_player_look_at_packet::ClientboundPlayerLookAtPacket,
         0x39: clientbound_player_position_packet::ClientboundPlayerPositionPacket,
         0x3a: clientbound_recipe_packet::ClientboundRecipePacket,
         0x3b: clientbound_remove_entities_packet::ClientboundRemoveEntitiesPacket,
+        0x3c: clientbound_remove_mob_effect_packet::ClientboundRemoveMobEffectPacket,
+        0x3d: clientbound_resource_pack_packet::ClientboundResourcePackPacket,
+        0x3e: clientbound_respawn_packet::ClientboundRespawnPacket,
         0x3f: clientbound_rotate_head_packet::ClientboundRotateHeadPacket,
         0x40: clientbound_section_blocks_update_packet::ClientboundSectionBlocksUpdatePacket,
         0x42: clientbound_server_data_packet::ClientboundServerDataPacket,

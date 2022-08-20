@@ -63,6 +63,8 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
     elif burger_type == 'metadata':
         field_type_rs = 'EntityMetadata'
         uses.add('crate::mc_buf::EntityMetadata')
+    elif burger_type == 'abstract':
+        field_type_rs = 'todo!()'
     elif burger_type == 'enum':
         if not instruction or not mappings or not obfuscated_class_name:
             field_type_rs = 'todo!("enum")'

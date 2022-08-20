@@ -277,16 +277,21 @@ def burger_instruction_to_code(instructions: list[dict], index: int, generated_p
         skip = 2  # skip the next 2 instructions
 
     # Option<T>
-    elif instruction['operation'] == 'write' and instruction['field'].endswith('.isPresent()') and next_instruction and next_instruction.get('condition', '').endswith('.isPresent()'):
-        field_obfuscated_name = instruction['field'].split('.')[0]
+    elif instruction['operation'] == 'write' and (instruction['field'].endswith('.isPresent()') or instruction['field'].endswith(' != null')) and next_instruction and (next_instruction.get('condition', '').endswith('.isPresent()') or next_instruction.get('condition', '').endswith(' != null')):
+        field_obfuscated_name = instruction['field'].split('.')[
+            0].split(' ')[0]
         field_name = mappings.get_field(
             obfuscated_class_name, field_obfuscated_name)
         condition_instructions = next_instruction['instructions']
-        if len(condition_instructions) == 1:
+
+        condition_types_rs = []
+        for condition_instruction in condition_instructions:
             condition_type_rs, is_var, uses, extra_code = burger_type_to_rust_type(
-                condition_instructions[0]['type'], None, condition_instructions[0], mappings, obfuscated_class_name)
-            field_type_rs = f'Option<{condition_type_rs}>'
-            skip = 1
+                condition_instruction['type'], None, condition_instruction, mappings, obfuscated_class_name)
+            condition_types_rs.append(condition_type_rs)
+        field_type_rs = f'Option<({", ".join(condition_types_rs)})>' if len(
+            condition_types_rs) != 1 else f'Option<{condition_types_rs[0]}>'
+        skip = 1
     else:
         field_type = instruction['type']
         obfuscated_field_name = instruction['field']
