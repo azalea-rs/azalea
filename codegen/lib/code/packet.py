@@ -286,9 +286,11 @@ def burger_instruction_to_code(instructions: list[dict], index: int, generated_p
 
         condition_types_rs = []
         for condition_instruction in condition_instructions:
-            condition_type_rs, is_var, uses, extra_code = burger_type_to_rust_type(
+            condition_type_rs, is_var, this_uses, this_extra_code = burger_type_to_rust_type(
                 condition_instruction['type'], None, condition_instruction, mappings, obfuscated_class_name)
             condition_types_rs.append(condition_type_rs)
+            uses.update(this_uses)
+            extra_code.extend(this_extra_code)
         field_type_rs = f'Option<({", ".join(condition_types_rs)})>' if len(
             condition_types_rs) != 1 else f'Option<{condition_types_rs[0]}>'
         skip = 1

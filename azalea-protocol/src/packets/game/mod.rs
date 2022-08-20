@@ -62,7 +62,15 @@ pub mod clientbound_resource_pack_packet;
 pub mod clientbound_respawn_packet;
 pub mod clientbound_rotate_head_packet;
 pub mod clientbound_section_blocks_update_packet;
+pub mod clientbound_select_advancements_tab_packet;
 pub mod clientbound_server_data_packet;
+pub mod clientbound_set_action_bar_text_packet;
+pub mod clientbound_set_border_center_packet;
+pub mod clientbound_set_border_lerp_size_packet;
+pub mod clientbound_set_border_size_packet;
+pub mod clientbound_set_border_warning_delay_packet;
+pub mod clientbound_set_border_warning_distance_packet;
+pub mod clientbound_set_camera_packet;
 pub mod clientbound_set_carried_item_packet;
 pub mod clientbound_set_chunk_cache_center_packet;
 pub mod clientbound_set_default_spawn_position_packet;
@@ -255,7 +263,15 @@ declare_state_packets!(
         0x3e: clientbound_respawn_packet::ClientboundRespawnPacket,
         0x3f: clientbound_rotate_head_packet::ClientboundRotateHeadPacket,
         0x40: clientbound_section_blocks_update_packet::ClientboundSectionBlocksUpdatePacket,
+        0x41: clientbound_select_advancements_tab_packet::ClientboundSelectAdvancementsTabPacket,
         0x42: clientbound_server_data_packet::ClientboundServerDataPacket,
+        0x43: clientbound_set_action_bar_text_packet::ClientboundSetActionBarTextPacket,
+        0x44: clientbound_set_border_center_packet::ClientboundSetBorderCenterPacket,
+        0x45: clientbound_set_border_lerp_size_packet::ClientboundSetBorderLerpSizePacket,
+        0x46: clientbound_set_border_size_packet::ClientboundSetBorderSizePacket,
+        0x47: clientbound_set_border_warning_delay_packet::ClientboundSetBorderWarningDelayPacket,
+        0x48: clientbound_set_border_warning_distance_packet::ClientboundSetBorderWarningDistancePacket,
+        0x49: clientbound_set_camera_packet::ClientboundSetCameraPacket,
         0x4a: clientbound_set_carried_item_packet::ClientboundSetCarriedItemPacket,
         0x4b: clientbound_set_chunk_cache_center_packet::ClientboundSetChunkCacheCenterPacket,
         0x4c: clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket,

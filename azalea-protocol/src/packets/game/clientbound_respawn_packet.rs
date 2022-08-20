@@ -1,5 +1,5 @@
 use azalea_buf::McBuf;
-use azalea_core::{GameType, OptionalGameType, ResourceLocation};
+use azalea_core::{GameType, GlobalPos, OptionalGameType, ResourceLocation};
 use packet_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
