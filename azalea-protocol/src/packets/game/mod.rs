@@ -87,9 +87,18 @@ pub mod clientbound_set_objective_packet;
 pub mod clientbound_set_passengers_packet;
 pub mod clientbound_set_player_team_packet;
 pub mod clientbound_set_score_packet;
+pub mod clientbound_set_simulation_distance_packet;
+pub mod clientbound_set_subtitle_text_packet;
 pub mod clientbound_set_time_packet;
+pub mod clientbound_set_title_text_packet;
+pub mod clientbound_set_titles_animation_packet;
+pub mod clientbound_sound_entity_packet;
 pub mod clientbound_sound_packet;
+pub mod clientbound_stop_sound_packet;
 pub mod clientbound_system_chat_packet;
+pub mod clientbound_tab_list_packet;
+pub mod clientbound_tag_query_packet;
+pub mod clientbound_take_item_entity_packet;
 pub mod clientbound_teleport_entity_packet;
 pub mod clientbound_update_advancements_packet;
 pub mod clientbound_update_attributes_packet;
@@ -297,9 +306,18 @@ declare_state_packets!(
         0x57: clientbound_set_passengers_packet::ClientboundSetPassengersPacket,
         0x58: clientbound_set_player_team_packet::ClientboundSetPlayerTeamPacket,
         0x59: clientbound_set_score_packet::ClientboundSetScorePacket,
+        0x5a: clientbound_set_simulation_distance_packet::ClientboundSetSimulationDistancePacket,
+        0x5b: clientbound_set_subtitle_text_packet::ClientboundSetSubtitleTextPacket,
         0x5c: clientbound_set_time_packet::ClientboundSetTimePacket,
+        0x5d: clientbound_set_title_text_packet::ClientboundSetTitleTextPacket,
+        0x5e: clientbound_set_titles_animation_packet::ClientboundSetTitlesAnimationPacket,
+        0x5f: clientbound_sound_entity_packet::ClientboundSoundEntityPacket,
         0x60: clientbound_sound_packet::ClientboundSoundPacket,
+        0x61: clientbound_stop_sound_packet::ClientboundStopSoundPacket,
         0x62: clientbound_system_chat_packet::ClientboundSystemChatPacket,
+        0x63: clientbound_tab_list_packet::ClientboundTabListPacket,
+        0x64: clientbound_tag_query_packet::ClientboundTagQueryPacket,
+        0x65: clientbound_take_item_entity_packet::ClientboundTakeItemEntityPacket,
         0x66: clientbound_teleport_entity_packet::ClientboundTeleportEntityPacket,
         0x67: clientbound_update_advancements_packet::ClientboundUpdateAdvancementsPacket,
         0x68: clientbound_update_attributes_packet::ClientboundUpdateAttributesPacket,
