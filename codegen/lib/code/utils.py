@@ -62,7 +62,7 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
         uses.add('azalea_core::Slot')
     elif burger_type == 'metadata':
         field_type_rs = 'EntityMetadata'
-        uses.add('crate::mc_buf::EntityMetadata')
+        uses.add('azalea_entity::EntityMetadata')
     elif burger_type == 'abstract':
         field_type_rs = 'todo!()'
     elif burger_type == 'enum':

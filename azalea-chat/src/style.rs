@@ -1,5 +1,6 @@
-use std::{collections::HashMap, fmt};
+use std::{collections::HashMap, fmt, io::Read};
 
+use azalea_buf::McBufReadable;
 use serde_json::Value;
 
 #[derive(Clone, PartialEq, Eq, Debug)]

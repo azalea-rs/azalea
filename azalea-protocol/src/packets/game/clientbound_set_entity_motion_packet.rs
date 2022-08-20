@@ -1,10 +1,11 @@
 use azalea_buf::McBuf;
-use azalea_entity::EntityMetadata;
 use packet_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
-pub struct ClientboundSetEntityDataPacket {
+pub struct ClientboundSetEntityMotionPacket {
     #[var]
     pub id: u32,
-    pub packed_items: EntityMetadata,
+    pub xa: i16,
+    pub ya: i16,
+    pub za: i16,
 }

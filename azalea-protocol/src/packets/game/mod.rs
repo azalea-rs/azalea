@@ -73,13 +73,19 @@ pub mod clientbound_set_border_warning_distance_packet;
 pub mod clientbound_set_camera_packet;
 pub mod clientbound_set_carried_item_packet;
 pub mod clientbound_set_chunk_cache_center_packet;
+pub mod clientbound_set_chunk_cache_radius_packet;
 pub mod clientbound_set_default_spawn_position_packet;
 pub mod clientbound_set_display_chat_preview_packet;
+pub mod clientbound_set_display_objective_packet;
 pub mod clientbound_set_entity_data_packet;
 pub mod clientbound_set_entity_link_packet;
+pub mod clientbound_set_entity_motion_packet;
 pub mod clientbound_set_equipment_packet;
 pub mod clientbound_set_experience_packet;
 pub mod clientbound_set_health_packet;
+pub mod clientbound_set_objective_packet;
+pub mod clientbound_set_passengers_packet;
+pub mod clientbound_set_player_team_packet;
 pub mod clientbound_set_time_packet;
 pub mod clientbound_sound_packet;
 pub mod clientbound_system_chat_packet;
@@ -275,14 +281,20 @@ declare_state_packets!(
         0x4a: clientbound_set_carried_item_packet::ClientboundSetCarriedItemPacket,
         0x4b: clientbound_set_chunk_cache_center_packet::ClientboundSetChunkCacheCenterPacket,
         0x4c: clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket,
+        0x4c: clientbound_set_chunk_cache_radius_packet::ClientboundSetChunkCacheRadiusPacket,
         0x4d: clientbound_set_default_spawn_position_packet::ClientboundSetDefaultSpawnPositionPacket,
         0x4e: clientbound_set_display_chat_preview_packet::ClientboundSetDisplayChatPreviewPacket,
+        0x4f: clientbound_set_display_objective_packet::ClientboundSetDisplayObjectivePacket,
         0x50: clientbound_set_entity_data_packet::ClientboundSetEntityDataPacket,
         0x51: clientbound_set_entity_link_packet::ClientboundSetEntityLinkPacket,
         0x52: clientbound_entity_velocity_packet::ClientboundEntityVelocityPacket,
+        0x52: clientbound_set_entity_motion_packet::ClientboundSetEntityMotionPacket,
         0x53: clientbound_set_equipment_packet::ClientboundSetEquipmentPacket,
         0x54: clientbound_set_experience_packet::ClientboundSetExperiencePacket,
         0x55: clientbound_set_health_packet::ClientboundSetHealthPacket,
+        0x56: clientbound_set_objective_packet::ClientboundSetObjectivePacket,
+        0x57: clientbound_set_passengers_packet::ClientboundSetPassengersPacket,
+        0x58: clientbound_set_player_team_packet::ClientboundSetPlayerTeamPacket,
         0x5c: clientbound_set_time_packet::ClientboundSetTimePacket,
         0x60: clientbound_sound_packet::ClientboundSoundPacket,
         0x62: clientbound_system_chat_packet::ClientboundSystemChatPacket,
