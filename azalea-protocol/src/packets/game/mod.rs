@@ -86,6 +86,7 @@ pub mod clientbound_set_health_packet;
 pub mod clientbound_set_objective_packet;
 pub mod clientbound_set_passengers_packet;
 pub mod clientbound_set_player_team_packet;
+pub mod clientbound_set_score_packet;
 pub mod clientbound_set_time_packet;
 pub mod clientbound_sound_packet;
 pub mod clientbound_system_chat_packet;
@@ -295,6 +296,7 @@ declare_state_packets!(
         0x56: clientbound_set_objective_packet::ClientboundSetObjectivePacket,
         0x57: clientbound_set_passengers_packet::ClientboundSetPassengersPacket,
         0x58: clientbound_set_player_team_packet::ClientboundSetPlayerTeamPacket,
+        0x59: clientbound_set_score_packet::ClientboundSetScorePacket,
         0x5c: clientbound_set_time_packet::ClientboundSetTimePacket,
         0x60: clientbound_sound_packet::ClientboundSoundPacket,
         0x62: clientbound_system_chat_packet::ClientboundSystemChatPacket,

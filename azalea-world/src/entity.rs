@@ -113,12 +113,7 @@ impl EntityStorage {
     where
         F: FnMut(&Entity) -> bool,
     {
-        for entity in self.entities() {
-            if f(entity) {
-                return Some(entity);
-            }
-        }
-        None
+        self.entities().find(|&entity| f(entity))
     }
 
     pub fn find_one_entity_in_chunk<F>(&self, chunk: &ChunkPos, mut f: F) -> Option<&Entity>
