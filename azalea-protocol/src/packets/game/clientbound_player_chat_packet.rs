@@ -74,13 +74,15 @@ pub enum FilterMask {
 }
 
 impl McBufReadable for FilterMask {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let filter_mask = u32::var_read_from(buf)?;
         match filter_mask {
             0 => Ok(FilterMask::PassThrough),
             1 => Ok(FilterMask::FullyFiltered),
             2 => Ok(FilterMask::PartiallyFiltered(BitSet::read_from(buf)?)),
-            _ => Err("Invalid filter mask".to_string()),
+            _ => Err(BufReadError::UnexpectedEnumVariant {
+                id: filter_mask as i32,
+            }),
         }
     }
 }

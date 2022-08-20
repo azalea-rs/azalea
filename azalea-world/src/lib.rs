@@ -17,6 +17,7 @@ use std::{
     ops::{Index, IndexMut},
     sync::{Arc, Mutex},
 };
+use thiserror::Error;
 use uuid::Uuid;
 
 /// A dimension is a collection of chunks and entities.
@@ -26,6 +27,12 @@ use uuid::Uuid;
 pub struct Dimension {
     chunk_storage: ChunkStorage,
     entity_storage: EntityStorage,
+}
+
+#[derive(Error, Debug)]
+pub enum MoveEntityError {
+    #[error("Entity doesn't exist")]
+    EntityDoesNotExist,
 }
 
 impl Dimension {
@@ -40,7 +47,7 @@ impl Dimension {
         &mut self,
         pos: &ChunkPos,
         data: &mut impl Read,
-    ) -> Result<(), String> {
+    ) -> Result<(), BufReadError> {
         self.chunk_storage.replace_with_packet_data(pos, data)
     }
 
@@ -56,11 +63,11 @@ impl Dimension {
         self.chunk_storage.set_block_state(pos, state, self.min_y())
     }
 
-    pub fn set_entity_pos(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), String> {
+    pub fn set_entity_pos(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), MoveEntityError> {
         let entity = self
             .entity_storage
             .get_mut_by_id(entity_id)
-            .ok_or_else(|| "Moving entity that doesn't exist".to_string())?;
+            .ok_or(MoveEntityError::EntityDoesNotExist)?;
 
         let old_chunk = ChunkPos::from(entity.pos());
         let new_chunk = ChunkPos::from(&new_pos);
@@ -77,11 +84,11 @@ impl Dimension {
         &mut self,
         entity_id: u32,
         delta: &PositionDelta8,
-    ) -> Result<(), String> {
+    ) -> Result<(), MoveEntityError> {
         let entity = self
             .entity_storage
             .get_mut_by_id(entity_id)
-            .ok_or_else(|| "Moving entity that doesn't exist".to_string())?;
+            .ok_or(MoveEntityError::EntityDoesNotExist)?;
         let new_pos = entity.pos().with_delta(delta);
 
         let old_chunk = ChunkPos::from(entity.pos());

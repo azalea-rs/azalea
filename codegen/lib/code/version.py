@@ -7,8 +7,8 @@ VERSION_REGEX = r'\*Currently supported Minecraft version: `(.*)`.\*'
 
 
 def get_version_id() -> str:
-    with open(README_DIR, 'r') as f:
-        readme_text = f.read()
+    with open(README_DIR, 'rb') as f:
+        readme_text = f.read().decode()
 
     version_line_match = re.search(VERSION_REGEX, readme_text)
     if version_line_match:
@@ -19,8 +19,8 @@ def get_version_id() -> str:
 
 
 def set_version_id(version_id: str) -> None:
-    with open(README_DIR, 'r') as f:
-        readme_text = f.read()
+    with open(README_DIR, 'rb') as f:
+        readme_text = f.read().decode()
 
     version_line_match = re.search(VERSION_REGEX, readme_text)
     if version_line_match:
@@ -29,8 +29,8 @@ def set_version_id(version_id: str) -> None:
     else:
         raise Exception('Could not find version id in README.md')
 
-    with open(README_DIR, 'w') as f:
-        f.write(readme_text)
+    with open(README_DIR, 'wb') as f:
+        f.write(readme_text.encode())
 
 
 def get_protocol_version() -> str:

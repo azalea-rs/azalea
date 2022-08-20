@@ -7,7 +7,7 @@ A collection of Rust crates primarily for creating Minecraft bots.
 </p>
 
 <!-- The line below is automatically read and updated by the migrate script, so don't change it manually. -->
-*Currently supported Minecraft version: `1.19.1`.*
+*Currently supported Minecraft version: `1.19.2`.*
 
 ## ⚠️ Azalea is still super unfinished, you probably shouldn't use it
 
@@ -28,5 +28,14 @@ I wanted a fun excuse to do something cool with Rust, and I also felt like I cou
 
 ## Non-goals
 
-- Supporting many versions of Minecraft (but there might be branches made in the future for some popular versions).
+- Supporting several versions of Minecraft on the same branch.
+- Bedrock edition.
 - Graphics.
+
+
+## Stretch goals
+
+*I might not do these, but I still keep them in mind when writing the code.*
+
+- Server implementation.
+- Having branches for several popular Minecraft versions.

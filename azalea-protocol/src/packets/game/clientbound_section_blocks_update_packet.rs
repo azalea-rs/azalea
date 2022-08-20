@@ -1,4 +1,4 @@
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_core::{ChunkSectionBlockPos, ChunkSectionPos};
 use packet_macros::ClientboundGamePacket;
@@ -18,7 +18,7 @@ pub struct BlockStateWithPosition {
 }
 
 impl McBufReadable for BlockStateWithPosition {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let data = u64::var_read_from(buf)?;
         let position_part = data & 4095;
         let state = (data >> 12) as u32;

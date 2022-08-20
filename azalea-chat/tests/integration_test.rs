@@ -59,7 +59,7 @@ fn complex_ansi_test() {
             bold = Ansi::BOLD,
             italic = Ansi::ITALIC,
             underlined = Ansi::UNDERLINED,
-            red = Ansi::rgb(ChatFormatting::RED.color.unwrap()),
+            red = Ansi::rgb(ChatFormatting::Red.color().unwrap()),
             reset = Ansi::RESET,
             strikethrough = Ansi::STRIKETHROUGH,
             abcdef = Ansi::rgb(TextColor::parse("#abcdef".to_string()).unwrap().value),

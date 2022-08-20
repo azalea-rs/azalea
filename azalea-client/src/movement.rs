@@ -8,9 +8,17 @@ use azalea_protocol::packets::game::{
     serverbound_move_player_packet_status_only::ServerboundMovePlayerPacketStatusOnly,
 };
 
+#[derive(Error, Debug)]
+pub enum MovePlayerError {
+    #[error("Player is not in world")]
+    PlayerNotInWorld,
+    #[error("{0}")]
+    Io(#[from] std::io::Error),
+}
+
 impl Client {
     /// This gets called every tick.
-    pub async fn send_position(&mut self) -> Result<(), String> {
+    pub async fn send_position(&mut self) -> Result<(), MovePlayerError> {
         let packet = {
             let player_lock = self.player.lock().unwrap();
 
@@ -109,7 +117,7 @@ impl Client {
     }
 
     // Set our current position to the provided Vec3, potentially clipping through blocks.
-    pub async fn set_pos(&mut self, new_pos: Vec3) -> Result<(), String> {
+    pub async fn set_pos(&mut self, new_pos: Vec3) -> Result<(), MovePlayerError> {
         let player_lock = self.player.lock().unwrap();
         let mut dimension_lock = self.dimension.lock().unwrap();
 
@@ -118,12 +126,13 @@ impl Client {
         Ok(())
     }
 
-    pub async fn move_entity(&mut self, movement: &Vec3) -> Result<(), String> {
+    pub async fn move_entity(&mut self, movement: &Vec3) -> Result<(), MovePlayerError> {
         let mut dimension_lock = self.dimension.lock().unwrap();
         let player = self.player.lock().unwrap();
         let entity = player
             .entity(&mut dimension_lock)
-            .expect("Player entity is not in world");
+            .ok_or(MovePlayerError::PlayerNotInWorld)?;
+
         let entity_id = entity.id;
         // entity.move_entity(&MoverType::Own, movement, &self.dimension)?;
         dimension_lock.move_entity(&MoverType::Own, movement, entity_id)?;

@@ -1,8 +1,10 @@
 # Extracting data from the Minecraft jars
 
-from lib.download import get_server_jar, get_burger, get_client_jar, get_generator_mod, get_yarn_data, get_fabric_api_versions
+from lib.download import get_server_jar, get_burger, get_client_jar, get_generator_mod, get_yarn_data, get_fabric_api_versions, get_fabric_loader_versions
 from lib.utils import get_dir_location
+import subprocess
 import json
+import re
 import os
 
 
@@ -32,14 +34,44 @@ def get_ordered_blocks_burger(version_id: str):
     return burger_data[0]['blocks']['ordered_blocks']
 
 
+python_command = None
+
+
+def determine_python_command():
+    global python_command
+    if python_command:
+        return python_command
+
+    def try_python_command(version):
+        return os.system(f'{version} --version') == 0
+
+    for version in ('python3.9', 'python3.8', 'python3', 'python'):
+        if try_python_command(version):
+            python_command = version
+            return version
+    raise Exception(
+        'Couldn\'t determine python command to use to run burger with!')
+
+
 def get_burger_data_for_version(version_id: str):
     if not os.path.exists(get_dir_location(f'downloads/burger-{version_id}.json')):
         get_burger()
         get_client_jar(version_id)
 
-        os.system(
-            f'cd {get_dir_location("downloads/Burger")} && python munch.py ../client-{version_id}.jar --output ../burger-{version_id}.json'
-        )
+        for _ in range(10):
+            r = subprocess.run(
+                f'cd {get_dir_location("downloads/Burger")} && {determine_python_command()} munch.py ../client-{version_id}.jar --output ../burger-{version_id}.json',
+                capture_output=True,
+                shell=True
+            )
+            regex_match = re.search(
+                r'ModuleNotFoundError: No module named \'(\w+?)\'', r.stderr.decode())
+            if not regex_match:
+                break
+            missing_lib = regex_match.group(1)
+            print('Missing required lib for Burger:', missing_lib)
+            os.system(
+                f'{determine_python_command()} -m pip install {missing_lib}')
     with open(get_dir_location(f'downloads/burger-{version_id}.json'), 'r') as f:
         return json.load(f)
 
@@ -62,6 +94,7 @@ def get_generator_mod_data(version_id: str, category: str):
         yarn_version = yarn_data['version']
 
         fabric_api_version = get_fabric_api_versions()[-1]
+        fabric_loader_version = get_fabric_loader_versions()[0]
 
         # the mod has the minecraft version hard-coded by default, so we just change the gradle.properties and fabric.mod.json
         with open(get_dir_location(f'{generator_mod_dir}/gradle.properties'), 'r') as f:
@@ -74,6 +107,8 @@ def get_generator_mod_data(version_id: str, category: str):
                     line = f'yarn_mappings={yarn_version}\n'
                 if line.startswith('fabric_version='):
                     line = f'fabric_version={fabric_api_version}\n'
+                if line.startswith('loader_version='):
+                    line = f'loader_version={fabric_loader_version}\n'
                 f.write(line)
         # edit the fabric.mod.json to support this version
         with open(get_dir_location(f'{generator_mod_dir}/src/main/resources/fabric.mod.json'), 'r') as f:

@@ -22,7 +22,7 @@ flate2 = "1.0.23"
 packet-macros = {path = "./packet-macros"}
 serde = {version = "1.0.130", features = ["serde_derive"]}
 serde_json = "^1.0.72"
-thiserror = "^1.0.30"
+thiserror = "^1.0.32"
 tokio = {version = "^1.19.2", features = ["io-util", "net", "macros"]}
 tokio-util = "^0.6.9"
 trust-dns-resolver = "^0.20.3"

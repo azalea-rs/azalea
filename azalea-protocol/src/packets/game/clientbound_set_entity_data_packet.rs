@@ -6,5 +6,5 @@ use packet_macros::ClientboundGamePacket;
 pub struct ClientboundSetEntityDataPacket {
     #[var]
     pub id: u32,
-    pub metadata: EntityMetadata,
+    pub packed_items: EntityMetadata,
 }

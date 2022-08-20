@@ -2,6 +2,7 @@ use crate::palette::PalettedContainer;
 use crate::palette::PalettedContainerType;
 use crate::Dimension;
 use azalea_block::BlockState;
+use azalea_buf::BufReadError;
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::floor_mod;
 use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
@@ -78,7 +79,7 @@ impl ChunkStorage {
         &mut self,
         pos: &ChunkPos,
         data: &mut impl Read,
-    ) -> Result<(), String> {
+    ) -> Result<(), BufReadError> {
         if !self.in_range(pos) {
             println!(
                 "Ignoring chunk since it's not in the view range: {}, {}",
@@ -113,14 +114,17 @@ impl IndexMut<&ChunkPos> for ChunkStorage {
 }
 
 impl Chunk {
-    pub fn read_with_dimension(buf: &mut impl Read, data: &Dimension) -> Result<Self, String> {
+    pub fn read_with_dimension(
+        buf: &mut impl Read,
+        data: &Dimension,
+    ) -> Result<Self, BufReadError> {
         Self::read_with_dimension_height(buf, data.height())
     }
 
     pub fn read_with_dimension_height(
         buf: &mut impl Read,
         dimension_height: u32,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, BufReadError> {
         let section_count = dimension_height / SECTION_HEIGHT;
         let mut sections = Vec::with_capacity(section_count as usize);
         for _ in 0..section_count {
@@ -192,7 +196,7 @@ impl Debug for ChunkStorage {
 }
 
 impl McBufReadable for Section {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let block_count = u16::read_from(buf)?;
 
         // this is commented out because the vanilla server is wrong
@@ -205,11 +209,11 @@ impl McBufReadable for Section {
 
         for i in 0..states.storage.size() {
             if !BlockState::is_valid_state(states.storage.get(i) as u32) {
-                return Err(format!(
+                return Err(BufReadError::Custom(format!(
                     "Invalid block state {} (index {}) found in section.",
                     states.storage.get(i),
                     i
-                ));
+                )));
             }
         }
 

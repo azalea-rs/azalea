@@ -1,4 +1,4 @@
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_core::ResourceLocation;
 use packet_macros::ClientboundGamePacket;
@@ -34,12 +34,12 @@ enum Operation {
 }
 
 impl McBufReadable for Operation {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         match buf.read_byte()? {
             0 => Ok(Operation::Addition),
             1 => Ok(Operation::MultiplyBase),
             2 => Ok(Operation::MultiplyTotal),
-            op => Err(format!("Unknown operation: {}", op)),
+            id => Err(BufReadError::UnexpectedEnumVariant { id: id.into() }),
         }
     }
 }

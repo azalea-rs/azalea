@@ -1,3 +1,4 @@
+use azalea_buf::BufReadError;
 use azalea_buf::McBuf;
 use azalea_buf::McBufVarReadable;
 use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
@@ -9,7 +10,7 @@ use std::{
 };
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
-pub struct ClientboundDeclareCommandsPacket {
+pub struct ClientboundCommandsPacket {
     pub entries: Vec<BrigadierNodeStub>,
     #[var]
     pub root_index: i32,
@@ -24,7 +25,7 @@ pub struct BrigadierNumber<T> {
     max: Option<T>,
 }
 impl<T: McBufReadable> McBufReadable for BrigadierNumber<T> {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let flags = buf.read_byte()?;
         let min = if flags & 0x01 != 0 {
             Some(T::read_from(buf)?)
@@ -123,7 +124,7 @@ pub enum BrigadierParser {
 }
 
 impl McBufReadable for BrigadierParser {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let parser_type = u32::var_read_from(buf)?;
 
         match parser_type {
@@ -190,14 +191,16 @@ impl McBufReadable for BrigadierParser {
             45 => Ok(BrigadierParser::TemplateMirror),
             46 => Ok(BrigadierParser::TemplateRotation),
             47 => Ok(BrigadierParser::Uuid),
-            _ => Err(format!("Unknown BrigadierParser type: {}", parser_type)),
+            _ => Err(BufReadError::UnexpectedEnumVariant {
+                id: parser_type as i32,
+            }),
         }
     }
 }
 
 // TODO: BrigadierNodeStub should have more stuff
 impl McBufReadable for BrigadierNodeStub {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let flags = u8::read_from(buf)?;
         if flags > 31 {
             println!(

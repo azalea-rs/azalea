@@ -18,7 +18,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                     // do a different buf.write_* for each field depending on the type
                     // if it's a string, use buf.write_string
                     match field_type {
-                        syn::Type::Path(_) => {
+                        syn::Type::Path(_) | syn::Type::Array(_) => {
                             if f.attrs.iter().any(|a| a.path.is_ident("var")) {
                                 quote! {
                                     let #field_name = azalea_buf::McBufVarReadable::var_read_from(buf)?;
@@ -41,7 +41,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
 
             quote! {
             impl azalea_buf::McBufReadable for #ident {
-                fn read_from(buf: &mut impl std::io::Read) -> Result<Self, String> {
+                fn read_from(buf: &mut impl std::io::Read) -> Result<Self, azalea_buf::BufReadError> {
                     #(#read_fields)*
                     Ok(#ident {
                         #(#read_field_names: #read_field_names),*
@@ -60,9 +60,14 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         variant_discrim = match &d.1 {
                             syn::Expr::Lit(e) => match &e.lit {
                                 syn::Lit::Int(i) => i.base10_parse().unwrap(),
-                                _ => panic!("Error parsing enum discriminant"),
+                                _ => panic!("Error parsing enum discriminant as int"),
                             },
-                            _ => panic!("Error parsing enum discriminant"),
+                            syn::Expr::Unary(_) => {
+                                panic!("Negative enum discriminants are not supported")
+                            }
+                            _ => {
+                                panic!("Error parsing enum discriminant as literal (is {:?})", d.1)
+                            }
                         }
                     }
                     None => {
@@ -76,12 +81,12 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
 
             quote! {
             impl azalea_buf::McBufReadable for #ident {
-                fn read_from(buf: &mut impl std::io::Read) -> Result<Self, String>
+                fn read_from(buf: &mut impl std::io::Read) -> Result<Self, azalea_buf::BufReadError>
                 {
                     let id = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                     match id {
                         #match_contents
-                        _ => Err(format!("Unknown enum variant {}", id)),
+                        _ => Err(azalea_buf::BufReadError::UnexpectedEnumVariant { id: id as i32 }),
                     }
                 }
             }
@@ -107,7 +112,7 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                 // do a different buf.write_* for each field depending on the type
                 // if it's a string, use buf.write_string
                 match field_type {
-                    syn::Type::Path(_) => {
+                    syn::Type::Path(_) | syn::Type::Array(_) => {
                         if f.attrs.iter().any(|attr| attr.path.is_ident("var")) {
                             quote! {
                                 azalea_buf::McBufVarWritable::var_write_into(&self.#field_name, buf)?;

@@ -1,6 +1,6 @@
 use std::io::{Read, Write};
 
-use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use serde::{de, Deserialize, Deserializer};
 
 use crate::{
@@ -18,7 +18,7 @@ pub enum Component {
 
 lazy_static! {
     pub static ref DEFAULT_STYLE: Style = Style {
-        color: Some(ChatFormatting::WHITE.try_into().unwrap()),
+        color: Some(ChatFormatting::White.try_into().unwrap()),
         ..Style::default()
     };
 }
@@ -269,11 +269,10 @@ impl<'de> Deserialize<'de> for Component {
 }
 
 impl McBufReadable for Component {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let string = String::read_from(buf)?;
-        let json: serde_json::Value = serde_json::from_str(string.as_str())
-            .map_err(|_| "Component isn't valid JSON".to_string())?;
-        let component = Component::deserialize(json).map_err(|e| e.to_string())?;
+        let json: serde_json::Value = serde_json::from_str(string.as_str())?;
+        let component = Component::deserialize(json)?;
         Ok(component)
     }
 }

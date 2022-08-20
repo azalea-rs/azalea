@@ -3,7 +3,7 @@ use std::{
     io::{Read, Write},
 };
 
-use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 
 #[derive(Hash, Clone, Debug, PartialEq, Eq)]
 pub enum Difficulty {
@@ -67,7 +67,7 @@ impl Difficulty {
 }
 
 impl McBufReadable for Difficulty {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         Ok(Difficulty::by_id(u8::read_from(buf)?))
     }
 }

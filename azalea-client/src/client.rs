@@ -2,7 +2,7 @@ use crate::{Account, Player};
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, PositionDelta, PositionDeltaTrait, ResourceLocation, Vec3};
 use azalea_protocol::{
-    connect::Connection,
+    connect::{Connection, ConnectionError},
     packets::{
         game::{
             clientbound_player_chat_packet::ClientboundPlayerChatPacket,
@@ -10,7 +10,7 @@ use azalea_protocol::{
             serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
-            serverbound_move_player_packet_pos_rot::ServerboundMovePlayerPacketPosRot,
+            serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPacketPosRot,
             ClientboundGamePacket, ServerboundGamePacket,
         },
         handshake::client_intention_packet::ClientIntentionPacket,
@@ -21,14 +21,17 @@ use azalea_protocol::{
         },
         ConnectionProtocol, PROTOCOL_VERSION,
     },
+    read::ReadPacketError,
     resolver, ServerAddress,
 };
 use azalea_world::entity::Entity;
 use azalea_world::Dimension;
 use std::{
     fmt::Debug,
+    io,
     sync::{Arc, Mutex},
 };
+use thiserror::Error;
 use tokio::{
     sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
     time::{self},
@@ -72,15 +75,34 @@ pub struct Client {
 /// Whether we should ignore errors when decoding packets.
 const IGNORE_ERRORS: bool = !cfg!(debug_assertions);
 
-#[derive(Debug)]
-struct HandleError(String);
+#[derive(Error, Debug)]
+pub enum JoinError {
+    #[error("{0}")]
+    Resolver(#[from] resolver::ResolverError),
+    #[error("{0}")]
+    Connection(#[from] ConnectionError),
+    #[error("{0}")]
+    ReadPacket(#[from] azalea_protocol::read::ReadPacketError),
+    #[error("{0}")]
+    Io(#[from] io::Error),
+}
+
+#[derive(Error, Debug)]
+pub enum HandleError {
+    #[error("{0}")]
+    Poison(String),
+    #[error("{0}")]
+    Io(#[from] io::Error),
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
+}
 
 impl Client {
     /// Connect to a Minecraft server with an account.
     pub async fn join(
         account: &Account,
         address: &ServerAddress,
-    ) -> Result<(Self, UnboundedReceiver<Event>), String> {
+    ) -> Result<(Self, UnboundedReceiver<Event>), JoinError> {
         let resolved_address = resolver::resolve_address(address).await?;
 
         let mut conn = Connection::new(&resolved_address).await?;
@@ -95,7 +117,7 @@ impl Client {
             }
             .get(),
         )
-        .await;
+        .await?;
         let mut conn = conn.login();
 
         // login
@@ -107,7 +129,7 @@ impl Client {
             }
             .get(),
         )
-        .await;
+        .await?;
 
         let (conn, game_profile) = loop {
             let packet_result = conn.read().await;
@@ -128,7 +150,7 @@ impl Client {
                             }
                             .get(),
                         )
-                        .await;
+                        .await?;
                         conn.set_encryption_key(e.secret_key);
                     }
                     ClientboundLoginPacket::ClientboundLoginCompressionPacket(p) => {
@@ -184,22 +206,23 @@ impl Client {
                 Ok(packet) => match Self::handle(&packet, &client, &tx).await {
                     Ok(_) => {}
                     Err(e) => {
-                        println!("Error handling packet: {:?}", e);
+                        println!("Error handling packet: {}", e);
                         if IGNORE_ERRORS {
                             continue;
                         } else {
-                            panic!("Error handling packet: {:?}", e);
+                            panic!("Error handling packet: {}", e);
                         }
                     }
                 },
                 Err(e) => {
                     if IGNORE_ERRORS {
-                        println!("Error: {:?}", e);
-                        if e == "length wider than 21-bit" {
-                            panic!();
+                        println!("{}", e);
+                        match e {
+                            ReadPacketError::FrameSplitter { .. } => panic!("Error: {:?}", e),
+                            _ => continue,
                         }
                     } else {
-                        panic!("Error: {:?}", e);
+                        panic!("{}", e);
                     }
                 }
             };
@@ -302,7 +325,7 @@ impl Client {
                         }
                         .get(),
                     )
-                    .await;
+                    .await?;
 
                 tx.send(Event::Login).unwrap();
             }
@@ -315,7 +338,7 @@ impl Client {
             ClientboundGamePacket::ClientboundChangeDifficultyPacket(p) => {
                 println!("Got difficulty packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundDeclareCommandsPacket(_p) => {
+            ClientboundGamePacket::ClientboundCommandsPacket(_p) => {
                 println!("Got declare commands packet");
             }
             ClientboundGamePacket::ClientboundPlayerAbilitiesPacket(p) => {
@@ -414,7 +437,7 @@ impl Client {
                 let mut conn_lock = client.conn.lock().await;
                 conn_lock
                     .write(ServerboundAcceptTeleportationPacket { id: p.id }.get())
-                    .await;
+                    .await?;
                 conn_lock
                     .write(
                         ServerboundMovePlayerPacketPosRot {
@@ -428,7 +451,7 @@ impl Client {
                         }
                         .get(),
                     )
-                    .await;
+                    .await?;
             }
             ClientboundGamePacket::ClientboundPlayerInfoPacket(p) => {
                 println!("Got player info packet {:?}", p);
@@ -497,14 +520,16 @@ impl Client {
             ClientboundGamePacket::ClientboundTeleportEntityPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
 
-                dimension_lock.set_entity_pos(
-                    p.id,
-                    Vec3 {
-                        x: p.x,
-                        y: p.y,
-                        z: p.z,
-                    },
-                )?;
+                dimension_lock
+                    .set_entity_pos(
+                        p.id,
+                        Vec3 {
+                            x: p.x,
+                            y: p.y,
+                            z: p.z,
+                        },
+                    )
+                    .map_err(|e| HandleError::Other(e.into()))?;
             }
             ClientboundGamePacket::ClientboundUpdateAdvancementsPacket(p) => {
                 println!("Got update advancements packet {:?}", p);
@@ -515,12 +540,16 @@ impl Client {
             ClientboundGamePacket::ClientboundMoveEntityPosPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
 
-                dimension_lock.move_entity_with_delta(p.entity_id, &p.delta)?;
+                dimension_lock
+                    .move_entity_with_delta(p.entity_id, &p.delta)
+                    .map_err(|e| HandleError::Other(e.into()))?;
             }
-            ClientboundGamePacket::ClientboundMoveEntityPosrotPacket(p) => {
+            ClientboundGamePacket::ClientboundMoveEntityPosRotPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
 
-                dimension_lock.move_entity_with_delta(p.entity_id, &p.delta)?;
+                dimension_lock
+                    .move_entity_with_delta(p.entity_id, &p.delta)
+                    .map_err(|e| HandleError::Other(e.into()))?;
             }
             ClientboundGamePacket::ClientboundMoveEntityRotPacket(p) => {
                 println!("Got move entity rot packet {:?}", p);
@@ -532,7 +561,7 @@ impl Client {
                     .lock()
                     .await
                     .write(ServerboundKeepAlivePacket { id: p.id }.get())
-                    .await;
+                    .await?;
             }
             ClientboundGamePacket::ClientboundRemoveEntitiesPacket(p) => {
                 println!("Got remove entities packet {:?}", p);
@@ -629,12 +658,6 @@ impl Client {
 
 impl<T> From<std::sync::PoisonError<T>> for HandleError {
     fn from(e: std::sync::PoisonError<T>) -> Self {
-        HandleError(e.to_string())
-    }
-}
-
-impl From<String> for HandleError {
-    fn from(e: String) -> Self {
-        HandleError(e)
+        HandleError::Poison(e.to_string())
     }
 }

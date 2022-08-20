@@ -1,16 +1,24 @@
-use std::net::IpAddr;
-
 use crate::{ServerAddress, ServerIpAddress};
 use async_recursion::async_recursion;
+use std::net::IpAddr;
+use thiserror::Error;
 use trust_dns_resolver::{
     config::{ResolverConfig, ResolverOpts},
     TokioAsyncResolver,
 };
 
+#[derive(Error, Debug)]
+pub enum ResolverError {
+    #[error("No SRV record found")]
+    NoSrvRecord,
+    #[error("No IP found")]
+    NoIp,
+}
+
 /// Resolve a Minecraft server address into an IP address and port.
 /// If it's already an IP address, it's returned as-is.
 #[async_recursion]
-pub async fn resolve_address(address: &ServerAddress) -> Result<ServerIpAddress, String> {
+pub async fn resolve_address(address: &ServerAddress) -> Result<ServerIpAddress, ResolverError> {
     // If the address.host is already in the format of an ip address, return it.
     if let Ok(ip) = address.host.parse::<IpAddr>() {
         return Ok(ServerIpAddress {
@@ -33,20 +41,20 @@ pub async fn resolve_address(address: &ServerAddress) -> Result<ServerIpAddress,
         let redirect_srv = redirect_result
             .iter()
             .next()
-            .ok_or_else(|| "No SRV record found".to_string())?;
+            .ok_or(ResolverError::NoSrvRecord)?;
         let redirect_address = ServerAddress {
             host: redirect_srv.target().to_utf8(),
             port: redirect_srv.port(),
         };
 
-        println!("redirecting to {:?}", redirect_address);
+        // println!("redirecting to {:?}", redirect_address);
 
         return resolve_address(&redirect_address).await;
     }
 
     // there's no redirect, try to resolve this as an ip address
     let lookup_ip_result = resolver.lookup_ip(address.host.clone()).await;
-    let lookup_ip = lookup_ip_result.map_err(|_| "No IP found".to_string())?;
+    let lookup_ip = lookup_ip_result.map_err(|_| ResolverError::NoIp)?;
 
     Ok(ServerIpAddress {
         ip: lookup_ip.iter().next().unwrap(),

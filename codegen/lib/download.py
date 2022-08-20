@@ -146,12 +146,32 @@ def get_fabric_api_versions():
     return fabric_api_versions
 
 
+def get_fabric_loader_versions():
+    # https://meta.fabricmc.net/v2/versions/loader
+    if not os.path.exists(get_dir_location('downloads/fabric_loader_versions.json')):
+        print('\033[92mDownloading Fabric loader versions...\033[m')
+        fabric_api_versions_json = requests.get(
+            'https://meta.fabricmc.net/v2/versions/loader').json()
+
+        fabric_api_versions = []
+        for version in fabric_api_versions_json:
+            fabric_api_versions.append(version['version'])
+
+        with open(get_dir_location('downloads/fabric_loader_versions.json'), 'w') as f:
+            f.write(json.dumps(fabric_api_versions))
+    else:
+        with open(get_dir_location('downloads/fabric_loader_versions.json'), 'r') as f:
+            fabric_api_versions = json.loads(f.read())
+    return fabric_api_versions
+
+
 def clear_version_cache():
     print('\033[92mClearing version cache...\033[m')
     files = [
         'version_manifest.json',
         'yarn_versions.json',
-        'fabric_api_versions.json'
+        'fabric_api_versions.json',
+        'fabric_loader_versions.json'
     ]
     for file in files:
         if os.path.exists(get_dir_location(f'downloads/{file}')):

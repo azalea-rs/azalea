@@ -1,4 +1,4 @@
-use azalea_buf::{McBuf, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use azalea_chat::component::Component;
 use azalea_core::{ResourceLocation, Slot};
 use packet_macros::ClientboundGamePacket;
@@ -45,7 +45,7 @@ pub struct DisplayFlags {
 }
 
 impl McBufReadable for DisplayFlags {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let data = u32::read_from(buf)?;
         Ok(DisplayFlags {
             background: (data & 0b1) != 0,

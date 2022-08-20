@@ -1,4 +1,4 @@
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable, Readable};
 use packet_macros::ClientboundGamePacket;
 use std::io::{Read, Write};
@@ -28,7 +28,7 @@ pub struct RelativeArguments {
 }
 
 impl McBufReadable for RelativeArguments {
-    fn read_from(buf: &mut impl Read) -> Result<Self, String> {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let byte = buf.read_byte()?;
         Ok(RelativeArguments {
             x: byte & 0b1 != 0,

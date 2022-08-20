@@ -3,8 +3,8 @@ use packet_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSoundPacket {
+    // TODO: sound enum/registry
     #[var]
-    // TODO: use the sound registry instead of just being a u32
     pub sound: u32,
     pub source: SoundSource,
     pub x: i32,
@@ -12,11 +12,10 @@ pub struct ClientboundSoundPacket {
     pub z: i32,
     pub volume: f32,
     pub pitch: f32,
-    /// Seed used to pick sound varient.
     pub seed: u64,
 }
 
-#[derive(Clone, Debug, Copy, McBuf)]
+#[derive(McBuf, Clone, Copy, Debug)]
 pub enum SoundSource {
     Master = 0,
     Music = 1,

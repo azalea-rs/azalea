@@ -1,4 +1,6 @@
-use azalea_buf::{McBufReadable, McBufVarReadable, McBufWritable, Readable, Writable};
+use azalea_buf::{
+    BufReadError, McBufReadable, McBufVarReadable, McBufWritable, Readable, Writable,
+};
 use std::io::{Read, Write};
 
 use crate::BitStorage;
@@ -35,7 +37,7 @@ impl PalettedContainer {
     pub fn read_with_type(
         buf: &mut impl Read,
         container_type: &'static PalettedContainerType,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, BufReadError> {
         let bits_per_entry = buf.read_byte()?;
         let palette_type = PaletteType::from_bits_and_type(bits_per_entry, container_type);
         let palette = palette_type.read(buf)?;
