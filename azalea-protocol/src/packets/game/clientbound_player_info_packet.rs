@@ -1,3 +1,4 @@
+use crate::packets::login::serverbound_hello_packet::ProfilePublicKeyData;
 use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
 use azalea_chat::component::Component;
@@ -28,14 +29,15 @@ pub struct PlayerProperty {
 
 #[derive(Clone, Debug, McBuf)]
 pub struct AddPlayer {
-    uuid: Uuid,
-    name: String,
-    properties: Vec<PlayerProperty>,
+    pub uuid: Uuid,
+    pub name: String,
+    pub properties: Vec<PlayerProperty>,
     #[var]
-    gamemode: u32,
+    pub gamemode: u32,
     #[var]
-    ping: i32,
-    display_name: Option<Component>,
+    pub ping: i32,
+    pub display_name: Option<Component>,
+    pub profile_public_key: Option<ProfilePublicKeyData>,
 }
 
 #[derive(Clone, Debug, McBuf)]
