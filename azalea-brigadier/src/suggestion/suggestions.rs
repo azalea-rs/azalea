@@ -13,18 +13,18 @@ impl Suggestions {
         if input.is_empty() {
             return Suggestions::default();
         } else if input.len() == 1 {
-            return input[0];
+            return input[0].clone();
         };
 
-        let texts = HashSet::new();
+        let mut texts = HashSet::new();
         for suggestions in input {
-            texts.extend(suggestions.suggestions);
+            texts.extend(suggestions.suggestions.clone());
         }
 
-        Suggestions::create(command, texts)
+        Suggestions::create(command, &texts)
     }
 
-    pub fn create(command: &str, suggestions: &[Suggestions]) {
+    pub fn create(command: &str, suggestions: &HashSet<Suggestion>) -> Self {
         if suggestions.is_empty() {
             return Suggestions::default();
         };
@@ -34,5 +34,6 @@ impl Suggestions {
             start = suggestion.range.start().min(start);
             end = suggestion.range.end().max(end);
         }
+        todo!()
     }
 }
