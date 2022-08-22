@@ -158,9 +158,11 @@ mod tests {
     fn test_store_entity() {
         let mut storage = EntityStorage::new();
         assert!(storage.get_by_id(EntityId(0)).is_none());
+
         let uuid = Uuid::from_u128(100);
         storage.insert(EntityId(0), EntityData::new(uuid, Vec3::default()));
         assert_eq!(storage.get_by_id(EntityId(0)).unwrap().uuid, uuid);
+
         storage.remove_by_id(EntityId(0));
         assert!(storage.get_by_id(EntityId(0)).is_none());
     }

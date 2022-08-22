@@ -136,8 +136,10 @@ impl Dimension {
     }
 
     pub fn entity_mut<'d>(&'d mut self, id: EntityId) -> Option<EntityMut<'d>> {
-        if self.entity_storage.contains_id(&id) {
-            Some(EntityMut::new(self, id))
+        let entity_data = self.entity_storage.get_mut_by_id(id);
+        if let Some(entity_data) = entity_data {
+            let entity_ptr = unsafe { entity_data.as_ptr() };
+            Some(EntityMut::new(self, id, entity_ptr))
         } else {
             None
         }

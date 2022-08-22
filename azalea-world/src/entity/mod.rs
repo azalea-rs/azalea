@@ -5,6 +5,7 @@ use crate::Dimension;
 use azalea_core::{BlockPos, PositionDelta, Vec3, AABB};
 pub use data::*;
 pub use dimensions::*;
+use std::ptr::NonNull;
 use std::{
     fmt::Display,
     ops::{Deref, DerefMut},
@@ -99,12 +100,16 @@ pub struct EntityMut<'d> {
     pub dimension: &'d mut Dimension,
     /// The incrementing numerical id of the entity.
     pub id: EntityId,
+    pub data: NonNull<EntityData>,
 }
 
 impl<'d> EntityMut<'d> {
-    pub fn new(dimension: &'d mut Dimension, id: EntityId) -> Self {
-        // TODO: have this be based on the entity type
-        Self { dimension, id }
+    pub fn new(dimension: &'d mut Dimension, id: EntityId, data: NonNull<EntityData>) -> Self {
+        Self {
+            dimension,
+            id,
+            data,
+        }
     }
 
     /// Sets the position of the entity. This doesn't update the cache in
@@ -120,30 +125,16 @@ impl<'d> EntityMut<'d> {
         self.x_rot = x_rot % 360.0;
         // TODO: minecraft also sets yRotO and xRotO to xRot and yRot ... but idk what they're used for so
     }
-
-    fn data(&mut self) -> &mut EntityData {
-        // this state should be impossible
-        self.dimension
-            .entity_data_mut_by_id(self.id)
-            .expect("This entity doesn't exist!")
-    }
-
-    fn data_ref(&self) -> &EntityData {
-        // this state should be impossible
-        self.dimension
-            .entity_data_by_id(self.id)
-            .expect("This entity doesn't exist!")
-    }
 }
 
 impl<'d> EntityMut<'d> {
     #[inline]
     pub fn pos(&self) -> &Vec3 {
-        &self.data_ref().pos
+        &self.pos
     }
 
     fn make_bounding_box(&self) -> AABB {
-        self.data_ref().dimensions.make_bounding_box(&self.pos())
+        self.dimensions.make_bounding_box(&self.pos())
     }
 
     /// Get the position of the block below the entity, but a little lower.
@@ -208,13 +199,13 @@ impl Deref for EntityMut<'_> {
     type Target = EntityData;
 
     fn deref(&self) -> &Self::Target {
-        self.data_ref()
+        unsafe { self.data.as_ref() }
     }
 }
 
 impl DerefMut for EntityMut<'_> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        self.data()
+        unsafe { self.data.as_mut() }
     }
 }
 
@@ -282,5 +273,9 @@ impl EntityData {
     #[inline]
     pub fn pos(&self) -> &Vec3 {
         &self.pos
+    }
+
+    pub(crate) unsafe fn as_ptr(&mut self) -> NonNull<EntityData> {
+        unsafe { NonNull::new_unchecked(self as *mut EntityData) }
     }
 }
