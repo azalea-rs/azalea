@@ -1,6 +1,12 @@
+use std::{
+    cell::{Cell, RefCell},
+    ops::DerefMut,
+    rc::Rc,
+};
+
 use crate::Client;
 use azalea_core::Vec3;
-use azalea_physics::collision::{HasCollision, MoverType};
+use azalea_physics::collision::{HasCollision, MovableEntity, MoverType};
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
     serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
@@ -34,7 +40,7 @@ impl Client {
 
             let mut dimension_lock = self.dimension.lock().unwrap();
 
-            let player_entity = player_lock
+            let mut player_entity = player_lock
                 .mut_entity(&mut dimension_lock)
                 .expect("Player must exist");
             let player_pos = player_entity.pos();
@@ -139,13 +145,12 @@ impl Client {
     pub async fn move_entity(&mut self, movement: &Vec3) -> Result<(), MovePlayerError> {
         let mut dimension_lock = self.dimension.lock().unwrap();
         let player = self.player.lock().unwrap();
-        let entity = player
-            .entity(&mut dimension_lock)
+
+        let mut entity = player
+            .mut_entity(&mut dimension_lock)
             .ok_or(MovePlayerError::PlayerNotInWorld)?;
 
-        let entity_id = entity.id;
-        // entity.move_entity(&MoverType::Own, movement, &self.dimension)?;
-        dimension_lock.move_entity(&MoverType::Own, movement, entity_id)?;
+        entity.move_colliding(&MoverType::Own, movement)?;
 
         Ok(())
     }

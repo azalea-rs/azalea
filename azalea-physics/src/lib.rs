@@ -2,13 +2,13 @@ pub mod collision;
 
 use azalea_block::Block;
 use azalea_core::{BlockPos, Vec3};
-use azalea_world::{entity::Entity, Dimension};
+use azalea_world::{entity::EntityData, Dimension};
 
 trait HasPhysics {
     fn travel(&self, acceleration: &Vec3, dimension: &Dimension) -> Result<(), ()>;
 }
 
-impl HasPhysics for Entity {
+impl HasPhysics for EntityData {
     fn travel(&self, acceleration: &Vec3, dimension: &Dimension) -> Result<(), ()> {
         // if !self.is_effective_ai() && !self.is_controlled_by_local_instance() {
         //     // this.calculateEntityAnimation(this, this instanceof FlyingAnimal);
@@ -25,7 +25,7 @@ impl HasPhysics for Entity {
 
         // TODO: elytra
 
-        let block_pos_below = self.get_block_pos_below_that_affects_movement();
+        let block_pos_below = get_block_pos_below_that_affects_movement(self);
         let block_friction =
             if let Some(block_state_below) = dimension.get_block_state(&block_pos_below) {
                 let block_below: Box<dyn Block> = block_state_below.into();
@@ -44,7 +44,7 @@ impl HasPhysics for Entity {
     }
 }
 
-fn get_block_pos_below_that_affects_movement(entity: &Entity) -> BlockPos {
+fn get_block_pos_below_that_affects_movement(entity: &EntityData) -> BlockPos {
     BlockPos::new(
         entity.pos().x as i32,
         // TODO: this uses bounding_box.min_y instead of position.y
@@ -54,28 +54,29 @@ fn get_block_pos_below_that_affects_movement(entity: &Entity) -> BlockPos {
 }
 
 fn handle_relative_friction_and_calculate_movement(
-    entity: &Entity,
+    entity: &EntityData,
     acceleration: &Vec3,
     block_friction: f64,
 ) -> Vec3 {
-    entity.move_relative(
-        entity.get_friction_influenced_speed(block_friction),
-        acceleration,
-    );
-    entity.delta = entity.handleOnClimbable(entity.getDeltaMovement());
-    entity.move(MoverType.SELF, entity.getDeltaMovement());
-     let delta_movement = entity.delta;
-    //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable() || entity.getFeetBlockState().is(Blocks.POWDER_SNOW) && PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {
-    //      var3 = new Vec3(var3.x, 0.2D, var3.z);
-    //   }
+    // entity.move_relative(
+    //     entity.get_friction_influenced_speed(block_friction),
+    //     acceleration,
+    // );
+    // entity.delta = entity.handleOnClimbable(entity.getDeltaMovement());
+    // entity.move(MoverType.SELF, entity.getDeltaMovement());
+    //  let delta_movement = entity.delta;
+    // //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable() || entity.getFeetBlockState().is(Blocks.POWDER_SNOW) && PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {
+    // //      var3 = new Vec3(var3.x, 0.2D, var3.z);
+    // //   }
 
-      return delta_movement;
+    //   return delta_movement;
+    Vec3::default()
 }
 
 // private float getFrictionInfluencedSpeed(float friction) {
 //     return this.onGround ? this.getSpeed() * (0.21600002F / (friction * friction * friction)) : this.flyingSpeed;
 // }
-fn get_speed(entity: &Entity, friction: f32) -> f32 {
+fn get_speed(entity: &EntityData, friction: f32) -> f32 {
     // TODO: have speed & flying_speed fields in entity
     if entity.on_ground {
         let speed: f32 = 0.7;

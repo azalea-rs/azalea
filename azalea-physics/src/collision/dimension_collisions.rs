@@ -1,14 +1,14 @@
 use crate::collision::{VoxelShape, AABB};
 use azalea_block::{Block, BlockState};
 use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType, EPSILON};
-use azalea_world::entity::Entity;
+use azalea_world::entity::EntityData;
 use azalea_world::{Chunk, Dimension};
 use std::sync::{Arc, Mutex};
 
 pub trait CollisionGetter {
     fn get_block_collisions<'a>(
         &'a self,
-        entity: Option<&Entity>,
+        entity: Option<&EntityData>,
         aabb: AABB,
     ) -> BlockCollisions<'a>;
 }
@@ -16,7 +16,7 @@ pub trait CollisionGetter {
 impl CollisionGetter for Dimension {
     fn get_block_collisions<'a>(
         &'a self,
-        entity: Option<&Entity>,
+        entity: Option<&EntityData>,
         aabb: AABB,
     ) -> BlockCollisions<'a> {
         BlockCollisions::new(self, entity, aabb)
@@ -33,7 +33,7 @@ pub struct BlockCollisions<'a> {
 }
 
 impl<'a> BlockCollisions<'a> {
-    pub fn new(dimension: &'a Dimension, entity: Option<&Entity>, aabb: AABB) -> Self {
+    pub fn new(dimension: &'a Dimension, entity: Option<&EntityData>, aabb: AABB) -> Self {
         let origin_x = (aabb.min_x - EPSILON) as i32 - 1;
         let origin_y = (aabb.min_y - EPSILON) as i32 - 1;
         let origin_z = (aabb.min_z - EPSILON) as i32 - 1;
