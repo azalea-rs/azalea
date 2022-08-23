@@ -270,11 +270,14 @@ impl EntityData {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::EntityStorage;
 
-    // #[test]
-    // fn from_mut_entity_to_ref_entity() {
-    //     let mut dim = Dimension::default();
-    //     dim.add_entity(id, entity)
-    // }
+    #[test]
+    fn from_mut_entity_to_ref_entity() {
+        let mut dim = Dimension::default();
+        let uuid = Uuid::from_u128(100);
+        dim.add_entity(0, EntityData::new(uuid, Vec3::default()));
+        let entity: EntityMut = dim.entity_mut(0).unwrap();
+        let entity_ref: EntityRef = entity.into();
+        assert_eq!(entity_ref.uuid, uuid);
+    }
 }
