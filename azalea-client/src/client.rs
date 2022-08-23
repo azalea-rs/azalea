@@ -24,7 +24,7 @@ use azalea_protocol::{
     read::ReadPacketError,
     resolver, ServerAddress,
 };
-use azalea_world::entity::{EntityData, EntityId};
+use azalea_world::entity::EntityData;
 use azalea_world::Dimension;
 use std::{
     fmt::Debug,
@@ -305,11 +305,11 @@ impl Client {
                     *dimension_lock = Dimension::new(16, height, min_y);
 
                     let entity = EntityData::new(client.game_profile.uuid, Vec3::default());
-                    dimension_lock.add_entity(EntityId(p.player_id), entity);
+                    dimension_lock.add_entity(p.player_id, entity);
 
                     let mut player_lock = client.player.lock().unwrap();
 
-                    player_lock.set_entity_id(EntityId(p.player_id));
+                    player_lock.set_entity_id(p.player_id);
                 }
 
                 client
@@ -479,7 +479,7 @@ impl Client {
             ClientboundGamePacket::ClientboundAddEntityPacket(p) => {
                 println!("Got add entity packet {:?}", p);
                 let entity = EntityData::from(p);
-                client.dimension.lock()?.add_entity(EntityId(p.id), entity);
+                client.dimension.lock()?.add_entity(p.id, entity);
             }
             ClientboundGamePacket::ClientboundSetEntityDataPacket(_p) => {
                 // println!("Got set entity data packet {:?}", p);
@@ -496,7 +496,7 @@ impl Client {
             ClientboundGamePacket::ClientboundAddPlayerPacket(p) => {
                 println!("Got add player packet {:?}", p);
                 let entity = EntityData::from(p);
-                client.dimension.lock()?.add_entity(EntityId(p.id), entity);
+                client.dimension.lock()?.add_entity(p.id, entity);
             }
             ClientboundGamePacket::ClientboundInitializeBorderPacket(p) => {
                 println!("Got initialize border packet {:?}", p);
@@ -521,7 +521,7 @@ impl Client {
 
                 dimension_lock
                     .set_entity_pos(
-                        EntityId(p.id),
+                        p.id,
                         Vec3 {
                             x: p.x,
                             y: p.y,
@@ -540,14 +540,14 @@ impl Client {
                 let mut dimension_lock = client.dimension.lock()?;
 
                 dimension_lock
-                    .move_entity_with_delta(EntityId(p.entity_id), &p.delta)
+                    .move_entity_with_delta(p.entity_id, &p.delta)
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
             ClientboundGamePacket::ClientboundMoveEntityPosRotPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
 
                 dimension_lock
-                    .move_entity_with_delta(EntityId(p.entity_id), &p.delta)
+                    .move_entity_with_delta(p.entity_id, &p.delta)
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
             ClientboundGamePacket::ClientboundMoveEntityRotPacket(p) => {

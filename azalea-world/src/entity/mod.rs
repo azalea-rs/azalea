@@ -12,26 +12,17 @@ use std::{
 };
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-pub struct EntityId(pub u32);
-impl nohash_hasher::IsEnabled for EntityId {}
-impl Display for EntityId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
 #[derive(Debug)]
 pub struct EntityRef<'d> {
     /// The dimension this entity is in.
     pub dimension: &'d Dimension,
     /// The incrementing numerical id of the entity.
-    pub id: EntityId,
+    pub id: u32,
     pub data: &'d EntityData,
 }
 
 impl<'d> EntityRef<'d> {
-    pub fn new(dimension: &'d Dimension, id: EntityId, data: &'d EntityData) -> Self {
+    pub fn new(dimension: &'d Dimension, id: u32, data: &'d EntityData) -> Self {
         // TODO: have this be based on the entity type
         Self {
             dimension,
@@ -99,12 +90,12 @@ pub struct EntityMut<'d> {
     /// The dimension this entity is in.
     pub dimension: &'d mut Dimension,
     /// The incrementing numerical id of the entity.
-    pub id: EntityId,
+    pub id: u32,
     pub data: NonNull<EntityData>,
 }
 
 impl<'d> EntityMut<'d> {
-    pub fn new(dimension: &'d mut Dimension, id: EntityId, data: NonNull<EntityData>) -> Self {
+    pub fn new(dimension: &'d mut Dimension, id: u32, data: NonNull<EntityData>) -> Self {
         Self {
             dimension,
             id,
@@ -182,11 +173,7 @@ impl<'d> EntityMut<'d> {
 
 impl<'d> From<EntityMut<'d>> for EntityRef<'d> {
     fn from(entity: EntityMut<'d>) -> EntityRef<'d> {
-        let data = entity
-            .dimension
-            .entity_data_by_id(entity.id)
-            .expect("This entity doesn't exist!");
-
+        let data = unsafe { entity.data.as_ref() };
         EntityRef {
             dimension: entity.dimension,
             id: entity.id,
@@ -278,4 +265,16 @@ impl EntityData {
     pub(crate) unsafe fn as_ptr(&mut self) -> NonNull<EntityData> {
         unsafe { NonNull::new_unchecked(self as *mut EntityData) }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::EntityStorage;
+
+    // #[test]
+    // fn from_mut_entity_to_ref_entity() {
+    //     let mut dim = Dimension::default();
+    //     dim.add_entity(id, entity)
+    // }
 }

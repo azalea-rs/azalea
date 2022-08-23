@@ -1,4 +1,4 @@
-use azalea_world::entity::{EntityData, EntityId, EntityMut, EntityRef};
+use azalea_world::entity::{EntityData, EntityMut, EntityRef};
 use azalea_world::Dimension;
 use uuid::Uuid;
 
@@ -13,7 +13,7 @@ pub struct Player {
     /// The player's uuid.
     pub uuid: Uuid,
     /// The player's entity id.
-    pub entity_id: EntityId,
+    pub entity_id: u32,
 }
 
 impl Player {
@@ -31,7 +31,7 @@ impl Player {
         self.uuid = uuid;
     }
 
-    pub fn set_entity_id(&mut self, entity_id: EntityId) {
+    pub fn set_entity_id(&mut self, entity_id: u32) {
         self.entity_id = entity_id;
     }
 }

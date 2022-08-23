@@ -11,7 +11,7 @@ use azalea_buf::BufReadError;
 use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
 pub use bit_storage::BitStorage;
 pub use chunk_storage::{Chunk, ChunkStorage};
-use entity::{EntityData, EntityId, EntityMut, EntityRef};
+use entity::{EntityData, EntityMut, EntityRef};
 pub use entity_storage::EntityStorage;
 use std::{
     io::Read,
@@ -64,11 +64,7 @@ impl Dimension {
         self.chunk_storage.set_block_state(pos, state, self.min_y())
     }
 
-    pub fn set_entity_pos(
-        &mut self,
-        entity_id: EntityId,
-        new_pos: Vec3,
-    ) -> Result<(), MoveEntityError> {
+    pub fn set_entity_pos(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), MoveEntityError> {
         let mut entity = self
             .entity_mut(entity_id)
             .ok_or(MoveEntityError::EntityDoesNotExist)?;
@@ -86,7 +82,7 @@ impl Dimension {
 
     pub fn move_entity_with_delta(
         &mut self,
-        entity_id: EntityId,
+        entity_id: u32,
         delta: &PositionDelta8,
     ) -> Result<(), MoveEntityError> {
         let mut entity = self
@@ -106,7 +102,7 @@ impl Dimension {
         Ok(())
     }
 
-    pub fn add_entity(&mut self, id: EntityId, entity: EntityData) {
+    pub fn add_entity(&mut self, id: u32, entity: EntityData) {
         self.entity_storage.insert(id, entity);
     }
 
@@ -118,15 +114,15 @@ impl Dimension {
         self.chunk_storage.min_y
     }
 
-    pub fn entity_data_by_id(&self, id: EntityId) -> Option<&EntityData> {
+    pub fn entity_data_by_id(&self, id: u32) -> Option<&EntityData> {
         self.entity_storage.get_by_id(id)
     }
 
-    pub fn entity_data_mut_by_id(&mut self, id: EntityId) -> Option<&mut EntityData> {
+    pub fn entity_data_mut_by_id(&mut self, id: u32) -> Option<&mut EntityData> {
         self.entity_storage.get_mut_by_id(id)
     }
 
-    pub fn entity<'d>(&'d self, id: EntityId) -> Option<EntityRef<'d>> {
+    pub fn entity<'d>(&'d self, id: u32) -> Option<EntityRef<'d>> {
         let entity_data = self.entity_storage.get_by_id(id);
         if let Some(entity_data) = entity_data {
             Some(EntityRef::new(self, id, entity_data))
@@ -135,7 +131,7 @@ impl Dimension {
         }
     }
 
-    pub fn entity_mut<'d>(&'d mut self, id: EntityId) -> Option<EntityMut<'d>> {
+    pub fn entity_mut<'d>(&'d mut self, id: u32) -> Option<EntityMut<'d>> {
         let entity_data = self.entity_storage.get_mut_by_id(id);
         if let Some(entity_data) = entity_data {
             let entity_ptr = unsafe { entity_data.as_ptr() };
@@ -151,7 +147,7 @@ impl Dimension {
 
     /// Get an iterator over all entities.
     #[inline]
-    pub fn entities(&self) -> std::collections::hash_map::Values<'_, EntityId, EntityData> {
+    pub fn entities(&self) -> std::collections::hash_map::Values<'_, u32, EntityData> {
         self.entity_storage.entities()
     }
 

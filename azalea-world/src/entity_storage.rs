@@ -1,4 +1,4 @@
-use crate::entity::{EntityData, EntityId};
+use crate::entity::EntityData;
 use azalea_core::ChunkPos;
 use log::warn;
 use nohash_hasher::{IntMap, IntSet};
@@ -7,9 +7,9 @@ use uuid::Uuid;
 
 #[derive(Debug)]
 pub struct EntityStorage {
-    data_by_id: IntMap<EntityId, EntityData>,
-    id_by_chunk: HashMap<ChunkPos, IntSet<EntityId>>,
-    id_by_uuid: HashMap<Uuid, EntityId>,
+    data_by_id: IntMap<u32, EntityData>,
+    id_by_chunk: HashMap<ChunkPos, IntSet<u32>>,
+    id_by_uuid: HashMap<Uuid, u32>,
 }
 
 impl EntityStorage {
@@ -23,7 +23,7 @@ impl EntityStorage {
 
     /// Add an entity to the storage.
     #[inline]
-    pub fn insert(&mut self, id: EntityId, entity: EntityData) {
+    pub fn insert(&mut self, id: u32, entity: EntityData) {
         self.id_by_chunk
             .entry(ChunkPos::from(entity.pos()))
             .or_default()
@@ -34,7 +34,7 @@ impl EntityStorage {
 
     /// Remove an entity from the storage by its id.
     #[inline]
-    pub fn remove_by_id(&mut self, id: EntityId) {
+    pub fn remove_by_id(&mut self, id: u32) {
         if let Some(entity) = self.data_by_id.remove(&id) {
             let entity_chunk = ChunkPos::from(entity.pos());
             let entity_uuid = entity.uuid;
@@ -51,19 +51,19 @@ impl EntityStorage {
 
     /// Check if there is an entity that exists with the given id.
     #[inline]
-    pub fn contains_id(&self, id: &EntityId) -> bool {
+    pub fn contains_id(&self, id: &u32) -> bool {
         self.data_by_id.contains_key(id)
     }
 
     /// Get a reference to an entity by its id.
     #[inline]
-    pub fn get_by_id(&self, id: EntityId) -> Option<&EntityData> {
+    pub fn get_by_id(&self, id: u32) -> Option<&EntityData> {
         self.data_by_id.get(&id)
     }
 
     /// Get a mutable reference to an entity by its id.
     #[inline]
-    pub fn get_mut_by_id<'d>(&'d mut self, id: EntityId) -> Option<&'d mut EntityData> {
+    pub fn get_mut_by_id<'d>(&'d mut self, id: u32) -> Option<&'d mut EntityData> {
         self.data_by_id.get_mut(&id)
     }
 
@@ -100,7 +100,7 @@ impl EntityStorage {
     #[inline]
     pub fn update_entity_chunk(
         &mut self,
-        entity_id: EntityId,
+        entity_id: u32,
         old_chunk: &ChunkPos,
         new_chunk: &ChunkPos,
     ) {
@@ -115,7 +115,7 @@ impl EntityStorage {
 
     /// Get an iterator over all entities.
     #[inline]
-    pub fn entities(&self) -> std::collections::hash_map::Values<'_, EntityId, EntityData> {
+    pub fn entities(&self) -> std::collections::hash_map::Values<'_, u32, EntityData> {
         self.data_by_id.values()
     }
 
@@ -157,13 +157,13 @@ mod tests {
     #[test]
     fn test_store_entity() {
         let mut storage = EntityStorage::new();
-        assert!(storage.get_by_id(EntityId(0)).is_none());
+        assert!(storage.get_by_id(0).is_none());
 
         let uuid = Uuid::from_u128(100);
-        storage.insert(EntityId(0), EntityData::new(uuid, Vec3::default()));
-        assert_eq!(storage.get_by_id(EntityId(0)).unwrap().uuid, uuid);
+        storage.insert(0, EntityData::new(uuid, Vec3::default()));
+        assert_eq!(storage.get_by_id(0).unwrap().uuid, uuid);
 
-        storage.remove_by_id(EntityId(0));
-        assert!(storage.get_by_id(EntityId(0)).is_none());
+        storage.remove_by_id(0);
+        assert!(storage.get_by_id(0).is_none());
     }
 }
