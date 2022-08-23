@@ -13,7 +13,7 @@ A collection of Rust crates primarily for creating Minecraft bots.
 
 
 I named this Azalea because it sounds like a cool word and this is a cool library.
-This project was heavily inspired by [PrismarineJS](https://github.com/PrismarineJS), with some ideas borrowed from [Stevenarella](https://github.com/iceiix/stevenarella), [Feather](https://github.com/feather-rs/feather), [SwarmBot](https://github.com/andrewgazelka/SwarmBot), [Bevy](https://github.com/bevyengine/bevy), and [Twilight](https://github.com/twilight-rs/twilight).
+This project was heavily inspired by [PrismarineJS](https://github.com/PrismarineJS).
 
 ## Why
 
