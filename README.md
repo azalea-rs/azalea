@@ -36,7 +36,5 @@ I wanted a fun excuse to do something cool with Rust, and I also felt like I cou
 
 ## Stretch goals
 
-*I might not do these, but I still keep them in mind when writing the code.*
-
 - Server implementation.
 - Having branches for several popular Minecraft versions.
