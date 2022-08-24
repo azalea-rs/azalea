@@ -9,7 +9,6 @@ pub struct Suggestions {
 }
 
 impl Suggestions {
-    #[allow(dead_code)]
     pub fn merge(command: &str, input: &[Suggestions]) -> Self {
         if input.is_empty() {
             return Suggestions::default();
@@ -25,8 +24,7 @@ impl Suggestions {
         Suggestions::create(command, &texts)
     }
 
-    #[allow(dead_code)]
-    pub fn create(_command: &str, suggestions: &HashSet<Suggestion>) -> Self {
+    pub fn create(command: &str, suggestions: &HashSet<Suggestion>) -> Self {
         if suggestions.is_empty() {
             return Suggestions::default();
         };
@@ -36,6 +34,16 @@ impl Suggestions {
             start = suggestion.range.start().min(start);
             end = suggestion.range.end().max(end);
         }
-        todo!()
+        let range = StringRange::new(start, end);
+        let mut texts = HashSet::new();
+        for suggestion in suggestions {
+            texts.insert(suggestion.expand(command, &range));
+        }
+        let mut sorted: Vec<Suggestion> = texts.into_iter().collect();
+        sorted.sort_by(|a, b| a.text.cmp(&b.text));
+        Suggestions {
+            range,
+            suggestions: sorted,
+        }
     }
 }
