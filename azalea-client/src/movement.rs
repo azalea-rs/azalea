@@ -1,12 +1,6 @@
-use std::{
-    cell::{Cell, RefCell},
-    ops::DerefMut,
-    rc::Rc,
-};
-
 use crate::Client;
 use azalea_core::Vec3;
-use azalea_physics::collision::{HasCollision, MovableEntity, MoverType};
+use azalea_physics::collision::{MovableEntity, MoverType};
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
     serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
@@ -41,7 +35,7 @@ impl Client {
             let mut dimension_lock = self.dimension.lock().unwrap();
 
             let mut player_entity = player_lock
-                .mut_entity(&mut dimension_lock)
+                .entity_mut(&mut dimension_lock)
                 .expect("Player must exist");
             let player_pos = player_entity.pos();
             let player_old_pos = player_entity.last_pos;
@@ -126,7 +120,7 @@ impl Client {
         };
 
         if let Some(packet) = packet {
-            self.conn.lock().await.write(packet).await;
+            self.conn.lock().await.write(packet).await?;
         }
 
         Ok(())
@@ -147,7 +141,7 @@ impl Client {
         let player = self.player.lock().unwrap();
 
         let mut entity = player
-            .mut_entity(&mut dimension_lock)
+            .entity_mut(&mut dimension_lock)
             .ok_or(MovePlayerError::PlayerNotInWorld)?;
 
         entity.move_colliding(&MoverType::Own, movement)?;

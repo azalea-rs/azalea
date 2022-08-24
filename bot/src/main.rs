@@ -1,3 +1,4 @@
+#![allow(unused_variables, unused_imports)]
 use azalea_client::{Account, Event};
 use azalea_core::{PositionXYZ, Vec3};
 use azalea_physics::collision::{HasCollision, MoverType};

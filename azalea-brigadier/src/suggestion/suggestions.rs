@@ -9,6 +9,7 @@ pub struct Suggestions {
 }
 
 impl Suggestions {
+    #[allow(dead_code)]
     pub fn merge(command: &str, input: &[Suggestions]) -> Self {
         if input.is_empty() {
             return Suggestions::default();
@@ -24,7 +25,8 @@ impl Suggestions {
         Suggestions::create(command, &texts)
     }
 
-    pub fn create(command: &str, suggestions: &HashSet<Suggestion>) -> Self {
+    #[allow(dead_code)]
+    pub fn create(_command: &str, suggestions: &HashSet<Suggestion>) -> Self {
         if suggestions.is_empty() {
             return Suggestions::default();
         };

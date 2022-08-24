@@ -1,5 +1,5 @@
 use crate::collision::{VoxelShape, AABB};
-use azalea_block::{Block, BlockState};
+use azalea_block::BlockState;
 use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType, EPSILON};
 use azalea_world::entity::EntityData;
 use azalea_world::{Chunk, Dimension};
@@ -24,16 +24,16 @@ impl CollisionGetter for Dimension {
 }
 
 pub struct BlockCollisions<'a> {
-    dimension: &'a Dimension,
+    pub dimension: &'a Dimension,
     // context: CollisionContext,
-    aabb: AABB,
+    pub aabb: AABB,
 
-    cursor: Cursor3d,
-    only_suffocating_blocks: bool,
+    pub cursor: Cursor3d,
+    pub only_suffocating_blocks: bool,
 }
 
 impl<'a> BlockCollisions<'a> {
-    pub fn new(dimension: &'a Dimension, entity: Option<&EntityData>, aabb: AABB) -> Self {
+    pub fn new(dimension: &'a Dimension, _entity: Option<&EntityData>, aabb: AABB) -> Self {
         let origin_x = (aabb.min_x - EPSILON) as i32 - 1;
         let origin_y = (aabb.min_y - EPSILON) as i32 - 1;
         let origin_z = (aabb.min_z - EPSILON) as i32 - 1;
@@ -94,7 +94,7 @@ impl<'a> Iterator for BlockCollisions<'a> {
             let pos = item.pos;
             println!("getting block at {:?}", pos);
             let block_state: BlockState = chunk_lock.get(&(&pos).into(), self.dimension.min_y());
-            let block: Box<dyn Block> = block_state.into();
+            // let block: Box<dyn Block> = block_state.into();
 
             // TODO: continue if self.only_suffocating_blocks and the block is not suffocating
 

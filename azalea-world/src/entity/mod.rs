@@ -5,11 +5,8 @@ use crate::Dimension;
 use azalea_core::{BlockPos, PositionDelta, Vec3, AABB};
 pub use data::*;
 pub use dimensions::*;
+use std::ops::{Deref, DerefMut};
 use std::ptr::NonNull;
-use std::{
-    fmt::Display,
-    ops::{Deref, DerefMut},
-};
 use uuid::Uuid;
 
 #[derive(Debug)]
@@ -38,13 +35,13 @@ impl<'d> EntityRef<'d> {
         &self.pos
     }
 
-    fn make_bounding_box(&self) -> AABB {
+    pub fn make_bounding_box(&self) -> AABB {
         self.dimensions.make_bounding_box(&self.pos())
     }
 
     /// Get the position of the block below the entity, but a little lower.
-    pub fn on_pos_legacy(&self, dimension: &Dimension) -> BlockPos {
-        self.on_pos(0.2, dimension)
+    pub fn on_pos_legacy(&self) -> BlockPos {
+        self.on_pos(0.2)
     }
 
     // int x = Mth.floor(this.position.x);
@@ -59,15 +56,15 @@ impl<'d> EntityRef<'d> {
     //    }
     // }
     // return var5;
-    pub fn on_pos(&self, offset: f32, dimension: &Dimension) -> BlockPos {
+    pub fn on_pos(&self, offset: f32) -> BlockPos {
         let x = self.pos().x.floor() as i32;
         let y = (self.pos().y - offset as f64).floor() as i32;
         let z = self.pos().z.floor() as i32;
         let pos = BlockPos { x, y, z };
-        let block_pos = pos.below();
-        let block_state = dimension.get_block_state(&block_pos);
 
         // TODO: check if block below is a fence, wall, or fence gate
+        // let block_pos = pos.below();
+        // let block_state = dimension.get_block_state(&block_pos);
         // if block_state == Some(BlockState::Air) {
         //     let block_pos_below = block_pos.below();
         //     let block_state_below = dimension.get_block_state(&block_pos_below);
@@ -124,13 +121,13 @@ impl<'d> EntityMut<'d> {
         &self.pos
     }
 
-    fn make_bounding_box(&self) -> AABB {
+    pub fn make_bounding_box(&self) -> AABB {
         self.dimensions.make_bounding_box(&self.pos())
     }
 
     /// Get the position of the block below the entity, but a little lower.
-    pub fn on_pos_legacy(&self, dimension: &Dimension) -> BlockPos {
-        self.on_pos(0.2, dimension)
+    pub fn on_pos_legacy(&self) -> BlockPos {
+        self.on_pos(0.2)
     }
 
     // int x = Mth.floor(this.position.x);
@@ -145,15 +142,15 @@ impl<'d> EntityMut<'d> {
     //    }
     // }
     // return var5;
-    pub fn on_pos(&self, offset: f32, dimension: &Dimension) -> BlockPos {
+    pub fn on_pos(&self, offset: f32) -> BlockPos {
         let x = self.pos().x.floor() as i32;
         let y = (self.pos().y - offset as f64).floor() as i32;
         let z = self.pos().z.floor() as i32;
         let pos = BlockPos { x, y, z };
-        let block_pos = pos.below();
-        let block_state = dimension.get_block_state(&block_pos);
 
         // TODO: check if block below is a fence, wall, or fence gate
+        // let block_pos = pos.below();
+        // let block_state = dimension.get_block_state(&block_pos);
         // if block_state == Some(BlockState::Air) {
         //     let block_pos_below = block_pos.below();
         //     let block_state_below = dimension.get_block_state(&block_pos_below);

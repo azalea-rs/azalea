@@ -1,6 +1,6 @@
 use crate::collision::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB};
 use azalea_core::{binary_search, Axis, AxisCycle, EPSILON};
-use std::{cmp, ops::Add};
+use std::cmp;
 
 pub struct Shapes {}
 
@@ -163,6 +163,8 @@ pub trait VoxelShape {
 
 pub struct ArrayVoxelShape {
     shape: Box<dyn DiscreteVoxelShape>,
+    // TODO: check where faces is used in minecraft
+    #[allow(dead_code)]
     faces: Option<Vec<Box<dyn VoxelShape>>>,
 
     pub xs: Vec<f64>,
@@ -172,6 +174,8 @@ pub struct ArrayVoxelShape {
 
 pub struct CubeVoxelShape {
     shape: Box<dyn DiscreteVoxelShape>,
+    // TODO: check where faces is used in minecraft
+    #[allow(dead_code)]
     faces: Option<Vec<Box<dyn VoxelShape>>>,
 }
 

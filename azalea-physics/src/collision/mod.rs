@@ -2,10 +2,6 @@ mod dimension_collisions;
 mod discrete_voxel_shape;
 mod shape;
 
-use std::cell::RefCell;
-use std::sync::{Arc, Mutex};
-
-use azalea_block::BlockState;
 use azalea_core::{Axis, PositionDelta, PositionXYZ, Vec3, AABB, EPSILON};
 use azalea_world::entity::{EntityData, EntityMut};
 use azalea_world::{Dimension, MoveEntityError};
@@ -86,7 +82,7 @@ impl MovableEntity for EntityMut<'_> {
     /// Move an entity by a given delta, checking for collisions.
     fn move_colliding(
         &mut self,
-        mover_type: &MoverType,
+        _mover_type: &MoverType,
         movement: &Vec3,
     ) -> Result<(), MoveEntityError> {
         // TODO: do all these
@@ -152,8 +148,8 @@ impl MovableEntity for EntityMut<'_> {
 
         // TODO: minecraft checks for a "minor" horizontal collision here
 
-        let block_pos_below = { self.on_pos_legacy(&self.dimension) };
-        let block_state_below = self
+        let block_pos_below = { self.on_pos_legacy() };
+        let _block_state_below = self
             .dimension
             .get_block_state(&block_pos_below)
             .expect("Couldn't get block state below");
@@ -172,7 +168,6 @@ impl MovableEntity for EntityMut<'_> {
             }
         }
 
-        let block_below = block_state_below;
         if vertical_collision {
             // blockBelow.updateEntityAfterFallOn(this.level, this);
         }

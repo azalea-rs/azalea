@@ -9,15 +9,15 @@ trait HasPhysics {
 }
 
 impl HasPhysics for EntityData {
-    fn travel(&self, acceleration: &Vec3, dimension: &Dimension) -> Result<(), ()> {
+    fn travel(&self, _acceleration: &Vec3, dimension: &Dimension) -> Result<(), ()> {
         // if !self.is_effective_ai() && !self.is_controlled_by_local_instance() {
         //     // this.calculateEntityAnimation(this, this instanceof FlyingAnimal);
         //     return;
         // }
 
-        let mut gravity: f64 = 0.08;
+        let _gravity: f64 = 0.08;
 
-        let is_falling = self.delta.ya <= 0.;
+        let _is_falling = self.delta.ya <= 0.;
 
         // TODO: slow falling effect
 
@@ -34,7 +34,7 @@ impl HasPhysics for EntityData {
                 panic!();
             };
 
-        let inertia = if self.on_ground {
+        let _inertia = if self.on_ground {
             block_friction * 0.91
         } else {
             0.91
@@ -53,10 +53,12 @@ fn get_block_pos_below_that_affects_movement(entity: &EntityData) -> BlockPos {
     )
 }
 
+// TODO: finish this
+#[allow(dead_code)]
 fn handle_relative_friction_and_calculate_movement(
-    entity: &EntityData,
-    acceleration: &Vec3,
-    block_friction: f64,
+    _entity: &EntityData,
+    _acceleration: &Vec3,
+    _block_friction: f64,
 ) -> Vec3 {
     // entity.move_relative(
     //     entity.get_friction_influenced_speed(block_friction),
@@ -76,6 +78,8 @@ fn handle_relative_friction_and_calculate_movement(
 // private float getFrictionInfluencedSpeed(float friction) {
 //     return this.onGround ? this.getSpeed() * (0.21600002F / (friction * friction * friction)) : this.flyingSpeed;
 // }
+// TODO: use this
+#[allow(dead_code)]
 fn get_speed(entity: &EntityData, friction: f32) -> f32 {
     // TODO: have speed & flying_speed fields in entity
     if entity.on_ground {

@@ -99,10 +99,10 @@ impl PalettedContainer {
     fn create_or_reuse_data(&self, bits_per_entry: u8) -> PalettedContainer {
         let new_palette_type =
             PaletteType::from_bits_and_type(bits_per_entry, &self.container_type);
-        let old_palette_type: PaletteType = (&self.palette).into();
-        // note for whoever is trying to optimize this: vanilla has this line
+        // note for whoever is trying to optimize this: vanilla has this
         // but it causes a stack overflow since it's not changing the bits per entry
         // i don't know how to fix this properly so glhf
+        // let old_palette_type: PaletteType = (&self.palette).into();
         // if new_palette_type == old_palette_type {
         //     return self.clone();
         // }
