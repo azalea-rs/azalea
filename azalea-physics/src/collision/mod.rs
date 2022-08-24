@@ -2,11 +2,12 @@ mod dimension_collisions;
 mod discrete_voxel_shape;
 mod shape;
 
+use std::cell::RefCell;
 use std::sync::{Arc, Mutex};
 
 use azalea_block::BlockState;
 use azalea_core::{Axis, PositionDelta, PositionXYZ, Vec3, AABB, EPSILON};
-use azalea_world::entity::Entity;
+use azalea_world::entity::{EntityData, EntityMut};
 use azalea_world::{Dimension, MoveEntityError};
 use dimension_collisions::CollisionGetter;
 pub use discrete_voxel_shape::*;
@@ -21,22 +22,72 @@ pub enum MoverType {
 }
 
 pub trait HasCollision {
-    fn move_entity(
+    fn collide(&self, movement: &Vec3, entity: &EntityData) -> Vec3;
+}
+
+pub trait MovableEntity {
+    fn move_colliding(
         &mut self,
         mover_type: &MoverType,
         movement: &Vec3,
-        entity_id: u32,
     ) -> Result<(), MoveEntityError>;
-    fn collide(&self, movement: &Vec3, entity: &Entity) -> Vec3;
 }
 
 impl HasCollision for Dimension {
+    // private Vec3 collide(Vec3 var1) {
+    //     AABB var2 = this.getBoundingBox();
+    //     List var3 = this.level.getEntityCollisions(this, var2.expandTowards(var1));
+    //     Vec3 var4 = var1.lengthSqr() == 0.0D ? var1 : collideBoundingBox(this, var1, var2, this.level, var3);
+    //     boolean var5 = var1.x != var4.x;
+    //     boolean var6 = var1.y != var4.y;
+    //     boolean var7 = var1.z != var4.z;
+    //     boolean var8 = this.onGround || var6 && var1.y < 0.0D;
+    //     if (this.maxUpStep > 0.0F && var8 && (var5 || var7)) {
+    //        Vec3 var9 = collideBoundingBox(this, new Vec3(var1.x, (double)this.maxUpStep, var1.z), var2, this.level, var3);
+    //        Vec3 var10 = collideBoundingBox(this, new Vec3(0.0D, (double)this.maxUpStep, 0.0D), var2.expandTowards(var1.x, 0.0D, var1.z), this.level, var3);
+    //        if (var10.y < (double)this.maxUpStep) {
+    //           Vec3 var11 = collideBoundingBox(this, new Vec3(var1.x, 0.0D, var1.z), var2.move(var10), this.level, var3).add(var10);
+    //           if (var11.horizontalDistanceSqr() > var9.horizontalDistanceSqr()) {
+    //              var9 = var11;
+    //           }
+    //        }
+
+    //        if (var9.horizontalDistanceSqr() > var4.horizontalDistanceSqr()) {
+    //           return var9.add(collideBoundingBox(this, new Vec3(0.0D, -var9.y + var1.y, 0.0D), var2.move(var9), this.level, var3));
+    //        }
+    //     }
+
+    //     return var4;
+    // }
+    fn collide(&self, movement: &Vec3, entity: &EntityData) -> Vec3 {
+        let entity_bounding_box = entity.bounding_box;
+        // TODO: get_entity_collisions
+        // let entity_collisions = dimension.get_entity_collisions(self, entity_bounding_box.expand_towards(movement));
+        let entity_collisions = Vec::new();
+        let collided_movement = if movement.length_sqr() == 0.0 {
+            *movement
+        } else {
+            collide_bounding_box(
+                Some(entity),
+                movement,
+                &entity_bounding_box,
+                self,
+                entity_collisions,
+            )
+        };
+
+        // TODO: stepping (for stairs and stuff)
+
+        collided_movement
+    }
+}
+
+impl MovableEntity for EntityMut<'_> {
     /// Move an entity by a given delta, checking for collisions.
-    fn move_entity(
+    fn move_colliding(
         &mut self,
         mover_type: &MoverType,
         movement: &Vec3,
-        entity_id: u32,
     ) -> Result<(), MoveEntityError> {
         // TODO: do all these
 
@@ -61,13 +112,7 @@ impl HasCollision for Dimension {
 
         println!("move_entity {:?}", movement);
 
-        let collide_result = {
-            let entity = self
-                .entity_by_id(entity_id)
-                .expect("There exists no entity with this id.");
-
-            self.collide(&movement, entity)
-        };
+        let collide_result = { self.dimension.collide(&movement, self) };
 
         let move_distance = collide_result.length_sqr();
 
@@ -76,27 +121,21 @@ impl HasCollision for Dimension {
         if move_distance > EPSILON {
             // TODO: fall damage
 
-            let entity_pos = *self
-                .entity_by_id(entity_id)
-                .expect("There exists no entity with this id.")
-                .pos();
-
-            self.set_entity_pos(
-                entity_id,
-                Vec3 {
-                    x: entity_pos.x + collide_result.x,
-                    y: entity_pos.y + collide_result.y,
-                    z: entity_pos.z + collide_result.z,
-                },
-            )?;
-            println!(
-                "move_entity set_entity_pos {:?}",
+            let new_pos = {
+                let entity_pos = self.pos();
                 Vec3 {
                     x: entity_pos.x + collide_result.x,
                     y: entity_pos.y + collide_result.y,
                     z: entity_pos.z + collide_result.z,
                 }
-            )
+            };
+            self.dimension.set_entity_pos(self.id, new_pos)?;
+
+            unsafe {
+                self.unsafe_move(new_pos);
+            }
+
+            println!("move_entity set_entity_pos {:?}", new_pos)
         }
 
         let x_collision = movement.x != collide_result.x;
@@ -113,13 +152,9 @@ impl HasCollision for Dimension {
 
         // TODO: minecraft checks for a "minor" horizontal collision here
 
-        let block_pos_below = {
-            let entity = self
-                .entity_by_id(entity_id)
-                .expect("There exists no entity with this id.");
-            entity.on_pos_legacy(&self)
-        };
+        let block_pos_below = { self.on_pos_legacy(&self.dimension) };
         let block_state_below = self
+            .dimension
             .get_block_state(&block_pos_below)
             .expect("Couldn't get block state below");
 
@@ -129,11 +164,8 @@ impl HasCollision for Dimension {
         // if self.isRemoved() { return; }
 
         if horizontal_collision {
-            let entity = self
-                .mut_entity_by_id(entity_id)
-                .expect("There exists no entity with this id.");
-            let delta_movement = &entity.delta;
-            entity.delta = PositionDelta {
+            let delta_movement = &self.delta;
+            self.delta = PositionDelta {
                 xa: if x_collision { 0. } else { delta_movement.xa },
                 ya: delta_movement.ya,
                 za: if z_collision { 0. } else { delta_movement.za },
@@ -175,57 +207,10 @@ impl HasCollision for Dimension {
 
         Ok(())
     }
-
-    // private Vec3 collide(Vec3 var1) {
-    //     AABB var2 = this.getBoundingBox();
-    //     List var3 = this.level.getEntityCollisions(this, var2.expandTowards(var1));
-    //     Vec3 var4 = var1.lengthSqr() == 0.0D ? var1 : collideBoundingBox(this, var1, var2, this.level, var3);
-    //     boolean var5 = var1.x != var4.x;
-    //     boolean var6 = var1.y != var4.y;
-    //     boolean var7 = var1.z != var4.z;
-    //     boolean var8 = this.onGround || var6 && var1.y < 0.0D;
-    //     if (this.maxUpStep > 0.0F && var8 && (var5 || var7)) {
-    //        Vec3 var9 = collideBoundingBox(this, new Vec3(var1.x, (double)this.maxUpStep, var1.z), var2, this.level, var3);
-    //        Vec3 var10 = collideBoundingBox(this, new Vec3(0.0D, (double)this.maxUpStep, 0.0D), var2.expandTowards(var1.x, 0.0D, var1.z), this.level, var3);
-    //        if (var10.y < (double)this.maxUpStep) {
-    //           Vec3 var11 = collideBoundingBox(this, new Vec3(var1.x, 0.0D, var1.z), var2.move(var10), this.level, var3).add(var10);
-    //           if (var11.horizontalDistanceSqr() > var9.horizontalDistanceSqr()) {
-    //              var9 = var11;
-    //           }
-    //        }
-
-    //        if (var9.horizontalDistanceSqr() > var4.horizontalDistanceSqr()) {
-    //           return var9.add(collideBoundingBox(this, new Vec3(0.0D, -var9.y + var1.y, 0.0D), var2.move(var9), this.level, var3));
-    //        }
-    //     }
-
-    //     return var4;
-    // }
-    fn collide(&self, movement: &Vec3, entity: &Entity) -> Vec3 {
-        let entity_bounding_box = entity.bounding_box;
-        // TODO: get_entity_collisions
-        // let entity_collisions = dimension.get_entity_collisions(self, entity_bounding_box.expand_towards(movement));
-        let entity_collisions = Vec::new();
-        let collided_movement = if movement.length_sqr() == 0.0 {
-            *movement
-        } else {
-            collide_bounding_box(
-                Some(entity),
-                movement,
-                &entity_bounding_box,
-                self,
-                entity_collisions,
-            )
-        };
-
-        // TODO: stepping (for stairs and stuff)
-
-        collided_movement
-    }
 }
 
 fn collide_bounding_box(
-    entity: Option<&Entity>,
+    entity: Option<&EntityData>,
     movement: &Vec3,
     entity_bounding_box: &AABB,
     dimension: &Dimension,

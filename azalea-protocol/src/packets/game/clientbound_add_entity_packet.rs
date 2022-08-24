@@ -1,6 +1,6 @@
 use azalea_buf::McBuf;
 use azalea_core::Vec3;
-use azalea_world::entity::Entity;
+use azalea_world::entity::EntityData;
 use packet_macros::ClientboundGamePacket;
 use uuid::Uuid;
 
@@ -26,10 +26,9 @@ pub struct ClientboundAddEntityPacket {
     pub z_vel: i16,
 }
 
-impl From<&ClientboundAddEntityPacket> for Entity {
+impl From<&ClientboundAddEntityPacket> for EntityData {
     fn from(p: &ClientboundAddEntityPacket) -> Self {
         Self::new(
-            p.id,
             p.uuid,
             Vec3 {
                 x: p.x,

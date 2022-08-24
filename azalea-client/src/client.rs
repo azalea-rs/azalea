@@ -24,7 +24,7 @@ use azalea_protocol::{
     read::ReadPacketError,
     resolver, ServerAddress,
 };
-use azalea_world::entity::Entity;
+use azalea_world::entity::EntityData;
 use azalea_world::Dimension;
 use std::{
     fmt::Debug,
@@ -304,9 +304,8 @@ impl Client {
                     // i'll make this an actual setting later
                     *dimension_lock = Dimension::new(16, height, min_y);
 
-                    let entity =
-                        Entity::new(p.player_id, client.game_profile.uuid, Vec3::default());
-                    dimension_lock.add_entity(entity);
+                    let entity = EntityData::new(client.game_profile.uuid, Vec3::default());
+                    dimension_lock.add_entity(p.player_id, entity);
 
                     let mut player_lock = client.player.lock().unwrap();
 
@@ -373,11 +372,11 @@ impl Client {
 
                     let mut dimension_lock = client.dimension.lock().unwrap();
 
-                    let player_entity = dimension_lock
-                        .mut_entity_by_id(player_entity_id)
+                    let mut player_entity = dimension_lock
+                        .entity_mut(player_entity_id)
                         .expect("Player entity doesn't exist");
 
-                    let delta_movement = &player_entity.delta;
+                    let delta_movement = player_entity.delta.clone();
 
                     let is_x_relative = p.relative_arguments.x;
                     let is_y_relative = p.relative_arguments.y;
@@ -479,8 +478,8 @@ impl Client {
             }
             ClientboundGamePacket::ClientboundAddEntityPacket(p) => {
                 println!("Got add entity packet {:?}", p);
-                let entity = Entity::from(p);
-                client.dimension.lock()?.add_entity(entity);
+                let entity = EntityData::from(p);
+                client.dimension.lock()?.add_entity(p.id, entity);
             }
             ClientboundGamePacket::ClientboundSetEntityDataPacket(_p) => {
                 // println!("Got set entity data packet {:?}", p);
@@ -496,8 +495,8 @@ impl Client {
             }
             ClientboundGamePacket::ClientboundAddPlayerPacket(p) => {
                 println!("Got add player packet {:?}", p);
-                let entity = Entity::from(p);
-                client.dimension.lock()?.add_entity(entity);
+                let entity = EntityData::from(p);
+                client.dimension.lock()?.add_entity(p.id, entity);
             }
             ClientboundGamePacket::ClientboundInitializeBorderPacket(p) => {
                 println!("Got initialize border packet {:?}", p);

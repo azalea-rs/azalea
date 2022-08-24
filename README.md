@@ -12,7 +12,8 @@ A collection of Rust crates primarily for creating Minecraft bots.
 ## ⚠️ Azalea is still super unfinished, you probably shouldn't use it
 
 
-I named this Azalea because it sounds like a cool word and this is a cool library. This project was heavily inspired by PrismarineJS.
+I named this Azalea because it sounds like a cool word and this is a cool library.
+This project was heavily inspired by [PrismarineJS](https://github.com/PrismarineJS).
 
 ## Why
 
