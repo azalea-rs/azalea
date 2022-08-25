@@ -39,7 +39,7 @@ impl Tag {
             // A length-prefixed array of signed bytes. The prefix is a signed
             // integer (thus 4 bytes)
             7 => {
-                let length = stream.read_i32::<BE>()?;
+                let length = stream.read_u32::<BE>()?;
                 let mut bytes = vec![0; length as usize];
                 stream.read_exact(&mut bytes)?;
                 Tag::ByteArray(bytes)
@@ -84,7 +84,7 @@ impl Tag {
             // signed integer (thus 4 bytes) and indicates the number of 4 byte
             // integers.
             11 => {
-                let length = stream.read_i32::<BE>()?;
+                let length = stream.read_u32::<BE>()?;
                 let mut ints = Vec::with_capacity(length as usize);
                 for _ in 0..length {
                     ints.push(stream.read_i32::<BE>()?);
@@ -94,7 +94,7 @@ impl Tag {
             // A length-prefixed array of signed longs. The prefix is a signed
             // integer (thus 4 bytes) and indicates the number of 8 byte longs.
             12 => {
-                let length = stream.read_i32::<BE>()?;
+                let length = stream.read_u32::<BE>()?;
                 let mut longs = Vec::with_capacity(length as usize);
                 for _ in 0..length {
                     longs.push(stream.read_i64::<BE>()?);
