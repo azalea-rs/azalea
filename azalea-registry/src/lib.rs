@@ -1,33 +1,38 @@
-enum Block {
-    Air = 0,
-    Stone,
-}
+registry!(Block, {
+    Air => "minecraft:air",
+    Stone => "minecraft:stone"
+})
 
-impl Block {
-    /// Transmutes a u32 to a Block.
-    ///
-    /// # Safety
-    /// The `id` should be less than {}.
-    #[inline]
-    pub unsafe fn from_u32_unchecked(id: u32) -> Self {
-        mem::transmute::<u32, Block>(id)
-    }
+// enum Block {
+//     Air = 0,
+//     Stone,
+// }
 
-    #[inline]
-    pub fn is_valid_id(id: u32) -> bool {
-        id <= 100
-    }
-}
+// impl Block {
+//     /// Transmutes a u32 to a Block.
+//     ///
+//     /// # Safety
+//     /// The `id` should be at most {}.
+//     #[inline]
+//     pub unsafe fn from_u32_unchecked(id: u32) -> Self {
+//         mem::transmute::<u32, Block>(id)
+//     }
 
-impl TryFrom<u32> for Block {
-    type Error = ();
+//     #[inline]
+//     pub fn is_valid_id(id: u32) -> bool {
+//         id <= 100
+//     }
+// }
 
-    /// Safely converts a state id to a block state.
-    fn try_from(id: u32) -> Result<Self, Self::Error> {
-        if Self::is_valid_state(state_id) {
-            Ok(unsafe { Self::from_u32_unsafe(state_id) })
-        } else {
-            Err(())
-        }
-    }
-}
+// impl TryFrom<u32> for Block {
+//     type Error = ();
+
+//     /// Safely converts a state id to a block state.
+//     fn try_from(id: u32) -> Result<Self, Self::Error> {
+//         if Self::is_valid_state(state_id) {
+//             Ok(unsafe { Self::from_u32_unsafe(state_id) })
+//         } else {
+//             Err(())
+//         }
+//     }
+// }
