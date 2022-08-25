@@ -58,10 +58,7 @@ fn write_compound(
             Tag::ByteArray(value) => {
                 writer.write_u8(7)?;
                 write_string(writer, key)?;
-                writer.write_i32::<BE>(value.len() as i32)?;
-                for &byte in value {
-                    writer.write_i8(byte)?;
-                }
+                write_bytearray(writer, value)?
             }
             Tag::String(value) => {
                 writer.write_u8(8)?;
@@ -81,18 +78,12 @@ fn write_compound(
             Tag::IntArray(value) => {
                 writer.write_u8(11)?;
                 write_string(writer, key)?;
-                writer.write_i32::<BE>(value.len() as i32)?;
-                for &int in value {
-                    writer.write_i32::<BE>(int)?;
-                }
+                write_intarray(writer, value)?
             }
             Tag::LongArray(value) => {
                 writer.write_u8(12)?;
                 write_string(writer, key)?;
-                writer.write_i32::<BE>(value.len() as i32)?;
-                for &long in value {
-                    writer.write_i64::<BE>(long)?;
-                }
+                write_longarray(writer, value)?
             }
         }
     }
@@ -150,11 +141,9 @@ fn write_list(writer: &mut dyn Write, value: &[Tag]) -> Result<(), Error> {
 }
 
 #[inline]
-fn write_bytearray(writer: &mut dyn Write, value: &Vec<i8>) -> Result<(), Error> {
+fn write_bytearray(writer: &mut dyn Write, value: &Vec<u8>) -> Result<(), Error> {
     writer.write_i32::<BE>(value.len() as i32)?;
-    for &byte in value {
-        writer.write_i8(byte)?;
-    }
+    writer.write_all(value)?;
     Ok(())
 }
 

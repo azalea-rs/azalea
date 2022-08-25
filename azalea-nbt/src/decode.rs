@@ -40,10 +40,8 @@ impl Tag {
             // integer (thus 4 bytes)
             7 => {
                 let length = stream.read_i32::<BE>()?;
-                let mut bytes = Vec::with_capacity(length as usize);
-                for _ in 0..length {
-                    bytes.push(stream.read_i8()?);
-                }
+                let mut bytes = vec![0; length as usize];
+                stream.read_exact(&mut bytes)?;
                 Tag::ByteArray(bytes)
             }
             // A length-prefixed modified UTF-8 string. The prefix is an
