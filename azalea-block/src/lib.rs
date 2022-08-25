@@ -1,6 +1,8 @@
+#[cfg(feature = "trait")]
 mod behavior;
 mod blocks;
 
+#[cfg(feature = "trait")]
 pub use behavior::BlockBehavior;
 pub use blocks::*;
 
