@@ -116,7 +116,7 @@ impl Tag {
     }
 
     #[inline]
-    pub fn as_bytearray(&self) -> Option<&Vec<i8>> {
+    pub fn as_bytearray(&self) -> Option<&[u8]> {
         if let Tag::ByteArray(v) = self {
             Some(v)
         } else {
