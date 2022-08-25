@@ -18,7 +18,7 @@ fn read_string(stream: &mut impl Read) -> Result<String, Error> {
 impl Tag {
     #[inline]
     fn read_known(stream: &mut impl Read, id: u8) -> Result<Tag, Error> {
-        let tag = match id {
+        Ok(match id {
             // Signifies the end of a TAG_Compound. It is only ever used inside
             // a TAG_Compound, and is not named despite being in a TAG_Compound
             0 => Tag::End,
@@ -104,8 +104,7 @@ impl Tag {
                 Tag::LongArray(longs)
             }
             _ => return Err(Error::InvalidTagType(id)),
-        };
-        Ok(tag)
+        })
     }
 
     pub fn read(stream: &mut impl Read) -> Result<Tag, Error> {
@@ -137,10 +136,11 @@ impl Tag {
 
 impl McBufReadable for Tag {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
-        match Tag::read(buf) {
-            Ok(r) => Ok(r),
-            // Err(e) => Err(e.to_string()),
-            Err(e) => Err(e.to_string()).unwrap(),
-        }
+        Ok(Tag::read(buf)?)
+    }
+}
+impl From<Error> for BufReadError {
+    fn from(e: Error) -> Self {
+        BufReadError::Custom(e.to_string())
     }
 }
