@@ -7,31 +7,12 @@ pub trait PositionDeltaTrait {
     fn z(&self) -> f64;
 }
 
-#[derive(Clone, Debug, McBuf, Default)]
-pub struct PositionDelta {
-    pub xa: f64,
-    pub ya: f64,
-    pub za: f64,
-}
-
 /// Only works for up to 8 blocks
 #[derive(Clone, Debug, McBuf, Default)]
 pub struct PositionDelta8 {
     pub xa: i16,
     pub ya: i16,
     pub za: i16,
-}
-
-impl PositionDeltaTrait for PositionDelta {
-    fn x(&self) -> f64 {
-        self.xa
-    }
-    fn y(&self) -> f64 {
-        self.ya
-    }
-    fn z(&self) -> f64 {
-        self.za
-    }
 }
 
 impl PositionDelta8 {

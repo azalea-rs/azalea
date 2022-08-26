@@ -1,7 +1,7 @@
 use crate::{Account, Player};
 use azalea_auth::game_profile::GameProfile;
 use azalea_block::BlockState;
-use azalea_core::{ChunkPos, PositionDelta, PositionDeltaTrait, ResourceLocation, Vec3};
+use azalea_core::{ChunkPos, Vec3, PositionDeltaTrait, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
@@ -414,7 +414,7 @@ impl Client {
                         x_rot += player_entity.y_rot;
                     }
 
-                    player_entity.delta = PositionDelta {
+                    player_entity.delta = Vec3 {
                         xa: delta_x,
                         ya: delta_y,
                         za: delta_z,

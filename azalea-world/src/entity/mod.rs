@@ -2,7 +2,7 @@ mod data;
 mod dimensions;
 
 use crate::Dimension;
-use azalea_core::{BlockPos, PositionDelta, Vec3, AABB};
+use azalea_core::{BlockPos, Vec3, AABB};
 pub use data::*;
 pub use dimensions::*;
 use std::ops::{Deref, DerefMut};
@@ -209,7 +209,7 @@ pub struct EntityData {
     pos: Vec3,
     /// The position of the entity last tick.
     pub last_pos: Vec3,
-    pub delta: PositionDelta,
+    pub delta: Vec3,
 
     pub x_rot: f32,
     pub y_rot: f32,
@@ -237,7 +237,7 @@ impl EntityData {
             uuid,
             pos,
             last_pos: pos,
-            delta: PositionDelta::default(),
+            delta: Vec3::default(),
 
             x_rot: 0.0,
             y_rot: 0.0,

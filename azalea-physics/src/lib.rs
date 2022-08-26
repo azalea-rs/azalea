@@ -2,7 +2,11 @@ pub mod collision;
 
 use azalea_block::Block;
 use azalea_core::{BlockPos, Vec3};
-use azalea_world::{entity::EntityData, Dimension};
+use azalea_world::{
+    entity::{EntityData, EntityMut},
+    Dimension,
+};
+use collision::{MovableEntity, MoverType};
 
 trait HasPhysics {
     fn travel(&self, acceleration: &Vec3, dimension: &Dimension) -> Result<(), ()>;
@@ -34,11 +38,13 @@ impl HasPhysics for EntityData {
                 panic!();
             };
 
-        let _inertia = if self.on_ground {
+        let inertia = if self.on_ground {
             block_friction * 0.91
         } else {
             0.91
         };
+        let movement =
+            handle_relative_friction_and_calculate_movement(entity, acceleration, block_friction);
 
         Ok(())
     }
@@ -56,23 +62,20 @@ fn get_block_pos_below_that_affects_movement(entity: &EntityData) -> BlockPos {
 // TODO: finish this
 #[allow(dead_code)]
 fn handle_relative_friction_and_calculate_movement(
-    _entity: &EntityData,
-    _acceleration: &Vec3,
-    _block_friction: f64,
+    entity: &EntityMut,
+    acceleration: &Vec3,
+    block_friction: f64,
 ) -> Vec3 {
-    // entity.move_relative(
-    //     entity.get_friction_influenced_speed(block_friction),
-    //     acceleration,
-    // );
-    // entity.delta = entity.handleOnClimbable(entity.getDeltaMovement());
-    // entity.move(MoverType.SELF, entity.getDeltaMovement());
-    //  let delta_movement = entity.delta;
-    // //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable() || entity.getFeetBlockState().is(Blocks.POWDER_SNOW) && PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {
-    // //      var3 = new Vec3(var3.x, 0.2D, var3.z);
-    // //   }
+    entity.add_delta(get_speed(*entity, block_friction), acceleration);
+    // entity.delta = entity.handle_on_climbable(entity.delta);
+    entity.move_colliding(&MoverType::Own, &entity.delta.into());
+    let delta_movement = entity.delta;
+    //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable() || entity.getFeetBlockState().is(Blocks.POWDER_SNOW) && PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {
+    //      var3 = new Vec3(var3.x, 0.2D, var3.z);
+    //   }
+    // TODO: powdered snow
 
-    //   return delta_movement;
-    Vec3::default()
+    delta_movement
 }
 
 // private float getFrictionInfluencedSpeed(float friction) {
