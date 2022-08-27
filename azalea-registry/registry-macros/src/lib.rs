@@ -108,5 +108,24 @@ pub fn registry(input: TokenStream) -> TokenStream {
         }
     });
 
+    // Display that uses registry ids
+    let mut display_items = quote! {};
+    for item in input.items.iter() {
+        let name = &item.name;
+        let id = &item.id;
+        display_items.extend(quote! {
+            Self::#name => write!(f, #id),
+        });
+    }
+    generated.extend(quote! {
+        impl std::fmt::Display for #name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                match self {
+                    #display_items
+                }
+            }
+        }
+    });
+
     generated.into()
 }
