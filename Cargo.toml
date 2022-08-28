@@ -14,6 +14,7 @@ members = [
   "azalea-block",
   "azalea-buf",
   "azalea-physics",
+  "azalea-registry",
 ]
 
 [profile.release]
