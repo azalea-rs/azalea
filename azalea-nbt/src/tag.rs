@@ -9,7 +9,7 @@ pub enum Tag {
     Long(i64),                       // 4
     Float(f32),                      // 5
     Double(f64),                     // 6
-    ByteArray(Vec<i8>),              // 7
+    ByteArray(Vec<u8>),              // 7
     String(String),                  // 8
     List(Vec<Tag>),                  // 9
     Compound(AHashMap<String, Tag>), // 10
@@ -116,7 +116,7 @@ impl Tag {
     }
 
     #[inline]
-    pub fn as_bytearray(&self) -> Option<&Vec<i8>> {
+    pub fn as_bytearray(&self) -> Option<&[u8]> {
         if let Tag::ByteArray(v) = self {
             Some(v)
         } else {

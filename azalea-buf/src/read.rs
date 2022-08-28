@@ -68,7 +68,7 @@ where
     }
 
     // fast varints modified from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
-    /// Read a single varint from the reader and return the value, along with the number of bytes read
+    /// Read a single varint from the reader and return the value
     fn read_varint(&mut self) -> Result<i32, BufReadError> {
         let mut buffer = [0];
         let mut ans = 0;
@@ -77,7 +77,7 @@ where
                 .map_err(|_| BufReadError::InvalidVarInt)?;
             ans |= ((buffer[0] & 0b0111_1111) as i32) << (7 * i);
             if buffer[0] & 0b1000_0000 == 0 {
-                return Ok(ans);
+                break;
             }
         }
         Ok(ans)

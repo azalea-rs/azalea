@@ -18,7 +18,7 @@ fn read_string(stream: &mut impl Read) -> Result<String, Error> {
 impl Tag {
     #[inline]
     fn read_known(stream: &mut impl Read, id: u8) -> Result<Tag, Error> {
-        let tag = match id {
+        Ok(match id {
             // Signifies the end of a TAG_Compound. It is only ever used inside
             // a TAG_Compound, and is not named despite being in a TAG_Compound
             0 => Tag::End,
@@ -39,11 +39,9 @@ impl Tag {
             // A length-prefixed array of signed bytes. The prefix is a signed
             // integer (thus 4 bytes)
             7 => {
-                let length = stream.read_i32::<BE>()?;
-                let mut bytes = Vec::with_capacity(length as usize);
-                for _ in 0..length {
-                    bytes.push(stream.read_i8()?);
-                }
+                let length = stream.read_u32::<BE>()?;
+                let mut bytes = vec![0; length as usize];
+                stream.read_exact(&mut bytes)?;
                 Tag::ByteArray(bytes)
             }
             // A length-prefixed modified UTF-8 string. The prefix is an
@@ -86,7 +84,7 @@ impl Tag {
             // signed integer (thus 4 bytes) and indicates the number of 4 byte
             // integers.
             11 => {
-                let length = stream.read_i32::<BE>()?;
+                let length = stream.read_u32::<BE>()?;
                 let mut ints = Vec::with_capacity(length as usize);
                 for _ in 0..length {
                     ints.push(stream.read_i32::<BE>()?);
@@ -96,7 +94,7 @@ impl Tag {
             // A length-prefixed array of signed longs. The prefix is a signed
             // integer (thus 4 bytes) and indicates the number of 8 byte longs.
             12 => {
-                let length = stream.read_i32::<BE>()?;
+                let length = stream.read_u32::<BE>()?;
                 let mut longs = Vec::with_capacity(length as usize);
                 for _ in 0..length {
                     longs.push(stream.read_i64::<BE>()?);
@@ -104,8 +102,7 @@ impl Tag {
                 Tag::LongArray(longs)
             }
             _ => return Err(Error::InvalidTagType(id)),
-        };
-        Ok(tag)
+        })
     }
 
     pub fn read(stream: &mut impl Read) -> Result<Tag, Error> {
@@ -137,10 +134,11 @@ impl Tag {
 
 impl McBufReadable for Tag {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
-        match Tag::read(buf) {
-            Ok(r) => Ok(r),
-            // Err(e) => Err(e.to_string()),
-            Err(e) => Err(e.to_string()).unwrap(),
-        }
+        Ok(Tag::read(buf)?)
+    }
+}
+impl From<Error> for BufReadError {
+    fn from(e: Error) -> Self {
+        BufReadError::Custom(e.to_string())
     }
 }

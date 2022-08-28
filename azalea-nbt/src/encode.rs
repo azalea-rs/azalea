@@ -10,7 +10,7 @@ use std::io::Write;
 
 #[inline]
 fn write_string(writer: &mut dyn Write, string: &str) -> Result<(), Error> {
-    writer.write_i16::<BE>(string.len() as i16)?;
+    writer.write_u16::<BE>(string.len() as u16)?;
     writer.write_all(string.as_bytes())?;
 
     Ok(())
@@ -58,10 +58,7 @@ fn write_compound(
             Tag::ByteArray(value) => {
                 writer.write_u8(7)?;
                 write_string(writer, key)?;
-                writer.write_i32::<BE>(value.len() as i32)?;
-                for &byte in value {
-                    writer.write_i8(byte)?;
-                }
+                write_bytearray(writer, value)?
             }
             Tag::String(value) => {
                 writer.write_u8(8)?;
@@ -81,18 +78,12 @@ fn write_compound(
             Tag::IntArray(value) => {
                 writer.write_u8(11)?;
                 write_string(writer, key)?;
-                writer.write_i32::<BE>(value.len() as i32)?;
-                for &int in value {
-                    writer.write_i32::<BE>(int)?;
-                }
+                write_intarray(writer, value)?
             }
             Tag::LongArray(value) => {
                 writer.write_u8(12)?;
                 write_string(writer, key)?;
-                writer.write_i32::<BE>(value.len() as i32)?;
-                for &long in value {
-                    writer.write_i64::<BE>(long)?;
-                }
+                write_longarray(writer, value)?
             }
         }
     }
@@ -150,17 +141,15 @@ fn write_list(writer: &mut dyn Write, value: &[Tag]) -> Result<(), Error> {
 }
 
 #[inline]
-fn write_bytearray(writer: &mut dyn Write, value: &Vec<i8>) -> Result<(), Error> {
-    writer.write_i32::<BE>(value.len() as i32)?;
-    for &byte in value {
-        writer.write_i8(byte)?;
-    }
+fn write_bytearray(writer: &mut dyn Write, value: &Vec<u8>) -> Result<(), Error> {
+    writer.write_u32::<BE>(value.len() as u32)?;
+    writer.write_all(value)?;
     Ok(())
 }
 
 #[inline]
 fn write_intarray(writer: &mut dyn Write, value: &Vec<i32>) -> Result<(), Error> {
-    writer.write_i32::<BE>(value.len() as i32)?;
+    writer.write_u32::<BE>(value.len() as u32)?;
     for &int in value {
         writer.write_i32::<BE>(int)?;
     }
@@ -169,7 +158,7 @@ fn write_intarray(writer: &mut dyn Write, value: &Vec<i32>) -> Result<(), Error>
 
 #[inline]
 fn write_longarray(writer: &mut dyn Write, value: &Vec<i64>) -> Result<(), Error> {
-    writer.write_i32::<BE>(value.len() as i32)?;
+    writer.write_u32::<BE>(value.len() as u32)?;
     for &long in value {
         writer.write_i64::<BE>(long)?;
     }
