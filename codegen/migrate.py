@@ -1,8 +1,9 @@
 from lib.code.packet import fix_state
 from lib.utils import PacketIdentifier, group_packets
-import lib.code.utils
 import lib.code.version
+import lib.code.blocks
 import lib.code.packet
+import lib.code.utils
 import lib.download
 import lib.extract
 import sys
@@ -101,6 +102,20 @@ for packet in added_or_changed_packets:
 lib.code.version.set_protocol_version(
     new_burger_data[0]['version']['protocol'])
 lib.code.version.set_version_id(new_version_id)
+
+print('Updated protocol!')
+
+
+old_ordered_blocks = lib.extract.get_ordered_blocks_burger(old_version_id)
+new_ordered_blocks = lib.extract.get_ordered_blocks_burger(new_version_id)
+if old_ordered_blocks != new_ordered_blocks:
+    print('Blocks changed, updating...')
+    block_states_burger = lib.extract.get_block_states_burger(new_version_id)
+    block_states_report = lib.extract.get_block_states_report(new_version_id)
+
+    lib.code.blocks.generate_blocks(
+        block_states_burger, block_states_report, old_ordered_blocks, new_mappings)
+
 
 lib.code.utils.fmt()
 
