@@ -1,3 +1,5 @@
+use std::ops::{Add, AddAssign};
+
 use crate::Vec3;
 pub use azalea_buf::McBuf;
 
@@ -45,5 +47,53 @@ impl Vec3 {
             y: self.y + delta.y(),
             z: self.z + delta.z(),
         }
+    }
+
+    pub fn length_squared(&self) -> f64 {
+        self.x * self.x + self.y * self.y + self.z * self.z
+    }
+
+    pub fn normalize(&self) -> Vec3 {
+        let length = f64::sqrt(self.x * self.x + self.y * self.y + self.z * self.z);
+        if length < 1e-4 {
+            return Vec3::default();
+        }
+        Vec3 {
+            x: self.x / length,
+            y: self.y / length,
+            z: self.z / length,
+        }
+    }
+
+    pub fn multiply(&self, x: f64, y: f64, z: f64) -> Vec3 {
+        Vec3 {
+            x: self.x * x,
+            y: self.y * y,
+            z: self.z * z,
+        }
+    }
+    pub fn scale(&self, amount: f64) -> Vec3 {
+        self.multiply(amount, amount, amount)
+    }
+}
+
+// impl + and +=
+impl Add for Vec3 {
+    type Output = Vec3;
+
+    fn add(self, other: Vec3) -> Vec3 {
+        Vec3 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+        }
+    }
+}
+
+impl AddAssign for Vec3 {
+    fn add_assign(&mut self, other: Vec3) {
+        self.x += other.x;
+        self.y += other.y;
+        self.z += other.z;
     }
 }

@@ -113,6 +113,31 @@ impl<'d> EntityMut<'d> {
         self.x_rot = x_rot % 360.0;
         // TODO: minecraft also sets yRotO and xRotO to xRot and yRot ... but idk what they're used for so
     }
+
+    pub fn move_relative(&mut self, speed: f32, acceleration: &Vec3) {
+        let input_vector = self.input_vector(speed, acceleration);
+        self.delta += input_vector;
+    }
+
+    pub fn input_vector(&self, speed: f32, acceleration: &Vec3) -> Vec3 {
+        let distance = acceleration.length_squared();
+        if distance < 1.0E-7 {
+            return Vec3::default();
+        }
+        let acceleration = if distance > 1.0 {
+            acceleration.normalize()
+        } else {
+            *acceleration
+        }
+        .scale(speed as f64);
+        let y_rot = f32::sin(self.y_rot * 0.017453292f32);
+        let x_rot = f32::cos(self.y_rot * 0.017453292f32);
+        Vec3 {
+            x: acceleration.x * (x_rot as f64) - acceleration.z * (y_rot as f64),
+            y: acceleration.y,
+            z: acceleration.z * (x_rot as f64) + acceleration.x * (y_rot as f64),
+        }
+    }
 }
 
 impl<'d> EntityMut<'d> {
@@ -260,7 +285,7 @@ impl EntityData {
     }
 
     pub(crate) unsafe fn as_ptr(&mut self) -> NonNull<EntityData> {
-        unsafe { NonNull::new_unchecked(self as *mut EntityData) }
+        NonNull::new_unchecked(self as *mut EntityData)
     }
 }
 

@@ -1,7 +1,7 @@
 use crate::{Account, Player};
 use azalea_auth::game_profile::GameProfile;
 use azalea_block::BlockState;
-use azalea_core::{ChunkPos, Vec3, PositionDeltaTrait, ResourceLocation, Vec3};
+use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
@@ -385,21 +385,21 @@ impl Client {
 
                     let (delta_x, new_pos_x) = if is_x_relative {
                         player_entity.last_pos.x += p.x;
-                        (delta_movement.x(), player_entity.pos().x + p.x)
+                        (delta_movement.x, player_entity.pos().x + p.x)
                     } else {
                         player_entity.last_pos.x = p.x;
                         (0.0, p.x)
                     };
                     let (delta_y, new_pos_y) = if is_y_relative {
                         player_entity.last_pos.y += p.y;
-                        (delta_movement.y(), player_entity.pos().y + p.y)
+                        (delta_movement.y, player_entity.pos().y + p.y)
                     } else {
                         player_entity.last_pos.y = p.y;
                         (0.0, p.y)
                     };
                     let (delta_z, new_pos_z) = if is_z_relative {
                         player_entity.last_pos.z += p.z;
-                        (delta_movement.z(), player_entity.pos().z + p.z)
+                        (delta_movement.z, player_entity.pos().z + p.z)
                     } else {
                         player_entity.last_pos.z = p.z;
                         (0.0, p.z)
@@ -415,9 +415,9 @@ impl Client {
                     }
 
                     player_entity.delta = Vec3 {
-                        xa: delta_x,
-                        ya: delta_y,
-                        za: delta_z,
+                        x: delta_x,
+                        y: delta_y,
+                        z: delta_z,
                     };
                     player_entity.set_rotation(y_rot, x_rot);
                     // TODO: minecraft sets "xo", "yo", and "zo" here but idk what that means

@@ -2,28 +2,24 @@ pub mod collision;
 
 use azalea_block::Block;
 use azalea_core::{BlockPos, Vec3};
-use azalea_world::{
-    entity::{EntityData, EntityMut},
-    Dimension,
-};
+use azalea_world::entity::{EntityData, EntityMut};
 use collision::{MovableEntity, MoverType};
 
 trait HasPhysics {
-    fn travel(&self, acceleration: &Vec3, dimension: &Dimension) -> Result<(), ()>;
+    fn travel(&mut self, acceleration: &Vec3) -> Result<(), ()>;
 }
 
-impl HasPhysics for EntityData {
-    fn travel(&self, _acceleration: &Vec3, dimension: &Dimension) -> Result<(), ()> {
+impl HasPhysics for EntityMut<'_> {
+    fn travel(&mut self, acceleration: &Vec3) -> Result<(), ()> {
         // if !self.is_effective_ai() && !self.is_controlled_by_local_instance() {
         //     // this.calculateEntityAnimation(this, this instanceof FlyingAnimal);
         //     return;
         // }
 
-        let _gravity: f64 = 0.08;
-
-        let _is_falling = self.delta.ya <= 0.;
+        let gravity: f64 = 0.08;
 
         // TODO: slow falling effect
+        // let is_falling = self.delta.y <= 0.;
 
         // TODO: fluids
 
@@ -31,7 +27,7 @@ impl HasPhysics for EntityData {
 
         let block_pos_below = get_block_pos_below_that_affects_movement(self);
         let block_friction =
-            if let Some(block_state_below) = dimension.get_block_state(&block_pos_below) {
+            if let Some(block_state_below) = self.dimension.get_block_state(&block_pos_below) {
                 let block_below: Box<dyn Block> = block_state_below.into();
                 block_below.behavior().friction
             } else {
@@ -43,8 +39,27 @@ impl HasPhysics for EntityData {
         } else {
             0.91
         };
-        let movement =
-            handle_relative_friction_and_calculate_movement(entity, acceleration, block_friction);
+        let mut movement =
+            handle_relative_friction_and_calculate_movement(self, acceleration, block_friction);
+
+        movement.y -= gravity;
+
+        // if (this.shouldDiscardFriction()) {
+        //     this.setDeltaMovement(movement.x, yMovement, movement.z);
+        // } else {
+        //     this.setDeltaMovement(movement.x * (double)inertia, yMovement * 0.9800000190734863D, movement.z * (double)inertia);
+        // }
+
+        // if should_discard_friction(self) {
+        if false {
+            self.delta = movement;
+        } else {
+            self.delta = Vec3 {
+                x: movement.x * inertia as f64,
+                y: movement.y * 0.98f64,
+                z: movement.z * inertia as f64,
+            };
+        }
 
         Ok(())
     }
@@ -59,16 +74,16 @@ fn get_block_pos_below_that_affects_movement(entity: &EntityData) -> BlockPos {
     )
 }
 
-// TODO: finish this
-#[allow(dead_code)]
 fn handle_relative_friction_and_calculate_movement(
-    entity: &EntityMut,
+    entity: &mut EntityMut,
     acceleration: &Vec3,
-    block_friction: f64,
+    block_friction: f32,
 ) -> Vec3 {
-    entity.add_delta(get_speed(*entity, block_friction), acceleration);
+    entity.move_relative(get_speed(&*entity, block_friction), acceleration);
     // entity.delta = entity.handle_on_climbable(entity.delta);
-    entity.move_colliding(&MoverType::Own, &entity.delta.into());
+    entity
+        .move_colliding(&MoverType::Own, &entity.delta.into())
+        .expect("Entity should exist.");
     let delta_movement = entity.delta;
     //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable() || entity.getFeetBlockState().is(Blocks.POWDER_SNOW) && PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {
     //      var3 = new Vec3(var3.x, 0.2D, var3.z);
@@ -81,8 +96,6 @@ fn handle_relative_friction_and_calculate_movement(
 // private float getFrictionInfluencedSpeed(float friction) {
 //     return this.onGround ? this.getSpeed() * (0.21600002F / (friction * friction * friction)) : this.flyingSpeed;
 // }
-// TODO: use this
-#[allow(dead_code)]
 fn get_speed(entity: &EntityData, friction: f32) -> f32 {
     // TODO: have speed & flying_speed fields in entity
     if entity.on_ground {

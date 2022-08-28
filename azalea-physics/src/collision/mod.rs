@@ -2,7 +2,7 @@ mod dimension_collisions;
 mod discrete_voxel_shape;
 mod shape;
 
-use azalea_core::{Axis, Vec3, PositionXYZ, Vec3, AABB, EPSILON};
+use azalea_core::{Axis, PositionXYZ, Vec3, AABB, EPSILON};
 use azalea_world::entity::{EntityData, EntityMut};
 use azalea_world::{Dimension, MoveEntityError};
 use dimension_collisions::CollisionGetter;
@@ -162,9 +162,9 @@ impl MovableEntity for EntityMut<'_> {
         if horizontal_collision {
             let delta_movement = &self.delta;
             self.delta = Vec3 {
-                xa: if x_collision { 0. } else { delta_movement.xa },
-                ya: delta_movement.ya,
-                za: if z_collision { 0. } else { delta_movement.za },
+                x: if x_collision { 0. } else { delta_movement.x },
+                y: delta_movement.y,
+                z: if z_collision { 0. } else { delta_movement.z },
             }
         }
 
