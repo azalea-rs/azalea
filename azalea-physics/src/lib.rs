@@ -6,14 +6,14 @@ use azalea_world::entity::{EntityData, EntityMut};
 use collision::{MovableEntity, MoverType};
 
 pub trait HasPhysics {
-    fn travel(&mut self, acceleration: &Vec3) -> Result<(), ()>;
-    fn ai_step(&mut self) -> Result<(), ()>;
+    fn travel(&mut self, acceleration: &Vec3);
+    fn ai_step(&mut self);
 }
 
 impl HasPhysics for EntityMut<'_> {
     /// Move the entity with the given acceleration while handling friction,
     /// gravity, collisions, and some other stuff.
-    fn travel(&mut self, acceleration: &Vec3) -> Result<(), ()> {
+    fn travel(&mut self, acceleration: &Vec3) {
         // if !self.is_effective_ai() && !self.is_controlled_by_local_instance() {
         //     // this.calculateEntityAnimation(this, this instanceof FlyingAnimal);
         //     return;
@@ -63,13 +63,11 @@ impl HasPhysics for EntityMut<'_> {
                 z: movement.z * inertia as f64,
             };
         }
-
-        Ok(())
     }
 
     /// applies air resistance, calls self.travel(), and some other random
     /// stuff.
-    fn ai_step(&mut self) -> Result<(), ()> {
+    fn ai_step(&mut self) {
         // vanilla does movement interpolation here, doesn't really matter much for a bot though
 
         self.xxa *= 0.98;
@@ -79,12 +77,10 @@ impl HasPhysics for EntityMut<'_> {
             x: self.xxa as f64,
             y: self.yya as f64,
             z: self.zza as f64,
-        })?;
+        });
         // freezing
         // pushEntities
         // drowning damage
-
-        Ok(())
     }
 }
 
@@ -105,15 +101,15 @@ fn handle_relative_friction_and_calculate_movement(
     entity.move_relative(get_speed(&*entity, block_friction), acceleration);
     // entity.delta = entity.handle_on_climbable(entity.delta);
     entity
-        .move_colliding(&MoverType::Own, &entity.delta.into())
+        .move_colliding(&MoverType::Own, &entity.delta.clone())
         .expect("Entity should exist.");
-    let delta_movement = entity.delta;
+    // let delta_movement = entity.delta;
     //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable() || entity.getFeetBlockState().is(Blocks.POWDER_SNOW) && PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {
     //      var3 = new Vec3(var3.x, 0.2D, var3.z);
     //   }
     // TODO: powdered snow
 
-    delta_movement
+    entity.delta
 }
 
 // private float getFrictionInfluencedSpeed(float friction) {

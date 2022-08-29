@@ -70,8 +70,7 @@ impl<'a> BlockCollisions<'a> {
         //    return var7;
         // }
 
-        let chunk = self.dimension[&chunk_pos].as_ref();
-        return chunk;
+        self.dimension[&chunk_pos].as_ref()
     }
 }
 

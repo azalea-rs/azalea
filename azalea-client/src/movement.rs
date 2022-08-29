@@ -162,6 +162,6 @@ impl Client {
             .entity_mut(&mut dimension_lock)
             .expect("Player must exist");
 
-        player_entity.ai_step().unwrap();
+        player_entity.ai_step();
     }
 }

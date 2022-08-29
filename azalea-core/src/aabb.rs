@@ -216,7 +216,7 @@ impl AABB {
         let x = max.x - min.x;
         let y = max.y - min.y;
         let z = max.z - min.z;
-        let dir = self.get_direction(self, min, &mut t, None, x, y, z);
+        let dir = self.get_direction(self, min, &mut t, None, &Vec3 { x, y, z });
         if dir.is_none() {
             return None;
         }
@@ -238,7 +238,7 @@ impl AABB {
         let z = to.z - from.z;
 
         for aabb in boxes {
-            dir = self.get_direction(aabb, from, &mut t, dir, x, y, z);
+            dir = self.get_direction(aabb, from, &mut t, dir, &Vec3 { x, y, z });
         }
         if dir.is_none() {
             return None;
@@ -259,115 +259,121 @@ impl AABB {
         from: &Vec3,
         t: &mut [f64],
         dir: Option<Direction>,
-        x: f64,
-        y: f64,
-        z: f64,
+        delta: &Vec3,
     ) -> Option<Direction> {
-        if x > EPSILON {
+        if delta.x > EPSILON {
             return self.clip_point(
                 t,
                 dir,
-                x,
-                y,
-                z,
+                delta,
                 aabb.min_x,
                 aabb.min_y,
                 aabb.max_y,
                 aabb.min_z,
                 aabb.max_z,
                 Direction::West,
-                from.x,
-                from.y,
-                from.z,
+                from,
             );
-        } else if x < -EPSILON {
+        } else if delta.x < -EPSILON {
             return self.clip_point(
                 t,
                 dir,
-                x,
-                y,
-                z,
+                delta,
                 aabb.max_x,
                 aabb.min_y,
                 aabb.max_y,
                 aabb.min_z,
                 aabb.max_z,
                 Direction::East,
-                from.x,
-                from.y,
-                from.z,
+                from,
             );
         }
 
-        if y > EPSILON {
+        if delta.y > EPSILON {
             return self.clip_point(
                 t,
                 dir,
-                y,
-                z,
-                x,
+                &Vec3 {
+                    x: delta.y,
+                    y: delta.z,
+                    z: delta.x,
+                },
                 aabb.min_y,
                 aabb.min_z,
                 aabb.max_z,
                 aabb.min_x,
                 aabb.max_x,
                 Direction::Down,
-                from.y,
-                from.z,
-                from.x,
+                &Vec3 {
+                    x: from.y,
+                    y: from.z,
+                    z: from.x,
+                },
             );
-        } else if y < -EPSILON {
+        } else if delta.y < -EPSILON {
             return self.clip_point(
                 t,
                 dir,
-                y,
-                z,
-                x,
+                &Vec3 {
+                    x: delta.y,
+                    y: delta.z,
+                    z: delta.x,
+                },
                 aabb.max_y,
                 aabb.min_z,
                 aabb.max_z,
                 aabb.min_x,
                 aabb.max_x,
                 Direction::Up,
-                from.y,
-                from.z,
-                from.x,
+                &Vec3 {
+                    x: from.y,
+                    y: from.z,
+                    z: from.x,
+                },
             );
         }
 
-        if z > EPSILON {
+        if delta.z > EPSILON {
             return self.clip_point(
                 t,
                 dir,
-                z,
-                x,
-                y,
+                &Vec3 {
+                    x: delta.z,
+                    y: delta.x,
+                    z: delta.y,
+                },
                 aabb.min_z,
                 aabb.min_x,
                 aabb.max_x,
                 aabb.min_y,
                 aabb.max_y,
                 Direction::North,
-                from.z,
-                from.x,
-                from.y,
+                &Vec3 {
+                    x: from.z,
+                    y: from.x,
+                    z: from.y,
+                },
             );
-        } else if z < -EPSILON {
+        } else if delta.z < -EPSILON {
             return self.clip_point(
                 t,
                 dir,
-                z,
-                x,
-                y,
+                &Vec3 {
+                    x: delta.z,
+                    y: delta.x,
+                    z: delta.y,
+                },
                 aabb.max_z,
                 aabb.min_x,
                 aabb.max_x,
                 aabb.min_y,
                 aabb.max_y,
                 Direction::South,
-                from.z,
-                from.x,
-                from.y,
+                &Vec3 {
+                    x: from.z,
+                    y: from.x,
+                    z: from.y,
+                },
             );
         }
 
@@ -378,22 +384,18 @@ impl AABB {
         &self,
         t: &mut [f64],
         approach_dir: Option<Direction>,
-        delta_x: f64,
-        delta_y: f64,
-        delta_z: f64,
+        delta: &Vec3,
         begin: f64,
         min_x: f64,
         max_x: f64,
         min_z: f64,
         max_z: f64,
         result_dir: Direction,
-        start_x: f64,
-        start_y: f64,
-        start_z: f64,
+        start: &Vec3,
     ) -> Option<Direction> {
-        let t_x = (begin - start_x) / delta_x;
-        let t_y = (start_y + t_x) / delta_y;
-        let t_z = (start_z + t_x) / delta_z;
+        let t_x = (begin - start.x) / delta.x;
+        let t_y = (start.y + t_x) / delta.y;
+        let t_z = (start.z + t_x) / delta.z;
         if 0.0 < t_x
             && t_x < t[0]
             && min_x - EPSILON < t_y

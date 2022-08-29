@@ -378,7 +378,7 @@ impl Client {
                         .entity_mut(player_entity_id)
                         .expect("Player entity doesn't exist");
 
-                    let delta_movement = player_entity.delta.clone();
+                    let delta_movement = player_entity.delta;
 
                     let is_x_relative = p.relative_arguments.x;
                     let is_y_relative = p.relative_arguments.y;

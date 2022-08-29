@@ -61,7 +61,7 @@ impl HasCollision for Dimension {
         // TODO: get_entity_collisions
         // let entity_collisions = dimension.get_entity_collisions(self, entity_bounding_box.expand_towards(movement));
         let entity_collisions = Vec::new();
-        let collided_movement = if movement.length_sqr() == 0.0 {
+        if movement.length_sqr() == 0.0 {
             *movement
         } else {
             collide_bounding_box(
@@ -71,11 +71,11 @@ impl HasCollision for Dimension {
                 self,
                 entity_collisions,
             )
-        };
+        }
 
         // TODO: stepping (for stairs and stuff)
 
-        collided_movement
+        // collided_movement
     }
 }
 
@@ -109,7 +109,7 @@ impl MovableEntity for EntityMut<'_> {
 
         println!("move_entity {:?}", movement);
 
-        let collide_result = { self.dimension.collide(&movement, self) };
+        let collide_result = { self.dimension.collide(movement, self) };
 
         let move_distance = collide_result.length_sqr();
 

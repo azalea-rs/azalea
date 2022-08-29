@@ -157,7 +157,7 @@ pub trait VoxelShape {
             }
         }
 
-        return movement;
+        movement
     }
 }
 
