@@ -291,12 +291,21 @@ impl From<&Vec3> for ChunkPos {
     }
 }
 
+const PACKED_X_LENGTH: u64 = 1 + 25; // minecraft does something a bit more complicated to get this 25
+const PACKED_Z_LENGTH: u64 = PACKED_X_LENGTH;
+const PACKED_Y_LENGTH: u64 = 64 - PACKED_X_LENGTH - PACKED_Z_LENGTH;
+const PACKED_X_MASK: u64 = (1 << PACKED_X_LENGTH) - 1;
+const PACKED_Y_MASK: u64 = (1 << PACKED_Y_LENGTH) - 1;
+const PACKED_Z_MASK: u64 = (1 << PACKED_Z_LENGTH) - 1;
+const Z_OFFSET: u64 = PACKED_Y_LENGTH;
+const X_OFFSET: u64 = PACKED_Y_LENGTH + PACKED_Z_LENGTH;
+
 impl McBufReadable for BlockPos {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let val = u64::read_from(buf)?;
-        let x = (val >> 38) as i32;
-        let y = (val & 0xFFF) as i32;
-        let z = ((val >> 12) & 0x3FFFFFF) as i32;
+        let x = (val << 64 - X_OFFSET - PACKED_X_LENGTH >> 64 - PACKED_X_LENGTH) as i32;
+        let y = (val << 64 - PACKED_Y_LENGTH >> 64 - PACKED_Y_LENGTH) as i32;
+        let z = (val << 64 - Z_OFFSET - PACKED_Z_LENGTH >> 64 - PACKED_Z_LENGTH) as i32;
         Ok(BlockPos { x, y, z })
     }
 }
@@ -323,10 +332,11 @@ impl McBufReadable for ChunkSectionPos {
 
 impl McBufWritable for BlockPos {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let data = (((self.x & 0x3FFFFFF) as i64) << 38)
-            | (((self.z & 0x3FFFFFF) as i64) << 12)
-            | ((self.y & 0xFFF) as i64);
-        data.write_into(buf)
+        let mut val: u64 = 0;
+        val |= ((self.x as u64) & PACKED_X_MASK) << X_OFFSET;
+        val |= ((self.y as u64) & PACKED_Y_MASK) << 0;
+        val |= ((self.z as u64) & PACKED_Z_MASK) << Z_OFFSET;
+        val.write_into(buf)
     }
 }
 
