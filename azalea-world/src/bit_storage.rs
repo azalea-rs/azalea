@@ -195,7 +195,7 @@ impl BitStorage {
         let cell_index = self.cell_index(index as u64);
         let cell = &mut self.data[cell_index as usize];
         let bit_index = (index - cell_index * self.values_per_long as usize) * self.bits;
-        let old_value = *cell >> (bit_index as u64) * self.mask;
+        let old_value = *cell >> (bit_index as u64) & self.mask;
         *cell = *cell & !(self.mask << bit_index) | (value & self.mask) << bit_index;
         old_value
     }

@@ -143,6 +143,10 @@ impl Client {
         let mut entity = player
             .entity_mut(&mut dimension_lock)
             .ok_or(MovePlayerError::PlayerNotInWorld)?;
+        println!(
+            "move entity bounding box: {} {:?}",
+            entity.id, entity.bounding_box
+        );
 
         entity.move_colliding(&MoverType::Own, movement)?;
 

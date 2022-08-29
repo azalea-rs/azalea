@@ -71,8 +71,13 @@ impl ChunkStorage {
     pub fn set_block_state(&self, pos: &BlockPos, state: BlockState, min_y: i32) -> BlockState {
         let chunk_pos = ChunkPos::from(pos);
         let chunk = &self[&chunk_pos];
-        let mut chunk = chunk.as_ref().unwrap().lock().unwrap();
-        chunk.get_and_set(&ChunkBlockPos::from(pos), state, min_y)
+        if let Some(chunk) = chunk.as_ref() {
+            let mut chunk = chunk.lock().unwrap();
+            chunk.get_and_set(&ChunkBlockPos::from(pos), state, min_y)
+        } else {
+            // nothing is in this chunk, just return air
+            BlockState::Air
+        }
     }
 
     pub fn replace_with_packet_data(
@@ -137,7 +142,7 @@ impl Chunk {
     pub fn section_index(&self, y: i32, min_y: i32) -> u32 {
         // TODO: check the build height and stuff, this code will be broken if the min build height is 0
         // (LevelHeightAccessor.getMinSection in vanilla code)
-        assert!(y >= 0);
+        assert!(y >= 0, "y must be >= 0, y={}, min_y={}", y, min_y);
         let min_section_index = min_y.div_floor(16);
         (y.div_floor(16) - min_section_index) as u32
     }

@@ -367,9 +367,10 @@ impl Client {
                 println!("Got player position packet {:?}", p);
 
                 let (new_pos, y_rot, x_rot) = {
-                    let player_lock = client.player.lock().unwrap();
-                    let player_entity_id = player_lock.entity_id;
-                    drop(player_lock);
+                    let player_entity_id = {
+                        let player_lock = client.player.lock().unwrap();
+                        player_lock.entity_id
+                    };
 
                     let mut dimension_lock = client.dimension.lock().unwrap();
 
@@ -540,12 +541,16 @@ impl Client {
             ClientboundGamePacket::ClientboundMoveEntityPosPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
 
+                println!("Got move entity pos packet {:?}", p);
+
                 dimension_lock
                     .move_entity_with_delta(p.entity_id, &p.delta)
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
             ClientboundGamePacket::ClientboundMoveEntityPosRotPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
+
+                println!("Got move entity pos rot packet {:?}", p);
 
                 dimension_lock
                     .move_entity_with_delta(p.entity_id, &p.delta)
@@ -617,7 +622,65 @@ impl Client {
             ClientboundGamePacket::ClientboundUpdateMobEffectPacket(p) => {
                 println!("Got update mob effect packet {:?}", p);
             }
-            _ => panic!("Unexpected packet {:?}", packet),
+            ClientboundGamePacket::ClientboundAddExperienceOrbPacket(_) => {}
+            ClientboundGamePacket::ClientboundAwardStatsPacket(_) => {}
+            ClientboundGamePacket::ClientboundBlockChangedAckPacket(_) => {}
+            ClientboundGamePacket::ClientboundBlockDestructionPacket(_) => {}
+            ClientboundGamePacket::ClientboundBlockEntityDataPacket(_) => {}
+            ClientboundGamePacket::ClientboundBlockEventPacket(_) => {}
+            ClientboundGamePacket::ClientboundBossEventPacket(_) => {}
+            ClientboundGamePacket::ClientboundChatPreviewPacket(_) => {}
+            ClientboundGamePacket::ClientboundCommandSuggestionsPacket(_) => {}
+            ClientboundGamePacket::ClientboundContainerSetDataPacket(_) => {}
+            ClientboundGamePacket::ClientboundContainerSetSlotPacket(_) => {}
+            ClientboundGamePacket::ClientboundCooldownPacket(_) => {}
+            ClientboundGamePacket::ClientboundCustomChatCompletionsPacket(_) => {}
+            ClientboundGamePacket::ClientboundCustomSoundPacket(_) => {}
+            ClientboundGamePacket::ClientboundDeleteChatPacket(_) => {}
+            ClientboundGamePacket::ClientboundExplodePacket(_) => {}
+            ClientboundGamePacket::ClientboundForgetLevelChunkPacket(_) => {}
+            ClientboundGamePacket::ClientboundHorseScreenOpenPacket(_) => {}
+            ClientboundGamePacket::ClientboundMapItemDataPacket(_) => {}
+            ClientboundGamePacket::ClientboundMerchantOffersPacket(_) => {}
+            ClientboundGamePacket::ClientboundMoveVehiclePacket(_) => {}
+            ClientboundGamePacket::ClientboundOpenBookPacket(_) => {}
+            ClientboundGamePacket::ClientboundOpenScreenPacket(_) => {}
+            ClientboundGamePacket::ClientboundOpenSignEditorPacket(_) => {}
+            ClientboundGamePacket::ClientboundPingPacket(_) => {}
+            ClientboundGamePacket::ClientboundPlaceGhostRecipePacket(_) => {}
+            ClientboundGamePacket::ClientboundPlayerChatHeaderPacket(_) => {}
+            ClientboundGamePacket::ClientboundPlayerCombatEndPacket(_) => {}
+            ClientboundGamePacket::ClientboundPlayerCombatEnterPacket(_) => {}
+            ClientboundGamePacket::ClientboundPlayerCombatKillPacket(_) => {}
+            ClientboundGamePacket::ClientboundPlayerLookAtPacket(_) => {}
+            ClientboundGamePacket::ClientboundRemoveMobEffectPacket(_) => {}
+            ClientboundGamePacket::ClientboundResourcePackPacket(_) => {}
+            ClientboundGamePacket::ClientboundRespawnPacket(_) => {}
+            ClientboundGamePacket::ClientboundSelectAdvancementsTabPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetActionBarTextPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetBorderCenterPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetBorderLerpSizePacket(_) => {}
+            ClientboundGamePacket::ClientboundSetBorderSizePacket(_) => {}
+            ClientboundGamePacket::ClientboundSetBorderWarningDelayPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetBorderWarningDistancePacket(_) => {}
+            ClientboundGamePacket::ClientboundSetCameraPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetChunkCacheRadiusPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetDisplayChatPreviewPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetDisplayObjectivePacket(_) => {}
+            ClientboundGamePacket::ClientboundSetEntityMotionPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetObjectivePacket(_) => {}
+            ClientboundGamePacket::ClientboundSetPassengersPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetPlayerTeamPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetScorePacket(_) => {}
+            ClientboundGamePacket::ClientboundSetSimulationDistancePacket(_) => {}
+            ClientboundGamePacket::ClientboundSetSubtitleTextPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetTitleTextPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetTitlesAnimationPacket(_) => {}
+            ClientboundGamePacket::ClientboundSoundEntityPacket(_) => {}
+            ClientboundGamePacket::ClientboundStopSoundPacket(_) => {}
+            ClientboundGamePacket::ClientboundTabListPacket(_) => {}
+            ClientboundGamePacket::ClientboundTagQueryPacket(_) => {}
+            ClientboundGamePacket::ClientboundTakeItemEntityPacket(_) => {}
         }
 
         Ok(())

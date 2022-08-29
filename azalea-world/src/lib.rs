@@ -65,6 +65,7 @@ impl Dimension {
     }
 
     pub fn set_entity_pos(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), MoveEntityError> {
+        println!("set_entity_pos({}, {:?})", entity_id, new_pos);
         let mut entity = self
             .entity_mut(entity_id)
             .ok_or(MoveEntityError::EntityDoesNotExist)?;
@@ -72,7 +73,7 @@ impl Dimension {
         let old_chunk = ChunkPos::from(entity.pos());
         let new_chunk = ChunkPos::from(&new_pos);
         // this is fine because we update the chunk below
-        unsafe { entity.unsafe_move(new_pos) };
+        unsafe { entity.move_unchecked(new_pos) };
         if old_chunk != new_chunk {
             self.entity_storage
                 .update_entity_chunk(entity_id, &old_chunk, &new_chunk);
@@ -94,7 +95,7 @@ impl Dimension {
         let new_chunk = ChunkPos::from(&new_pos);
         // this is fine because we update the chunk below
 
-        unsafe { entity.unsafe_move(new_pos) };
+        unsafe { entity.move_unchecked(new_pos) };
         if old_chunk != new_chunk {
             self.entity_storage
                 .update_entity_chunk(entity_id, &old_chunk, &new_chunk);

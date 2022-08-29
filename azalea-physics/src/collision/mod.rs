@@ -57,6 +57,7 @@ impl HasCollision for Dimension {
     // }
     fn collide(&self, movement: &Vec3, entity: &EntityData) -> Vec3 {
         let entity_bounding_box = entity.bounding_box;
+        println!("collide: entity_bounding_box: {:?}", entity_bounding_box);
         // TODO: get_entity_collisions
         // let entity_collisions = dimension.get_entity_collisions(self, entity_bounding_box.expand_towards(movement));
         let entity_collisions = Vec::new();
@@ -125,11 +126,8 @@ impl MovableEntity for EntityMut<'_> {
                     z: entity_pos.z + collide_result.z,
                 }
             };
-            self.dimension.set_entity_pos(self.id, new_pos)?;
 
-            unsafe {
-                self.unsafe_move(new_pos);
-            }
+            self.dimension.set_entity_pos(self.id, new_pos)?;
 
             println!("move_entity set_entity_pos {:?}", new_pos)
         }
@@ -211,7 +209,8 @@ fn collide_bounding_box(
     dimension: &Dimension,
     entity_collisions: Vec<Box<dyn VoxelShape>>,
 ) -> Vec3 {
-    let mut collision_boxes: Vec<Box<dyn VoxelShape>> = Vec::with_capacity(1); // entity_collisions.len() + 1
+    let mut collision_boxes: Vec<Box<dyn VoxelShape>> =
+        Vec::with_capacity(entity_collisions.len() + 1);
 
     if !entity_collisions.is_empty() {
         collision_boxes.extend(entity_collisions);

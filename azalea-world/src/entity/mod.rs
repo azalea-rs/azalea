@@ -102,10 +102,11 @@ impl<'d> EntityMut<'d> {
 
     /// Sets the position of the entity. This doesn't update the cache in
     /// azalea-world, and should only be used within azalea-world!
-    pub unsafe fn unsafe_move(&mut self, new_pos: Vec3) {
-        let bounding_box = self.make_bounding_box();
+    pub unsafe fn move_unchecked(&mut self, new_pos: Vec3) {
         self.pos = new_pos;
+        let bounding_box = self.make_bounding_box();
         self.bounding_box = bounding_box;
+        println!("set {} bb to {:?}", self.id, bounding_box);
     }
 
     pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
