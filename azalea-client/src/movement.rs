@@ -152,4 +152,15 @@ impl Client {
 
         Ok(())
     }
+
+    pub fn ai_step(&mut self) {
+        let mut player_lock = self.player.lock().unwrap();
+        let mut dimension_lock = self.dimension.lock().unwrap();
+
+        let mut player_entity = player_lock
+            .entity_mut(&mut dimension_lock)
+            .expect("Player must exist");
+
+        player_entity.travel();
+    }
 }

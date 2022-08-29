@@ -7,9 +7,12 @@ use collision::{MovableEntity, MoverType};
 
 trait HasPhysics {
     fn travel(&mut self, acceleration: &Vec3) -> Result<(), ()>;
+    fn ai_step(&mut self);
 }
 
 impl HasPhysics for EntityMut<'_> {
+    /// Move the entity with the given acceleration while handling friction,
+    /// gravity, collisions, and some other stuff.
     fn travel(&mut self, acceleration: &Vec3) -> Result<(), ()> {
         // if !self.is_effective_ai() && !self.is_controlled_by_local_instance() {
         //     // this.calculateEntityAnimation(this, this instanceof FlyingAnimal);
