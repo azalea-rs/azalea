@@ -106,7 +106,6 @@ impl<'d> EntityMut<'d> {
         self.pos = new_pos;
         let bounding_box = self.make_bounding_box();
         self.bounding_box = bounding_box;
-        println!("set {} bb to {:?}", self.id, bounding_box);
     }
 
     pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {

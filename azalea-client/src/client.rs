@@ -541,16 +541,12 @@ impl Client {
             ClientboundGamePacket::ClientboundMoveEntityPosPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
 
-                println!("Got move entity pos packet {:?}", p);
-
                 dimension_lock
                     .move_entity_with_delta(p.entity_id, &p.delta)
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
             ClientboundGamePacket::ClientboundMoveEntityPosRotPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
-
-                println!("Got move entity pos rot packet {:?}", p);
 
                 dimension_lock
                     .move_entity_with_delta(p.entity_id, &p.delta)
