@@ -37,6 +37,24 @@ pub struct Section {
     pub biomes: PalettedContainer,
 }
 
+impl Default for Section {
+    fn default() -> Self {
+        Section {
+            block_count: 0,
+            states: PalettedContainer::new(&PalettedContainerType::BlockStates).unwrap(),
+            biomes: PalettedContainer::new(&PalettedContainerType::Biomes).unwrap(),
+        }
+    }
+}
+
+impl Default for Chunk {
+    fn default() -> Self {
+        Chunk {
+            sections: vec![Section::default(); (384 / 16) as usize],
+        }
+    }
+}
+
 impl ChunkStorage {
     pub fn new(chunk_radius: u32, height: u32, min_y: i32) -> Self {
         let view_range = chunk_radius * 2 + 1;
@@ -140,9 +158,7 @@ impl Chunk {
     }
 
     pub fn section_index(&self, y: i32, min_y: i32) -> u32 {
-        // TODO: check the build height and stuff, this code will be broken if the min build height is 0
-        // (LevelHeightAccessor.getMinSection in vanilla code)
-        assert!(y >= 0, "y must be >= 0, y={}, min_y={}", y, min_y);
+        assert!(y >= min_y, "y ({}) must be at least {}", y, min_y);
         let min_section_index = min_y.div_floor(16);
         (y.div_floor(16) - min_section_index) as u32
     }
@@ -267,5 +283,23 @@ impl Section {
 impl Default for ChunkStorage {
     fn default() -> Self {
         Self::new(8, 384, -64)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_section_index() {
+        let chunk = Chunk::default();
+        assert_eq!(chunk.section_index(0, 0), 0);
+        assert_eq!(chunk.section_index(128, 0), 8);
+        assert_eq!(chunk.section_index(127, 0), 7);
+        assert_eq!(chunk.section_index(0, -64), 4);
+        assert_eq!(chunk.section_index(-64, -64), 0);
+        assert_eq!(chunk.section_index(-49, -64), 0);
+        assert_eq!(chunk.section_index(-48, -64), 1);
+        assert_eq!(chunk.section_index(128, -64), 12);
     }
 }
