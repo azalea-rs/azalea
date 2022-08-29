@@ -5,9 +5,9 @@ use azalea_core::{BlockPos, Vec3};
 use azalea_world::entity::{EntityData, EntityMut};
 use collision::{MovableEntity, MoverType};
 
-trait HasPhysics {
+pub trait HasPhysics {
     fn travel(&mut self, acceleration: &Vec3) -> Result<(), ()>;
-    fn ai_step(&mut self);
+    fn ai_step(&mut self) -> Result<(), ()>;
 }
 
 impl HasPhysics for EntityMut<'_> {
@@ -34,7 +34,7 @@ impl HasPhysics for EntityMut<'_> {
                 let block_below: Box<dyn Block> = block_state_below.into();
                 block_below.behavior().friction
             } else {
-                panic!();
+                unreachable!("Block below should be a real block.")
             };
 
         let inertia = if self.on_ground {
@@ -63,6 +63,26 @@ impl HasPhysics for EntityMut<'_> {
                 z: movement.z * inertia as f64,
             };
         }
+
+        Ok(())
+    }
+
+    /// applies air resistance, calls self.travel(), and some other random
+    /// stuff.
+    fn ai_step(&mut self) -> Result<(), ()> {
+        // vanilla does movement interpolation here, doesn't really matter much for a bot though
+
+        self.xxa *= 0.98;
+        self.zza *= 0.98;
+
+        self.travel(&Vec3 {
+            x: self.xxa as f64,
+            y: self.yya as f64,
+            z: self.zza as f64,
+        })?;
+        // freezing
+        // pushEntities
+        // drowning damage
 
         Ok(())
     }

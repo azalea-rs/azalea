@@ -236,6 +236,13 @@ pub struct EntityData {
     pub last_pos: Vec3,
     pub delta: Vec3,
 
+    /// X acceleration.
+    pub xxa: f32,
+    /// Y acceleration.
+    pub yya: f32,
+    /// Z acceleration.
+    pub zza: f32,
+
     pub x_rot: f32,
     pub y_rot: f32,
 
@@ -264,11 +271,15 @@ impl EntityData {
             last_pos: pos,
             delta: Vec3::default(),
 
-            x_rot: 0.0,
-            y_rot: 0.0,
+            xxa: 0.,
+            yya: 0.,
+            zza: 0.,
 
-            y_rot_last: 0.0,
-            x_rot_last: 0.0,
+            x_rot: 0.,
+            y_rot: 0.,
+
+            y_rot_last: 0.,
+            x_rot_last: 0.,
 
             on_ground: false,
             last_on_ground: false,
