@@ -29,5 +29,13 @@ opt-level = 3
 opt-level = 3
 [profile.dev.package.aes]
 opt-level = 3
+[profile.dev.package.crypto-common]
+opt-level = 3
+[profile.dev.package.generic-array]
+opt-level = 3
+[profile.dev.package.typenum]
+opt-level = 3
+[profile.dev.package.inout]
+opt-level = 3
 [profile.dev.package.flate2]
 opt-level = 3
