@@ -112,12 +112,21 @@ version = "0.1.0"
 name = "azalea-buf"
 version = "0.1.0"
 dependencies = [
- "buf-macros",
+ "azalea-buf-macros",
  "byteorder",
  "serde_json",
  "thiserror",
  "tokio",
  "uuid",
+]
+
+[[package]]
+name = "azalea-buf-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -299,15 +308,6 @@ dependencies = [
  "memchr",
  "regex-automata",
  "serde",
-]
-
-[[package]]
-name = "buf-macros"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
