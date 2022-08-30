@@ -55,16 +55,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // client.move_entity()
 
                 // println!("{}", m.to_ansi(None));
-                if let Err(e) = client
-                    .move_entity(&Vec3 {
-                        x: 0.,
-                        y: -0.5,
-                        z: 0.,
-                    })
-                    .await
-                {
-                    eprintln!("{:?}", e);
-                }
+                // if let Err(e) = client
+                //     .move_entity(&Vec3 {
+                //         x: 0.,
+                //         y: -0.5,
+                //         z: 0.,
+                //     })
+                //     .await
+                // {
+                //     eprintln!("{:?}", e);
+                // }
             }
             _ => {}
         }

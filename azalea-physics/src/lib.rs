@@ -34,7 +34,10 @@ impl HasPhysics for EntityMut<'_> {
                 let block_below: Box<dyn Block> = block_state_below.into();
                 block_below.behavior().friction
             } else {
-                unreachable!("Block below should be a real block.")
+                unreachable!(
+                    "Block below at {:?} should be a real block.",
+                    block_pos_below
+                )
             };
 
         let inertia = if self.on_ground {
@@ -86,10 +89,10 @@ impl HasPhysics for EntityMut<'_> {
 
 fn get_block_pos_below_that_affects_movement(entity: &EntityData) -> BlockPos {
     BlockPos::new(
-        entity.pos().x as i32,
+        entity.pos().x.floor() as i32,
         // TODO: this uses bounding_box.min_y instead of position.y
-        (entity.pos().y - 0.5f64) as i32,
-        entity.pos().z as i32,
+        (entity.pos().y - 0.5f64).floor() as i32,
+        entity.pos().z.floor() as i32,
     )
 }
 

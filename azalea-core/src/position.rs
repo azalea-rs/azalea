@@ -303,6 +303,7 @@ const X_OFFSET: u64 = PACKED_Y_LENGTH + PACKED_Z_LENGTH;
 impl McBufReadable for BlockPos {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let val = u64::read_from(buf)?;
+        println!("reading blockpos from {}", val);
         let x = (val << 64 - X_OFFSET - PACKED_X_LENGTH >> 64 - PACKED_X_LENGTH) as i32;
         let y = (val << 64 - PACKED_Y_LENGTH >> 64 - PACKED_Y_LENGTH) as i32;
         let z = (val << 64 - Z_OFFSET - PACKED_Z_LENGTH >> 64 - PACKED_Z_LENGTH) as i32;

@@ -716,6 +716,7 @@ impl Client {
         if let Err(e) = client.send_position().await {
             println!("Error sending position: {:?}", e);
         }
+        client.ai_step();
 
         // TODO: minecraft does ambient sounds here
 
