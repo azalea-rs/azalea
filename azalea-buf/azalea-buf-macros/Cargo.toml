@@ -1,5 +1,7 @@
 [package]
+description = "#[derive(McBuf)]"
 edition = "2021"
+license = "MIT"
 name = "azalea-buf-macros"
 version = "0.1.0"
 
