@@ -2,6 +2,7 @@ mod data;
 mod dimensions;
 
 use crate::Dimension;
+use azalea_block::BlockState;
 use azalea_core::{BlockPos, Vec3, AABB};
 pub use data::*;
 pub use dimensions::*;
@@ -36,7 +37,7 @@ impl<'d> EntityRef<'d> {
     }
 
     pub fn make_bounding_box(&self) -> AABB {
-        self.dimensions.make_bounding_box(&self.pos())
+        self.dimensions.make_bounding_box(self.pos())
     }
 
     /// Get the position of the block below the entity, but a little lower.
@@ -63,20 +64,20 @@ impl<'d> EntityRef<'d> {
         let pos = BlockPos { x, y, z };
 
         // TODO: check if block below is a fence, wall, or fence gate
-        // let block_pos = pos.below();
-        // let block_state = dimension.get_block_state(&block_pos);
-        // if block_state == Some(BlockState::Air) {
-        //     let block_pos_below = block_pos.below();
-        //     let block_state_below = dimension.get_block_state(&block_pos_below);
-        //     if let Some(block_state_below) = block_state_below {
-        //         if block_state_below.is_fence()
-        //             || block_state_below.is_wall()
-        //             || block_state_below.is_fence_gate()
-        //         {
-        //             return block_pos_below;
-        //         }
-        //     }
-        // }
+        let block_pos = pos.below();
+        let block_state = self.dimension.get_block_state(&block_pos);
+        if block_state == Some(BlockState::Air) {
+            let block_pos_below = block_pos.below();
+            let block_state_below = self.dimension.get_block_state(&block_pos_below);
+            if let Some(_block_state_below) = block_state_below {
+                // if block_state_below.is_fence()
+                //     || block_state_below.is_wall()
+                //     || block_state_below.is_fence_gate()
+                // {
+                //     return block_pos_below;
+                // }
+            }
+        }
 
         pos
     }
@@ -102,6 +103,9 @@ impl<'d> EntityMut<'d> {
 
     /// Sets the position of the entity. This doesn't update the cache in
     /// azalea-world, and should only be used within azalea-world!
+    ///
+    /// # Safety
+    /// Cached position in the dimension must be updated.
     pub unsafe fn move_unchecked(&mut self, new_pos: Vec3) {
         self.pos = new_pos;
         let bounding_box = self.make_bounding_box();
@@ -147,7 +151,7 @@ impl<'d> EntityMut<'d> {
     }
 
     pub fn make_bounding_box(&self) -> AABB {
-        self.dimensions.make_bounding_box(&self.pos())
+        self.dimensions.make_bounding_box(self.pos())
     }
 
     /// Get the position of the block below the entity, but a little lower.
@@ -174,20 +178,20 @@ impl<'d> EntityMut<'d> {
         let pos = BlockPos { x, y, z };
 
         // TODO: check if block below is a fence, wall, or fence gate
-        // let block_pos = pos.below();
-        // let block_state = dimension.get_block_state(&block_pos);
-        // if block_state == Some(BlockState::Air) {
-        //     let block_pos_below = block_pos.below();
-        //     let block_state_below = dimension.get_block_state(&block_pos_below);
-        //     if let Some(block_state_below) = block_state_below {
-        //         if block_state_below.is_fence()
-        //             || block_state_below.is_wall()
-        //             || block_state_below.is_fence_gate()
-        //         {
-        //             return block_pos_below;
-        //         }
-        //     }
-        // }
+        let block_pos = pos.below();
+        let block_state = self.dimension.get_block_state(&block_pos);
+        if block_state == Some(BlockState::Air) {
+            let block_pos_below = block_pos.below();
+            let block_state_below = self.dimension.get_block_state(&block_pos_below);
+            if let Some(_block_state_below) = block_state_below {
+                // if block_state_below.is_fence()
+                //     || block_state_below.is_wall()
+                //     || block_state_below.is_fence_gate()
+                // {
+                //     return block_pos_below;
+                // }
+            }
+        }
 
         pos
     }

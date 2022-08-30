@@ -14,6 +14,19 @@ pub struct AABB {
     pub max_z: f64,
 }
 
+pub struct ClipPointOpts<'a> {
+    pub t: &'a mut [f64],
+    pub approach_dir: Option<Direction>,
+    pub delta: &'a Vec3,
+    pub begin: f64,
+    pub min_x: f64,
+    pub max_x: f64,
+    pub min_z: f64,
+    pub max_z: f64,
+    pub result_dir: Direction,
+    pub start: &'a Vec3,
+}
+
 impl AABB {
     pub fn contract(&self, x: f64, y: f64, z: f64) -> AABB {
         let mut min_x = self.min_x;
@@ -216,10 +229,7 @@ impl AABB {
         let x = max.x - min.x;
         let y = max.y - min.y;
         let z = max.z - min.z;
-        let dir = self.get_direction(self, min, &mut t, None, &Vec3 { x, y, z });
-        if dir.is_none() {
-            return None;
-        }
+        let _dir = self.get_direction(self, min, &mut t, None, &Vec3 { x, y, z })?;
         let t = t[0];
         Some(min.add(t * x, t * y, t * z))
     }
@@ -240,13 +250,11 @@ impl AABB {
         for aabb in boxes {
             dir = self.get_direction(aabb, from, &mut t, dir, &Vec3 { x, y, z });
         }
-        if dir.is_none() {
-            return None;
-        }
+        let dir = dir?;
         let t = t[0];
         Some(BlockHitResult {
             location: from.add(t * x, t * y, t * z),
-            direction: dir.unwrap(),
+            direction: dir,
             block_pos: *pos,
             inside: false,
             miss: false,
@@ -262,151 +270,139 @@ impl AABB {
         delta: &Vec3,
     ) -> Option<Direction> {
         if delta.x > EPSILON {
-            return self.clip_point(
+            return self.clip_point(ClipPointOpts {
                 t,
-                dir,
+                approach_dir: dir,
                 delta,
-                aabb.min_x,
-                aabb.min_y,
-                aabb.max_y,
-                aabb.min_z,
-                aabb.max_z,
-                Direction::West,
-                from,
-            );
+                begin: aabb.min_x,
+                min_x: aabb.min_y,
+                max_x: aabb.max_y,
+                min_z: aabb.min_z,
+                max_z: aabb.max_z,
+                result_dir: Direction::West,
+                start: from,
+            });
         } else if delta.x < -EPSILON {
-            return self.clip_point(
+            return self.clip_point(ClipPointOpts {
                 t,
-                dir,
+                approach_dir: dir,
                 delta,
-                aabb.max_x,
-                aabb.min_y,
-                aabb.max_y,
-                aabb.min_z,
-                aabb.max_z,
-                Direction::East,
-                from,
-            );
+                begin: aabb.max_x,
+                min_x: aabb.min_y,
+                max_x: aabb.max_y,
+                min_z: aabb.min_z,
+                max_z: aabb.max_z,
+                result_dir: Direction::East,
+                start: from,
+            });
         }
 
         if delta.y > EPSILON {
-            return self.clip_point(
+            return self.clip_point(ClipPointOpts {
                 t,
-                dir,
-                &Vec3 {
+                approach_dir: dir,
+                delta: &Vec3 {
                     x: delta.y,
                     y: delta.z,
                     z: delta.x,
                 },
-                aabb.min_y,
-                aabb.min_z,
-                aabb.max_z,
-                aabb.min_x,
-                aabb.max_x,
-                Direction::Down,
-                &Vec3 {
+                begin: aabb.min_y,
+                min_x: aabb.min_z,
+                max_x: aabb.max_z,
+                min_z: aabb.min_x,
+                max_z: aabb.max_x,
+                result_dir: Direction::Down,
+                start: &Vec3 {
                     x: from.y,
                     y: from.z,
                     z: from.x,
                 },
-            );
+            });
         } else if delta.y < -EPSILON {
-            return self.clip_point(
+            return self.clip_point(ClipPointOpts {
                 t,
-                dir,
-                &Vec3 {
+                approach_dir: dir,
+                delta: &Vec3 {
                     x: delta.y,
                     y: delta.z,
                     z: delta.x,
                 },
-                aabb.max_y,
-                aabb.min_z,
-                aabb.max_z,
-                aabb.min_x,
-                aabb.max_x,
-                Direction::Up,
-                &Vec3 {
+                begin: aabb.max_y,
+                min_x: aabb.min_z,
+                max_x: aabb.max_z,
+                min_z: aabb.min_x,
+                max_z: aabb.max_x,
+                result_dir: Direction::Up,
+                start: &Vec3 {
                     x: from.y,
                     y: from.z,
                     z: from.x,
                 },
-            );
+            });
         }
 
         if delta.z > EPSILON {
-            return self.clip_point(
+            return self.clip_point(ClipPointOpts {
                 t,
-                dir,
-                &Vec3 {
+                approach_dir: dir,
+                delta: &Vec3 {
                     x: delta.z,
                     y: delta.x,
                     z: delta.y,
                 },
-                aabb.min_z,
-                aabb.min_x,
-                aabb.max_x,
-                aabb.min_y,
-                aabb.max_y,
-                Direction::North,
-                &Vec3 {
+                begin: aabb.min_z,
+                min_x: aabb.min_x,
+                max_x: aabb.max_x,
+                min_z: aabb.min_y,
+                max_z: aabb.max_y,
+                result_dir: Direction::North,
+                start: &Vec3 {
                     x: from.z,
                     y: from.x,
                     z: from.y,
                 },
-            );
+            });
         } else if delta.z < -EPSILON {
-            return self.clip_point(
+            return self.clip_point(ClipPointOpts {
                 t,
-                dir,
-                &Vec3 {
+                approach_dir: dir,
+                delta: &Vec3 {
                     x: delta.z,
                     y: delta.x,
                     z: delta.y,
                 },
-                aabb.max_z,
-                aabb.min_x,
-                aabb.max_x,
-                aabb.min_y,
-                aabb.max_y,
-                Direction::South,
-                &Vec3 {
+                begin: aabb.max_z,
+                min_x: aabb.min_x,
+                max_x: aabb.max_x,
+                min_z: aabb.min_y,
+                max_z: aabb.max_y,
+                result_dir: Direction::South,
+                start: &Vec3 {
                     x: from.z,
                     y: from.x,
                     z: from.y,
                 },
-            );
+            });
         }
 
         dir
     }
 
-    fn clip_point(
-        &self,
-        t: &mut [f64],
-        approach_dir: Option<Direction>,
-        delta: &Vec3,
-        begin: f64,
-        min_x: f64,
-        max_x: f64,
-        min_z: f64,
-        max_z: f64,
-        result_dir: Direction,
-        start: &Vec3,
-    ) -> Option<Direction> {
-        let t_x = (begin - start.x) / delta.x;
-        let t_y = (start.y + t_x) / delta.y;
-        let t_z = (start.z + t_x) / delta.z;
+    fn clip_point(&self, opts: ClipPointOpts) -> Option<Direction> {
+        let t_x = (opts.begin - opts.start.x) / opts.delta.x;
+        let t_y = (opts.start.y + t_x) / opts.delta.y;
+        let t_z = (opts.start.z + t_x) / opts.delta.z;
         if 0.0 < t_x
-            && t_x < t[0]
-            && min_x - EPSILON < t_y
-            && t_y < max_x + EPSILON
-            && min_z - EPSILON < t_z
-            && t_z < max_z + EPSILON
+            && t_x < opts.t[0]
+            && opts.min_x - EPSILON < t_y
+            && t_y < opts.max_x + EPSILON
+            && opts.min_z - EPSILON < t_z
+            && t_z < opts.max_z + EPSILON
         {
-            t[0] = t_x;
-            Some(result_dir)
+            opts.t[0] = t_x;
+            Some(opts.result_dir)
         } else {
-            approach_dir
+            opts.approach_dir
         }
     }
 

@@ -112,8 +112,8 @@ impl PalettedContainer {
         // sanity check
         debug_assert_eq!(storage.size(), self.container_type.size());
 
-        // let palette = new_palette_type.into_empty_palette(1usize << (bits_per_entry as usize));
-        let palette = new_palette_type.into_empty_palette();
+        // let palette = new_palette_type.as_empty_palette(1usize << (bits_per_entry as usize));
+        let palette = new_palette_type.as_empty_palette();
         PalettedContainer {
             bits_per_entry,
             palette,
@@ -129,8 +129,7 @@ impl PalettedContainer {
         let mut new_data = self.create_or_reuse_data(bits_per_entry);
         new_data.copy_from(&self.palette, &self.storage);
         *self = new_data;
-        let id = self.id_for(value);
-        id
+        self.id_for(value)
     }
 
     fn copy_from(&mut self, palette: &Palette, storage: &BitStorage) {
@@ -268,7 +267,7 @@ impl PaletteType {
         })
     }
 
-    pub fn into_empty_palette(&self) -> Palette {
+    pub fn as_empty_palette(&self) -> Palette {
         match self {
             PaletteType::SingleValue => Palette::SingleValue(0),
             PaletteType::Linear => Palette::Linear(Vec::new()),
@@ -298,7 +297,7 @@ impl PalettedContainerType {
     }
 
     fn size(&self) -> usize {
-        1 << self.size_bits() * 3
+        1 << (self.size_bits() * 3)
     }
 }
 

@@ -15,7 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // println!("{}", response.description.to_ansi(None));
     let account = Account::offline("bot");
-    let (mut client, mut rx) = account.join(&address.try_into().unwrap()).await.unwrap();
+    let (client, mut rx) = account.join(&address.try_into().unwrap()).await.unwrap();
     println!("connected");
 
     while let Some(e) = &rx.recv().await {

@@ -123,23 +123,16 @@ impl Dimension {
         self.entity_storage.get_mut_by_id(id)
     }
 
-    pub fn entity<'d>(&'d self, id: u32) -> Option<EntityRef<'d>> {
-        let entity_data = self.entity_storage.get_by_id(id);
-        if let Some(entity_data) = entity_data {
-            Some(EntityRef::new(self, id, entity_data))
-        } else {
-            None
-        }
+    pub fn entity(&self, id: u32) -> Option<EntityRef> {
+        let entity_data = self.entity_storage.get_by_id(id)?;
+        Some(EntityRef::new(self, id, entity_data))
     }
 
-    pub fn entity_mut<'d>(&'d mut self, id: u32) -> Option<EntityMut<'d>> {
-        let entity_data = self.entity_storage.get_mut_by_id(id);
-        if let Some(entity_data) = entity_data {
-            let entity_ptr = unsafe { entity_data.as_ptr() };
-            Some(EntityMut::new(self, id, entity_ptr))
-        } else {
-            None
-        }
+    pub fn entity_mut(&mut self, id: u32) -> Option<EntityMut> {
+        let entity_data = self.entity_storage.get_mut_by_id(id)?;
+
+        let entity_ptr = unsafe { entity_data.as_ptr() };
+        Some(EntityMut::new(self, id, entity_ptr))
     }
 
     pub fn entity_by_uuid(&self, uuid: &Uuid) -> Option<&EntityData> {

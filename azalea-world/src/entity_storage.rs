@@ -63,7 +63,7 @@ impl EntityStorage {
 
     /// Get a mutable reference to an entity by its id.
     #[inline]
-    pub fn get_mut_by_id<'d>(&'d mut self, id: u32) -> Option<&'d mut EntityData> {
+    pub fn get_mut_by_id(&mut self, id: u32) -> Option<&mut EntityData> {
         self.data_by_id.get_mut(&id)
     }
 
