@@ -1,4 +1,4 @@
-use azalea_entity::Entity;
+use azalea_world::entity::{EntityMut, EntityRef};
 use azalea_world::Dimension;
 use uuid::Uuid;
 
@@ -7,6 +7,7 @@ pub trait DimensionHaver {
     fn dimension(&self) -> &Dimension;
 }
 
+/// A player in the dimension or tab list.
 #[derive(Default, Debug)]
 pub struct Player {
     /// The player's uuid.
@@ -16,10 +17,14 @@ pub struct Player {
 }
 
 impl Player {
-    /// Get the entity of the player in the world.
-    pub fn entity<'a>(&self, world: &'a Dimension) -> Option<&'a Entity> {
-        // world.entity_by_uuid(&self.uuid)
-        world.entity_by_id(self.entity_id)
+    /// Get a reference to the entity of the player in the world.
+    pub fn entity<'d>(&'d self, dimension: &'d Dimension) -> Option<EntityRef> {
+        dimension.entity(self.entity_id)
+    }
+
+    /// Get a mutable reference to the entity of the player in the world.
+    pub fn entity_mut<'d>(&'d self, dimension: &'d mut Dimension) -> Option<EntityMut> {
+        dimension.entity_mut(self.entity_id)
     }
 
     pub fn set_uuid(&mut self, uuid: Uuid) {

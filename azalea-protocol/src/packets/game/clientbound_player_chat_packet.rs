@@ -1,6 +1,8 @@
-use azalea_buf::{BitSet, BufReadError, McBuf, McBufReadable, McBufVarWritable};
-use azalea_buf::{McBufVarReadable, McBufWritable};
+use azalea_buf::{
+    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
+};
 use azalea_chat::component::Component;
+use azalea_core::BitSet;
 use azalea_crypto::{MessageSignature, SignedMessageHeader};
 use packet_macros::ClientboundGamePacket;
 use std::io::{Read, Write};

@@ -2,13 +2,54 @@ use crate::ResourceLocation;
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use std::{
     io::{Read, Write},
-    ops::Rem,
+    ops::{Add, Mul, Rem},
 };
 
-pub trait PositionXYZ<T> {
-    fn add_x(&self, n: T) -> Self;
-    fn add_y(&self, n: T) -> Self;
-    fn add_z(&self, n: T) -> Self;
+pub trait PositionXYZ<T>
+where
+    T: Add<T, Output = T> + Mul<T, Output = T>,
+{
+    fn x(&self) -> T;
+    fn y(&self) -> T;
+    fn z(&self) -> T;
+
+    fn set_x(&self, n: T) -> Self;
+    fn set_y(&self, n: T) -> Self;
+    fn set_z(&self, n: T) -> Self;
+
+    // hopefully these get optimized
+    fn add_x(&self, n: T) -> Self
+    where
+        Self: Sized,
+    {
+        self.set_x(self.x() + n)
+    }
+    fn add_y(&self, n: T) -> Self
+    where
+        Self: Sized,
+    {
+        self.set_y(self.y() + n)
+    }
+    fn add_z(&self, n: T) -> Self
+    where
+        Self: Sized,
+    {
+        self.set_z(self.z() + n)
+    }
+
+    fn add(&self, x: T, y: T, z: T) -> Self
+    where
+        Self: Sized,
+    {
+        self.add_x(x).add_y(y).add_z(z)
+    }
+
+    fn length_sqr(&self) -> T
+    where
+        Self: Sized,
+    {
+        self.x() * self.x() + self.y() * self.y() + self.z() * self.z()
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -21,6 +62,10 @@ pub struct BlockPos {
 impl BlockPos {
     pub fn new(x: i32, y: i32, z: i32) -> Self {
         BlockPos { x, y, z }
+    }
+
+    pub fn below(&self) -> Self {
+        self.add(0, -1, 0)
     }
 }
 
@@ -37,25 +82,34 @@ impl Rem<i32> for BlockPos {
 }
 
 impl PositionXYZ<i32> for BlockPos {
-    fn add_x(&self, n: i32) -> Self {
+    fn x(&self) -> i32 {
+        self.x
+    }
+    fn y(&self) -> i32 {
+        self.y
+    }
+    fn z(&self) -> i32 {
+        self.z
+    }
+    fn set_x(&self, n: i32) -> Self {
         BlockPos {
-            x: self.x + n,
+            x: n,
             y: self.y,
             z: self.z,
         }
     }
-    fn add_y(&self, n: i32) -> Self {
+    fn set_y(&self, n: i32) -> Self {
         BlockPos {
             x: self.x,
-            y: self.y + n,
+            y: n,
             z: self.z,
         }
     }
-    fn add_z(&self, n: i32) -> Self {
+    fn set_z(&self, n: i32) -> Self {
         BlockPos {
             x: self.x,
             y: self.y,
-            z: self.z + n,
+            z: n,
         }
     }
 }
@@ -83,6 +137,9 @@ pub struct ChunkSectionPos {
 impl ChunkSectionPos {
     pub fn new(x: i32, y: i32, z: i32) -> Self {
         ChunkSectionPos { x, y, z }
+    }
+    pub fn block_to_section_coord(block: i32) -> i32 {
+        block >> 4
     }
 }
 /// The coordinates of a block inside a chunk.
@@ -123,33 +180,43 @@ pub struct GlobalPos {
     pub dimension: ResourceLocation,
 }
 
+/// An exact point in the world.
 #[derive(Debug, Clone, Copy, Default)]
-pub struct EntityPos {
+pub struct Vec3 {
     pub x: f64,
     pub y: f64,
     pub z: f64,
 }
 
-impl PositionXYZ<f64> for EntityPos {
-    fn add_x(&self, n: f64) -> Self {
-        EntityPos {
-            x: self.x + n,
+impl PositionXYZ<f64> for Vec3 {
+    fn x(&self) -> f64 {
+        self.x
+    }
+    fn y(&self) -> f64 {
+        self.y
+    }
+    fn z(&self) -> f64 {
+        self.z
+    }
+    fn set_x(&self, n: f64) -> Self {
+        Vec3 {
+            x: n,
             y: self.y,
             z: self.z,
         }
     }
-    fn add_y(&self, n: f64) -> Self {
-        EntityPos {
+    fn set_y(&self, n: f64) -> Self {
+        Vec3 {
             x: self.x,
-            y: self.y + n,
+            y: n,
             z: self.z,
         }
     }
-    fn add_z(&self, n: f64) -> Self {
-        EntityPos {
+    fn set_z(&self, n: f64) -> Self {
+        Vec3 {
             x: self.x,
             y: self.y,
-            z: self.z + n,
+            z: n,
         }
     }
 }
@@ -208,8 +275,8 @@ impl From<&ChunkBlockPos> for ChunkSectionBlockPos {
         }
     }
 }
-impl From<&EntityPos> for BlockPos {
-    fn from(pos: &EntityPos) -> Self {
+impl From<&Vec3> for BlockPos {
+    fn from(pos: &Vec3) -> Self {
         BlockPos {
             x: pos.x.floor() as i32,
             y: pos.y.floor() as i32,
@@ -218,18 +285,27 @@ impl From<&EntityPos> for BlockPos {
     }
 }
 
-impl From<&EntityPos> for ChunkPos {
-    fn from(pos: &EntityPos) -> Self {
+impl From<&Vec3> for ChunkPos {
+    fn from(pos: &Vec3) -> Self {
         ChunkPos::from(&BlockPos::from(pos))
     }
 }
 
+const PACKED_X_LENGTH: u64 = 1 + 25; // minecraft does something a bit more complicated to get this 25
+const PACKED_Z_LENGTH: u64 = PACKED_X_LENGTH;
+const PACKED_Y_LENGTH: u64 = 64 - PACKED_X_LENGTH - PACKED_Z_LENGTH;
+const PACKED_X_MASK: u64 = (1 << PACKED_X_LENGTH) - 1;
+const PACKED_Y_MASK: u64 = (1 << PACKED_Y_LENGTH) - 1;
+const PACKED_Z_MASK: u64 = (1 << PACKED_Z_LENGTH) - 1;
+const Z_OFFSET: u64 = PACKED_Y_LENGTH;
+const X_OFFSET: u64 = PACKED_Y_LENGTH + PACKED_Z_LENGTH;
+
 impl McBufReadable for BlockPos {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let val = u64::read_from(buf)?;
-        let x = (val >> 38) as i32;
-        let y = (val & 0xFFF) as i32;
-        let z = ((val >> 12) & 0x3FFFFFF) as i32;
+        let x = (val << 64 - X_OFFSET - PACKED_X_LENGTH >> 64 - PACKED_X_LENGTH) as i32;
+        let y = (val << 64 - PACKED_Y_LENGTH >> 64 - PACKED_Y_LENGTH) as i32;
+        let z = (val << 64 - Z_OFFSET - PACKED_Z_LENGTH >> 64 - PACKED_Z_LENGTH) as i32;
         Ok(BlockPos { x, y, z })
     }
 }
@@ -256,10 +332,11 @@ impl McBufReadable for ChunkSectionPos {
 
 impl McBufWritable for BlockPos {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let data = (((self.x & 0x3FFFFFF) as i64) << 38)
-            | (((self.z & 0x3FFFFFF) as i64) << 12)
-            | ((self.y & 0xFFF) as i64);
-        data.write_into(buf)
+        let mut val: u64 = 0;
+        val |= ((self.x as u64) & PACKED_X_MASK) << X_OFFSET;
+        val |= ((self.y as u64) & PACKED_Y_MASK) << 0;
+        val |= ((self.z as u64) & PACKED_Z_MASK) << Z_OFFSET;
+        val.write_into(buf)
     }
 }
 
@@ -302,7 +379,7 @@ mod tests {
 
     #[test]
     fn test_from_entity_pos_to_block_pos() {
-        let entity_pos = EntityPos {
+        let entity_pos = Vec3 {
             x: 31.5,
             y: 80.0,
             z: -16.1,
@@ -313,7 +390,7 @@ mod tests {
 
     #[test]
     fn test_from_entity_pos_to_chunk_pos() {
-        let entity_pos = EntityPos {
+        let entity_pos = Vec3 {
             x: 31.5,
             y: 80.0,
             z: -16.1,

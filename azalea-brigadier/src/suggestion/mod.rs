@@ -1,6 +1,7 @@
 mod suggestions;
 
 use crate::{context::StringRange, message::Message};
+pub use suggestions::*;
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct Suggestion {

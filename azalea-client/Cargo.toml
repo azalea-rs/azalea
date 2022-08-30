@@ -7,12 +7,13 @@ version = "0.1.0"
 
 [dependencies]
 anyhow = "1.0.59"
-azalea-auth = {path = "../azalea-auth"}
-azalea-core = {path = "../azalea-core"}
-azalea-crypto = {path = "../azalea-crypto"}
-azalea-entity = {path = "../azalea-entity"}
-azalea-protocol = {path = "../azalea-protocol"}
-azalea-world = {path = "../azalea-world"}
+azalea-auth = { path = "../azalea-auth" }
+azalea-core = { path = "../azalea-core" }
+azalea-crypto = { path = "../azalea-crypto" }
+azalea-physics = { path = "../azalea-physics" }
+azalea-protocol = { path = "../azalea-protocol" }
+azalea-world = { path = "../azalea-world" }
+azalea-block = { path = "../azalea-block" }
 thiserror = "^1.0.32"
-tokio = {version = "^1.19.2", features = ["sync"]}
+tokio = { version = "^1.19.2", features = ["sync"] }
 uuid = "^1.1.2"

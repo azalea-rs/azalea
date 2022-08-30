@@ -4,6 +4,7 @@ use crate::Dimension;
 use azalea_block::BlockState;
 use azalea_buf::BufReadError;
 use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_core::floor_mod;
 use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use std::fmt::Debug;
 use std::{
@@ -24,13 +25,33 @@ pub struct ChunkStorage {
     chunks: Vec<Option<Arc<Mutex<Chunk>>>>,
 }
 
-// java moment
-// it might be possible to replace this with just a modulo, but i copied java's floorMod just in case
-fn floor_mod(x: i32, y: u32) -> u32 {
-    if x < 0 {
-        y - ((-x) as u32 % y)
-    } else {
-        x as u32 % y
+#[derive(Debug)]
+pub struct Chunk {
+    pub sections: Vec<Section>,
+}
+
+#[derive(Clone, Debug)]
+pub struct Section {
+    pub block_count: u16,
+    pub states: PalettedContainer,
+    pub biomes: PalettedContainer,
+}
+
+impl Default for Section {
+    fn default() -> Self {
+        Section {
+            block_count: 0,
+            states: PalettedContainer::new(&PalettedContainerType::BlockStates).unwrap(),
+            biomes: PalettedContainer::new(&PalettedContainerType::Biomes).unwrap(),
+        }
+    }
+}
+
+impl Default for Chunk {
+    fn default() -> Self {
+        Chunk {
+            sections: vec![Section::default(); (384 / 16) as usize],
+        }
     }
 }
 
@@ -59,11 +80,22 @@ impl ChunkStorage {
 
     pub fn get_block_state(&self, pos: &BlockPos, min_y: i32) -> Option<BlockState> {
         let chunk_pos = ChunkPos::from(pos);
-        println!("chunk_pos {:?} block_pos {:?}", chunk_pos, pos);
         let chunk = &self[&chunk_pos];
         chunk
             .as_ref()
             .map(|chunk| chunk.lock().unwrap().get(&ChunkBlockPos::from(pos), min_y))
+    }
+
+    pub fn set_block_state(&self, pos: &BlockPos, state: BlockState, min_y: i32) -> BlockState {
+        let chunk_pos = ChunkPos::from(pos);
+        let chunk = &self[&chunk_pos];
+        if let Some(chunk) = chunk.as_ref() {
+            let mut chunk = chunk.lock().unwrap();
+            chunk.get_and_set(&ChunkBlockPos::from(pos), state, min_y)
+        } else {
+            // nothing is in this chunk, just return air
+            BlockState::Air
+        }
     }
 
     pub fn replace_with_packet_data(
@@ -104,11 +136,6 @@ impl IndexMut<&ChunkPos> for ChunkStorage {
     }
 }
 
-#[derive(Debug)]
-pub struct Chunk {
-    pub sections: Vec<Section>,
-}
-
 impl Chunk {
     pub fn read_with_dimension(
         buf: &mut impl Read,
@@ -131,9 +158,7 @@ impl Chunk {
     }
 
     pub fn section_index(&self, y: i32, min_y: i32) -> u32 {
-        // TODO: check the build height and stuff, this code will be broken if the min build height is 0
-        // (LevelHeightAccessor.getMinSection in vanilla code)
-        assert!(y >= 0);
+        assert!(y >= min_y, "y ({}) must be at least {}", y, min_y);
         let min_section_index = min_y.div_floor(16);
         (y.div_floor(16) - min_section_index) as u32
     }
@@ -144,6 +169,27 @@ impl Chunk {
         let section = &self.sections[section_index as usize];
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
         section.get(chunk_section_pos)
+    }
+
+    pub fn get_and_set(
+        &mut self,
+        pos: &ChunkBlockPos,
+        state: BlockState,
+        min_y: i32,
+    ) -> BlockState {
+        let section_index = self.section_index(pos.y, min_y);
+        // TODO: make sure the section exists
+        let section = &mut self.sections[section_index as usize];
+        let chunk_section_pos = ChunkSectionBlockPos::from(pos);
+        section.get_and_set(chunk_section_pos, state)
+    }
+
+    pub fn set(&mut self, pos: &ChunkBlockPos, state: BlockState, min_y: i32) {
+        let section_index = self.section_index(pos.y, min_y);
+        // TODO: make sure the section exists
+        let section = &mut self.sections[section_index as usize];
+        let chunk_section_pos = ChunkSectionBlockPos::from(pos);
+        section.set(chunk_section_pos, state)
     }
 }
 
@@ -168,13 +214,6 @@ impl Debug for ChunkStorage {
             .field("chunks", &format_args!("{} items", self.chunks.len()))
             .finish()
     }
-}
-
-#[derive(Clone, Debug)]
-pub struct Section {
-    pub block_count: u16,
-    pub states: PalettedContainer,
-    pub biomes: PalettedContainer,
 }
 
 impl McBufReadable for Section {
@@ -220,9 +259,47 @@ impl McBufWritable for Section {
 impl Section {
     fn get(&self, pos: ChunkSectionBlockPos) -> BlockState {
         // TODO: use the unsafe method and do the check earlier
+        let state = self
+            .states
+            .get(pos.x as usize, pos.y as usize, pos.z as usize);
+        // if there's an unknown block assume it's air
+        BlockState::try_from(state).unwrap_or(BlockState::Air)
+    }
+
+    fn get_and_set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) -> BlockState {
+        let previous_state =
+            self.states
+                .get_and_set(pos.x as usize, pos.y as usize, pos.z as usize, state as u32);
+        // if there's an unknown block assume it's air
+        BlockState::try_from(previous_state).unwrap_or(BlockState::Air)
+    }
+
+    fn set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) {
         self.states
-            .get(pos.x as usize, pos.y as usize, pos.z as usize)
-            .try_into()
-            .expect("Invalid block state.")
+            .set(pos.x as usize, pos.y as usize, pos.z as usize, state as u32);
+    }
+}
+
+impl Default for ChunkStorage {
+    fn default() -> Self {
+        Self::new(8, 384, -64)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_section_index() {
+        let chunk = Chunk::default();
+        assert_eq!(chunk.section_index(0, 0), 0);
+        assert_eq!(chunk.section_index(128, 0), 8);
+        assert_eq!(chunk.section_index(127, 0), 7);
+        assert_eq!(chunk.section_index(0, -64), 4);
+        assert_eq!(chunk.section_index(-64, -64), 0);
+        assert_eq!(chunk.section_index(-49, -64), 0);
+        assert_eq!(chunk.section_index(-48, -64), 1);
+        assert_eq!(chunk.section_index(128, -64), 12);
     }
 }

@@ -1,7 +1,7 @@
 use crate::{Account, Player};
 use azalea_auth::game_profile::GameProfile;
-use azalea_core::{ChunkPos, EntityPos, PositionDelta, PositionDeltaTrait, ResourceLocation};
-use azalea_entity::Entity;
+use azalea_block::BlockState;
+use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
@@ -11,7 +11,7 @@ use azalea_protocol::{
             serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
-            serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPacketPosRot,
+            serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
             ClientboundGamePacket, ServerboundGamePacket,
         },
         handshake::client_intention_packet::ClientIntentionPacket,
@@ -25,6 +25,7 @@ use azalea_protocol::{
     read::ReadPacketError,
     resolver, ServerAddress,
 };
+use azalea_world::entity::EntityData;
 use azalea_world::Dimension;
 use std::{
     fmt::Debug,
@@ -66,8 +67,10 @@ pub struct Client {
     game_profile: GameProfile,
     pub conn: Arc<tokio::sync::Mutex<Connection<ClientboundGamePacket, ServerboundGamePacket>>>,
     pub player: Arc<Mutex<Player>>,
-    pub dimension: Arc<Mutex<Option<Dimension>>>,
-    // game_loop
+    pub dimension: Arc<Mutex<Dimension>>,
+
+    /// Minecraft only sends a movement packet either after 20 ticks or if the player moved enough. This is that tick counter.
+    pub position_remainder: u32,
 }
 
 /// Whether we should ignore errors when decoding packets.
@@ -181,7 +184,9 @@ impl Client {
             game_profile,
             conn,
             player: Arc::new(Mutex::new(Player::default())),
-            dimension: Arc::new(Mutex::new(None)),
+            dimension: Arc::new(Mutex::new(Dimension::default())),
+
+            position_remainder: 0,
         };
 
         // just start up the game loop and we're ready!
@@ -298,16 +303,10 @@ impl Client {
                     let mut dimension_lock = client.dimension.lock().unwrap();
                     // the 16 here is our render distance
                     // i'll make this an actual setting later
-                    *dimension_lock = Some(Dimension::new(16, height, min_y));
+                    *dimension_lock = Dimension::new(16, height, min_y);
 
-                    let entity =
-                        Entity::new(p.player_id, client.game_profile.uuid, EntityPos::default());
-                    dimension_lock
-                        .as_mut()
-                        .expect(
-                            "Dimension doesn't exist! We should've gotten a login packet by now.",
-                        )
-                        .add_entity(entity);
+                    let entity = EntityData::new(client.game_profile.uuid, Vec3::default());
+                    dimension_lock.add_entity(p.player_id, entity);
 
                     let mut player_lock = client.player.lock().unwrap();
 
@@ -368,42 +367,42 @@ impl Client {
                 println!("Got player position packet {:?}", p);
 
                 let (new_pos, y_rot, x_rot) = {
-                    let player_lock = client.player.lock().unwrap();
-                    let player_entity_id = player_lock.entity_id;
-                    drop(player_lock);
+                    let player_entity_id = {
+                        let player_lock = client.player.lock().unwrap();
+                        player_lock.entity_id
+                    };
 
                     let mut dimension_lock = client.dimension.lock().unwrap();
-                    let dimension = dimension_lock.as_mut().unwrap();
 
-                    let player_entity = dimension
-                        .mut_entity_by_id(player_entity_id)
+                    let mut player_entity = dimension_lock
+                        .entity_mut(player_entity_id)
                         .expect("Player entity doesn't exist");
 
-                    let delta_movement = &player_entity.delta;
+                    let delta_movement = player_entity.delta;
 
                     let is_x_relative = p.relative_arguments.x;
                     let is_y_relative = p.relative_arguments.y;
                     let is_z_relative = p.relative_arguments.z;
 
                     let (delta_x, new_pos_x) = if is_x_relative {
-                        player_entity.old_pos.x += p.x;
-                        (delta_movement.x(), player_entity.pos().x + p.x)
+                        player_entity.last_pos.x += p.x;
+                        (delta_movement.x, player_entity.pos().x + p.x)
                     } else {
-                        player_entity.old_pos.x = p.x;
+                        player_entity.last_pos.x = p.x;
                         (0.0, p.x)
                     };
                     let (delta_y, new_pos_y) = if is_y_relative {
-                        player_entity.old_pos.y += p.y;
-                        (delta_movement.y(), player_entity.pos().y + p.y)
+                        player_entity.last_pos.y += p.y;
+                        (delta_movement.y, player_entity.pos().y + p.y)
                     } else {
-                        player_entity.old_pos.y = p.y;
+                        player_entity.last_pos.y = p.y;
                         (0.0, p.y)
                     };
                     let (delta_z, new_pos_z) = if is_z_relative {
-                        player_entity.old_pos.z += p.z;
-                        (delta_movement.z(), player_entity.pos().z + p.z)
+                        player_entity.last_pos.z += p.z;
+                        (delta_movement.z, player_entity.pos().z + p.z)
                     } else {
-                        player_entity.old_pos.z = p.z;
+                        player_entity.last_pos.z = p.z;
                         (0.0, p.z)
                     };
 
@@ -416,21 +415,21 @@ impl Client {
                         x_rot += player_entity.y_rot;
                     }
 
-                    player_entity.delta = PositionDelta {
-                        xa: delta_x,
-                        ya: delta_y,
-                        za: delta_z,
+                    player_entity.delta = Vec3 {
+                        x: delta_x,
+                        y: delta_y,
+                        z: delta_z,
                     };
                     player_entity.set_rotation(y_rot, x_rot);
                     // TODO: minecraft sets "xo", "yo", and "zo" here but idk what that means
                     // so investigate that ig
-                    let new_pos = EntityPos {
+                    let new_pos = Vec3 {
                         x: new_pos_x,
                         y: new_pos_y,
                         z: new_pos_z,
                     };
-                    dimension
-                        .move_entity(player_entity_id, new_pos)
+                    dimension_lock
+                        .set_entity_pos(player_entity_id, new_pos)
                         .expect("The player entity should always exist");
 
                     (new_pos, y_rot, x_rot)
@@ -442,7 +441,7 @@ impl Client {
                     .await?;
                 conn_lock
                     .write(
-                        ServerboundMovePlayerPacketPosRot {
+                        ServerboundMovePlayerPosRotPacket {
                             x: new_pos.x,
                             y: new_pos.y,
                             z: new_pos.z,
@@ -463,8 +462,6 @@ impl Client {
                 client
                     .dimension
                     .lock()?
-                    .as_mut()
-                    .unwrap()
                     .update_view_center(&ChunkPos::new(p.x, p.z));
             }
             ClientboundGamePacket::ClientboundLevelChunkWithLightPacket(p) => {
@@ -475,8 +472,6 @@ impl Client {
                 client
                     .dimension
                     .lock()?
-                    .as_mut()
-                    .expect("Dimension doesn't exist! We should've gotten a login packet by now.")
                     .replace_with_packet_data(&pos, &mut p.chunk_data.data.as_slice())
                     .unwrap();
             }
@@ -485,13 +480,8 @@ impl Client {
             }
             ClientboundGamePacket::ClientboundAddEntityPacket(p) => {
                 println!("Got add entity packet {:?}", p);
-                let entity = Entity::from(p);
-                client
-                    .dimension
-                    .lock()?
-                    .as_mut()
-                    .expect("Dimension doesn't exist! We should've gotten a login packet by now.")
-                    .add_entity(entity);
+                let entity = EntityData::from(p);
+                client.dimension.lock()?.add_entity(p.id, entity);
             }
             ClientboundGamePacket::ClientboundSetEntityDataPacket(_p) => {
                 // println!("Got set entity data packet {:?}", p);
@@ -507,13 +497,8 @@ impl Client {
             }
             ClientboundGamePacket::ClientboundAddPlayerPacket(p) => {
                 println!("Got add player packet {:?}", p);
-                let entity = Entity::from(p);
-                client
-                    .dimension
-                    .lock()?
-                    .as_mut()
-                    .expect("Dimension doesn't exist! We should've gotten a login packet by now.")
-                    .add_entity(entity);
+                let entity = EntityData::from(p);
+                client.dimension.lock()?.add_entity(p.id, entity);
             }
             ClientboundGamePacket::ClientboundInitializeBorderPacket(p) => {
                 println!("Got initialize border packet {:?}", p);
@@ -535,12 +520,11 @@ impl Client {
             }
             ClientboundGamePacket::ClientboundTeleportEntityPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
-                let dimension = dimension_lock.as_mut().unwrap();
 
-                dimension
-                    .move_entity(
+                dimension_lock
+                    .set_entity_pos(
                         p.id,
-                        EntityPos {
+                        Vec3 {
                             x: p.x,
                             y: p.y,
                             z: p.z,
@@ -556,17 +540,15 @@ impl Client {
             }
             ClientboundGamePacket::ClientboundMoveEntityPosPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
-                let dimension = dimension_lock.as_mut().unwrap();
 
-                dimension
+                dimension_lock
                     .move_entity_with_delta(p.entity_id, &p.delta)
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
             ClientboundGamePacket::ClientboundMoveEntityPosRotPacket(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
-                let dimension = dimension_lock.as_mut().unwrap();
 
-                dimension
+                dimension_lock
                     .move_entity_with_delta(p.entity_id, &p.delta)
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
@@ -603,6 +585,16 @@ impl Client {
             ClientboundGamePacket::ClientboundBlockUpdatePacket(p) => {
                 println!("Got block update packet {:?}", p);
                 // TODO: update world
+                let mut dimension = client.dimension.lock()?;
+                // dimension.get_block_state(pos)
+                if let Ok(block_state) = BlockState::try_from(p.block_state) {
+                    dimension.set_block_state(&p.pos, block_state);
+                } else {
+                    eprintln!(
+                        "Non-existent block state for block update packet {}",
+                        p.block_state
+                    );
+                }
             }
             ClientboundGamePacket::ClientboundAnimatePacket(p) => {
                 println!("Got animate packet {:?}", p);
@@ -626,28 +618,107 @@ impl Client {
             ClientboundGamePacket::ClientboundUpdateMobEffectPacket(p) => {
                 println!("Got update mob effect packet {:?}", p);
             }
-            _ => panic!("Unexpected packet {:?}", packet),
+            ClientboundGamePacket::ClientboundAddExperienceOrbPacket(_) => {}
+            ClientboundGamePacket::ClientboundAwardStatsPacket(_) => {}
+            ClientboundGamePacket::ClientboundBlockChangedAckPacket(_) => {}
+            ClientboundGamePacket::ClientboundBlockDestructionPacket(_) => {}
+            ClientboundGamePacket::ClientboundBlockEntityDataPacket(_) => {}
+            ClientboundGamePacket::ClientboundBlockEventPacket(_) => {}
+            ClientboundGamePacket::ClientboundBossEventPacket(_) => {}
+            ClientboundGamePacket::ClientboundChatPreviewPacket(_) => {}
+            ClientboundGamePacket::ClientboundCommandSuggestionsPacket(_) => {}
+            ClientboundGamePacket::ClientboundContainerSetDataPacket(_) => {}
+            ClientboundGamePacket::ClientboundContainerSetSlotPacket(_) => {}
+            ClientboundGamePacket::ClientboundCooldownPacket(_) => {}
+            ClientboundGamePacket::ClientboundCustomChatCompletionsPacket(_) => {}
+            ClientboundGamePacket::ClientboundCustomSoundPacket(_) => {}
+            ClientboundGamePacket::ClientboundDeleteChatPacket(_) => {}
+            ClientboundGamePacket::ClientboundExplodePacket(_) => {}
+            ClientboundGamePacket::ClientboundForgetLevelChunkPacket(_) => {}
+            ClientboundGamePacket::ClientboundHorseScreenOpenPacket(_) => {}
+            ClientboundGamePacket::ClientboundMapItemDataPacket(_) => {}
+            ClientboundGamePacket::ClientboundMerchantOffersPacket(_) => {}
+            ClientboundGamePacket::ClientboundMoveVehiclePacket(_) => {}
+            ClientboundGamePacket::ClientboundOpenBookPacket(_) => {}
+            ClientboundGamePacket::ClientboundOpenScreenPacket(_) => {}
+            ClientboundGamePacket::ClientboundOpenSignEditorPacket(_) => {}
+            ClientboundGamePacket::ClientboundPingPacket(_) => {}
+            ClientboundGamePacket::ClientboundPlaceGhostRecipePacket(_) => {}
+            ClientboundGamePacket::ClientboundPlayerChatHeaderPacket(_) => {}
+            ClientboundGamePacket::ClientboundPlayerCombatEndPacket(_) => {}
+            ClientboundGamePacket::ClientboundPlayerCombatEnterPacket(_) => {}
+            ClientboundGamePacket::ClientboundPlayerCombatKillPacket(_) => {}
+            ClientboundGamePacket::ClientboundPlayerLookAtPacket(_) => {}
+            ClientboundGamePacket::ClientboundRemoveMobEffectPacket(_) => {}
+            ClientboundGamePacket::ClientboundResourcePackPacket(_) => {}
+            ClientboundGamePacket::ClientboundRespawnPacket(_) => {}
+            ClientboundGamePacket::ClientboundSelectAdvancementsTabPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetActionBarTextPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetBorderCenterPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetBorderLerpSizePacket(_) => {}
+            ClientboundGamePacket::ClientboundSetBorderSizePacket(_) => {}
+            ClientboundGamePacket::ClientboundSetBorderWarningDelayPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetBorderWarningDistancePacket(_) => {}
+            ClientboundGamePacket::ClientboundSetCameraPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetChunkCacheRadiusPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetDisplayChatPreviewPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetDisplayObjectivePacket(_) => {}
+            ClientboundGamePacket::ClientboundSetEntityMotionPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetObjectivePacket(_) => {}
+            ClientboundGamePacket::ClientboundSetPassengersPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetPlayerTeamPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetScorePacket(_) => {}
+            ClientboundGamePacket::ClientboundSetSimulationDistancePacket(_) => {}
+            ClientboundGamePacket::ClientboundSetSubtitleTextPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetTitleTextPacket(_) => {}
+            ClientboundGamePacket::ClientboundSetTitlesAnimationPacket(_) => {}
+            ClientboundGamePacket::ClientboundSoundEntityPacket(_) => {}
+            ClientboundGamePacket::ClientboundStopSoundPacket(_) => {}
+            ClientboundGamePacket::ClientboundTabListPacket(_) => {}
+            ClientboundGamePacket::ClientboundTagQueryPacket(_) => {}
+            ClientboundGamePacket::ClientboundTakeItemEntityPacket(_) => {}
         }
 
         Ok(())
     }
 
     /// Runs game_tick every 50 milliseconds.
-    async fn game_tick_loop(client: Client, tx: UnboundedSender<Event>) {
+    async fn game_tick_loop(mut client: Client, tx: UnboundedSender<Event>) {
         let mut game_tick_interval = time::interval(time::Duration::from_millis(50));
         // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
         game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
         loop {
             game_tick_interval.tick().await;
-            Self::game_tick(&client, &tx).await;
+            Self::game_tick(&mut client, &tx).await;
         }
     }
 
     /// Runs every 50 milliseconds.
-    async fn game_tick(client: &Client, tx: &UnboundedSender<Event>) {
-        if client.dimension.lock().unwrap().is_none() {
-            return;
+    async fn game_tick(client: &mut Client, tx: &UnboundedSender<Event>) {
+        // return if there's no chunk at the player's position
+        {
+            let dimension_lock = client.dimension.lock().unwrap();
+            let player_lock = client.player.lock().unwrap();
+            let player_entity = player_lock.entity(&dimension_lock);
+            let player_entity = if let Some(player_entity) = player_entity {
+                player_entity
+            } else {
+                return;
+            };
+            let player_chunk_pos: ChunkPos = player_entity.pos().into();
+            if dimension_lock[&player_chunk_pos].is_none() {
+                return;
+            }
         }
+
+        // TODO: if we're a passenger, send the required packets
+
+        if let Err(e) = client.send_position().await {
+            println!("Error sending position: {:?}", e);
+        }
+
+        // TODO: minecraft does ambient sounds here
+
         tx.send(Event::GameTick).unwrap();
     }
 }

@@ -1,12 +1,14 @@
+#![allow(unused_variables, unused_imports)]
 use azalea_client::{Account, Event};
-use azalea_core::PositionXYZ;
+use azalea_core::{PositionXYZ, Vec3};
+use azalea_physics::collision::{HasCollision, MoverType};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Hello, world!");
 
     // let address = "95.111.249.143:10000";
-    let address = "localhost:25565";
+    let address = "localhost";
     // let response = azalea_client::ping::ping_server(&address.try_into().unwrap())
     //     .await
     //     .unwrap();
@@ -38,19 +40,31 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             //     //     println!("block state: {:?}", c);
             //     // }
             // }
-            Event::Chat(_m) => {
-                let new_pos = {
-                    let dimension_lock = client.dimension.lock().unwrap();
-                    let dimension = dimension_lock.as_ref().unwrap();
-                    let player = client.player.lock().unwrap();
-                    let entity = player
-                        .entity(dimension)
-                        .expect("Player entity is not in world");
-                    entity.pos().add_y(0.5)
-                };
+            Event::Chat(m) => {
+                //     let new_pos = {
+                //         let dimension_lock = client.dimension.lock().unwrap();
+                //         let player = client.player.lock().unwrap();
+                //         let entity = player
+                //             .entity(&dimension_lock)
+                //             .expect("Player entity is not in world");
+                //         entity.pos().add_y(-0.5)
+                //     };
 
-                println!("{:?}", new_pos);
-                client.move_to(new_pos).await.unwrap();
+                // println!("{:?}", new_pos);
+                // client.set_pos(new_pos).await.unwrap();
+                // client.move_entity()
+
+                // println!("{}", m.to_ansi(None));
+                if let Err(e) = client
+                    .move_entity(&Vec3 {
+                        x: 0.,
+                        y: -0.5,
+                        z: 0.,
+                    })
+                    .await
+                {
+                    eprintln!("{:?}", e);
+                }
             }
             _ => {}
         }

@@ -1,4 +1,5 @@
-use azalea_buf::{BitSet, McBuf};
+use azalea_buf::McBuf;
+use azalea_core::BitSet;
 use packet_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]

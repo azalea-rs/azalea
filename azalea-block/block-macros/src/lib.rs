@@ -426,7 +426,6 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             quote! { BlockState::#block_name_pascal_case }
         };
 
-        if cfg!(feature = "trait") {
             let block_struct = quote! {
                 #[derive(Debug)]
                 pub struct #block_struct_name {
@@ -459,7 +458,6 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
             block_structs.extend(block_struct);
         }
-    }
 
     let last_state_id = (state_id - 1) as u32;
     let mut generated = quote! {
@@ -480,7 +478,6 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         }
     };
 
-    if cfg!(feature = "trait") {
         generated.extend(quote! {
             #block_structs
 
@@ -494,7 +491,6 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 }
             }
         });
-    }
 
     generated.into()
 }

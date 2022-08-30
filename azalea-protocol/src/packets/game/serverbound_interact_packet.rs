@@ -1,7 +1,6 @@
 use crate::packets::BufReadError;
-use azalea_buf::McBufVarReadable;
-use azalea_buf::{McBuf, McBufReadable, McBufVarWritable, McBufWritable};
-use azalea_core::EntityPos;
+use azalea_buf::{McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_core::Vec3;
 use packet_macros::ServerboundGamePacket;
 use std::io::{Read, Write};
 
@@ -21,7 +20,7 @@ pub enum ActionType {
     },
     Attack,
     InteractAt {
-        location: EntityPos,
+        location: Vec3,
         hand: InteractionHand,
     },
 }
@@ -63,7 +62,7 @@ impl McBufReadable for ActionType {
                 let z = f32::read_from(buf)?;
                 let hand = InteractionHand::read_from(buf)?;
                 Ok(ActionType::InteractAt {
-                    location: EntityPos {
+                    location: Vec3 {
                         x: x as f64,
                         y: y as f64,
                         z: z as f64,

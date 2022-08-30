@@ -1,17 +1,18 @@
 #![feature(int_roundings)]
 
 mod bit_storage;
-mod chunk;
-mod entity;
+mod chunk_storage;
+pub mod entity;
+mod entity_storage;
 mod palette;
 
 use azalea_block::BlockState;
 use azalea_buf::BufReadError;
-use azalea_core::{BlockPos, ChunkPos, EntityPos, PositionDelta8};
-use azalea_entity::Entity;
+use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
 pub use bit_storage::BitStorage;
-pub use chunk::{Chunk, ChunkStorage};
-pub use entity::EntityStorage;
+pub use chunk_storage::{Chunk, ChunkStorage};
+use entity::{EntityData, EntityMut, EntityRef};
+pub use entity_storage::EntityStorage;
 use std::{
     io::Read,
     ops::{Index, IndexMut},
@@ -20,17 +21,10 @@ use std::{
 use thiserror::Error;
 use uuid::Uuid;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
-
 /// A dimension is a collection of chunks and entities.
-#[derive(Debug)]
+/// Minecraft calls these "Levels", Fabric calls them "Worlds", Minestom calls them "Instances".
+/// Yeah.
+#[derive(Debug, Default)]
 pub struct Dimension {
     chunk_storage: ChunkStorage,
     entity_storage: EntityStorage,
@@ -66,20 +60,20 @@ impl Dimension {
         self.chunk_storage.get_block_state(pos, self.min_y())
     }
 
-    pub fn move_entity(
-        &mut self,
-        entity_id: u32,
-        new_pos: EntityPos,
-    ) -> Result<(), MoveEntityError> {
-        let entity = self
-            .entity_storage
-            .get_mut_by_id(entity_id)
+    pub fn set_block_state(&mut self, pos: &BlockPos, state: BlockState) -> BlockState {
+        self.chunk_storage.set_block_state(pos, state, self.min_y())
+    }
+
+    pub fn set_entity_pos(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), MoveEntityError> {
+        println!("set_entity_pos({}, {:?})", entity_id, new_pos);
+        let mut entity = self
+            .entity_mut(entity_id)
             .ok_or(MoveEntityError::EntityDoesNotExist)?;
 
         let old_chunk = ChunkPos::from(entity.pos());
         let new_chunk = ChunkPos::from(&new_pos);
         // this is fine because we update the chunk below
-        entity.unsafe_move(new_pos);
+        unsafe { entity.move_unchecked(new_pos) };
         if old_chunk != new_chunk {
             self.entity_storage
                 .update_entity_chunk(entity_id, &old_chunk, &new_chunk);
@@ -92,9 +86,8 @@ impl Dimension {
         entity_id: u32,
         delta: &PositionDelta8,
     ) -> Result<(), MoveEntityError> {
-        let entity = self
-            .entity_storage
-            .get_mut_by_id(entity_id)
+        let mut entity = self
+            .entity_mut(entity_id)
             .ok_or(MoveEntityError::EntityDoesNotExist)?;
         let new_pos = entity.pos().with_delta(delta);
 
@@ -102,7 +95,7 @@ impl Dimension {
         let new_chunk = ChunkPos::from(&new_pos);
         // this is fine because we update the chunk below
 
-        entity.unsafe_move(new_pos);
+        unsafe { entity.move_unchecked(new_pos) };
         if old_chunk != new_chunk {
             self.entity_storage
                 .update_entity_chunk(entity_id, &old_chunk, &new_chunk);
@@ -110,8 +103,8 @@ impl Dimension {
         Ok(())
     }
 
-    pub fn add_entity(&mut self, entity: Entity) {
-        self.entity_storage.insert(entity);
+    pub fn add_entity(&mut self, id: u32, entity: EntityData) {
+        self.entity_storage.insert(id, entity);
     }
 
     pub fn height(&self) -> u32 {
@@ -122,27 +115,46 @@ impl Dimension {
         self.chunk_storage.min_y
     }
 
-    pub fn entity_by_id(&self, id: u32) -> Option<&Entity> {
+    pub fn entity_data_by_id(&self, id: u32) -> Option<&EntityData> {
         self.entity_storage.get_by_id(id)
     }
 
-    pub fn mut_entity_by_id(&mut self, id: u32) -> Option<&mut Entity> {
+    pub fn entity_data_mut_by_id(&mut self, id: u32) -> Option<&mut EntityData> {
         self.entity_storage.get_mut_by_id(id)
     }
 
-    pub fn entity_by_uuid(&self, uuid: &Uuid) -> Option<&Entity> {
+    pub fn entity<'d>(&'d self, id: u32) -> Option<EntityRef<'d>> {
+        let entity_data = self.entity_storage.get_by_id(id);
+        if let Some(entity_data) = entity_data {
+            Some(EntityRef::new(self, id, entity_data))
+        } else {
+            None
+        }
+    }
+
+    pub fn entity_mut<'d>(&'d mut self, id: u32) -> Option<EntityMut<'d>> {
+        let entity_data = self.entity_storage.get_mut_by_id(id);
+        if let Some(entity_data) = entity_data {
+            let entity_ptr = unsafe { entity_data.as_ptr() };
+            Some(EntityMut::new(self, id, entity_ptr))
+        } else {
+            None
+        }
+    }
+
+    pub fn entity_by_uuid(&self, uuid: &Uuid) -> Option<&EntityData> {
         self.entity_storage.get_by_uuid(uuid)
     }
 
     /// Get an iterator over all entities.
     #[inline]
-    pub fn entities(&self) -> std::collections::hash_map::Values<'_, u32, Entity> {
+    pub fn entities(&self) -> std::collections::hash_map::Values<'_, u32, EntityData> {
         self.entity_storage.entities()
     }
 
-    pub fn find_one_entity<F>(&self, mut f: F) -> Option<&Entity>
+    pub fn find_one_entity<F>(&self, mut f: F) -> Option<&EntityData>
     where
-        F: FnMut(&Entity) -> bool,
+        F: FnMut(&EntityData) -> bool,
     {
         self.entity_storage.find_one_entity(|entity| f(entity))
     }

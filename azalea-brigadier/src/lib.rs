@@ -8,3 +8,4 @@ pub mod modifier;
 pub mod parse_results;
 pub mod string_reader;
 pub mod tree;
+pub mod suggestion;
