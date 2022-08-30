@@ -165,6 +165,7 @@ dependencies = [
  "aes",
  "azalea-buf",
  "cfb8",
+ "criterion",
  "num-bigint",
  "rand",
  "rsa_public_encrypt_pkcs1",
