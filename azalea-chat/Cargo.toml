@@ -1,13 +1,15 @@
 [package]
+description = "Parse Minecraft chat messages."
 edition = "2021"
+license = "MIT"
 name = "azalea-chat"
 version = "0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-buf = {path = "../azalea-buf", features = ["serde_json"]}
-azalea-language = {path = "../azalea-language"}
-lazy_static = "1.4.0"
+azalea-buf = {path = "../azalea-buf", features = ["serde_json"], version = "^0.1.0"}
+azalea-language = {path = "../azalea-language", version = "^0.1.0"}
+lazy_static = "^1.4.0"
 serde = "^1.0.130"
 serde_json = "^1.0.72"

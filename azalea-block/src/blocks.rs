@@ -1,5 +1,5 @@
 use crate::BlockBehavior;
-use block_macros::make_block_states;
+use azalea_block_macros::make_block_states;
 
 pub trait Block {
     fn behavior(&self) -> BlockBehavior;

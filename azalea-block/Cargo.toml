@@ -1,5 +1,7 @@
 [package]
+description = "Representation of Minecraft block states."
 edition = "2021"
+license = "MIT"
 name = "azalea-block"
 version = "0.1.0"
 
@@ -8,4 +10,4 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-block-macros = {path = "./block-macros"}
+azalea-block-macros = {path = "./azalea-block-macros", version = "^0.1.0"}

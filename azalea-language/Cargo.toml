@@ -1,5 +1,7 @@
 [package]
+description = "Translate Minecraft strings from their id."
 edition = "2021"
+license = "MIT"
 name = "azalea-language"
 version = "0.1.0"
 
