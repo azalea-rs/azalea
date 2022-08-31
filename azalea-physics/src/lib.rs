@@ -173,4 +173,29 @@ mod tests {
             entity.pos().y
         );
     }
+    #[test]
+    fn test_collision() {
+        let mut dim = Dimension::default();
+
+        dim.add_entity(
+            0,
+            EntityData::new(
+                Uuid::from_u128(0),
+                Vec3 {
+                    x: 0.5,
+                    y: 70.,
+                    z: 0.5,
+                },
+            ),
+        );
+        dim.set_block_state(&BlockPos { x: 0, y: 68, z: 0 }, BlockState::Stone);
+        let mut entity = dim.entity_mut(0).unwrap();
+        entity.ai_step();
+        // delta will change, but it won't move until next tick
+        assert_eq!(entity.pos().y, 70.);
+        assert!(entity.delta.y < 0.);
+        entity.ai_step();
+        // the second tick applies the delta to the position, but it also does collision
+        assert_eq!(entity.pos().y, 70.);
+    }
 }
