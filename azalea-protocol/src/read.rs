@@ -187,31 +187,19 @@ pub async fn read_packet<'a, P: ProtocolPacket, R>(
 where
     R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
 {
-    // let start_time = std::time::Instant::now();
-
-    // println!("decrypting packet ({}ms)", start_time.elapsed().as_millis());
     // if we were given a cipher, decrypt the packet
     let mut encrypted_stream = EncryptedStream {
         cipher: Cell::new(cipher),
         stream: &mut Pin::new(stream),
     };
 
-    // println!("splitting packet ({}ms)", start_time.elapsed().as_millis());
     let mut buf = frame_splitter(&mut encrypted_stream).await?;
 
     if let Some(compression_threshold) = compression_threshold {
-        // println!(
-        //     "decompressing packet ({}ms)",
-        //     start_time.elapsed().as_millis()
-        // );
         buf = compression_decoder(&mut buf.as_slice(), compression_threshold)?;
     }
 
-    // println!("decoding packet ({}ms)", start_time.elapsed().as_millis());
     let packet = packet_decoder(&mut buf.as_slice())?;
-    // println!("decoded packet ({}ms)", start_time.elapsed().as_millis());
-
-    if !buf.is_empty() {}
 
     Ok(packet)
 }
