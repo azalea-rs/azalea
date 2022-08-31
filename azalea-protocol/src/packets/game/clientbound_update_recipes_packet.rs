@@ -209,7 +209,9 @@ impl McBufReadable for Recipe {
         } else if recipe_type == ResourceLocation::new("minecraft:smithing").unwrap() {
             RecipeData::Smithing(SmithingRecipe::read_from(buf)?)
         } else {
-            panic!("Unknown recipe type sent by server: {}", recipe_type);
+            return Err(BufReadError::UnexpectedStringEnumVariant {
+                id: recipe_type.to_string(),
+            });
         };
 
         let recipe = Recipe { identifier, data };

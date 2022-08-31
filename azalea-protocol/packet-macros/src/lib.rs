@@ -254,18 +254,18 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
 
     if !has_serverbound_packets {
         serverbound_id_match_contents.extend(quote! {
-            _ => panic!("This enum is empty and can't exist.")
+            _ => unreachable!("This enum is empty and can't exist.")
         });
         serverbound_write_match_contents.extend(quote! {
-            _ => panic!("This enum is empty and can't exist.")
+            _ => unreachable!("This enum is empty and can't exist.")
         });
     }
     if !has_clientbound_packets {
         clientbound_id_match_contents.extend(quote! {
-            _ => panic!("This enum is empty and can't exist.")
+            _ => unreachable!("This enum is empty and can't exist.")
         });
         clientbound_write_match_contents.extend(quote! {
-            _ => panic!("This enum is empty and can't exist.")
+            _ => unreachable!("This enum is empty and can't exist.")
         });
     }
 

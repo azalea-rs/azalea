@@ -172,10 +172,7 @@ where
                         azalea_crypto::decrypt_packet(cipher, buf.filled_mut());
                     }
                 }
-                match r {
-                    Ok(()) => Poll::Ready(Ok(())),
-                    Err(e) => panic!("{:?}", e),
-                }
+                Poll::Ready(r)
             }
             Poll::Pending => Poll::Pending,
         }
