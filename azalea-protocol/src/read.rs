@@ -50,6 +50,8 @@ pub enum FrameSplitterError {
         #[from]
         source: std::io::Error,
     },
+    #[error("Packet is longer than {max} bytes (is {size})")]
+    BadLength { max: u32, size: u32 },
 }
 
 async fn frame_splitter<R: ?Sized>(mut stream: &mut R) -> Result<Vec<u8>, FrameSplitterError>
@@ -57,7 +59,16 @@ where
     R: AsyncRead + std::marker::Unpin + std::marker::Send,
 {
     // Packet Length
-    let length = read_varint_async(&mut stream).await?;
+    let length = read_varint_async(&mut stream).await? as u32;
+
+    let max_length: u32 = 2u32.pow(20u32); // 1mb, arbitrary
+    if length > max_length {
+        // minecraft *probably* won't send packets bigger than this
+        return Err(FrameSplitterError::BadLength {
+            max: max_length,
+            size: length,
+        });
+    }
 
     let mut buf = vec![0; length as usize];
     stream.read_exact(&mut buf).await?;

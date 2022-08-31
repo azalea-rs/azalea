@@ -1,8 +1,6 @@
-use azalea_buf::{BufReadError, McBuf};
-use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use azalea_buf::McBuf;
 use azalea_core::ResourceLocation;
 use packet_macros::ClientboundGamePacket;
-use std::io::{Read, Write};
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundRecipePacket {
@@ -27,27 +25,9 @@ pub struct RecipeBookSettings {
     pub smoker_filtering_craftable: bool,
 }
 
-#[derive(Clone, Debug, Copy)]
+#[derive(Clone, Debug, Copy, McBuf)]
 pub enum State {
     Init = 0,
     Add = 1,
     Remove = 2,
-}
-
-impl McBufWritable for State {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_varint(*self as i32)?;
-        Ok(())
-    }
-}
-impl McBufReadable for State {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
-        let state = buf.read_varint()?;
-        Ok(match state {
-            0 => State::Init,
-            1 => State::Add,
-            2 => State::Remove,
-            _ => panic!("Invalid state: {}", state),
-        })
-    }
 }
