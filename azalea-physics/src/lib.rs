@@ -1,6 +1,6 @@
 pub mod collision;
 
-use azalea_block::Block;
+use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
 use azalea_world::entity::{EntityData, EntityMut};
 use collision::{MovableEntity, MoverType};
@@ -29,22 +29,21 @@ impl HasPhysics for EntityMut<'_> {
         // TODO: elytra
 
         let block_pos_below = get_block_pos_below_that_affects_movement(self);
-        let block_friction =
-            if let Some(block_state_below) = self.dimension.get_block_state(&block_pos_below) {
-                let block_below: Box<dyn Block> = block_state_below.into();
-                block_below.behavior().friction
-            } else {
-                unreachable!(
-                    "Block below at {:?} should be a real block.",
-                    block_pos_below
-                )
-            };
+
+        let block_state_below = self
+            .dimension
+            .get_block_state(&block_pos_below)
+            .unwrap_or(BlockState::Air);
+        let block_below: Box<dyn Block> = block_state_below.into();
+        let block_friction = block_below.behavior().friction;
 
         let inertia = if self.on_ground {
             block_friction * 0.91
         } else {
             0.91
         };
+
+        // this applies the current delta
         let mut movement =
             handle_relative_friction_and_calculate_movement(self, acceleration, block_friction);
 
@@ -73,6 +72,15 @@ impl HasPhysics for EntityMut<'_> {
     fn ai_step(&mut self) {
         // vanilla does movement interpolation here, doesn't really matter much for a bot though
 
+        if self.delta.x.abs() < 0.003 {
+            self.delta.x = 0.;
+        }
+        if self.delta.y.abs() < 0.003 {
+            self.delta.y = 0.;
+        }
+        if self.delta.z.abs() < 0.003 {
+            self.delta.z = 0.;
+        }
         self.xxa *= 0.98;
         self.zza *= 0.98;
 
@@ -126,5 +134,43 @@ fn get_speed(entity: &EntityData, friction: f32) -> f32 {
     } else {
         // entity.flying_speed
         0.02
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use azalea_world::Dimension;
+    use uuid::Uuid;
+
+    #[test]
+    fn test_gravity() {
+        let mut dim = Dimension::default();
+
+        dim.add_entity(
+            0,
+            EntityData::new(
+                Uuid::from_u128(0),
+                Vec3 {
+                    x: 0.,
+                    y: 70.,
+                    z: 0.,
+                },
+            ),
+        );
+        let mut entity = dim.entity_mut(0).unwrap();
+        // y should start at 70
+        assert_eq!(entity.pos().y, 70.);
+        entity.ai_step();
+        // delta is applied before gravity, so the first tick only sets the delta
+        assert_eq!(entity.pos().y, 70.);
+        assert!(entity.delta.y < 0.);
+        entity.ai_step();
+        // the second tick applies the delta to the position, so now it should go down
+        assert!(
+            entity.pos().y < 70.,
+            "Entity y ({}) didn't go down after physics steps",
+            entity.pos().y
+        );
     }
 }

@@ -181,7 +181,7 @@ pub struct GlobalPos {
 }
 
 /// An exact point in the world.
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,

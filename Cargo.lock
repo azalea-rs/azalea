@@ -220,6 +220,7 @@ dependencies = [
  "azalea-block",
  "azalea-core",
  "azalea-world",
+ "uuid",
 ]
 
 [[package]]
