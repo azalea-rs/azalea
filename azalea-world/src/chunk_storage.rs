@@ -80,22 +80,21 @@ impl ChunkStorage {
 
     pub fn get_block_state(&self, pos: &BlockPos, min_y: i32) -> Option<BlockState> {
         let chunk_pos = ChunkPos::from(pos);
-        let chunk = &self[&chunk_pos];
-        chunk
-            .as_ref()
-            .map(|chunk| chunk.lock().unwrap().get(&ChunkBlockPos::from(pos), min_y))
+        let chunk = self[&chunk_pos].as_ref()?;
+        let chunk = chunk.lock().unwrap();
+        Some(chunk.get(&ChunkBlockPos::from(pos), min_y))
     }
 
-    pub fn set_block_state(&self, pos: &BlockPos, state: BlockState, min_y: i32) -> BlockState {
+    pub fn set_block_state(
+        &self,
+        pos: &BlockPos,
+        state: BlockState,
+        min_y: i32,
+    ) -> Option<BlockState> {
         let chunk_pos = ChunkPos::from(pos);
-        let chunk = &self[&chunk_pos];
-        if let Some(chunk) = chunk.as_ref() {
-            let mut chunk = chunk.lock().unwrap();
-            chunk.get_and_set(&ChunkBlockPos::from(pos), state, min_y)
-        } else {
-            // nothing is in this chunk, just return air
-            BlockState::Air
-        }
+        let chunk = self[&chunk_pos].as_ref()?;
+        let mut chunk = chunk.lock().unwrap();
+        Some(chunk.get_and_set(&ChunkBlockPos::from(pos), state, min_y))
     }
 
     pub fn replace_with_packet_data(
