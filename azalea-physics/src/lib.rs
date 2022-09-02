@@ -140,7 +140,8 @@ fn get_speed(entity: &EntityData, friction: f32) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use azalea_world::Dimension;
+    use azalea_core::ChunkPos;
+    use azalea_world::{Chunk, Dimension};
     use uuid::Uuid;
 
     #[test]
@@ -176,7 +177,8 @@ mod tests {
     #[test]
     fn test_collision() {
         let mut dim = Dimension::default();
-
+        dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
+            .unwrap();
         dim.add_entity(
             0,
             EntityData::new(
@@ -188,7 +190,12 @@ mod tests {
                 },
             ),
         );
-        dim.set_block_state(&BlockPos { x: 0, y: 68, z: 0 }, BlockState::Stone);
+        let old_block_state =
+            dim.set_block_state(&BlockPos { x: 0, y: 70, z: 0 }, BlockState::Stone);
+        assert!(
+            old_block_state.is_some(),
+            "Old block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
+        );
         let mut entity = dim.entity_mut(0).unwrap();
         entity.ai_step();
         // delta will change, but it won't move until next tick

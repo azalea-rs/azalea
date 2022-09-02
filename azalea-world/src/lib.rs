@@ -52,6 +52,11 @@ impl Dimension {
         self.chunk_storage.replace_with_packet_data(pos, data)
     }
 
+    pub fn set_chunk(&mut self, pos: &ChunkPos, chunk: Option<Chunk>) -> Result<(), BufReadError> {
+        self[pos] = chunk.map(|c| Arc::new(Mutex::new(c)));
+        Ok(())
+    }
+
     pub fn update_view_center(&mut self, pos: &ChunkPos) {
         self.chunk_storage.view_center = *pos;
     }
