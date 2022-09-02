@@ -50,9 +50,39 @@ pub async fn connect(address: ServerAddress) -> Result<(), Box<dyn std::error::E
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
+    use super::*;
+    use crate::{
+        packets::login::{
+            serverbound_hello_packet::{ProfilePublicKeyData, ServerboundHelloPacket},
+            ServerboundLoginPacket,
+        },
+        read::read_packet,
+        write::write_packet,
+    };
+    use std::io::Cursor;
+    use uuid::Uuid;
+
+    #[tokio::test]
+    async fn test_hello_packet() {
+        let  packet = ServerboundHelloPacket {
+            username: "test".to_string(),
+            public_key: Some(ProfilePublicKeyData {
+                expires_at: 0,
+                key: b"idontthinkthisreallymattersijustwantittobelongforthetest".to_vec(),
+                key_signature: b"idontthinkthisreallymattersijustwantittobelongforthetest".to_vec(),
+            }),
+            profile_id: Some(Uuid::from_u128(0)),
+        }
+        .get();
+        let mut stream = Cursor::new(Vec::new());
+        write_packet(packet, &mut stream, None, &mut None)
+            .await
+            .unwrap();
+
+        stream.set_position(0);
+
+        let _ = read_packet::<ServerboundLoginPacket, _>(&mut stream, None, &mut None)
+            .await
+            .unwrap();
     }
 }

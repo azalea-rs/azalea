@@ -181,7 +181,7 @@ impl McBufWritable for String {
 
 impl McBufWritable for u32 {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        i16::write_into(&(*self as i16), buf)
+        i32::write_into(&(*self as i32), buf)
     }
 }
 

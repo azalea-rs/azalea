@@ -73,4 +73,15 @@ mod tests {
         let u = Uuid::from_int_array([0x6536bfed, 0x869548fd, 0x83a1ecd2, 0x4cf2a0fd]);
         assert_eq!(u.to_string(), "6536bfed-8695-48fd-83a1-ecd24cf2a0fd");
     }
+
+    #[test]
+    fn read_write() {
+        let u = Uuid::parse_str("6536bfed-8695-48fd-83a1-ecd24cf2a0fd").unwrap();
+        let mut buf = Vec::new();
+        u.write_into(&mut buf).unwrap();
+        println!("{:?}", buf);
+        assert_eq!(buf.len(), 16);
+        let u2 = Uuid::read_from(&mut buf.as_slice()).unwrap();
+        assert_eq!(u, u2);
+    }
 }
