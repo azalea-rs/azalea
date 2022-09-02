@@ -50,7 +50,6 @@ pub async fn connect(address: ServerAddress) -> Result<(), Box<dyn std::error::E
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::{
         packets::login::{
             serverbound_hello_packet::{ProfilePublicKeyData, ServerboundHelloPacket},
@@ -64,7 +63,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_hello_packet() {
-        let  packet = ServerboundHelloPacket {
+        let packet = ServerboundHelloPacket {
             username: "test".to_string(),
             public_key: Some(ProfilePublicKeyData {
                 expires_at: 0,
