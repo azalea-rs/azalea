@@ -66,10 +66,17 @@ pub trait VoxelShape {
         self.get_coords(axis)[index]
     }
 
-    fn find_index(&self, axis: Axis, coord: f64) -> u32 {
-        binary_search(0, self.shape().size(axis) + 1, &|t| {
+    fn find_index(&self, axis: Axis, coord: f64) -> i32 {
+        let r = binary_search(0, (self.shape().size(axis) + 1) as i32, &|t| {
+            println!(
+                "checking {} ({}) against {}",
+                t,
+                self.get(axis, t as usize),
+                coord
+            );
             coord < self.get(axis, t as usize)
-        }) - 1
+        }) - 1;
+        r
     }
 
     fn collide(&self, axis: &Axis, entity_box: &AABB, movement: f64) -> f64 {
@@ -90,19 +97,19 @@ pub trait VoxelShape {
         let y_axis = inverse_axis_cycle.cycle(Axis::Y);
         let z_axis = inverse_axis_cycle.cycle(Axis::Z);
 
-        // i gave up on names at this point (these are the obfuscated names from fernflower)
-        let var9 = entity_box.max(&x_axis);
-        let var11 = entity_box.min(&x_axis);
+        let max_x = entity_box.max(&x_axis);
+        let min_x = entity_box.min(&x_axis);
 
-        let var13 = self.find_index(x_axis, var11 + EPSILON);
-        let var14 = self.find_index(x_axis, var9 - EPSILON);
+        // i gave up on names at this point (these are the obfuscated names from fernflower)
+        let var13 = self.find_index(x_axis, min_x + EPSILON);
+        let var14 = self.find_index(x_axis, max_x - EPSILON);
 
         let var15 = cmp::max(
             0,
             self.find_index(y_axis, entity_box.min(&y_axis) + EPSILON),
         );
         let var16 = cmp::min(
-            self.shape().size(y_axis),
+            self.shape().size(y_axis) as i32,
             self.find_index(y_axis, entity_box.max(&y_axis) - EPSILON) + 1,
         );
 
@@ -111,23 +118,23 @@ pub trait VoxelShape {
             self.find_index(z_axis, entity_box.min(&z_axis) + EPSILON),
         );
         let var18 = cmp::min(
-            self.shape().size(z_axis),
+            self.shape().size(z_axis) as i32,
             self.find_index(z_axis, entity_box.max(&z_axis) - EPSILON) + 1,
         );
 
         let var19 = self.shape().size(x_axis);
-
+        println!("movement: {}", movement);
         if movement > 0. {
-            for var20 in var14 + 1..var19 {
+            for var20 in var14 + 1..(var19 as i32) {
                 for var21 in var15..var16 {
                     for var22 in var17..var18 {
                         if self.shape().is_full_wide_axis_cycle(
                             inverse_axis_cycle,
-                            var20,
-                            var21,
-                            var22,
+                            var20.try_into().unwrap(),
+                            var21.try_into().unwrap(),
+                            var22.try_into().unwrap(),
                         ) {
-                            let var23 = self.get(x_axis, var20 as usize) - var9;
+                            let var23 = self.get(x_axis, var20 as usize) - max_x;
                             if var23 >= -EPSILON {
                                 movement = f64::min(movement, var23);
                             }
@@ -137,20 +144,23 @@ pub trait VoxelShape {
                 }
             }
         } else if movement < 0. {
-            for var20 in (var13 - 1)..=0 {
-                for var21 in var15..var16 {
-                    for var22 in var17..var18 {
-                        if self.shape().is_full_wide_axis_cycle(
-                            inverse_axis_cycle,
-                            var20,
-                            var21,
-                            var22,
-                        ) {
-                            let var23 = self.get(x_axis, (var20 + 1) as usize) - var11;
-                            if var23 <= EPSILON {
-                                movement = f64::max(movement, var23);
+            println!("hmmm var13={}", var13);
+            if var13 > 0 {
+                for var20 in (var13 - 1)..=0 {
+                    for var21 in var15..var16 {
+                        for var22 in var17..var18 {
+                            if self.shape().is_full_wide_axis_cycle(
+                                inverse_axis_cycle,
+                                var20.try_into().unwrap(),
+                                var21.try_into().unwrap(),
+                                var22.try_into().unwrap(),
+                            ) {
+                                let var23 = self.get(x_axis, (var20 + 1) as usize) - min_x;
+                                if var23 <= EPSILON {
+                                    movement = f64::max(movement, var23);
+                                }
+                                return movement;
                             }
-                            return movement;
                         }
                     }
                 }
@@ -233,6 +243,11 @@ impl VoxelShape for CubeVoxelShape {
             parts.push(i as f64 / size as f64);
         }
         parts
+    }
+
+    fn find_index(&self, axis: Axis, coord: f64) -> i32 {
+        let n = self.shape().size(axis);
+        (f64::clamp(coord * (n as f64), -1f64, n as f64)) as i32
     }
 }
 

@@ -191,7 +191,7 @@ mod tests {
             ),
         );
         let old_block_state =
-            dim.set_block_state(&BlockPos { x: 0, y: 70, z: 0 }, BlockState::Stone);
+            dim.set_block_state(&BlockPos { x: 0, y: 69, z: 0 }, BlockState::Stone);
         assert!(
             old_block_state.is_some(),
             "Old block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"

@@ -91,7 +91,6 @@ impl<'a> Iterator for BlockCollisions<'a> {
             let chunk_lock = chunk.lock().unwrap();
 
             let pos = item.pos;
-            println!("getting block at {:?}", pos);
             let block_state: BlockState = chunk_lock.get(&(&pos).into(), self.dimension.min_y());
             // let block: Box<dyn Block> = block_state.into();
 
