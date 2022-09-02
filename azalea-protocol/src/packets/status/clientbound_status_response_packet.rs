@@ -19,8 +19,8 @@ pub struct SamplePlayer {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Players {
-    pub max: u32,
-    pub online: u32,
+    pub max: i32,
+    pub online: i32,
     pub sample: Vec<SamplePlayer>,
 }
 
