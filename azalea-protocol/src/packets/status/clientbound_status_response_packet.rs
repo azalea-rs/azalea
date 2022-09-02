@@ -21,6 +21,7 @@ pub struct SamplePlayer {
 pub struct Players {
     pub max: i32,
     pub online: i32,
+    #[serde(default)]
     pub sample: Vec<SamplePlayer>,
 }
 
