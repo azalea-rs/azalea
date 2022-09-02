@@ -9,9 +9,9 @@ mod write;
 
 pub use azalea_buf_macros::*;
 pub use definitions::*;
-pub use read::{read_varint_async, BufReadError, McBufReadable, McBufVarReadable, Readable};
+pub use read::{read_varint_async, BufReadError, McBufReadable, McBufVarReadable};
 pub use serializable_uuid::*;
-pub use write::{McBufVarWritable, McBufWritable, Writable};
+pub use write::{McBufVarWritable, McBufWritable};
 
 // const DEFAULT_NBT_QUOTA: u32 = 2097152;
 const MAX_STRING_LENGTH: u16 = 32767;
@@ -20,173 +20,146 @@ const MAX_STRING_LENGTH: u16 = 32767;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Cursor;
+    use std::{collections::HashMap, io::Cursor};
 
     #[test]
     fn test_write_varint() {
         let mut buf = Vec::new();
-        buf.write_varint(0).unwrap();
+        0.var_write_into(&mut buf).unwrap();
         assert_eq!(buf, vec![0]);
 
         let mut buf = Vec::new();
-        buf.write_varint(1).unwrap();
+        1.var_write_into(&mut buf).unwrap();
         assert_eq!(buf, vec![1]);
 
         let mut buf = Vec::new();
-        buf.write_varint(2).unwrap();
+        2.var_write_into(&mut buf).unwrap();
         assert_eq!(buf, vec![2]);
 
         let mut buf = Vec::new();
-        buf.write_varint(127).unwrap();
+        127.var_write_into(&mut buf).unwrap();
         assert_eq!(buf, vec![127]);
 
         let mut buf = Vec::new();
-        buf.write_varint(128).unwrap();
+        128.var_write_into(&mut buf).unwrap();
         assert_eq!(buf, vec![128, 1]);
 
         let mut buf = Vec::new();
-        buf.write_varint(255).unwrap();
+        255.var_write_into(&mut buf).unwrap();
         assert_eq!(buf, vec![255, 1]);
 
         let mut buf = Vec::new();
-        buf.write_varint(25565).unwrap();
+        25565.var_write_into(&mut buf).unwrap();
         assert_eq!(buf, vec![221, 199, 1]);
 
         let mut buf = Vec::new();
-        buf.write_varint(2097151).unwrap();
+        2097151.var_write_into(&mut buf).unwrap();
         assert_eq!(buf, vec![255, 255, 127]);
 
         let mut buf = Vec::new();
-        buf.write_varint(2147483647).unwrap();
+        2147483647.var_write_into(&mut buf).unwrap();
         assert_eq!(buf, vec![255, 255, 255, 255, 7]);
 
         let mut buf = Vec::new();
-        buf.write_varint(-1).unwrap();
+        (-1).var_write_into(&mut buf).unwrap();
         assert_eq!(buf, vec![255, 255, 255, 255, 15]);
 
         let mut buf = Vec::new();
-        buf.write_varint(-2147483648).unwrap();
+        (-2147483648).var_write_into(&mut buf).unwrap();
         assert_eq!(buf, vec![128, 128, 128, 128, 8]);
     }
 
     #[test]
     fn test_read_varint() {
         let mut buf = Cursor::new(vec![0]);
-        assert_eq!(buf.read_varint().unwrap(), 0);
-        assert_eq!(buf.get_varint_size(0), 1);
+        assert_eq!(i32::var_read_from(&mut buf).unwrap(), 0);
 
         let mut buf = Cursor::new(vec![1]);
-        assert_eq!(buf.read_varint().unwrap(), 1);
-        assert_eq!(buf.get_varint_size(1), 1);
+        assert_eq!(i32::var_read_from(&mut buf).unwrap(), 1);
 
         let mut buf = Cursor::new(vec![2]);
-        assert_eq!(buf.read_varint().unwrap(), 2);
-        assert_eq!(buf.get_varint_size(2), 1);
+        assert_eq!(i32::var_read_from(&mut buf).unwrap(), 2);
 
         let mut buf = Cursor::new(vec![127]);
-        assert_eq!(buf.read_varint().unwrap(), 127);
-        assert_eq!(buf.get_varint_size(127), 1);
+        assert_eq!(i32::var_read_from(&mut buf).unwrap(), 127);
 
         let mut buf = Cursor::new(vec![128, 1]);
-        assert_eq!(buf.read_varint().unwrap(), 128);
-        assert_eq!(buf.get_varint_size(128), 2);
+        assert_eq!(i32::var_read_from(&mut buf).unwrap(), 128);
 
         let mut buf = Cursor::new(vec![255, 1]);
-        assert_eq!(buf.read_varint().unwrap(), 255);
-        assert_eq!(buf.get_varint_size(255), 2);
+        assert_eq!(i32::var_read_from(&mut buf).unwrap(), 255);
 
         let mut buf = Cursor::new(vec![221, 199, 1]);
-        assert_eq!(buf.read_varint().unwrap(), 25565);
-        assert_eq!(buf.get_varint_size(25565), 3);
+        assert_eq!(i32::var_read_from(&mut buf).unwrap(), 25565);
 
         let mut buf = Cursor::new(vec![255, 255, 127]);
-        assert_eq!(buf.read_varint().unwrap(), 2097151);
-        assert_eq!(buf.get_varint_size(2097151), 3);
+        assert_eq!(i32::var_read_from(&mut buf).unwrap(), 2097151);
 
         let mut buf = Cursor::new(vec![255, 255, 255, 255, 7]);
-        assert_eq!(buf.read_varint().unwrap(), 2147483647);
-        assert_eq!(buf.get_varint_size(2147483647), 5);
+        assert_eq!(i32::var_read_from(&mut buf).unwrap(), 2147483647);
 
         let mut buf = Cursor::new(vec![255, 255, 255, 255, 15]);
-        assert_eq!(buf.read_varint().unwrap(), -1);
-        assert_eq!(buf.get_varint_size(-1), 5);
+        assert_eq!(i32::var_read_from(&mut buf).unwrap(), -1);
 
         let mut buf = Cursor::new(vec![128, 128, 128, 128, 8]);
-        assert_eq!(buf.read_varint().unwrap(), -2147483648);
-        assert_eq!(buf.get_varint_size(-2147483648), 5);
+        assert_eq!(i32::var_read_from(&mut buf).unwrap(), -2147483648);
     }
 
     #[test]
     fn test_read_varint_longer() {
         let mut buf = Cursor::new(vec![138, 56, 0, 135, 56, 123]);
-        assert_eq!(buf.read_varint().unwrap(), 7178);
+        assert_eq!(i32::var_read_from(&mut buf).unwrap(), 7178);
     }
 
     #[test]
     fn test_list() {
+        let original_vec = vec!["a".to_string(), "bc".to_string(), "def".to_string()];
+
         let mut buf = Vec::new();
-        buf.write_list(&vec!["a", "bc", "def"], |buf, s| buf.write_utf(s))
-            .unwrap();
+        original_vec.write_into(&mut buf).unwrap();
 
-        // there's no read_list because idk how to do it in rust
+        dbg!(&buf);
+
         let mut buf = Cursor::new(buf);
-
-        let mut result = Vec::new();
-        let length = buf.read_varint().unwrap();
-        for _ in 0..length {
-            result.push(buf.read_utf().unwrap());
-        }
-
-        assert_eq!(result, vec!["a", "bc", "def"]);
+        let result = Vec::<String>::read_from(&mut buf).unwrap();
+        assert_eq!(result, original_vec);
     }
 
     #[test]
     fn test_int_id_list() {
         let mut buf = Vec::new();
-        buf.write_list(&vec![1, 2, 3], |buf, i| buf.write_varint(*i))
-            .unwrap();
+        vec![1, 2, 3].var_write_into(&mut buf).unwrap();
 
         let mut buf = Cursor::new(buf);
 
-        let result = buf.read_int_id_list().unwrap();
+        let result = Vec::<i32>::var_read_from(&mut buf).unwrap();
         assert_eq!(result, vec![1, 2, 3]);
     }
 
     #[test]
     fn test_map() {
+        let original_map = HashMap::from([
+            ("a".to_string(), 1),
+            ("bc".to_string(), 23),
+            ("def".to_string(), 456),
+        ]);
         let mut buf = Vec::new();
-        buf.write_map(
-            vec![("a", 1), ("bc", 23), ("def", 456)],
-            Vec::write_utf,
-            Vec::write_varint,
-        )
-        .unwrap();
+        original_map.var_write_into(&mut buf).unwrap();
 
         let mut buf = Cursor::new(buf);
 
-        let mut result = Vec::new();
-        let length = buf.read_varint().unwrap();
-        for _ in 0..length {
-            result.push((buf.read_utf().unwrap(), buf.read_varint().unwrap()));
-        }
+        let result = HashMap::<String, i32>::var_read_from(&mut buf).unwrap();
 
-        assert_eq!(
-            result,
-            vec![
-                ("a".to_string(), 1),
-                ("bc".to_string(), 23),
-                ("def".to_string(), 456)
-            ]
-        );
+        assert_eq!(result, original_map);
     }
 
     #[test]
     fn test_long() {
         let mut buf = Vec::new();
-        buf.write_long(123456).unwrap();
+        123456u64.write_into(&mut buf).unwrap();
 
         let mut buf = Cursor::new(buf);
 
-        assert_eq!(buf.read_long().unwrap(), 123456);
+        assert_eq!(u64::read_from(&mut buf).unwrap(), 123456);
     }
 }

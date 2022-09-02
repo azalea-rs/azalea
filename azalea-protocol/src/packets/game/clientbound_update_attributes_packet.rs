@@ -1,5 +1,5 @@
 use azalea_buf::{BufReadError, McBuf};
-use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
 use packet_macros::ClientboundGamePacket;
 use std::io::{Read, Write};
@@ -35,7 +35,7 @@ enum Operation {
 
 impl McBufReadable for Operation {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
-        match buf.read_byte()? {
+        match u8::read_from(buf)? {
             0 => Ok(Operation::Addition),
             1 => Ok(Operation::MultiplyBase),
             2 => Ok(Operation::MultiplyTotal),
@@ -46,7 +46,7 @@ impl McBufReadable for Operation {
 
 impl McBufWritable for Operation {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_byte(*self as u8)?;
+        (*self as u8).write_into(buf)?;
         Ok(())
     }
 }

@@ -1,6 +1,6 @@
 use crate::packets::ProtocolPacket;
 use azalea_buf::McBufVarReadable;
-use azalea_buf::{read_varint_async, BufReadError, Readable};
+use azalea_buf::{read_varint_async, BufReadError};
 use azalea_crypto::Aes128CfbDec;
 use flate2::read::ZlibDecoder;
 use std::{
@@ -78,9 +78,8 @@ where
 
 fn packet_decoder<P: ProtocolPacket>(stream: &mut impl Read) -> Result<P, ReadPacketError> {
     // Packet ID
-    let packet_id = stream
-        .read_varint()
-        .map_err(|e| ReadPacketError::ReadPacketId { source: e })?;
+    let packet_id =
+        u32::var_read_from(stream).map_err(|e| ReadPacketError::ReadPacketId { source: e })?;
     P::read(packet_id.try_into().unwrap(), stream)
 }
 

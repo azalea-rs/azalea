@@ -1,6 +1,6 @@
 use crate::{packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSED_LENGTH};
 use async_compression::tokio::bufread::ZlibEncoder;
-use azalea_buf::Writable;
+use azalea_buf::McBufVarWritable;
 use azalea_crypto::Aes128CfbEnc;
 use std::fmt::Debug;
 use thiserror::Error;
@@ -8,7 +8,7 @@ use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 fn frame_prepender(data: &mut Vec<u8>) -> Result<Vec<u8>, std::io::Error> {
     let mut buf = Vec::new();
-    buf.write_varint(data.len() as i32)?;
+    (data.len() as u32).var_write_into(&mut buf)?;
     buf.append(data);
     Ok(buf)
 }
@@ -29,7 +29,7 @@ fn packet_encoder<P: ProtocolPacket + std::fmt::Debug>(
     packet: &P,
 ) -> Result<Vec<u8>, PacketEncodeError> {
     let mut buf = Vec::new();
-    buf.write_varint(packet.id() as i32)?;
+    (packet.id() as u32).var_write_into(&mut buf)?;
     packet.write(&mut buf)?;
     if buf.len() > MAXIMUM_UNCOMPRESSED_LENGTH as usize {
         return Err(PacketEncodeError::TooBig {
@@ -55,7 +55,7 @@ async fn compression_encoder(
     // if it's less than the compression threshold, don't compress
     if n < compression_threshold as usize {
         let mut buf = Vec::new();
-        buf.write_varint(0)?;
+        0.var_write_into(&mut buf)?;
         buf.write_all(data).await?;
         Ok(buf)
     } else {
