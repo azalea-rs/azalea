@@ -1,5 +1,5 @@
 use super::ClientboundStatusPacket;
-use azalea_buf::{BufReadError, Readable};
+use azalea_buf::{BufReadError, McBufReadable};
 use azalea_chat::component::Component;
 use serde::Deserialize;
 use serde_json::Value;
@@ -43,7 +43,7 @@ impl ClientboundStatusResponsePacket {
     }
 
     pub fn read(buf: &mut impl Read) -> Result<ClientboundStatusPacket, BufReadError> {
-        let status_string = buf.read_utf()?;
+        let status_string = String::read_from(buf)?;
         let status_json: Value = serde_json::from_str(status_string.as_str())?;
 
         let packet = ClientboundStatusResponsePacket::deserialize(status_json)?.get();

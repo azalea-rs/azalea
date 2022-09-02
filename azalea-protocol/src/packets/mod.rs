@@ -4,7 +4,7 @@ pub mod login;
 pub mod status;
 
 use crate::read::ReadPacketError;
-use azalea_buf::{BufReadError, McBufWritable, Readable, Writable};
+use azalea_buf::{BufReadError, McBufVarReadable, McBufVarWritable, McBufWritable};
 use std::io::{Read, Write};
 
 pub const PROTOCOL_VERSION: u32 = 760;
@@ -44,13 +44,13 @@ where
 
 impl azalea_buf::McBufReadable for ConnectionProtocol {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
-        let id = buf.read_varint()?;
+        let id = i32::var_read_from(buf)?;
         ConnectionProtocol::from_i32(id).ok_or(BufReadError::UnexpectedEnumVariant { id })
     }
 }
 
 impl McBufWritable for ConnectionProtocol {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_varint(*self as i32)
+        (*self as i32).var_write_into(buf)
     }
 }

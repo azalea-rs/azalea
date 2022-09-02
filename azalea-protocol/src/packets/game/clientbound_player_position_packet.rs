@@ -1,5 +1,5 @@
 use azalea_buf::{BufReadError, McBuf};
-use azalea_buf::{McBufReadable, McBufWritable, Readable};
+use azalea_buf::{McBufReadable, McBufWritable};
 use packet_macros::ClientboundGamePacket;
 use std::io::{Read, Write};
 
@@ -29,7 +29,7 @@ pub struct RelativeArguments {
 
 impl McBufReadable for RelativeArguments {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
-        let byte = buf.read_byte()?;
+        let byte = u8::read_from(buf)?;
         Ok(RelativeArguments {
             x: byte & 0b1 != 0,
             y: byte & 0b10 != 0,

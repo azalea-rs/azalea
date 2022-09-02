@@ -1,7 +1,7 @@
 use azalea_buf::BufReadError;
 use azalea_buf::McBuf;
 use azalea_buf::McBufVarReadable;
-use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
 use packet_macros::ClientboundGamePacket;
 use std::{
@@ -26,7 +26,7 @@ pub struct BrigadierNumber<T> {
 }
 impl<T: McBufReadable> McBufReadable for BrigadierNumber<T> {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
-        let flags = buf.read_byte()?;
+        let flags = u8::read_from(buf)?;
         let min = if flags & 0x01 != 0 {
             Some(T::read_from(buf)?)
         } else {
@@ -42,14 +42,14 @@ impl<T: McBufReadable> McBufReadable for BrigadierNumber<T> {
 }
 impl<T: McBufWritable> McBufWritable for BrigadierNumber<T> {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut flags = 0;
+        let mut flags: u8 = 0;
         if self.min.is_some() {
             flags |= 0x01;
         }
         if self.max.is_some() {
             flags |= 0x02;
         }
-        buf.write_byte(flags)?;
+        flags.write_into(buf)?;
         if let Some(min) = &self.min {
             min.write_into(buf)?;
         }
@@ -135,7 +135,7 @@ impl McBufReadable for BrigadierParser {
             4 => Ok(BrigadierParser::Long(BrigadierNumber::read_from(buf)?)),
             5 => Ok(BrigadierParser::String(BrigadierString::read_from(buf)?)),
             6 => {
-                let flags = buf.read_byte()?;
+                let flags = u8::read_from(buf)?;
                 Ok(BrigadierParser::Entity {
                     single: flags & 0x01 != 0,
                     players_only: flags & 0x02 != 0,
@@ -164,7 +164,7 @@ impl McBufReadable for BrigadierParser {
             27 => Ok(BrigadierParser::Rotation),
             28 => Ok(BrigadierParser::ScoreboardSlot),
             29 => {
-                let flags = buf.read_byte()?;
+                let flags = u8::read_from(buf)?;
                 Ok(BrigadierParser::ScoreHolder {
                     allows_multiple: flags & 0x01 != 0,
                 })
@@ -213,12 +213,16 @@ impl McBufReadable for BrigadierNodeStub {
         let has_redirect = flags & 0x08 != 0;
         let has_suggestions_type = flags & 0x10 != 0;
 
-        let _children = buf.read_int_id_list()?;
-        let _redirect_node = if has_redirect { buf.read_varint()? } else { 0 };
+        let _children = Vec::<i32>::var_read_from(buf)?;
+        let _redirect_node = if has_redirect {
+            i32::var_read_from(buf)?
+        } else {
+            0
+        };
 
         // argument node
         if node_type == 2 {
-            let _name = buf.read_utf()?;
+            let _name = String::read_from(buf)?;
             let _parser = BrigadierParser::read_from(buf)?;
             let _suggestions_type = if has_suggestions_type {
                 Some(ResourceLocation::read_from(buf)?)
@@ -229,7 +233,7 @@ impl McBufReadable for BrigadierNodeStub {
         }
         // literal node
         if node_type == 1 {
-            let _name = buf.read_utf()?;
+            let _name = String::read_from(buf)?;
             return Ok(BrigadierNodeStub {});
         }
         Ok(BrigadierNodeStub {})

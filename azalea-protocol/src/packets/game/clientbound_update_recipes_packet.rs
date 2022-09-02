@@ -1,10 +1,9 @@
-use std::io::{Read, Write};
-
-use azalea_buf::{BufReadError, McBuf};
+use azalea_buf::{
+    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
+};
 use azalea_core::{ResourceLocation, Slot};
 use packet_macros::ClientboundGamePacket;
-
-use azalea_buf::{McBufReadable, McBufWritable, Readable, Writable};
+use std::io::{Read, Write};
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundUpdateRecipesPacket {
@@ -37,9 +36,9 @@ pub struct ShapedRecipe {
 
 impl McBufWritable for ShapedRecipe {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_varint(self.width.try_into().unwrap())?;
-        buf.write_varint(self.height.try_into().unwrap())?;
-        buf.write_utf(&self.group)?;
+        (self.width as u32).var_write_into(buf)?;
+        (self.height as u32).var_write_into(buf)?;
+        self.group.write_into(buf)?;
         for ingredient in &self.ingredients {
             ingredient.write_into(buf)?;
         }
@@ -50,9 +49,9 @@ impl McBufWritable for ShapedRecipe {
 }
 impl McBufReadable for ShapedRecipe {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
-        let width = buf.read_varint()?.try_into().unwrap();
-        let height = buf.read_varint()?.try_into().unwrap();
-        let group = buf.read_utf()?;
+        let width = u32::var_read_from(buf)?.try_into().unwrap();
+        let height = u32::var_read_from(buf)?.try_into().unwrap();
+        let group = String::read_from(buf)?;
         let mut ingredients = Vec::with_capacity(width * height);
         for _ in 0..width * height {
             ingredients.push(Ingredient::read_from(buf)?);

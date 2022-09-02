@@ -282,7 +282,7 @@ impl McBufWritable for Component {
     // where
     //     R: AsyncRead + std::marker::Unpin + std::marker::Send,
     // {
-    //     let string = buf.read_utf().await?;
+    //     let string = String::read_from(buf).await?;
     //     let json: serde_json::Value = serde_json::from_str(string.as_str())
     //         .map_err(|e| "Component isn't valid JSON".to_string())?;
     //     let component = Component::deserialize(json).map_err(|e| e.to_string())?;

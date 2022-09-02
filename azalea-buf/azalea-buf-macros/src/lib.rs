@@ -145,7 +145,7 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             quote! {
                 impl azalea_buf::McBufWritable for #ident {
                     fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-                        azalea_buf::Writable::write_varint(buf, *self as i32)
+                        azalea_buf::McBufVarWritable::var_write_into(&(*self as u32), buf)
                     }
                 }
             }

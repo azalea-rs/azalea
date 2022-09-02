@@ -146,7 +146,7 @@ impl MovableEntity for EntityMut<'_> {
 
         // TODO: minecraft checks for a "minor" horizontal collision here
 
-        let block_pos_below = { self.on_pos_legacy() };
+        let _block_pos_below = self.on_pos_legacy();
         // let _block_state_below = self
         //     .dimension
         //     .get_block_state(&block_pos_below)
