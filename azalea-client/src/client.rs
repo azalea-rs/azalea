@@ -1,6 +1,7 @@
-use crate::{Account, Player};
+use crate::{movement::MoveDirection, Account, Player};
 use azalea_auth::game_profile::GameProfile;
 use azalea_block::BlockState;
+use azalea_chat::component::Component;
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
@@ -52,14 +53,14 @@ pub enum ChatPacket {
     Player(Box<ClientboundPlayerChatPacket>),
 }
 
-// impl ChatPacket {
-//     pub fn message(&self) -> &str {
-//         match self {
-//             ChatPacket::System(p) => &p.content,
-//             ChatPacket::Player(p) => &p.message,
-//         }
-//     }
-// }
+impl ChatPacket {
+    pub fn message(&self) -> Component {
+        match self {
+            ChatPacket::System(p) => p.content.clone(),
+            ChatPacket::Player(p) => p.message.message(false),
+        }
+    }
+}
 
 /// A player that you can control that is currently in a Minecraft server.
 #[derive(Clone)]
@@ -68,9 +69,17 @@ pub struct Client {
     pub conn: Arc<tokio::sync::Mutex<Connection<ClientboundGamePacket, ServerboundGamePacket>>>,
     pub player: Arc<Mutex<Player>>,
     pub dimension: Arc<Mutex<Dimension>>,
+    pub physics_state: Arc<Mutex<PhysicsState>>,
+}
 
+#[derive(Default)]
+pub struct PhysicsState {
     /// Minecraft only sends a movement packet either after 20 ticks or if the player moved enough. This is that tick counter.
     pub position_remainder: u32,
+
+    pub move_direction: MoveDirection,
+    pub forward_impulse: f32,
+    pub left_impulse: f32,
 }
 
 /// Whether we should ignore errors when decoding packets.
@@ -185,8 +194,7 @@ impl Client {
             conn,
             player: Arc::new(Mutex::new(Player::default())),
             dimension: Arc::new(Mutex::new(Dimension::default())),
-
-            position_remainder: 0,
+            physics_state: Arc::new(Mutex::new(PhysicsState::default())),
         };
 
         // just start up the game loop and we're ready!
@@ -552,8 +560,8 @@ impl Client {
                     .move_entity_with_delta(p.entity_id, &p.delta)
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
-            ClientboundGamePacket::ClientboundMoveEntityRotPacket(p) => {
-                println!("Got move entity rot packet {:?}", p);
+            ClientboundGamePacket::ClientboundMoveEntityRotPacket(_p) => {
+                // println!("Got move entity rot packet {:?}", p);
             }
             ClientboundGamePacket::ClientboundKeepAlivePacket(p) => {
                 println!("Got keep alive packet {:?}", p);

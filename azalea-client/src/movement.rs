@@ -32,7 +32,7 @@ impl Client {
     pub async fn send_position(&mut self) -> Result<(), MovePlayerError> {
         let packet = {
             let player_lock = self.player.lock().unwrap();
-
+            let mut physics_state = self.physics_state.lock().unwrap();
             let mut dimension_lock = self.dimension.lock().unwrap();
 
             let mut player_entity = player_lock
@@ -52,12 +52,12 @@ impl Client {
             let y_rot_delta = (player_entity.y_rot - player_entity.y_rot_last) as f64;
             let x_rot_delta = (player_entity.x_rot - player_entity.x_rot_last) as f64;
 
-            self.position_remainder += 1;
+            physics_state.position_remainder += 1;
 
             // boolean sendingPosition = Mth.lengthSquared(xDelta, yDelta, zDelta) > Mth.square(2.0E-4D) || this.positionReminder >= 20;
             let sending_position = ((x_delta.powi(2) + y_delta.powi(2) + z_delta.powi(2))
                 > 2.0e-4f64.powi(2))
-                || self.position_remainder >= 20;
+                || physics_state.position_remainder >= 20;
             let sending_rotation = y_rot_delta != 0.0 || x_rot_delta != 0.0;
 
             // if self.is_passenger() {
@@ -107,7 +107,7 @@ impl Client {
 
             if sending_position {
                 player_entity.last_pos = *player_entity.pos();
-                self.position_remainder = 0;
+                physics_state.position_remainder = 0;
             }
             if sending_rotation {
                 player_entity.y_rot_last = player_entity.y_rot;
@@ -155,6 +155,8 @@ impl Client {
     }
 
     pub fn ai_step(&mut self) {
+        self.tick_controls(None);
+
         let player_lock = self.player.lock().unwrap();
         let mut dimension_lock = self.dimension.lock().unwrap();
 
@@ -162,6 +164,67 @@ impl Client {
             .entity_mut(&mut dimension_lock)
             .expect("Player must exist");
 
+        // server ai step
+        {
+            let physics_state = self.physics_state.lock().unwrap();
+            player_entity.xxa = physics_state.left_impulse;
+            player_entity.zza = physics_state.forward_impulse;
+        }
+
         player_entity.ai_step();
     }
+
+    /// Update the impulse from self.move_direction. The multipler is used for sneaking.
+    pub(crate) fn tick_controls(&mut self, multiplier: Option<f32>) {
+        let mut physics_state = self.physics_state.lock().unwrap();
+
+        let mut forward_impulse: f32 = 0.;
+        let mut left_impulse: f32 = 0.;
+        match physics_state.move_direction {
+            MoveDirection::Forward | MoveDirection::ForwardRight | MoveDirection::ForwardLeft => {
+                forward_impulse += 1.;
+            }
+            MoveDirection::Backward
+            | MoveDirection::BackwardRight
+            | MoveDirection::BackwardLeft => {
+                forward_impulse -= 1.;
+            }
+            _ => {}
+        };
+        match physics_state.move_direction {
+            MoveDirection::Right | MoveDirection::ForwardRight | MoveDirection::BackwardRight => {
+                left_impulse += 1.;
+            }
+            MoveDirection::Left | MoveDirection::ForwardLeft | MoveDirection::BackwardLeft => {
+                left_impulse -= 1.;
+            }
+            _ => {}
+        };
+        physics_state.forward_impulse = forward_impulse;
+        physics_state.left_impulse = left_impulse;
+
+        if let Some(multiplier) = multiplier {
+            physics_state.forward_impulse *= multiplier;
+            physics_state.left_impulse *= multiplier;
+        }
+    }
+
+    pub fn walk(&mut self, direction: MoveDirection) {
+        let mut physics_state = self.physics_state.lock().unwrap();
+        physics_state.move_direction = direction;
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub enum MoveDirection {
+    #[default]
+    None,
+    Forward,
+    Backward,
+    Left,
+    Right,
+    ForwardRight,
+    ForwardLeft,
+    BackwardRight,
+    BackwardLeft,
 }

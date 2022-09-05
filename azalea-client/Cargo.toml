@@ -9,6 +9,7 @@ version = "0.1.0"
 anyhow = "1.0.59"
 azalea-auth = {path = "../azalea-auth"}
 azalea-block = {path = "../azalea-block"}
+azalea-chat = {path = "../azalea-chat"}
 azalea-core = {path = "../azalea-core"}
 azalea-crypto = {path = "../azalea-crypto"}
 azalea-physics = {path = "../azalea-physics"}

@@ -8,6 +8,7 @@ mod player;
 
 pub use account::Account;
 pub use client::{Client, Event};
+pub use movement::MoveDirection;
 pub use player::Player;
 
 #[cfg(test)]

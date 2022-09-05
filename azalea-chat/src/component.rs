@@ -1,4 +1,7 @@
-use std::io::{Read, Write};
+use std::{
+    fmt::Display,
+    io::{Read, Write},
+};
 
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use serde::{de, Deserialize, Deserializer};
@@ -291,5 +294,30 @@ impl McBufWritable for Component {
     fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
         // component doesn't have serialize implemented yet
         todo!()
+    }
+}
+
+impl From<String> for Component {
+    fn from(s: String) -> Self {
+        Component::Text(TextComponent {
+            text: s,
+            base: BaseComponent::default(),
+        })
+    }
+}
+
+impl Display for Component {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // this contains the final string will all the ansi escape codes
+        for component in self.clone().into_iter() {
+            let component_text = match &component {
+                Self::Text(c) => c.text.to_string(),
+                Self::Translatable(c) => c.to_string(),
+            };
+
+            f.write_str(&component_text)?;
+        }
+
+        Ok(())
     }
 }

@@ -81,6 +81,7 @@ impl HasPhysics for EntityMut<'_> {
         if self.delta.z.abs() < 0.003 {
             self.delta.z = 0.;
         }
+
         self.xxa *= 0.98;
         self.zza *= 0.98;
 

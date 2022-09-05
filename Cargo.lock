@@ -156,6 +156,7 @@ dependencies = [
  "anyhow",
  "azalea-auth",
  "azalea-block",
+ "azalea-chat",
  "azalea-core",
  "azalea-crypto",
  "azalea-physics",

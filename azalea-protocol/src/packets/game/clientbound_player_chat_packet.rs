@@ -49,6 +49,20 @@ pub struct SignedMessageBody {
     pub last_seen: Vec<LastSeenMessagesEntry>,
 }
 
+impl PlayerChatMessage {
+    pub fn message(&self, only_secure_chat: bool) -> Component {
+        if only_secure_chat {
+            return self
+                .signed_body
+                .content
+                .decorated
+                .clone()
+                .unwrap_or(Component::from(self.signed_body.content.plain.clone()));
+        }
+        self.unsigned_content.clone().unwrap_or(self.message(true))
+    }
+}
+
 #[derive(Clone, Debug, McBuf)]
 pub struct LastSeenMessagesEntry {
     pub profile_id: Uuid,

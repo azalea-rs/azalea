@@ -1,5 +1,5 @@
 #![allow(unused_variables, unused_imports)]
-use azalea_client::{Account, Event};
+use azalea_client::{Account, Event, MoveDirection};
 use azalea_core::{PositionXYZ, Vec3};
 use azalea_physics::collision::{HasCollision, MoverType};
 
@@ -15,7 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // println!("{}", response.description.to_ansi(None));
     let account = Account::offline("bot");
-    let (client, mut rx) = account.join(&address.try_into().unwrap()).await.unwrap();
+    let (mut client, mut rx) = account.join(&address.try_into().unwrap()).await.unwrap();
     println!("connected");
 
     while let Some(e) = &rx.recv().await {
@@ -41,6 +41,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             //     // }
             // }
             Event::Chat(m) => {
+                let message = m.message().to_string();
+                println!("{}", message);
+
+                match &message[..] {
+                    "stop" => {
+                        println!("stopping");
+                        client.walk(MoveDirection::None);
+                    }
+                    "forward" => {
+                        println!("moving forward");
+                        client.walk(MoveDirection::Forward);
+                    }
+                    "backward" => {
+                        println!("moving backward");
+                        client.walk(MoveDirection::Backward);
+                    }
+                    "left" => {
+                        println!("moving left");
+                        client.walk(MoveDirection::Left);
+                    }
+                    "right" => {
+                        println!("moving right");
+                        client.walk(MoveDirection::Right);
+                    }
+                    _ => {}
+                }
+
                 //     let new_pos = {
                 //         let dimension_lock = client.dimension.lock().unwrap();
                 //         let player = client.player.lock().unwrap();
