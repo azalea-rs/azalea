@@ -1,5 +1,7 @@
 [package]
+description = "A port of Mojang's Brigadier command parsing and dispatching library."
 edition = "2021"
+license = "MIT"
 name = "azalea-brigadier"
 version = "0.1.0"
 

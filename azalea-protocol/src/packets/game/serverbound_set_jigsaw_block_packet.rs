@@ -4,7 +4,7 @@ use azalea_buf::McBuf;
 use azalea_buf::McBufReadable;
 use azalea_core::BlockPos;
 use azalea_core::ResourceLocation;
-use packet_macros::ServerboundGamePacket;
+use azalea_protocol_macros::ServerboundGamePacket;
 use std::io::{Read, Write};
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]

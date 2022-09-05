@@ -2,7 +2,7 @@ use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
 use azalea_core::ResourceLocation;
-use packet_macros::ClientboundGamePacket;
+use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, ClientboundGamePacket)]
 pub struct ClientboundRecipePacket {

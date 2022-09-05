@@ -3,7 +3,7 @@ pub mod clientbound_status_response_packet;
 pub mod serverbound_ping_request_packet;
 pub mod serverbound_status_request_packet;
 
-use packet_macros::declare_state_packets;
+use azalea_protocol_macros::declare_state_packets;
 
 declare_state_packets!(
     StatusPacket,

@@ -1,6 +1,8 @@
 [package]
+description = "Macros internally used in azalea-registry."
 edition = "2021"
-name = "registry-macros"
+license = "MIT"
+name = "azalea-registry-macros"
 version = "0.1.0"
 
 [lib]

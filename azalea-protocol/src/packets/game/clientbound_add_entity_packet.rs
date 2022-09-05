@@ -1,7 +1,7 @@
 use azalea_buf::McBuf;
 use azalea_core::Vec3;
+use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::entity::EntityData;
-use packet_macros::ClientboundGamePacket;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]

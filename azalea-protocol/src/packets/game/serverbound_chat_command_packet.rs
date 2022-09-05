@@ -1,6 +1,6 @@
 use azalea_buf::McBuf;
 use azalea_crypto::MessageSignature;
-use packet_macros::ServerboundGamePacket;
+use azalea_protocol_macros::ServerboundGamePacket;
 
 use super::clientbound_player_chat_packet::LastSeenMessagesUpdate;
 

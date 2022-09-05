@@ -1,7 +1,7 @@
 use crate::packets::McBufWritable;
 use azalea_buf::{BufReadError, McBuf, McBufReadable};
 use azalea_core::BlockPos;
-use packet_macros::ServerboundGamePacket;
+use azalea_protocol_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, ServerboundGamePacket)]
 pub struct ServerboundSetCommandBlockPacket {

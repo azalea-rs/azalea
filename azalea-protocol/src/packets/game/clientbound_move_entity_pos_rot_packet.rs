@@ -1,6 +1,6 @@
 use azalea_buf::McBuf;
 use azalea_core::PositionDelta8;
-use packet_macros::ClientboundGamePacket;
+use azalea_protocol_macros::ClientboundGamePacket;
 
 /// This packet is sent by the server when an entity moves less then 8 blocks.
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]

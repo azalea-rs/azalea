@@ -4,7 +4,7 @@ use azalea_buf::{
 use azalea_chat::component::Component;
 use azalea_core::BitSet;
 use azalea_crypto::{MessageSignature, SignedMessageHeader};
-use packet_macros::ClientboundGamePacket;
+use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Read, Write};
 use uuid::Uuid;
 

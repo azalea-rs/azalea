@@ -1,6 +1,8 @@
 [package]
+description = "Macros internally used in azalea-protocol."
 edition = "2021"
-name = "packet-macros"
+license = "MIT"
+name = "azalea-protocol-macros"
 version = "0.1.0"
 
 [lib]

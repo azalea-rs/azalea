@@ -1,5 +1,5 @@
 use azalea_buf::{McBuf, UnsizedByteArray};
-use packet_macros::ServerboundLoginPacket;
+use azalea_protocol_macros::ServerboundLoginPacket;
 
 #[derive(Clone, Debug, McBuf, ServerboundLoginPacket)]
 pub struct ServerboundCustomQueryPacket {

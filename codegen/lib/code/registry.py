@@ -9,7 +9,7 @@ REGISTRIES_DIR = get_dir_location('../azalea-registry/src/lib.rs')
 def generate_registries(registries: dict):
     code = []
 
-    code.append('use registry_macros::registry;')
+    code.append('use azalea_registry_macros::registry;')
     code.append('')
 
     for registry_name, registry in registries.items():

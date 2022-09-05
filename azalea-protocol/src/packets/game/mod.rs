@@ -158,7 +158,7 @@ pub mod serverbound_teleport_to_entity_packet;
 pub mod serverbound_use_item_on_packet;
 pub mod serverbound_use_item_packet;
 
-use packet_macros::declare_state_packets;
+use azalea_protocol_macros::declare_state_packets;
 
 declare_state_packets!(
     GamePacket,

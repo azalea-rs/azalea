@@ -1,6 +1,6 @@
 use azalea_buf::{BufReadError, McBuf};
 use azalea_core::Slot;
-use packet_macros::ClientboundGamePacket;
+use azalea_protocol_macros::ClientboundGamePacket;
 
 use azalea_buf::{McBufReadable, McBufWritable};
 

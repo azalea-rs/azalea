@@ -1,5 +1,5 @@
 use azalea_buf::McBuf;
-use packet_macros::ClientboundGamePacket;
+use azalea_protocol_macros::ClientboundGamePacket;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]

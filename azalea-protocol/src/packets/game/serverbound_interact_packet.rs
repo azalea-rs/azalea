@@ -1,7 +1,7 @@
 use crate::packets::BufReadError;
 use azalea_buf::{McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_core::Vec3;
-use packet_macros::ServerboundGamePacket;
+use azalea_protocol_macros::ServerboundGamePacket;
 use std::io::{Read, Write};
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]

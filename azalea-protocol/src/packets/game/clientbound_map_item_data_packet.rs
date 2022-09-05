@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_chat::component::Component;
-use packet_macros::ClientboundGamePacket;
+use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, ClientboundGamePacket)]
 pub struct ClientboundMapItemDataPacket {

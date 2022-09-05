@@ -1,16 +1,16 @@
 [package]
+description = "Physics for Minecraft entities."
 edition = "2021"
+license = "MIT"
 name = "azalea-physics"
 version = "0.1.0"
-description = "Physics for Minecraft entities."
-license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-block = { path = "../azalea-block" }
-azalea-core = { path = "../azalea-core" }
-azalea-world = { path = "../azalea-world" }
+azalea-block = {path = "../azalea-block", version = "^0.1.0"}
+azalea-core = {path = "../azalea-core", version = "^0.1.0"}
+azalea-world = {path = "../azalea-world", version = "^0.1.0"}
 
 [dev-dependencies]
 uuid = "^1.1.2"

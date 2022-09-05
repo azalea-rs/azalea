@@ -1,6 +1,6 @@
 pub mod client_intention_packet;
 
-use packet_macros::declare_state_packets;
+use azalea_protocol_macros::declare_state_packets;
 
 declare_state_packets!(
     HandshakePacket,

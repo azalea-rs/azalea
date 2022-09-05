@@ -1,7 +1,7 @@
 use crate::packets::BufReadError;
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
-use packet_macros::ServerboundGamePacket;
+use azalea_protocol_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, ServerboundGamePacket)]
 pub struct ServerboundSeenAdvancementsPacket {

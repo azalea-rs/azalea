@@ -1,4 +1,4 @@
-use registry_macros::registry;
+use azalea_registry_macros::registry;
 
 registry!(Activity, {
     Core => "minecraft:core",

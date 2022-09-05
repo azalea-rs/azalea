@@ -1,6 +1,6 @@
 use crate::packets::BufReadError;
 use azalea_buf::{McBufReadable, McBufWritable};
-use packet_macros::ServerboundGamePacket;
+use azalea_protocol_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, ServerboundGamePacket)]
 pub struct ServerboundPlayerAbilitiesPacket {

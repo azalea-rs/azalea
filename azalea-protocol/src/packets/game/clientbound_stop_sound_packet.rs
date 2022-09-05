@@ -2,7 +2,7 @@ use std::io::{Read, Write};
 
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
-use packet_macros::ClientboundGamePacket;
+use azalea_protocol_macros::ClientboundGamePacket;
 
 use super::clientbound_sound_packet::SoundSource;
 

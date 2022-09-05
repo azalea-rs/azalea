@@ -1,7 +1,7 @@
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use azalea_chat::component::Component;
 use azalea_core::{ResourceLocation, Slot};
-use packet_macros::ClientboundGamePacket;
+use azalea_protocol_macros::ClientboundGamePacket;
 use std::{
     collections::HashMap,
     io::{Read, Write},

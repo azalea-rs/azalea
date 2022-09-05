@@ -1,6 +1,6 @@
 use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable};
-use packet_macros::ClientboundGamePacket;
+use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Read, Write};
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]

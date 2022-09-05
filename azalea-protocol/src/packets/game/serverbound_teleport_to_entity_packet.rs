@@ -1,5 +1,5 @@
 use azalea_buf::McBuf;
-use packet_macros::ServerboundGamePacket;
+use azalea_protocol_macros::ServerboundGamePacket;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]

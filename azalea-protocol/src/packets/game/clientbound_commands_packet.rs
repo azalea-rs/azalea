@@ -3,7 +3,7 @@ use azalea_buf::McBuf;
 use azalea_buf::McBufVarReadable;
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
-use packet_macros::ClientboundGamePacket;
+use azalea_protocol_macros::ClientboundGamePacket;
 use std::{
     hash::Hash,
     io::{Read, Write},

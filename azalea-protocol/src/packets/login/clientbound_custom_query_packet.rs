@@ -1,6 +1,6 @@
 use azalea_buf::{McBuf, UnsizedByteArray};
 use azalea_core::ResourceLocation;
-use packet_macros::ClientboundLoginPacket;
+use azalea_protocol_macros::ClientboundLoginPacket;
 use std::hash::Hash;
 
 #[derive(Hash, Clone, Debug, McBuf, ClientboundLoginPacket)]

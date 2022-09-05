@@ -140,7 +140,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-chat"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "azalea-buf",
  "azalea-language",
@@ -237,11 +237,11 @@ dependencies = [
  "azalea-core",
  "azalea-crypto",
  "azalea-nbt",
+ "azalea-protocol-macros",
  "azalea-world",
  "byteorder",
  "bytes",
  "flate2",
- "packet-macros",
  "serde",
  "serde_json",
  "thiserror",
@@ -252,10 +252,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "azalea-protocol-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "azalea-registry"
 version = "0.1.0"
 dependencies = [
- "registry-macros",
+ "azalea-registry-macros",
+]
+
+[[package]]
+name = "azalea-registry-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -956,15 +974,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ab1bc2a289d34bd04a330323ac98a1b4bc82c9d9fcb1e66b63caa84da26b575"
 
 [[package]]
-name = "packet-macros"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "parking_lot"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1148,15 +1157,6 @@ name = "regex-syntax"
 version = "0.6.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49b3de9ec5dc0a3417da371aab17d729997c15010e7fd24ff707773a33bddb64"
-
-[[package]]
-name = "registry-macros"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
 
 [[package]]
 name = "resolv-conf"

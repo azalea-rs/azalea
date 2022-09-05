@@ -1,7 +1,7 @@
 use azalea_buf::{BufReadError, McBuf, McBufVarReadable, McBufVarWritable};
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
-use packet_macros::ClientboundGamePacket;
+use azalea_protocol_macros::ClientboundGamePacket;
 use std::ops::Deref;
 use std::{
     collections::HashMap,

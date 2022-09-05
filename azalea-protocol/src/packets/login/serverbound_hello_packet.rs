@@ -1,5 +1,5 @@
 use azalea_buf::McBuf;
-use packet_macros::ServerboundLoginPacket;
+use azalea_protocol_macros::ServerboundLoginPacket;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, ServerboundLoginPacket, McBuf, PartialEq)]

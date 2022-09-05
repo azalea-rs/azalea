@@ -1,5 +1,7 @@
 [package]
+description = "Send and receive Minecraft packets."
 edition = "2021"
+license = "MIT"
 name = "azalea-protocol"
 version = "0.1.0"
 
@@ -8,18 +10,18 @@ version = "0.1.0"
 [dependencies]
 async-compression = {version = "^0.3.8", features = ["tokio", "zlib"], optional = true}
 async-recursion = "1.0.0"
-azalea-auth = {path = "../azalea-auth"}
-azalea-brigadier = {path = "../azalea-brigadier"}
-azalea-buf = {path = "../azalea-buf"}
-azalea-chat = {path = "../azalea-chat"}
-azalea-core = {path = "../azalea-core", optional = true}
-azalea-crypto = {path = "../azalea-crypto"}
-azalea-nbt = {path = "../azalea-nbt"}
-azalea-world = {path = "../azalea-world"}
+azalea-auth = {path = "../azalea-auth", version = "^0.1.0"}
+azalea-brigadier = {path = "../azalea-brigadier", version = "^0.1.0"}
+azalea-buf = {path = "../azalea-buf", version = "^0.1.0"}
+azalea-chat = {path = "../azalea-chat", version = "^0.1.1"}
+azalea-core = {path = "../azalea-core", optional = true, version = "^0.1.0"}
+azalea-crypto = {path = "../azalea-crypto", version = "^0.1.0"}
+azalea-nbt = {path = "../azalea-nbt", version = "^0.1.0"}
+azalea-protocol-macros = {path = "./azalea-protocol-macros", version = "^0.1.0"}
+azalea-world = {path = "../azalea-world", version = "^0.1.0"}
 byteorder = "^1.4.3"
 bytes = "^1.1.0"
 flate2 = "1.0.23"
-packet-macros = {path = "./packet-macros"}
 serde = {version = "1.0.130", features = ["serde_derive"]}
 serde_json = "^1.0.72"
 thiserror = "^1.0.34"

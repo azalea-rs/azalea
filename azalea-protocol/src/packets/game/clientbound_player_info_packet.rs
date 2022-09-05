@@ -2,7 +2,7 @@ use crate::packets::login::serverbound_hello_packet::ProfilePublicKeyData;
 use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_chat::component::Component;
-use packet_macros::ClientboundGamePacket;
+use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Read, Write};
 use uuid::Uuid;
 
