@@ -1,6 +1,9 @@
 //! Utilities for reading and writing for the Minecraft protocol
 
 #![feature(min_specialization)]
+// these two are necessary for thiserror backtraces
+#![feature(error_generic_member_access)]
+#![feature(provide_any)]
 
 mod definitions;
 mod read;

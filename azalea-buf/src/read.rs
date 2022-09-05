@@ -1,6 +1,6 @@
 use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use byteorder::{ReadBytesExt, BE};
-use std::{collections::HashMap, hash::Hash, io::Read};
+use std::{backtrace::Backtrace, collections::HashMap, hash::Hash, io::Read};
 use thiserror::Error;
 use tokio::io::{AsyncRead, AsyncReadExt};
 
@@ -15,7 +15,11 @@ pub enum BufReadError {
     #[error("The received encoded string buffer length is longer than maximum allowed ({length} > {max_length})")]
     StringLengthTooLong { length: u32, max_length: u32 },
     #[error("{0}")]
-    Io(#[from] std::io::Error),
+    Io(
+        #[from]
+        #[backtrace]
+        std::io::Error,
+    ),
     #[error("Invalid UTF-8")]
     InvalidUtf8,
     #[error("Unexpected enum variant {id}")]
@@ -207,7 +211,7 @@ impl McBufVarReadable for u32 {
 
 impl McBufReadable for u16 {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
-        i32::read_from(buf).map(|i| i as u16)
+        i16::read_from(buf).map(|i| i as u16)
     }
 }
 
