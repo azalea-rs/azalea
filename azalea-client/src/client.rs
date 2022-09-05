@@ -599,7 +599,7 @@ impl Client {
                     dimension.set_block_state(&p.pos, block_state);
                 } else {
                     eprintln!(
-                        "Non-existent block state for block update packet {}",
+                        "Non-existent block state for block update packet {:?}",
                         p.block_state
                     );
                 }
