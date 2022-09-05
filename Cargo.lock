@@ -106,6 +106,7 @@ name = "azalea-block"
 version = "0.1.0"
 dependencies = [
  "azalea-block-macros",
+ "azalea-buf",
 ]
 
 [[package]]
@@ -235,6 +236,7 @@ dependencies = [
  "async-compression",
  "async-recursion",
  "azalea-auth",
+ "azalea-block",
  "azalea-brigadier",
  "azalea-buf",
  "azalea-chat",
@@ -242,6 +244,7 @@ dependencies = [
  "azalea-crypto",
  "azalea-nbt",
  "azalea-protocol-macros",
+ "azalea-registry",
  "azalea-world",
  "byteorder",
  "bytes",
@@ -268,6 +271,7 @@ dependencies = [
 name = "azalea-registry"
 version = "0.1.0"
 dependencies = [
+ "azalea-buf",
  "azalea-registry-macros",
 ]
 

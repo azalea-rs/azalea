@@ -74,8 +74,22 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         variant_discrim += 1;
                     }
                 }
+                let reader = match variant.fields {
+                    syn::Fields::Named(_) => {
+                        panic!("writing named fields in enums is not supported")
+                    }
+                    syn::Fields::Unnamed(_) => quote! {
+                        Ok(Self::#variant_name(azalea_buf::McBufReadable::read_from(buf)?))
+                    },
+                    syn::Fields::Unit => quote! {
+                        Ok(Self::#variant_name)
+                    },
+                };
+
                 match_contents.extend(quote! {
-                    #variant_discrim => Ok(Self::#variant_name),
+                    #variant_discrim => {
+                        #reader
+                    },
                 });
             }
 
@@ -141,11 +155,75 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                 }
             }
         }
-        syn::Data::Enum(syn::DataEnum { .. }) => {
-            quote! {
-                impl azalea_buf::McBufWritable for #ident {
-                    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-                        azalea_buf::McBufVarWritable::var_write_into(&(*self as u32), buf)
+        syn::Data::Enum(syn::DataEnum { variants, .. }) => {
+            // remember whether it's a data variant so we can do an optimization later
+            let mut is_data_enum = false;
+            let mut match_arms = quote!();
+            let mut variant_discrim: u32 = 0;
+            for variant in variants {
+                // figure out the discriminant
+                if let Some(discriminant) = &variant.discriminant {
+                    variant_discrim = match &discriminant.1 {
+                        syn::Expr::Lit(e) => match &e.lit {
+                            syn::Lit::Int(i) => i.base10_parse().unwrap(),
+                            _ => panic!("Error parsing enum discriminant as int"),
+                        },
+                        syn::Expr::Unary(_) => {
+                            panic!("Negative enum discriminants are not supported")
+                        }
+                        _ => {
+                            panic!(
+                                "Error parsing enum discriminant as literal (is {:?})",
+                                discriminant.1
+                            )
+                        }
+                    };
+                } else {
+                    variant_discrim += 1;
+                }
+
+                match &variant.fields {
+                    syn::Fields::Named(_) => {
+                        panic!("Enum variants with named fields are not supported yet");
+                    }
+                    syn::Fields::Unit => {
+                        let variant_name = &variant.ident;
+                        match_arms.extend(quote! {
+                            Self::#variant_name => {
+                                azalea_buf::McBufVarWritable::var_write_into(&#variant_discrim, buf)?;
+                            }
+                        });
+                    }
+                    syn::Fields::Unnamed(_) => {
+                        is_data_enum = true;
+                        let variant_name = &variant.ident;
+                        match_arms.extend(quote! {
+                            Self::#variant_name(data) => {
+                                azalea_buf::McBufVarWritable::var_write_into(&#variant_discrim, buf)?;
+                                azalea_buf::McBufWritable::write_into(data, buf)?;
+                            }
+                        });
+                    }
+                }
+            }
+            if is_data_enum {
+                quote! {
+                    impl azalea_buf::McBufWritable for #ident {
+                        fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                            match self {
+                                #match_arms
+                            }
+                            Ok(())
+                        }
+                    }
+                }
+            } else {
+                // optimization: if it doesn't have data we can just do `as u32`
+                quote! {
+                    impl azalea_buf::McBufWritable for #ident {
+                        fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                            azalea_buf::McBufVarWritable::var_write_into(&(*self as u32), buf)
+                        }
                     }
                 }
             }

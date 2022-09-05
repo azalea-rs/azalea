@@ -3,9 +3,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundCooldownPacket {
-    // TODO: make azalea-items or something and use that
-    #[var]
-    pub item: u32,
+    pub item: azalea_registry::Item,
     #[var]
     pub duration: u32,
 }

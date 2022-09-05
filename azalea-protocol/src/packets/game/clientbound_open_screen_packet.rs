@@ -6,8 +6,6 @@ use azalea_protocol_macros::ClientboundGamePacket;
 pub struct ClientboundOpenScreenPacket {
     #[var]
     pub container_id: u32,
-    // TODO: have an enum of this
-    #[var]
-    pub menu_type: u32,
+    pub menu_type: azalea_registry::Menu,
     pub title: Component,
 }

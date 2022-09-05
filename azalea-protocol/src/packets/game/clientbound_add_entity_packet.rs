@@ -10,9 +10,7 @@ pub struct ClientboundAddEntityPacket {
     #[var]
     pub id: u32,
     pub uuid: Uuid,
-    // TODO: have an entity type enum/struct
-    #[var]
-    pub entity_type: i32,
+    pub entity_type: azalea_registry::EntityType,
     pub x: f64,
     pub y: f64,
     pub z: f64,

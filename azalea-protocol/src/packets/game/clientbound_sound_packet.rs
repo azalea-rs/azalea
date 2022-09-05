@@ -3,9 +3,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSoundPacket {
-    // TODO: sound enum/registry
-    #[var]
-    pub sound: u32,
+    pub sound: azalea_registry::SoundEvent,
     pub source: SoundSource,
     pub x: i32,
     pub y: i32,

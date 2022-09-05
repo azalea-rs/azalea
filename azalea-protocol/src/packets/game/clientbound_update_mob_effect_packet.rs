@@ -5,9 +5,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 pub struct ClientboundUpdateMobEffectPacket {
     #[var]
     pub entity_id: u32,
-    // TODO: have an enum for this
-    #[var]
-    pub effect: u32,
+    pub effect: azalea_registry::MobEffect,
     pub effect_amplifier: u8,
     #[var]
     pub effect_duration_ticks: u32,

@@ -11,6 +11,7 @@ version = "0.1.0"
 async-compression = {version = "^0.3.8", features = ["tokio", "zlib"], optional = true}
 async-recursion = "1.0.0"
 azalea-auth = {path = "../azalea-auth", version = "^0.1.0"}
+azalea-block = {path = "../azalea-block", default-features = false, version = "^0.1.0"}
 azalea-brigadier = {path = "../azalea-brigadier", version = "^0.1.0"}
 azalea-buf = {path = "../azalea-buf", version = "^0.1.0"}
 azalea-chat = {path = "../azalea-chat", version = "^0.1.1"}
@@ -18,6 +19,7 @@ azalea-core = {path = "../azalea-core", optional = true, version = "^0.1.0"}
 azalea-crypto = {path = "../azalea-crypto", version = "^0.1.0"}
 azalea-nbt = {path = "../azalea-nbt", version = "^0.1.0"}
 azalea-protocol-macros = {path = "./azalea-protocol-macros", version = "^0.1.0"}
+azalea-registry = {path = "../azalea-registry", version = "^0.1.0"}
 azalea-world = {path = "../azalea-world", version = "^0.1.0"}
 byteorder = "^1.4.3"
 bytes = "^1.1.0"

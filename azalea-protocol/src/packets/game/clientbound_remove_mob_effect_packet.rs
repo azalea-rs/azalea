@@ -5,7 +5,5 @@ use azalea_protocol_macros::ClientboundGamePacket;
 pub struct ClientboundRemoveMobEffectPacket {
     #[var]
     pub entity_id: u32,
-    // TODO: have this use an enum
-    #[var]
-    pub effect: u32,
+    pub effect: azalea_registry::MobEffect,
 }

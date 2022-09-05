@@ -26,7 +26,6 @@ pub struct ShapelessRecipe {
 }
 #[derive(Clone, Debug)]
 pub struct ShapedRecipe {
-    // TODO: make own McBufReadable and McBufWritable for this
     width: usize,
     height: usize,
     group: String,

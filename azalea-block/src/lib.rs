@@ -1,10 +1,13 @@
 mod behavior;
 mod blocks;
 
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 pub use behavior::BlockBehavior;
 pub use blocks::*;
-
-use std::mem;
+use std::{
+    io::{Read, Write},
+    mem,
+};
 
 impl BlockState {
     /// Transmutes a u32 to a block state.
@@ -32,6 +35,20 @@ impl TryFrom<u32> for BlockState {
         } else {
             Err(())
         }
+    }
+}
+
+impl McBufReadable for BlockState {
+    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+        let state_id = u32::var_read_from(buf)?;
+        Self::try_from(state_id).map_err(|_| BufReadError::UnexpectedEnumVariant {
+            id: state_id as i32,
+        })
+    }
+}
+impl McBufWritable for BlockState {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        u32::var_write_into(&(*self as u32), buf)
     }
 }
 

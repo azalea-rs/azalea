@@ -1,3 +1,4 @@
+use azalea_block::BlockState;
 use azalea_buf::McBuf;
 use azalea_core::BlockPos;
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -7,7 +8,5 @@ pub struct ClientboundBlockEventPacket {
     pub pos: BlockPos,
     pub b0: u8,
     pub b1: u8,
-    // TODO: this is a BlockState, see ClientboundBlockUpdatePacket for more info
-    #[var]
-    pub block: u32,
+    pub block: BlockState,
 }

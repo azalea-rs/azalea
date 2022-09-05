@@ -67,7 +67,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
         });
     }
     generated.extend(quote! {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, azalea_buf::McBuf)]
         #[repr(u32)]
         pub enum #name {
             #enum_items
@@ -75,12 +75,16 @@ pub fn registry(input: TokenStream) -> TokenStream {
     });
 
     let max_id = input.items.len() as u32;
+
+    let doc_0 = format!("Transmutes a u32 to a {}.", name);
+    let doc_1 = format!("The `id` should be at most {}.", max_id);
+
     generated.extend(quote! {
         impl #name {
-            /// Transmutes a u32 to a #name.
+            #[doc = #doc_0]
             ///
             /// # Safety
-            /// The `id` should be at most #max_id.
+            #[doc = #doc_1]
             #[inline]
             pub unsafe fn from_u32_unchecked(id: u32) -> Self {
                 std::mem::transmute::<u32, #name>(id)
@@ -93,11 +97,13 @@ pub fn registry(input: TokenStream) -> TokenStream {
         }
     });
 
+    let doc_0 = format!("Safely transmutes a u32 to a {}.", name);
+
     generated.extend(quote! {
         impl TryFrom<u32> for #name {
             type Error = ();
 
-            /// Safely converts a state id to a block state.
+            #[doc = #doc_0]
             fn try_from(id: u32) -> Result<Self, Self::Error> {
                 if Self::is_valid_id(id) {
                     Ok(unsafe { Self::from_u32_unchecked(id) })
