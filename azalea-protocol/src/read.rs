@@ -61,6 +61,8 @@ where
     // Packet Length
     let length = read_varint_async(&mut stream).await? as u32;
 
+    // TODO: read individual tcp packets so we don't need this
+    // https://github.com/tokio-rs/tokio/blob/master/examples/print_each_packet.rs
     let max_length: u32 = 2u32.pow(20u32); // 1mb, arbitrary
     if length > max_length {
         // minecraft *probably* won't send packets bigger than this
