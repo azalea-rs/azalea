@@ -35,7 +35,7 @@ impl Shapes {
     }
 }
 
-pub trait VoxelShape {
+pub trait VoxelShape: Send + Sync {
     fn shape(&self) -> Box<dyn DiscreteVoxelShape>;
 
     fn get_coords(&self, axis: Axis) -> Vec<f64>;
@@ -46,7 +46,6 @@ pub trait VoxelShape {
         if self.shape().is_empty() {
             return empty_shape();
         }
-
 
         Box::new(ArrayVoxelShape::new(
             self.shape(),
@@ -202,7 +201,7 @@ impl ArrayVoxelShape {
 }
 
 impl CubeVoxelShape {
-    pub fn new(shape: Box<dyn DiscreteVoxelShape>) -> Self {
+    pub fn new(shape: Box<dyn DiscreteVoxelShape + Send + Sync>) -> Self {
         Self { shape, faces: None }
     }
 }

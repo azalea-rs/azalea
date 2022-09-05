@@ -1,3 +1,4 @@
+mod blocks;
 mod dimension_collisions;
 mod discrete_voxel_shape;
 mod shape;

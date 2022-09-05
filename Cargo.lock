@@ -226,6 +226,7 @@ dependencies = [
  "azalea-block",
  "azalea-core",
  "azalea-world",
+ "lazy_static",
  "uuid",
 ]
 

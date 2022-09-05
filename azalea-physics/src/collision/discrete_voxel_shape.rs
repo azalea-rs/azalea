@@ -2,7 +2,7 @@ use azalea_core::{Axis, AxisCycle, BitSet};
 
 // TODO: every impl of DiscreteVoxelShape could be turned into a single enum as an optimization
 
-pub trait DiscreteVoxelShape {
+pub trait DiscreteVoxelShape: Send + Sync {
     fn size(&self, axis: Axis) -> u32;
 
     fn first_full_x(&self) -> u32;
