@@ -70,7 +70,6 @@ impl Dimension {
     }
 
     pub fn set_entity_pos(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), MoveEntityError> {
-        println!("set_entity_pos({}, {:?})", entity_id, new_pos);
         let mut entity = self
             .entity_mut(entity_id)
             .ok_or(MoveEntityError::EntityDoesNotExist)?;

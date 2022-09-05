@@ -302,7 +302,7 @@ const X_OFFSET: u64 = PACKED_Y_LENGTH + PACKED_Z_LENGTH;
 
 impl McBufReadable for BlockPos {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
-        let val = u64::read_from(buf)?;
+        let val = i64::read_from(buf)?;
         println!("reading blockpos from {}", val);
         let x = (val << (64 - X_OFFSET - PACKED_X_LENGTH) >> (64 - PACKED_X_LENGTH)) as i32;
         let y = (val << (64 - PACKED_Y_LENGTH) >> (64 - PACKED_Y_LENGTH)) as i32;
@@ -362,6 +362,8 @@ impl McBufWritable for ChunkSectionPos {
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+
     use super::*;
 
     #[test]
@@ -398,5 +400,14 @@ mod tests {
         };
         let chunk_pos = ChunkPos::from(&entity_pos);
         assert_eq!(chunk_pos, ChunkPos::new(1, -2));
+    }
+
+    #[test]
+    fn test_read_blockpos_from() {
+        let mut buf = Cursor::new(Vec::new());
+        13743895338965u64.write_into(&mut buf).unwrap();
+        buf.set_position(0);
+        let block_pos = BlockPos::read_from(&mut buf).unwrap();
+        assert_eq!(block_pos, BlockPos::new(49, -43, -3));
     }
 }

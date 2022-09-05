@@ -1,6 +1,6 @@
 use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use byteorder::{ReadBytesExt, BE};
-use std::{backtrace::Backtrace, collections::HashMap, hash::Hash, io::Read};
+use std::{collections::HashMap, hash::Hash, io::Read};
 use thiserror::Error;
 use tokio::io::{AsyncRead, AsyncReadExt};
 

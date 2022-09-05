@@ -568,7 +568,7 @@ impl Client {
                 println!("Got remove entities packet {:?}", p);
             }
             ClientboundGamePacket::ClientboundPlayerChatPacket(p) => {
-                println!("Got player chat packet {:?}", p);
+                // println!("Got player chat packet {:?}", p);
                 tx.send(Event::Chat(ChatPacket::Player(Box::new(p.clone()))))
                     .unwrap();
             }

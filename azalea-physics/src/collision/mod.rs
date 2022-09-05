@@ -57,7 +57,6 @@ impl HasCollision for Dimension {
     // }
     fn collide(&self, movement: &Vec3, entity: &EntityData) -> Vec3 {
         let entity_bounding_box = entity.bounding_box;
-        println!("collide: entity_bounding_box: {:?}", entity_bounding_box);
         // TODO: get_entity_collisions
         // let entity_collisions = dimension.get_entity_collisions(self, entity_bounding_box.expand_towards(movement));
         let entity_collisions = Vec::new();
@@ -107,13 +106,9 @@ impl MovableEntity for EntityMut<'_> {
 
         // movement = this.maybeBackOffFromEdge(movement, moverType);
 
-        println!("move_entity {:?}", movement);
-
         let collide_result = { self.dimension.collide(movement, self) };
 
         let move_distance = collide_result.length_sqr();
-
-        println!("move_entity move_distance: {}", move_distance);
 
         if move_distance > EPSILON {
             // TODO: fall damage
@@ -128,8 +123,6 @@ impl MovableEntity for EntityMut<'_> {
             };
 
             self.dimension.set_entity_pos(self.id, new_pos)?;
-
-            println!("move_entity set_entity_pos {:?}", new_pos)
         }
 
         let x_collision = movement.x != collide_result.x;
@@ -139,11 +132,6 @@ impl MovableEntity for EntityMut<'_> {
         let on_ground = vertical_collision && movement.y < 0.;
         // self.on_ground = on_ground;
 
-        println!(
-            "move_entity {} {} {}",
-            x_collision, z_collision, vertical_collision
-        );
-
         // TODO: minecraft checks for a "minor" horizontal collision here
 
         let _block_pos_below = self.on_pos_legacy();
@@ -152,7 +140,6 @@ impl MovableEntity for EntityMut<'_> {
         //     .get_block_state(&block_pos_below)
         //     .expect("Couldn't get block state below");
 
-        println!("move_entity 4");
         // self.check_fall_damage(collide_result.y, on_ground, block_state_below, block_pos_below);
 
         // if self.isRemoved() { return; }
@@ -195,8 +182,6 @@ impl MovableEntity for EntityMut<'_> {
         // if (this.isOnFire() && (this.isInPowderSnow || this.isInWaterRainOrBubble())) {
         //    this.setRemainingFireTicks(-this.getFireImmuneTicks());
         // }
-
-        println!("move_entity 5");
 
         Ok(())
     }

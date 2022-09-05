@@ -47,12 +47,6 @@ pub trait VoxelShape {
             return empty_shape();
         }
 
-        println!(
-            "making new voxel shape {:?} {:?} {:?}",
-            self.get_coords(Axis::X),
-            self.get_coords(Axis::Y),
-            self.get_coords(Axis::Z)
-        );
 
         Box::new(ArrayVoxelShape::new(
             self.shape(),
@@ -68,12 +62,6 @@ pub trait VoxelShape {
 
     fn find_index(&self, axis: Axis, coord: f64) -> i32 {
         let r = binary_search(0, (self.shape().size(axis) + 1) as i32, &|t| {
-            println!(
-                "checking {} ({}) against {}",
-                t,
-                self.get(axis, t as usize),
-                coord
-            );
             coord < self.get(axis, t as usize)
         }) - 1;
         r
@@ -123,7 +111,6 @@ pub trait VoxelShape {
         );
 
         let var19 = self.shape().size(x_axis);
-        println!("movement: {}", movement);
         if movement > 0. {
             for var20 in var14 + 1..(var19 as i32) {
                 for var21 in var15..var16 {
@@ -144,7 +131,6 @@ pub trait VoxelShape {
                 }
             }
         } else if movement < 0. {
-            println!("hmmm var13={}", var13);
             if var13 > 0 {
                 for var20 in (var13 - 1)..=0 {
                     for var21 in var15..var16 {
