@@ -17,11 +17,12 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
         syn::Fields::Named(f) => f,
         _ => panic!("#[derive(*Packet)] can only be used on structs with named fields"),
     };
+    let variant_name = variant_name_from(&ident);
 
     let contents = quote! {
         impl #ident {
             pub fn get(self) -> #state {
-                #state::#ident(self)
+                #state::#variant_name(self)
             }
 
             pub fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
@@ -206,15 +207,17 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     let mut clientbound_read_match_contents = quote!();
 
     for PacketIdPair { id, module, name } in input.serverbound.packets {
+        let variant_name = variant_name_from(&name);
+
         let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
         serverbound_enum_contents.extend(quote! {
-            #name(#module::#name),
+            #variant_name(#module::#name),
         });
         serverbound_id_match_contents.extend(quote! {
-            #serverbound_state_name::#name(_packet) => #id,
+            #serverbound_state_name::#variant_name(_packet) => #id,
         });
         serverbound_write_match_contents.extend(quote! {
-            #serverbound_state_name::#name(packet) => packet.write(buf),
+            #serverbound_state_name::#variant_name(packet) => packet.write(buf),
         });
         serverbound_read_match_contents.extend(quote! {
             #id => {
@@ -230,14 +233,16 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     }
     for PacketIdPair { id, module, name } in input.clientbound.packets {
         let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
+        let variant_name = variant_name_from(&name);
+
         clientbound_enum_contents.extend(quote! {
-            #name(#module::#name),
+            #variant_name(#module::#name),
         });
         clientbound_id_match_contents.extend(quote! {
-            #clientbound_state_name::#name(_packet) => #id,
+            #clientbound_state_name::#variant_name(_packet) => #id,
         });
         clientbound_write_match_contents.extend(quote! {
-            #clientbound_state_name::#name(packet) => packet.write(buf),
+            #clientbound_state_name::#variant_name(packet) => packet.write(buf),
         });
         clientbound_read_match_contents.extend(quote! {
             #id => {
@@ -349,4 +354,18 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     });
 
     contents.into()
+}
+
+fn variant_name_from(name: &syn::Ident) -> syn::Ident {
+    // remove "<direction>Bound" from the start and "Packet" from the end
+    let mut variant_name = name.to_string();
+    if variant_name.starts_with("Clientbound") {
+        variant_name = variant_name["Clientbound".len()..].to_string();
+    } else if variant_name.starts_with("Serverbound") {
+        variant_name = variant_name["Serverbound".len()..].to_string();
+    }
+    if variant_name.ends_with("Packet") {
+        variant_name = variant_name[..variant_name.len()-"Packet".len()].to_string();
+    }
+    syn::Ident::new(&variant_name, name.span())
 }

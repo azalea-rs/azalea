@@ -54,8 +54,8 @@ pub async fn ping_server(
 
     loop {
         match packet {
-            ClientboundStatusPacket::ClientboundStatusResponsePacket(p) => return Ok(p),
-            ClientboundStatusPacket::ClientboundPongResponsePacket(_) => {
+            ClientboundStatusPacket::StatusResponse(p) => return Ok(p),
+            ClientboundStatusPacket::PongResponse(_) => {
                 // we should never get this packet since we didn't send a ping
             }
         }
