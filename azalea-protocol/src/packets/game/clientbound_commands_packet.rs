@@ -10,7 +10,7 @@ use std::io::{Read, Write};
 pub struct ClientboundCommandsPacket {
     pub entries: Vec<BrigadierNodeStub>,
     #[var]
-    pub root_index: i32,
+    pub root_index: u32,
 }
 
 #[derive(Debug, Clone)]
@@ -278,4 +278,14 @@ pub enum NodeType {
         parser: BrigadierParser,
         suggestions_type: Option<ResourceLocation>,
     },
+}
+
+impl BrigadierNodeStub {
+    pub fn name(&self) -> Option<&str> {
+        match &self.node_type {
+            NodeType::Root => None,
+            NodeType::Literal { name } => Some(name),
+            NodeType::Argument { name, .. } => Some(name),
+        }
+    }
 }
