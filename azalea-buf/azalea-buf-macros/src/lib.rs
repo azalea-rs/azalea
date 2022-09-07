@@ -53,6 +53,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
         syn::Data::Enum(syn::DataEnum { variants, .. }) => {
             let mut match_contents = quote!();
             let mut variant_discrim: u32 = 0;
+            let mut first = true;
             for variant in variants {
                 let variant_name = &variant.ident;
                 match &variant.discriminant.as_ref() {
@@ -71,7 +72,11 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         }
                     }
                     None => {
-                        variant_discrim += 1;
+                        if first {
+                            first = false;
+                        } else {
+                            variant_discrim += 1;
+                        }
                     }
                 }
                 let reader = match variant.fields {
@@ -160,26 +165,31 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             let mut is_data_enum = false;
             let mut match_arms = quote!();
             let mut variant_discrim: u32 = 0;
+            let mut first = true;
             for variant in variants {
-                // figure out the discriminant
-                if let Some(discriminant) = &variant.discriminant {
-                    variant_discrim = match &discriminant.1 {
-                        syn::Expr::Lit(e) => match &e.lit {
-                            syn::Lit::Int(i) => i.base10_parse().unwrap(),
-                            _ => panic!("Error parsing enum discriminant as int"),
-                        },
-                        syn::Expr::Unary(_) => {
-                            panic!("Negative enum discriminants are not supported")
+                let variant_name = &variant.ident;
+                match &variant.discriminant.as_ref() {
+                    Some(d) => {
+                        variant_discrim = match &d.1 {
+                            syn::Expr::Lit(e) => match &e.lit {
+                                syn::Lit::Int(i) => i.base10_parse().unwrap(),
+                                _ => panic!("Error parsing enum discriminant as int"),
+                            },
+                            syn::Expr::Unary(_) => {
+                                panic!("Negative enum discriminants are not supported")
+                            }
+                            _ => {
+                                panic!("Error parsing enum discriminant as literal (is {:?})", d.1)
+                            }
                         }
-                        _ => {
-                            panic!(
-                                "Error parsing enum discriminant as literal (is {:?})",
-                                discriminant.1
-                            )
+                    }
+                    None => {
+                        if first {
+                            first = false;
+                        } else {
+                            variant_discrim += 1;
                         }
-                    };
-                } else {
-                    variant_discrim += 1;
+                    }
                 }
 
                 match &variant.fields {
