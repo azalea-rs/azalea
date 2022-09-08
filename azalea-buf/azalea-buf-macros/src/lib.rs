@@ -167,7 +167,6 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             let mut variant_discrim: u32 = 0;
             let mut first = true;
             for variant in variants {
-                let variant_name = &variant.ident;
                 match &variant.discriminant.as_ref() {
                     Some(d) => {
                         variant_discrim = match &d.1 {
