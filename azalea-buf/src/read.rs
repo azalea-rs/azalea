@@ -48,7 +48,7 @@ fn read_utf_with_len(buf: &mut impl Read, max_length: u32) -> Result<String, Buf
     let mut buffer = vec![0; length as usize];
     buf.read_exact(&mut buffer)
         .map_err(|_| BufReadError::InvalidUtf8)?;
-    string.push_str(std::str::from_utf8(&buffer).unwrap());
+    string.push_str(std::str::from_utf8(&buffer).map_err(|_| BufReadError::InvalidUtf8)?);
     if string.len() > length as usize {
         return Err(BufReadError::StringLengthTooLong { length, max_length });
     }
