@@ -182,7 +182,7 @@ impl<'de> Deserialize<'de> for Component {
                     "keybind text components aren't yet supported",
                 ));
             } else {
-                let nbt = if let Some(nbt) = json.get("nbt") {
+                let _nbt = if let Some(nbt) = json.get("nbt") {
                     nbt
                 } else {
                     return Err(de::Error::custom(

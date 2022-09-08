@@ -14,7 +14,7 @@ pub struct ClientboundPlayerChatPacket {
     pub chat_type: ChatTypeBound,
 }
 
-#[derive(Copy, Clone, Debug, McBuf)]
+#[derive(Copy, Clone, Debug, McBuf, PartialEq, Eq)]
 pub enum ChatType {
     Chat = 0,
     SayCommand = 1,
@@ -113,5 +113,17 @@ impl McBufWritable for FilterMask {
             }
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_chat_type() {
+        let chat_type_enum = ChatType::read_from(&mut &[0x06][..]).unwrap();
+        assert_eq!(chat_type_enum, ChatType::EmoteCommand);
+        assert!(ChatType::read_from(&mut &[0x07][..]).is_err());
     }
 }
