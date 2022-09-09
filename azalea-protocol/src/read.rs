@@ -3,6 +3,7 @@ use azalea_buf::McBufVarReadable;
 use azalea_buf::{read_varint_async, BufReadError};
 use azalea_crypto::Aes128CfbDec;
 use flate2::read::ZlibDecoder;
+use log::trace;
 use std::{
     cell::Cell,
     io::Read,
@@ -199,6 +200,8 @@ where
     if let Some(compression_threshold) = compression_threshold {
         buf = compression_decoder(&mut buf.as_slice(), compression_threshold)?;
     }
+
+    trace!("Reading packet with bytes: {buf:?}");
 
     let packet = packet_decoder(&mut buf.as_slice())?;
 
