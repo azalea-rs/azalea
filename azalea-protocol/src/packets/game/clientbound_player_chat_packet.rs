@@ -1,11 +1,8 @@
-use azalea_buf::{
-    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
-};
+use azalea_buf::McBuf;
 use azalea_chat::component::Component;
 use azalea_core::BitSet;
 use azalea_crypto::{MessageSignature, SignedMessageHeader};
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Read, Write};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
@@ -82,48 +79,25 @@ pub struct ChatMessageContent {
     pub decorated: Option<Component>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, McBuf)]
 pub enum FilterMask {
     PassThrough,
     FullyFiltered,
     PartiallyFiltered(BitSet),
 }
 
-impl McBufReadable for FilterMask {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
-        let filter_mask = u32::var_read_from(buf)?;
-        match filter_mask {
-            0 => Ok(FilterMask::PassThrough),
-            1 => Ok(FilterMask::FullyFiltered),
-            2 => Ok(FilterMask::PartiallyFiltered(BitSet::read_from(buf)?)),
-            _ => Err(BufReadError::UnexpectedEnumVariant {
-                id: filter_mask as i32,
-            }),
-        }
-    }
-}
-impl McBufWritable for FilterMask {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        match self {
-            FilterMask::PassThrough => 0u32.var_write_into(buf)?,
-            FilterMask::FullyFiltered => 1u32.var_write_into(buf)?,
-            FilterMask::PartiallyFiltered(bits) => {
-                2u32.var_write_into(buf)?;
-                bits.write_into(buf)?;
-            }
-        }
-        Ok(())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use azalea_buf::McBufReadable;
 
     #[test]
     fn test_chat_type() {
         let chat_type_enum = ChatType::read_from(&mut &[0x06][..]).unwrap();
         assert_eq!(chat_type_enum, ChatType::EmoteCommand);
-        assert!(ChatType::read_from(&mut &[0x07][..]).is_err());
+        assert_eq!(
+            ChatType::read_from(&mut &[0x07][..]).unwrap(),
+            ChatType::Chat
+        );
     }
 }

@@ -14,6 +14,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                 .iter()
                 .map(|f| {
                     let field_name = &f.ident;
+                    let field_name_str = field_name.as_ref().unwrap().to_string();
                     let field_type = &f.ty;
                     // do a different buf.write_* for each field depending on the type
                     // if it's a string, use buf.write_string
@@ -21,10 +22,12 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         syn::Type::Path(_) | syn::Type::Array(_) => {
                             if f.attrs.iter().any(|a| a.path.is_ident("var")) {
                                 quote! {
+                                    println!("reading {}", #field_name_str);
                                     let #field_name = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                                 }
                             } else {
                                 quote! {
+                                    println!("reading {}", #field_name_str);
                                     let #field_name = azalea_buf::McBufReadable::read_from(buf)?;
                                 }
                             }
@@ -54,6 +57,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             let mut match_contents = quote!();
             let mut variant_discrim: u32 = 0;
             let mut first = true;
+            let mut first_reader = None;
             for variant in variants {
                 let variant_name = &variant.ident;
                 match &variant.discriminant.as_ref() {
@@ -72,9 +76,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         }
                     }
                     None => {
-                        if first {
-                            first = false;
-                        } else {
+                        if !first {
                             variant_discrim += 1;
                         }
                     }
@@ -90,6 +92,10 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         Ok(Self::#variant_name)
                     },
                 };
+                if first {
+                    first_reader = Some(reader.clone());
+                    first = false;
+                };
 
                 match_contents.extend(quote! {
                     #variant_discrim => {
@@ -98,6 +104,8 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                 });
             }
 
+            let first_reader = first_reader.expect("There should be at least one variant");
+
             quote! {
             impl azalea_buf::McBufReadable for #ident {
                 fn read_from(buf: &mut impl std::io::Read) -> Result<Self, azalea_buf::BufReadError>
@@ -105,7 +113,8 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                     let id = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                     match id {
                         #match_contents
-                        _ => Err(azalea_buf::BufReadError::UnexpectedEnumVariant { id: id as i32 }),
+                        // you'd THINK this throws an error, but mojang decided to make it default for some reason
+                        _ => #first_reader
                     }
                 }
             }
