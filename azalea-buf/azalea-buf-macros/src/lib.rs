@@ -14,7 +14,6 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                 .iter()
                 .map(|f| {
                     let field_name = &f.ident;
-                    let field_name_str = field_name.as_ref().unwrap().to_string();
                     let field_type = &f.ty;
                     // do a different buf.write_* for each field depending on the type
                     // if it's a string, use buf.write_string
@@ -22,12 +21,10 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         syn::Type::Path(_) | syn::Type::Array(_) => {
                             if f.attrs.iter().any(|a| a.path.is_ident("var")) {
                                 quote! {
-                                    println!("reading {}", #field_name_str);
                                     let #field_name = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                                 }
                             } else {
                                 quote! {
-                                    println!("reading {}", #field_name_str);
                                     let #field_name = azalea_buf::McBufReadable::read_from(buf)?;
                                 }
                             }
