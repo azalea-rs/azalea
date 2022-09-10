@@ -203,8 +203,8 @@ where
 
     if log_enabled!(log::Level::Trace) {
         let buf_string: String = {
-            if buf.len() > 100 {
-                let cut_off_buf = &buf[..100];
+            if buf.len() > 500 {
+                let cut_off_buf = &buf[..500];
                 format!("{cut_off_buf:?}...")
             } else {
                 format!("{buf:?}")
