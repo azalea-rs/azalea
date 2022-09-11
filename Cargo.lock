@@ -294,6 +294,7 @@ dependencies = [
  "azalea-chat",
  "azalea-core",
  "azalea-nbt",
+ "azalea-registry",
  "log",
  "nohash-hasher",
  "thiserror",

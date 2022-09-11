@@ -221,7 +221,10 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::packets::game::{clientbound_player_chat_packet::ChatType, ClientboundGamePacket};
+    use crate::packets::{
+        game::{clientbound_player_chat_packet::ChatType, ClientboundGamePacket},
+        handshake::ClientboundHandshakePacket,
+    };
     use std::io::Cursor;
 
     #[tokio::test]

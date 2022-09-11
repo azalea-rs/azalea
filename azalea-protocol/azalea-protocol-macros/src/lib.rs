@@ -365,7 +365,7 @@ fn variant_name_from(name: &syn::Ident) -> syn::Ident {
         variant_name = variant_name["Serverbound".len()..].to_string();
     }
     if variant_name.ends_with("Packet") {
-        variant_name = variant_name[..variant_name.len()-"Packet".len()].to_string();
+        variant_name = variant_name[..variant_name.len() - "Packet".len()].to_string();
     }
     syn::Ident::new(&variant_name, name.span())
 }
