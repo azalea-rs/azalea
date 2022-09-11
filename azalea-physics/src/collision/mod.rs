@@ -1,6 +1,7 @@
 mod blocks;
 mod dimension_collisions;
 mod discrete_voxel_shape;
+mod mergers;
 mod shape;
 
 use azalea_core::{Axis, PositionXYZ, Vec3, AABB, EPSILON};

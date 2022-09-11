@@ -44,7 +44,7 @@ pub trait DiscreteVoxelShape: Send + Sync {
     fn clone(&self) -> Box<dyn DiscreteVoxelShape>;
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Eq, PartialEq)]
 pub struct BitSetDiscreteVoxelShape {
     x_size: u32,
     y_size: u32,

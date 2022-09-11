@@ -1,10 +1,17 @@
 use crate::collision::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB};
-use azalea_core::{binary_search, Axis, AxisCycle, EPSILON};
-use std::cmp;
+use azalea_core::{binary_search, lcm, Axis, AxisCycle, EPSILON};
+use std::{any::Any, cmp, num::NonZeroU32};
+
+use super::mergers::IndexMerger;
 
 pub struct Shapes {}
 
 pub fn block_shape() -> Box<dyn VoxelShape> {
+    let mut shape = BitSetDiscreteVoxelShape::new(1, 1, 1);
+    shape.fill(0, 0, 0);
+    Box::new(CubeVoxelShape::new(Box::new(shape)))
+}
+pub fn block_box_shape() -> Box<dyn VoxelShape> {
     let mut shape = BitSetDiscreteVoxelShape::new(1, 1, 1);
     shape.fill(0, 0, 0);
     Box::new(CubeVoxelShape::new(Box::new(shape)))
@@ -33,12 +40,120 @@ impl Shapes {
         }
         movement
     }
+
+    pub fn join_unoptimized(
+        a: Box<dyn VoxelShape>,
+        b: Box<dyn VoxelShape>,
+        op: impl FnOnce(bool, bool) -> bool,
+    ) -> Box<dyn VoxelShape> {
+        if op(false, false) {
+            panic!("Illegal operation");
+        };
+        // if (a == b) {
+        //     return if op(true, true) { a } else { empty_shape() };
+        // }
+        let op_true_false = op(true, false);
+        let op_false_true = op(false, true);
+        if a.is_empty() {
+            return if op_false_true { b } else { empty_shape() };
+        }
+        if b.is_empty() {
+            return if op_true_false { a } else { empty_shape() };
+        }
+        // IndexMerger var5 = createIndexMerger(1, a.getCoords(Direction.Axis.X), b.getCoords(Direction.Axis.X), var3, var4);
+        // IndexMerger var6 = createIndexMerger(var5.size() - 1, a.getCoords(Direction.Axis.Y), b.getCoords(Direction.Axis.Y), var3, var4);
+        // IndexMerger var7 = createIndexMerger((var5.size() - 1) * (var6.size() - 1), a.getCoords(Direction.Axis.Z), b.getCoords(Direction.Axis.Z), var3, var4);
+        // BitSetDiscreteVoxelShape var8 = BitSetDiscreteVoxelShape.join(a.shape, b.shape, var5, var6, var7, op);
+        // return (VoxelShape)(var5 instanceof DiscreteCubeMerger && var6 instanceof DiscreteCubeMerger && var7 instanceof DiscreteCubeMerger ? new CubeVoxelShape(var8) : new ArrayVoxelShape(var8, var5.getList(), var6.getList(), var7.getList()));
+        let var5 = Self::create_index_merger(
+            1,
+            a.get_coords(Axis::X),
+            b.get_coords(Axis::X),
+            op_true_false,
+            op_false_true,
+        );
+        let var6 = Self::create_index_merger(
+            (var5.size() - 1).try_into().unwrap(),
+            a.get_coords(Axis::Y),
+            b.get_coords(Axis::Y),
+            op_true_false,
+            op_false_true,
+        );
+        let var7 = Self::create_index_merger(
+            ((var5.size() - 1) * (var6.size() - 1)).try_into().unwrap(),
+            a.get_coords(Axis::Z),
+            b.get_coords(Axis::Z),
+            op_true_false,
+            op_false_true,
+        );
+        let var8 = BitSetDiscreteVoxelShape::join(a.shape(), b.shape(), &var5, &var6, &var7, &op);
+        if var5.is_discrete_cube_merger()
+            && var6.is_discrete_cube_merger()
+            && var7.is_discrete_cube_merger()
+        {
+            Box::new(CubeVoxelShape::new(Box::new(var8)))
+        } else {
+            Box::new(ArrayVoxelShape::new(
+                Box::new(var8),
+                var5.get_list(),
+                var6.get_list(),
+                var7.get_list(),
+            ))
+        }
+    }
+
+    pub fn create_index_merger(
+        var0: i32,
+        var1: Vec<f64>,
+        var2: Vec<f64>,
+        var3: bool,
+        var4: bool,
+    ) -> impl IndexMerger {
+        // int var5 = var1.size() - 1;
+        let var5 = var1.len() - 1;
+        // int var6 = var2.size() - 1
+        let var6 = var2.len() - 1;
+        // if (var1 instanceof CubePointRange && var2 instanceof CubePointRange) {
+        // downcast
+        if (&var1 as &dyn Any).is::<CubePointRange>() && (&var2 as &dyn Any).is::<CubePointRange>()
+        {
+            // return new DiscreteCubeMerger(var0, var5, var6, var3, var4);
+            let var7: i64 = lcm(var5 as u32, var6 as u32).try_into().unwrap();
+            //    if ((long)var0 * var7 <= 256L) {
+            if (var0 as i64 * var7 <= 256) {
+                return DiscreteCubeMerger::new(var5, var6);
+            }
+        }
+
+        // if (var1.getDouble(var5) < var2.getDouble(0) - 1.0E-7D) {
+        //    return new NonOverlappingMerger(var1, var2, false);
+        // } else if (var2.getDouble(var6) < var1.getDouble(0) - 1.0E-7D) {
+        //    return new NonOverlappingMerger(var2, var1, true);
+        // } else {
+        //    return (IndexMerger)(var5 == var6 && Objects.equals(var1, var2) ? new IdenticalMerger(var1) : new IndirectMerger(var1, var2, var3, var4));
+        // }
+        if var1.get_double(var5) < var2.get_double(0) - 1.0E-7 {
+            return NonOverlappingMerger::new(var1, var2, false);
+        } else if var2.get_double(var6) < var1.get_double(0) - 1.0E-7 {
+            return NonOverlappingMerger::new(var2, var1, true);
+        } else {
+            if var5 == var6 && var1 == var2 {
+                return IdenticalMerger::new(var1);
+            } else {
+                return IndirectMerger::new(var1, var2, var3, var4);
+            }
+        }
+    }
 }
 
 pub trait VoxelShape: Send + Sync {
     fn shape(&self) -> Box<dyn DiscreteVoxelShape>;
 
     fn get_coords(&self, axis: Axis) -> Vec<f64>;
+
+    fn is_empty(&self) -> bool {
+        self.shape().is_empty()
+    }
 
     // TODO: optimization: should this be changed to return ArrayVoxelShape?
     // i might change the implementation of empty_shape in the future so not 100% sure
@@ -233,6 +348,40 @@ impl VoxelShape for CubeVoxelShape {
     fn find_index(&self, axis: Axis, coord: f64) -> i32 {
         let n = self.shape().size(axis);
         (f64::clamp(coord * (n as f64), -1f64, n as f64)) as i32
+    }
+}
+
+// public class CubePointRange extends AbstractDoubleList {
+//     private final int parts;
+
+//     CubePointRange(int var1) {
+//        super();
+//        if (var1 <= 0) {
+//           throw new IllegalArgumentException("Need at least 1 part");
+//        } else {
+//           this.parts = var1;
+//        }
+//     }
+
+//     public double getDouble(int var1) {
+//        return (double)var1 / (double)this.parts;
+//     }
+
+//     public int size() {
+//        return this.parts + 1;
+//     }
+// }
+pub struct CubePointRange {
+    /// Needs at least 1 part
+    pub parts: NonZeroU32,
+}
+impl CubePointRange {
+    pub fn get_double(&self, index: u32) -> f64 {
+        index as f64 / self.parts.get() as f64
+    }
+
+    pub fn size(&self) -> u32 {
+        self.parts.get() + 1
     }
 }
 
