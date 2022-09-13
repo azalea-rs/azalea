@@ -47,7 +47,6 @@ pub trait VoxelShape {
             return empty_shape();
         }
 
-
         Box::new(ArrayVoxelShape::new(
             self.shape(),
             self.get_coords(Axis::X).iter().map(|c| c + x).collect(),
@@ -130,23 +129,21 @@ pub trait VoxelShape {
                     }
                 }
             }
-        } else if movement < 0. {
-            if var13 > 0 {
-                for var20 in (var13 - 1)..=0 {
-                    for var21 in var15..var16 {
-                        for var22 in var17..var18 {
-                            if self.shape().is_full_wide_axis_cycle(
-                                inverse_axis_cycle,
-                                var20.try_into().unwrap(),
-                                var21.try_into().unwrap(),
-                                var22.try_into().unwrap(),
-                            ) {
-                                let var23 = self.get(x_axis, (var20 + 1) as usize) - min_x;
-                                if var23 <= EPSILON {
-                                    movement = f64::max(movement, var23);
-                                }
-                                return movement;
+        } else if movement < 0. && var13 > 0 {
+            for var20 in (var13 - 1)..=0 {
+                for var21 in var15..var16 {
+                    for var22 in var17..var18 {
+                        if self.shape().is_full_wide_axis_cycle(
+                            inverse_axis_cycle,
+                            var20.try_into().unwrap(),
+                            var21.try_into().unwrap(),
+                            var22.try_into().unwrap(),
+                        ) {
+                            let var23 = self.get(x_axis, (var20 + 1) as usize) - min_x;
+                            if var23 <= EPSILON {
+                                movement = f64::max(movement, var23);
                             }
+                            return movement;
                         }
                     }
                 }

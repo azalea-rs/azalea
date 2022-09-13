@@ -2,14 +2,14 @@ use azalea_buf::McBuf;
 use azalea_protocol_macros::ServerboundLoginPacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, ServerboundLoginPacket, McBuf, PartialEq)]
+#[derive(Clone, Debug, ServerboundLoginPacket, McBuf, PartialEq, Eq)]
 pub struct ServerboundHelloPacket {
     pub username: String,
     pub public_key: Option<ProfilePublicKeyData>,
     pub profile_id: Option<Uuid>,
 }
 
-#[derive(Clone, Debug, McBuf, PartialEq)]
+#[derive(Clone, Debug, McBuf, PartialEq, Eq)]
 pub struct ProfilePublicKeyData {
     pub expires_at: u64,
     pub key: Vec<u8>,
