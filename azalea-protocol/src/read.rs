@@ -65,7 +65,13 @@ pub enum FrameSplitterError {
 fn parse_frame(buffer: &mut BytesMut) -> Result<Vec<u8>, FrameSplitterError> {
     let buffer_copy: &mut &[u8] = &mut &buffer[..];
     // Packet Length
-    let length = u32::var_read_from(buffer_copy)? as usize;
+    let length = match u32::var_read_from(buffer_copy) {
+        Ok(length) => length as usize,
+        Err(err) => match err {
+            BufReadError::Io(io_err) => return Err(FrameSplitterError::Io { source: io_err }),
+            _ => return Err(err.into()),
+        },
+    };
 
     if length > buffer_copy.len() {
         return Err(FrameSplitterError::BadLength {
@@ -86,7 +92,7 @@ fn parse_frame(buffer: &mut BytesMut) -> Result<Vec<u8>, FrameSplitterError> {
 }
 
 async fn frame_splitter<R: ?Sized + Sized>(
-    mut stream: &mut R,
+    stream: &mut R,
     buffer: &mut BytesMut,
 ) -> Result<Vec<u8>, FrameSplitterError>
 where
