@@ -20,7 +20,7 @@ impl ClientboundLoginCompressionPacket {
         Ok(())
     }
 
-    pub fn read(buf: &mut impl Read) -> Result<ClientboundLoginPacket, BufReadError> {
+    pub fn read(buf: &mut &[u8]) -> Result<ClientboundLoginPacket, BufReadError> {
         let compression_threshold = i32::var_read_from(buf)?;
 
         Ok(ClientboundLoginCompressionPacket {

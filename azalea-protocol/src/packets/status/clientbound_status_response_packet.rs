@@ -43,7 +43,7 @@ impl ClientboundStatusResponsePacket {
         Ok(())
     }
 
-    pub fn read(buf: &mut impl Read) -> Result<ClientboundStatusPacket, BufReadError> {
+    pub fn read(buf: &mut &[u8]) -> Result<ClientboundStatusPacket, BufReadError> {
         let status_string = String::read_from(buf)?;
         let status_json: Value = serde_json::from_str(status_string.as_str())?;
 

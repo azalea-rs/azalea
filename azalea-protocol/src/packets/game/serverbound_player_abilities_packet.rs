@@ -8,7 +8,7 @@ pub struct ServerboundPlayerAbilitiesPacket {
 }
 
 impl McBufReadable for ServerboundPlayerAbilitiesPacket {
-    fn read_from(buf: &mut impl std::io::Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let byte = u8::read_from(buf)?;
         Ok(Self {
             is_flying: byte & 2 != 0,

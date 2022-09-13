@@ -28,7 +28,7 @@ impl McBufWritable for ClientboundRecipePacket {
     }
 }
 impl McBufReadable for ClientboundRecipePacket {
-    fn read_from(buf: &mut impl std::io::Read) -> Result<Self, azalea_buf::BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, azalea_buf::BufReadError> {
         let action_id = u32::var_read_from(buf)?;
         let settings = RecipeBookSettings::read_from(buf)?;
         let recipes = Vec::<ResourceLocation>::read_from(buf)?;

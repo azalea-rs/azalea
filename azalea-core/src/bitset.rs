@@ -21,7 +21,7 @@ impl BitSet {
 }
 
 impl McBufReadable for BitSet {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         Ok(Self {
             data: Vec::<u64>::read_from(buf)?,
         })

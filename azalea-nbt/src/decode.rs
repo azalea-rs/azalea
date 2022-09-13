@@ -4,10 +4,11 @@ use ahash::AHashMap;
 use azalea_buf::{BufReadError, McBufReadable};
 use byteorder::{ReadBytesExt, BE};
 use flate2::read::{GzDecoder, ZlibDecoder};
+use std::io::Cursor;
 use std::io::{BufRead, Read};
 
 #[inline]
-fn read_string(stream: &mut impl Read) -> Result<String, Error> {
+fn read_string(stream: &mut &[u8]) -> Result<String, Error> {
     let length = stream.read_u16::<BE>()?;
 
     let mut buf = vec![0; length as usize];
@@ -17,7 +18,7 @@ fn read_string(stream: &mut impl Read) -> Result<String, Error> {
 
 impl Tag {
     #[inline]
-    fn read_known(stream: &mut impl Read, id: u8) -> Result<Tag, Error> {
+    fn read_known(stream: &mut &[u8], id: u8) -> Result<Tag, Error> {
         Ok(match id {
             // Signifies the end of a TAG_Compound. It is only ever used inside
             // a TAG_Compound, and is not named despite being in a TAG_Compound
@@ -105,7 +106,7 @@ impl Tag {
         })
     }
 
-    pub fn read(stream: &mut impl Read) -> Result<Tag, Error> {
+    pub fn read(stream: &mut &[u8]) -> Result<Tag, Error> {
         // default to compound tag
 
         // the parent compound only ever has one item
@@ -123,17 +124,21 @@ impl Tag {
 
     pub fn read_zlib(stream: &mut impl BufRead) -> Result<Tag, Error> {
         let mut gz = ZlibDecoder::new(stream);
-        Tag::read(&mut gz)
+        let mut buf = Vec::new();
+        gz.read_to_end(&mut buf)?;
+        Tag::read(&mut &buf[..])
     }
 
-    pub fn read_gzip(stream: &mut impl Read) -> Result<Tag, Error> {
+    pub fn read_gzip(stream: &mut &[u8]) -> Result<Tag, Error> {
         let mut gz = GzDecoder::new(stream);
-        Tag::read(&mut gz)
+        let mut buf = Vec::new();
+        gz.read_to_end(&mut buf)?;
+        Tag::read(&mut &buf[..])
     }
 }
 
 impl McBufReadable for Tag {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         Ok(Tag::read(buf)?)
     }
 }

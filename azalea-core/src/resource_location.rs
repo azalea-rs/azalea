@@ -46,7 +46,7 @@ impl std::fmt::Debug for ResourceLocation {
 }
 
 impl McBufReadable for ResourceLocation {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let location_string = String::read_from(buf)?;
         ResourceLocation::new(&location_string)
     }
@@ -96,7 +96,7 @@ mod tests {
             .write_into(&mut buf)
             .unwrap();
 
-        let mut buf = Cursor::new(buf);
+        let mut buf = &mut &buf[..];
 
         assert_eq!(
             ResourceLocation::read_from(&mut buf).unwrap(),

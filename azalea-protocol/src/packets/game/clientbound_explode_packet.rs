@@ -16,7 +16,7 @@ pub struct ClientboundExplodePacket {
 }
 
 impl McBufReadable for ClientboundExplodePacket {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let x = f32::read_from(buf)?;
         let y = f32::read_from(buf)?;
         let z = f32::read_from(buf)?;

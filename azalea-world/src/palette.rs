@@ -33,7 +33,7 @@ impl PalettedContainer {
     }
 
     pub fn read_with_type(
-        buf: &mut impl Read,
+        buf: &mut &[u8],
         container_type: &'static PalettedContainerType,
     ) -> Result<Self, BufReadError> {
         let bits_per_entry = u8::read_from(buf)?;
@@ -256,7 +256,7 @@ impl PaletteType {
         }
     }
 
-    pub fn read(&self, buf: &mut impl Read) -> Result<Palette, BufReadError> {
+    pub fn read(&self, buf: &mut &[u8]) -> Result<Palette, BufReadError> {
         Ok(match self {
             PaletteType::SingleValue => Palette::SingleValue(u32::var_read_from(buf)?),
             PaletteType::Linear => Palette::Linear(Vec::<u32>::var_read_from(buf)?),

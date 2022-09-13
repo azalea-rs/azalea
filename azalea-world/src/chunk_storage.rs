@@ -100,7 +100,7 @@ impl ChunkStorage {
     pub fn replace_with_packet_data(
         &mut self,
         pos: &ChunkPos,
-        data: &mut impl Read,
+        data: &mut &[u8],
     ) -> Result<(), BufReadError> {
         if !self.in_range(pos) {
             println!(
@@ -136,15 +136,12 @@ impl IndexMut<&ChunkPos> for ChunkStorage {
 }
 
 impl Chunk {
-    pub fn read_with_dimension(
-        buf: &mut impl Read,
-        data: &Dimension,
-    ) -> Result<Self, BufReadError> {
+    pub fn read_with_dimension(buf: &mut &[u8], data: &Dimension) -> Result<Self, BufReadError> {
         Self::read_with_dimension_height(buf, data.height())
     }
 
     pub fn read_with_dimension_height(
-        buf: &mut impl Read,
+        buf: &mut &[u8],
         dimension_height: u32,
     ) -> Result<Self, BufReadError> {
         let section_count = dimension_height / SECTION_HEIGHT;
@@ -216,7 +213,7 @@ impl Debug for ChunkStorage {
 }
 
 impl McBufReadable for Section {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let block_count = u16::read_from(buf)?;
 
         // this is commented out because the vanilla server is wrong

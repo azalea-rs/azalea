@@ -1,7 +1,8 @@
 use crate::packets::ProtocolPacket;
+use azalea_buf::BufReadError;
 use azalea_buf::McBufVarReadable;
-use azalea_buf::{read_varint_async, BufReadError};
 use azalea_crypto::Aes128CfbDec;
+use bytes::BytesMut;
 use flate2::read::ZlibDecoder;
 use log::{log_enabled, trace};
 use std::{
@@ -53,33 +54,72 @@ pub enum FrameSplitterError {
     },
     #[error("Packet is longer than {max} bytes (is {size})")]
     BadLength { max: u32, size: u32 },
+    #[error("Connection reset by peer")]
+    ConnectionReset,
+    #[error("Connection closed")]
+    ConnectionClosed,
 }
 
-async fn frame_splitter<R: ?Sized>(mut stream: &mut R) -> Result<Vec<u8>, FrameSplitterError>
-where
-    R: AsyncRead + std::marker::Unpin + std::marker::Send,
-{
+/// Read a length, then read that amount of bytes from BytesMut. If there's not
+/// enough data, return None
+fn parse_frame(buffer: &mut BytesMut) -> Result<Vec<u8>, FrameSplitterError> {
+    let buffer_copy: &mut &[u8] = &mut &buffer[..];
     // Packet Length
-    let length = read_varint_async(&mut stream).await? as u32;
+    let length: u32 = u32::var_read_from(buffer_copy)?;
 
-    // TODO: read individual tcp packets so we don't need this
-    // https://github.com/tokio-rs/tokio/blob/master/examples/print_each_packet.rs
-    let max_length: u32 = 2u32.pow(20u32); // 1mb, arbitrary
-    if length > max_length {
-        // minecraft *probably* won't send packets bigger than this
+    if length > buffer_copy.len() as u32 {
         return Err(FrameSplitterError::BadLength {
-            max: max_length,
+            max: buffer_copy.len() as u32,
             size: length,
         });
     }
 
-    let mut buf = vec![0; length as usize];
-    stream.read_exact(&mut buf).await?;
+    // we read from the copy and we know it's legit, so we can take those bytes
+    // from the real buffer now
 
-    Ok(buf)
+    // the length of the varint that says the length of the whole packet
+    let varint_length = buffer.len() - buffer_copy.len();
+    let mut buf = buffer.split_to((length as usize) + varint_length);
+
+    Ok(buf.to_vec())
 }
 
-fn packet_decoder<P: ProtocolPacket>(stream: &mut impl Read) -> Result<P, ReadPacketError> {
+async fn frame_splitter<R: ?Sized + Sized>(
+    mut stream: &mut R,
+    buffer: &mut BytesMut,
+) -> Result<Vec<u8>, FrameSplitterError>
+where
+    R: AsyncRead + std::marker::Unpin + std::marker::Send,
+{
+    // https://tokio.rs/tokio/tutorial/framing
+    loop {
+        let read_frame = parse_frame(buffer);
+        match read_frame {
+            Ok(frame) => return Ok(frame),
+            Err(err) => match err {
+                FrameSplitterError::BadLength { .. } => {
+                    // we probably just haven't read enough yet
+                }
+                _ => return Err(err),
+            },
+        }
+
+        let read_buf: usize = AsyncReadExt::read_buf(stream, buffer).await?;
+        if 0 == read_buf {
+            // The remote closed the connection. For this to be
+            // a clean shutdown, there should be no data in the
+            // read buffer. If there is, this means that the
+            // peer closed the socket while sending a frame.
+            if buffer.is_empty() {
+                return Err(FrameSplitterError::ConnectionClosed);
+            } else {
+                return Err(FrameSplitterError::ConnectionReset);
+            }
+        }
+    }
+}
+
+fn packet_decoder<P: ProtocolPacket>(stream: &mut &[u8]) -> Result<P, ReadPacketError> {
     // Packet ID
     let packet_id =
         u32::var_read_from(stream).map_err(|e| ReadPacketError::ReadPacketId { source: e })?;
@@ -112,7 +152,7 @@ pub enum DecompressionError {
 }
 
 fn compression_decoder(
-    stream: &mut impl Read,
+    stream: &mut &[u8],
     compression_threshold: u32,
 ) -> Result<Vec<u8>, DecompressionError> {
     // Data Length
@@ -120,7 +160,7 @@ fn compression_decoder(
     if n == 0 {
         // no data size, no compression
         let mut buf = vec![];
-        stream.read_to_end(&mut buf)?;
+        std::io::Read::read_to_end(stream, &mut buf)?;
         return Ok(buf);
     }
 
@@ -183,6 +223,7 @@ where
 
 pub async fn read_packet<'a, P: ProtocolPacket, R>(
     stream: &'a mut R,
+    buffer: &mut BytesMut,
     compression_threshold: Option<u32>,
     cipher: &mut Option<Aes128CfbDec>,
 ) -> Result<P, ReadPacketError>
@@ -195,7 +236,7 @@ where
         stream: &mut Pin::new(stream),
     };
 
-    let mut buf = frame_splitter(&mut encrypted_stream).await?;
+    let mut buf = frame_splitter(&mut encrypted_stream, buffer).await?;
 
     if let Some(compression_threshold) = compression_threshold {
         buf = compression_decoder(&mut buf.as_slice(), compression_threshold)?;

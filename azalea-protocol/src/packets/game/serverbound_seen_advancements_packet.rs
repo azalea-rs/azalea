@@ -16,7 +16,7 @@ pub enum Action {
 }
 
 impl McBufReadable for ServerboundSeenAdvancementsPacket {
-    fn read_from(buf: &mut impl std::io::Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let action = Action::read_from(buf)?;
         let tab = if action == Action::OpenedTab {
             Some(ResourceLocation::read_from(buf)?)

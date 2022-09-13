@@ -11,7 +11,7 @@ pub struct ServerboundPlayerInputPacket {
 }
 
 impl McBufReadable for ServerboundPlayerInputPacket {
-    fn read_from(buf: &mut impl std::io::Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let xxa = f32::read_from(buf)?;
         let zza = f32::read_from(buf)?;
         let byte = u8::read_from(buf)?;

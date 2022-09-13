@@ -48,7 +48,7 @@ impl McBufWritable for ActionType {
 }
 
 impl McBufReadable for ActionType {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let action_type = u32::var_read_from(buf)?;
         match action_type {
             0 => {

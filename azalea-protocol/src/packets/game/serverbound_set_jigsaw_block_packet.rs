@@ -23,7 +23,7 @@ pub enum JointType {
 }
 
 impl McBufReadable for JointType {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let name = String::read_from(buf)?;
         match name.as_str() {
             "rollable" => Ok(JointType::Rollable),

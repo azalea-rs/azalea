@@ -16,10 +16,10 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
     let mut decoded_src_decoder = GzDecoder::new(&mut src);
     let mut decoded_src = Vec::new();
     decoded_src_decoder.read_to_end(&mut decoded_src).unwrap();
-    let mut decoded_src_stream = std::io::Cursor::new(decoded_src.clone());
+    let decoded_src_stream = &mut &decoded_src[..];
 
     file.seek(SeekFrom::Start(0)).unwrap();
-    let nbt = Tag::read(&mut decoded_src_stream).unwrap();
+    let nbt = Tag::read(decoded_src_stream).unwrap();
 
     let mut group = c.benchmark_group(filename);
 

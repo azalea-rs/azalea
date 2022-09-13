@@ -1,15 +1,14 @@
 use ahash::AHashMap;
 use azalea_nbt::Tag;
-use std::{
-    fs::File,
-    io::{Cursor, Read},
-};
+use std::{fs::File, io::Read};
 
 #[test]
 fn test_decode_hello_world() {
     // read hello_world.nbt
     let mut file = File::open("tests/hello_world.nbt").unwrap();
-    let tag = Tag::read(&mut file).unwrap();
+    let mut buf = vec![];
+    file.read_to_end(&mut buf).unwrap();
+    let tag = Tag::read(&mut &buf[..]).unwrap();
     assert_eq!(
         tag,
         Tag::Compound(AHashMap::from_iter(vec![(
@@ -28,14 +27,14 @@ fn test_roundtrip_hello_world() {
     let mut original = Vec::new();
     file.read_to_end(&mut original).unwrap();
 
-    let mut original_stream = Cursor::new(original.clone());
-    let tag = Tag::read(&mut original_stream).unwrap();
+    let original_stream = &mut &original[..];
+    let tag = Tag::read(original_stream).unwrap();
 
     // write hello_world.nbt
-    let mut result = Cursor::new(Vec::new());
+    let mut result = Vec::new();
     tag.write(&mut result).unwrap();
 
-    assert_eq!(result.into_inner(), original);
+    assert_eq!(result, original);
 }
 
 #[test]
@@ -45,13 +44,13 @@ fn test_bigtest() {
     let mut original = Vec::new();
     file.read_to_end(&mut original).unwrap();
 
-    let mut original_stream = Cursor::new(original.clone());
-    let original_tag = Tag::read_gzip(&mut original_stream).unwrap();
+    let original_stream = &mut &original[..];
+    let original_tag = Tag::read_gzip(original_stream).unwrap();
 
     let mut result = Vec::new();
     original_tag.write(&mut result).unwrap();
 
-    let decoded_tag = Tag::read(&mut Cursor::new(result)).unwrap();
+    let decoded_tag = Tag::read(&mut &result[..]).unwrap();
 
     assert_eq!(decoded_tag, original_tag);
 }
@@ -83,8 +82,8 @@ fn test_stringtest() {
     let mut original = Vec::new();
     file.read_to_end(&mut original).unwrap();
 
-    let mut original_stream = Cursor::new(original.clone());
-    let original_tag = Tag::read_gzip(&mut original_stream).unwrap();
+    let original_stream = &mut &original[..];
+    let original_tag = Tag::read_gzip(original_stream).unwrap();
 
     assert_eq!(original_tag, correct_tag);
 }
@@ -95,13 +94,13 @@ fn test_complex_player() {
     let mut original = Vec::new();
     file.read_to_end(&mut original).unwrap();
 
-    let mut original_stream = Cursor::new(original.clone());
-    let original_tag = Tag::read_gzip(&mut original_stream).unwrap();
+    let original_stream = &mut &original[..];
+    let original_tag = Tag::read_gzip(original_stream).unwrap();
 
     let mut result = Vec::new();
     original_tag.write(&mut result).unwrap();
 
-    let decoded_tag = Tag::read(&mut Cursor::new(result)).unwrap();
+    let decoded_tag = Tag::read(&mut &result[..]).unwrap();
 
     assert_eq!(decoded_tag, original_tag);
 }
@@ -112,13 +111,13 @@ fn test_simple_player() {
     let mut original = Vec::new();
     file.read_to_end(&mut original).unwrap();
 
-    let mut original_stream = Cursor::new(original.clone());
+    let mut original_stream = &mut &original[..];
     let original_tag = Tag::read_gzip(&mut original_stream).unwrap();
 
     let mut result = Vec::new();
     original_tag.write(&mut result).unwrap();
 
-    let decoded_tag = Tag::read(&mut Cursor::new(result)).unwrap();
+    let decoded_tag = Tag::read(&mut &result[..]).unwrap();
 
     assert_eq!(decoded_tag, original_tag);
 }

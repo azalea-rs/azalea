@@ -1,8 +1,5 @@
 use crate::{read::BufReadError, McBufReadable, McBufWritable};
-use std::{
-    io::{Read, Write},
-    ops::Deref,
-};
+use std::{io::Write, ops::Deref};
 
 /// A Vec<u8> that isn't prefixed by a VarInt with the size.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -42,7 +39,7 @@ impl BitSet {
 }
 
 impl McBufReadable for BitSet {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         Ok(Self {
             data: Vec::<u64>::read_from(buf)?,
         })

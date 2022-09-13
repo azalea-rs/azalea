@@ -13,7 +13,7 @@ pub struct ClientboundSetScorePacket {
 }
 
 impl McBufReadable for ClientboundSetScorePacket {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let owner = String::read_from(buf)?;
         let method_id = u32::var_read_from(buf)?;
         let objective_name = String::read_from(buf)?;

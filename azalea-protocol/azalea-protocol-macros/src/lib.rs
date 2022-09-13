@@ -30,7 +30,7 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
             }
 
             pub fn read(
-                buf: &mut impl std::io::Read,
+                buf: &mut &[u8],
             ) -> Result<#state, azalea_buf::BufReadError> {
                 use azalea_buf::McBufReadable;
                 Ok(Self::read_from(buf)?.get())
@@ -223,7 +223,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #id => {
                 let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse { source: e, packet_id: #id, packet_name: #name_litstr.to_string() })?;
                 let mut leftover = Vec::new();
-                let _ = buf.read_to_end(&mut leftover);
+                let _ = std::io::Read::read_to_end(buf, &mut leftover);
                 if !leftover.is_empty() {
                     return Err(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover });
                 }
@@ -248,7 +248,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #id => {
                 let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse { source: e, packet_id: #id, packet_name: #name_litstr.to_string() })?;
                 let mut leftover = Vec::new();
-                let _ = buf.read_to_end(&mut leftover);
+                let _ = std::io::Read::read_to_end(buf, &mut leftover);
                 if !leftover.is_empty() {
                     return Err(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover });
                 }
@@ -309,7 +309,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             /// Read a packet by its id, ConnectionProtocol, and flow
             fn read(
                 id: u32,
-                buf: &mut impl std::io::Read,
+                buf: &mut &[u8],
             ) -> Result<#serverbound_state_name, crate::read::ReadPacketError>
             where
                 Self: Sized,
@@ -340,7 +340,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             /// Read a packet by its id, ConnectionProtocol, and flow
             fn read(
                 id: u32,
-                buf: &mut impl std::io::Read,
+                buf: &mut &[u8],
             ) -> Result<#clientbound_state_name, crate::read::ReadPacketError>
             where
                 Self: Sized,
@@ -365,7 +365,7 @@ fn variant_name_from(name: &syn::Ident) -> syn::Ident {
         variant_name = variant_name["Serverbound".len()..].to_string();
     }
     if variant_name.ends_with("Packet") {
-        variant_name = variant_name[..variant_name.len()-"Packet".len()].to_string();
+        variant_name = variant_name[..variant_name.len() - "Packet".len()].to_string();
     }
     syn::Ident::new(&variant_name, name.span())
 }

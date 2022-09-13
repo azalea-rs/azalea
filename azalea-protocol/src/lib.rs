@@ -58,6 +58,7 @@ mod tests {
         read::read_packet,
         write::write_packet,
     };
+    use bytes::BytesMut;
     use std::io::Cursor;
     use uuid::Uuid;
 
@@ -80,8 +81,13 @@ mod tests {
 
         stream.set_position(0);
 
-        let _ = read_packet::<ServerboundLoginPacket, _>(&mut stream, None, &mut None)
-            .await
-            .unwrap();
+        let _ = read_packet::<ServerboundLoginPacket, _>(
+            &mut stream,
+            &mut BytesMut::new(),
+            None,
+            &mut None,
+        )
+        .await
+        .unwrap();
     }
 }

@@ -17,7 +17,7 @@ pub struct EquipmentSlots {
 }
 
 impl McBufReadable for EquipmentSlots {
-    fn read_from(buf: &mut impl std::io::Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let mut slots = vec![];
 
         loop {

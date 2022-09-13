@@ -25,7 +25,7 @@ mod tests {
         )]));
         tag.write_into(&mut buf).unwrap();
 
-        let mut buf = Cursor::new(buf);
+        let mut buf = &mut &buf[..];
 
         let result = Tag::read_from(&mut buf).unwrap();
         assert_eq!(

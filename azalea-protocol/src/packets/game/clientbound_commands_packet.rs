@@ -27,7 +27,7 @@ pub struct BrigadierNumber<T> {
     max: Option<T>,
 }
 impl<T: McBufReadable> McBufReadable for BrigadierNumber<T> {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let flags = u8::read_from(buf)?;
         let min = if flags & 0x01 != 0 {
             Some(T::read_from(buf)?)
@@ -126,7 +126,7 @@ pub enum BrigadierParser {
 }
 
 impl McBufReadable for BrigadierParser {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let parser_type = u32::var_read_from(buf)?;
 
         match parser_type {
@@ -202,7 +202,7 @@ impl McBufReadable for BrigadierParser {
 
 // TODO: BrigadierNodeStub should have more stuff
 impl McBufReadable for BrigadierNodeStub {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let flags = u8::read_from(buf)?;
         if flags > 31 {
             eprintln!(

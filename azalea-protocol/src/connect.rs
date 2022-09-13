@@ -9,14 +9,15 @@ use crate::read::{read_packet, ReadPacketError};
 use crate::write::write_packet;
 use crate::ServerIpAddress;
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
+use bytes::BytesMut;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use thiserror::Error;
 use tokio::net::TcpStream;
 
 pub struct Connection<R: ProtocolPacket, W: ProtocolPacket> {
-    /// The buffered writer
     pub stream: TcpStream,
+    buffer: BytesMut,
     pub compression_threshold: Option<u32>,
     pub enc_cipher: Option<Aes128CfbEnc>,
     pub dec_cipher: Option<Aes128CfbDec>,
@@ -32,6 +33,7 @@ where
     pub async fn read(&mut self) -> Result<R, ReadPacketError> {
         read_packet::<R, _>(
             &mut self.stream,
+            &mut self.buffer,
             self.compression_threshold,
             &mut self.dec_cipher,
         )
@@ -68,6 +70,7 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
 
         Ok(Connection {
             stream,
+            buffer: BytesMut::with_capacity(4096),
             compression_threshold: None,
             enc_cipher: None,
             dec_cipher: None,
@@ -121,6 +124,7 @@ where
     {
         Connection {
             stream: connection.stream,
+            buffer: BytesMut::with_capacity(4096),
             compression_threshold: connection.compression_threshold,
             enc_cipher: connection.enc_cipher,
             dec_cipher: connection.dec_cipher,

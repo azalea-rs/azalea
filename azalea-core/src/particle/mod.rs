@@ -153,7 +153,7 @@ pub struct VibrationParticle {
 }
 
 impl ParticleData {
-    pub fn read_from_particle_id(buf: &mut impl Read, id: u32) -> Result<Self, BufReadError> {
+    pub fn read_from_particle_id(buf: &mut &[u8], id: u32) -> Result<Self, BufReadError> {
         Ok(match id {
             0 => ParticleData::AmbientEntityEffect,
             1 => ParticleData::AngryVillager,
@@ -249,7 +249,7 @@ impl ParticleData {
 }
 
 impl McBufReadable for ParticleData {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let id = u32::var_read_from(buf)?;
         ParticleData::read_from_particle_id(buf, id)
     }
