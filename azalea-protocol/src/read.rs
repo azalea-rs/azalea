@@ -53,7 +53,7 @@ pub enum FrameSplitterError {
         source: std::io::Error,
     },
     #[error("Packet is longer than {max} bytes (is {size})")]
-    BadLength { max: u32, size: u32 },
+    BadLength { max: usize, size: usize },
     #[error("Connection reset by peer")]
     ConnectionReset,
     #[error("Connection closed")]
@@ -65,11 +65,11 @@ pub enum FrameSplitterError {
 fn parse_frame(buffer: &mut BytesMut) -> Result<Vec<u8>, FrameSplitterError> {
     let buffer_copy: &mut &[u8] = &mut &buffer[..];
     // Packet Length
-    let length: u32 = u32::var_read_from(buffer_copy)?;
+    let length = u32::var_read_from(buffer_copy)? as usize;
 
-    if length > buffer_copy.len() as u32 {
+    if length > buffer_copy.len() {
         return Err(FrameSplitterError::BadLength {
-            max: buffer_copy.len() as u32,
+            max: buffer_copy.len(),
             size: length,
         });
     }
@@ -79,9 +79,10 @@ fn parse_frame(buffer: &mut BytesMut) -> Result<Vec<u8>, FrameSplitterError> {
 
     // the length of the varint that says the length of the whole packet
     let varint_length = buffer.len() - buffer_copy.len();
-    let mut buf = buffer.split_to((length as usize) + varint_length);
+    let data = buffer_copy[..length].to_vec();
+    let _ = buffer.split_to(length + varint_length);
 
-    Ok(buf.to_vec())
+    Ok(data)
 }
 
 async fn frame_splitter<R: ?Sized + Sized>(
@@ -97,7 +98,7 @@ where
         match read_frame {
             Ok(frame) => return Ok(frame),
             Err(err) => match err {
-                FrameSplitterError::BadLength { .. } => {
+                FrameSplitterError::BadLength { .. } | FrameSplitterError::Io { .. } => {
                     // we probably just haven't read enough yet
                 }
                 _ => return Err(err),
