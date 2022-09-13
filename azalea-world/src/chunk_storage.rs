@@ -8,7 +8,7 @@ use azalea_core::floor_mod;
 use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use std::fmt::Debug;
 use std::{
-    io::{Read, Write},
+    io::Write,
     ops::{Index, IndexMut},
     sync::{Arc, Mutex},
 };

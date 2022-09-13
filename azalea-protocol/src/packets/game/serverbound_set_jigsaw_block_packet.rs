@@ -5,7 +5,7 @@ use azalea_buf::McBufReadable;
 use azalea_core::BlockPos;
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ServerboundGamePacket;
-use std::io::{Read, Write};
+use std::io::Write;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundSetJigsawBlockPacket {

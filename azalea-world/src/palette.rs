@@ -1,5 +1,5 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
-use std::io::{Read, Write};
+use std::io::Write;
 
 use crate::BitStorage;
 

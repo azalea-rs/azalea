@@ -1,7 +1,7 @@
 //! A resource, like minecraft:stone
 
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use std::io::{Read, Write};
+use std::io::Write;
 
 #[derive(Hash, Clone, PartialEq, Eq)]
 pub struct ResourceLocation {
@@ -59,8 +59,6 @@ impl McBufWritable for ResourceLocation {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
-
     use super::*;
 
     #[test]

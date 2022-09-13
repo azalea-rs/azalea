@@ -1,7 +1,7 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_core::BlockPos;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Read, Write};
+use std::io::Write;
 
 #[derive(Clone, Debug, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundExplodePacket {

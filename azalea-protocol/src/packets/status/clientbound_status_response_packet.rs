@@ -3,7 +3,7 @@ use azalea_buf::{BufReadError, McBufReadable};
 use azalea_chat::component::Component;
 use serde::Deserialize;
 use serde_json::Value;
-use std::io::{Read, Write};
+use std::io::Write;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Version {

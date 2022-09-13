@@ -4,7 +4,6 @@ use ahash::AHashMap;
 use azalea_buf::{BufReadError, McBufReadable};
 use byteorder::{ReadBytesExt, BE};
 use flate2::read::{GzDecoder, ZlibDecoder};
-use std::io::Cursor;
 use std::io::{BufRead, Read};
 
 #[inline]

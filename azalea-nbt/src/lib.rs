@@ -11,7 +11,6 @@ mod tests {
     use super::*;
     use ahash::AHashMap;
     use azalea_buf::{McBufReadable, McBufWritable};
-    use std::io::Cursor;
 
     #[test]
     fn mcbuf_nbt() {

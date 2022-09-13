@@ -1,7 +1,7 @@
 use crate::ResourceLocation;
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use std::{
-    io::{Read, Write},
+    io::Write,
     ops::{Add, Mul, Rem},
 };
 
@@ -361,8 +361,6 @@ impl McBufWritable for ChunkSectionPos {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
-
     use super::*;
 
     #[test]

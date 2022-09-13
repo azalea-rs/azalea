@@ -1,6 +1,6 @@
 use crate::{BlockPos, Slot};
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufWritable};
-use std::io::{Read, Write};
+use std::io::Write;
 
 #[derive(Debug, Clone, McBuf)]
 pub struct Particle {

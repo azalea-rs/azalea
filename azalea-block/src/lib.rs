@@ -4,10 +4,7 @@ mod blocks;
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 pub use behavior::BlockBehavior;
 pub use blocks::*;
-use std::{
-    io::{Read, Write},
-    mem,
-};
+use std::{io::Write, mem};
 
 impl BlockState {
     /// Transmutes a u32 to a block state.

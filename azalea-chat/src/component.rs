@@ -1,7 +1,4 @@
-use std::{
-    fmt::Display,
-    io::{Read, Write},
-};
+use std::{fmt::Display, io::Write};
 
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use serde::{de, Deserialize, Deserializer};

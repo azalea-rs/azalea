@@ -4,7 +4,7 @@ use azalea_buf::McBufVarReadable;
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Read, Write};
+use std::io::Write;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundCommandsPacket {

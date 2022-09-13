@@ -1,10 +1,9 @@
-use std::io::{Read, Write};
-
 use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
 use azalea_chat::component::Component;
 use azalea_protocol_macros::ClientboundGamePacket;
+use std::io::Write;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]

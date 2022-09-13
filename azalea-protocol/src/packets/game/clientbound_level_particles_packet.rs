@@ -1,7 +1,7 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
 use azalea_core::ParticleData;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Read, Write};
+use std::io::Write;
 
 #[derive(Clone, Debug, ClientboundGamePacket)]
 pub struct ClientboundLevelParticlesPacket {

@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::io::Write;
 
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;

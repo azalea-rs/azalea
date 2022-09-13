@@ -3,7 +3,7 @@ use azalea_buf::McBuf;
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::BlockPos;
 use azalea_protocol_macros::ServerboundGamePacket;
-use std::io::{Read, Write};
+use std::io::Write;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundSetStructureBlockPacket {

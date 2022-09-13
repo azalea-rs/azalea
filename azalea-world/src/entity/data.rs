@@ -2,7 +2,7 @@ use azalea_buf::{BufReadError, McBufVarReadable};
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
 use azalea_chat::component::Component;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
-use std::io::{Read, Write};
+use std::io::Write;
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]

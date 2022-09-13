@@ -10,7 +10,7 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
     let mut file = File::open(filename).unwrap();
     let mut contents = Vec::new();
     file.read_to_end(&mut contents).unwrap();
-    let mut src = std::io::Cursor::new(&contents[..]);
+    let mut src = &contents[..];
 
     // decode the original src so most of the time isn't spent on unzipping
     let mut decoded_src_decoder = GzDecoder::new(&mut src);

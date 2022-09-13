@@ -1,7 +1,7 @@
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use azalea_chat::component::Component;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Read, Write};
+use std::io::Write;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSetObjectivePacket {

@@ -59,7 +59,6 @@ mod tests {
         write::write_packet,
     };
     use bytes::BytesMut;
-    use std::io::Cursor;
     use uuid::Uuid;
 
     #[tokio::test]
@@ -74,20 +73,16 @@ mod tests {
             profile_id: Some(Uuid::from_u128(0)),
         }
         .get();
-        let mut stream = Cursor::new(Vec::new());
+        let mut stream = Vec::new();
         write_packet(packet, &mut stream, None, &mut None)
             .await
             .unwrap();
 
-        stream.set_position(0);
+        let stream = &mut &stream[..];
 
-        let _ = read_packet::<ServerboundLoginPacket, _>(
-            &mut stream,
-            &mut BytesMut::new(),
-            None,
-            &mut None,
-        )
-        .await
-        .unwrap();
+        let _ =
+            read_packet::<ServerboundLoginPacket, _>(stream, &mut BytesMut::new(), None, &mut None)
+                .await
+                .unwrap();
     }
 }

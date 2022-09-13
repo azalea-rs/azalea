@@ -1,7 +1,7 @@
 // TODO: have an azalea-inventory or azalea-container crate and put this there
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use std::io::{Read, Write};
+use std::io::Write;
 
 #[derive(Debug, Clone)]
 pub enum Slot {

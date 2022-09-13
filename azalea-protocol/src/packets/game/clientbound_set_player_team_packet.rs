@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::io::Write;
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use azalea_chat::{component::Component, style::ChatFormatting};

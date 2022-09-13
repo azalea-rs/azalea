@@ -1,9 +1,6 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::{
-    io::{Read, Write},
-    ops::Not,
-};
+use std::{io::Write, ops::Not};
 
 #[derive(Clone, Debug, ClientboundGamePacket)]
 pub struct ClientboundSetScorePacket {

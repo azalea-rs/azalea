@@ -2,7 +2,7 @@ use crate::packets::game::serverbound_interact_packet::InteractionHand;
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use azalea_core::{BlockPos, Direction, Vec3};
 use azalea_protocol_macros::ServerboundGamePacket;
-use std::io::{Read, Write};
+use std::io::Write;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundUseItemOnPacket {

@@ -1,9 +1,6 @@
 use super::ClientboundLoginPacket;
 use azalea_buf::{BufReadError, McBufVarReadable, McBufVarWritable};
-use std::{
-    hash::Hash,
-    io::{Read, Write},
-};
+use std::{hash::Hash, io::Write};
 
 #[derive(Hash, Clone, Debug)]
 pub struct ClientboundLoginCompressionPacket {

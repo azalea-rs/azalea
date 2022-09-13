@@ -1,5 +1,5 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use std::io::{Read, Write};
+use std::io::Write;
 
 #[derive(Hash, Copy, Clone, Debug)]
 pub enum GameType {

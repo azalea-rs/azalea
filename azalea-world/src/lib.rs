@@ -14,7 +14,6 @@ pub use chunk_storage::{Chunk, ChunkStorage};
 use entity::{EntityData, EntityMut, EntityRef};
 pub use entity_storage::EntityStorage;
 use std::{
-    io::Read,
     ops::{Index, IndexMut},
     sync::{Arc, Mutex},
 };

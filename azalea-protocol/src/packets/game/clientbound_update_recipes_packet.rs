@@ -3,7 +3,7 @@ use azalea_buf::{
 };
 use azalea_core::{ResourceLocation, Slot};
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Read, Write};
+use std::io::Write;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundUpdateRecipesPacket {

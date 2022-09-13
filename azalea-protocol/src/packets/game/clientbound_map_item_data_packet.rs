@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::io::Write;
 
 use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};

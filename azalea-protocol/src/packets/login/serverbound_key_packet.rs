@@ -1,7 +1,7 @@
 use azalea_buf::{BufReadError, McBuf};
 use azalea_crypto::SaltSignaturePair;
 use azalea_protocol_macros::ServerboundLoginPacket;
-use std::io::{Read, Write};
+use std::io::Write;
 
 use azalea_buf::{McBufReadable, McBufWritable};
 

@@ -1,6 +1,6 @@
 use std::{
     fmt::{Debug, Error, Formatter},
-    io::{Read, Write},
+    io::Write,
 };
 
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
