@@ -20,7 +20,7 @@ impl McBufReadable for ClientboundMapItemDataPacket {
         let map_id = u32::var_read_from(buf)?;
         let scale = u8::read_from(buf)?;
         let locked = bool::read_from(buf)?;
-        let decorations = Vec::<MapDecoration>::read_from(buf)?;
+        let decorations = Option::<Vec<MapDecoration>>::read_from(buf)?.unwrap_or_default();
 
         let width = u8::read_from(buf)?;
         let color_patch = if width == 0 {
@@ -54,6 +54,7 @@ impl McBufWritable for ClientboundMapItemDataPacket {
         self.map_id.var_write_into(buf)?;
         self.scale.write_into(buf)?;
         self.locked.write_into(buf)?;
+        (!self.decorations.is_empty()).write_into(buf)?;
         self.decorations.write_into(buf)?;
         if let Some(color_patch) = &self.color_patch {
             color_patch.width.write_into(buf)?;

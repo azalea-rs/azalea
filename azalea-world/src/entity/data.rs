@@ -1,7 +1,7 @@
 use azalea_buf::{BufReadError, McBufVarReadable};
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
 use azalea_chat::component::Component;
-use azalea_core::{BlockPos, Direction, Particle, Slot};
+use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot};
 use std::io::Write;
 use uuid::Uuid;
 
@@ -67,6 +67,10 @@ pub enum EntityDataValue {
     // 0 for absent; 1 + actual value otherwise. Used for entity IDs.
     OptionalUnsignedInt(Option<u32>),
     Pose(Pose),
+    CatVariant(azalea_registry::CatVariant),
+    FrogVariant(azalea_registry::FrogVariant),
+    GlobalPos(GlobalPos),
+    PaintingVariant(azalea_registry::PaintingVariant),
 }
 
 impl McBufReadable for EntityDataValue {
@@ -91,7 +95,7 @@ impl McBufReadable for EntityDataValue {
             11 => EntityDataValue::Direction(Direction::read_from(buf)?),
             12 => EntityDataValue::OptionalUuid(Option::<Uuid>::read_from(buf)?),
             13 => EntityDataValue::OptionalBlockState({
-                let val = i32::read_from(buf)?;
+                let val = i32::var_read_from(buf)?;
                 if val == 0 {
                     None
                 } else {
@@ -110,6 +114,12 @@ impl McBufReadable for EntityDataValue {
                 }
             }),
             18 => EntityDataValue::Pose(Pose::read_from(buf)?),
+            19 => EntityDataValue::CatVariant(azalea_registry::CatVariant::read_from(buf)?),
+            20 => EntityDataValue::FrogVariant(azalea_registry::FrogVariant::read_from(buf)?),
+            21 => EntityDataValue::GlobalPos(GlobalPos::read_from(buf)?),
+            22 => {
+                EntityDataValue::PaintingVariant(azalea_registry::PaintingVariant::read_from(buf)?)
+            }
             _ => {
                 return Err(BufReadError::UnexpectedEnumVariant {
                     id: data_type as i32,

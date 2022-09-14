@@ -54,6 +54,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             let mut match_contents = quote!();
             let mut variant_discrim: u32 = 0;
             let mut first = true;
+            let mut first_reader = None;
             for variant in variants {
                 let variant_name = &variant.ident;
                 match &variant.discriminant.as_ref() {
@@ -72,9 +73,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         }
                     }
                     None => {
-                        if first {
-                            first = false;
-                        } else {
+                        if !first {
                             variant_discrim += 1;
                         }
                     }
@@ -90,6 +89,10 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         Ok(Self::#variant_name)
                     },
                 };
+                if first {
+                    first_reader = Some(reader.clone());
+                    first = false;
+                };
 
                 match_contents.extend(quote! {
                     #variant_discrim => {
@@ -98,6 +101,8 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                 });
             }
 
+            let first_reader = first_reader.expect("There should be at least one variant");
+
             quote! {
             impl azalea_buf::McBufReadable for #ident {
                 fn read_from(buf: &mut &[u8]) -> Result<Self, azalea_buf::BufReadError>
@@ -105,7 +110,8 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                     let id = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                     match id {
                         #match_contents
-                        _ => Err(azalea_buf::BufReadError::UnexpectedEnumVariant { id: id as i32 }),
+                        // you'd THINK this throws an error, but mojang decided to make it default for some reason
+                        _ => #first_reader
                     }
                 }
             }

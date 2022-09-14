@@ -5,7 +5,7 @@ use azalea_protocol_macros::ServerboundGamePacket;
 pub struct ServerboundClientInformationPacket {
     pub language: String,
     pub view_distance: u8,
-    pub chat_visibility: ChatVisiblity,
+    pub chat_visibility: ChatVisibility,
     pub chat_colors: bool,
     pub model_customisation: u8,
     pub main_hand: HumanoidArm,
@@ -14,7 +14,7 @@ pub struct ServerboundClientInformationPacket {
 }
 
 #[derive(McBuf, Clone, Copy, Debug)]
-pub enum ChatVisiblity {
+pub enum ChatVisibility {
     Full = 0,
     System = 1,
     Hidden = 2,
