@@ -26,7 +26,7 @@ pub enum BufReadError {
     #[error("Unexpected enum variant {id}")]
     UnexpectedStringEnumVariant { id: String },
     #[error("Tried to read {attempted_read} bytes but there were only {actual_read}")]
-    UnexpectedEOF {
+    UnexpectedEof {
         attempted_read: usize,
         actual_read: usize,
     },
@@ -39,7 +39,7 @@ pub enum BufReadError {
 
 fn read_bytes<'a>(buf: &mut &'a [u8], length: usize) -> Result<&'a [u8], BufReadError> {
     if length > buf.len() {
-        return Err(BufReadError::UnexpectedEOF {
+        return Err(BufReadError::UnexpectedEof {
             attempted_read: length,
             actual_read: buf.len(),
         });

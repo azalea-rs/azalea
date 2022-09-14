@@ -7,12 +7,21 @@ use flate2::read::{GzDecoder, ZlibDecoder};
 use std::io::{BufRead, Read};
 
 #[inline]
-fn read_string(stream: &mut &[u8]) -> Result<String, Error> {
-    let length = stream.read_u16::<BE>()?;
+fn read_bytes<'a>(buf: &mut &'a [u8], length: usize) -> Result<&'a [u8], Error> {
+    if length > buf.len() {
+        return Err(Error::UnexpectedEof);
+    }
+    let read_buf = &buf[0..length];
+    *buf = &buf[length..];
+    Ok(read_buf)
+}
 
-    let mut buf = vec![0; length as usize];
-    stream.read_exact(&mut buf)?;
-    Ok(String::from_utf8(buf)?)
+#[inline]
+fn read_string(stream: &mut &[u8]) -> Result<String, Error> {
+    let length = stream.read_u16::<BE>()? as usize;
+
+    let buf = read_bytes(stream, length)?;
+    Ok(std::str::from_utf8(buf)?.to_string())
 }
 
 impl Tag {
@@ -39,9 +48,8 @@ impl Tag {
             // A length-prefixed array of signed bytes. The prefix is a signed
             // integer (thus 4 bytes)
             7 => {
-                let length = stream.read_u32::<BE>()?;
-                let mut bytes = vec![0; length as usize];
-                stream.read_exact(&mut bytes)?;
+                let length = stream.read_u32::<BE>()? as usize;
+                let bytes = read_bytes(stream, length)?.to_vec();
                 Tag::ByteArray(bytes)
             }
             // A length-prefixed modified UTF-8 string. The prefix is an
@@ -58,8 +66,8 @@ impl Tag {
             // parsers should accept any type if the length is <= 0).
             9 => {
                 let type_id = stream.read_u8()?;
-                let length = stream.read_i32::<BE>()?;
-                let mut list = Vec::with_capacity(length as usize);
+                let length = stream.read_u32::<BE>()?;
+                let mut list = Vec::new();
                 for _ in 0..length {
                     list.push(Tag::read_known(stream, type_id)?);
                 }
@@ -84,7 +92,10 @@ impl Tag {
             // signed integer (thus 4 bytes) and indicates the number of 4 byte
             // integers.
             11 => {
-                let length = stream.read_u32::<BE>()?;
+                let length = stream.read_u32::<BE>()? as usize;
+                if length * 4 > stream.len() {
+                    return Err(Error::UnexpectedEof);
+                }
                 let mut ints = Vec::with_capacity(length as usize);
                 for _ in 0..length {
                     ints.push(stream.read_i32::<BE>()?);
@@ -94,7 +105,10 @@ impl Tag {
             // A length-prefixed array of signed longs. The prefix is a signed
             // integer (thus 4 bytes) and indicates the number of 8 byte longs.
             12 => {
-                let length = stream.read_u32::<BE>()?;
+                let length = stream.read_u32::<BE>()? as usize;
+                if length * 8 > stream.len() {
+                    return Err(Error::UnexpectedEof);
+                }
                 let mut longs = Vec::with_capacity(length as usize);
                 for _ in 0..length {
                     longs.push(stream.read_i64::<BE>()?);
