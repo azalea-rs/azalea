@@ -2,7 +2,7 @@ use azalea_crypto::{create_cipher, decrypt_packet, encrypt_packet};
 use criterion::{criterion_group, criterion_main, Criterion};
 
 fn bench(c: &mut Criterion) {
-    let (mut enc, mut dec) = create_cipher(b"0123456789abcdef");
+    let (mut enc, dec) = create_cipher(b"0123456789abcdef");
 
     let mut packet = [0u8; 65536];
     for i in 0..packet.len() {

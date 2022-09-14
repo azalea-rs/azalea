@@ -59,7 +59,6 @@ fn read_utf_with_len(buf: &mut &[u8], max_length: u32) -> Result<String, BufRead
         });
     }
 
-    // this is probably quite inefficient, idk how to do it better
     let buffer = read_bytes(buf, length as usize)?;
     let string = std::str::from_utf8(buffer)
         .map_err(|_| BufReadError::InvalidUtf8)?
@@ -150,17 +149,18 @@ impl McBufVarReadable for u64 {
 impl McBufReadable for UnsizedByteArray {
     fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         // read to end of the buffer
-        let mut bytes = vec![];
-        buf.read_to_end(&mut bytes)
-            .map_err(|_| BufReadError::CouldNotReadBytes)?;
-        Ok(bytes.into())
+        let returned_buf = &buf[..];
+        *buf = &[];
+        Ok(returned_buf.to_vec().into())
     }
 }
 
 impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
     default fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let length = u32::var_read_from(buf)? as usize;
-        let mut contents = Vec::with_capacity(length);
+        // we don't set the capacity here so we can't get exploited into
+        // allocating a bunch
+        let mut contents = vec![];
         for _ in 0..length {
             contents.push(T::read_from(buf)?);
         }
@@ -171,7 +171,7 @@ impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
 impl<K: McBufReadable + Send + Eq + Hash, V: McBufReadable + Send> McBufReadable for HashMap<K, V> {
     default fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let length = i32::var_read_from(buf)? as usize;
-        let mut contents = HashMap::with_capacity(length);
+        let mut contents = HashMap::new();
         for _ in 0..length {
             contents.insert(K::read_from(buf)?, V::read_from(buf)?);
         }
@@ -184,7 +184,7 @@ impl<K: McBufReadable + Send + Eq + Hash, V: McBufVarReadable + Send> McBufVarRe
 {
     default fn var_read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let length = i32::var_read_from(buf)? as usize;
-        let mut contents = HashMap::with_capacity(length);
+        let mut contents = HashMap::new();
         for _ in 0..length {
             contents.insert(K::read_from(buf)?, V::var_read_from(buf)?);
         }
@@ -195,10 +195,7 @@ impl<K: McBufReadable + Send + Eq + Hash, V: McBufVarReadable + Send> McBufVarRe
 impl McBufReadable for Vec<u8> {
     fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let length = i32::var_read_from(buf)? as usize;
-        let mut buffer = vec![0; length];
-        buf.read_exact(&mut buffer)
-            .map_err(|_| BufReadError::CouldNotReadBytes)?;
-        Ok(buffer)
+        read_bytes(buf, length).map(|b| b.to_vec())
     }
 }
 
@@ -241,7 +238,7 @@ impl McBufVarReadable for u16 {
 impl<T: McBufVarReadable> McBufVarReadable for Vec<T> {
     fn var_read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let length = i32::var_read_from(buf)? as usize;
-        let mut contents = Vec::with_capacity(length);
+        let mut contents = Vec::new();
         for _ in 0..length {
             contents.push(T::var_read_from(buf)?);
         }
@@ -321,7 +318,7 @@ impl<T: McBufReadable, const N: usize> McBufReadable for [T; N] {
             contents.push(T::read_from(buf)?);
         }
         contents.try_into().map_err(|_| {
-            panic!("Panic is not possible since the Vec is the same size as the array")
+            unreachable!("Panic is not possible since the Vec is the same size as the array")
         })
     }
 }
