@@ -1,9 +1,9 @@
 use azalea_nbt::Tag;
-use criterion::{criterion_group, criterion_main, Criterion, Throughput};
+use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use flate2::read::GzDecoder;
 use std::{
     fs::File,
-    io::{self, Read, Seek, SeekFrom},
+    io::{self, Read},
 };
 
 fn bench_serialize(filename: &str, c: &mut Criterion) {
@@ -18,7 +18,6 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
     decoded_src_decoder.read_to_end(&mut decoded_src).unwrap();
     let decoded_src_stream = &mut &decoded_src[..];
 
-    file.seek(SeekFrom::Start(0)).unwrap();
     let nbt = Tag::read(decoded_src_stream).unwrap();
 
     let mut group = c.benchmark_group(filename);
@@ -27,9 +26,7 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
 
     group.bench_function("Decode", |b| {
         b.iter(|| {
-            let mut owned_decoded_src_stream = decoded_src_stream.clone();
-            owned_decoded_src_stream.seek(SeekFrom::Start(0)).unwrap();
-            Tag::read(&mut owned_decoded_src_stream).unwrap();
+            black_box(Tag::read(&mut &decoded_src_stream[..]).unwrap());
         })
     });
 
