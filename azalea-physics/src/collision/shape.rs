@@ -132,9 +132,9 @@ impl Shapes {
         // } else {
         //    return (IndexMerger)(var5 == var6 && Objects.equals(var1, var2) ? new IdenticalMerger(var1) : new IndirectMerger(var1, var2, var3, var4));
         // }
-        if var1.get_double(var5) < var2.get_double(0) - 1.0E-7 {
+        if var1[var5] < var2[0] - 1.0E-7 {
             return NonOverlappingMerger::new(var1, var2, false);
-        } else if var2.get_double(var6) < var1.get_double(0) - 1.0E-7 {
+        } else if var2[var6] < var1[0] - 1.0E-7 {
             return NonOverlappingMerger::new(var2, var1, true);
         } else {
             if var5 == var6 && var1 == var2 {
@@ -382,6 +382,10 @@ impl CubePointRange {
 
     pub fn size(&self) -> u32 {
         self.parts.get() + 1
+    }
+
+    pub fn iter(&self) -> Vec<f64> {
+        (0..=self.parts.get()).map(|i| self.get_double(i)).collect()
     }
 }
 
