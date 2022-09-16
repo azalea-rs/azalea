@@ -1,7 +1,6 @@
 use crate::collision::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB};
 use azalea_core::{binary_search, lcm, Axis, AxisCycle, EPSILON};
 use std::{any::Any, cmp, num::NonZeroU32};
-
 use super::mergers::{
     DiscreteCubeMerger, IdenticalMerger, IndexMerger, IndirectMerger, NonOverlappingMerger,
 };
@@ -46,7 +45,7 @@ impl Shapes {
     pub fn join_unoptimized(
         a: Box<dyn VoxelShape>,
         b: Box<dyn VoxelShape>,
-        op: impl FnOnce(bool, bool) -> bool,
+        op: fn(bool, bool) -> bool,
     ) -> Box<dyn VoxelShape> {
         if op(false, false) {
             panic!("Illegal operation");
@@ -88,7 +87,8 @@ impl Shapes {
             op_true_false,
             op_false_true,
         );
-        let var8 = BitSetDiscreteVoxelShape::join(a.shape(), b.shape(), &var5, &var6, &var7, &op);
+        let var8 =
+            BitSetDiscreteVoxelShape::join(&*a.shape(), &*b.shape(), &*var5, &*var6, &*var7, &op);
         // if var5.is_discrete_cube_merger()
         if (&var5 as &dyn Any).is::<DiscreteCubeMerger>()
             && (&var6 as &dyn Any).is::<DiscreteCubeMerger>()

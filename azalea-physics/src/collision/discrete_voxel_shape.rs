@@ -53,12 +53,12 @@ pub struct BitSetDiscreteVoxelShape {
     z_size: u32,
 
     storage: BitSet,
-    x_min: u32,
-    y_min: u32,
-    z_min: u32,
-    x_max: u32,
-    y_max: u32,
-    z_max: u32,
+    x_min: i32,
+    y_min: i32,
+    z_min: i32,
+    x_max: i32,
+    y_max: i32,
+    z_max: i32,
 }
 
 impl BitSetDiscreteVoxelShape {
@@ -76,9 +76,9 @@ impl BitSetDiscreteVoxelShape {
             z_size: z_min,
 
             storage: BitSet::new((x_min * y_min * z_min).try_into().unwrap()),
-            x_min,
-            y_min,
-            z_min,
+            x_min: z_min.try_into().unwrap(),
+            y_min: z_min.try_into().unwrap(),
+            z_min: z_min.try_into().unwrap(),
             x_max: 0,
             y_max: 0,
             z_max: 0,
@@ -99,12 +99,12 @@ impl BitSetDiscreteVoxelShape {
     fn fill_update_bounds(&mut self, x: u32, y: u32, z: u32, update: bool) {
         self.storage.set(self.get_index(x, y, z));
         if update {
-            self.x_min = std::cmp::min(self.x_min, x);
-            self.y_min = std::cmp::min(self.y_min, y);
-            self.z_min = std::cmp::min(self.z_min, z);
-            self.x_max = std::cmp::max(self.x_max, x + 1);
-            self.y_max = std::cmp::max(self.y_max, y + 1);
-            self.z_max = std::cmp::max(self.z_max, z + 1);
+            self.x_min = std::cmp::min(self.x_min, x as i32);
+            self.y_min = std::cmp::min(self.y_min, y as i32);
+            self.z_min = std::cmp::min(self.z_min, z as i32);
+            self.x_max = std::cmp::max(self.x_max, (x + 1) as i32);
+            self.y_max = std::cmp::max(self.y_max, (y + 1) as i32);
+            self.z_max = std::cmp::max(self.z_max, (z + 1) as i32);
         }
     }
 
@@ -168,17 +168,43 @@ impl BitSetDiscreteVoxelShape {
         var2: &dyn IndexMerger,
         var3: &dyn IndexMerger,
         var4: &dyn IndexMerger,
-        var5: impl FnOnce(bool, bool) -> bool,
+        var5: &dyn FnOnce(bool, bool) -> bool,
     ) -> Self {
-        let mut var6 = BitSetDiscreteVoxelShape::new(var2.size() - 1, var3.size() - 1, var4.size() - 1);
-        let mut var7 = [2147483647, 2147483647, 2147483647, -2147483648, -2147483648, -2147483648];
-        var2.for_merged_indexes(|var7x, var8, var9| {
+        let mut var6 = BitSetDiscreteVoxelShape::new(
+            (var2.size() - 1) as u32,
+            (var3.size() - 1) as u32,
+            (var4.size() - 1) as u32,
+        );
+        let mut var7: [i32; 6] = [
+            2147483647,
+            2147483647,
+            2147483647,
+            -2147483648,
+            -2147483648,
+            -2147483648,
+        ];
+        var2.for_merged_indexes(&|var7x, var8, var9| {
             let mut var10 = [false];
-            var3.for_merged_indexes(|var10x, var11, var12| {
+            var3.for_merged_indexes(&|var10x, var11, var12| {
                 let mut var13 = [false];
-                var4.for_merged_indexes(|var12x, var13x, var14| {
-                    if var5.apply(var0.is_full_wide(var7x, var10x, var12x), var1.is_full_wide(var8, var11, var13x)) {
-                        var6.storage.set(var6.get_index(var9, var12, var14));
+                var4.for_merged_indexes(&|var12x, var13x, var14| {
+                    if var5(
+                        var0.is_full_wide(
+                            var7x.try_into().unwrap(),
+                            var10x.try_into().unwrap(),
+                            var12x.try_into().unwrap(),
+                        ),
+                        var1.is_full_wide(
+                            var8.try_into().unwrap(),
+                            var11.try_into().unwrap(),
+                            var13x.try_into().unwrap(),
+                        ),
+                    ) {
+                        var6.storage.set(var6.get_index(
+                            var9.try_into().unwrap(),
+                            var12.try_into().unwrap(),
+                            var14.try_into().unwrap(),
+                        ));
                         var7[2] = std::cmp::min(var7[2], var14);
                         var7[5] = std::cmp::max(var7[5], var14);
                         var13[0] = true;
@@ -201,10 +227,21 @@ impl BitSetDiscreteVoxelShape {
 
             true
         });
+        //     var6.xMin = var7[0];
+        //     var6.yMin = var7[1];
+        //     var6.zMin = var7[2];
+        //     var6.xMax = var7[3] + 1;
+        //     var6.yMax = var7[4] + 1;
+        //     var6.zMax = var7[5] + 1;
+        //     return var6;
         var6.x_min = var7[0];
         var6.y_min = var7[1];
         var6.z_min = var7[2];
-        var6.x_max = var7[3] +
+        var6.x_max = var7[3] + 1;
+        var6.y_max = var7[4] + 1;
+        var6.z_max = var7[5] + 1;
+        var6
+    }
 }
 
 impl DiscreteVoxelShape for BitSetDiscreteVoxelShape {
@@ -213,23 +250,23 @@ impl DiscreteVoxelShape for BitSetDiscreteVoxelShape {
     }
 
     fn first_full_x(&self) -> u32 {
-        self.x_min
+        self.x_min.try_into().unwrap()
     }
     fn first_full_y(&self) -> u32 {
-        self.y_min
+        self.y_min.try_into().unwrap()
     }
     fn first_full_z(&self) -> u32 {
-        self.z_min
+        self.z_min.try_into().unwrap()
     }
 
     fn last_full_x(&self) -> u32 {
-        self.x_max
+        self.x_max.try_into().unwrap()
     }
     fn last_full_y(&self) -> u32 {
-        self.y_max
+        self.y_max.try_into().unwrap()
     }
     fn last_full_z(&self) -> u32 {
-        self.z_max
+        self.z_max.try_into().unwrap()
     }
 
     fn clone(&self) -> Box<dyn DiscreteVoxelShape> {
