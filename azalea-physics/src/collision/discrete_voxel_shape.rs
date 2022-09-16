@@ -1,5 +1,7 @@
 use azalea_core::{Axis, AxisCycle, BitSet};
 
+use super::mergers::IndexMerger;
+
 // TODO: every impl of DiscreteVoxelShape could be turned into a single enum as an optimization
 
 pub trait DiscreteVoxelShape: Send + Sync {
@@ -119,6 +121,90 @@ impl BitSetDiscreteVoxelShape {
     fn get_index(&self, x: u32, y: u32, z: u32) -> usize {
         ((x * self.y_size + y) * self.z_size + z) as usize
     }
+
+    // static BitSetDiscreteVoxelShape join(DiscreteVoxelShape var0, DiscreteVoxelShape var1, IndexMerger var2, IndexMerger var3, IndexMerger var4, BooleanOp var5) {
+    //     BitSetDiscreteVoxelShape var6 = new BitSetDiscreteVoxelShape(var2.size() - 1, var3.size() - 1, var4.size() - 1);
+    //     int[] var7 = new int[]{2147483647, 2147483647, 2147483647, -2147483648, -2147483648, -2147483648};
+    //     var2.forMergedIndexes((var7x, var8, var9) -> {
+    //        boolean[] var10 = new boolean[]{false};
+    //        var3.forMergedIndexes((var10x, var11, var12) -> {
+    //           boolean[] var13 = new boolean[]{false};
+    //           var4.forMergedIndexes((var12x, var13x, var14) -> {
+    //              if (var5.apply(var0.isFullWide(var7x, var10x, var12x), var1.isFullWide(var8, var11, var13x))) {
+    //                 var6.storage.set(var6.getIndex(var9, var12, var14));
+    //                 var7[2] = Math.min(var7[2], var14);
+    //                 var7[5] = Math.max(var7[5], var14);
+    //                 var13[0] = true;
+    //              }
+
+    //              return true;
+    //           });
+    //           if (var13[0]) {
+    //              var7[1] = Math.min(var7[1], var12);
+    //              var7[4] = Math.max(var7[4], var12);
+    //              var10[0] = true;
+    //           }
+
+    //           return true;
+    //        });
+    //        if (var10[0]) {
+    //           var7[0] = Math.min(var7[0], var9);
+    //           var7[3] = Math.max(var7[3], var9);
+    //        }
+
+    //        return true;
+    //     });
+    //     var6.xMin = var7[0];
+    //     var6.yMin = var7[1];
+    //     var6.zMin = var7[2];
+    //     var6.xMax = var7[3] + 1;
+    //     var6.yMax = var7[4] + 1;
+    //     var6.zMax = var7[5] + 1;
+    //     return var6;
+    //  }
+    pub fn join(
+        var0: &dyn DiscreteVoxelShape,
+        var1: &dyn DiscreteVoxelShape,
+        var2: &dyn IndexMerger,
+        var3: &dyn IndexMerger,
+        var4: &dyn IndexMerger,
+        var5: impl FnOnce(bool, bool) -> bool,
+    ) -> Self {
+        let mut var6 = BitSetDiscreteVoxelShape::new(var2.size() - 1, var3.size() - 1, var4.size() - 1);
+        let mut var7 = [2147483647, 2147483647, 2147483647, -2147483648, -2147483648, -2147483648];
+        var2.for_merged_indexes(|var7x, var8, var9| {
+            let mut var10 = [false];
+            var3.for_merged_indexes(|var10x, var11, var12| {
+                let mut var13 = [false];
+                var4.for_merged_indexes(|var12x, var13x, var14| {
+                    if var5.apply(var0.is_full_wide(var7x, var10x, var12x), var1.is_full_wide(var8, var11, var13x)) {
+                        var6.storage.set(var6.get_index(var9, var12, var14));
+                        var7[2] = std::cmp::min(var7[2], var14);
+                        var7[5] = std::cmp::max(var7[5], var14);
+                        var13[0] = true;
+                    }
+
+                    true
+                });
+                if var13[0] {
+                    var7[1] = std::cmp::min(var7[1], var12);
+                    var7[4] = std::cmp::max(var7[4], var12);
+                    var10[0] = true;
+                }
+
+                true
+            });
+            if var10[0] {
+                var7[0] = std::cmp::min(var7[0], var9);
+                var7[3] = std::cmp::max(var7[3], var9);
+            }
+
+            true
+        });
+        var6.x_min = var7[0];
+        var6.y_min = var7[1];
+        var6.z_min = var7[2];
+        var6.x_max = var7[3] +
 }
 
 impl DiscreteVoxelShape for BitSetDiscreteVoxelShape {
