@@ -89,7 +89,7 @@ impl IndexMerger {
                 }
             }
             IndexMerger::Indirect {
-                result,
+                ..,
                 first_indices,
                 second_indices,
                 result_length,
