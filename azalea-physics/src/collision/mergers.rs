@@ -89,10 +89,10 @@ impl IndexMerger {
                 }
             }
             IndexMerger::Indirect {
-                ..,
                 first_indices,
                 second_indices,
                 result_length,
+                ..
             } => {
                 let var2 = result_length - 1;
 
