@@ -10,9 +10,77 @@ pub fn block_shape() -> Box<dyn VoxelShape> {
     shape.fill(0, 0, 0);
     Box::new(CubeVoxelShape::new(Box::new(shape)))
 }
-pub fn block_box_shape() -> Box<dyn VoxelShape> {
-    let mut shape = BitSetDiscreteVoxelShape::new(1, 1, 1);
-    shape.fill(0, 0, 0);
+// public static VoxelShape create(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+//     if (!(maxX - minX < 1.0E-7D) && !(maxY - minY < 1.0E-7D) && !(maxZ - minZ < 1.0E-7D)) {
+//        int xBits = findBits(minX, maxX);
+//        int yBits = findBits(minY, maxY);
+//        int zBits = findBits(minZ, maxZ);
+//        if (xBits >= 0 && yBits >= 0 && zBits >= 0) {
+//           if (xBits == 0 && yBits == 0 && zBits == 0) {
+//              return block();
+//           } else {
+//              int xBits = 1 << xBits;
+//              int yBits = 1 << yBits;
+//              int zBits = 1 << zBits;
+//              BitSetDiscreteVoxelShape var18 = BitSetDiscreteVoxelShape.withFilledBounds(xBits, yBits, zBits, (int)Math.round(minX * (double)xBits), (int)Math.round(minY * (double)yBits), (int)Math.round(minZ * (double)zBits), (int)Math.round(maxX * (double)xBits), (int)Math.round(maxY * (double)yBits), (int)Math.round(maxZ * (double)zBits));
+//              return new CubeVoxelShape(var18);
+//           }
+//        } else {
+//           return new ArrayVoxelShape(BLOCK.shape, DoubleArrayList.wrap(new double[]{minX, maxX}), DoubleArrayList.wrap(new double[]{minY, maxY}), DoubleArrayList.wrap(new double[]{minZ, maxZ}));
+//        }
+//     } else {
+//        return empty();
+//     }
+// }
+pub fn box_shape(
+    min_x: f64,
+    min_y: f64,
+    min_z: f64,
+    max_x: f64,
+    max_y: f64,
+    max_z: f64,
+) -> Box<dyn VoxelShape> {
+    assert!(min_x >= 0.);
+    assert!(min_y >= 0.);
+    assert!(min_z >= 0.);
+    assert!(max_x >= 0.);
+    assert!(max_y >= 0.);
+    assert!(max_z >= 0.);
+
+    if max_x - min_x < EPSILON && max_y - min_y < EPSILON && max_z - min_z < EPSILON {
+        return empty_shape();
+    }
+
+    let x_bits = find_bits(min_x, max_x);
+    let y_bits = find_bits(min_y, max_y);
+    let z_bits = find_bits(min_z, max_z);
+
+    if x_bits < 0 || y_bits < 0 || z_bits < 0 {
+        return Box::new(ArrayVoxelShape::new(
+            block_shape().shape(),
+            vec![min_x, max_x],
+            vec![min_y, max_y],
+            vec![min_z, max_z],
+        ));
+    }
+    if x_bits == 0 && y_bits == 0 && z_bits == 0 {
+        return block_shape();
+    }
+
+    let x_bits = 1 << x_bits;
+    let y_bits = 1 << y_bits;
+    let z_bits = 1 << z_bits;
+    let shape = BitSetDiscreteVoxelShape::with_filled_bounds(
+        x_bits,
+        y_bits,
+        z_bits,
+        (min_x * x_bits as f64).round() as i32,
+        (min_y * y_bits as f64).round() as i32,
+        (min_z * z_bits as f64).round() as i32,
+        (max_x * x_bits as f64).round() as i32,
+        (max_y * y_bits as f64).round() as i32,
+        (max_z * z_bits as f64).round() as i32,
+    );
     Box::new(CubeVoxelShape::new(Box::new(shape)))
 }
 pub fn empty_shape() -> Box<dyn VoxelShape> {
@@ -22,6 +90,23 @@ pub fn empty_shape() -> Box<dyn VoxelShape> {
         vec![0.],
         vec![0.],
     ))
+}
+
+fn find_bits(min: f64, max: f64) -> i32 {
+    if min < -EPSILON || max > 1. + EPSILON {
+        return -1;
+    }
+    for bits in 0..=3 {
+        let bits = 1 << bits;
+        let min = min * bits as f64;
+        let max = max * bits as f64;
+        let min_ok = (min - min.round()).abs() < EPSILON * bits as f64;
+        let max_ok = (max - max.round()).abs() < EPSILON * bits as f64;
+        if min_ok && max_ok {
+            return bits;
+        }
+    }
+    -1
 }
 
 impl Shapes {

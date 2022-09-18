@@ -85,6 +85,60 @@ impl BitSetDiscreteVoxelShape {
         }
     }
 
+    //    public static BitSetDiscreteVoxelShape withFilledBounds(int var0, int var1, int var2, int var3, int var4, int var5, int var6, int var7, int var8) {
+    //     BitSetDiscreteVoxelShape var9 = new BitSetDiscreteVoxelShape(var0, var1, var2);
+    //     var9.xMin = var3;
+    //     var9.yMin = var4;
+    //     var9.zMin = var5;
+    //     var9.xMax = var6;
+    //     var9.yMax = var7;
+    //     var9.zMax = var8;
+
+    //     for(int var10 = var3; var10 < var6; ++var10) {
+    //        for(int var11 = var4; var11 < var7; ++var11) {
+    //           for(int var12 = var5; var12 < var8; ++var12) {
+    //              var9.fillUpdateBounds(var10, var11, var12, false);
+    //           }
+    //        }
+    //     }
+
+    //     return var9;
+    //  }
+    pub fn with_filled_bounds(
+        x_size: u32,
+        y_size: u32,
+        z_size: u32,
+        x_min: i32,
+        y_min: i32,
+        z_min: i32,
+        x_max: i32,
+        y_max: i32,
+        z_max: i32,
+    ) -> Self {
+        let mut shape = BitSetDiscreteVoxelShape::new(x_size, y_size, z_size);
+        shape.x_min = x_min;
+        shape.y_min = y_min;
+        shape.z_min = z_min;
+        shape.x_max = x_max;
+        shape.y_max = y_max;
+        shape.z_max = z_max;
+
+        for x in x_min..x_max {
+            for y in y_min..y_max {
+                for z in z_min..z_max {
+                    shape.fill_update_bounds(
+                        x.try_into().unwrap(),
+                        y.try_into().unwrap(),
+                        z.try_into().unwrap(),
+                        false,
+                    );
+                }
+            }
+        }
+
+        shape
+    }
+
     // private void fillUpdateBounds(int var1, int var2, int var3, boolean var4) {
     // 	this.storage.set(this.getIndex(var1, var2, var3));
     // 	if (var4) {
