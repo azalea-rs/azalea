@@ -165,10 +165,10 @@ impl BitSetDiscreteVoxelShape {
     pub fn join(
         var0: &dyn DiscreteVoxelShape,
         var1: &dyn DiscreteVoxelShape,
-        var2: &dyn IndexMerger,
-        var3: &dyn IndexMerger,
-        var4: &dyn IndexMerger,
-        var5: &dyn FnOnce(bool, bool) -> bool,
+        var2: &impl IndexMerger,
+        var3: &impl IndexMerger,
+        var4: &impl IndexMerger,
+        var5: impl Fn(bool, bool) -> bool,
     ) -> Self {
         let mut var6 = BitSetDiscreteVoxelShape::new(
             (var2.size() - 1) as u32,
@@ -183,11 +183,11 @@ impl BitSetDiscreteVoxelShape {
             -2147483648,
             -2147483648,
         ];
-        var2.for_merged_indexes(&|var7x, var8, var9| {
+        var2.for_merged_indexes(|var7x: i32, var8: i32, var9: i32| {
             let mut var10 = [false];
-            var3.for_merged_indexes(&|var10x, var11, var12| {
+            var3.for_merged_indexes(|var10x: i32, var11: i32, var12: i32| {
                 let mut var13 = [false];
-                var4.for_merged_indexes(&|var12x, var13x, var14| {
+                var4.for_merged_indexes(|var12x: i32, var13x: i32, var14: i32| {
                     if var5(
                         var0.is_full_wide(
                             var7x.try_into().unwrap(),

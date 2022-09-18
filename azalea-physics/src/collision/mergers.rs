@@ -14,11 +14,13 @@ pub trait IndexMerger {
     //    boolean merge(int var1, int var2, int var3);
     // }
     fn get_list(&self) -> Vec<f64>;
-    fn for_merged_indexes(&self, consumer: &IndexConsumer) -> bool;
+    fn for_merged_indexes(&self, consumer: impl IndexConsumer) -> bool
+    where
+        Self: Sized;
     fn size(&self) -> usize;
 }
 
-type IndexConsumer = dyn Fn(i32, i32, i32) -> bool;
+trait IndexConsumer = FnMut(i32, i32, i32) -> bool;
 
 pub struct IdenticalMerger {
     pub coords: Vec<f64>,
@@ -27,7 +29,7 @@ impl IndexMerger for IdenticalMerger {
     fn get_list(&self) -> Vec<f64> {
         self.coords.clone()
     }
-    fn for_merged_indexes(&self, consumer: &IndexConsumer) -> bool {
+    fn for_merged_indexes(&self, consumer: impl IndexConsumer) -> bool {
         for var3 in 0..(self.coords.len() - 1) {
             if !consumer(var3 as i32, var3 as i32, var3 as i32) {
                 return false;
@@ -106,7 +108,7 @@ impl IndexMerger for DiscreteCubeMerger {
     //       }
     //       return true;
     //    }
-    fn for_merged_indexes(&self, consumer: &IndexConsumer) -> bool {
+    fn for_merged_indexes(&self, consumer: impl IndexConsumer) -> bool {
         let var2 = self.result.size() - 1;
         for var3 in 0..var2 {
             if !consumer(
@@ -174,7 +176,7 @@ impl NonOverlappingMerger {
 
     //        return true;
     //     }
-    fn for_non_swapped_indexes(&self, consumer: &dyn for<'a> Fn(i32, i32, i32) -> bool) -> bool {
+    fn for_non_swapped_indexes(&self, consumer: impl IndexConsumer) -> bool {
         let var2 = self.lower.len();
         for var3 in 0..var2 {
             if !consumer(var3.try_into().unwrap(), -1, var3.try_into().unwrap()) {
@@ -208,10 +210,9 @@ impl IndexMerger for NonOverlappingMerger {
     //           return var1.merge(var2, var1x, var3);
     //        }) : this.forNonSwappedIndexes(var1);
     //     }
-    fn for_merged_indexes<'a>(&'a self, consumer: &'a IndexConsumer) -> bool {
+    fn for_merged_indexes(&self, mut consumer: impl IndexConsumer) -> bool {
         if self.swap {
-            let c = &|var1x, var2, var3| consumer(var2, var1x, var3);
-            self.for_non_swapped_indexes(c)
+            self.for_non_swapped_indexes(move |var1x, var2, var3| consumer(var2, var1x, var3))
         } else {
             self.for_non_swapped_indexes(consumer)
         }
@@ -389,7 +390,7 @@ impl IndirectMerger {
 }
 
 impl IndexMerger for IndirectMerger {
-    fn for_merged_indexes(&self, consumer: &IndexConsumer) -> bool {
+    fn for_merged_indexes(&self, consumer: impl IndexConsumer) -> bool {
         let var2 = self.result_length - 1;
 
         for var3 in 0..var2 {

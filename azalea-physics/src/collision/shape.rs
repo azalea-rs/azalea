@@ -1,9 +1,9 @@
-use crate::collision::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB};
-use azalea_core::{binary_search, lcm, Axis, AxisCycle, EPSILON};
-use std::{any::Any, cmp, num::NonZeroU32};
 use super::mergers::{
     DiscreteCubeMerger, IdenticalMerger, IndexMerger, IndirectMerger, NonOverlappingMerger,
 };
+use crate::collision::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB};
+use azalea_core::{binary_search, lcm, Axis, AxisCycle, EPSILON};
+use std::{any::Any, cmp, num::NonZeroU32};
 
 pub struct Shapes {}
 

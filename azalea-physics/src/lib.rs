@@ -1,3 +1,5 @@
+#![feature(trait_alias)]
+
 pub mod collision;
 
 use azalea_block::{Block, BlockState};
