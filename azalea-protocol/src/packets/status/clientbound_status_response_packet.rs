@@ -36,7 +36,7 @@ pub struct ClientboundStatusResponsePacket {
 
 impl ClientboundStatusResponsePacket {
     pub fn get(self) -> ClientboundStatusPacket {
-        ClientboundStatusPacket::ClientboundStatusResponsePacket(self)
+        ClientboundStatusPacket::StatusResponse(self)
     }
 
     pub fn write(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {

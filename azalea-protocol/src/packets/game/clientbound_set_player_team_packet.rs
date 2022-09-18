@@ -71,10 +71,4 @@ pub struct Parameters {
     pub player_suffix: Component,
 }
 
-#[derive(McBuf, Copy, Clone, Debug)]
-pub enum RenderType {
-    Integer,
-    Hearts,
-}
-
 type PlayerList = Vec<String>;

@@ -53,6 +53,8 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
         syn::Data::Enum(syn::DataEnum { variants, .. }) => {
             let mut match_contents = quote!();
             let mut variant_discrim: u32 = 0;
+            let mut first = true;
+            let mut first_reader = None;
             for variant in variants {
                 let variant_name = &variant.ident;
                 match &variant.discriminant.as_ref() {
@@ -71,7 +73,9 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         }
                     }
                     None => {
-                        variant_discrim += 1;
+                        if !first {
+                            variant_discrim += 1;
+                        }
                     }
                 }
                 let reader = match variant.fields {
@@ -85,6 +89,10 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         Ok(Self::#variant_name)
                     },
                 };
+                if first {
+                    first_reader = Some(reader.clone());
+                    first = false;
+                };
 
                 match_contents.extend(quote! {
                     #variant_discrim => {
@@ -93,6 +101,8 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                 });
             }
 
+            let first_reader = first_reader.expect("There should be at least one variant");
+
             quote! {
             impl azalea_buf::McBufReadable for #ident {
                 fn read_from(buf: &mut impl std::io::Read) -> Result<Self, azalea_buf::BufReadError>
@@ -100,7 +110,8 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                     let id = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                     match id {
                         #match_contents
-                        _ => Err(azalea_buf::BufReadError::UnexpectedEnumVariant { id: id as i32 }),
+                        // you'd THINK this throws an error, but mojang decided to make it default for some reason
+                        _ => #first_reader
                     }
                 }
             }
@@ -160,26 +171,30 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             let mut is_data_enum = false;
             let mut match_arms = quote!();
             let mut variant_discrim: u32 = 0;
+            let mut first = true;
             for variant in variants {
-                // figure out the discriminant
-                if let Some(discriminant) = &variant.discriminant {
-                    variant_discrim = match &discriminant.1 {
-                        syn::Expr::Lit(e) => match &e.lit {
-                            syn::Lit::Int(i) => i.base10_parse().unwrap(),
-                            _ => panic!("Error parsing enum discriminant as int"),
-                        },
-                        syn::Expr::Unary(_) => {
-                            panic!("Negative enum discriminants are not supported")
+                match &variant.discriminant.as_ref() {
+                    Some(d) => {
+                        variant_discrim = match &d.1 {
+                            syn::Expr::Lit(e) => match &e.lit {
+                                syn::Lit::Int(i) => i.base10_parse().unwrap(),
+                                _ => panic!("Error parsing enum discriminant as int"),
+                            },
+                            syn::Expr::Unary(_) => {
+                                panic!("Negative enum discriminants are not supported")
+                            }
+                            _ => {
+                                panic!("Error parsing enum discriminant as literal (is {:?})", d.1)
+                            }
                         }
-                        _ => {
-                            panic!(
-                                "Error parsing enum discriminant as literal (is {:?})",
-                                discriminant.1
-                            )
+                    }
+                    None => {
+                        if first {
+                            first = false;
+                        } else {
+                            variant_discrim += 1;
                         }
-                    };
-                } else {
-                    variant_discrim += 1;
+                    }
                 }
 
                 match &variant.fields {

@@ -12,7 +12,7 @@ pub struct ClientboundLoginCompressionPacket {
 
 impl ClientboundLoginCompressionPacket {
     pub fn get(self) -> ClientboundLoginPacket {
-        ClientboundLoginPacket::ClientboundLoginCompressionPacket(self)
+        ClientboundLoginPacket::LoginCompression(self)
     }
 
     pub fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {

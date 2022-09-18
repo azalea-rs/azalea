@@ -145,7 +145,7 @@ impl Client {
             let packet_result = conn.read().await;
             match packet_result {
                 Ok(packet) => match packet {
-                    ClientboundLoginPacket::ClientboundHelloPacket(p) => {
+                    ClientboundLoginPacket::Hello(p) => {
                         println!("Got encryption request");
                         let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
 
@@ -163,18 +163,18 @@ impl Client {
                         .await?;
                         conn.set_encryption_key(e.secret_key);
                     }
-                    ClientboundLoginPacket::ClientboundLoginCompressionPacket(p) => {
+                    ClientboundLoginPacket::LoginCompression(p) => {
                         println!("Got compression request {:?}", p.compression_threshold);
                         conn.set_compression_threshold(p.compression_threshold);
                     }
-                    ClientboundLoginPacket::ClientboundGameProfilePacket(p) => {
+                    ClientboundLoginPacket::GameProfile(p) => {
                         println!("Got profile {:?}", p.game_profile);
                         break (conn.game(), p.game_profile);
                     }
-                    ClientboundLoginPacket::ClientboundLoginDisconnectPacket(p) => {
+                    ClientboundLoginPacket::LoginDisconnect(p) => {
                         println!("Got disconnect {:?}", p);
                     }
-                    ClientboundLoginPacket::ClientboundCustomQueryPacket(p) => {
+                    ClientboundLoginPacket::CustomQuery(p) => {
                         println!("Got custom query {:?}", p);
                     }
                 },
@@ -244,7 +244,7 @@ impl Client {
         tx: &UnboundedSender<Event>,
     ) -> Result<(), HandleError> {
         match packet {
-            ClientboundGamePacket::ClientboundLoginPacket(p) => {
+            ClientboundGamePacket::Login(p) => {
                 println!("Got login packet {:?}", p);
 
                 {
@@ -337,40 +337,40 @@ impl Client {
 
                 tx.send(Event::Login).unwrap();
             }
-            ClientboundGamePacket::ClientboundUpdateViewDistancePacket(p) => {
+            ClientboundGamePacket::UpdateViewDistance(p) => {
                 println!("Got view distance packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundCustomPayloadPacket(p) => {
+            ClientboundGamePacket::CustomPayload(p) => {
                 println!("Got custom payload packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundChangeDifficultyPacket(p) => {
+            ClientboundGamePacket::ChangeDifficulty(p) => {
                 println!("Got difficulty packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundCommandsPacket(_p) => {
+            ClientboundGamePacket::Commands(_p) => {
                 println!("Got declare commands packet");
             }
-            ClientboundGamePacket::ClientboundPlayerAbilitiesPacket(p) => {
+            ClientboundGamePacket::PlayerAbilities(p) => {
                 println!("Got player abilities packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundSetCarriedItemPacket(p) => {
+            ClientboundGamePacket::SetCarriedItem(p) => {
                 println!("Got set carried item packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundUpdateTagsPacket(_p) => {
+            ClientboundGamePacket::UpdateTags(_p) => {
                 println!("Got update tags packet");
             }
-            ClientboundGamePacket::ClientboundDisconnectPacket(p) => {
+            ClientboundGamePacket::Disconnect(p) => {
                 println!("Got disconnect packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundUpdateRecipesPacket(_p) => {
+            ClientboundGamePacket::UpdateRecipes(_p) => {
                 println!("Got update recipes packet");
             }
-            ClientboundGamePacket::ClientboundEntityEventPacket(_p) => {
+            ClientboundGamePacket::EntityEvent(_p) => {
                 // println!("Got entity event packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundRecipePacket(_p) => {
+            ClientboundGamePacket::Recipe(_p) => {
                 println!("Got recipe packet");
             }
-            ClientboundGamePacket::ClientboundPlayerPositionPacket(p) => {
+            ClientboundGamePacket::PlayerPosition(p) => {
                 // TODO: reply with teleport confirm
                 println!("Got player position packet {:?}", p);
 
@@ -462,17 +462,17 @@ impl Client {
                     )
                     .await?;
             }
-            ClientboundGamePacket::ClientboundPlayerInfoPacket(p) => {
+            ClientboundGamePacket::PlayerInfo(p) => {
                 println!("Got player info packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundSetChunkCacheCenterPacket(p) => {
+            ClientboundGamePacket::SetChunkCacheCenter(p) => {
                 println!("Got chunk cache center packet {:?}", p);
                 client
                     .dimension
                     .lock()?
                     .update_view_center(&ChunkPos::new(p.x, p.z));
             }
-            ClientboundGamePacket::ClientboundLevelChunkWithLightPacket(p) => {
+            ClientboundGamePacket::LevelChunkWithLight(p) => {
                 println!("Got chunk with light packet {} {}", p.x, p.z);
                 let pos = ChunkPos::new(p.x, p.z);
                 // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
@@ -483,50 +483,50 @@ impl Client {
                     .replace_with_packet_data(&pos, &mut p.chunk_data.data.as_slice())
                     .unwrap();
             }
-            ClientboundGamePacket::ClientboundLightUpdatePacket(p) => {
+            ClientboundGamePacket::LightUpdate(p) => {
                 println!("Got light update packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundAddEntityPacket(p) => {
+            ClientboundGamePacket::AddEntity(p) => {
                 println!("Got add entity packet {:?}", p);
                 let entity = EntityData::from(p);
                 client.dimension.lock()?.add_entity(p.id, entity);
             }
-            ClientboundGamePacket::ClientboundSetEntityDataPacket(_p) => {
+            ClientboundGamePacket::SetEntityData(_p) => {
                 // println!("Got set entity data packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundUpdateAttributesPacket(_p) => {
+            ClientboundGamePacket::UpdateAttributes(_p) => {
                 // println!("Got update attributes packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundEntityVelocityPacket(_p) => {
+            ClientboundGamePacket::EntityVelocity(_p) => {
                 // println!("Got entity velocity packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundSetEntityLinkPacket(p) => {
+            ClientboundGamePacket::SetEntityLink(p) => {
                 println!("Got set entity link packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundAddPlayerPacket(p) => {
+            ClientboundGamePacket::AddPlayer(p) => {
                 println!("Got add player packet {:?}", p);
                 let entity = EntityData::from(p);
                 client.dimension.lock()?.add_entity(p.id, entity);
             }
-            ClientboundGamePacket::ClientboundInitializeBorderPacket(p) => {
+            ClientboundGamePacket::InitializeBorder(p) => {
                 println!("Got initialize border packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundSetTimePacket(p) => {
+            ClientboundGamePacket::SetTime(p) => {
                 println!("Got set time packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundSetDefaultSpawnPositionPacket(p) => {
+            ClientboundGamePacket::SetDefaultSpawnPosition(p) => {
                 println!("Got set default spawn position packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundContainerSetContentPacket(p) => {
+            ClientboundGamePacket::ContainerSetContent(p) => {
                 println!("Got container set content packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundSetHealthPacket(p) => {
+            ClientboundGamePacket::SetHealth(p) => {
                 println!("Got set health packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundSetExperiencePacket(p) => {
+            ClientboundGamePacket::SetExperience(p) => {
                 println!("Got set experience packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundTeleportEntityPacket(p) => {
+            ClientboundGamePacket::TeleportEntity(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
 
                 dimension_lock
@@ -540,30 +540,30 @@ impl Client {
                     )
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
-            ClientboundGamePacket::ClientboundUpdateAdvancementsPacket(p) => {
+            ClientboundGamePacket::UpdateAdvancements(p) => {
                 println!("Got update advancements packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundRotateHeadPacket(_p) => {
+            ClientboundGamePacket::RotateHead(_p) => {
                 // println!("Got rotate head packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundMoveEntityPosPacket(p) => {
+            ClientboundGamePacket::MoveEntityPos(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
 
                 dimension_lock
                     .move_entity_with_delta(p.entity_id, &p.delta)
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
-            ClientboundGamePacket::ClientboundMoveEntityPosRotPacket(p) => {
+            ClientboundGamePacket::MoveEntityPosRot(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
 
                 dimension_lock
                     .move_entity_with_delta(p.entity_id, &p.delta)
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
-            ClientboundGamePacket::ClientboundMoveEntityRotPacket(_p) => {
+            ClientboundGamePacket::MoveEntityRot(_p) => {
                 // println!("Got move entity rot packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundKeepAlivePacket(p) => {
+            ClientboundGamePacket::KeepAlive(p) => {
                 println!("Got keep alive packet {:?}", p);
                 client
                     .conn
@@ -572,25 +572,25 @@ impl Client {
                     .write(ServerboundKeepAlivePacket { id: p.id }.get())
                     .await?;
             }
-            ClientboundGamePacket::ClientboundRemoveEntitiesPacket(p) => {
+            ClientboundGamePacket::RemoveEntities(p) => {
                 println!("Got remove entities packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundPlayerChatPacket(p) => {
+            ClientboundGamePacket::PlayerChat(p) => {
                 // println!("Got player chat packet {:?}", p);
                 tx.send(Event::Chat(ChatPacket::Player(Box::new(p.clone()))))
                     .unwrap();
             }
-            ClientboundGamePacket::ClientboundSystemChatPacket(p) => {
+            ClientboundGamePacket::SystemChat(p) => {
                 println!("Got system chat packet {:?}", p);
                 tx.send(Event::Chat(ChatPacket::System(p.clone()))).unwrap();
             }
-            ClientboundGamePacket::ClientboundSoundPacket(p) => {
+            ClientboundGamePacket::Sound(p) => {
                 println!("Got sound packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundLevelEventPacket(p) => {
+            ClientboundGamePacket::LevelEvent(p) => {
                 println!("Got level event packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundBlockUpdatePacket(p) => {
+            ClientboundGamePacket::BlockUpdate(p) => {
                 println!("Got block update packet {:?}", p);
                 // TODO: update world
                 let mut dimension = client.dimension.lock()?;
@@ -604,87 +604,87 @@ impl Client {
                     );
                 }
             }
-            ClientboundGamePacket::ClientboundAnimatePacket(p) => {
+            ClientboundGamePacket::Animate(p) => {
                 println!("Got animate packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundSectionBlocksUpdatePacket(p) => {
+            ClientboundGamePacket::SectionBlocksUpdate(p) => {
                 println!("Got section blocks update packet {:?}", p);
                 // TODO: update world
             }
-            ClientboundGamePacket::ClientboundGameEventPacket(p) => {
+            ClientboundGamePacket::GameEvent(p) => {
                 println!("Got game event packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundLevelParticlesPacket(p) => {
+            ClientboundGamePacket::LevelParticles(p) => {
                 println!("Got level particles packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundServerDataPacket(p) => {
+            ClientboundGamePacket::ServerData(p) => {
                 println!("Got server data packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundSetEquipmentPacket(p) => {
+            ClientboundGamePacket::SetEquipment(p) => {
                 println!("Got set equipment packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundUpdateMobEffectPacket(p) => {
+            ClientboundGamePacket::UpdateMobEffect(p) => {
                 println!("Got update mob effect packet {:?}", p);
             }
-            ClientboundGamePacket::ClientboundAddExperienceOrbPacket(_) => {}
-            ClientboundGamePacket::ClientboundAwardStatsPacket(_) => {}
-            ClientboundGamePacket::ClientboundBlockChangedAckPacket(_) => {}
-            ClientboundGamePacket::ClientboundBlockDestructionPacket(_) => {}
-            ClientboundGamePacket::ClientboundBlockEntityDataPacket(_) => {}
-            ClientboundGamePacket::ClientboundBlockEventPacket(_) => {}
-            ClientboundGamePacket::ClientboundBossEventPacket(_) => {}
-            ClientboundGamePacket::ClientboundChatPreviewPacket(_) => {}
-            ClientboundGamePacket::ClientboundCommandSuggestionsPacket(_) => {}
-            ClientboundGamePacket::ClientboundContainerSetDataPacket(_) => {}
-            ClientboundGamePacket::ClientboundContainerSetSlotPacket(_) => {}
-            ClientboundGamePacket::ClientboundCooldownPacket(_) => {}
-            ClientboundGamePacket::ClientboundCustomChatCompletionsPacket(_) => {}
-            ClientboundGamePacket::ClientboundCustomSoundPacket(_) => {}
-            ClientboundGamePacket::ClientboundDeleteChatPacket(_) => {}
-            ClientboundGamePacket::ClientboundExplodePacket(_) => {}
-            ClientboundGamePacket::ClientboundForgetLevelChunkPacket(_) => {}
-            ClientboundGamePacket::ClientboundHorseScreenOpenPacket(_) => {}
-            ClientboundGamePacket::ClientboundMapItemDataPacket(_) => {}
-            ClientboundGamePacket::ClientboundMerchantOffersPacket(_) => {}
-            ClientboundGamePacket::ClientboundMoveVehiclePacket(_) => {}
-            ClientboundGamePacket::ClientboundOpenBookPacket(_) => {}
-            ClientboundGamePacket::ClientboundOpenScreenPacket(_) => {}
-            ClientboundGamePacket::ClientboundOpenSignEditorPacket(_) => {}
-            ClientboundGamePacket::ClientboundPingPacket(_) => {}
-            ClientboundGamePacket::ClientboundPlaceGhostRecipePacket(_) => {}
-            ClientboundGamePacket::ClientboundPlayerChatHeaderPacket(_) => {}
-            ClientboundGamePacket::ClientboundPlayerCombatEndPacket(_) => {}
-            ClientboundGamePacket::ClientboundPlayerCombatEnterPacket(_) => {}
-            ClientboundGamePacket::ClientboundPlayerCombatKillPacket(_) => {}
-            ClientboundGamePacket::ClientboundPlayerLookAtPacket(_) => {}
-            ClientboundGamePacket::ClientboundRemoveMobEffectPacket(_) => {}
-            ClientboundGamePacket::ClientboundResourcePackPacket(_) => {}
-            ClientboundGamePacket::ClientboundRespawnPacket(_) => {}
-            ClientboundGamePacket::ClientboundSelectAdvancementsTabPacket(_) => {}
-            ClientboundGamePacket::ClientboundSetActionBarTextPacket(_) => {}
-            ClientboundGamePacket::ClientboundSetBorderCenterPacket(_) => {}
-            ClientboundGamePacket::ClientboundSetBorderLerpSizePacket(_) => {}
-            ClientboundGamePacket::ClientboundSetBorderSizePacket(_) => {}
-            ClientboundGamePacket::ClientboundSetBorderWarningDelayPacket(_) => {}
-            ClientboundGamePacket::ClientboundSetBorderWarningDistancePacket(_) => {}
-            ClientboundGamePacket::ClientboundSetCameraPacket(_) => {}
-            ClientboundGamePacket::ClientboundSetChunkCacheRadiusPacket(_) => {}
-            ClientboundGamePacket::ClientboundSetDisplayChatPreviewPacket(_) => {}
-            ClientboundGamePacket::ClientboundSetDisplayObjectivePacket(_) => {}
-            ClientboundGamePacket::ClientboundSetEntityMotionPacket(_) => {}
-            ClientboundGamePacket::ClientboundSetObjectivePacket(_) => {}
-            ClientboundGamePacket::ClientboundSetPassengersPacket(_) => {}
-            ClientboundGamePacket::ClientboundSetPlayerTeamPacket(_) => {}
-            ClientboundGamePacket::ClientboundSetScorePacket(_) => {}
-            ClientboundGamePacket::ClientboundSetSimulationDistancePacket(_) => {}
-            ClientboundGamePacket::ClientboundSetSubtitleTextPacket(_) => {}
-            ClientboundGamePacket::ClientboundSetTitleTextPacket(_) => {}
-            ClientboundGamePacket::ClientboundSetTitlesAnimationPacket(_) => {}
-            ClientboundGamePacket::ClientboundSoundEntityPacket(_) => {}
-            ClientboundGamePacket::ClientboundStopSoundPacket(_) => {}
-            ClientboundGamePacket::ClientboundTabListPacket(_) => {}
-            ClientboundGamePacket::ClientboundTagQueryPacket(_) => {}
-            ClientboundGamePacket::ClientboundTakeItemEntityPacket(_) => {}
+            ClientboundGamePacket::AddExperienceOrb(_) => {}
+            ClientboundGamePacket::AwardStats(_) => {}
+            ClientboundGamePacket::BlockChangedAck(_) => {}
+            ClientboundGamePacket::BlockDestruction(_) => {}
+            ClientboundGamePacket::BlockEntityData(_) => {}
+            ClientboundGamePacket::BlockEvent(_) => {}
+            ClientboundGamePacket::BossEvent(_) => {}
+            ClientboundGamePacket::ChatPreview(_) => {}
+            ClientboundGamePacket::CommandSuggestions(_) => {}
+            ClientboundGamePacket::ContainerSetData(_) => {}
+            ClientboundGamePacket::ContainerSetSlot(_) => {}
+            ClientboundGamePacket::Cooldown(_) => {}
+            ClientboundGamePacket::CustomChatCompletions(_) => {}
+            ClientboundGamePacket::CustomSound(_) => {}
+            ClientboundGamePacket::DeleteChat(_) => {}
+            ClientboundGamePacket::Explode(_) => {}
+            ClientboundGamePacket::ForgetLevelChunk(_) => {}
+            ClientboundGamePacket::HorseScreenOpen(_) => {}
+            ClientboundGamePacket::MapItemData(_) => {}
+            ClientboundGamePacket::MerchantOffers(_) => {}
+            ClientboundGamePacket::MoveVehicle(_) => {}
+            ClientboundGamePacket::OpenBook(_) => {}
+            ClientboundGamePacket::OpenScreen(_) => {}
+            ClientboundGamePacket::OpenSignEditor(_) => {}
+            ClientboundGamePacket::Ping(_) => {}
+            ClientboundGamePacket::PlaceGhostRecipe(_) => {}
+            ClientboundGamePacket::PlayerChatHeader(_) => {}
+            ClientboundGamePacket::PlayerCombatEnd(_) => {}
+            ClientboundGamePacket::PlayerCombatEnter(_) => {}
+            ClientboundGamePacket::PlayerCombatKill(_) => {}
+            ClientboundGamePacket::PlayerLookAt(_) => {}
+            ClientboundGamePacket::RemoveMobEffect(_) => {}
+            ClientboundGamePacket::ResourcePack(_) => {}
+            ClientboundGamePacket::Respawn(_) => {}
+            ClientboundGamePacket::SelectAdvancementsTab(_) => {}
+            ClientboundGamePacket::SetActionBarText(_) => {}
+            ClientboundGamePacket::SetBorderCenter(_) => {}
+            ClientboundGamePacket::SetBorderLerpSize(_) => {}
+            ClientboundGamePacket::SetBorderSize(_) => {}
+            ClientboundGamePacket::SetBorderWarningDelay(_) => {}
+            ClientboundGamePacket::SetBorderWarningDistance(_) => {}
+            ClientboundGamePacket::SetCamera(_) => {}
+            ClientboundGamePacket::SetChunkCacheRadius(_) => {}
+            ClientboundGamePacket::SetDisplayChatPreview(_) => {}
+            ClientboundGamePacket::SetDisplayObjective(_) => {}
+            ClientboundGamePacket::SetEntityMotion(_) => {}
+            ClientboundGamePacket::SetObjective(_) => {}
+            ClientboundGamePacket::SetPassengers(_) => {}
+            ClientboundGamePacket::SetPlayerTeam(_) => {}
+            ClientboundGamePacket::SetScore(_) => {}
+            ClientboundGamePacket::SetSimulationDistance(_) => {}
+            ClientboundGamePacket::SetSubtitleText(_) => {}
+            ClientboundGamePacket::SetTitleText(_) => {}
+            ClientboundGamePacket::SetTitlesAnimation(_) => {}
+            ClientboundGamePacket::SoundEntity(_) => {}
+            ClientboundGamePacket::StopSound(_) => {}
+            ClientboundGamePacket::TabList(_) => {}
+            ClientboundGamePacket::TagQuery(_) => {}
+            ClientboundGamePacket::TakeItemEntity(_) => {}
         }
 
         Ok(())

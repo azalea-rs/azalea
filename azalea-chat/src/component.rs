@@ -126,18 +126,18 @@ impl<'de> Deserialize<'de> for Component {
         }
         // if it's an object, do things with { text } and stuff
         else if json.is_object() {
-            if json.get("text").is_some() {
-                let text = json.get("text").unwrap().as_str().unwrap_or("").to_string();
+            if let Some(text) = json.get("text") {
+                let text = text.as_str().unwrap_or("").to_string();
                 component = Component::Text(TextComponent::new(text));
-            } else if json.get("translate").is_some() {
-                let translate = json
-                    .get("translate")
-                    .unwrap()
+            } else if let Some(translate) = json.get("translate") {
+                let translate = translate
                     .as_str()
                     .ok_or_else(|| de::Error::custom("\"translate\" must be a string"))?
                     .into();
-                if json.get("with").is_some() {
-                    let with = json.get("with").unwrap().as_array().unwrap();
+                if let Some(with) = json.get("with") {
+                    let with = with
+                        .as_array()
+                        .ok_or_else(|| de::Error::custom("\"with\" must be an array"))?;
                     let mut with_array = Vec::with_capacity(with.len());
                     for item in with {
                         // if it's a string component with no styling and no siblings, just add a string to with_array
@@ -162,12 +162,9 @@ impl<'de> Deserialize<'de> for Component {
                     component =
                         Component::Translatable(TranslatableComponent::new(translate, Vec::new()));
                 }
-            } else if json.get("score").is_some() {
+            } else if let Some(score) = json.get("score") {
                 // object = GsonHelper.getAsJsonObject(jsonObject, "score");
-                let score_json = json.get("score").unwrap();
-                //     if (!object.has("name") || !object.has("objective")) throw new JsonParseException("A score component needs a least a name and an objective");
-                //     ScoreComponent scoreComponent = new ScoreComponent(GsonHelper.getAsString((JsonObject)object, "name"), GsonHelper.getAsString((JsonObject)object, "objective"));
-                if score_json.get("name").is_none() || score_json.get("objective").is_none() {
+                if score.get("name").is_none() || score.get("objective").is_none() {
                     return Err(de::Error::missing_field(
                         "A score component needs at least a name and an objective",
                     ));
@@ -176,65 +173,35 @@ impl<'de> Deserialize<'de> for Component {
                 return Err(de::Error::custom(
                     "score text components aren't yet supported",
                 ));
-                // component = ScoreComponent
             } else if json.get("selector").is_some() {
-                //     } else if (jsonObject.has("selector")) {
-                //         object = this.parseSeparator(type, jsonDeserializationContext, jsonObject);
-                //         SelectorComponent selectorComponent = new SelectorComponent(GsonHelper.getAsString(jsonObject, "selector"), (Optional<Component>)object);
-
                 return Err(de::Error::custom(
                     "selector text components aren't yet supported",
                 ));
-            //     } else if (jsonObject.has("keybind")) {
-            //         KeybindComponent keybindComponent = new KeybindComponent(GsonHelper.getAsString(jsonObject, "keybind"));
             } else if json.get("keybind").is_some() {
                 return Err(de::Error::custom(
                     "keybind text components aren't yet supported",
                 ));
             } else {
-                //     } else {
-                //         if (!jsonObject.has("nbt")) throw new JsonParseException("Don't know how to turn " + jsonElement + " into a Component");
-                if json.get("nbt").is_none() {
+                let _nbt = if let Some(nbt) = json.get("nbt") {
+                    nbt
+                } else {
                     return Err(de::Error::custom(
                         format!("Don't know how to turn {} into a Component", json).as_str(),
                     ));
-                }
-                //         object = GsonHelper.getAsString(jsonObject, "nbt");
-                let _nbt = json.get("nbt").unwrap().to_string();
-                //         Optional<Component> optional = this.parseSeparator(type, jsonDeserializationContext, jsonObject);
+                };
                 let _separator = Component::parse_separator(&json).map_err(de::Error::custom)?;
 
                 let _interpret = match json.get("interpret") {
                     Some(v) => v.as_bool().ok_or(Some(false)).unwrap(),
                     None => false,
                 };
-                //         boolean bl = GsonHelper.getAsBoolean(jsonObject, "interpret", false);
-                //         if (jsonObject.has("block")) {
-                if json.get("block").is_some() {}
+                if let Some(_block) = json.get("block") {}
                 return Err(de::Error::custom(
                     "nbt text components aren't yet supported",
                 ));
-                //             NbtComponent.BlockNbtComponent blockNbtComponent = new NbtComponent.BlockNbtComponent((String)object, bl, GsonHelper.getAsString(jsonObject, "block"), optional);
-                //         } else if (jsonObject.has("entity")) {
-                //             NbtComponent.EntityNbtComponent entityNbtComponent = new NbtComponent.EntityNbtComponent((String)object, bl, GsonHelper.getAsString(jsonObject, "entity"), optional);
-                //         } else {
-                //             if (!jsonObject.has("storage")) throw new JsonParseException("Don't know how to turn " + jsonElement + " into a Component");
-                //             NbtComponent.StorageNbtComponent storageNbtComponent = new NbtComponent.StorageNbtComponent((String)object, bl, new ResourceLocation(GsonHelper.getAsString(jsonObject, "storage")), optional);
-                //         }
-                //     }
             }
-            //     if (jsonObject.has("extra")) {
-            //         object = GsonHelper.getAsJsonArray(jsonObject, "extra");
-            //         if (object.size() <= 0) throw new JsonParseException("Unexpected empty array of components");
-            //         for (int i = 0; i < object.size(); ++i) {
-            //             var5_17.append(this.deserialize(object.get(i), type, jsonDeserializationContext));
-            //         }
-            //     }
-            //     var5_17.setStyle((Style)jsonDeserializationContext.deserialize(jsonElement, Style.class));
-            //     return var5_17;
-            // }
-            if json.get("extra").is_some() {
-                let extra = match json.get("extra").unwrap().as_array() {
+            if let Some(extra) = json.get("extra") {
+                let extra = match extra.as_array() {
                     Some(r) => r,
                     None => return Err(de::Error::custom("Extra isn't an array")),
                 };
@@ -281,18 +248,10 @@ impl McBufReadable for Component {
 }
 
 impl McBufWritable for Component {
-    // async fn read_from(buf: &mut impl Read) -> Result<Self, String>
-    // where
-    //     R: AsyncRead + std::marker::Unpin + std::marker::Send,
-    // {
-    //     let string = String::read_from(buf).await?;
-    //     let json: serde_json::Value = serde_json::from_str(string.as_str())
-    //         .map_err(|e| "Component isn't valid JSON".to_string())?;
-    //     let component = Component::deserialize(json).map_err(|e| e.to_string())?;
-    //     Ok(component)
-    // }
     fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
-        // component doesn't have serialize implemented yet
+        // let json = serde_json::to_string(self).unwrap();
+        // json.write_into(_buf);
+        // Ok(())
         todo!()
     }
 }

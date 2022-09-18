@@ -4,20 +4,22 @@ use azalea_buf::McBufVarReadable;
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::{
-    hash::Hash,
-    io::{Read, Write},
-};
+use std::io::{Read, Write};
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundCommandsPacket {
     pub entries: Vec<BrigadierNodeStub>,
     #[var]
-    pub root_index: i32,
+    pub root_index: u32,
 }
 
-#[derive(Hash, Debug, Clone)]
-pub struct BrigadierNodeStub {}
+#[derive(Debug, Clone)]
+pub struct BrigadierNodeStub {
+    pub is_executable: bool,
+    pub children: Vec<u32>,
+    pub redirect_node: Option<u32>,
+    pub node_type: NodeType,
+}
 
 #[derive(Debug, Clone)]
 pub struct BrigadierNumber<T> {
@@ -203,46 +205,87 @@ impl McBufReadable for BrigadierNodeStub {
     fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
         let flags = u8::read_from(buf)?;
         if flags > 31 {
-            println!(
+            eprintln!(
                 "Warning: The flags from a Brigadier node are over 31 ({flags}; {flags:#b}). This is probably a bug.",
             );
         }
 
         let node_type = flags & 0x03;
-        let _is_executable = flags & 0x04 != 0;
+        let is_executable = flags & 0x04 != 0;
         let has_redirect = flags & 0x08 != 0;
         let has_suggestions_type = flags & 0x10 != 0;
 
-        let _children = Vec::<i32>::var_read_from(buf)?;
-        let _redirect_node = if has_redirect {
-            i32::var_read_from(buf)?
+        let children = Vec::<u32>::var_read_from(buf)?;
+        let redirect_node = if has_redirect {
+            Some(u32::var_read_from(buf)?)
         } else {
-            0
+            None
         };
 
         // argument node
         if node_type == 2 {
-            let _name = String::read_from(buf)?;
-            let _parser = BrigadierParser::read_from(buf)?;
-            let _suggestions_type = if has_suggestions_type {
+            let name = String::read_from(buf)?;
+            let parser = BrigadierParser::read_from(buf)?;
+            let suggestions_type = if has_suggestions_type {
                 Some(ResourceLocation::read_from(buf)?)
             } else {
                 None
             };
-            return Ok(BrigadierNodeStub {});
+            return Ok(BrigadierNodeStub {
+                is_executable,
+                children,
+                redirect_node,
+                node_type: NodeType::Argument {
+                    name,
+                    parser,
+                    suggestions_type,
+                },
+            });
         }
         // literal node
         if node_type == 1 {
-            let _name = String::read_from(buf)?;
-            return Ok(BrigadierNodeStub {});
+            let name = String::read_from(buf)?;
+            return Ok(BrigadierNodeStub {
+                is_executable,
+                children,
+                redirect_node,
+                node_type: NodeType::Literal { name },
+            });
         }
-        Ok(BrigadierNodeStub {})
-        // return Err("Unknown node type".to_string());
+        Ok(BrigadierNodeStub {
+            is_executable,
+            children,
+            redirect_node,
+            node_type: NodeType::Root,
+        })
     }
 }
 
 impl McBufWritable for BrigadierNodeStub {
     fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
         todo!()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum NodeType {
+    Root,
+    Literal {
+        name: String,
+    },
+    Argument {
+        name: String,
+        parser: BrigadierParser,
+        suggestions_type: Option<ResourceLocation>,
+    },
+}
+
+impl BrigadierNodeStub {
+    pub fn name(&self) -> Option<&str> {
+        match &self.node_type {
+            NodeType::Root => None,
+            NodeType::Literal { name } => Some(name),
+            NodeType::Argument { name, .. } => Some(name),
+        }
     }
 }

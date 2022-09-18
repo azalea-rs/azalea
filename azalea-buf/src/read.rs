@@ -48,7 +48,7 @@ fn read_utf_with_len(buf: &mut impl Read, max_length: u32) -> Result<String, Buf
     let mut buffer = vec![0; length as usize];
     buf.read_exact(&mut buffer)
         .map_err(|_| BufReadError::InvalidUtf8)?;
-    string.push_str(std::str::from_utf8(&buffer).unwrap());
+    string.push_str(std::str::from_utf8(&buffer).map_err(|_| BufReadError::InvalidUtf8)?);
     if string.len() > length as usize {
         return Err(BufReadError::StringLengthTooLong { length, max_length });
     }
@@ -64,13 +64,10 @@ pub async fn read_varint_async(
     let mut buffer = [0];
     let mut ans = 0;
     for i in 0..5 {
-        reader
-            .read_exact(&mut buffer)
-            .await
-            .map_err(|_| BufReadError::InvalidVarInt)?;
+        reader.read_exact(&mut buffer).await?;
         ans |= ((buffer[0] & 0b0111_1111) as i32) << (7 * i);
         if buffer[0] & 0b1000_0000 == 0 {
-            return Ok(ans);
+            break;
         }
     }
     Ok(ans)
@@ -103,8 +100,7 @@ impl McBufVarReadable for i32 {
         let mut buffer = [0];
         let mut ans = 0;
         for i in 0..5 {
-            buf.read_exact(&mut buffer)
-                .map_err(|_| BufReadError::InvalidVarInt)?;
+            buf.read_exact(&mut buffer)?;
             ans |= ((buffer[0] & 0b0111_1111) as i32) << (7 * i);
             if buffer[0] & 0b1000_0000 == 0 {
                 break;

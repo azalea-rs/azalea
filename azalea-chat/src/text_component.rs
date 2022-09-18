@@ -21,7 +21,14 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
     let mut i = 0;
     while i < legacy_color_code.chars().count() {
         if legacy_color_code.chars().nth(i).unwrap() == LEGACY_FORMATTING_CODE_SYMBOL {
-            let formatting_code = legacy_color_code.chars().nth(i + 1).unwrap();
+            let formatting_code = legacy_color_code.chars().nth(i + 1);
+            let formatting_code = match formatting_code {
+                Some(formatting_code) => formatting_code,
+                None => {
+                    i += 1;
+                    continue;
+                }
+            };
             if let Some(formatter) = ChatFormatting::from_code(formatting_code) {
                 if components.is_empty() || !components.last().unwrap().text.is_empty() {
                     components.push(TextComponent::new("".to_string()));

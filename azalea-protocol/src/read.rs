@@ -3,6 +3,7 @@ use azalea_buf::McBufVarReadable;
 use azalea_buf::{read_varint_async, BufReadError};
 use azalea_crypto::Aes128CfbDec;
 use flate2::read::ZlibDecoder;
+use log::{log_enabled, trace};
 use std::{
     cell::Cell,
     io::Read,
@@ -200,7 +201,58 @@ where
         buf = compression_decoder(&mut buf.as_slice(), compression_threshold)?;
     }
 
+    if log_enabled!(log::Level::Trace) {
+        let buf_string: String = {
+            if buf.len() > 500 {
+                let cut_off_buf = &buf[..500];
+                format!("{cut_off_buf:?}...")
+            } else {
+                format!("{buf:?}")
+            }
+        };
+        trace!("Reading packet with bytes: {buf_string}");
+    }
+
     let packet = packet_decoder(&mut buf.as_slice())?;
 
     Ok(packet)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::packets::{
+        game::{clientbound_player_chat_packet::ChatType, ClientboundGamePacket},
+        handshake::ClientboundHandshakePacket,
+    };
+    use std::io::Cursor;
+
+    #[tokio::test]
+    async fn test_read_packet() {
+        let mut buf = Cursor::new(vec![
+            51, 0, 12, 177, 250, 155, 132, 106, 60, 218, 161, 217, 90, 157, 105, 57, 206, 20, 0, 5,
+            104, 101, 108, 108, 111, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 116,
+            123, 34, 101, 120, 116, 114, 97, 34, 58, 91, 123, 34, 99, 111, 108, 111, 114, 34, 58,
+            34, 103, 114, 97, 121, 34, 44, 34, 116, 101, 120, 116, 34, 58, 34, 91, 77, 69, 77, 66,
+            69, 82, 93, 32, 112, 108, 97, 121, 101, 114, 49, 34, 125, 44, 123, 34, 116, 101, 120,
+            116, 34, 58, 34, 32, 34, 125, 44, 123, 34, 99, 111, 108, 111, 114, 34, 58, 34, 103,
+            114, 97, 121, 34, 44, 34, 116, 101, 120, 116, 34, 58, 34, 92, 117, 48, 48, 51, 101, 32,
+            104, 101, 108, 108, 111, 34, 125, 93, 44, 34, 116, 101, 120, 116, 34, 58, 34, 34, 125,
+            0, 7, 64, 123, 34, 101, 120, 116, 114, 97, 34, 58, 91, 123, 34, 99, 111, 108, 111, 114,
+            34, 58, 34, 103, 114, 97, 121, 34, 44, 34, 116, 101, 120, 116, 34, 58, 34, 91, 77, 69,
+            77, 66, 69, 82, 93, 32, 112, 108, 97, 121, 101, 114, 49, 34, 125, 93, 44, 34, 116, 101,
+            120, 116, 34, 58, 34, 34, 125, 0,
+        ]);
+        let packet = packet_decoder::<ClientboundGamePacket>(&mut buf).unwrap();
+        match &packet {
+            ClientboundGamePacket::PlayerChat(m) => {
+                assert_eq!(
+                    m.chat_type.chat_type,
+                    ChatType::Chat,
+                    "Enums should default if they're invalid"
+                );
+            }
+            _ => panic!("Wrong packet type"),
+        }
+    }
 }
