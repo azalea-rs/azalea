@@ -1,6 +1,4 @@
-use super::mergers::{
-    DiscreteCubeMerger, IdenticalMerger, IndexMerger, IndirectMerger, NonOverlappingMerger,
-};
+use super::mergers::IndexMerger;
 use crate::collision::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB};
 use azalea_core::{binary_search, lcm, Axis, AxisCycle, EPSILON};
 use std::{any::Any, cmp, num::NonZeroU32};
@@ -88,11 +86,11 @@ impl Shapes {
             op_false_true,
         );
         let var8 =
-            BitSetDiscreteVoxelShape::join(&*a.shape(), &*b.shape(), &*var5, &*var6, &*var7, &op);
+            BitSetDiscreteVoxelShape::join(&*a.shape(), &*b.shape(), &var5, &var6, &var7, &op);
         // if var5.is_discrete_cube_merger()
-        if (&var5 as &dyn Any).is::<DiscreteCubeMerger>()
-            && (&var6 as &dyn Any).is::<DiscreteCubeMerger>()
-            && (&var7 as &dyn Any).is::<DiscreteCubeMerger>()
+        if let IndexMerger::DiscreteCube { .. } = var5
+            && let IndexMerger::DiscreteCube { .. } = var6
+            && let IndexMerger::DiscreteCube { .. } = var7
         {
             Box::new(CubeVoxelShape::new(Box::new(var8)))
         } else {
@@ -111,7 +109,7 @@ impl Shapes {
         var2: Vec<f64>,
         var3: bool,
         var4: bool,
-    ) -> Box<dyn IndexMerger> {
+    ) -> IndexMerger {
         // int var5 = var1.size() - 1;
         let var5 = var1.len() - 1;
         // int var6 = var2.size() - 1
@@ -124,7 +122,7 @@ impl Shapes {
             let var7: i64 = lcm(var5 as u32, var6 as u32).try_into().unwrap();
             //    if ((long)var0 * var7 <= 256L) {
             if var0 as i64 * var7 <= 256 {
-                return Box::new(DiscreteCubeMerger::new(var5 as u32, var6 as u32));
+                return IndexMerger::new_discrete_cube(var5 as u32, var6 as u32);
             }
         }
 
@@ -136,22 +134,22 @@ impl Shapes {
         //    return (IndexMerger)(var5 == var6 && Objects.equals(var1, var2) ? new IdenticalMerger(var1) : new IndirectMerger(var1, var2, var3, var4));
         // }
         if var1[var5] < var2[0] - 1.0E-7 {
-            return Box::new(NonOverlappingMerger {
+            return IndexMerger::NonOverlapping {
                 lower: var1,
                 upper: var2,
                 swap: false,
-            });
+            };
         } else if var2[var6] < var1[0] - 1.0E-7 {
-            return Box::new(NonOverlappingMerger {
+            return IndexMerger::NonOverlapping {
                 lower: var2,
                 upper: var1,
                 swap: true,
-            });
+            };
         } else {
             if var5 == var6 && var1 == var2 {
-                return Box::new(IdenticalMerger { coords: var1 });
+                return IndexMerger::Identical { coords: var1 };
             } else {
-                return Box::new(IndirectMerger::new(&var1, &var2, var3, var4));
+                return IndexMerger::new_indirect(&var1, &var2, var3, var4);
             }
         }
     }

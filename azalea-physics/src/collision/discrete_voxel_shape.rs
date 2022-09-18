@@ -165,9 +165,9 @@ impl BitSetDiscreteVoxelShape {
     pub fn join(
         var0: &dyn DiscreteVoxelShape,
         var1: &dyn DiscreteVoxelShape,
-        var2: &impl IndexMerger,
-        var3: &impl IndexMerger,
-        var4: &impl IndexMerger,
+        var2: &IndexMerger,
+        var3: &IndexMerger,
+        var4: &IndexMerger,
         var5: impl Fn(bool, bool) -> bool,
     ) -> Self {
         let mut var6 = BitSetDiscreteVoxelShape::new(
