@@ -181,7 +181,7 @@ impl IndexMerger {
             let var18 = var13 - 1;
             let var19 = var14 - 1;
             let var20 = if var17 { var1[var18] } else { var2[var19] };
-            if !(var5 >= var20 - 1.0e-7) {
+            if var5 < var20 - 1.0e-7 {
                 first_indices[var12] = var18;
                 second_indices[var12] = var19;
                 result[var12] = var20;

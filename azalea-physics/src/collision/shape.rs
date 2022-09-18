@@ -134,23 +134,21 @@ impl Shapes {
         //    return (IndexMerger)(var5 == var6 && Objects.equals(var1, var2) ? new IdenticalMerger(var1) : new IndirectMerger(var1, var2, var3, var4));
         // }
         if var1[var5] < var2[0] - 1.0E-7 {
-            return IndexMerger::NonOverlapping {
+            IndexMerger::NonOverlapping {
                 lower: var1,
                 upper: var2,
                 swap: false,
-            };
+            }
         } else if var2[var6] < var1[0] - 1.0E-7 {
-            return IndexMerger::NonOverlapping {
+            IndexMerger::NonOverlapping {
                 lower: var2,
                 upper: var1,
                 swap: true,
-            };
-        } else {
-            if var5 == var6 && var1 == var2 {
-                return IndexMerger::Identical { coords: var1 };
-            } else {
-                return IndexMerger::new_indirect(&var1, &var2, var3, var4);
             }
+        } else if var5 == var6 && var1 == var2 {
+            IndexMerger::Identical { coords: var1 }
+        } else {
+            IndexMerger::new_indirect(&var1, &var2, var3, var4)
         }
     }
 }
@@ -253,23 +251,21 @@ pub trait VoxelShape: Send + Sync {
                     }
                 }
             }
-        } else if movement < 0. {
-            if var13 > 0 {
-                for var20 in (var13 - 1)..=0 {
-                    for var21 in var15..var16 {
-                        for var22 in var17..var18 {
-                            if self.shape().is_full_wide_axis_cycle(
-                                inverse_axis_cycle,
-                                var20.try_into().unwrap(),
-                                var21.try_into().unwrap(),
-                                var22.try_into().unwrap(),
-                            ) {
-                                let var23 = self.get(x_axis, (var20 + 1) as usize) - min_x;
-                                if var23 <= EPSILON {
-                                    movement = f64::max(movement, var23);
-                                }
-                                return movement;
+        } else if movement < 0. && var13 > 0 {
+            for var20 in (var13 - 1)..=0 {
+                for var21 in var15..var16 {
+                    for var22 in var17..var18 {
+                        if self.shape().is_full_wide_axis_cycle(
+                            inverse_axis_cycle,
+                            var20.try_into().unwrap(),
+                            var21.try_into().unwrap(),
+                            var22.try_into().unwrap(),
+                        ) {
+                            let var23 = self.get(x_axis, (var20 + 1) as usize) - min_x;
+                            if var23 <= EPSILON {
+                                movement = f64::max(movement, var23);
                             }
+                            return movement;
                         }
                     }
                 }
