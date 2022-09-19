@@ -66,7 +66,7 @@ impl ChatPacket {
 #[derive(Clone)]
 pub struct Client {
     game_profile: GameProfile,
-    pub read_conn: Arc<tokio::sync::Mutex<ReadConnection<ClientboundGamePacke>>>,
+    pub read_conn: Arc<tokio::sync::Mutex<ReadConnection<ClientboundGamePacket>>>,
     pub write_conn: Arc<tokio::sync::Mutex<WriteConnection<ServerboundGamePacket>>>,
     pub player: Arc<Mutex<Player>>,
     pub dimension: Arc<Mutex<Dimension>>,

@@ -121,7 +121,7 @@ impl Client {
         };
 
         if let Some(packet) = packet {
-            self.conn.lock().await.write(packet).await?;
+            self.write_conn.lock().await.write(packet).await?;
         }
 
         Ok(())
