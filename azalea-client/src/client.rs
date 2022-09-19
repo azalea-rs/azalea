@@ -213,6 +213,11 @@ impl Client {
         Ok((client, rx))
     }
 
+    /// Write a packet directly to the server.
+    pub async fn write_packet(&self, packet: ServerboundGamePacket) -> Result<(), std::io::Error> {
+        self.write_conn.lock().await.write(packet).await
+    }
+
     async fn protocol_loop(client: Client, tx: UnboundedSender<Event>) {
         loop {
             let r = client.read_conn.lock().await.read().await;
@@ -327,10 +332,7 @@ impl Client {
                 }
 
                 client
-                    .write_conn
-                    .lock()
-                    .await
-                    .write(
+                    .write_packet(
                         ServerboundCustomPayloadPacket {
                             identifier: ResourceLocation::new("brand").unwrap(),
                             // they don't have to know :)
@@ -448,12 +450,11 @@ impl Client {
                     (new_pos, y_rot, x_rot)
                 };
 
-                let mut conn_lock = client.write_conn.lock().await;
-                conn_lock
-                    .write(ServerboundAcceptTeleportationPacket { id: p.id }.get())
+                client
+                    .write_packet(ServerboundAcceptTeleportationPacket { id: p.id }.get())
                     .await?;
-                conn_lock
-                    .write(
+                client
+                    .write_packet(
                         ServerboundMovePlayerPosRotPacket {
                             x: new_pos.x,
                             y: new_pos.y,
@@ -571,10 +572,7 @@ impl Client {
             ClientboundGamePacket::KeepAlive(p) => {
                 println!("Got keep alive packet {:?}", p);
                 client
-                    .write_conn
-                    .lock()
-                    .await
-                    .write(ServerboundKeepAlivePacket { id: p.id }.get())
+                    .write_packet(ServerboundKeepAlivePacket { id: p.id }.get())
                     .await?;
             }
             ClientboundGamePacket::RemoveEntities(p) => {
