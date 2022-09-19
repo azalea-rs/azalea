@@ -76,6 +76,11 @@ where
     pub async fn write(&mut self, packet: W) -> std::io::Result<()> {
         self.writer.write(packet).await
     }
+
+    /// Split the reader and writer into two objects. This doesn't allocate.
+    pub fn into_split(self) -> (ReadConnection<R>, WriteConnection<W>) {
+        (self.reader, self.writer)
+    }
 }
 
 #[derive(Error, Debug)]

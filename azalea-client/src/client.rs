@@ -4,7 +4,7 @@ use azalea_block::BlockState;
 use azalea_chat::component::Component;
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
-    connect::{Connection, ConnectionError},
+    connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
         game::{
             clientbound_player_chat_packet::ClientboundPlayerChatPacket,
@@ -66,7 +66,8 @@ impl ChatPacket {
 #[derive(Clone)]
 pub struct Client {
     game_profile: GameProfile,
-    pub conn: Arc<tokio::sync::Mutex<Connection<ClientboundGamePacket, ServerboundGamePacket>>>,
+    pub read_conn: Arc<tokio::sync::Mutex<ReadConnection<ClientboundGamePacke>>>,
+    pub write_conn: Arc<tokio::sync::Mutex<WriteConnection<ServerboundGamePacket>>>,
     pub player: Arc<Mutex<Player>>,
     pub dimension: Arc<Mutex<Dimension>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
@@ -184,14 +185,18 @@ impl Client {
             }
         };
 
-        let conn = Arc::new(tokio::sync::Mutex::new(conn));
+        let (read_conn, write_conn) = conn.into_split();
+
+        let read_conn = Arc::new(tokio::sync::Mutex::new(read_conn));
+        let write_conn = Arc::new(tokio::sync::Mutex::new(write_conn));
 
         let (tx, rx) = mpsc::unbounded_channel();
 
         // we got the GameConnection, so the server is now connected :)
         let client = Client {
             game_profile,
-            conn,
+            read_conn,
+            write_conn,
             player: Arc::new(Mutex::new(Player::default())),
             dimension: Arc::new(Mutex::new(Dimension::default())),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
@@ -210,7 +215,7 @@ impl Client {
 
     async fn protocol_loop(client: Client, tx: UnboundedSender<Event>) {
         loop {
-            let r = client.conn.lock().await.read().await;
+            let r = client.read_conn.lock().await.read().await;
             match r {
                 Ok(packet) => match Self::handle(&packet, &client, &tx).await {
                     Ok(_) => {}
@@ -322,7 +327,7 @@ impl Client {
                 }
 
                 client
-                    .conn
+                    .write_conn
                     .lock()
                     .await
                     .write(
@@ -443,7 +448,7 @@ impl Client {
                     (new_pos, y_rot, x_rot)
                 };
 
-                let mut conn_lock = client.conn.lock().await;
+                let mut conn_lock = client.write_conn.lock().await;
                 conn_lock
                     .write(ServerboundAcceptTeleportationPacket { id: p.id }.get())
                     .await?;
@@ -566,7 +571,7 @@ impl Client {
             ClientboundGamePacket::KeepAlive(p) => {
                 println!("Got keep alive packet {:?}", p);
                 client
-                    .conn
+                    .write_conn
                     .lock()
                     .await
                     .write(ServerboundKeepAlivePacket { id: p.id }.get())
