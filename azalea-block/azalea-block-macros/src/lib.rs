@@ -426,45 +426,45 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             quote! { BlockState::#block_name_pascal_case }
         };
 
-            let block_struct = quote! {
-                #[derive(Debug)]
-                pub struct #block_struct_name {
-                    #block_struct_fields
-                }
+        let block_struct = quote! {
+            #[derive(Debug, Copy, Clone)]
+            pub struct #block_struct_name {
+                #block_struct_fields
+            }
 
-                impl Block for #block_struct_name {
-                    fn behavior(&self) -> BlockBehavior {
-                        #block_behavior
-                    }
-                    fn id(&self) -> &'static str {
-                        #block_id
+            impl Block for #block_struct_name {
+                fn behavior(&self) -> BlockBehavior {
+                    #block_behavior
+                }
+                fn id(&self) -> &'static str {
+                    #block_id
+                }
+            }
+
+            impl From<#block_struct_name> for BlockState {
+                fn from(b: #block_struct_name) -> Self {
+                    #from_block_to_state_match
+                }
+            }
+
+            impl Default for #block_struct_name {
+                fn default() -> Self {
+                    Self {
+                        #block_default_fields
                     }
                 }
+            }
+        };
 
-                impl From<#block_struct_name> for BlockState {
-                    fn from(b: #block_struct_name) -> Self {
-                        #from_block_to_state_match
-                    }
-                }
-
-                impl Default for #block_struct_name {
-                    fn default() -> Self {
-                        Self {
-                            #block_default_fields
-                        }
-                    }
-                }
-            };
-
-            block_structs.extend(block_struct);
-        }
+        block_structs.extend(block_struct);
+    }
 
     let last_state_id = (state_id - 1) as u32;
     let mut generated = quote! {
         #property_enums
 
         #[repr(u32)]
-        #[derive(Copy, Clone, PartialEq, Eq, Debug)]
+        #[derive(Copy, Clone, PartialEq, Eq)]
         pub enum BlockState {
             #block_state_enum_variants
         }
@@ -476,21 +476,28 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 #last_state_id
             }
         }
+
+        impl std::fmt::Debug for BlockState {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                // having a big match statement here would take up 700kb
+                f.write_str("BlockState")
+            }
+        }
     };
 
-        generated.extend(quote! {
-            #block_structs
+    generated.extend(quote! {
+        #block_structs
 
-            impl From<BlockState> for Box<dyn Block> {
-                fn from(b: BlockState) -> Self {
-                    let b = b as usize;
-                    match b {
-                        #from_state_to_block_match
-                        _ => panic!("Invalid block state: {}", b),
-                    }
+        impl From<BlockState> for Box<dyn Block> {
+            fn from(b: BlockState) -> Self {
+                let b = b as usize;
+                match b {
+                    #from_state_to_block_match
+                    _ => panic!("Invalid block state: {}", b),
                 }
             }
-        });
+        }
+    });
 
     generated.into()
 }
