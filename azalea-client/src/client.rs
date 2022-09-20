@@ -36,7 +36,9 @@ use std::{
 };
 use thiserror::Error;
 use tokio::{
+    io::AsyncWriteExt,
     sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
+    task::JoinHandle,
     time::{self},
 };
 
@@ -46,6 +48,7 @@ pub enum Event {
     Chat(ChatPacket),
     /// A game tick, happens 20 times per second.
     GameTick,
+    Packet(Box<ClientboundGamePacket>),
 }
 
 #[derive(Debug, Clone)]
@@ -72,6 +75,7 @@ pub struct Client {
     pub player: Arc<Mutex<Player>>,
     pub dimension: Arc<Mutex<Dimension>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
+    tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
 }
 
 #[derive(Default)]
@@ -201,6 +205,7 @@ impl Client {
             player: Arc::new(Mutex::new(Player::default())),
             dimension: Arc::new(Mutex::new(Dimension::default())),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
+            tasks: Arc::new(Mutex::new(Vec::new())),
         };
 
         // just start up the game loop and we're ready!
@@ -208,8 +213,14 @@ impl Client {
         // if you get an error right here that means you're doing something with locks wrong
         // read the error to see where the issue is
         // you might be able to just drop the lock or put it in its own scope to fix
-        tokio::spawn(Self::protocol_loop(client.clone(), tx.clone()));
-        tokio::spawn(Self::game_tick_loop(client.clone(), tx));
+        {
+            let mut tasks = client.tasks.lock().unwrap();
+            tasks.push(tokio::spawn(Self::protocol_loop(
+                client.clone(),
+                tx.clone(),
+            )));
+            tasks.push(tokio::spawn(Self::game_tick_loop(client.clone(), tx)));
+        }
 
         Ok((client, rx))
     }
@@ -217,6 +228,16 @@ impl Client {
     /// Write a packet directly to the server.
     pub async fn write_packet(&self, packet: ServerboundGamePacket) -> Result<(), std::io::Error> {
         self.write_conn.lock().await.write(packet).await
+    }
+
+    /// Disconnect from the server, ending all tasks.
+    pub async fn shutdown(self) -> Result<(), std::io::Error> {
+        self.write_conn.lock().await.write_stream.shutdown().await?;
+        let tasks = self.tasks.lock().unwrap();
+        for task in tasks.iter() {
+            task.abort();
+        }
+        Ok(())
     }
 
     async fn protocol_loop(client: Client, tx: UnboundedSender<Event>) {
@@ -254,6 +275,7 @@ impl Client {
         client: &Client,
         tx: &UnboundedSender<Event>,
     ) -> Result<(), HandleError> {
+        tx.send(Event::Packet(Box::new(packet.clone()))).unwrap();
         match packet {
             ClientboundGamePacket::Login(p) => {
                 debug!("Got login packet {:?}", p);
