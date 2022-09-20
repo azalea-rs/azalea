@@ -418,10 +418,10 @@ impl Client {
                     let mut y_rot = p.y_rot;
                     let mut x_rot = p.x_rot;
                     if p.relative_arguments.x_rot {
-                        y_rot += player_entity.x_rot;
+                        x_rot += player_entity.x_rot;
                     }
                     if p.relative_arguments.y_rot {
-                        x_rot += player_entity.y_rot;
+                        y_rot += player_entity.y_rot;
                     }
 
                     player_entity.delta = Vec3 {
