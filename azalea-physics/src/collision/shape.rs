@@ -10,28 +10,7 @@ pub fn block_shape() -> Box<dyn VoxelShape> {
     shape.fill(0, 0, 0);
     Box::new(CubeVoxelShape::new(Box::new(shape)))
 }
-// public static VoxelShape create(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-//     if (!(maxX - minX < 1.0E-7D) && !(maxY - minY < 1.0E-7D) && !(maxZ - minZ < 1.0E-7D)) {
-//        int xBits = findBits(minX, maxX);
-//        int yBits = findBits(minY, maxY);
-//        int zBits = findBits(minZ, maxZ);
-//        if (xBits >= 0 && yBits >= 0 && zBits >= 0) {
-//           if (xBits == 0 && yBits == 0 && zBits == 0) {
-//              return block();
-//           } else {
-//              int xBits = 1 << xBits;
-//              int yBits = 1 << yBits;
-//              int zBits = 1 << zBits;
-//              BitSetDiscreteVoxelShape var18 = BitSetDiscreteVoxelShape.withFilledBounds(xBits, yBits, zBits, (int)Math.round(minX * (double)xBits), (int)Math.round(minY * (double)yBits), (int)Math.round(minZ * (double)zBits), (int)Math.round(maxX * (double)xBits), (int)Math.round(maxY * (double)yBits), (int)Math.round(maxZ * (double)zBits));
-//              return new CubeVoxelShape(var18);
-//           }
-//        } else {
-//           return new ArrayVoxelShape(BLOCK.shape, DoubleArrayList.wrap(new double[]{minX, maxX}), DoubleArrayList.wrap(new double[]{minY, maxY}), DoubleArrayList.wrap(new double[]{minZ, maxZ}));
-//        }
-//     } else {
-//        return empty();
-//     }
-// }
+
 pub fn box_shape(
     min_x: f64,
     min_y: f64,
@@ -110,6 +89,10 @@ fn find_bits(min: f64, max: f64) -> i32 {
 }
 
 impl Shapes {
+    // pub fn or(a: &dyn VoxelShape, b: &dyn VoxelShape) -> Box<dyn VoxelShape> {
+    //     self.join
+    // }
+
     pub fn collide(
         axis: &Axis,
         entity_box: &AABB,
@@ -123,6 +106,14 @@ impl Shapes {
             movement = shape.collide(axis, entity_box, movement);
         }
         movement
+    }
+
+    pub fn join(
+        a: Box<dyn VoxelShape>,
+        b: Box<dyn VoxelShape>,
+        op: fn(bool, bool) -> bool,
+    ) -> Box<dyn VoxelShape> {
+        Self::join_unoptimized(a, b, op).optimize()
     }
 
     pub fn join_unoptimized(
@@ -358,6 +349,58 @@ pub trait VoxelShape: Send + Sync {
         }
 
         movement
+    }
+
+    // public VoxelShape optimize() {
+    //     VoxelShape[] var1 = new VoxelShape[]{Shapes.empty()};
+    //     this.forAllBoxes((var1x, var3, var5, var7, var9, var11) -> {
+    //         var1[0] = Shapes.joinUnoptimized(var1[0], Shapes.box(var1x, var3, var5, var7, var9, var11), BooleanOp.OR);
+    //     });
+    //     return var1[0];
+    // }
+    fn optimize(&self) -> Box<dyn VoxelShape>
+    where
+        Self: Sized,
+    {
+        let mut var1 = empty_shape();
+        self.for_all_boxes(|var1x, var3, var5, var7, var9, var11| {
+            var1 = Shapes::join_unoptimized(
+                var1,
+                box_shape(var1x, var3, var5, var7, var9, var11),
+                |a, b| a || b,
+            );
+        });
+        var1
+    }
+
+    // public void forAllBoxes(Shapes.DoubleLineConsumer var1) {
+    //     DoubleList var2 = this.getCoords(Direction.Axis.X);
+    //     DoubleList var3 = this.getCoords(Direction.Axis.Y);
+    //     DoubleList var4 = this.getCoords(Direction.Axis.Z);
+    //     this.shape.forAllBoxes((var4x, var5, var6, var7, var8, var9) -> {
+    //     var1.consume(var2.getDouble(var4x), var3.getDouble(var5), var4.getDouble(var6), var2.getDouble(var7), var3.getDouble(var8), var4.getDouble(var9));
+    //     }, true);
+    // }
+    fn for_all_boxes(&self, mut consumer: impl FnMut(f64, f64, f64, f64, f64, f64))
+    where
+        Self: Sized,
+    {
+        let x_coords = self.get_coords(Axis::X);
+        let y_coords = self.get_coords(Axis::Y);
+        let z_coords = self.get_coords(Axis::Z);
+        self.shape().for_all_boxes(
+            |var4x, var5, var6, var7, var8, var9| {
+                consumer(
+                    x_coords[var4x],
+                    y_coords[var5],
+                    z_coords[var6],
+                    x_coords[var7],
+                    y_coords[var8],
+                    z_coords[var9],
+                )
+            },
+            true,
+        );
     }
 }
 

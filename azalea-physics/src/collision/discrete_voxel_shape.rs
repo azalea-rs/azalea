@@ -1,8 +1,12 @@
+use std::any::Any;
+
 use azalea_core::{Axis, AxisCycle, BitSet};
 
 use super::mergers::IndexMerger;
 
 // TODO: every impl of DiscreteVoxelShape could be turned into a single enum as an optimization
+
+pub trait IntLineConsumer = FnMut(u32, u32, u32, u32, u32, u32);
 
 pub trait DiscreteVoxelShape: Send + Sync {
     fn size(&self, axis: Axis) -> u32;
@@ -44,6 +48,16 @@ pub trait DiscreteVoxelShape: Send + Sync {
 
     // i don't know how to do this properly
     fn clone(&self) -> Box<dyn DiscreteVoxelShape>;
+
+    // public void forAllBoxes(DiscreteVoxelShape.IntLineConsumer var1, boolean var2) {
+    //     BitSetDiscreteVoxelShape.forAllBoxes(this, var1, var2);
+    // }
+    fn for_all_boxes(&self, consumer: impl IntLineConsumer, swap: bool)
+    where
+        Self: Sized,
+    {
+        BitSetDiscreteVoxelShape::for_all_boxes(self, consumer, swap);
+    }
 }
 
 #[derive(Default, Clone, Eq, PartialEq)]
@@ -172,8 +186,11 @@ impl BitSetDiscreteVoxelShape {
     // protected int getIndex(int var1, int var2, int var3) {
     //     return (var1 * this.ySize + var2) * this.zSize + var3;
     // }
+    fn get_index_from_size(x: u32, y: u32, z: u32, y_size: u32, z_size: u32) -> usize {
+        ((x * y_size + y) * z_size + z) as usize
+    }
     fn get_index(&self, x: u32, y: u32, z: u32) -> usize {
-        ((x * self.y_size + y) * self.z_size + z) as usize
+        Self::get_index_from_size(x, y, z, self.y_size, self.z_size)
     }
 
     // static BitSetDiscreteVoxelShape join(DiscreteVoxelShape var0, DiscreteVoxelShape var1, IndexMerger var2, IndexMerger var3, IndexMerger var4, BooleanOp var5) {
@@ -296,6 +313,103 @@ impl BitSetDiscreteVoxelShape {
         var6.z_max = var7[5] + 1;
         var6
     }
+
+    // protected static void forAllBoxes(DiscreteVoxelShape var0, DiscreteVoxelShape.IntLineConsumer var1, boolean var2) {
+    //     BitSetDiscreteVoxelShape var3 = new BitSetDiscreteVoxelShape(var0);
+
+    //     for(int var4 = 0; var4 < var3.ySize; ++var4) {
+    //         for(int var5 = 0; var5 < var3.xSize; ++var5) {
+    //             int var6 = -1;
+
+    //             for(int var7 = 0; var7 <= var3.zSize; ++var7) {
+    //                 if (var3.isFullWide(var5, var4, var7)) {
+    //                     if (var2) {
+    //                     if (var6 == -1) {
+    //                         var6 = var7;
+    //                     }
+    //                     } else {
+    //                     var1.consume(var5, var4, var7, var5 + 1, var4 + 1, var7 + 1);
+    //                     }
+    //                 } else if (var6 != -1) {
+    //                     int var8 = var5;
+    //                     int var9 = var4;
+    //                     var3.clearZStrip(var6, var7, var5, var4);
+
+    //                     while(var3.isZStripFull(var6, var7, var8 + 1, var4)) {
+    //                     var3.clearZStrip(var6, var7, var8 + 1, var4);
+    //                     ++var8;
+    //                     }
+
+    //                     while(var3.isXZRectangleFull(var5, var8 + 1, var6, var7, var9 + 1)) {
+    //                     for(int var10 = var5; var10 <= var8; ++var10) {
+    //                         var3.clearZStrip(var6, var7, var10, var9 + 1);
+    //                     }
+
+    //                     ++var9;
+    //                     }
+
+    //                     var1.consume(var5, var4, var6, var8 + 1, var9 + 1, var7);
+    //                     var6 = -1;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    pub fn for_all_boxes(
+        var0: &dyn DiscreteVoxelShape,
+        mut consumer: impl IntLineConsumer,
+        var2: bool,
+    ) {
+        let mut var3 = BitSetDiscreteVoxelShape::from(var0);
+        for var4 in 0..var3.y_size {
+            for var5 in 0..var3.x_size {
+                let mut var6 = None;
+                for var7 in 0..=var3.z_size {
+                    if var3.is_full_wide(var5, var4, var7) {
+                        if var2 {
+                            if var6.is_none() {
+                                var6 = Some(var7);
+                            }
+                        } else {
+                            consumer(var5, var4, var7, var5 + 1, var4 + 1, var7 + 1);
+                        }
+                    } else if var6.is_some() {
+                        let mut var8 = var5;
+                        let mut var9 = var4;
+                        var3.clear_z_strip(var6.unwrap(), var7, var5, var4);
+                        while var3.is_z_strip_full(var6.unwrap(), var7, var8 + 1, var4) {
+                            var3.clear_z_strip(var6.unwrap(), var7, var8 + 1, var4);
+                            var8 += 1;
+                        }
+                        while var3.is_xz_rectangle_full(
+                            var5,
+                            var8 + 1,
+                            var6.unwrap(),
+                            var7,
+                            var9 + 1,
+                        ) {
+                            for var10 in var5..=var8 {
+                                var3.clear_z_strip(var6.unwrap(), var7, var10, var9 + 1);
+                            }
+                            var9 += 1;
+                        }
+                        consumer(var5, var4, var6.unwrap(), var8 + 1, var9 + 1, var7);
+                        var6 = None;
+                    }
+                }
+            }
+        }
+    }
+
+    // private void clearZStrip(int var1, int var2, int var3, int var4) {
+    //     this.storage.clear(this.getIndex(var3, var4, var1), this.getIndex(var3, var4, var2));
+    // }
+    fn clear_z_strip(&mut self, var1: u32, var2: u32, var3: u32, var4: u32) {
+        self.storage.clear(
+            self.get_index(var3, var4, var1),
+            self.get_index(var3, var4, var2),
+        );
+    }
 }
 
 impl DiscreteVoxelShape for BitSetDiscreteVoxelShape {
@@ -329,5 +443,69 @@ impl DiscreteVoxelShape for BitSetDiscreteVoxelShape {
 
     fn is_full(&self, x: u32, y: u32, z: u32) -> bool {
         self.storage.index(self.get_index(x, y, z))
+    }
+}
+
+// public BitSetDiscreteVoxelShape(DiscreteVoxelShape var1) {
+//     super(var1.xSize, var1.ySize, var1.zSize);
+//     if (var1 instanceof BitSetDiscreteVoxelShape) {
+//        this.storage = (BitSet)((BitSetDiscreteVoxelShape)var1).storage.clone();
+//     } else {
+//        this.storage = new BitSet(this.xSize * this.ySize * this.zSize);
+
+//        for(int var2 = 0; var2 < this.xSize; ++var2) {
+//           for(int var3 = 0; var3 < this.ySize; ++var3) {
+//              for(int var4 = 0; var4 < this.zSize; ++var4) {
+//                 if (var1.isFull(var2, var3, var4)) {
+//                    this.storage.set(this.getIndex(var2, var3, var4));
+//                 }
+//              }
+//           }
+//        }
+//     }
+
+//     this.xMin = var1.firstFull(Direction.Axis.X);
+//     this.yMin = var1.firstFull(Direction.Axis.Y);
+//     this.zMin = var1.firstFull(Direction.Axis.Z);
+//     this.xMax = var1.lastFull(Direction.Axis.X);
+//     this.yMax = var1.lastFull(Direction.Axis.Y);
+//     this.zMax = var1.lastFull(Direction.Axis.Z);
+// }
+
+impl From<&dyn DiscreteVoxelShape> for BitSetDiscreteVoxelShape {
+    fn from(shape: &dyn DiscreteVoxelShape) -> Self {
+        let x_size = shape.size(Axis::X);
+        let y_size = shape.size(Axis::Y);
+        let z_size = shape.size(Axis::Z);
+        let mut storage;
+        if let Some(shape) = (&shape as &dyn Any).downcast_ref::<Self>() {
+            storage = shape.storage.clone();
+        } else {
+            storage = BitSet::new((x_size * y_size * z_size) as usize);
+            for x in 0..x_size {
+                for y in 0..y_size {
+                    for z in 0..z_size {
+                        if shape.is_full(x, y, z) {
+                            // ((x * self.y_size + y) * self.z_size + z) as usize
+                            storage
+                                .set(Self::get_index_from_size(x, y, z, y_size, z_size) as usize);
+                        }
+                    }
+                }
+            }
+        }
+
+        Self {
+            x_size,
+            y_size,
+            z_size,
+            storage,
+            x_min: shape.first_full_x().try_into().unwrap(),
+            y_min: shape.first_full_y().try_into().unwrap(),
+            z_min: shape.first_full_z().try_into().unwrap(),
+            x_max: shape.last_full_x().try_into().unwrap(),
+            y_max: shape.last_full_y().try_into().unwrap(),
+            z_max: shape.last_full_z().try_into().unwrap(),
+        }
     }
 }

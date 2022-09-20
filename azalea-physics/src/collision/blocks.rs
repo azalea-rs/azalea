@@ -3,6 +3,7 @@
 #![allow(clippy::explicit_auto_deref)]
 
 use super::{BitSetDiscreteVoxelShape, CubeVoxelShape, VoxelShape};
+use crate::collision::{self, Shapes};
 use lazy_static::lazy_static;
 
 trait BlockWithShape {
@@ -10,15 +11,15 @@ trait BlockWithShape {
 }
 
 lazy_static! {
-    static ref SHAPE1: CubeVoxelShape = {
-        let mut shape = BitSetDiscreteVoxelShape::new(1, 1, 1);
-        shape.fill(0, 0, 0);
-        CubeVoxelShape::new(Box::new(shape))
+    static ref SHAPE1: Box<(dyn VoxelShape + 'static)> = {
+        let s = collision::box_shape(0., 0., 0., 16., 8., 16.);
+        let s = Shapes::or(&s, &collision::box_shape(0., 8., 0., 16., 16., 16.))
+        s
     };
 }
 
 impl BlockWithShape for azalea_block::StoneSlabBlock {
     fn shape(&self) -> &'static dyn VoxelShape {
-        &*SHAPE1
+        &**SHAPE1
     }
 }
