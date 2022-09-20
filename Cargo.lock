@@ -167,6 +167,7 @@ dependencies = [
  "azalea-physics",
  "azalea-protocol",
  "azalea-world",
+ "log",
  "thiserror",
  "tokio",
  "uuid",

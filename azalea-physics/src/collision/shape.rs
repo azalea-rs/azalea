@@ -47,7 +47,6 @@ pub trait VoxelShape {
             return empty_shape();
         }
 
-
         Box::new(ArrayVoxelShape::new(
             self.shape(),
             self.get_coords(Axis::X).iter().map(|c| c + x).collect(),
