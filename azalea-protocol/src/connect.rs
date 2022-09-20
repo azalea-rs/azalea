@@ -12,16 +12,55 @@ use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use thiserror::Error;
+use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 
-pub struct Connection<R: ProtocolPacket, W: ProtocolPacket> {
-    /// The buffered writer
-    pub stream: TcpStream,
+pub struct ReadConnection<R: ProtocolPacket> {
+    pub read_stream: OwnedReadHalf,
     pub compression_threshold: Option<u32>,
-    pub enc_cipher: Option<Aes128CfbEnc>,
     pub dec_cipher: Option<Aes128CfbDec>,
     _reading: PhantomData<R>,
+}
+
+pub struct WriteConnection<W: ProtocolPacket> {
+    pub write_stream: OwnedWriteHalf,
+    pub compression_threshold: Option<u32>,
+    pub enc_cipher: Option<Aes128CfbEnc>,
     _writing: PhantomData<W>,
+}
+
+pub struct Connection<R: ProtocolPacket, W: ProtocolPacket> {
+    pub reader: ReadConnection<R>,
+    pub writer: WriteConnection<W>,
+}
+
+impl<R> ReadConnection<R>
+where
+    R: ProtocolPacket + Debug,
+{
+    pub async fn read(&mut self) -> Result<R, ReadPacketError> {
+        read_packet::<R, _>(
+            &mut self.read_stream,
+            self.compression_threshold,
+            &mut self.dec_cipher,
+        )
+        .await
+    }
+}
+impl<W> WriteConnection<W>
+where
+    W: ProtocolPacket + Debug,
+{
+    /// Write a packet to the server
+    pub async fn write(&mut self, packet: W) -> std::io::Result<()> {
+        write_packet(
+            packet,
+            &mut self.write_stream,
+            self.compression_threshold,
+            &mut self.enc_cipher,
+        )
+        .await
+    }
 }
 
 impl<R, W> Connection<R, W>
@@ -30,23 +69,17 @@ where
     W: ProtocolPacket + Debug,
 {
     pub async fn read(&mut self) -> Result<R, ReadPacketError> {
-        read_packet::<R, _>(
-            &mut self.stream,
-            self.compression_threshold,
-            &mut self.dec_cipher,
-        )
-        .await
+        self.reader.read().await
     }
 
     /// Write a packet to the server
     pub async fn write(&mut self, packet: W) -> std::io::Result<()> {
-        write_packet(
-            packet,
-            &mut self.stream,
-            self.compression_threshold,
-            &mut self.enc_cipher,
-        )
-        .await
+        self.writer.write(packet).await
+    }
+
+    /// Split the reader and writer into two objects. This doesn't allocate.
+    pub fn into_split(self) -> (ReadConnection<R>, WriteConnection<W>) {
+        (self.reader, self.writer)
     }
 }
 
@@ -66,13 +99,21 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
         // enable tcp_nodelay
         stream.set_nodelay(true)?;
 
+        let (read_stream, write_stream) = stream.into_split();
+
         Ok(Connection {
-            stream,
-            compression_threshold: None,
-            enc_cipher: None,
-            dec_cipher: None,
-            _reading: PhantomData,
-            _writing: PhantomData,
+            reader: ReadConnection {
+                read_stream,
+                compression_threshold: None,
+                dec_cipher: None,
+                _reading: PhantomData,
+            },
+            writer: WriteConnection {
+                write_stream,
+                compression_threshold: None,
+                enc_cipher: None,
+                _writing: PhantomData,
+            },
         })
     }
 
@@ -89,17 +130,19 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     pub fn set_compression_threshold(&mut self, threshold: i32) {
         // if you pass a threshold of less than 0, compression is disabled
         if threshold >= 0 {
-            self.compression_threshold = Some(threshold as u32);
+            self.reader.compression_threshold = Some(threshold as u32);
+            self.writer.compression_threshold = Some(threshold as u32);
         } else {
-            self.compression_threshold = None;
+            self.reader.compression_threshold = None;
+            self.writer.compression_threshold = None;
         }
     }
 
     pub fn set_encryption_key(&mut self, key: [u8; 16]) {
         // minecraft has a cipher decoder and encoder, i don't think it matters though?
         let (enc_cipher, dec_cipher) = azalea_crypto::create_cipher(&key);
-        self.enc_cipher = Some(enc_cipher);
-        self.dec_cipher = Some(dec_cipher);
+        self.writer.enc_cipher = Some(enc_cipher);
+        self.reader.dec_cipher = Some(dec_cipher);
     }
 
     pub fn game(self) -> Connection<ClientboundGamePacket, ServerboundGamePacket> {
@@ -120,12 +163,18 @@ where
         W2: ProtocolPacket + Debug,
     {
         Connection {
-            stream: connection.stream,
-            compression_threshold: connection.compression_threshold,
-            enc_cipher: connection.enc_cipher,
-            dec_cipher: connection.dec_cipher,
-            _reading: PhantomData,
-            _writing: PhantomData,
+            reader: ReadConnection {
+                read_stream: connection.reader.read_stream,
+                compression_threshold: connection.reader.compression_threshold,
+                dec_cipher: connection.reader.dec_cipher,
+                _reading: PhantomData,
+            },
+            writer: WriteConnection {
+                compression_threshold: connection.writer.compression_threshold,
+                write_stream: connection.writer.write_stream,
+                enc_cipher: connection.writer.enc_cipher,
+                _writing: PhantomData,
+            },
         }
     }
 }
