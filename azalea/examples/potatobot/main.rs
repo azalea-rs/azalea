@@ -1,5 +1,10 @@
-use azalea::{Account, Client, Event, MoveDirection, pathfinder, Vec3, BlockPos, ItemKind};
-use std::{convert::TryInto, sync::{Arc, MutexGuard, Mutex}};
+mod autoeat;
+
+use azalea::{pathfinder, Account, BlockPos, Client, Event, ItemKind, MoveDirection, Vec3};
+use std::{
+    convert::TryInto,
+    sync::{Arc, Mutex},
+};
 
 #[derive(Default)]
 struct State {
@@ -11,86 +16,75 @@ async fn main() {
     env_logger::init();
 
     let account = Account::offline("bot");
-    let (bot, mut rx) = account.join(&"localhost".try_into().unwrap()).await.unwrap();
-    let state = Arc::new(Mutex::new(State::default()));
-    let pathfinder_state = Arc::new(Mutex::new(pathfinder::State::default()));
+    let (bot, mut rx) = account
+        .join(&"localhost".try_into().unwrap())
+        .await
+        .unwrap();
 
-    // Maybe this (along with state stuff) could be turned into a macro in
-    // the future?
+    // Maybe all this could be turned into a macro in the future?
+    let state = Arc::new(Mutex::new(State::default()));
+    let autoeat_state = Arc::new(Mutex::new(autoeat::State::default()));
+    let pathfinder_state = Arc::new(Mutex::new(pathfinder::State::default()));
     while let Some(event) = rx.recv().await {
-        // You must do this for every plugin. If you want to disable a plugin,
-        // simply don't call its event handler.
-        tokio::spawn(async {
-            autoeat_handle(bot, event, state.clone()).await;
-            pathfinder::handle(bot, event, pathfinder_state.clone()).await;
-            handle(bot.clone(), event, state.clone()).await;
-        });
+        // we put it into an Arc so it's cheaper to clone
+        let event = Arc::new(event);
+
+        tokio::spawn(autoeat::handle(
+            bot.clone(),
+            event.clone(),
+            autoeat_state.clone(),
+        ));
+        tokio::spawn(pathfinder::handle(
+            bot.clone(),
+            event.clone(),
+            pathfinder_state.clone(),
+        ));
+        tokio::spawn(handle(bot.clone(), event.clone(), state.clone()));
     }
 }
 
-async fn handle(state: State, bot: Client, event: Event) -> anyhow::Result<()> {
+async fn handle(bot: Client, event: Event, state: Arc<Mutex<State>>) -> anyhow::Result<()> {
     match event {
         Event::Login => {
-            goto_farm(state, bot).await?;
+            goto_farm(bot, state).await?;
             // after we get to the farm, start farming
-
-        },
-        Event::Tick => {
-        },
-        Event::Packet(_) => {},
+            farm(bot, state).await?;
+        }
         _ => {}
     }
 
     Ok(())
 }
 
-
 // go to the place where we start farming
-async fn goto_farm(state: State, bot: Client, event: Event) -> anyhow::Result<()> {
-    bot.state.goto(
-        pathfinder::Goals::Near(5, BlockPos::new(0, 70, 0))
-    ).await?;
+async fn goto_farm(bot: Client, state: Arc<Mutex<State>>) -> anyhow::Result<()> {
+    bot.state
+        .goto(pathfinder::Goals::Near(5, BlockPos::new(0, 70, 0)))
+        .await?;
     Ok(())
 }
 
-async fn autoeat_handle(state: Arc<Mutex<State>>, bot: &mut , event: Event) {
-    match event {
-        Event::UpdateHunger => {
-            if !bot.using_held_item() && bot.food_level() <= 17 {
-                if let azalea::Slot::Present(_) = bot.hold(azalea::ItemGroup::Food).await {
-                    bot.use_held_item().await;
-                }
-            }
-        }
-    }
-}
-
-
-#[derive(Default, Clone)]
-enum FarmTask {
-    #[default]
-    GoToFarm,
-    Farm,
-    Deposit 
-}
-
-
 // go to the chest and deposit everything in our inventory.
-async fn deposit(bot: &mut Client, state: &mut State) -> anyhow::Result<()> {
+async fn deposit(bot: &mut Client, state: &mut Arc<Mutex<State>>) -> anyhow::Result<()> {
     // first throw away any garbage we might have
-    bot.toss(
-        |item| item.kind != ItemKind::Potato && item.kind != ItemKind::DiamondHoe
-    );
+    bot.toss(|item| item.kind != ItemKind::Potato && item.kind != ItemKind::DiamondHoe);
 
-    bot.state.goto(Vec3::new ( 0, 70, 0 )).await?;
-    let chest = bot.open_container(&bot.world.block_at(BlockPos::new(0, 70, 0)).await.unwrap();
+    bot.state.goto(Vec3::new(0, 70, 0)).await?;
+    let chest = bot
+        .open_container(&bot.dimension.block_at(BlockPos::new(0, 70, 0)))
+        .await
+        .unwrap();
 
-    let inventory_potato_count: usize = bot.inventory().count_total(|item| item.kind == ItemKind::Potato);;
+    let inventory_potato_count: usize = bot
+        .inventory()
+        .count_total(|item| item.kind == ItemKind::Potato);
     if inventory_potato_count > 64 {
-        chest.deposit_total_count(
-            |item| item.kind == azalea::ItemKind::Potato,
-            inventory_potato_count - 64
-        ).await;
+        chest
+            .deposit_total_count(
+                |item| item.kind == azalea::ItemKind::Potato,
+                inventory_potato_count - 64,
+            )
+            .await;
     }
     chest.close().await;
     Ok(())
