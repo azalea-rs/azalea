@@ -9,3 +9,9 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+
+[dev-dependencies]
+tokio = "^1.21.1"
+env_logger = "^0.9.1"
+anyhow = "^1.0.65"
