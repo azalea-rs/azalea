@@ -439,7 +439,7 @@ impl BitSetDiscreteVoxelShape {
             for var5 in 0..var3.x_size {
                 let mut var6 = None;
                 for var7 in 0..=var3.z_size {
-                    if DiscreteVoxelShape::BitSet(var3).is_full_wide(var5, var4, var7) {
+                    if var3.is_full_wide(var5, var4, var7) {
                         if var2 {
                             if var6.is_none() {
                                 var6 = Some(var7);
@@ -549,6 +549,11 @@ impl BitSetDiscreteVoxelShape {
     fn is_full(&self, x: u32, y: u32, z: u32) -> bool {
         self.storage.index(self.get_index(x, y, z))
     }
+
+    fn is_full_wide(&self, x: u32, y: u32, z: u32) -> bool {
+        (x < self.size(Axis::X) && y < self.size(Axis::Y) && z < self.size(Axis::Z))
+            && (self.is_full(x, y, z))
+    }
 }
 
 // public BitSetDiscreteVoxelShape(DiscreteVoxelShape var1) {
@@ -583,7 +588,7 @@ impl From<&DiscreteVoxelShape> for BitSetDiscreteVoxelShape {
         let y_size = shape.size(Axis::Y);
         let z_size = shape.size(Axis::Z);
         let mut storage;
-        if let Some(shape) = (&shape as &dyn Any).downcast_ref::<Self>() {
+        if let DiscreteVoxelShape::BitSet(shape) = shape {
             storage = shape.storage.clone();
         } else {
             storage = BitSet::new((x_size * y_size * z_size) as usize);

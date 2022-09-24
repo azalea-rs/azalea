@@ -13,7 +13,7 @@ trait BlockWithShape {
 lazy_static! {
     static ref SHAPE1: VoxelShape = {
         let s = collision::box_shape(0., 0., 0., 16., 8., 16.);
-        let s = Shapes::or(&s, &collision::box_shape(0., 8., 0., 16., 16., 16.));
+        let s = Shapes::or(s, collision::box_shape(0., 8., 0., 16., 16., 16.));
         s
     };
 }

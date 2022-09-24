@@ -89,9 +89,9 @@ fn find_bits(min: f64, max: f64) -> i32 {
 }
 
 impl Shapes {
-    // pub fn or(a: &dyn VoxelShape, b: &dyn VoxelShape) -> VoxelShape {
-    //     self.join
-    // }
+    pub fn or(a: VoxelShape, b: VoxelShape) -> VoxelShape {
+        Self::join(a, b, |a, b| a || b)
+    }
 
     pub fn collide(
         axis: &Axis,
@@ -224,6 +224,7 @@ impl Shapes {
     }
 }
 
+#[derive(Clone)]
 pub enum VoxelShape {
     Array(ArrayVoxelShape),
     Cube(CubeVoxelShape),
@@ -402,10 +403,7 @@ impl VoxelShape {
     //     });
     //     return var1[0];
     // }
-    fn optimize(&self) -> VoxelShape
-    where
-        Self: Sized,
-    {
+    fn optimize(&self) -> VoxelShape {
         // let mut var1 = empty_shape();
         // self.for_all_boxes(|var1x, var3, var5, var7, var9, var11| {
         //     var1 = Shapes::join_unoptimized(
@@ -420,7 +418,7 @@ impl VoxelShape {
                 let mut var1 = empty_shape();
                 self.for_all_boxes(|var1x, var3, var5, var7, var9, var11| {
                     var1 = Shapes::join_unoptimized(
-                        var1,
+                        var1.clone(),
                         box_shape(var1x, var3, var5, var7, var9, var11),
                         |a, b| a || b,
                     );
@@ -481,6 +479,7 @@ impl VoxelShape {
     }
 }
 
+#[derive(Clone)]
 pub struct ArrayVoxelShape {
     shape: DiscreteVoxelShape,
     // TODO: check where faces is used in minecraft
@@ -492,6 +491,7 @@ pub struct ArrayVoxelShape {
     pub zs: Vec<f64>,
 }
 
+#[derive(Clone)]
 pub struct CubeVoxelShape {
     shape: DiscreteVoxelShape,
     // TODO: check where faces is used in minecraft
