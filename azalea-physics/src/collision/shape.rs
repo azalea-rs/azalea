@@ -8,7 +8,7 @@ pub struct Shapes {}
 pub fn block_shape() -> Box<dyn VoxelShape> {
     let mut shape = BitSetDiscreteVoxelShape::new(1, 1, 1);
     shape.fill(0, 0, 0);
-    Box::new(CubeVoxelShape::new(Box::new(shape)))
+    Box::new(CubeVoxelShape::new(DiscreteVoxelShape::BitSet(shape)))
 }
 
 pub fn box_shape(
@@ -60,11 +60,11 @@ pub fn box_shape(
         (max_y * y_bits as f64).round() as i32,
         (max_z * z_bits as f64).round() as i32,
     );
-    Box::new(CubeVoxelShape::new(Box::new(shape)))
+    Box::new(CubeVoxelShape::new(DiscreteVoxelShape::BitSet(shape)))
 }
 pub fn empty_shape() -> Box<dyn VoxelShape> {
     Box::new(ArrayVoxelShape::new(
-        Box::new(BitSetDiscreteVoxelShape::new(0, 0, 0)),
+        DiscreteVoxelShape::BitSet(BitSetDiscreteVoxelShape::new(0, 0, 0)),
         vec![0.],
         vec![0.],
         vec![0.],
@@ -161,17 +161,16 @@ impl Shapes {
             op_true_false,
             op_false_true,
         );
-        let var8 =
-            BitSetDiscreteVoxelShape::join(&*a.shape(), &*b.shape(), &var5, &var6, &var7, &op);
+        let var8 = BitSetDiscreteVoxelShape::join(&a.shape(), &b.shape(), &var5, &var6, &var7, &op);
         // if var5.is_discrete_cube_merger()
         if let IndexMerger::DiscreteCube { .. } = var5
             && let IndexMerger::DiscreteCube { .. } = var6
             && let IndexMerger::DiscreteCube { .. } = var7
         {
-            Box::new(CubeVoxelShape::new(Box::new(var8)))
+            Box::new(CubeVoxelShape::new(DiscreteVoxelShape::BitSet(var8)))
         } else {
             Box::new(ArrayVoxelShape::new(
-                Box::new(var8),
+                DiscreteVoxelShape::BitSet(var8),
                 var5.get_list(),
                 var6.get_list(),
                 var7.get_list(),
@@ -391,12 +390,12 @@ pub trait VoxelShape: Send + Sync {
         self.shape().for_all_boxes(
             |var4x, var5, var6, var7, var8, var9| {
                 consumer(
-                    x_coords[var4x],
-                    y_coords[var5],
-                    z_coords[var6],
-                    x_coords[var7],
-                    y_coords[var8],
-                    z_coords[var9],
+                    x_coords[var4x as usize],
+                    y_coords[var5 as usize],
+                    z_coords[var6 as usize],
+                    x_coords[var7 as usize],
+                    y_coords[var8 as usize],
+                    z_coords[var9 as usize],
                 )
             },
             true,
