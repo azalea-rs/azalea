@@ -230,7 +230,7 @@ impl Shapes {
 }
 
 pub trait VoxelShape: Send + Sync {
-    fn shape(&self) -> Box<dyn DiscreteVoxelShape>;
+    fn shape(&self) -> DiscreteVoxelShape;
 
     fn get_coords(&self, axis: Axis) -> Vec<f64>;
 
@@ -405,7 +405,7 @@ pub trait VoxelShape: Send + Sync {
 }
 
 pub struct ArrayVoxelShape {
-    shape: Box<dyn DiscreteVoxelShape>,
+    shape: DiscreteVoxelShape,
     // TODO: check where faces is used in minecraft
     #[allow(dead_code)]
     faces: Option<Vec<Box<dyn VoxelShape>>>,
@@ -416,19 +416,14 @@ pub struct ArrayVoxelShape {
 }
 
 pub struct CubeVoxelShape {
-    shape: Box<dyn DiscreteVoxelShape>,
+    shape: DiscreteVoxelShape,
     // TODO: check where faces is used in minecraft
     #[allow(dead_code)]
     faces: Option<Vec<Box<dyn VoxelShape>>>,
 }
 
 impl ArrayVoxelShape {
-    pub fn new(
-        shape: Box<dyn DiscreteVoxelShape>,
-        xs: Vec<f64>,
-        ys: Vec<f64>,
-        zs: Vec<f64>,
-    ) -> Self {
+    pub fn new(shape: DiscreteVoxelShape, xs: Vec<f64>, ys: Vec<f64>, zs: Vec<f64>) -> Self {
         let x_size = shape.size(Axis::X) + 1;
         let y_size = shape.size(Axis::Y) + 1;
         let z_size = shape.size(Axis::Z) + 1;
@@ -449,13 +444,13 @@ impl ArrayVoxelShape {
 }
 
 impl CubeVoxelShape {
-    pub fn new(shape: Box<dyn DiscreteVoxelShape + Send + Sync>) -> Self {
+    pub fn new(shape: DiscreteVoxelShape) -> Self {
         Self { shape, faces: None }
     }
 }
 
 impl VoxelShape for ArrayVoxelShape {
-    fn shape(&self) -> Box<dyn DiscreteVoxelShape> {
+    fn shape(&self) -> DiscreteVoxelShape {
         self.shape.clone()
     }
 
@@ -465,7 +460,7 @@ impl VoxelShape for ArrayVoxelShape {
 }
 
 impl VoxelShape for CubeVoxelShape {
-    fn shape(&self) -> Box<dyn DiscreteVoxelShape> {
+    fn shape(&self) -> DiscreteVoxelShape {
         self.shape.clone()
     }
 

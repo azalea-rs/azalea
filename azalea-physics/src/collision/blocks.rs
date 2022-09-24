@@ -2,7 +2,7 @@
 
 #![allow(clippy::explicit_auto_deref)]
 
-use super::{BitSetDiscreteVoxelShape, CubeVoxelShape, VoxelShape};
+use super::VoxelShape;
 use crate::collision::{self, Shapes};
 use lazy_static::lazy_static;
 

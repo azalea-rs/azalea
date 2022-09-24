@@ -8,55 +8,130 @@ use super::mergers::IndexMerger;
 
 pub trait IntLineConsumer = FnMut(u32, u32, u32, u32, u32, u32);
 
-pub trait DiscreteVoxelShape: Send + Sync {
-    fn size(&self, axis: Axis) -> u32;
+#[derive(Clone)]
+pub enum DiscreteVoxelShape {
+    BitSet(BitSetDiscreteVoxelShape),
+}
 
-    fn first_full_x(&self) -> u32;
-    fn first_full_y(&self) -> u32;
-    fn first_full_z(&self) -> u32;
-
-    fn last_full_x(&self) -> u32;
-    fn last_full_y(&self) -> u32;
-    fn last_full_z(&self) -> u32;
-
-    fn is_empty(&self) -> bool {
-        if self.first_full_x() >= self.last_full_x() {
-            return true;
+impl DiscreteVoxelShape {
+    // pub trait DiscreteVoxelShape: Send + Sync {
+    //     fn size(&self, axis: Axis) -> u32;
+    pub fn size(&self, axis: Axis) -> u32 {
+        match self {
+            DiscreteVoxelShape::BitSet(shape) => shape.size(axis),
         }
-        if self.first_full_y() >= self.last_full_y() {
-            return true;
-        }
-        if self.first_full_x() >= self.last_full_x() {
-            return true;
-        }
-        false
     }
 
-    fn is_full_wide(&self, x: u32, y: u32, z: u32) -> bool {
-        (x < self.size(Axis::X) && y < self.size(Axis::Y) && z < self.size(Axis::Z))
-            && (self.is_full(x, y, z))
+    //     fn first_full_x(&self) -> u32;
+    //     fn first_full_y(&self) -> u32;
+    //     fn first_full_z(&self) -> u32;
+    pub fn first_full_x(&self) -> u32 {
+        match self {
+            DiscreteVoxelShape::BitSet(shape) => shape.first_full_x(),
+        }
     }
-    fn is_full_wide_axis_cycle(&self, axis_cycle: AxisCycle, x: u32, y: u32, z: u32) -> bool {
-        self.is_full_wide(
-            axis_cycle.cycle_xyz(x, y, z, Axis::X),
-            axis_cycle.cycle_xyz(x, y, z, Axis::Y),
-            axis_cycle.cycle_xyz(x, y, z, Axis::Z),
-        )
+    pub fn first_full_y(&self) -> u32 {
+        match self {
+            DiscreteVoxelShape::BitSet(shape) => shape.first_full_y(),
+        }
+    }
+    pub fn first_full_z(&self) -> u32 {
+        match self {
+            DiscreteVoxelShape::BitSet(shape) => shape.first_full_z(),
+        }
     }
 
-    fn is_full(&self, x: u32, y: u32, z: u32) -> bool;
+    //     fn last_full_x(&self) -> u32;
+    //     fn last_full_y(&self) -> u32;
+    //     fn last_full_z(&self) -> u32;
+    pub fn last_full_x(&self) -> u32 {
+        match self {
+            DiscreteVoxelShape::BitSet(shape) => shape.last_full_x(),
+        }
+    }
+    pub fn last_full_y(&self) -> u32 {
+        match self {
+            DiscreteVoxelShape::BitSet(shape) => shape.last_full_y(),
+        }
+    }
+    pub fn last_full_z(&self) -> u32 {
+        match self {
+            DiscreteVoxelShape::BitSet(shape) => shape.last_full_z(),
+        }
+    }
 
-    // i don't know how to do this properly
-    fn clone(&self) -> Box<dyn DiscreteVoxelShape>;
+    //     fn is_empty(&self) -> bool {
+    //         if self.first_full_x() >= self.last_full_x() {
+    //             return true;
+    //         }
+    //         if self.first_full_y() >= self.last_full_y() {
+    //             return true;
+    //         }
+    //         if self.first_full_x() >= self.last_full_x() {
+    //             return true;
+    //         }
+    //         false
+    //     }
+    pub fn is_empty(&self) -> bool {
+        match self {
+            _ => {
+                if self.first_full_x() >= self.last_full_x() {
+                    return true;
+                }
+                if self.first_full_y() >= self.last_full_y() {
+                    return true;
+                }
+                if self.first_full_x() >= self.last_full_x() {
+                    return true;
+                }
+                false
+            }
+        }
+    }
 
-    // public void forAllBoxes(DiscreteVoxelShape.IntLineConsumer var1, boolean var2) {
-    //     BitSetDiscreteVoxelShape.forAllBoxes(this, var1, var2);
+    //     fn is_full_wide(&self, x: u32, y: u32, z: u32) -> bool {
+    //         (x < self.size(Axis::X) && y < self.size(Axis::Y) && z < self.size(Axis::Z))
+    //             && (self.is_full(x, y, z))
+    //     }
+    pub fn is_full_wide(&self, x: u32, y: u32, z: u32) -> bool {
+        match self {
+            DiscreteVoxelShape::BitSet(shape) => shape.is_full_wide(x, y, z),
+        }
+    }
+    //     fn is_full_wide_axis_cycle(&self, axis_cycle: AxisCycle, x: u32, y: u32, z: u32) -> bool {
+    //         self.is_full_wide(
+    //             axis_cycle.cycle_xyz(x, y, z, Axis::X),
+    //             axis_cycle.cycle_xyz(x, y, z, Axis::Y),
+    //             axis_cycle.cycle_xyz(x, y, z, Axis::Z),
+    //         )
+    //     }
+    pub fn is_full_wide_axis_cycle(&self, axis_cycle: AxisCycle, x: u32, y: u32, z: u32) -> bool {
+        match self {
+            DiscreteVoxelShape::BitSet(shape) => shape.is_full_wide_axis_cycle(axis_cycle, x, y, z),
+        }
+    }
+
+    //     fn is_full(&self, x: u32, y: u32, z: u32) -> bool;
+    pub fn is_full(&self, x: u32, y: u32, z: u32) -> bool {
+        match self {
+            DiscreteVoxelShape::BitSet(shape) => shape.is_full(x, y, z),
+        }
+    }
+
+    //     // public void forAllBoxes(DiscreteVoxelShape.IntLineConsumer var1, boolean var2) {
+    //     //     BitSetDiscreteVoxelShape.forAllBoxes(this, var1, var2);
+    //     // }
+    //     fn for_all_boxes(&self, consumer: impl IntLineConsumer, swap: bool)
+    //     where
+    //         Self: Sized,
+    //     {
+    //         BitSetDiscreteVoxelShape::for_all_boxes(self, consumer, swap);
+    //     }
     // }
-    fn for_all_boxes(&self, consumer: impl IntLineConsumer, swap: bool)
-    where
-        Self: Sized,
-    {
-        BitSetDiscreteVoxelShape::for_all_boxes(self, consumer, swap);
+    pub fn for_all_boxes(&self, consumer: impl IntLineConsumer, swap: bool) {
+        match self {
+            DiscreteVoxelShape::BitSet(shape) => shape.for_all_boxes(consumer, swap),
+        }
     }
 }
 
@@ -234,8 +309,8 @@ impl BitSetDiscreteVoxelShape {
     //     return var6;
     //  }
     pub fn join(
-        var0: &dyn DiscreteVoxelShape,
-        var1: &dyn DiscreteVoxelShape,
+        var0: &DiscreteVoxelShape,
+        var1: &DiscreteVoxelShape,
         var2: &IndexMerger,
         var3: &IndexMerger,
         var4: &IndexMerger,
@@ -356,7 +431,7 @@ impl BitSetDiscreteVoxelShape {
     //     }
     // }
     pub fn for_all_boxes(
-        var0: &dyn DiscreteVoxelShape,
+        var0: &DiscreteVoxelShape,
         mut consumer: impl IntLineConsumer,
         var2: bool,
     ) {
@@ -412,7 +487,7 @@ impl BitSetDiscreteVoxelShape {
     }
 }
 
-impl DiscreteVoxelShape for BitSetDiscreteVoxelShape {
+impl BitSetDiscreteVoxelShape {
     fn size(&self, axis: Axis) -> u32 {
         axis.choose(self.x_size, self.y_size, self.z_size)
     }
@@ -435,10 +510,6 @@ impl DiscreteVoxelShape for BitSetDiscreteVoxelShape {
     }
     fn last_full_z(&self) -> u32 {
         self.z_max.try_into().unwrap()
-    }
-
-    fn clone(&self) -> Box<dyn DiscreteVoxelShape> {
-        Box::new(Clone::clone(self))
     }
 
     fn is_full(&self, x: u32, y: u32, z: u32) -> bool {
@@ -472,8 +543,8 @@ impl DiscreteVoxelShape for BitSetDiscreteVoxelShape {
 //     this.zMax = var1.lastFull(Direction.Axis.Z);
 // }
 
-impl From<&dyn DiscreteVoxelShape> for BitSetDiscreteVoxelShape {
-    fn from(shape: &dyn DiscreteVoxelShape) -> Self {
+impl From<&DiscreteVoxelShape> for BitSetDiscreteVoxelShape {
+    fn from(shape: &DiscreteVoxelShape) -> Self {
         let x_size = shape.size(Axis::X);
         let y_size = shape.size(Axis::Y);
         let z_size = shape.size(Axis::Z);
