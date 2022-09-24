@@ -94,9 +94,8 @@ impl DiscreteVoxelShape {
     //             && (self.is_full(x, y, z))
     //     }
     pub fn is_full_wide(&self, x: u32, y: u32, z: u32) -> bool {
-        match self {
-            DiscreteVoxelShape::BitSet(shape) => shape.is_full_wide(x, y, z),
-        }
+        (x < self.size(Axis::X) && y < self.size(Axis::Y) && z < self.size(Axis::Z))
+            && (self.is_full(x, y, z))
     }
     //     fn is_full_wide_axis_cycle(&self, axis_cycle: AxisCycle, x: u32, y: u32, z: u32) -> bool {
     //         self.is_full_wide(
@@ -106,9 +105,11 @@ impl DiscreteVoxelShape {
     //         )
     //     }
     pub fn is_full_wide_axis_cycle(&self, axis_cycle: AxisCycle, x: u32, y: u32, z: u32) -> bool {
-        match self {
-            DiscreteVoxelShape::BitSet(shape) => shape.is_full_wide_axis_cycle(axis_cycle, x, y, z),
-        }
+        self.is_full_wide(
+            axis_cycle.cycle_xyz(x, y, z, Axis::X),
+            axis_cycle.cycle_xyz(x, y, z, Axis::Y),
+            axis_cycle.cycle_xyz(x, y, z, Axis::Z),
+        )
     }
 
     //     fn is_full(&self, x: u32, y: u32, z: u32) -> bool;
@@ -129,9 +130,7 @@ impl DiscreteVoxelShape {
     //     }
     // }
     pub fn for_all_boxes(&self, consumer: impl IntLineConsumer, swap: bool) {
-        match self {
-            DiscreteVoxelShape::BitSet(shape) => shape.for_all_boxes(consumer, swap),
-        }
+        BitSetDiscreteVoxelShape::for_all_boxes(self, consumer, swap)
     }
 }
 
@@ -440,7 +439,7 @@ impl BitSetDiscreteVoxelShape {
             for var5 in 0..var3.x_size {
                 let mut var6 = None;
                 for var7 in 0..=var3.z_size {
-                    if var3.is_full_wide(var5, var4, var7) {
+                    if DiscreteVoxelShape::BitSet(var3).is_full_wide(var5, var4, var7) {
                         if var2 {
                             if var6.is_none() {
                                 var6 = Some(var7);
@@ -474,6 +473,41 @@ impl BitSetDiscreteVoxelShape {
                 }
             }
         }
+    }
+
+    // private boolean isZStripFull(int var1, int var2, int var3, int var4) {
+    //     if (var3 < this.xSize && var4 < this.ySize) {
+    //        return this.storage.nextClearBit(this.getIndex(var3, var4, var1)) >= this.getIndex(var3, var4, var2);
+    //     } else {
+    //        return false;
+    //     }
+    //  }
+    fn is_z_strip_full(&self, var1: u32, var2: u32, var3: u32, var4: u32) -> bool {
+        if var3 < self.x_size && var4 < self.y_size {
+            self.storage
+                .next_clear_bit(self.get_index(var3, var4, var1))
+                >= self.get_index(var3, var4, var2)
+        } else {
+            false
+        }
+    }
+
+    // private boolean isXZRectangleFull(int var1, int var2, int var3, int var4, int var5) {
+    //     for(int var6 = var1; var6 < var2; ++var6) {
+    //        if (!this.isZStripFull(var3, var4, var6, var5)) {
+    //           return false;
+    //        }
+    //     }
+
+    //     return true;
+    //  }
+    fn is_xz_rectangle_full(&self, var1: u32, var2: u32, var3: u32, var4: u32, var5: u32) -> bool {
+        for var6 in var1..var2 {
+            if !self.is_z_strip_full(var3, var4, var6, var5) {
+                return false;
+            }
+        }
+        true
     }
 
     // private void clearZStrip(int var1, int var2, int var3, int var4) {

@@ -74,6 +74,28 @@ impl BitSet {
     fn len(&self) -> usize {
         self.data.len() * 64
     }
+
+    /// Returns the index of the first bit that is set to `false`
+    /// that occurs on or after the specified starting index.
+    pub fn next_clear_bit(&self, from_index: usize) -> usize {
+        let mut u = self.word_index(from_index);
+        if u >= self.data.len() {
+            return from_index;
+        }
+
+        let mut word = !self.data[u] & (u64::MAX << from_index);
+
+        loop {
+            if word != 0 {
+                return (u * 64) + word.trailing_zeros() as usize;
+            }
+            u += 1;
+            if u == self.data.len() {
+                return self.data.len() * 64;
+            }
+            word = !self.data[u];
+        }
+    }
 }
 
 impl McBufReadable for BitSet {
