@@ -7,19 +7,19 @@ use crate::collision::{self, Shapes};
 use lazy_static::lazy_static;
 
 trait BlockWithShape {
-    fn shape(&self) -> &'static dyn VoxelShape;
+    fn shape(&self) -> &'static VoxelShape;
 }
 
 lazy_static! {
-    static ref SHAPE1: Box<(dyn VoxelShape + 'static)> = {
+    static ref SHAPE1: VoxelShape = {
         let s = collision::box_shape(0., 0., 0., 16., 8., 16.);
-        let s = Shapes::or(&s, &collision::box_shape(0., 8., 0., 16., 16., 16.))
+        let s = Shapes::or(&s, &collision::box_shape(0., 8., 0., 16., 16., 16.));
         s
     };
 }
 
 impl BlockWithShape for azalea_block::StoneSlabBlock {
-    fn shape(&self) -> &'static dyn VoxelShape {
-        &**SHAPE1
+    fn shape(&self) -> &'static VoxelShape {
+        &SHAPE1
     }
 }

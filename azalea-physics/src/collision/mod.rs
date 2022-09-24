@@ -194,10 +194,9 @@ fn collide_bounding_box(
     movement: &Vec3,
     entity_bounding_box: &AABB,
     dimension: &Dimension,
-    entity_collisions: Vec<Box<dyn VoxelShape>>,
+    entity_collisions: Vec<VoxelShape>,
 ) -> Vec3 {
-    let mut collision_boxes: Vec<Box<dyn VoxelShape>> =
-        Vec::with_capacity(entity_collisions.len() + 1);
+    let mut collision_boxes: Vec<VoxelShape> = Vec::with_capacity(entity_collisions.len() + 1);
 
     if !entity_collisions.is_empty() {
         collision_boxes.extend(entity_collisions);
@@ -214,7 +213,7 @@ fn collide_bounding_box(
 fn collide_with_shapes(
     movement: &Vec3,
     mut entity_box: AABB,
-    collision_boxes: &Vec<Box<dyn VoxelShape>>,
+    collision_boxes: &Vec<VoxelShape>,
 ) -> Vec3 {
     if collision_boxes.is_empty() {
         return *movement;

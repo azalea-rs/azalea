@@ -5,10 +5,10 @@ use std::{any::Any, cmp, num::NonZeroU32};
 
 pub struct Shapes {}
 
-pub fn block_shape() -> Box<dyn VoxelShape> {
+pub fn block_shape() -> VoxelShape {
     let mut shape = BitSetDiscreteVoxelShape::new(1, 1, 1);
     shape.fill(0, 0, 0);
-    Box::new(CubeVoxelShape::new(DiscreteVoxelShape::BitSet(shape)))
+    VoxelShape::Cube(CubeVoxelShape::new(DiscreteVoxelShape::BitSet(shape)))
 }
 
 pub fn box_shape(
@@ -18,7 +18,7 @@ pub fn box_shape(
     max_x: f64,
     max_y: f64,
     max_z: f64,
-) -> Box<dyn VoxelShape> {
+) -> VoxelShape {
     assert!(min_x >= 0.);
     assert!(min_y >= 0.);
     assert!(min_z >= 0.);
@@ -35,7 +35,7 @@ pub fn box_shape(
     let z_bits = find_bits(min_z, max_z);
 
     if x_bits < 0 || y_bits < 0 || z_bits < 0 {
-        return Box::new(ArrayVoxelShape::new(
+        return VoxelShape::Array(ArrayVoxelShape::new(
             block_shape().shape(),
             vec![min_x, max_x],
             vec![min_y, max_y],
@@ -60,10 +60,10 @@ pub fn box_shape(
         (max_y * y_bits as f64).round() as i32,
         (max_z * z_bits as f64).round() as i32,
     );
-    Box::new(CubeVoxelShape::new(DiscreteVoxelShape::BitSet(shape)))
+    VoxelShape::Cube(CubeVoxelShape::new(DiscreteVoxelShape::BitSet(shape)))
 }
-pub fn empty_shape() -> Box<dyn VoxelShape> {
-    Box::new(ArrayVoxelShape::new(
+pub fn empty_shape() -> VoxelShape {
+    VoxelShape::Array(ArrayVoxelShape::new(
         DiscreteVoxelShape::BitSet(BitSetDiscreteVoxelShape::new(0, 0, 0)),
         vec![0.],
         vec![0.],
@@ -89,14 +89,14 @@ fn find_bits(min: f64, max: f64) -> i32 {
 }
 
 impl Shapes {
-    // pub fn or(a: &dyn VoxelShape, b: &dyn VoxelShape) -> Box<dyn VoxelShape> {
+    // pub fn or(a: &dyn VoxelShape, b: &dyn VoxelShape) -> VoxelShape {
     //     self.join
     // }
 
     pub fn collide(
         axis: &Axis,
         entity_box: &AABB,
-        collision_boxes: &Vec<Box<dyn VoxelShape>>,
+        collision_boxes: &Vec<VoxelShape>,
         mut movement: f64,
     ) -> f64 {
         for shape in collision_boxes {
@@ -108,19 +108,15 @@ impl Shapes {
         movement
     }
 
-    pub fn join(
-        a: Box<dyn VoxelShape>,
-        b: Box<dyn VoxelShape>,
-        op: fn(bool, bool) -> bool,
-    ) -> Box<dyn VoxelShape> {
+    pub fn join(a: VoxelShape, b: VoxelShape, op: fn(bool, bool) -> bool) -> VoxelShape {
         Self::join_unoptimized(a, b, op).optimize()
     }
 
     pub fn join_unoptimized(
-        a: Box<dyn VoxelShape>,
-        b: Box<dyn VoxelShape>,
+        a: VoxelShape,
+        b: VoxelShape,
         op: fn(bool, bool) -> bool,
-    ) -> Box<dyn VoxelShape> {
+    ) -> VoxelShape {
         if op(false, false) {
             panic!("Illegal operation");
         };
@@ -167,9 +163,9 @@ impl Shapes {
             && let IndexMerger::DiscreteCube { .. } = var6
             && let IndexMerger::DiscreteCube { .. } = var7
         {
-            Box::new(CubeVoxelShape::new(DiscreteVoxelShape::BitSet(var8)))
+            VoxelShape::Cube(CubeVoxelShape::new(DiscreteVoxelShape::BitSet(var8)))
         } else {
-            Box::new(ArrayVoxelShape::new(
+            VoxelShape::Array(ArrayVoxelShape::new(
                 DiscreteVoxelShape::BitSet(var8),
                 var5.get_list(),
                 var6.get_list(),
@@ -228,45 +224,94 @@ impl Shapes {
     }
 }
 
-pub trait VoxelShape: Send + Sync {
-    fn shape(&self) -> DiscreteVoxelShape;
+pub enum VoxelShape {
+    Array(ArrayVoxelShape),
+    Cube(CubeVoxelShape),
+}
 
-    fn get_coords(&self, axis: Axis) -> Vec<f64>;
+impl VoxelShape {
+    pub fn shape(&self) -> DiscreteVoxelShape {
+        match self {
+            VoxelShape::Array(s) => s.shape(),
+            VoxelShape::Cube(s) => s.shape(),
+        }
+    }
 
-    fn is_empty(&self) -> bool {
-        self.shape().is_empty()
+    pub fn get_coords(&self, axis: Axis) -> Vec<f64> {
+        match self {
+            VoxelShape::Array(s) => s.get_coords(axis),
+            VoxelShape::Cube(s) => s.get_coords(axis),
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        match self {
+            _ => self.shape().is_empty(),
+        }
     }
 
     // TODO: optimization: should this be changed to return ArrayVoxelShape?
     // i might change the implementation of empty_shape in the future so not 100% sure
-    fn move_relative(&self, x: f64, y: f64, z: f64) -> Box<dyn VoxelShape> {
-        if self.shape().is_empty() {
-            return empty_shape();
+    pub fn move_relative(&self, x: f64, y: f64, z: f64) -> VoxelShape {
+        // if self.shape().is_empty() {
+        //     return empty_shape();
+        // }
+
+        // Box::new(ArrayVoxelShape::new(
+        //     self.shape(),
+        //     self.get_coords(Axis::X).iter().map(|c| c + x).collect(),
+        //     self.get_coords(Axis::Y).iter().map(|c| c + y).collect(),
+        //     self.get_coords(Axis::Z).iter().map(|c| c + z).collect(),
+        // ))
+        match self {
+            // VoxelShape::Array(s) => s.move_relative(x, y, z),
+            // VoxelShape::Cube(s) => s.move_relative(x, y, z),
+            _ => {
+                if self.shape().is_empty() {
+                    return empty_shape();
+                }
+
+                VoxelShape::Array(ArrayVoxelShape::new(
+                    self.shape(),
+                    self.get_coords(Axis::X).iter().map(|c| c + x).collect(),
+                    self.get_coords(Axis::Y).iter().map(|c| c + y).collect(),
+                    self.get_coords(Axis::Z).iter().map(|c| c + z).collect(),
+                ))
+            }
         }
-
-        Box::new(ArrayVoxelShape::new(
-            self.shape(),
-            self.get_coords(Axis::X).iter().map(|c| c + x).collect(),
-            self.get_coords(Axis::Y).iter().map(|c| c + y).collect(),
-            self.get_coords(Axis::Z).iter().map(|c| c + z).collect(),
-        ))
     }
 
-    fn get(&self, axis: Axis, index: usize) -> f64 {
-        self.get_coords(axis)[index]
+    pub fn get(&self, axis: Axis, index: usize) -> f64 {
+        // self.get_coords(axis)[index]
+        match self {
+            VoxelShape::Array(s) => s.get_coords(axis)[index],
+            VoxelShape::Cube(s) => s.get_coords(axis)[index],
+            _ => self.get_coords(axis)[index],
+        }
     }
 
-    fn find_index(&self, axis: Axis, coord: f64) -> i32 {
-        let r = binary_search(0, (self.shape().size(axis) + 1) as i32, &|t| {
-            coord < self.get(axis, t as usize)
-        }) - 1;
-        r
+    pub fn find_index(&self, axis: Axis, coord: f64) -> i32 {
+        // let r = binary_search(0, (self.shape().size(axis) + 1) as i32, &|t| {
+        //     coord < self.get(axis, t as usize)
+        // }) - 1;
+        // r
+        match self {
+            VoxelShape::Cube(s) => s.find_index(axis, coord),
+            _ => {
+                binary_search(0, (self.shape().size(axis) + 1) as i32, &|t| {
+                    coord < self.get(axis, t as usize)
+                }) - 1
+            }
+        }
     }
 
-    fn collide(&self, axis: &Axis, entity_box: &AABB, movement: f64) -> f64 {
-        self.collide_x(AxisCycle::between(*axis, Axis::X), entity_box, movement)
+    pub fn collide(&self, axis: &Axis, entity_box: &AABB, movement: f64) -> f64 {
+        // self.collide_x(AxisCycle::between(*axis, Axis::X), entity_box, movement)
+        match self {
+            _ => self.collide_x(AxisCycle::between(*axis, Axis::X), entity_box, movement),
+        }
     }
-    fn collide_x(&self, axis_cycle: AxisCycle, entity_box: &AABB, mut movement: f64) -> f64 {
+    pub fn collide_x(&self, axis_cycle: AxisCycle, entity_box: &AABB, mut movement: f64) -> f64 {
         if self.shape().is_empty() {
             return movement;
         }
@@ -357,19 +402,32 @@ pub trait VoxelShape: Send + Sync {
     //     });
     //     return var1[0];
     // }
-    fn optimize(&self) -> Box<dyn VoxelShape>
+    fn optimize(&self) -> VoxelShape
     where
         Self: Sized,
     {
-        let mut var1 = empty_shape();
-        self.for_all_boxes(|var1x, var3, var5, var7, var9, var11| {
-            var1 = Shapes::join_unoptimized(
-                var1,
-                box_shape(var1x, var3, var5, var7, var9, var11),
-                |a, b| a || b,
-            );
-        });
-        var1
+        // let mut var1 = empty_shape();
+        // self.for_all_boxes(|var1x, var3, var5, var7, var9, var11| {
+        //     var1 = Shapes::join_unoptimized(
+        //         var1,
+        //         box_shape(var1x, var3, var5, var7, var9, var11),
+        //         |a, b| a || b,
+        //     );
+        // });
+        // var1
+        match self {
+            _ => {
+                let mut var1 = empty_shape();
+                self.for_all_boxes(|var1x, var3, var5, var7, var9, var11| {
+                    var1 = Shapes::join_unoptimized(
+                        var1,
+                        box_shape(var1x, var3, var5, var7, var9, var11),
+                        |a, b| a || b,
+                    );
+                });
+                var1
+            }
+        }
     }
 
     // public void forAllBoxes(Shapes.DoubleLineConsumer var1) {
@@ -380,26 +438,46 @@ pub trait VoxelShape: Send + Sync {
     //     var1.consume(var2.getDouble(var4x), var3.getDouble(var5), var4.getDouble(var6), var2.getDouble(var7), var3.getDouble(var8), var4.getDouble(var9));
     //     }, true);
     // }
-    fn for_all_boxes(&self, mut consumer: impl FnMut(f64, f64, f64, f64, f64, f64))
+    pub fn for_all_boxes(&self, mut consumer: impl FnMut(f64, f64, f64, f64, f64, f64))
     where
         Self: Sized,
     {
-        let x_coords = self.get_coords(Axis::X);
-        let y_coords = self.get_coords(Axis::Y);
-        let z_coords = self.get_coords(Axis::Z);
-        self.shape().for_all_boxes(
-            |var4x, var5, var6, var7, var8, var9| {
-                consumer(
-                    x_coords[var4x as usize],
-                    y_coords[var5 as usize],
-                    z_coords[var6 as usize],
-                    x_coords[var7 as usize],
-                    y_coords[var8 as usize],
-                    z_coords[var9 as usize],
-                )
-            },
-            true,
-        );
+        // let x_coords = self.get_coords(Axis::X);
+        // let y_coords = self.get_coords(Axis::Y);
+        // let z_coords = self.get_coords(Axis::Z);
+        // self.shape().for_all_boxes(
+        //     |var4x, var5, var6, var7, var8, var9| {
+        //         consumer(
+        //             x_coords[var4x as usize],
+        //             y_coords[var5 as usize],
+        //             z_coords[var6 as usize],
+        //             x_coords[var7 as usize],
+        //             y_coords[var8 as usize],
+        //             z_coords[var9 as usize],
+        //         )
+        //     },
+        //     true,
+        // );
+        match self {
+            _ => {
+                let x_coords = self.get_coords(Axis::X);
+                let y_coords = self.get_coords(Axis::Y);
+                let z_coords = self.get_coords(Axis::Z);
+                self.shape().for_all_boxes(
+                    |var4x, var5, var6, var7, var8, var9| {
+                        consumer(
+                            x_coords[var4x as usize],
+                            y_coords[var5 as usize],
+                            z_coords[var6 as usize],
+                            x_coords[var7 as usize],
+                            y_coords[var8 as usize],
+                            z_coords[var9 as usize],
+                        )
+                    },
+                    true,
+                );
+            }
+        }
     }
 }
 
@@ -407,7 +485,7 @@ pub struct ArrayVoxelShape {
     shape: DiscreteVoxelShape,
     // TODO: check where faces is used in minecraft
     #[allow(dead_code)]
-    faces: Option<Vec<Box<dyn VoxelShape>>>,
+    faces: Option<Vec<VoxelShape>>,
 
     pub xs: Vec<f64>,
     pub ys: Vec<f64>,
@@ -418,7 +496,7 @@ pub struct CubeVoxelShape {
     shape: DiscreteVoxelShape,
     // TODO: check where faces is used in minecraft
     #[allow(dead_code)]
-    faces: Option<Vec<Box<dyn VoxelShape>>>,
+    faces: Option<Vec<VoxelShape>>,
 }
 
 impl ArrayVoxelShape {
@@ -448,7 +526,7 @@ impl CubeVoxelShape {
     }
 }
 
-impl VoxelShape for ArrayVoxelShape {
+impl ArrayVoxelShape {
     fn shape(&self) -> DiscreteVoxelShape {
         self.shape.clone()
     }
@@ -458,7 +536,7 @@ impl VoxelShape for ArrayVoxelShape {
     }
 }
 
-impl VoxelShape for CubeVoxelShape {
+impl CubeVoxelShape {
     fn shape(&self) -> DiscreteVoxelShape {
         self.shape.clone()
     }
