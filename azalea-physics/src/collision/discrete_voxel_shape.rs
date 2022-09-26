@@ -1,8 +1,5 @@
-use std::any::Any;
-
-use azalea_core::{Axis, AxisCycle, BitSet};
-
 use super::mergers::IndexMerger;
+use azalea_core::{Axis, AxisCycle, BitSet};
 
 // TODO: every impl of DiscreteVoxelShape could be turned into a single enum as an optimization
 
