@@ -120,15 +120,20 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
         #     Ceiling,
         # },
         property_name = property_struct_names_to_names[property_struct_name]
-        new_make_block_states_macro_code.append(
-            f'        "{property_name}" => {property_struct_name} {{')
 
-        for variant in property_variants:
-            new_make_block_states_macro_code.append(
-                f'            {to_camel_case(variant)},')
+        # if the only variants are true and false, we can just make it a normal boolean
+        if property_variants == ['true', 'false']:
+            property_shape_code = 'bool'
+        else:
+            property_shape_code = f'{property_struct_name} {{\n'
+            for variant in property_variants:
+                property_shape_code += f'            {to_camel_case(variant)},\n'
+            property_shape_code += '        }'
 
         new_make_block_states_macro_code.append(
-            f'        }},')
+            f'        "{property_name}" => {property_shape_code},')
+
+
     new_make_block_states_macro_code.append('    },')
 
     # Block codegen
@@ -145,9 +150,8 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
             if state.get('default'):
                 default_property_variants = state.get('properties', {})
 
-        # TODO: use burger to generate the blockbehavior
-        new_make_block_states_macro_code.append(
-            f'        {block_id} => BlockBehavior::default(), {{')
+
+        properties_code = '{'
         for property_name in list(block_data_report.get('properties', {}).keys()):
             property_burger = None
             for property in block_data_burger.get('states', []):
@@ -160,10 +164,31 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
 
             property_struct_name = get_property_struct_name(
                 property_burger, block_data_burger, property_variants)
+
+            is_boolean_property = property_variants == ['true', 'false']
+
+            if is_boolean_property:
+                # if it's a boolean, keep the type lowercase
+                # (so it's either `true` or `false`)
+                property_default_type = property_default
+            else:
+                property_default_type = f'{property_struct_name}::{to_camel_case(property_default)}'
+
             assert property_default is not None
-            new_make_block_states_macro_code.append(
-                f'            {property_struct_name}={to_camel_case(property_default)},')
-        new_make_block_states_macro_code.append('        },')
+
+            this_property_code = f'{property_name}: {property_default_type}'
+
+            properties_code += f'\n            {this_property_code},'
+        # if there's nothing inside the properties, keep it in one line
+        if properties_code == '{':
+            properties_code += '}'
+        else:
+            properties_code += '\n        }'
+
+        # TODO: use burger to generate the blockbehavior
+        new_make_block_states_macro_code.append(
+            f'        {block_id} => BlockBehavior::default(), {properties_code},')
+
     new_make_block_states_macro_code.append('    }')
     new_make_block_states_macro_code.append('}')
 

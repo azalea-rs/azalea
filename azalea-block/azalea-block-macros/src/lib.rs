@@ -13,10 +13,17 @@ use syn::{
 };
 use utils::{combinations_of, to_pascal_case};
 
+enum PropertyType {
+    Enum {
+        type_name: Ident,
+        variants: Punctuated<Ident, Token![,]>,
+    },
+    Boolean,
+}
+
 struct PropertyDefinition {
     name: LitStr,
-    struct_name: Ident,
-    variants: Punctuated<Ident, Token![,]>,
+    property_type: PropertyType,
 }
 struct PropertyDefinitions {
     properties: Vec<PropertyDefinition>,
@@ -53,6 +60,26 @@ struct MakeBlockStates {
     block_definitions: BlockDefinitions,
 }
 
+impl Parse for PropertyType {
+    fn parse(input: ParseStream) -> Result<Self> {
+        // like `Axis { X, Y, Z }` or `bool`
+
+        let keyword = Ident::parse(input)?;
+        let keyword_string = keyword.to_string();
+        if keyword_string == "bool".to_string() {
+            Ok(Self::Boolean)
+        } else {
+            let content;
+            braced!(content in input);
+            let variants = content.parse_terminated(Ident::parse)?;
+            Ok(Self::Enum {
+                type_name: keyword,
+                variants,
+            })
+        }
+    }
+}
+
 impl Parse for PropertyDefinition {
     fn parse(input: ParseStream) -> Result<Self> {
         // "face" => Face {
@@ -66,17 +93,12 @@ impl Parse for PropertyDefinition {
         // syntax error
         let name = input.parse()?;
         input.parse::<Token![=>]>()?;
-        let struct_name = input.parse()?;
-
-        let content;
-        braced!(content in input);
-        let variants = content.parse_terminated(Ident::parse)?;
+        let property_type = input.parse()?;
 
         input.parse::<Token![,]>()?;
         Ok(PropertyDefinition {
             name,
-            struct_name,
-            variants,
+            property_type,
         })
     }
 }
@@ -179,57 +201,67 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let mut state_id: usize = 0;
 
     for property in &input.property_definitions.properties {
-        let mut property_enum_variants = quote! {};
-        let mut property_from_number_variants = quote! {};
-        let mut property_enum_variant_names = Vec::new();
+        let property_type_name: Ident;
+        let mut property_variant_types = Vec::new();
 
-        let property_struct_name = &property.struct_name;
+        match &property.property_type {
+            PropertyType::Enum {
+                type_name,
+                variants,
+            } => {
+                let mut property_enum_variants = quote! {};
+                let mut property_from_number_variants = quote! {};
 
-        property_struct_names_to_names.insert(
-            property_struct_name.to_string(),
-            property.name.clone().value(),
-        );
+                property_type_name = type_name.clone();
 
-        for i in 0..property.variants.len() {
-            let variant = &property.variants[i];
+                property_struct_names_to_names.insert(
+                    property_type_name.to_string(),
+                    property.name.clone().value(),
+                );
 
-            let i_lit = syn::Lit::Int(syn::LitInt::new(
-                &i.to_string(),
-                proc_macro2::Span::call_site(),
-            ));
+                for i in 0..variants.len() {
+                    let variant = &variants[i];
 
-            property_enum_variants.extend(quote! {
-                #variant = #i_lit,
-            });
+                    let i_lit = syn::Lit::Int(syn::LitInt::new(
+                        &i.to_string(),
+                        proc_macro2::Span::call_site(),
+                    ));
 
-            // i_lit is used here instead of i because otherwise it says 0size
-            // in the expansion and that looks uglier
-            property_from_number_variants.extend(quote! {
-                #i_lit => #property_struct_name::#variant,
-            });
+                    property_enum_variants.extend(quote! {
+                        #variant = #i_lit,
+                    });
 
-            property_enum_variant_names.push(variant.to_string());
-        }
+                    // i_lit is used here instead of i because otherwise it says 0size
+                    // in the expansion and that looks uglier
+                    property_from_number_variants.extend(quote! {
+                        #i_lit => #property_type_name::#variant,
+                    });
 
-        property_enums.extend(quote! {
-            #[derive(Debug, Clone, Copy)]
-            pub enum #property_struct_name {
-                #property_enum_variants
-            }
-
-            impl From<usize> for #property_struct_name {
-                fn from(value: usize) -> Self {
-                    match value {
-                        #property_from_number_variants
-                        _ => panic!("Invalid property value: {}", value),
-                    }
+                    property_variant_types.push(variant.to_string());
                 }
+
+                property_enums.extend(quote! {
+                    #[derive(Debug, Clone, Copy)]
+                    pub enum #property_type_name {
+                        #property_enum_variants
+                    }
+
+                    impl From<usize> for #property_type_name {
+                        fn from(value: usize) -> Self {
+                            match value {
+                                #property_from_number_variants
+                                _ => panic!("Invalid property value: {}", value),
+                            }
+                        }
+                    }
+                });
             }
-        });
-        properties_map.insert(
-            property_struct_name.to_string(),
-            property_enum_variant_names,
-        );
+            PropertyType::Boolean => {
+                property_type_name = Ident::new("bool", proc_macro2::Span::call_site());
+                property_variant_types = vec!["true".to_string(), "false".to_string()];
+            }
+        }
+        properties_map.insert(property_type_name.to_string(), property_variant_types);
     }
 
     let mut block_state_enum_variants = quote! {};
