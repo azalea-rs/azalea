@@ -90,14 +90,58 @@ def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_dat
     for possible_state, shape_id in zip(block_report_data['states'], shape_ids):
         possible_states[tuple(
             possible_state['properties'].values())] = shape_id
+
+    print('possible_states', possible_states)
+
+    should_also_ignore_other_fields = False
+
+    # detect if a property actually makes a difference, and if it doesn't then
+    # replace the name with None
+    print(property_names)
+    for property_index, property_name in enumerate(property_names):
+        changes_shape = False
+        # { waterlogged: false, thing: false }: 0
+        # { waterlogged: false, thing: true }: 1
+        # { waterlogged: true, thing: false }: 0
+        # { waterlogged: true, thing: true }: 1
+        similar_properties_shape = {}
+        for property_values, shape_id in possible_states.items():
+            # switch out our property for None
+            property_values_modified = list(property_values)
+            print('property_values', property_values)
+            property_values_modified[property_index] = None
+            property_values_modified = tuple(property_values_modified)
+            # we haven't seen this combination before, add it to our dict
+            if property_values_modified not in similar_properties_shape:
+                similar_properties_shape[property_values_modified] = shape_id
+            # if we've seen this combination before and it's a different shape
+            # id, that means we can't ignore this property
+            elif similar_properties_shape[property_values_modified] != shape_id:
+                # we know it changes the shape now, so there's nothing else to do
+                changes_shape = True
+                should_also_ignore_other_fields = True
+                break
+            property_value = property_values[property_index]
+        # if this property doesn't change the shape, we can update
+        # possible_states
+        if not changes_shape:
+            for property_values, shape_id in list(possible_states.items()):
+                property_values_copy = list(property_values)
+                property_values_copy[property_index] = None
+                del possible_states[property_values]
+                possible_states[tuple(property_values_copy)] = shape_id
+            
     print(possible_states)
 
+    
     match_inner = ''
-
     for property_values, shape_id in possible_states.items():
         match_inner += f'    {block_struct_name} {{\n'
         for property_name, property_value in zip(property_names, property_values):
-            match_inner += f'        {property_name}: azalea_block::{to_camel_case(property_name)}::{to_camel_case(property_value)},\n'
+            if property_value is not None:
+                match_inner += f'        {property_name}: azalea_block::{to_camel_case(property_name)}::{to_camel_case(property_value)},\n'
+        if should_also_ignore_other_fields:
+            match_inner += '        ..\n'
         match_inner += f'    }} => &SHAPE{shape_id},\n'
 
     function_inner = 'match self {\n' + match_inner + '\n}'

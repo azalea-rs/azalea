@@ -19927,225 +19927,113 @@ impl BlockWithShape for azalea_block::SpruceFence {
                 east: azalea_block::East::True,
                 north: azalea_block::North::True,
                 south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::True,
+                ..
             } => &SHAPE769,
             SpruceFence {
                 east: azalea_block::East::True,
                 north: azalea_block::North::True,
                 south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::False,
-            } => &SHAPE770,
-            SpruceFence {
-                east: azalea_block::East::True,
-                north: azalea_block::North::True,
-                south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::True,
-            } => &SHAPE769,
-            SpruceFence {
-                east: azalea_block::East::True,
-                north: azalea_block::North::True,
-                south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::False,
+                ..
             } => &SHAPE770,
             SpruceFence {
                 east: azalea_block::East::True,
                 north: azalea_block::North::True,
                 south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::True,
+                ..
             } => &SHAPE771,
             SpruceFence {
                 east: azalea_block::East::True,
                 north: azalea_block::North::True,
                 south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::False,
-            } => &SHAPE772,
-            SpruceFence {
-                east: azalea_block::East::True,
-                north: azalea_block::North::True,
-                south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::True,
-            } => &SHAPE771,
-            SpruceFence {
-                east: azalea_block::East::True,
-                north: azalea_block::North::True,
-                south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::False,
+                ..
             } => &SHAPE772,
             SpruceFence {
                 east: azalea_block::East::True,
                 north: azalea_block::North::False,
                 south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::True,
+                ..
             } => &SHAPE773,
             SpruceFence {
                 east: azalea_block::East::True,
                 north: azalea_block::North::False,
                 south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::False,
-            } => &SHAPE774,
-            SpruceFence {
-                east: azalea_block::East::True,
-                north: azalea_block::North::False,
-                south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::True,
-            } => &SHAPE773,
-            SpruceFence {
-                east: azalea_block::East::True,
-                north: azalea_block::North::False,
-                south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::False,
+                ..
             } => &SHAPE774,
             SpruceFence {
                 east: azalea_block::East::True,
                 north: azalea_block::North::False,
                 south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::True,
+                ..
             } => &SHAPE775,
             SpruceFence {
                 east: azalea_block::East::True,
                 north: azalea_block::North::False,
                 south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::False,
-            } => &SHAPE776,
-            SpruceFence {
-                east: azalea_block::East::True,
-                north: azalea_block::North::False,
-                south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::True,
-            } => &SHAPE775,
-            SpruceFence {
-                east: azalea_block::East::True,
-                north: azalea_block::North::False,
-                south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::False,
+                ..
             } => &SHAPE776,
             SpruceFence {
                 east: azalea_block::East::False,
                 north: azalea_block::North::True,
                 south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::True,
+                ..
             } => &SHAPE777,
             SpruceFence {
                 east: azalea_block::East::False,
                 north: azalea_block::North::True,
                 south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::False,
-            } => &SHAPE778,
-            SpruceFence {
-                east: azalea_block::East::False,
-                north: azalea_block::North::True,
-                south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::True,
-            } => &SHAPE777,
-            SpruceFence {
-                east: azalea_block::East::False,
-                north: azalea_block::North::True,
-                south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::False,
+                ..
             } => &SHAPE778,
             SpruceFence {
                 east: azalea_block::East::False,
                 north: azalea_block::North::True,
                 south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::True,
+                ..
             } => &SHAPE779,
             SpruceFence {
                 east: azalea_block::East::False,
                 north: azalea_block::North::True,
                 south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::False,
-            } => &SHAPE780,
-            SpruceFence {
-                east: azalea_block::East::False,
-                north: azalea_block::North::True,
-                south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::True,
-            } => &SHAPE779,
-            SpruceFence {
-                east: azalea_block::East::False,
-                north: azalea_block::North::True,
-                south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::False,
+                ..
             } => &SHAPE780,
             SpruceFence {
                 east: azalea_block::East::False,
                 north: azalea_block::North::False,
                 south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::True,
+                ..
             } => &SHAPE781,
             SpruceFence {
                 east: azalea_block::East::False,
                 north: azalea_block::North::False,
                 south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::False,
-            } => &SHAPE782,
-            SpruceFence {
-                east: azalea_block::East::False,
-                north: azalea_block::North::False,
-                south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::True,
-            } => &SHAPE781,
-            SpruceFence {
-                east: azalea_block::East::False,
-                north: azalea_block::North::False,
-                south: azalea_block::South::True,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::False,
+                ..
             } => &SHAPE782,
             SpruceFence {
                 east: azalea_block::East::False,
                 north: azalea_block::North::False,
                 south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::True,
+                ..
             } => &SHAPE783,
             SpruceFence {
                 east: azalea_block::East::False,
                 north: azalea_block::North::False,
                 south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::True,
                 west: azalea_block::West::False,
-            } => &SHAPE784,
-            SpruceFence {
-                east: azalea_block::East::False,
-                north: azalea_block::North::False,
-                south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::True,
-            } => &SHAPE783,
-            SpruceFence {
-                east: azalea_block::East::False,
-                north: azalea_block::North::False,
-                south: azalea_block::South::False,
-                waterlogged: azalea_block::Waterlogged::False,
-                west: azalea_block::West::False,
+                ..
             } => &SHAPE784,
         }
     }
