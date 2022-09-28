@@ -99,14 +99,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
 
             block_properties[property_struct_name] = property_variants
 
-            # if the name ends with _<number>, remove that part
-            ending = property_name.split('_')[-1]
-            if ending.isdigit():
-                property_name = property_name[:-(len(ending) + 1)]
-
-            # `type` is a reserved keyword, so we use kind instead ¯\_(ツ)_/¯
-            if property_name == 'type':
-                property_name = 'kind'
+            property_name = clean_property_name(property_name)
             property_struct_names_to_names[property_struct_name] = property_name
 
         properties.update(block_properties)
@@ -176,6 +169,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
 
             assert property_default is not None
 
+            property_name = clean_property_name(property_name)
             this_property_code = f'{property_name}: {property_default_type}'
 
             properties_code += f'\n            {this_property_code},'
@@ -210,3 +204,15 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
 
     with open(BLOCKS_RS_DIR, 'w') as f:
         f.write('\n'.join(new_code))
+
+def clean_property_name(property_name):
+    # if the name ends with _<number>, remove that part
+    ending = property_name.split('_')[-1]
+    if ending.isdigit():
+        property_name = property_name[:-(len(ending) + 1)]
+
+    # `type` is a reserved keyword, so we use kind instead ¯\_(ツ)_/¯
+    if property_name == 'type':
+        property_name = 'kind'
+    
+    return property_name

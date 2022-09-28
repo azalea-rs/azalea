@@ -1915,7 +1915,7 @@ make_block_states! {
             facing: FacingCubic::North,
         },
         piston_head => BlockBehavior::default(), {
-            type: PistonType::Normal,
+            kind: PistonType::Normal,
             facing: FacingCubic::North,
             short: false,
         },
@@ -1936,7 +1936,7 @@ make_block_states! {
         red_wool => BlockBehavior::default(), {},
         black_wool => BlockBehavior::default(), {},
         moving_piston => BlockBehavior::default(), {
-            type: PistonType::Normal,
+            kind: PistonType::Normal,
             facing: FacingCubic::North,
         },
         dandelion => BlockBehavior::default(), {},
@@ -1984,7 +1984,7 @@ make_block_states! {
             waterlogged: false,
         },
         chest => BlockBehavior::default(), {
-            type: ChestType::Single,
+            kind: ChestType::Single,
             facing: FacingCardinal::North,
             waterlogged: false,
         },
@@ -2390,9 +2390,9 @@ make_block_states! {
         },
         enchanting_table => BlockBehavior::default(), {},
         brewing_stand => BlockBehavior::default(), {
-            has_bottle_0: false,
-            has_bottle_1: false,
-            has_bottle_2: false,
+            has_bottle: false,
+            has_bottle: false,
+            has_bottle: false,
         },
         cauldron => BlockBehavior::default(), {},
         water_cauldron => BlockBehavior::default(), {
@@ -2595,7 +2595,7 @@ make_block_states! {
             facing: FacingCardinal::North,
         },
         trapped_chest => BlockBehavior::default(), {
-            type: ChestType::Single,
+            kind: ChestType::Single,
             facing: FacingCardinal::North,
             waterlogged: false,
         },
@@ -2821,15 +2821,15 @@ make_block_states! {
             waterlogged: false,
         },
         prismarine_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         prismarine_brick_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         dark_prismarine_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         sea_lantern => BlockBehavior::default(), {},
@@ -2979,87 +2979,87 @@ make_block_states! {
             waterlogged: false,
         },
         oak_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         spruce_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         birch_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         jungle_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         acacia_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         dark_oak_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         mangrove_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         stone_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         smooth_stone_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         sandstone_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         cut_sandstone_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         petrified_oak_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         cobblestone_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         brick_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         stone_brick_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         mud_brick_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         nether_brick_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         quartz_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         red_sandstone_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         cut_red_sandstone_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         purpur_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         smooth_stone => BlockBehavior::default(), {},
@@ -3593,55 +3593,55 @@ make_block_states! {
             waterlogged: false,
         },
         polished_granite_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         smooth_red_sandstone_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         mossy_stone_brick_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         polished_diorite_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         mossy_cobblestone_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         end_stone_brick_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         smooth_sandstone_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         smooth_quartz_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         granite_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         andesite_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         red_nether_brick_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         polished_andesite_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         diorite_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         brick_wall => BlockBehavior::default(), {
@@ -3855,11 +3855,11 @@ make_block_states! {
         crimson_planks => BlockBehavior::default(), {},
         warped_planks => BlockBehavior::default(), {},
         crimson_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         warped_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         crimson_pressure_plate => BlockBehavior::default(), {
@@ -4009,7 +4009,7 @@ make_block_states! {
             west: WestWall::None,
         },
         blackstone_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         polished_blackstone => BlockBehavior::default(), {},
@@ -4017,7 +4017,7 @@ make_block_states! {
         cracked_polished_blackstone_bricks => BlockBehavior::default(), {},
         chiseled_polished_blackstone => BlockBehavior::default(), {},
         polished_blackstone_brick_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         polished_blackstone_brick_stairs => BlockBehavior::default(), {
@@ -4042,7 +4042,7 @@ make_block_states! {
             waterlogged: false,
         },
         polished_blackstone_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         polished_blackstone_pressure_plate => BlockBehavior::default(), {
@@ -4280,19 +4280,19 @@ make_block_states! {
             waterlogged: false,
         },
         oxidized_cut_copper_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         weathered_cut_copper_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         exposed_cut_copper_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         cut_copper_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         waxed_copper_block => BlockBehavior::default(), {},
@@ -4328,19 +4328,19 @@ make_block_states! {
             waterlogged: false,
         },
         waxed_oxidized_cut_copper_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         waxed_weathered_cut_copper_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         waxed_exposed_cut_copper_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         waxed_cut_copper_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         lightning_rod => BlockBehavior::default(), {
@@ -4396,7 +4396,7 @@ make_block_states! {
             waterlogged: false,
         },
         cobbled_deepslate_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         cobbled_deepslate_wall => BlockBehavior::default(), {
@@ -4415,7 +4415,7 @@ make_block_states! {
             waterlogged: false,
         },
         polished_deepslate_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         polished_deepslate_wall => BlockBehavior::default(), {
@@ -4434,7 +4434,7 @@ make_block_states! {
             waterlogged: false,
         },
         deepslate_tile_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         deepslate_tile_wall => BlockBehavior::default(), {
@@ -4453,7 +4453,7 @@ make_block_states! {
             waterlogged: false,
         },
         deepslate_brick_slab => BlockBehavior::default(), {
-            type: Type::Bottom,
+            kind: Type::Bottom,
             waterlogged: false,
         },
         deepslate_brick_wall => BlockBehavior::default(), {
