@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::fmt::Write;
 use syn::{
     self, braced,
+    ext::IdentExt,
     parse::{Parse, ParseStream, Result},
     parse_macro_input,
     punctuated::Punctuated,
@@ -14,30 +15,43 @@ use syn::{
 use utils::{combinations_of, to_pascal_case};
 
 enum PropertyType {
+    /// `Axis { X, Y, Z }`
     Enum {
         type_name: Ident,
         variants: Punctuated<Ident, Token![,]>,
     },
+    /// `bool`
     Boolean,
 }
 
+/// `"snowy" => bool`
 struct PropertyDefinition {
     name: LitStr,
     property_type: PropertyType,
 }
+
+/// Comma separated PropertyDefinitions (`"snowy" => bool,`)
 struct PropertyDefinitions {
     properties: Vec<PropertyDefinition>,
 }
 
+/// `snowy: false` or `axis: Axis::Y`
 struct PropertyAndDefault {
     struct_name: Ident,
-    default: Ident,
+    default: proc_macro2::TokenStream,
 }
+
 struct PropertyWithNameAndDefault {
     name: String,
     struct_name: Ident,
-    default: Ident,
+    default: proc_macro2::TokenStream,
 }
+
+/// ```no_run
+/// grass_block => BlockBehavior::default(), {
+///   snowy: false,
+/// },
+/// ```
 struct BlockDefinition {
     name: Ident,
     behavior: Expr,
@@ -52,6 +66,26 @@ impl PropertyAndDefault {
         }
     }
 }
+impl Parse for PropertyAndDefault {
+    fn parse(input: ParseStream) -> Result<Self> {
+        // `snowy: false` or `axis: Axis::Y`
+        let property = input.parse()?;
+        input.parse::<Token![:]>()?;
+
+        let first_ident = input.call(Ident::parse_any)?;
+        let mut property_default = quote! { #first_ident };
+        if let Ok(_) = input.parse::<Token![::]>() {
+            let variant = input.parse::<Ident>()?;
+            property_default.extend(quote! { ::#variant })
+        }
+
+        Ok(PropertyAndDefault {
+            struct_name: property,
+            default: property_default,
+        })
+    }
+}
+
 struct BlockDefinitions {
     blocks: Vec<BlockDefinition>,
 }
@@ -122,7 +156,7 @@ impl Parse for BlockDefinition {
         //     Facing=North,
         //     Powered=False,
         //     Face=Wall,
-        // },
+        // }
         let name = input.parse()?;
         input.parse::<Token![=>]>()?;
         let behavior = input.parse()?;
@@ -133,18 +167,14 @@ impl Parse for BlockDefinition {
 
         let mut properties_and_defaults = Vec::new();
 
-        while let Ok(property) = content.parse() {
-            content.parse::<Token![=]>()?;
-            let property_default = content.parse()?;
-            properties_and_defaults.push(PropertyAndDefault {
-                struct_name: property,
-                default: property_default,
-            });
-            if content.parse::<Token![,]>().is_err() {
-                break;
-            }
+        // read the things comma-separated
+        let property_and_default_punctuated: Punctuated<PropertyAndDefault, Token![,]> =
+            content.parse_terminated(PropertyAndDefault::parse)?;
+
+        for property_and_default in property_and_default_punctuated {
+            properties_and_defaults.push(property_and_default);
         }
-        input.parse::<Token![,]>()?;
+
         Ok(BlockDefinition {
             name,
             behavior,
@@ -156,8 +186,11 @@ impl Parse for BlockDefinition {
 impl Parse for BlockDefinitions {
     fn parse(input: ParseStream) -> Result<Self> {
         let mut blocks = Vec::new();
-        while !input.is_empty() {
-            blocks.push(input.parse()?);
+
+        let block_definitions_punctuated: Punctuated<BlockDefinition, Token![,]> =
+            input.parse_terminated(BlockDefinition::parse)?;
+        for block_definition in block_definitions_punctuated {
+            blocks.push(block_definition);
         }
 
         Ok(BlockDefinitions { blocks })
