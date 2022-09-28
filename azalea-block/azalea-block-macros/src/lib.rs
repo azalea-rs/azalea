@@ -290,12 +290,19 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 });
             }
             PropertyType::Boolean => {
-                property_type_name = Ident::new("bool", proc_macro2::Span::call_site());
+                // property_type_name = Ident::new("bool", proc_macro2::Span::call_site());
+                property_type_name =
+                    Ident::new(&property.name.value(), proc_macro2::Span::call_site());
                 property_variant_types = vec!["true".to_string(), "false".to_string()];
             }
         }
         properties_map.insert(property_type_name.to_string(), property_variant_types);
+        // properties_map.insert(property.name.value(), property_variant_types);
     }
+
+    // if properties_map.contains_key("snowy") {
+    //     panic!("{:#?}", properties_map);
+    // }
 
     let mut block_state_enum_variants = quote! {};
     let mut block_structs = quote! {};
@@ -334,9 +341,13 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             } else {
                 None
             };
+            // let mut property_name = property_struct_names_to_names
+            //     .get(&property.struct_name.to_string())
+            //     .unwrap_or_else(|| panic!("Property '{}' is bad", property.struct_name))
+            //     .clone();
             let mut property_name = property_struct_names_to_names
                 .get(&property.struct_name.to_string())
-                .unwrap_or_else(|| panic!("Property '{}' is bad", property.struct_name))
+                .unwrap_or(property.struct_name)
                 .clone();
             if let Some(index) = index {
                 // property_name.push_str(&format!("_{}", &index.to_string()));
