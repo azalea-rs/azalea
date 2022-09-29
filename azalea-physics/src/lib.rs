@@ -1,4 +1,5 @@
 #![feature(trait_alias)]
+#![feature(let_chains)]
 
 pub mod collision;
 
