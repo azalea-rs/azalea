@@ -7,6 +7,8 @@ pub struct BitSet {
     data: Vec<u64>,
 }
 
+const ADDRESS_BITS_PER_WORD: usize = 6;
+
 // the Index trait requires us to return a reference, but we can't do that
 impl BitSet {
     pub fn new(size: usize) -> Self {
@@ -29,7 +31,7 @@ impl BitSet {
     }
 
     fn word_index(&self, bit_index: usize) -> usize {
-        bit_index >> 6
+        bit_index >> ADDRESS_BITS_PER_WORD
     }
 
     pub fn clear(&mut self, from_index: usize, mut to_index: usize) {

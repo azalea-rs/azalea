@@ -521,7 +521,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         };
 
         let block_struct = quote! {
-            #[derive(Debug)]
+            #[derive(Debug, Copy, Clone)]
             pub struct #block_struct_name {
                 #block_struct_fields
             }
@@ -558,7 +558,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         #property_enums
 
         #[repr(u32)]
-        #[derive(Copy, Clone, PartialEq, Eq, Debug)]
+        #[derive(Copy, Clone, PartialEq, Eq)]
         pub enum BlockState {
             #block_state_enum_variants
         }
@@ -568,6 +568,13 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             #[inline]
             pub fn max_state() -> u32 {
                 #last_state_id
+            }
+        }
+
+        impl std::fmt::Debug for BlockState {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                // having a big match statement here would take up 700kb
+                f.write_str("BlockState")
             }
         }
     };
