@@ -1,5 +1,5 @@
-use crate::collision::{VoxelShape, AABB};
-use azalea_block::{Block, BlockState};
+use crate::collision::{BlockWithShape, VoxelShape, AABB};
+use azalea_block::BlockState;
 use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType, EPSILON};
 use azalea_world::entity::EntityData;
 use azalea_world::{Chunk, Dimension};
@@ -92,11 +92,11 @@ impl<'a> Iterator for BlockCollisions<'a> {
 
             let pos = item.pos;
             let block_state: BlockState = chunk_lock.get(&(&pos).into(), self.dimension.min_y());
-            let block: Box<dyn Block> = block_state.into();
+            // let block: Box<dyn Block> = block_state.into();
 
             // TODO: continue if self.only_suffocating_blocks and the block is not suffocating
 
-            let block_shape = block.shape();
+            let block_shape = block_state.shape();
             // let block_shape = if block_state == BlockState::Air {
             //     crate::collision::empty_shape()
             // } else {

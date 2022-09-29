@@ -10,7 +10,7 @@ use crate::collision::{self, Shapes};
 use azalea_block::*;
 use lazy_static::lazy_static;
 
-trait BlockWithShape {
+pub trait BlockWithShape {
     fn shape(&self) -> &'static VoxelShape;
 }
 

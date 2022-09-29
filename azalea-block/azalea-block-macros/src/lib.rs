@@ -414,7 +414,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     block_name_pascal_case,
                     combination
                         .iter()
-                        .map(|v| v.to_string())
+                        .map(|v| v[0..1].to_uppercase() + &v[1..])
                         .collect::<Vec<String>>()
                         .join("")
                 ),

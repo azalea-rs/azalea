@@ -7,6 +7,7 @@ mod shape;
 use azalea_core::{Axis, PositionXYZ, Vec3, AABB, EPSILON};
 use azalea_world::entity::{EntityData, EntityMut};
 use azalea_world::{Dimension, MoveEntityError};
+pub use blocks::BlockWithShape;
 use dimension_collisions::CollisionGetter;
 pub use discrete_voxel_shape::*;
 pub use shape::*;
