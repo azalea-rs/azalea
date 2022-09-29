@@ -230,6 +230,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "azalea-pathfinder"
+version = "0.1.0"
+
+[[package]]
 name = "azalea-physics"
 version = "0.1.0"
 dependencies = [
