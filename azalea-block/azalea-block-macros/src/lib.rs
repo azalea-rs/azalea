@@ -472,8 +472,16 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
             let property_variants = &block_properties_vec[i];
             let property_variants_count = property_variants.len();
+            let conversion_code = {
+                if &property_struct_name_ident.to_string() == "bool" {
+                    assert_eq!(property_variants_count, 2);
+                    quote! {(b / #division) % #property_variants_count != 0}
+                } else {
+                    quote! {#property_struct_name_ident::from((b / #division) % #property_variants_count)}
+                }
+            };
             from_state_to_block_inner.extend(quote! {
-                #property_name: #property_struct_name_ident::from((b / #division) % #property_variants_count),
+                #property_name: #conversion_code,
             });
 
             division *= property_variants_count;
@@ -497,11 +505,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             default: property_default,
         } in properties_with_name
         {
-            block_default_fields.extend(if is_enum {
-                quote! {#name: #struct_name_ident::#property_default,}
-            } else {
-                quote! {#name: #property_default,}
-            })
+            block_default_fields.extend(quote! {#name: #property_default,})
         }
 
         let block_behavior = &block.behavior;
