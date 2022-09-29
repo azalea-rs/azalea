@@ -15,8 +15,8 @@ trait BlockWithShape {
 }
 
 lazy_static! {
-    static ref SHAPE0: VoxelShape = { collision::empty_shape() };
-    static ref SHAPE1: VoxelShape = { collision::box_shape(0., 0., 0., 1., 1., 1.) };
+    static ref SHAPE0: VoxelShape = collision::empty_shape();
+    static ref SHAPE1: VoxelShape = collision::box_shape(0., 0., 0., 1., 1., 1.);
     static ref SHAPE2: VoxelShape = {
         let s = collision::box_shape(0., 0., 0., 0.1875, 0.5625, 0.1875);
         let s = Shapes::or(s, collision::box_shape(0.8125, 0., 0., 1., 0.5625, 0.1875));
@@ -60,14 +60,14 @@ lazy_static! {
             collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.5625, 0.8125),
         )
     };
-    static ref SHAPE6: VoxelShape = { collision::box_shape(0., 0., 0.25, 1., 1., 1.) };
-    static ref SHAPE7: VoxelShape = { collision::box_shape(0., 0., 0., 0.75, 1., 1.) };
-    static ref SHAPE8: VoxelShape = { collision::box_shape(0., 0., 0., 1., 1., 0.75) };
-    static ref SHAPE9: VoxelShape = { collision::box_shape(0.25, 0., 0., 1., 1., 1.) };
+    static ref SHAPE6: VoxelShape = collision::box_shape(0., 0., 0.25, 1., 1., 1.);
+    static ref SHAPE7: VoxelShape = collision::box_shape(0., 0., 0., 0.75, 1., 1.);
+    static ref SHAPE8: VoxelShape = collision::box_shape(0., 0., 0., 1., 1., 0.75);
+    static ref SHAPE9: VoxelShape = collision::box_shape(0.25, 0., 0., 1., 1., 1.);
 }
 lazy_static! {
-    static ref SHAPE10: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.75, 1.) };
-    static ref SHAPE11: VoxelShape = { collision::box_shape(0., 0.25, 0., 1., 1., 1.) };
+    static ref SHAPE10: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.75, 1.);
+    static ref SHAPE11: VoxelShape = collision::box_shape(0., 0.25, 0., 1., 1., 1.);
     static ref SHAPE12: VoxelShape = {
         let s = collision::box_shape(0., 0., 0., 1., 1., 0.25);
         Shapes::or(
@@ -267,37 +267,33 @@ lazy_static! {
         Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 1.))
     };
     static ref SHAPE48: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.875, 0.9375) };
-    static ref SHAPE49: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0.0625, 1., 0.875, 0.9375) };
+        collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.875, 0.9375);
+    static ref SHAPE49: VoxelShape = collision::box_shape(0.0625, 0., 0.0625, 1., 0.875, 0.9375);
 }
 lazy_static! {
-    static ref SHAPE50: VoxelShape =
-        { collision::box_shape(0., 0., 0.0625, 0.9375, 0.875, 0.9375) };
-    static ref SHAPE51: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0., 0.9375, 0.875, 0.9375) };
-    static ref SHAPE52: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.875, 1.) };
-    static ref SHAPE53: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.9375, 1.) };
-    static ref SHAPE54: VoxelShape = { collision::box_shape(0., 0., 0., 0.1875, 1., 1.) };
-    static ref SHAPE55: VoxelShape = { collision::box_shape(0., 0., 0.8125, 1., 1., 1.) };
-    static ref SHAPE56: VoxelShape = { collision::box_shape(0.8125, 0., 0., 1., 1., 1.) };
-    static ref SHAPE57: VoxelShape = { collision::box_shape(0., 0., 0., 1., 1., 0.1875) };
-    static ref SHAPE58: VoxelShape = { collision::box_shape(0., 0., 0.8125, 1., 1., 1.) };
-    static ref SHAPE59: VoxelShape = { collision::box_shape(0., 0., 0., 1., 1., 0.1875) };
+    static ref SHAPE50: VoxelShape = collision::box_shape(0., 0., 0.0625, 0.9375, 0.875, 0.9375);
+    static ref SHAPE51: VoxelShape = collision::box_shape(0.0625, 0., 0., 0.9375, 0.875, 0.9375);
+    static ref SHAPE52: VoxelShape = collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.875, 1.);
+    static ref SHAPE53: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.9375, 1.);
+    static ref SHAPE54: VoxelShape = collision::box_shape(0., 0., 0., 0.1875, 1., 1.);
+    static ref SHAPE55: VoxelShape = collision::box_shape(0., 0., 0.8125, 1., 1., 1.);
+    static ref SHAPE56: VoxelShape = collision::box_shape(0.8125, 0., 0., 1., 1., 1.);
+    static ref SHAPE57: VoxelShape = collision::box_shape(0., 0., 0., 1., 1., 0.1875);
+    static ref SHAPE58: VoxelShape = collision::box_shape(0., 0., 0.8125, 1., 1., 1.);
+    static ref SHAPE59: VoxelShape = collision::box_shape(0., 0., 0., 1., 1., 0.1875);
 }
 lazy_static! {
-    static ref SHAPE60: VoxelShape = { collision::box_shape(0.8125, 0., 0., 1., 1., 1.) };
-    static ref SHAPE61: VoxelShape = { collision::box_shape(0., 0., 0., 0.1875, 1., 1.) };
-    static ref SHAPE62: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.125, 1.) };
-    static ref SHAPE63: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.25, 1.) };
-    static ref SHAPE64: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.375, 1.) };
-    static ref SHAPE65: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.5, 1.) };
-    static ref SHAPE66: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.625, 1.) };
-    static ref SHAPE67: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.75, 1.) };
-    static ref SHAPE68: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.875, 1.) };
+    static ref SHAPE60: VoxelShape = collision::box_shape(0.8125, 0., 0., 1., 1., 1.);
+    static ref SHAPE61: VoxelShape = collision::box_shape(0., 0., 0., 0.1875, 1., 1.);
+    static ref SHAPE62: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.125, 1.);
+    static ref SHAPE63: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.25, 1.);
+    static ref SHAPE64: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.375, 1.);
+    static ref SHAPE65: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
+    static ref SHAPE66: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.625, 1.);
+    static ref SHAPE67: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.75, 1.);
+    static ref SHAPE68: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.875, 1.);
     static ref SHAPE69: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.9375, 0.9375) };
+        collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.9375, 0.9375);
 }
 lazy_static! {
     static ref SHAPE70: VoxelShape = {
@@ -325,54 +321,47 @@ lazy_static! {
         let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
         Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
     };
-    static ref SHAPE76: VoxelShape = { collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625) };
-    static ref SHAPE77: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625) };
+    static ref SHAPE76: VoxelShape = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
+    static ref SHAPE77: VoxelShape = collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625);
     static ref SHAPE78: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE79: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.) };
+    static ref SHAPE79: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE80: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375))
     };
-    static ref SHAPE81: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625) };
+    static ref SHAPE81: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625);
     static ref SHAPE82: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE83: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.) };
-    static ref SHAPE84: VoxelShape = { collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625) };
-    static ref SHAPE85: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625) };
-    static ref SHAPE86: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.875, 1.) };
-    static ref SHAPE87: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.5, 0.9375) };
-    static ref SHAPE88: VoxelShape =
-        { collision::box_shape(0.1875, 0., 0.0625, 0.9375, 0.5, 0.9375) };
-    static ref SHAPE89: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.0625, 0.9375, 0.5, 0.9375) };
+    static ref SHAPE83: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
+    static ref SHAPE84: VoxelShape = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
+    static ref SHAPE85: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625);
+    static ref SHAPE86: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.875, 1.);
+    static ref SHAPE87: VoxelShape = collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.5, 0.9375);
+    static ref SHAPE88: VoxelShape = collision::box_shape(0.1875, 0., 0.0625, 0.9375, 0.5, 0.9375);
+    static ref SHAPE89: VoxelShape = collision::box_shape(0.3125, 0., 0.0625, 0.9375, 0.5, 0.9375);
 }
 lazy_static! {
-    static ref SHAPE90: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.0625, 0.9375, 0.5, 0.9375) };
-    static ref SHAPE91: VoxelShape =
-        { collision::box_shape(0.5625, 0., 0.0625, 0.9375, 0.5, 0.9375) };
-    static ref SHAPE92: VoxelShape =
-        { collision::box_shape(0.6875, 0., 0.0625, 0.9375, 0.5, 0.9375) };
-    static ref SHAPE93: VoxelShape =
-        { collision::box_shape(0.8125, 0., 0.0625, 0.9375, 0.5, 0.9375) };
-    static ref SHAPE94: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.125, 1.) };
-    static ref SHAPE95: VoxelShape = { collision::box_shape(0., 0., 0.8125, 1., 1., 1.) };
-    static ref SHAPE96: VoxelShape = { collision::box_shape(0., 0.8125, 0., 1., 1., 1.) };
-    static ref SHAPE97: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.1875, 1.) };
-    static ref SHAPE98: VoxelShape = { collision::box_shape(0., 0., 0., 1., 1., 0.1875) };
-    static ref SHAPE99: VoxelShape = { collision::box_shape(0.8125, 0., 0., 1., 1., 1.) };
+    static ref SHAPE90: VoxelShape = collision::box_shape(0.4375, 0., 0.0625, 0.9375, 0.5, 0.9375);
+    static ref SHAPE91: VoxelShape = collision::box_shape(0.5625, 0., 0.0625, 0.9375, 0.5, 0.9375);
+    static ref SHAPE92: VoxelShape = collision::box_shape(0.6875, 0., 0.0625, 0.9375, 0.5, 0.9375);
+    static ref SHAPE93: VoxelShape = collision::box_shape(0.8125, 0., 0.0625, 0.9375, 0.5, 0.9375);
+    static ref SHAPE94: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.125, 1.);
+    static ref SHAPE95: VoxelShape = collision::box_shape(0., 0., 0.8125, 1., 1., 1.);
+    static ref SHAPE96: VoxelShape = collision::box_shape(0., 0.8125, 0., 1., 1., 1.);
+    static ref SHAPE97: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.1875, 1.);
+    static ref SHAPE98: VoxelShape = collision::box_shape(0., 0., 0., 1., 1., 0.1875);
+    static ref SHAPE99: VoxelShape = collision::box_shape(0.8125, 0., 0., 1., 1., 1.);
 }
 lazy_static! {
-    static ref SHAPE100: VoxelShape = { collision::box_shape(0., 0., 0., 0.1875, 1., 1.) };
+    static ref SHAPE100: VoxelShape = collision::box_shape(0., 0., 0., 0.1875, 1., 1.);
     static ref SHAPE101: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
@@ -398,8 +387,8 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE107: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE108: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE107: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE108: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE109: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
@@ -407,26 +396,25 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE110: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE110: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     static ref SHAPE111: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE112: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE112: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE113: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE114: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE115: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE116: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE114: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE115: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE116: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
     static ref SHAPE117: VoxelShape =
-        { collision::box_shape(0., 0.40625, 0.40625, 1., 0.59375, 0.59375) };
+        collision::box_shape(0., 0.40625, 0.40625, 1., 0.59375, 0.59375);
     static ref SHAPE118: VoxelShape =
-        { collision::box_shape(0.40625, 0., 0.40625, 0.59375, 1., 0.59375) };
+        collision::box_shape(0.40625, 0., 0.40625, 0.59375, 1., 0.59375);
     static ref SHAPE119: VoxelShape =
-        { collision::box_shape(0.40625, 0.40625, 0., 0.59375, 0.59375, 1.) };
+        collision::box_shape(0.40625, 0.40625, 0., 0.59375, 0.59375, 1.);
 }
 lazy_static! {
     static ref SHAPE120: VoxelShape = {
@@ -454,33 +442,32 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE126: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE127: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE126: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE127: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE128: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE129: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE129: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
 }
 lazy_static! {
     static ref SHAPE130: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE131: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE131: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE132: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE133: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE134: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE135: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE136: VoxelShape = { collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625) };
-    static ref SHAPE137: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.) };
+    static ref SHAPE133: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE134: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE135: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE136: VoxelShape = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
+    static ref SHAPE137: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.);
     static ref SHAPE138: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.09375, 0.9375) };
+        collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.09375, 0.9375);
     static ref SHAPE139: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
@@ -508,29 +495,29 @@ lazy_static! {
         let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
         Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
     };
-    static ref SHAPE145: VoxelShape = { collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625) };
-    static ref SHAPE146: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625) };
+    static ref SHAPE145: VoxelShape = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
+    static ref SHAPE146: VoxelShape = collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625);
     static ref SHAPE147: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE148: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.) };
+    static ref SHAPE148: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.);
     static ref SHAPE149: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375))
     };
 }
 lazy_static! {
-    static ref SHAPE150: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625) };
+    static ref SHAPE150: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625);
     static ref SHAPE151: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE152: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.) };
-    static ref SHAPE153: VoxelShape = { collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625) };
-    static ref SHAPE154: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625) };
-    static ref SHAPE155: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.75, 1.) };
+    static ref SHAPE152: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
+    static ref SHAPE153: VoxelShape = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
+    static ref SHAPE154: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625);
+    static ref SHAPE155: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.75, 1.);
     static ref SHAPE156: VoxelShape = {
         let s = collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.125, 0.9375);
         Shapes::or(
@@ -565,40 +552,39 @@ lazy_static! {
         let s = collision::box_shape(0., 0., 0., 1., 0.8125, 1.);
         Shapes::or(s, collision::box_shape(0.25, 0.8125, 0.25, 0.75, 1., 0.75))
     };
-    static ref SHAPE159: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.8125, 1.) };
+    static ref SHAPE159: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.8125, 1.);
 }
 lazy_static! {
-    static ref SHAPE160: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0.0625, 0.9375, 1., 0.9375) };
+    static ref SHAPE160: VoxelShape = collision::box_shape(0.0625, 0., 0.0625, 0.9375, 1., 0.9375);
     static ref SHAPE161: VoxelShape =
-        { collision::box_shape(0.375, 0.4375, 0.0625, 0.625, 0.75, 0.3125) };
+        collision::box_shape(0.375, 0.4375, 0.0625, 0.625, 0.75, 0.3125);
     static ref SHAPE162: VoxelShape =
-        { collision::box_shape(0.375, 0.4375, 0.6875, 0.625, 0.75, 0.9375) };
+        collision::box_shape(0.375, 0.4375, 0.6875, 0.625, 0.75, 0.9375);
     static ref SHAPE163: VoxelShape =
-        { collision::box_shape(0.0625, 0.4375, 0.375, 0.3125, 0.75, 0.625) };
+        collision::box_shape(0.0625, 0.4375, 0.375, 0.3125, 0.75, 0.625);
     static ref SHAPE164: VoxelShape =
-        { collision::box_shape(0.6875, 0.4375, 0.375, 0.9375, 0.75, 0.625) };
+        collision::box_shape(0.6875, 0.4375, 0.375, 0.9375, 0.75, 0.625);
     static ref SHAPE165: VoxelShape =
-        { collision::box_shape(0.3125, 0.3125, 0.0625, 0.6875, 0.75, 0.4375) };
+        collision::box_shape(0.3125, 0.3125, 0.0625, 0.6875, 0.75, 0.4375);
     static ref SHAPE166: VoxelShape =
-        { collision::box_shape(0.3125, 0.3125, 0.5625, 0.6875, 0.75, 0.9375) };
+        collision::box_shape(0.3125, 0.3125, 0.5625, 0.6875, 0.75, 0.9375);
     static ref SHAPE167: VoxelShape =
-        { collision::box_shape(0.0625, 0.3125, 0.3125, 0.4375, 0.75, 0.6875) };
+        collision::box_shape(0.0625, 0.3125, 0.3125, 0.4375, 0.75, 0.6875);
     static ref SHAPE168: VoxelShape =
-        { collision::box_shape(0.5625, 0.3125, 0.3125, 0.9375, 0.75, 0.6875) };
+        collision::box_shape(0.5625, 0.3125, 0.3125, 0.9375, 0.75, 0.6875);
     static ref SHAPE169: VoxelShape =
-        { collision::box_shape(0.25, 0.1875, 0.0625, 0.75, 0.75, 0.5625) };
+        collision::box_shape(0.25, 0.1875, 0.0625, 0.75, 0.75, 0.5625);
 }
 lazy_static! {
     static ref SHAPE170: VoxelShape =
-        { collision::box_shape(0.25, 0.1875, 0.4375, 0.75, 0.75, 0.9375) };
+        collision::box_shape(0.25, 0.1875, 0.4375, 0.75, 0.75, 0.9375);
     static ref SHAPE171: VoxelShape =
-        { collision::box_shape(0.0625, 0.1875, 0.25, 0.5625, 0.75, 0.75) };
+        collision::box_shape(0.0625, 0.1875, 0.25, 0.5625, 0.75, 0.75);
     static ref SHAPE172: VoxelShape =
-        { collision::box_shape(0.4375, 0.1875, 0.25, 0.9375, 0.75, 0.75) };
+        collision::box_shape(0.4375, 0.1875, 0.25, 0.9375, 0.75, 0.75);
     static ref SHAPE173: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.875, 0.9375) };
-    static ref SHAPE174: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+        collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.875, 0.9375);
+    static ref SHAPE174: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE175: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -609,8 +595,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE177: VoxelShape = { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE178: VoxelShape = { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE177: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE178: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE179: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -629,7 +615,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE182: VoxelShape = { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE182: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE183: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -654,7 +640,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE188: VoxelShape = { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE188: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE189: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -681,7 +667,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE194: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE194: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE195: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -711,7 +697,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE200: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE200: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE201: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -741,7 +727,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE206: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE206: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE207: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -770,7 +756,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE212: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE212: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE213: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -798,7 +784,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE218: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE218: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE219: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -830,7 +816,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE224: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE224: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE225: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -857,9 +843,9 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE230: VoxelShape = { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE231: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE232: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE230: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE231: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE232: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE233: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -1136,9 +1122,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE284: VoxelShape = { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE285: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE286: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE284: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE285: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE286: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE287: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -1401,7 +1387,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE335: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE335: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE336: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -1412,8 +1398,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE338: VoxelShape = { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE339: VoxelShape = { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE338: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE339: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
 }
 lazy_static! {
     static ref SHAPE340: VoxelShape = {
@@ -1432,7 +1418,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE343: VoxelShape = { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE343: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE344: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -1457,7 +1443,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE349: VoxelShape = { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE349: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE350: VoxelShape = {
@@ -1484,7 +1470,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE355: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE355: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE356: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -1514,7 +1500,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE361: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE361: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE362: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -1544,7 +1530,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE367: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE367: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE368: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -1573,7 +1559,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE373: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE373: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE374: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -1601,7 +1587,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE379: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE379: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE380: VoxelShape = {
@@ -1633,7 +1619,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE385: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE385: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE386: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -1660,9 +1646,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE391: VoxelShape = { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE392: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE393: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE391: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE392: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE393: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE394: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -1939,9 +1925,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE445: VoxelShape = { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE446: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE447: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE445: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE446: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE447: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE448: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -2205,14 +2191,14 @@ lazy_static! {
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
     static ref SHAPE496: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.375, 0.6875) };
-    static ref SHAPE497: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 0.5, 0.75) };
-    static ref SHAPE498: VoxelShape = { collision::box_shape(0.25, 0.25, 0.5, 0.75, 0.75, 1.) };
-    static ref SHAPE499: VoxelShape = { collision::box_shape(0.25, 0.25, 0., 0.75, 0.75, 0.5) };
+        collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.375, 0.6875);
+    static ref SHAPE497: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 0.5, 0.75);
+    static ref SHAPE498: VoxelShape = collision::box_shape(0.25, 0.25, 0.5, 0.75, 0.75, 1.);
+    static ref SHAPE499: VoxelShape = collision::box_shape(0.25, 0.25, 0., 0.75, 0.75, 0.5);
 }
 lazy_static! {
-    static ref SHAPE500: VoxelShape = { collision::box_shape(0.5, 0.25, 0.25, 1., 0.75, 0.75) };
-    static ref SHAPE501: VoxelShape = { collision::box_shape(0., 0.25, 0.25, 0.5, 0.75, 0.75) };
+    static ref SHAPE500: VoxelShape = collision::box_shape(0.5, 0.25, 0.25, 1., 0.75, 0.75);
+    static ref SHAPE501: VoxelShape = collision::box_shape(0., 0.25, 0.25, 0.5, 0.75, 0.75);
     static ref SHAPE502: VoxelShape = {
         let s = collision::box_shape(0.125, 0., 0.125, 0.875, 0.25, 0.875);
         let s = Shapes::or(
@@ -2246,7 +2232,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0.625, 0.625, 1., 1., 0.8125));
         Shapes::or(s, collision::box_shape(0.75, 0.625, 0.375, 1., 1., 0.625))
     };
-    static ref SHAPE504: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.375, 1.) };
+    static ref SHAPE504: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.375, 1.);
     static ref SHAPE505: VoxelShape = {
         let s = collision::box_shape(0.375, 0., 0.375, 0.625, 0.6875, 0.625);
         let s = Shapes::or(
@@ -2360,29 +2346,28 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE516: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE517: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE516: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE517: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE518: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE519: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE519: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
 }
 lazy_static! {
     static ref SHAPE520: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE521: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE521: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE522: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE523: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE524: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE525: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE523: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE524: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE525: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
     static ref SHAPE526: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
@@ -2410,29 +2395,28 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE532: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE533: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE532: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE533: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE534: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE535: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE535: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     static ref SHAPE536: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE537: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE537: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE538: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE539: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
+    static ref SHAPE539: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
 }
 lazy_static! {
-    static ref SHAPE540: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE541: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE540: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE541: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
     static ref SHAPE542: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
@@ -2458,8 +2442,8 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE548: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE549: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE548: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE549: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
 }
 lazy_static! {
     static ref SHAPE550: VoxelShape = {
@@ -2467,20 +2451,19 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE551: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE551: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     static ref SHAPE552: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE553: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE553: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE554: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE555: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE556: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE557: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE555: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE556: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE557: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
     static ref SHAPE558: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
@@ -2508,29 +2491,28 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE564: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE565: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE564: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE565: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE566: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE567: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE567: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     static ref SHAPE568: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE569: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE569: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
 }
 lazy_static! {
     static ref SHAPE570: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE571: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE572: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE573: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE571: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE572: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE573: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
     static ref SHAPE574: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
@@ -2558,27 +2540,26 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE580: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE581: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE580: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE581: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE582: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE583: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE583: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     static ref SHAPE584: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE585: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE585: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE586: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE587: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE588: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE589: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE587: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE588: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE589: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
 }
 lazy_static! {
     static ref SHAPE590: VoxelShape = {
@@ -2606,29 +2587,28 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE596: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE597: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE596: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE597: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE598: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE599: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE599: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
 }
 lazy_static! {
     static ref SHAPE600: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE601: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE601: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE602: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE603: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE604: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE605: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE603: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE604: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE605: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
     static ref SHAPE606: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
@@ -2656,29 +2636,28 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE612: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE613: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE612: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE613: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE614: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE615: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE615: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     static ref SHAPE616: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE617: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE617: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE618: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE619: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
+    static ref SHAPE619: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
 }
 lazy_static! {
-    static ref SHAPE620: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE621: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE620: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE621: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
     static ref SHAPE622: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
@@ -2704,8 +2683,8 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE628: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE629: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE628: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE629: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
 }
 lazy_static! {
     static ref SHAPE630: VoxelShape = {
@@ -2713,20 +2692,19 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE631: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE631: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     static ref SHAPE632: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE633: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE633: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE634: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE635: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE636: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE637: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE635: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE636: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE637: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
     static ref SHAPE638: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
@@ -2754,29 +2732,28 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE644: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE645: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE644: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE645: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE646: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE647: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE647: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     static ref SHAPE648: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE649: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE649: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
 }
 lazy_static! {
     static ref SHAPE650: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE651: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE652: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE653: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE651: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE652: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE653: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
     static ref SHAPE654: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
@@ -2804,27 +2781,26 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE660: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE661: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE660: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE661: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE662: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE663: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE663: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     static ref SHAPE664: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE665: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE665: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE666: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE667: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE668: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE669: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE667: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE668: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE669: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
 }
 lazy_static! {
     static ref SHAPE670: VoxelShape = {
@@ -2852,29 +2828,28 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE676: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE677: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE676: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE677: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE678: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE679: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE679: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
 }
 lazy_static! {
     static ref SHAPE680: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE681: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE681: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE682: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE683: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE684: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE685: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE683: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE684: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE685: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
     static ref SHAPE686: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
@@ -2902,29 +2877,28 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE692: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE693: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE692: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE693: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE694: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE695: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE695: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     static ref SHAPE696: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE697: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE697: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE698: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE699: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
+    static ref SHAPE699: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
 }
 lazy_static! {
-    static ref SHAPE700: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE701: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE700: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE701: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
     static ref SHAPE702: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
@@ -2950,8 +2924,8 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE708: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE709: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE708: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE709: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
 }
 lazy_static! {
     static ref SHAPE710: VoxelShape = {
@@ -2959,20 +2933,19 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE711: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE711: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     static ref SHAPE712: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE713: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE713: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE714: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE715: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE716: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE717: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE715: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE716: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE717: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
     static ref SHAPE718: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
@@ -3000,29 +2973,28 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE724: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE725: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE724: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE725: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE726: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE727: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE727: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     static ref SHAPE728: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE729: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE729: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
 }
 lazy_static! {
     static ref SHAPE730: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE731: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE732: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE733: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE731: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE732: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE733: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
     static ref SHAPE734: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
@@ -3050,27 +3022,26 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE740: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE741: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE740: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE741: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE742: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE743: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE743: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     static ref SHAPE744: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE745: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE745: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE746: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE747: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE748: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE749: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
+    static ref SHAPE747: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE748: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE749: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
 }
 lazy_static! {
     static ref SHAPE750: VoxelShape = {
@@ -3098,32 +3069,31 @@ lazy_static! {
         let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
         Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
     };
-    static ref SHAPE756: VoxelShape = { collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625) };
-    static ref SHAPE757: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625) };
+    static ref SHAPE756: VoxelShape = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
+    static ref SHAPE757: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625);
     static ref SHAPE758: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE759: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.) };
+    static ref SHAPE759: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
 }
 lazy_static! {
     static ref SHAPE760: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
     };
-    static ref SHAPE761: VoxelShape = { collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625) };
+    static ref SHAPE761: VoxelShape = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     static ref SHAPE762: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
         Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
     };
-    static ref SHAPE763: VoxelShape = { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.) };
-    static ref SHAPE764: VoxelShape = { collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE765: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625) };
-    static ref SHAPE766: VoxelShape = { collision::box_shape(0., 0.5, 0., 1., 1., 1.) };
-    static ref SHAPE767: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.5, 1.) };
-    static ref SHAPE768: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.0625, 1.) };
+    static ref SHAPE763: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
+    static ref SHAPE764: VoxelShape = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE765: VoxelShape = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625);
+    static ref SHAPE766: VoxelShape = collision::box_shape(0., 0.5, 0., 1., 1., 1.);
+    static ref SHAPE767: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
+    static ref SHAPE768: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     static ref SHAPE769: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
@@ -3151,28 +3121,28 @@ lazy_static! {
         let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
         Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
     };
-    static ref SHAPE775: VoxelShape = { collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625) };
-    static ref SHAPE776: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625) };
+    static ref SHAPE775: VoxelShape = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
+    static ref SHAPE776: VoxelShape = collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625);
     static ref SHAPE777: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE778: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.) };
+    static ref SHAPE778: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.);
     static ref SHAPE779: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375))
     };
 }
 lazy_static! {
-    static ref SHAPE780: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625) };
+    static ref SHAPE780: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625);
     static ref SHAPE781: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE782: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.) };
-    static ref SHAPE783: VoxelShape = { collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625) };
-    static ref SHAPE784: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625) };
+    static ref SHAPE782: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
+    static ref SHAPE783: VoxelShape = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
+    static ref SHAPE784: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625);
     static ref SHAPE785: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
@@ -3200,28 +3170,28 @@ lazy_static! {
         let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
         Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
     };
-    static ref SHAPE791: VoxelShape = { collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625) };
-    static ref SHAPE792: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625) };
+    static ref SHAPE791: VoxelShape = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
+    static ref SHAPE792: VoxelShape = collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625);
     static ref SHAPE793: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE794: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.) };
+    static ref SHAPE794: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.);
     static ref SHAPE795: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375))
     };
-    static ref SHAPE796: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625) };
+    static ref SHAPE796: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625);
     static ref SHAPE797: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE798: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.) };
-    static ref SHAPE799: VoxelShape = { collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625) };
+    static ref SHAPE798: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
+    static ref SHAPE799: VoxelShape = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
 }
 lazy_static! {
-    static ref SHAPE800: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625) };
+    static ref SHAPE800: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625);
     static ref SHAPE801: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
@@ -3247,8 +3217,8 @@ lazy_static! {
         let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
         Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
     };
-    static ref SHAPE807: VoxelShape = { collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625) };
-    static ref SHAPE808: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625) };
+    static ref SHAPE807: VoxelShape = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
+    static ref SHAPE808: VoxelShape = collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625);
     static ref SHAPE809: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
@@ -3256,19 +3226,19 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE810: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.) };
+    static ref SHAPE810: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.);
     static ref SHAPE811: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375))
     };
-    static ref SHAPE812: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625) };
+    static ref SHAPE812: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625);
     static ref SHAPE813: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE814: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.) };
-    static ref SHAPE815: VoxelShape = { collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625) };
-    static ref SHAPE816: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625) };
+    static ref SHAPE814: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
+    static ref SHAPE815: VoxelShape = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
+    static ref SHAPE816: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625);
     static ref SHAPE817: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
@@ -3296,28 +3266,28 @@ lazy_static! {
         let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
         Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
     };
-    static ref SHAPE823: VoxelShape = { collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625) };
-    static ref SHAPE824: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625) };
+    static ref SHAPE823: VoxelShape = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
+    static ref SHAPE824: VoxelShape = collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625);
     static ref SHAPE825: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE826: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.) };
+    static ref SHAPE826: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.);
     static ref SHAPE827: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375))
     };
-    static ref SHAPE828: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625) };
+    static ref SHAPE828: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625);
     static ref SHAPE829: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
 }
 lazy_static! {
-    static ref SHAPE830: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.) };
-    static ref SHAPE831: VoxelShape = { collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625) };
-    static ref SHAPE832: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625) };
+    static ref SHAPE830: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
+    static ref SHAPE831: VoxelShape = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
+    static ref SHAPE832: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625);
     static ref SHAPE833: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
@@ -3343,28 +3313,28 @@ lazy_static! {
         let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
         Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
     };
-    static ref SHAPE839: VoxelShape = { collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625) };
+    static ref SHAPE839: VoxelShape = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
 }
 lazy_static! {
-    static ref SHAPE840: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625) };
+    static ref SHAPE840: VoxelShape = collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625);
     static ref SHAPE841: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE842: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.) };
+    static ref SHAPE842: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.);
     static ref SHAPE843: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375))
     };
-    static ref SHAPE844: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625) };
+    static ref SHAPE844: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625);
     static ref SHAPE845: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE846: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.) };
-    static ref SHAPE847: VoxelShape = { collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625) };
-    static ref SHAPE848: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625) };
+    static ref SHAPE846: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
+    static ref SHAPE847: VoxelShape = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
+    static ref SHAPE848: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625);
     static ref SHAPE849: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
@@ -3392,31 +3362,31 @@ lazy_static! {
         let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
         Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
     };
-    static ref SHAPE855: VoxelShape = { collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625) };
-    static ref SHAPE856: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625) };
+    static ref SHAPE855: VoxelShape = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
+    static ref SHAPE856: VoxelShape = collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625);
     static ref SHAPE857: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE858: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.) };
+    static ref SHAPE858: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.);
     static ref SHAPE859: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375))
     };
 }
 lazy_static! {
-    static ref SHAPE860: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625) };
+    static ref SHAPE860: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625);
     static ref SHAPE861: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE862: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.) };
-    static ref SHAPE863: VoxelShape = { collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625) };
-    static ref SHAPE864: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625) };
-    static ref SHAPE865: VoxelShape = { collision::box_shape(0.375, 0.375, 0., 0.625, 0.625, 1.) };
-    static ref SHAPE866: VoxelShape = { collision::box_shape(0., 0.375, 0.375, 1., 0.625, 0.625) };
-    static ref SHAPE867: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1., 0.625) };
+    static ref SHAPE862: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
+    static ref SHAPE863: VoxelShape = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
+    static ref SHAPE864: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625);
+    static ref SHAPE865: VoxelShape = collision::box_shape(0.375, 0.375, 0., 0.625, 0.625, 1.);
+    static ref SHAPE866: VoxelShape = collision::box_shape(0., 0.375, 0.375, 1., 0.625, 0.625);
+    static ref SHAPE867: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1., 0.625);
     static ref SHAPE868: VoxelShape = {
         let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
         let s = Shapes::or(
@@ -3762,8 +3732,7 @@ lazy_static! {
             collision::box_shape(0., 0.1875, 0.1875, 0.1875, 0.8125, 0.8125),
         )
     };
-    static ref SHAPE897: VoxelShape =
-        { collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125) };
+    static ref SHAPE897: VoxelShape = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     static ref SHAPE898: VoxelShape = {
         let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
         Shapes::or(
@@ -3772,7 +3741,7 @@ lazy_static! {
         )
     };
     static ref SHAPE899: VoxelShape =
-        { collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125) };
+        collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
 }
 lazy_static! {
     static ref SHAPE900: VoxelShape = {
@@ -3907,10 +3876,9 @@ lazy_static! {
             collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
         )
     };
-    static ref SHAPE914: VoxelShape =
-        { collision::box_shape(0., 0.1875, 0.1875, 1., 0.8125, 0.8125) };
+    static ref SHAPE914: VoxelShape = collision::box_shape(0., 0.1875, 0.1875, 1., 0.8125, 0.8125);
     static ref SHAPE915: VoxelShape =
-        { collision::box_shape(0.1875, 0.1875, 0.1875, 1., 0.8125, 0.8125) };
+        collision::box_shape(0.1875, 0.1875, 0.1875, 1., 0.8125, 0.8125);
     static ref SHAPE916: VoxelShape = {
         let s = collision::box_shape(0., 0.1875, 0.1875, 0.8125, 0.8125, 0.8125);
         let s = Shapes::or(
@@ -3944,8 +3912,7 @@ lazy_static! {
             collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
         )
     };
-    static ref SHAPE919: VoxelShape =
-        { collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 1.) };
+    static ref SHAPE919: VoxelShape = collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 1.);
 }
 lazy_static! {
     static ref SHAPE920: VoxelShape = {
@@ -3974,7 +3941,7 @@ lazy_static! {
         )
     };
     static ref SHAPE923: VoxelShape =
-        { collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.8125) };
+        collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.8125);
     static ref SHAPE924: VoxelShape = {
         let s = collision::box_shape(0., 0.1875, 0.1875, 0.8125, 0.8125, 0.8125);
         let s = Shapes::or(
@@ -4001,7 +3968,7 @@ lazy_static! {
         )
     };
     static ref SHAPE927: VoxelShape =
-        { collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 0.8125, 1.) };
+        collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 0.8125, 1.);
     static ref SHAPE928: VoxelShape = {
         let s = collision::box_shape(0., 0.1875, 0.1875, 0.8125, 0.8125, 0.8125);
         Shapes::or(
@@ -4010,56 +3977,52 @@ lazy_static! {
         )
     };
     static ref SHAPE929: VoxelShape =
-        { collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 1., 0.8125) };
+        collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 1., 0.8125);
 }
 lazy_static! {
     static ref SHAPE930: VoxelShape =
-        { collision::box_shape(0., 0.1875, 0.1875, 0.8125, 0.8125, 0.8125) };
+        collision::box_shape(0., 0.1875, 0.1875, 0.8125, 0.8125, 0.8125);
     static ref SHAPE931: VoxelShape =
-        { collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 0.8125, 0.8125) };
-    static ref SHAPE932: VoxelShape =
-        { collision::box_shape(0.1875, 0., 0.1875, 0.75, 0.4375, 0.75) };
+        collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 0.8125, 0.8125);
+    static ref SHAPE932: VoxelShape = collision::box_shape(0.1875, 0., 0.1875, 0.75, 0.4375, 0.75);
     static ref SHAPE933: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.4375, 0.9375) };
-    static ref SHAPE934: VoxelShape =
-        { collision::box_shape(0.375, 0., 0.375, 0.625, 0.375, 0.625) };
+        collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.4375, 0.9375);
+    static ref SHAPE934: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 0.375, 0.625);
     static ref SHAPE935: VoxelShape =
-        { collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.375, 0.8125) };
-    static ref SHAPE936: VoxelShape =
-        { collision::box_shape(0.125, 0., 0.125, 0.875, 0.375, 0.875) };
-    static ref SHAPE937: VoxelShape =
-        { collision::box_shape(0.125, 0., 0.125, 0.875, 0.4375, 0.875) };
+        collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.375, 0.8125);
+    static ref SHAPE936: VoxelShape = collision::box_shape(0.125, 0., 0.125, 0.875, 0.375, 0.875);
+    static ref SHAPE937: VoxelShape = collision::box_shape(0.125, 0., 0.125, 0.875, 0.4375, 0.875);
     static ref SHAPE938: VoxelShape =
-        { collision::box_shape(0.3125, 0.3125, 0.3125, 0.6875, 0.6875, 0.6875) };
+        collision::box_shape(0.3125, 0.3125, 0.3125, 0.6875, 0.6875, 0.6875);
     static ref SHAPE939: VoxelShape =
-        { collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375) };
+        collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375);
 }
 lazy_static! {
     static ref SHAPE940: VoxelShape =
-        { collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375) };
+        collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375);
     static ref SHAPE941: VoxelShape =
-        { collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375) };
+        collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375);
     static ref SHAPE942: VoxelShape =
-        { collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375) };
+        collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375);
     static ref SHAPE943: VoxelShape =
-        { collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375) };
+        collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375);
     static ref SHAPE944: VoxelShape =
-        { collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375) };
+        collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375);
     static ref SHAPE945: VoxelShape =
-        { collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375) };
+        collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375);
     static ref SHAPE946: VoxelShape =
-        { collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375) };
+        collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375);
     static ref SHAPE947: VoxelShape =
-        { collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375) };
+        collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375);
     static ref SHAPE948: VoxelShape =
-        { collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375) };
+        collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375);
     static ref SHAPE949: VoxelShape =
-        { collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375) };
+        collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375);
 }
 lazy_static! {
     static ref SHAPE950: VoxelShape =
-        { collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375) };
-    static ref SHAPE951: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+        collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375);
+    static ref SHAPE951: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE952: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -4070,8 +4033,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE954: VoxelShape = { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE955: VoxelShape = { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE954: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE955: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE956: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -4088,7 +4051,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE959: VoxelShape = { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE959: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE960: VoxelShape = {
@@ -4115,7 +4078,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE965: VoxelShape = { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE965: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE966: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -4142,7 +4105,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE971: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE971: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE972: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -4170,7 +4133,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE977: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE977: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE978: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -4202,7 +4165,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE983: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE983: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE984: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -4229,7 +4192,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE989: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE989: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
 }
 lazy_static! {
     static ref SHAPE990: VoxelShape = {
@@ -4259,7 +4222,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE995: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE995: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE996: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -4291,7 +4254,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1001: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1001: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1002: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -4316,10 +4279,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1007: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1008: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1009: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1007: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1008: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1009: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
     static ref SHAPE1010: VoxelShape = {
@@ -4598,10 +4560,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1061: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1062: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1063: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1061: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1062: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1063: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE1064: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -4864,7 +4825,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1112: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE1112: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE1113: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -4875,10 +4836,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1115: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE1116: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1115: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE1116: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE1117: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -4897,8 +4856,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE1120: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE1120: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE1121: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -4923,8 +4881,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1126: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE1126: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE1127: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -4951,8 +4908,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE1132: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1132: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE1133: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -4980,7 +4936,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1138: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1138: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1139: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -5012,7 +4968,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1144: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1144: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1145: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -5041,8 +4997,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE1150: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1150: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE1151: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -5070,7 +5025,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1156: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1156: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1157: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -5102,7 +5057,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1162: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1162: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1163: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -5127,12 +5082,11 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1168: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1169: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1168: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1169: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
-    static ref SHAPE1170: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1170: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE1171: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -5409,10 +5363,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1222: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1223: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1224: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1222: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1223: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1224: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE1225: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -5675,7 +5628,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1273: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE1273: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE1274: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -5686,10 +5639,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1276: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE1277: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1276: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE1277: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE1278: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -5708,8 +5659,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1281: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE1281: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE1282: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -5734,8 +5684,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1287: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE1287: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE1288: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -5762,8 +5711,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE1293: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1293: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE1294: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -5791,7 +5739,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1299: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1299: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE1300: VoxelShape = {
@@ -5823,7 +5771,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1305: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1305: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1306: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -5852,8 +5800,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE1311: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1311: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE1312: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -5881,7 +5828,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1317: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1317: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1318: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -5913,7 +5860,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1323: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1323: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1324: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -5938,12 +5885,11 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1329: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1329: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
-    static ref SHAPE1330: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1331: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1330: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1331: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE1332: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -6220,10 +6166,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1383: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1384: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1385: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1383: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1384: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1385: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE1386: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -6486,7 +6431,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1434: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE1434: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE1435: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -6497,10 +6442,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1437: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE1438: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1437: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE1438: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE1439: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -6519,8 +6462,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1442: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE1442: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE1443: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -6545,8 +6487,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1448: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE1448: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE1449: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -6573,8 +6514,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE1454: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1454: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE1455: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -6604,7 +6544,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE1460: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1460: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1461: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -6634,7 +6574,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1466: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1466: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1467: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -6663,8 +6603,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE1472: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1472: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE1473: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -6692,7 +6631,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1478: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1478: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1479: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -6724,7 +6663,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1484: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1484: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1485: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -6751,10 +6690,9 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE1490: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1491: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1492: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1490: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1491: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1492: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE1493: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -7031,10 +6969,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1544: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1545: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1546: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1544: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1545: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1546: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE1547: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -7297,7 +7234,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1595: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE1595: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE1596: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -7308,10 +7245,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1598: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE1599: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1598: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE1599: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
 }
 lazy_static! {
     static ref SHAPE1600: VoxelShape = {
@@ -7330,8 +7265,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1603: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE1603: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE1604: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -7356,8 +7290,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1609: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE1609: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE1610: VoxelShape = {
@@ -7384,8 +7317,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE1615: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1615: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE1616: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -7415,7 +7347,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1621: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1621: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1622: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -7445,7 +7377,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1627: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1627: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1628: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -7474,8 +7406,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE1633: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1633: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE1634: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -7503,7 +7434,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1639: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1639: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE1640: VoxelShape = {
@@ -7535,7 +7466,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1645: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1645: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1646: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -7562,10 +7493,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1651: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1652: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1653: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1651: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1652: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1653: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE1654: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -7842,10 +7772,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1705: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1706: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1707: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1705: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1706: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1707: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE1708: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -8108,7 +8037,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1756: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE1756: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE1757: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -8119,12 +8048,10 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1759: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1759: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
 }
 lazy_static! {
-    static ref SHAPE1760: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1760: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE1761: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -8141,8 +8068,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1764: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE1764: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE1765: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -8169,8 +8095,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE1770: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE1770: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE1771: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -8195,8 +8120,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE1776: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1776: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE1777: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -8226,7 +8150,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1782: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1782: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1783: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -8256,7 +8180,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1788: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1788: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1789: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -8285,8 +8209,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE1794: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1794: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE1795: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -8316,7 +8239,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE1800: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1800: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1801: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -8346,7 +8269,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1806: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1806: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1807: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -8373,10 +8296,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1812: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1813: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1814: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1812: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1813: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1814: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE1815: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -8653,10 +8575,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1866: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1867: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1868: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1866: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1867: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1868: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE1869: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -8919,7 +8840,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1917: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE1917: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE1918: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -8932,10 +8853,8 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE1920: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE1921: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1920: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE1921: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE1922: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -8952,8 +8871,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1925: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE1925: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE1926: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -8980,8 +8898,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1931: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE1931: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE1932: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -9006,8 +8923,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE1937: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1937: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE1938: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -9037,7 +8953,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1943: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1943: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1944: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -9067,7 +8983,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1949: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1949: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE1950: VoxelShape = {
@@ -9096,8 +9012,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE1955: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE1955: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE1956: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -9127,7 +9042,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1961: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1961: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1962: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -9157,7 +9072,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE1967: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE1967: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE1968: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -9184,10 +9099,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE1973: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1974: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE1975: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE1973: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1974: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE1975: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE1976: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -9464,10 +9378,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2027: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2028: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2029: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2027: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2028: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2029: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
     static ref SHAPE2030: VoxelShape = {
@@ -9730,7 +9643,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2078: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE2078: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE2079: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -9743,10 +9656,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2081: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE2082: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2081: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE2082: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE2083: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -9763,8 +9674,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2086: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE2086: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE2087: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -9791,8 +9701,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2092: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE2092: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE2093: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -9817,8 +9726,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE2098: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2098: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE2099: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -9848,7 +9756,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2104: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2104: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2105: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -9880,7 +9788,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE2110: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2110: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2111: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -9907,8 +9815,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE2116: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2116: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE2117: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -9938,7 +9845,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2122: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2122: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2123: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -9968,7 +9875,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2128: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2128: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2129: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -9995,10 +9902,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2134: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2135: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2136: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2134: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2135: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2136: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE2137: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -10275,12 +10181,11 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2188: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2189: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2188: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2189: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
-    static ref SHAPE2190: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2190: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE2191: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -10541,7 +10446,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2239: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE2239: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
 }
 lazy_static! {
     static ref SHAPE2240: VoxelShape = {
@@ -10554,10 +10459,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2242: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE2243: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2242: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE2243: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE2244: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -10574,8 +10477,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2247: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE2247: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE2248: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -10602,8 +10504,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2253: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE2253: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE2254: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -10628,8 +10529,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE2259: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2259: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
 }
 lazy_static! {
     static ref SHAPE2260: VoxelShape = {
@@ -10659,7 +10559,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2265: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2265: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2266: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -10691,7 +10591,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2271: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2271: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2272: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -10718,8 +10618,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE2277: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2277: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE2278: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -10749,7 +10648,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2283: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2283: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2284: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -10779,7 +10678,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2289: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2289: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE2290: VoxelShape = {
@@ -10806,10 +10705,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2295: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2296: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2297: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2295: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2296: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2297: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE2298: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -11086,12 +10984,11 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2349: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2349: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
-    static ref SHAPE2350: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2351: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2350: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2351: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE2352: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -11354,7 +11251,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE2400: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE2400: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE2401: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -11365,10 +11262,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2403: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE2404: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2403: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE2404: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE2405: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -11385,8 +11280,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2408: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE2408: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE2409: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -11413,8 +11307,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2414: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE2414: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE2415: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -11441,8 +11334,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE2420: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2420: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE2421: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -11470,7 +11362,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2426: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2426: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2427: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -11502,7 +11394,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2432: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2432: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2433: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -11529,8 +11421,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE2438: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2438: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE2439: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -11560,7 +11451,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2444: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2444: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2445: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -11592,7 +11483,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE2450: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2450: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2451: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -11617,10 +11508,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2456: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2457: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2458: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2456: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2457: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2458: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE2459: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -11899,10 +11789,9 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE2510: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2511: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2512: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2510: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2511: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2512: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE2513: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -12165,7 +12054,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2561: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE2561: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE2562: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -12176,10 +12065,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2564: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE2565: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2564: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE2565: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE2566: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -12196,8 +12083,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2569: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE2569: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE2570: VoxelShape = {
@@ -12224,8 +12110,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2575: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE2575: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE2576: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -12252,8 +12137,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE2581: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2581: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE2582: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -12281,7 +12165,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2587: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2587: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2588: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -12313,7 +12197,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2593: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2593: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2594: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -12340,8 +12224,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE2599: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2599: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
 }
 lazy_static! {
     static ref SHAPE2600: VoxelShape = {
@@ -12371,7 +12254,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2605: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2605: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2606: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -12403,7 +12286,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2611: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2611: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2612: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -12428,10 +12311,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2617: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2618: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2619: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2617: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2618: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2619: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
     static ref SHAPE2620: VoxelShape = {
@@ -12710,10 +12592,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2671: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2672: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2673: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2671: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2672: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2673: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE2674: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -12976,7 +12857,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2722: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE2722: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE2723: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -12987,10 +12868,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2725: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE2726: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2725: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE2726: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE2727: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -13009,8 +12888,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE2730: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE2730: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE2731: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -13035,8 +12913,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2736: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE2736: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE2737: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -13063,8 +12940,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE2742: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2742: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE2743: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -13092,7 +12968,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2748: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2748: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2749: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -13124,7 +13000,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2754: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2754: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2755: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -13153,8 +13029,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE2760: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2760: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE2761: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -13182,7 +13057,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2766: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2766: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2767: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -13214,7 +13089,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2772: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2772: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2773: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -13239,12 +13114,11 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2778: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2779: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2778: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2779: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
-    static ref SHAPE2780: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2780: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE2781: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -13521,10 +13395,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2832: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2833: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2834: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2832: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2833: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2834: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE2835: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -13787,7 +13660,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2883: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE2883: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE2884: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -13798,10 +13671,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2886: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE2887: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2886: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE2887: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE2888: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -13820,8 +13691,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2891: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE2891: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE2892: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -13846,8 +13716,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2897: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE2897: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE2898: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -13874,8 +13743,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE2903: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2903: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE2904: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -13903,7 +13771,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2909: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2909: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE2910: VoxelShape = {
@@ -13935,7 +13803,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2915: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2915: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2916: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -13964,8 +13832,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE2921: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE2921: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE2922: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -13993,7 +13860,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2927: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2927: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2928: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -14025,7 +13892,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE2933: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE2933: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE2934: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -14050,12 +13917,11 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2939: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2939: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
-    static ref SHAPE2940: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2941: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2940: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2941: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE2942: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -14332,10 +14198,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE2993: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2994: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE2995: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE2993: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2994: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE2995: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE2996: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -14778,9 +14643,9 @@ lazy_static! {
             collision::box_shape(0.25, 0.125, 0.25, 0.75, 0.875, 0.75),
         )
     };
-    static ref SHAPE3054: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.5625, 1.) };
-    static ref SHAPE3055: VoxelShape = { collision::box_shape(0., 0., 0.25, 1., 1., 0.75) };
-    static ref SHAPE3056: VoxelShape = { collision::box_shape(0.25, 0., 0., 0.75, 1., 1.) };
+    static ref SHAPE3054: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.5625, 1.);
+    static ref SHAPE3055: VoxelShape = collision::box_shape(0., 0., 0.25, 1., 1., 0.75);
+    static ref SHAPE3056: VoxelShape = collision::box_shape(0.25, 0., 0., 0.75, 1., 1.);
     static ref SHAPE3057: VoxelShape = {
         let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
         let s = Shapes::or(
@@ -14874,7 +14739,7 @@ lazy_static! {
             collision::box_shape(0.375, 0.4375, 0.375, 0.625, 0.5625, 0.625),
         )
     };
-    static ref SHAPE3066: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.4375, 1.) };
+    static ref SHAPE3066: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.4375, 1.);
     static ref SHAPE3067: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
@@ -14902,29 +14767,28 @@ lazy_static! {
         let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
         Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
     };
-    static ref SHAPE3073: VoxelShape = { collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625) };
-    static ref SHAPE3074: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625) };
+    static ref SHAPE3073: VoxelShape = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
+    static ref SHAPE3074: VoxelShape = collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625);
     static ref SHAPE3075: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE3076: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.) };
+    static ref SHAPE3076: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.);
     static ref SHAPE3077: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375))
     };
-    static ref SHAPE3078: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625) };
+    static ref SHAPE3078: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625);
     static ref SHAPE3079: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
 }
 lazy_static! {
-    static ref SHAPE3080: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.) };
-    static ref SHAPE3081: VoxelShape = { collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625) };
-    static ref SHAPE3082: VoxelShape =
-        { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625) };
+    static ref SHAPE3080: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
+    static ref SHAPE3081: VoxelShape = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
+    static ref SHAPE3082: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625);
     static ref SHAPE3083: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
@@ -14950,29 +14814,28 @@ lazy_static! {
         let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
         Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
     };
-    static ref SHAPE3089: VoxelShape = { collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625) };
+    static ref SHAPE3089: VoxelShape = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
 }
 lazy_static! {
-    static ref SHAPE3090: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625) };
+    static ref SHAPE3090: VoxelShape = collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625);
     static ref SHAPE3091: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE3092: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.) };
+    static ref SHAPE3092: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.);
     static ref SHAPE3093: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375))
     };
-    static ref SHAPE3094: VoxelShape = { collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625) };
+    static ref SHAPE3094: VoxelShape = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625);
     static ref SHAPE3095: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
         Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
     };
-    static ref SHAPE3096: VoxelShape = { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.) };
-    static ref SHAPE3097: VoxelShape = { collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625) };
-    static ref SHAPE3098: VoxelShape =
-        { collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625) };
+    static ref SHAPE3096: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
+    static ref SHAPE3097: VoxelShape = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
+    static ref SHAPE3098: VoxelShape = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625);
     static ref SHAPE3099: VoxelShape = {
         let s = collision::box_shape(0., 0., 0., 1., 0.125, 1.);
         let s = Shapes::or(s, collision::box_shape(0., 0.125, 0., 0.125, 1., 1.));
@@ -14983,8 +14846,8 @@ lazy_static! {
 }
 lazy_static! {
     static ref SHAPE3100: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.9375, 0.9375) };
-    static ref SHAPE3101: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+        collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.9375, 0.9375);
+    static ref SHAPE3101: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE3102: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -14995,10 +14858,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3104: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE3105: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3104: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE3105: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE3106: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -15015,8 +14876,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3109: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE3109: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE3110: VoxelShape = {
@@ -15043,8 +14903,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3115: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE3115: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE3116: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -15071,8 +14930,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE3121: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3121: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE3122: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -15100,7 +14958,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3127: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3127: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3128: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -15132,7 +14990,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3133: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3133: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3134: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -15159,8 +15017,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE3139: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3139: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
 }
 lazy_static! {
     static ref SHAPE3140: VoxelShape = {
@@ -15190,7 +15047,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3145: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3145: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3146: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -15222,7 +15079,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3151: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3151: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3152: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -15247,10 +15104,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3157: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3158: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3159: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE3157: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3158: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3159: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
     static ref SHAPE3160: VoxelShape = {
@@ -15529,10 +15385,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3211: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3212: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3213: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE3211: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3212: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3213: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE3214: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -15795,7 +15650,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3262: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE3262: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE3263: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -15806,10 +15661,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3265: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE3266: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3265: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE3266: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE3267: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -15828,8 +15681,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE3270: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE3270: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE3271: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -15854,8 +15706,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3276: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE3276: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE3277: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -15882,8 +15733,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE3282: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3282: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE3283: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -15911,7 +15761,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3288: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3288: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3289: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -15943,7 +15793,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3294: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3294: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3295: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -15972,8 +15822,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE3300: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3300: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE3301: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -16001,7 +15850,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3306: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3306: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3307: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -16033,7 +15882,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3312: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3312: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3313: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -16058,12 +15907,11 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3318: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3319: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE3318: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3319: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
-    static ref SHAPE3320: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE3320: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE3321: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -16340,10 +16188,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3372: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3373: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3374: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE3372: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3373: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3374: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE3375: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -16606,7 +16453,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3423: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE3423: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE3424: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -16617,10 +16464,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3426: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE3427: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3426: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE3427: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE3428: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -16639,8 +16484,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3431: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE3431: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE3432: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -16665,8 +16509,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3437: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE3437: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE3438: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -16693,8 +16536,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE3443: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3443: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE3444: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -16722,7 +16564,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3449: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3449: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE3450: VoxelShape = {
@@ -16754,7 +16596,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3455: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3455: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3456: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -16783,8 +16625,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE3461: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3461: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE3462: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -16812,7 +16653,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3467: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3467: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3468: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -16844,7 +16685,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3473: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3473: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3474: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -16869,12 +16710,11 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3479: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE3479: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
-    static ref SHAPE3480: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3481: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE3480: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3481: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE3482: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -17151,10 +16991,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3533: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3534: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3535: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE3533: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3534: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3535: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE3536: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -17418,13 +17257,13 @@ lazy_static! {
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
     static ref SHAPE3584: VoxelShape =
-        { collision::box_shape(0.4375, 0., 0.4375, 0.5625, 0.375, 0.5625) };
+        collision::box_shape(0.4375, 0., 0.4375, 0.5625, 0.375, 0.5625);
     static ref SHAPE3585: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.375, 0.6875, 0.375, 0.5625) };
+        collision::box_shape(0.3125, 0., 0.375, 0.6875, 0.375, 0.5625);
     static ref SHAPE3586: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.375, 0.625, 0.375, 0.6875) };
+        collision::box_shape(0.3125, 0., 0.375, 0.625, 0.375, 0.6875);
     static ref SHAPE3587: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.375, 0.625) };
+        collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.375, 0.625);
     static ref SHAPE3588: VoxelShape = {
         let s = collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.5, 0.9375);
         Shapes::or(
@@ -17433,91 +17272,83 @@ lazy_static! {
         )
     };
     static ref SHAPE3589: VoxelShape =
-        { collision::box_shape(0.1875, 0.1875, 0.5625, 0.8125, 0.8125, 1.) };
+        collision::box_shape(0.1875, 0.1875, 0.5625, 0.8125, 0.8125, 1.);
 }
 lazy_static! {
     static ref SHAPE3590: VoxelShape =
-        { collision::box_shape(0., 0.1875, 0.1875, 0.4375, 0.8125, 0.8125) };
+        collision::box_shape(0., 0.1875, 0.1875, 0.4375, 0.8125, 0.8125);
     static ref SHAPE3591: VoxelShape =
-        { collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.4375) };
+        collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.4375);
     static ref SHAPE3592: VoxelShape =
-        { collision::box_shape(0.5625, 0.1875, 0.1875, 1., 0.8125, 0.8125) };
+        collision::box_shape(0.5625, 0.1875, 0.1875, 1., 0.8125, 0.8125);
     static ref SHAPE3593: VoxelShape =
-        { collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.4375, 0.8125) };
+        collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.4375, 0.8125);
     static ref SHAPE3594: VoxelShape =
-        { collision::box_shape(0.1875, 0.5625, 0.1875, 0.8125, 1., 0.8125) };
+        collision::box_shape(0.1875, 0.5625, 0.1875, 0.8125, 1., 0.8125);
     static ref SHAPE3595: VoxelShape =
-        { collision::box_shape(0.1875, 0.1875, 0.6875, 0.8125, 0.8125, 1.) };
+        collision::box_shape(0.1875, 0.1875, 0.6875, 0.8125, 0.8125, 1.);
     static ref SHAPE3596: VoxelShape =
-        { collision::box_shape(0., 0.1875, 0.1875, 0.3125, 0.8125, 0.8125) };
+        collision::box_shape(0., 0.1875, 0.1875, 0.3125, 0.8125, 0.8125);
     static ref SHAPE3597: VoxelShape =
-        { collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.3125) };
+        collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.3125);
     static ref SHAPE3598: VoxelShape =
-        { collision::box_shape(0.6875, 0.1875, 0.1875, 1., 0.8125, 0.8125) };
+        collision::box_shape(0.6875, 0.1875, 0.1875, 1., 0.8125, 0.8125);
     static ref SHAPE3599: VoxelShape =
-        { collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.3125, 0.8125) };
+        collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.3125, 0.8125);
 }
 lazy_static! {
     static ref SHAPE3600: VoxelShape =
-        { collision::box_shape(0.1875, 0.6875, 0.1875, 0.8125, 1., 0.8125) };
+        collision::box_shape(0.1875, 0.6875, 0.1875, 0.8125, 1., 0.8125);
     static ref SHAPE3601: VoxelShape =
-        { collision::box_shape(0.1875, 0.1875, 0.75, 0.8125, 0.8125, 1.) };
+        collision::box_shape(0.1875, 0.1875, 0.75, 0.8125, 0.8125, 1.);
     static ref SHAPE3602: VoxelShape =
-        { collision::box_shape(0., 0.1875, 0.1875, 0.25, 0.8125, 0.8125) };
+        collision::box_shape(0., 0.1875, 0.1875, 0.25, 0.8125, 0.8125);
     static ref SHAPE3603: VoxelShape =
-        { collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.25) };
+        collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.25);
     static ref SHAPE3604: VoxelShape =
-        { collision::box_shape(0.75, 0.1875, 0.1875, 1., 0.8125, 0.8125) };
+        collision::box_shape(0.75, 0.1875, 0.1875, 1., 0.8125, 0.8125);
     static ref SHAPE3605: VoxelShape =
-        { collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.25, 0.8125) };
+        collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.25, 0.8125);
     static ref SHAPE3606: VoxelShape =
-        { collision::box_shape(0.1875, 0.75, 0.1875, 0.8125, 1., 0.8125) };
-    static ref SHAPE3607: VoxelShape = { collision::box_shape(0.25, 0.25, 0.8125, 0.75, 0.75, 1.) };
-    static ref SHAPE3608: VoxelShape = { collision::box_shape(0., 0.25, 0.25, 0.1875, 0.75, 0.75) };
-    static ref SHAPE3609: VoxelShape = { collision::box_shape(0.25, 0.25, 0., 0.75, 0.75, 0.1875) };
+        collision::box_shape(0.1875, 0.75, 0.1875, 0.8125, 1., 0.8125);
+    static ref SHAPE3607: VoxelShape = collision::box_shape(0.25, 0.25, 0.8125, 0.75, 0.75, 1.);
+    static ref SHAPE3608: VoxelShape = collision::box_shape(0., 0.25, 0.25, 0.1875, 0.75, 0.75);
+    static ref SHAPE3609: VoxelShape = collision::box_shape(0.25, 0.25, 0., 0.75, 0.75, 0.1875);
 }
 lazy_static! {
-    static ref SHAPE3610: VoxelShape = { collision::box_shape(0.8125, 0.25, 0.25, 1., 0.75, 0.75) };
-    static ref SHAPE3611: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 0.1875, 0.75) };
-    static ref SHAPE3612: VoxelShape = { collision::box_shape(0.25, 0.8125, 0.25, 0.75, 1., 0.75) };
-    static ref SHAPE3613: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.5, 1.) };
-    static ref SHAPE3614: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.5, 1.) };
-    static ref SHAPE3615: VoxelShape =
-        { collision::box_shape(0.1875, 0., 0.1875, 0.5625, 1., 0.5625) };
-    static ref SHAPE3616: VoxelShape =
-        { collision::box_shape(0.1875, 0., 0.1875, 0.5625, 1., 0.5625) };
-    static ref SHAPE3617: VoxelShape =
-        { collision::box_shape(0.1875, 0., 0.1875, 0.5625, 1., 0.5625) };
-    static ref SHAPE3618: VoxelShape =
-        { collision::box_shape(0.1875, 0., 0.1875, 0.5625, 1., 0.5625) };
+    static ref SHAPE3610: VoxelShape = collision::box_shape(0.8125, 0.25, 0.25, 1., 0.75, 0.75);
+    static ref SHAPE3611: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 0.1875, 0.75);
+    static ref SHAPE3612: VoxelShape = collision::box_shape(0.25, 0.8125, 0.25, 0.75, 1., 0.75);
+    static ref SHAPE3613: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
+    static ref SHAPE3614: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
+    static ref SHAPE3615: VoxelShape = collision::box_shape(0.1875, 0., 0.1875, 0.5625, 1., 0.5625);
+    static ref SHAPE3616: VoxelShape = collision::box_shape(0.1875, 0., 0.1875, 0.5625, 1., 0.5625);
+    static ref SHAPE3617: VoxelShape = collision::box_shape(0.1875, 0., 0.1875, 0.5625, 1., 0.5625);
+    static ref SHAPE3618: VoxelShape = collision::box_shape(0.1875, 0., 0.1875, 0.5625, 1., 0.5625);
     static ref SHAPE3619: VoxelShape =
-        { collision::box_shape(0.1875, 0., 0.1875, 0.5625, 0.6875, 0.5625) };
+        collision::box_shape(0.1875, 0., 0.1875, 0.5625, 0.6875, 0.5625);
 }
 lazy_static! {
     static ref SHAPE3620: VoxelShape =
-        { collision::box_shape(0.1875, 0., 0.1875, 0.5625, 0.6875, 0.5625) };
+        collision::box_shape(0.1875, 0., 0.1875, 0.5625, 0.6875, 0.5625);
     static ref SHAPE3621: VoxelShape =
-        { collision::box_shape(0.1875, 0.3125, 0.1875, 0.5625, 1., 0.5625) };
+        collision::box_shape(0.1875, 0.3125, 0.1875, 0.5625, 1., 0.5625);
     static ref SHAPE3622: VoxelShape =
-        { collision::box_shape(0.1875, 0.3125, 0.1875, 0.5625, 1., 0.5625) };
-    static ref SHAPE3623: VoxelShape = { collision::box_shape(0.125, 0., 0.125, 0.625, 1., 0.625) };
-    static ref SHAPE3624: VoxelShape = { collision::box_shape(0.125, 0., 0.125, 0.625, 1., 0.625) };
-    static ref SHAPE3625: VoxelShape = { collision::box_shape(0.125, 0., 0.125, 0.625, 1., 0.625) };
-    static ref SHAPE3626: VoxelShape = { collision::box_shape(0.125, 0., 0.125, 0.625, 1., 0.625) };
-    static ref SHAPE3627: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0.0625, 0.6875, 1., 0.6875) };
-    static ref SHAPE3628: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0.0625, 0.6875, 1., 0.6875) };
-    static ref SHAPE3629: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0.0625, 0.6875, 1., 0.6875) };
+        collision::box_shape(0.1875, 0.3125, 0.1875, 0.5625, 1., 0.5625);
+    static ref SHAPE3623: VoxelShape = collision::box_shape(0.125, 0., 0.125, 0.625, 1., 0.625);
+    static ref SHAPE3624: VoxelShape = collision::box_shape(0.125, 0., 0.125, 0.625, 1., 0.625);
+    static ref SHAPE3625: VoxelShape = collision::box_shape(0.125, 0., 0.125, 0.625, 1., 0.625);
+    static ref SHAPE3626: VoxelShape = collision::box_shape(0.125, 0., 0.125, 0.625, 1., 0.625);
+    static ref SHAPE3627: VoxelShape = collision::box_shape(0.0625, 0., 0.0625, 0.6875, 1., 0.6875);
+    static ref SHAPE3628: VoxelShape = collision::box_shape(0.0625, 0., 0.0625, 0.6875, 1., 0.6875);
+    static ref SHAPE3629: VoxelShape = collision::box_shape(0.0625, 0., 0.0625, 0.6875, 1., 0.6875);
 }
 lazy_static! {
-    static ref SHAPE3630: VoxelShape =
-        { collision::box_shape(0.0625, 0., 0.0625, 0.6875, 1., 0.6875) };
-    static ref SHAPE3631: VoxelShape = { collision::box_shape(0., 0., 0., 0.75, 1., 0.75) };
-    static ref SHAPE3632: VoxelShape = { collision::box_shape(0., 0., 0., 0.75, 1., 0.75) };
-    static ref SHAPE3633: VoxelShape = { collision::box_shape(0., 0., 0., 0.75, 1., 0.75) };
-    static ref SHAPE3634: VoxelShape = { collision::box_shape(0., 0., 0., 0.75, 1., 0.75) };
+    static ref SHAPE3630: VoxelShape = collision::box_shape(0.0625, 0., 0.0625, 0.6875, 1., 0.6875);
+    static ref SHAPE3631: VoxelShape = collision::box_shape(0., 0., 0., 0.75, 1., 0.75);
+    static ref SHAPE3632: VoxelShape = collision::box_shape(0., 0., 0., 0.75, 1., 0.75);
+    static ref SHAPE3633: VoxelShape = collision::box_shape(0., 0., 0., 0.75, 1., 0.75);
+    static ref SHAPE3634: VoxelShape = collision::box_shape(0., 0., 0., 0.75, 1., 0.75);
     static ref SHAPE3635: VoxelShape = {
         let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1., 0.625);
         let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.375, 1., 1.));
@@ -17525,13 +17356,13 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.375, 0.5, 0.625, 1., 1., 1.));
         Shapes::or(s, collision::box_shape(0.625, 0.5, 0.375, 1., 1., 0.625))
     };
-    static ref SHAPE3636: VoxelShape = { collision::box_shape(0., 0.6875, 0., 1., 0.9375, 1.) };
-    static ref SHAPE3637: VoxelShape = { collision::box_shape(0., 0.6875, 0., 1., 0.9375, 1.) };
-    static ref SHAPE3638: VoxelShape = { collision::box_shape(0., 0.6875, 0., 1., 0.8125, 1.) };
-    static ref SHAPE3639: VoxelShape = { collision::box_shape(0., 0., 0., 1., 0.875, 1.) };
+    static ref SHAPE3636: VoxelShape = collision::box_shape(0., 0.6875, 0., 1., 0.9375, 1.);
+    static ref SHAPE3637: VoxelShape = collision::box_shape(0., 0.6875, 0., 1., 0.9375, 1.);
+    static ref SHAPE3638: VoxelShape = collision::box_shape(0., 0.6875, 0., 1., 0.8125, 1.);
+    static ref SHAPE3639: VoxelShape = collision::box_shape(0., 0., 0., 1., 0.875, 1.);
 }
 lazy_static! {
-    static ref SHAPE3640: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE3640: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE3641: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -17542,10 +17373,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3643: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE3644: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3643: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE3644: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE3645: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -17562,8 +17391,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3648: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE3648: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE3649: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -17590,8 +17418,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3654: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE3654: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE3655: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -17618,8 +17445,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE3660: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3660: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE3661: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -17647,7 +17473,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3666: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3666: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3667: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -17679,7 +17505,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3672: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3672: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3673: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -17706,8 +17532,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE3678: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3678: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE3679: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -17737,7 +17562,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3684: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3684: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3685: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -17769,7 +17594,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE3690: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3690: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3691: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -17794,10 +17619,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3696: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3697: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3698: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE3696: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3697: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3698: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE3699: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -18076,10 +17900,9 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE3750: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3751: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3752: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE3750: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3751: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3752: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE3753: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -18342,7 +18165,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3801: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE3801: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE3802: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -18353,10 +18176,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3804: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE3805: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3804: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE3805: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE3806: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -18373,8 +18194,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3809: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE3809: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE3810: VoxelShape = {
@@ -18401,8 +18221,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3815: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE3815: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE3816: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -18429,8 +18248,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE3821: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3821: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE3822: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -18458,7 +18276,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3827: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3827: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3828: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -18490,7 +18308,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3833: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3833: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3834: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -18517,8 +18335,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE3839: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3839: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
 }
 lazy_static! {
     static ref SHAPE3840: VoxelShape = {
@@ -18548,7 +18365,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3845: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3845: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3846: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -18580,7 +18397,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3851: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3851: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3852: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -18605,10 +18422,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3857: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3858: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3859: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE3857: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3858: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3859: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
     static ref SHAPE3860: VoxelShape = {
@@ -18887,10 +18703,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3911: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3912: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE3913: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE3911: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3912: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE3913: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE3914: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -19153,7 +18968,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3962: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE3962: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE3963: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -19164,10 +18979,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE3965: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE3966: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3965: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE3966: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE3967: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -19186,8 +18999,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE3970: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE3970: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE3971: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -19212,8 +19024,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3976: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE3976: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE3977: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -19240,8 +19051,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE3982: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE3982: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE3983: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -19269,7 +19079,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3988: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3988: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3989: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -19301,7 +19111,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE3994: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE3994: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE3995: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -19330,8 +19140,7 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref SHAPE4000: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE4000: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE4001: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -19359,7 +19168,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE4006: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE4006: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE4007: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -19391,7 +19200,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE4012: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE4012: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE4013: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -19416,12 +19225,11 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE4018: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE4019: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE4018: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE4019: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
-    static ref SHAPE4020: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE4020: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE4021: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -19698,10 +19506,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE4072: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE4073: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE4074: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE4072: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE4073: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE4074: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE4075: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -19964,7 +19771,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE4123: VoxelShape = { collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75) };
+    static ref SHAPE4123: VoxelShape = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     static ref SHAPE4124: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
@@ -19975,10 +19782,8 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE4126: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
-    static ref SHAPE4127: VoxelShape =
-        { collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875) };
+    static ref SHAPE4126: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
+    static ref SHAPE4127: VoxelShape = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     static ref SHAPE4128: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
@@ -19997,8 +19802,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE4131: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE4131: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE4132: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -20023,8 +19827,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE4137: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.) };
+    static ref SHAPE4137: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     static ref SHAPE4138: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
@@ -20051,8 +19854,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE4143: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE4143: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE4144: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -20080,7 +19882,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE4149: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE4149: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
 }
 lazy_static! {
     static ref SHAPE4150: VoxelShape = {
@@ -20112,7 +19914,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE4155: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE4155: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE4156: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -20141,8 +19943,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
     };
-    static ref SHAPE4161: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875) };
+    static ref SHAPE4161: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     static ref SHAPE4162: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
@@ -20170,7 +19971,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE4167: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE4167: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE4168: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -20202,7 +20003,7 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
         Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
     };
-    static ref SHAPE4173: VoxelShape = { collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.) };
+    static ref SHAPE4173: VoxelShape = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     static ref SHAPE4174: VoxelShape = {
         let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
@@ -20227,12 +20028,11 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE4179: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE4179: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
 }
 lazy_static! {
-    static ref SHAPE4180: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE4181: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE4180: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE4181: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE4182: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
@@ -20509,10 +20309,9 @@ lazy_static! {
         let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
         Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
     };
-    static ref SHAPE4233: VoxelShape =
-        { collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE4234: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
-    static ref SHAPE4235: VoxelShape = { collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875) };
+    static ref SHAPE4233: VoxelShape = collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE4234: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
+    static ref SHAPE4235: VoxelShape = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     static ref SHAPE4236: VoxelShape = {
         let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
         let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));

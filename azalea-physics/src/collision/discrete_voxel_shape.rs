@@ -585,6 +585,8 @@ impl From<&DiscreteVoxelShape> for BitSetDiscreteVoxelShape {
         let y_size = shape.size(Axis::Y);
         let z_size = shape.size(Axis::Z);
         let mut storage;
+        // more things could be added to DiscreteVoxelShape in the future
+        #[allow(irrefutable_let_patterns)]
         if let DiscreteVoxelShape::BitSet(shape) = shape {
             storage = shape.storage.clone();
         } else {

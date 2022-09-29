@@ -287,7 +287,7 @@ impl VoxelShape {
         match self {
             VoxelShape::Array(s) => s.get_coords(axis)[index],
             VoxelShape::Cube(s) => s.get_coords(axis)[index],
-            _ => self.get_coords(axis)[index],
+            // _ => self.get_coords(axis)[index],
         }
     }
 

@@ -67,7 +67,7 @@ def generate_code_for_shape(shape_id: str, parts: list[list[float]]):
     def make_arguments(part: list[float]):
         return ', '.join(map(lambda n: str(n).rstrip('0'), part))
     code = ''
-    code += f'static ref SHAPE{shape_id}: VoxelShape = {{\n'
+    code += f'static ref SHAPE{shape_id}: VoxelShape = '
     steps = []
     if parts == []:
         steps.append('collision::empty_shape()')
@@ -77,10 +77,14 @@ def generate_code_for_shape(shape_id: str, parts: list[list[float]]):
             steps.append(
                 f'Shapes::or(s, collision::box_shape({make_arguments(part)}))')
 
-    for step in steps[:-1]:
-        code += f'    let s = {step};\n'
-    code += f'    {steps[-1]}\n'
-    code += f'}};\n'
+    if len(steps) == 1:
+        code += steps[0]
+    else:
+        code += '{\n'
+        for step in steps[:-1]:
+            code += f'    let s = {step};\n'
+        code += f'    {steps[-1]}\n'
+        code += '};\n'
     return code
 
 
