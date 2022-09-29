@@ -246,9 +246,7 @@ impl VoxelShape {
     }
 
     pub fn is_empty(&self) -> bool {
-        match self {
-            _ => self.shape().is_empty(),
-        }
+        self.shape().is_empty()
     }
 
     // TODO: optimization: should this be changed to return ArrayVoxelShape?
@@ -413,19 +411,15 @@ impl VoxelShape {
         //     );
         // });
         // var1
-        match self {
-            _ => {
-                let mut var1 = empty_shape();
-                self.for_all_boxes(|var1x, var3, var5, var7, var9, var11| {
-                    var1 = Shapes::join_unoptimized(
-                        var1.clone(),
-                        box_shape(var1x, var3, var5, var7, var9, var11),
-                        |a, b| a || b,
-                    );
-                });
-                var1
-            }
-        }
+        let mut var1 = empty_shape();
+        self.for_all_boxes(|var1x, var3, var5, var7, var9, var11| {
+            var1 = Shapes::join_unoptimized(
+                var1.clone(),
+                box_shape(var1x, var3, var5, var7, var9, var11),
+                |a, b| a || b,
+            );
+        });
+        var1
     }
 
     // public void forAllBoxes(Shapes.DoubleLineConsumer var1) {
@@ -456,26 +450,22 @@ impl VoxelShape {
         //     },
         //     true,
         // );
-        match self {
-            _ => {
-                let x_coords = self.get_coords(Axis::X);
-                let y_coords = self.get_coords(Axis::Y);
-                let z_coords = self.get_coords(Axis::Z);
-                self.shape().for_all_boxes(
-                    |var4x, var5, var6, var7, var8, var9| {
-                        consumer(
-                            x_coords[var4x as usize],
-                            y_coords[var5 as usize],
-                            z_coords[var6 as usize],
-                            x_coords[var7 as usize],
-                            y_coords[var8 as usize],
-                            z_coords[var9 as usize],
-                        )
-                    },
-                    true,
-                );
-            }
-        }
+        let x_coords = self.get_coords(Axis::X);
+        let y_coords = self.get_coords(Axis::Y);
+        let z_coords = self.get_coords(Axis::Z);
+        self.shape().for_all_boxes(
+            |var4x, var5, var6, var7, var8, var9| {
+                consumer(
+                    x_coords[var4x as usize],
+                    y_coords[var5 as usize],
+                    z_coords[var6 as usize],
+                    x_coords[var7 as usize],
+                    y_coords[var8 as usize],
+                    z_coords[var9 as usize],
+                )
+            },
+            true,
+        );
     }
 }
 
