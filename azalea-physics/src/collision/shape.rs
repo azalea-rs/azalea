@@ -76,11 +76,11 @@ fn find_bits(min: f64, max: f64) -> i32 {
         return -1;
     }
     for bits in 0..=3 {
-        let bits = 1 << bits;
-        let min = min * bits as f64;
-        let max = max * bits as f64;
-        let min_ok = (min - min.round()).abs() < EPSILON * bits as f64;
-        let max_ok = (max - max.round()).abs() < EPSILON * bits as f64;
+        let shifted_bits = 1 << bits;
+        let min = min * shifted_bits as f64;
+        let max = max * shifted_bits as f64;
+        let min_ok = (min - min.round()).abs() < EPSILON * shifted_bits as f64;
+        let max_ok = (max - max.round()).abs() < EPSILON * shifted_bits as f64;
         if min_ok && max_ok {
             return bits;
         }
@@ -591,6 +591,18 @@ mod tests {
     #[test]
     fn test_block_shape() {
         let shape = block_shape();
+        assert_eq!(shape.shape().size(Axis::X), 1);
+        assert_eq!(shape.shape().size(Axis::Y), 1);
+        assert_eq!(shape.shape().size(Axis::Z), 1);
+
+        assert_eq!(shape.get_coords(Axis::X).len(), 2);
+        assert_eq!(shape.get_coords(Axis::Y).len(), 2);
+        assert_eq!(shape.get_coords(Axis::Z).len(), 2);
+    }
+
+    #[test]
+    fn test_box_shape() {
+        let shape = box_shape(0., 0., 0., 1., 1., 1.);
         assert_eq!(shape.shape().size(Axis::X), 1);
         assert_eq!(shape.shape().size(Axis::Y), 1);
         assert_eq!(shape.shape().size(Axis::Z), 1);
