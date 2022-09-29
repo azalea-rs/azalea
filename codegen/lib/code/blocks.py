@@ -20,49 +20,6 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
     new_make_block_states_macro_code = []
     new_make_block_states_macro_code.append('make_block_states! {')
 
-    def get_property_struct_name(property: Optional[dict], block_data_burger: dict, property_variants: list[str]) -> str:
-        # these are hardcoded because otherwise they cause conflicts
-        # some names inspired by https://github.com/feather-rs/feather/blob/main/feather/blocks/src/generated/table.rs
-        if property_variants == ['north', 'east', 'south', 'west', 'up', 'down']:
-            return 'FacingCubic'
-        if property_variants == ['north', 'south', 'west', 'east']:
-            return 'FacingCardinal'
-        if property_variants == ['top', 'bottom']:
-            return 'TopBottom'
-        if property_variants == ['north_south', 'east_west', 'ascending_east', 'ascending_west', 'ascending_north', 'ascending_south']:
-            return 'RailShape'
-        if property_variants == ['straight', 'inner_left', 'inner_right', 'outer_left', 'outer_right']:
-            return 'StairShape'
-        if property_variants == ['normal', 'sticky']:
-            return 'PistonType'
-        if property_variants == ['x', 'z']:
-            return 'AxisXZ'
-        if property_variants == ['single', 'left', 'right']:
-            return 'ChestType'
-        if property_variants == ['compare', 'subtract']:
-            return 'ComparatorType'
-
-        if property is None:
-            return ''.join(map(to_camel_case, property_variants))
-
-        property_name = None
-        for class_name in [block_data_burger['class']] + block_data_burger['super']:
-            property_name = mappings.get_field(
-                class_name, property['field_name'])
-            if property_name:
-                break
-        assert property_name
-        property_name = to_camel_case(property_name.lower())
-        if property['type'] == 'int':
-            property_name = to_camel_case(
-                block_data_burger['text_id']) + property_name
-
-        # if property_variants == ['none', 'low', 'tall']:
-
-        if property_variants == ['up', 'side', 'none']:
-            property_name = 'Wire' + to_camel_case(property_name)
-
-        return property_name
 
     # Find properties
     properties = {}
@@ -88,7 +45,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
                     'Warning: The reports have states for a block, but Burger doesn\'t!', block_data_burger)
 
             property_struct_name = get_property_struct_name(
-                property_burger, block_data_burger, property_variants)
+                property_burger, block_data_burger, property_variants, mappings)
 
             if property_struct_name in properties:
                 if not properties[property_struct_name] == property_variants:
@@ -157,7 +114,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
             property_variants = block_data_report['properties'][property_name]
 
             property_struct_name = get_property_struct_name(
-                property_burger, block_data_burger, property_variants)
+                property_burger, block_data_burger, property_variants, mappings)
 
             is_boolean_property = property_variants == ['true', 'false']
 
@@ -205,3 +162,47 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
 
     with open(BLOCKS_RS_DIR, 'w') as f:
         f.write('\n'.join(new_code))
+
+def get_property_struct_name(property: Optional[dict], block_data_burger: dict, property_variants: list[str], mappings: Mappings) -> str:
+    # these are hardcoded because otherwise they cause conflicts
+    # some names inspired by https://github.com/feather-rs/feather/blob/main/feather/blocks/src/generated/table.rs
+    if property_variants == ['north', 'east', 'south', 'west', 'up', 'down']:
+        return 'FacingCubic'
+    if property_variants == ['north', 'south', 'west', 'east']:
+        return 'FacingCardinal'
+    if property_variants == ['top', 'bottom']:
+        return 'TopBottom'
+    if property_variants == ['north_south', 'east_west', 'ascending_east', 'ascending_west', 'ascending_north', 'ascending_south']:
+        return 'RailShape'
+    if property_variants == ['straight', 'inner_left', 'inner_right', 'outer_left', 'outer_right']:
+        return 'StairShape'
+    if property_variants == ['normal', 'sticky']:
+        return 'PistonType'
+    if property_variants == ['x', 'z']:
+        return 'AxisXZ'
+    if property_variants == ['single', 'left', 'right']:
+        return 'ChestType'
+    if property_variants == ['compare', 'subtract']:
+        return 'ComparatorType'
+
+    if property is None:
+        return ''.join(map(to_camel_case, property_variants))
+
+    property_name = None
+    for class_name in [block_data_burger['class']] + block_data_burger['super']:
+        property_name = mappings.get_field(
+            class_name, property['field_name'])
+        if property_name:
+            break
+    assert property_name
+    property_name = to_camel_case(property_name.lower())
+    if property['type'] == 'int':
+        property_name = to_camel_case(
+            block_data_burger['text_id']) + property_name
+
+    # if property_variants == ['none', 'low', 'tall']:
+
+    if property_variants == ['up', 'side', 'none']:
+        property_name = 'Wire' + to_camel_case(property_name)
+
+    return property_name

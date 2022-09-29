@@ -21,7 +21,7 @@ lib.code.blocks.generate_blocks(
     block_states_burger, block_states_report, ordered_blocks, mappings)
 
 lib.code.shapes.generate_block_shapes(
-    shape_datas['blocks'], shape_datas['shapes'], block_states_report)
+    shape_datas['blocks'], shape_datas['shapes'], block_states_report, block_states_burger, mappings)
 
 lib.code.utils.fmt()
 
