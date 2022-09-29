@@ -26,13 +26,13 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, 
         generated_shape_code += generate_code_for_shape(shape_id, shape)
     generated_shape_code += '}'
 
-    generated_impl_code = ''
+    generated_match_inner_code = ''
     for block_id, shape_ids in blocks.items():
         if isinstance(shape_ids, int):
             shape_ids = [shape_ids]
         block_report_data = block_states_report['minecraft:' + block_id]
         block_data_burger = block_datas_burger[block_id]
-        generated_impl_code += generate_code_for_impl(
+        generated_match_inner_code += generate_code_for_match_inner(
             block_id,
             shape_ids,
             block_report_data,
@@ -59,7 +59,13 @@ trait BlockWithShape {{
 
 {generated_shape_code}
 
-{generated_impl_code}
+impl BlockWithShape for BlockState {{
+    fn shape(&self) -> &'static VoxelShape {{
+        match self {{
+            {generated_match_inner_code}
+        }}
+    }}
+}}
 '''
 
 
@@ -88,17 +94,27 @@ def generate_code_for_shape(shape_id: str, parts: list[list[float]]):
     return code
 
 
-def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_data, block_data_burger, mappings: Mappings):
+def generate_code_for_match_inner(block_id: str, shape_ids: list[int], block_report_data, block_data_burger, mappings: Mappings):
+    # BlockState::MangrovePropagule__0True_0True => &SHAPE0,
+
     # if block_id != 'spruce_fence':
     #     return ''
 
-    # match self {
-    #     StoneSlabBlock {
-    #         kind: Type::Top,
-    #         waterlogged: Waterlogged::True,
-    #     } => &SHAPE0,
-    #     _ => &SHAPE1,
-    # }
+
+    code = ''
+    def add_variant(variant_name, shape_id):
+        nonlocal code
+        code += f'BlockState::{variant_name} => &SHAPE{shape_id},'
+
+    for possible_state, shape_id in zip(block_report_data['states'], shape_ids):
+        variant_values = []
+        for value in tuple(possible_state.get('properties', {}).values()):
+            variant_values.append(to_camel_case(value))
+        
+        variant_name = f'{to_camel_case(block_id)}_{"".join(variant_values)}'
+        add_variant(variant_name, shape_id)
+
+    return code
 
     block_struct_name = to_camel_case(block_id) + 'Block'
 
