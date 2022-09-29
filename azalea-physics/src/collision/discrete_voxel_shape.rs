@@ -70,20 +70,16 @@ impl DiscreteVoxelShape {
     //         false
     //     }
     pub fn is_empty(&self) -> bool {
-        match self {
-            _ => {
-                if self.first_full_x() >= self.last_full_x() {
-                    return true;
-                }
-                if self.first_full_y() >= self.last_full_y() {
-                    return true;
-                }
-                if self.first_full_x() >= self.last_full_x() {
-                    return true;
-                }
-                false
-            }
+        if self.first_full_x() >= self.last_full_x() {
+            return true;
         }
+        if self.first_full_y() >= self.last_full_y() {
+            return true;
+        }
+        if self.first_full_x() >= self.last_full_x() {
+            return true;
+        }
+        false
     }
 
     //     fn is_full_wide(&self, x: u32, y: u32, z: u32) -> bool {
@@ -170,25 +166,8 @@ impl BitSetDiscreteVoxelShape {
         }
     }
 
-    //    public static BitSetDiscreteVoxelShape withFilledBounds(int var0, int var1, int var2, int var3, int var4, int var5, int var6, int var7, int var8) {
-    //     BitSetDiscreteVoxelShape var9 = new BitSetDiscreteVoxelShape(var0, var1, var2);
-    //     var9.xMin = var3;
-    //     var9.yMin = var4;
-    //     var9.zMin = var5;
-    //     var9.xMax = var6;
-    //     var9.yMax = var7;
-    //     var9.zMax = var8;
-
-    //     for(int var10 = var3; var10 < var6; ++var10) {
-    //        for(int var11 = var4; var11 < var7; ++var11) {
-    //           for(int var12 = var5; var12 < var8; ++var12) {
-    //              var9.fillUpdateBounds(var10, var11, var12, false);
-    //           }
-    //        }
-    //     }
-
-    //     return var9;
-    //  }
+    // yeah don't really feel like fixing this one
+    #[allow(clippy::too_many_arguments)]
     pub fn with_filled_bounds(
         x_size: u32,
         y_size: u32,

@@ -23,14 +23,15 @@ pub fn combinations_of<T: Clone>(items: &[Vec<T>]) -> Vec<Vec<T>> {
 }
 
 pub fn to_pascal_case(s: &str) -> String {
-    // we get .nth(0) later so this is to make it impossible for that to error
-    if s == "" {
+    // we get the first item later so this is to make it impossible for that
+    // to error
+    if s.is_empty() {
         return String::new();
     }
 
     let mut result = String::new();
     let mut prev_was_underscore = true; // set to true by default so the first character is capitalized
-    if s.chars().nth(0).unwrap().is_numeric() {
+    if s.chars().next().unwrap().is_numeric() {
         result.push('_');
     }
     for c in s.chars() {

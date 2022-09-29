@@ -252,32 +252,16 @@ impl VoxelShape {
     // TODO: optimization: should this be changed to return ArrayVoxelShape?
     // i might change the implementation of empty_shape in the future so not 100% sure
     pub fn move_relative(&self, x: f64, y: f64, z: f64) -> VoxelShape {
-        // if self.shape().is_empty() {
-        //     return empty_shape();
-        // }
-
-        // Box::new(ArrayVoxelShape::new(
-        //     self.shape(),
-        //     self.get_coords(Axis::X).iter().map(|c| c + x).collect(),
-        //     self.get_coords(Axis::Y).iter().map(|c| c + y).collect(),
-        //     self.get_coords(Axis::Z).iter().map(|c| c + z).collect(),
-        // ))
-        match self {
-            // VoxelShape::Array(s) => s.move_relative(x, y, z),
-            // VoxelShape::Cube(s) => s.move_relative(x, y, z),
-            _ => {
-                if self.shape().is_empty() {
-                    return empty_shape();
-                }
-
-                VoxelShape::Array(ArrayVoxelShape::new(
-                    self.shape(),
-                    self.get_coords(Axis::X).iter().map(|c| c + x).collect(),
-                    self.get_coords(Axis::Y).iter().map(|c| c + y).collect(),
-                    self.get_coords(Axis::Z).iter().map(|c| c + z).collect(),
-                ))
-            }
+        if self.shape().is_empty() {
+            return empty_shape();
         }
+
+        VoxelShape::Array(ArrayVoxelShape::new(
+            self.shape(),
+            self.get_coords(Axis::X).iter().map(|c| c + x).collect(),
+            self.get_coords(Axis::Y).iter().map(|c| c + y).collect(),
+            self.get_coords(Axis::Z).iter().map(|c| c + z).collect(),
+        ))
     }
 
     pub fn get(&self, axis: Axis, index: usize) -> f64 {
@@ -305,10 +289,7 @@ impl VoxelShape {
     }
 
     pub fn collide(&self, axis: &Axis, entity_box: &AABB, movement: f64) -> f64 {
-        // self.collide_x(AxisCycle::between(*axis, Axis::X), entity_box, movement)
-        match self {
-            _ => self.collide_x(AxisCycle::between(*axis, Axis::X), entity_box, movement),
-        }
+        self.collide_x(AxisCycle::between(*axis, Axis::X), entity_box, movement)
     }
     pub fn collide_x(&self, axis_cycle: AxisCycle, entity_box: &AABB, mut movement: f64) -> f64 {
         if self.shape().is_empty() {
