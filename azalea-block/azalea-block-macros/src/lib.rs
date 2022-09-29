@@ -67,7 +67,7 @@ impl Parse for PropertyWithNameAndDefault {
         let property_type: Ident;
         let mut is_enum = false;
 
-        if let Ok(_) = input.parse::<Token![::]>() {
+        if input.parse::<Token![::]>().is_ok() {
             is_enum = true;
             property_type = first_ident;
             let variant = input.parse::<Ident>()?;
@@ -101,7 +101,7 @@ impl Parse for PropertyType {
 
         let keyword = Ident::parse(input)?;
         let keyword_string = keyword.to_string();
-        if keyword_string == "bool".to_string() {
+        if keyword_string == "bool" {
             Ok(Self::Boolean)
         } else {
             let content;
@@ -330,7 +330,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             let index: Option<usize> = if block
                 .properties_and_defaults
                 .iter()
-                .filter(|p| p.name.to_string() == property.name.to_string())
+                .filter(|p| p.name == property.name)
                 .count()
                 > 1
             {
@@ -349,8 +349,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             //     .clone();
             let mut property_name = property_struct_names_to_names
                 .get(&property.name.to_string())
-                .map(|s| s.clone())
-                .unwrap_or(property.name.to_string());
+                .cloned()
+                .unwrap_or_else(|| property.name.to_string());
             previous_names.push(property_name.clone());
             if let Some(index) = index {
                 // property_name.push_str(&format!("_{}", &index.to_string()));
@@ -499,10 +499,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
         let mut block_default_fields = quote! {};
         for PropertyWithNameAndDefault {
-            property_type: struct_name_ident,
             name,
-            is_enum,
             default: property_default,
+            ..
         } in properties_with_name
         {
             block_default_fields.extend(quote! {#name: #property_default,})
