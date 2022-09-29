@@ -208,4 +208,36 @@ mod tests {
         // the second tick applies the delta to the position, but it also does collision
         assert_eq!(entity.pos().y, 70.);
     }
+
+    #[test]
+    fn test_slab_collision() {
+        let mut dim = Dimension::default();
+        dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
+            .unwrap();
+        dim.add_entity(
+            0,
+            EntityData::new(
+                Uuid::from_u128(0),
+                Vec3 {
+                    x: 0.5,
+                    y: 70.,
+                    z: 0.5,
+                },
+            ),
+        );
+        let old_block_state = dim.set_block_state(
+            &BlockPos { x: 0, y: 69, z: 0 },
+            BlockState::StoneSlab_BottomFalse,
+        );
+        assert!(
+            old_block_state.is_some(),
+            "Old block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
+        );
+        let mut entity = dim.entity_mut(0).unwrap();
+        // do a few steps so we fall on the slab
+        for _ in 0..10 {
+            entity.ai_step();
+        }
+        assert_eq!(entity.pos().y, 69.5);
+    }
 }
