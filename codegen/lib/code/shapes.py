@@ -50,8 +50,8 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, 
 
 use super::VoxelShape;
 use crate::collision::{{self, Shapes}};
-use lazy_static::lazy_static;
 use azalea_block::*;
+use lazy_static::lazy_static;
 
 trait BlockWithShape {{
     fn shape(&self) -> &'static VoxelShape;
@@ -96,7 +96,7 @@ def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_dat
     #     _ => &SHAPE1,
     # }
 
-    block_struct_name = to_camel_case(block_id)
+    block_struct_name = to_camel_case(block_id) + 'Block'
 
     property_names = tuple(block_report_data.get('properties', {}).keys())
 
@@ -164,7 +164,11 @@ def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_dat
                 )
 
                 if property_value is not None:
-                    match_inner += f'        {clean_property_name(property_name)}: {property_type_name}::{to_camel_case(property_value)},\n'
+                    if actual_property_variants == ['true', 'false']:
+                        default_code = property_value # it'll be either true or false
+                    else:
+                        default_code = f'{property_type_name}::{to_camel_case(property_value)}'
+                    match_inner += f'        {clean_property_name(property_name)}: {default_code},\n'
             if should_also_ignore_other_fields:
                 match_inner += '        ..\n'
             match_inner += f'    }} => &SHAPE{shape_id},\n'
