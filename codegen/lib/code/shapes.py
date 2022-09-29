@@ -44,6 +44,7 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report):
 use super::VoxelShape;
 use crate::collision::{{self, Shapes}};
 use lazy_static::lazy_static;
+use azalea_block::*;
 
 trait BlockWithShape {{
     fn shape(&self) -> &'static VoxelShape;
@@ -81,9 +82,9 @@ def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_dat
     #     return ''
 
     # match self {
-    #     azalea_block::StoneSlabBlock {
-    #         kind: azalea_block::Type::Top,
-    #         waterlogged: azalea_block::Waterlogged::True,
+    #     StoneSlabBlock {
+    #         kind: Type::Top,
+    #         waterlogged: Waterlogged::True,
     #     } => &SHAPE0,
     #     _ => &SHAPE1,
     # }
@@ -142,7 +143,7 @@ def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_dat
             match_inner += f'    {block_struct_name} {{\n'
             for property_name, property_value in zip(property_names, property_values):
                 if property_value is not None:
-                    match_inner += f'        {clean_property_name(property_name)}: azalea_block::{to_camel_case(property_name)}::{to_camel_case(property_value)},\n'
+                    match_inner += f'        {clean_property_name(property_name)}: {to_camel_case(property_name)}::{to_camel_case(property_value)},\n'
             if should_also_ignore_other_fields:
                 match_inner += '        ..\n'
             match_inner += f'    }} => &SHAPE{shape_id},\n'
@@ -150,7 +151,7 @@ def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_dat
         function_inner = 'match self {\n' + match_inner + '\n}'
 
     code = ''
-    code += f'impl BlockWithShape for azalea_block::{block_struct_name} {{\n'
+    code += f'impl BlockWithShape for {block_struct_name} {{\n'
     code += f'    fn shape(&self) -> &\'static VoxelShape {{\n'
     code += f'        {function_inner}\n'
     code += f'    }}\n'
