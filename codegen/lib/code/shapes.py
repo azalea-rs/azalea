@@ -1,4 +1,5 @@
 from lib.utils import get_dir_location, to_camel_case
+from lib.code.utils import clean_property_name
 
 
 COLLISION_BLOCKS_RS_DIR = get_dir_location(
@@ -20,6 +21,8 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report):
 
     generated_impl_code = ''
     for block_id, shape_ids in blocks.items():
+        if isinstance(shape_ids, int):
+            shape_ids = [shape_ids]
         block_report_data = block_states_report['minecraft:' + block_id]
         generated_impl_code += generate_code_for_impl(
             block_id, shape_ids, block_report_data)
@@ -70,8 +73,8 @@ def generate_code_for_shape(shape_id: str, parts: list[list[float]]):
 
 
 def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_data):
-    if block_id != 'spruce_fence':
-        return ''
+    # if block_id != 'spruce_fence':
+    #     return ''
 
     # match self {
     #     azalea_block::StoneSlabBlock {
@@ -83,21 +86,22 @@ def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_dat
 
     block_struct_name = to_camel_case(block_id)
 
-    property_names = tuple(block_report_data['properties'].keys())
+    property_names = tuple(block_report_data.get('properties', {}).keys())
+    print(block_id, shape_ids)
 
     # { (tuple of property values): shape_id }
     possible_states = {}
     for possible_state, shape_id in zip(block_report_data['states'], shape_ids):
         possible_states[tuple(
-            possible_state['properties'].values())] = shape_id
+            possible_state.get('properties', {}).values())] = shape_id
 
-    print('possible_states', possible_states)
+    # print('possible_states', possible_states)
 
     should_also_ignore_other_fields = False
 
     # detect if a property actually makes a difference, and if it doesn't then
     # replace the name with None
-    print(property_names)
+    # print(property_names)
     for property_index, property_name in enumerate(property_names):
         changes_shape = False
         # { waterlogged: false, thing: false }: 0
@@ -108,7 +112,7 @@ def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_dat
         for property_values, shape_id in possible_states.items():
             # switch out our property for None
             property_values_modified = list(property_values)
-            print('property_values', property_values)
+            # print('property_values', property_values)
             property_values_modified[property_index] = None
             property_values_modified = tuple(property_values_modified)
             # we haven't seen this combination before, add it to our dict
@@ -131,20 +135,22 @@ def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_dat
                 del possible_states[property_values]
                 possible_states[tuple(property_values_copy)] = shape_id
             
-    print(possible_states)
+    # print(possible_states)
 
-    
-    match_inner = ''
-    for property_values, shape_id in possible_states.items():
-        match_inner += f'    {block_struct_name} {{\n'
-        for property_name, property_value in zip(property_names, property_values):
-            if property_value is not None:
-                match_inner += f'        {property_name}: azalea_block::{to_camel_case(property_name)}::{to_camel_case(property_value)},\n'
-        if should_also_ignore_other_fields:
-            match_inner += '        ..\n'
-        match_inner += f'    }} => &SHAPE{shape_id},\n'
+    if len(possible_states) == 1:
+        function_inner = f'&SHAPE{list(possible_states.values())[0]}'
+    else:
+        match_inner = ''
+        for property_values, shape_id in possible_states.items():
+            match_inner += f'    {block_struct_name} {{\n'
+            for property_name, property_value in zip(property_names, property_values):
+                if property_value is not None:
+                    match_inner += f'        {clean_property_name(property_name)}: azalea_block::{to_camel_case(property_name)}::{to_camel_case(property_value)},\n'
+            if should_also_ignore_other_fields:
+                match_inner += '        ..\n'
+            match_inner += f'    }} => &SHAPE{shape_id},\n'
 
-    function_inner = 'match self {\n' + match_inner + '\n}'
+        function_inner = 'match self {\n' + match_inner + '\n}'
 
     code = ''
     code += f'impl BlockWithShape for azalea_block::{block_struct_name} {{\n'

@@ -1,4 +1,5 @@
 from lib.utils import get_dir_location, to_camel_case
+from lib.code.utils import clean_property_name
 from ..mappings import Mappings
 from typing import Optional
 import re
@@ -204,15 +205,3 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
 
     with open(BLOCKS_RS_DIR, 'w') as f:
         f.write('\n'.join(new_code))
-
-def clean_property_name(property_name):
-    # if the name ends with _<number>, remove that part
-    ending = property_name.split('_')[-1]
-    if ending.isdigit():
-        property_name = property_name[:-(len(ending) + 1)]
-
-    # `type` is a reserved keyword, so we use kind instead ¯\_(ツ)_/¯
-    if property_name == 'type':
-        property_name = 'kind'
-    
-    return property_name
