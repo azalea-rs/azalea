@@ -16,8 +16,14 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report):
     # look at downloads/generator-mod-*/blockCollisionShapes.json for format of blocks and shapes
 
     generated_shape_code = ''
-    for shape_id, shape in sorted(shapes.items(), key=lambda shape: int(shape[0])):
+    # we make several lazy_static! blocks so it doesn't complain about
+    # recursion and hopefully the compiler can paralleize it?
+    generated_shape_code += 'lazy_static! {'
+    for i, (shape_id, shape) in enumerate(sorted(shapes.items(), key=lambda shape: int(shape[0]))):
+        if i > 0 and i % 10 == 0:
+            generated_shape_code += '}\nlazy_static! {'
         generated_shape_code += generate_code_for_shape(shape_id, shape)
+    generated_shape_code += '}'
 
     generated_impl_code = ''
     for block_id, shape_ids in blocks.items():
@@ -43,9 +49,7 @@ trait BlockWithShape {{
     fn shape(&self) -> &'static VoxelShape;
 }}
 
-lazy_static! {{
-    {generated_shape_code}
-}}
+{generated_shape_code}
 
 {generated_impl_code}
 '''
@@ -87,7 +91,6 @@ def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_dat
     block_struct_name = to_camel_case(block_id)
 
     property_names = tuple(block_report_data.get('properties', {}).keys())
-    print(block_id, shape_ids)
 
     # { (tuple of property values): shape_id }
     possible_states = {}
@@ -95,13 +98,10 @@ def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_dat
         possible_states[tuple(
             possible_state.get('properties', {}).values())] = shape_id
 
-    # print('possible_states', possible_states)
-
     should_also_ignore_other_fields = False
 
     # detect if a property actually makes a difference, and if it doesn't then
     # replace the name with None
-    # print(property_names)
     for property_index, property_name in enumerate(property_names):
         changes_shape = False
         # { waterlogged: false, thing: false }: 0
@@ -112,7 +112,6 @@ def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_dat
         for property_values, shape_id in possible_states.items():
             # switch out our property for None
             property_values_modified = list(property_values)
-            # print('property_values', property_values)
             property_values_modified[property_index] = None
             property_values_modified = tuple(property_values_modified)
             # we haven't seen this combination before, add it to our dict
@@ -134,8 +133,6 @@ def generate_code_for_impl(block_id: str, shape_ids: list[int], block_report_dat
                 property_values_copy[property_index] = None
                 del possible_states[property_values]
                 possible_states[tuple(property_values_copy)] = shape_id
-            
-    # print(possible_states)
 
     if len(possible_states) == 1:
         function_inner = f'&SHAPE{list(possible_states.values())[0]}'
