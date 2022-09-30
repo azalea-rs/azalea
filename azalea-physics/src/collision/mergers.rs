@@ -1,7 +1,7 @@
 use std::convert::TryInto;
 
 use super::CubePointRange;
-use azalea_core::{gcd, lcm};
+use azalea_core::{gcd, lcm, EPSILON};
 
 pub enum IndexMerger {
     Identical {
@@ -19,8 +19,8 @@ pub enum IndexMerger {
     },
     Indirect {
         result: Vec<f64>,
-        first_indices: Vec<usize>,
-        second_indices: Vec<usize>,
+        first_indices: Vec<isize>,
+        second_indices: Vec<isize>,
         result_length: usize,
     },
 }
@@ -141,8 +141,8 @@ impl IndexMerger {
         let var8 = var2.len();
         let var9 = var7 + var8;
         let mut result = vec![0.0; var9];
-        let mut first_indices = vec![0; var9];
-        let mut second_indices = vec![0; var9];
+        let mut first_indices: Vec<isize> = vec![0; var9];
+        let mut second_indices: Vec<isize> = vec![0; var9];
         let var10 = !var3;
         let var11 = !var4;
         let mut var12 = 0;
@@ -164,7 +164,7 @@ impl IndexMerger {
                     };
                 }
 
-                var17 = !var15 && (var16 || var1[var13] < var2[var14] + 1.0e-7);
+                var17 = !var15 && (var16 || var1[var13] < var2[var14] + EPSILON);
                 if var17 {
                     var13 += 1;
                     if !var10 || var14 != 0 && !var16 {
@@ -178,10 +178,14 @@ impl IndexMerger {
                 }
             }
 
-            let var18 = var13 - 1;
-            let var19 = var14 - 1;
-            let var20 = if var17 { var1[var18] } else { var2[var19] };
-            if var5 < var20 - 1.0e-7 {
+            let var18: isize = (var13 as isize) - 1;
+            let var19: isize = (var14 as isize) - 1;
+            let var20 = if var17 {
+                var1[TryInto::<usize>::try_into(var18).unwrap()]
+            } else {
+                var2[TryInto::<usize>::try_into(var19).unwrap()]
+            };
+            if !(var5 >= var20 - 1.0e-7) {
                 first_indices[var12] = var18;
                 second_indices[var12] = var19;
                 result[var12] = var20;
@@ -219,4 +223,14 @@ fn for_non_swapped_indexes(
         }
     }
     true
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_indirect_index_merger() {
+        IndexMerger::new_indirect(&vec![0.0, 1.0], &vec![0.0, 0.5, 1.0], true, true);
+    }
 }

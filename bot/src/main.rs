@@ -25,13 +25,7 @@ async fn handle_event(event: Event, mut bot: Client) -> anyhow::Result<()> {
             // }
             // bot.walk(MoveDirection::None);
         }
-        Event::Packet(packet) => {
-            if let ClientboundGamePacket::SetHealth(_) = *packet {
-                println!("got set health");
-                bot.shutdown().await?;
-                panic!();
-            }
-        }
+        Event::Packet(packet) => {}
         _ => {}
     }
 
