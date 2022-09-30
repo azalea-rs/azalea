@@ -5,7 +5,7 @@ use azalea_core::{Axis, AxisCycle, BitSet};
 
 pub trait IntLineConsumer = FnMut(u32, u32, u32, u32, u32, u32);
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum DiscreteVoxelShape {
     BitSet(BitSetDiscreteVoxelShape),
 }
@@ -127,7 +127,7 @@ impl DiscreteVoxelShape {
     }
 }
 
-#[derive(Default, Clone, Eq, PartialEq)]
+#[derive(Default, Clone, PartialEq, Debug)]
 pub struct BitSetDiscreteVoxelShape {
     x_size: u32,
     y_size: u32,

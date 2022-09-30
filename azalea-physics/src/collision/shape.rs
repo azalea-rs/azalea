@@ -174,6 +174,94 @@ impl Shapes {
         }
     }
 
+    // public static boolean joinIsNotEmpty(VoxelShape var0, VoxelShape var1, BooleanOp var2) {
+    fn join_is_not_empty(a: VoxelShape, b: VoxelShape, op: fn(bool, bool) -> bool) {
+        //     if (var2.apply(false, false)) {
+        assert!(!op(false, false));
+        //        throw (IllegalArgumentException)Util.pauseInIde(new IllegalArgumentException());
+        //     } else {
+        //        boolean var3 = var0.isEmpty();
+        //        boolean var4 = var1.isEmpty();
+        let a_is_empty = a.is_empty();
+        let b_is_empty = b.is_empty();
+        //        if (!var3 && !var4) {
+        if !a_is_empty && !b_is_empty {
+            //           if (var0 == var1) {
+            //              return var2.apply(true, true);
+            if a == b {
+                return op(true, true);
+            }
+            //           } else {
+            //              boolean var5 = var2.apply(true, false);
+            //              boolean var6 = var2.apply(false, true);
+            let op_true_false = op(true, false);
+            let op_false_true = op(false, true);
+            //              Direction.Axis[] var7 = AxisCycle.AXIS_VALUES;
+            //              int var8 = var7.length;
+            let axis_values = [Axis::X, Axis::Y, Axis::Z];
+            let axis_count = axis_values.len();
+
+            //              for(int var9 = 0; var9 < var8; ++var9) {
+            //                 Direction.Axis var10 = var7[var9];
+            for axis in axis_values {
+                //                 if (var0.max(var10) < var1.min(var10) - 1.0E-7D) {
+                //                    return var5 || var6;
+                //                 }
+                if a.max(axis) < b.min(axis) - EPSILON {
+                    return op_true_false || op_false_true;
+                }
+
+                //                 if (var1.max(var10) < var0.min(var10) - 1.0E-7D) {
+                //                    return var5 || var6;
+                //                 }
+                if b.max(axis) < a.min(axis) - EPSILON {
+                    return op_true_false || op_false_true;
+                }
+                //              }
+            }
+            //              IndexMerger var11 = createIndexMerger(1, var0.getCoords(Direction.Axis.X), var1.getCoords(Direction.Axis.X), var5, var6);
+            
+            //              IndexMerger var12 = createIndexMerger(var11.size() - 1, var0.getCoords(Direction.Axis.Y), var1.getCoords(Direction.Axis.Y), var5, var6);
+            //              IndexMerger var13 = createIndexMerger((var11.size() - 1) * (var12.size() - 1), var0.getCoords(Direction.Axis.Z), var1.getCoords(Direction.Axis.Z), var5, var6);
+            //              return joinIsNotEmpty(var11, var12, var13, var0.shape, var1.shape, var2);
+            //           }
+            //        } else {
+            //           return var2.apply(!var3, !var4);
+            //        }
+        }
+        //     }
+        //  }
+    }
+
+    //  private static boolean joinIsNotEmpty(IndexMerger var0, IndexMerger var1, IndexMerger var2, DiscreteVoxelShape var3, DiscreteVoxelShape var4, BooleanOp var5) {
+    fn join_is_not_empty_with_mergers(
+        var0: IndexMerger,
+        var1: IndexMerger,
+        var2: IndexMerger,
+        var3: DiscreteVoxelShape,
+        var4: DiscreteVoxelShape,
+        op: fn(bool, bool) -> bool,
+    ) -> bool {
+        //     return !var0.forMergedIndexes((var5x, var6, var7) -> {
+        var0.for_merged_indexes(|var5x, var6, var7| {
+            //        return var1.forMergedIndexes((var6x, var7x, var8) -> {
+            var1.for_merged_indexes(|var6x, var7x, var8| {
+                //           return var2.forMergedIndexes((var7, var8x, var9) -> {
+                var2.for_merged_indexes(|var7, var8x, var9| {
+                    //              return !var5.apply(var3.isFullWide(var5x, var6x, var7), var4.isFullWide(var6, var7x, var8x));
+                    !op(
+                        var3.is_full_wide(var5x as u32, var6x as u32, var7 as u32),
+                        var4.is_full_wide(var6 as u32, var7x as u32, var8x as u32),
+                    )
+                    //           });
+                    //        });
+                    //     });
+                    //  }
+                })
+            })
+        })
+    }
+
     pub fn create_index_merger(
         var0: i32,
         var1: Vec<f64>,
@@ -224,7 +312,7 @@ impl Shapes {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum VoxelShape {
     Array(ArrayVoxelShape),
     Cube(CubeVoxelShape),
@@ -450,7 +538,7 @@ impl VoxelShape {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct ArrayVoxelShape {
     shape: DiscreteVoxelShape,
     // TODO: check where faces is used in minecraft
@@ -462,7 +550,7 @@ pub struct ArrayVoxelShape {
     pub zs: Vec<f64>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct CubeVoxelShape {
     shape: DiscreteVoxelShape,
     // TODO: check where faces is used in minecraft
@@ -590,6 +678,18 @@ mod tests {
 
         assert_eq!(shape.get_coords(Axis::X).len(), 2);
         assert_eq!(shape.get_coords(Axis::Y).len(), 2);
+        assert_eq!(shape.get_coords(Axis::Z).len(), 2);
+    }
+
+    #[test]
+    fn test_top_slab_shape() {
+        let shape = box_shape(0., 0.5, 0., 1., 1., 1.);
+        assert_eq!(shape.shape().size(Axis::X), 1);
+        assert_eq!(shape.shape().size(Axis::Y), 2);
+        assert_eq!(shape.shape().size(Axis::Z), 1);
+
+        assert_eq!(shape.get_coords(Axis::X).len(), 2);
+        assert_eq!(shape.get_coords(Axis::Y).len(), 3);
         assert_eq!(shape.get_coords(Axis::Z).len(), 2);
     }
 }

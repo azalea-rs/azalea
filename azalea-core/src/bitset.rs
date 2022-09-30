@@ -1,8 +1,7 @@
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use std::io::{Read, Write};
+use azalea_buf::McBuf;
 
 /// Represents Java's BitSet, a list of bits.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, McBuf)]
 pub struct BitSet {
     data: Vec<u64>,
 }
@@ -98,23 +97,7 @@ impl BitSet {
             word = !self.data[u];
         }
     }
-}
 
-impl McBufReadable for BitSet {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
-        Ok(Self {
-            data: Vec::<u64>::read_from(buf)?,
-        })
-    }
-}
-
-impl McBufWritable for BitSet {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.data.write_into(buf)
-    }
-}
-
-impl BitSet {
     pub fn set(&mut self, bit_index: usize) {
         self.data[bit_index / 64] |= 1u64 << (bit_index % 64);
     }

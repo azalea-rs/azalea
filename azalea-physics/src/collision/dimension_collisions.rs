@@ -5,6 +5,8 @@ use azalea_world::entity::EntityData;
 use azalea_world::{Chunk, Dimension};
 use std::sync::{Arc, Mutex};
 
+use super::Shapes;
+
 pub trait CollisionGetter {
     fn get_block_collisions<'a>(
         &'a self,
@@ -27,13 +29,13 @@ pub struct BlockCollisions<'a> {
     pub dimension: &'a Dimension,
     // context: CollisionContext,
     pub aabb: AABB,
-
+    pub entity_shape: VoxelShape,
     pub cursor: Cursor3d,
     pub only_suffocating_blocks: bool,
 }
 
 impl<'a> BlockCollisions<'a> {
-    pub fn new(dimension: &'a Dimension, _entity: Option<&EntityData>, aabb: AABB) -> Self {
+    pub fn new(dimension: &'a Dimension, entity: Option<&EntityData>, aabb: AABB) -> Self {
         let origin_x = (aabb.min_x - EPSILON) as i32 - 1;
         let origin_y = (aabb.min_y - EPSILON) as i32 - 1;
         let origin_z = (aabb.min_z - EPSILON) as i32 - 1;
@@ -47,6 +49,7 @@ impl<'a> BlockCollisions<'a> {
         Self {
             dimension,
             aabb,
+            entity_shape: VoxelShape::from(aabb),
             cursor,
             only_suffocating_blocks: false,
         }
@@ -103,8 +106,8 @@ impl<'a> Iterator for BlockCollisions<'a> {
             //     crate::collision::block_shape()
             // };
             // let block_shape = block.get_collision_shape();
-            // if block_shape == Shapes::block() {
-            if true {
+            if block_shape == &crate::collision::block_shape() {
+                // if true {
                 // TODO: this can be optimized
                 if !self.aabb.intersects_aabb(&AABB {
                     min_x: item.pos.x as f64,
@@ -124,12 +127,13 @@ impl<'a> Iterator for BlockCollisions<'a> {
                 ));
             }
 
-            // let block_shape = block_shape.move_relative(item.pos.x, item.pos.y, item.pos.z);
-            // if (!Shapes.joinIsNotEmpty(block_shape, this.entityShape, BooleanOp.AND)) {
-            //     continue;
-            // }
+            let block_shape =
+                block_shape.move_relative(item.pos.x as f64, item.pos.y as f64, item.pos.z as f64);
+            if !Shapes::join_is_not_empty(block_shape, self.entity_shape, |a, b| a && b) {
+                continue;
+            }
 
-            // return block_shape;
+            return Some(block_shape);
         }
 
         None
