@@ -175,7 +175,7 @@ impl Shapes {
     }
 
     // public static boolean joinIsNotEmpty(VoxelShape var0, VoxelShape var1, BooleanOp var2) {
-    fn join_is_not_empty(a: VoxelShape, b: VoxelShape, op: fn(bool, bool) -> bool) {
+    fn join_is_not_empty(a: VoxelShape, b: VoxelShape, op: fn(bool, bool) -> bool) -> bool {
         //     if (var2.apply(false, false)) {
         assert!(!op(false, false));
         //        throw (IllegalArgumentException)Util.pauseInIde(new IllegalArgumentException());
@@ -220,15 +220,38 @@ impl Shapes {
                 //              }
             }
             //              IndexMerger var11 = createIndexMerger(1, var0.getCoords(Direction.Axis.X), var1.getCoords(Direction.Axis.X), var5, var6);
-            
+            let x_merger = Self::create_index_merger(
+                1,
+                a.get_coords(Axis::X),
+                b.get_coords(Axis::X),
+                op_true_false,
+                op_false_true,
+            );
+
             //              IndexMerger var12 = createIndexMerger(var11.size() - 1, var0.getCoords(Direction.Axis.Y), var1.getCoords(Direction.Axis.Y), var5, var6);
+            let y_merger = Self::create_index_merger(
+                x_merger.size() - 1,
+                a.get_coords(Axis::Y),
+                b.get_coords(Axis::Y),
+                op_true_false,
+                op_false_true,
+            );
             //              IndexMerger var13 = createIndexMerger((var11.size() - 1) * (var12.size() - 1), var0.getCoords(Direction.Axis.Z), var1.getCoords(Direction.Axis.Z), var5, var6);
+            let z_merger = Self::create_index_merger(
+                (x_merger.size() - 1) * (y_merger.size() - 1),
+                a.get_coords(Axis::Z),
+                b.get_coords(Axis::Z),
+                op_true_false,
+                op_false_true,
+            );
             //              return joinIsNotEmpty(var11, var12, var13, var0.shape, var1.shape, var2);
+            join_is_not_empty_with_mergers(x_merger, y_merger, z_merger, a.shape(), b.shape(), op)
             //           }
             //        } else {
             //           return var2.apply(!var3, !var4);
             //        }
         }
+        op(!a_is_empty, !b_is_empty)
         //     }
         //  }
     }
