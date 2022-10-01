@@ -19,13 +19,24 @@ pub fn box_shape(
     max_y: f64,
     max_z: f64,
 ) -> VoxelShape {
-    assert!(min_x >= 0.);
+    assert!(min_x >= 0., "min_x must be >= 0 but was {}", min_x);
     assert!(min_y >= 0.);
     assert!(min_z >= 0.);
     assert!(max_x >= 0.);
     assert!(max_y >= 0.);
     assert!(max_z >= 0.);
 
+    box_shape_unchecked(min_x, min_y, min_z, max_x, max_y, max_z)
+}
+
+pub fn box_shape_unchecked(
+    min_x: f64,
+    min_y: f64,
+    min_z: f64,
+    max_x: f64,
+    max_y: f64,
+    max_z: f64,
+) -> VoxelShape {
     if max_x - min_x < EPSILON && max_y - min_y < EPSILON && max_z - min_z < EPSILON {
         return empty_shape();
     }
@@ -62,6 +73,7 @@ pub fn box_shape(
     );
     VoxelShape::Cube(CubeVoxelShape::new(DiscreteVoxelShape::BitSet(shape)))
 }
+
 pub fn empty_shape() -> VoxelShape {
     VoxelShape::Array(ArrayVoxelShape::new(
         DiscreteVoxelShape::BitSet(BitSetDiscreteVoxelShape::new(0, 0, 0)),
@@ -174,112 +186,77 @@ impl Shapes {
         }
     }
 
-    // public static boolean joinIsNotEmpty(VoxelShape var0, VoxelShape var1, BooleanOp var2) {
-    fn join_is_not_empty(a: VoxelShape, b: VoxelShape, op: fn(bool, bool) -> bool) -> bool {
-        //     if (var2.apply(false, false)) {
+    /// Check if the op is true anywhere when joining the two shapes
+    /// vanilla calls this joinIsNotEmpty
+    pub fn matches_anywhere(a: &VoxelShape, b: &VoxelShape, op: fn(bool, bool) -> bool) -> bool {
         assert!(!op(false, false));
-        //        throw (IllegalArgumentException)Util.pauseInIde(new IllegalArgumentException());
-        //     } else {
-        //        boolean var3 = var0.isEmpty();
-        //        boolean var4 = var1.isEmpty();
         let a_is_empty = a.is_empty();
         let b_is_empty = b.is_empty();
-        //        if (!var3 && !var4) {
-        if !a_is_empty && !b_is_empty {
-            //           if (var0 == var1) {
-            //              return var2.apply(true, true);
-            if a == b {
-                return op(true, true);
-            }
-            //           } else {
-            //              boolean var5 = var2.apply(true, false);
-            //              boolean var6 = var2.apply(false, true);
-            let op_true_false = op(true, false);
-            let op_false_true = op(false, true);
-            //              Direction.Axis[] var7 = AxisCycle.AXIS_VALUES;
-            //              int var8 = var7.length;
-            let axis_values = [Axis::X, Axis::Y, Axis::Z];
-            let axis_count = axis_values.len();
-
-            //              for(int var9 = 0; var9 < var8; ++var9) {
-            //                 Direction.Axis var10 = var7[var9];
-            for axis in axis_values {
-                //                 if (var0.max(var10) < var1.min(var10) - 1.0E-7D) {
-                //                    return var5 || var6;
-                //                 }
-                if a.max(axis) < b.min(axis) - EPSILON {
-                    return op_true_false || op_false_true;
-                }
-
-                //                 if (var1.max(var10) < var0.min(var10) - 1.0E-7D) {
-                //                    return var5 || var6;
-                //                 }
-                if b.max(axis) < a.min(axis) - EPSILON {
-                    return op_true_false || op_false_true;
-                }
-                //              }
-            }
-            //              IndexMerger var11 = createIndexMerger(1, var0.getCoords(Direction.Axis.X), var1.getCoords(Direction.Axis.X), var5, var6);
-            let x_merger = Self::create_index_merger(
-                1,
-                a.get_coords(Axis::X),
-                b.get_coords(Axis::X),
-                op_true_false,
-                op_false_true,
-            );
-
-            //              IndexMerger var12 = createIndexMerger(var11.size() - 1, var0.getCoords(Direction.Axis.Y), var1.getCoords(Direction.Axis.Y), var5, var6);
-            let y_merger = Self::create_index_merger(
-                x_merger.size() - 1,
-                a.get_coords(Axis::Y),
-                b.get_coords(Axis::Y),
-                op_true_false,
-                op_false_true,
-            );
-            //              IndexMerger var13 = createIndexMerger((var11.size() - 1) * (var12.size() - 1), var0.getCoords(Direction.Axis.Z), var1.getCoords(Direction.Axis.Z), var5, var6);
-            let z_merger = Self::create_index_merger(
-                (x_merger.size() - 1) * (y_merger.size() - 1),
-                a.get_coords(Axis::Z),
-                b.get_coords(Axis::Z),
-                op_true_false,
-                op_false_true,
-            );
-            //              return joinIsNotEmpty(var11, var12, var13, var0.shape, var1.shape, var2);
-            join_is_not_empty_with_mergers(x_merger, y_merger, z_merger, a.shape(), b.shape(), op)
-            //           }
-            //        } else {
-            //           return var2.apply(!var3, !var4);
-            //        }
+        if a_is_empty || b_is_empty {
+            return op(!a_is_empty, !b_is_empty);
         }
-        op(!a_is_empty, !b_is_empty)
-        //     }
-        //  }
+        if a == b {
+            return op(true, true);
+        }
+
+        let op_true_false = op(true, false);
+        let op_false_true = op(false, true);
+
+        println!("a");
+
+        for axis in [Axis::X, Axis::Y, Axis::Z] {
+            if a.max(axis) < b.min(axis) - EPSILON {
+                return op_true_false || op_false_true;
+            }
+            if b.max(axis) < a.min(axis) - EPSILON {
+                return op_true_false || op_false_true;
+            }
+        }
+
+        println!("b");
+
+        let x_merger = Self::create_index_merger(
+            1,
+            a.get_coords(Axis::X),
+            b.get_coords(Axis::X),
+            op_true_false,
+            op_false_true,
+        );
+        let y_merger = Self::create_index_merger(
+            (x_merger.size() - 1) as i32,
+            a.get_coords(Axis::Y),
+            b.get_coords(Axis::Y),
+            op_true_false,
+            op_false_true,
+        );
+        let z_merger = Self::create_index_merger(
+            ((x_merger.size() - 1) * (y_merger.size() - 1)) as i32,
+            a.get_coords(Axis::Z),
+            b.get_coords(Axis::Z),
+            op_true_false,
+            op_false_true,
+        );
+
+        println!("c {y_merger:?}");
+
+        Self::matches_anywhere_with_mergers(x_merger, y_merger, z_merger, a.shape(), b.shape(), op)
     }
 
-    //  private static boolean joinIsNotEmpty(IndexMerger var0, IndexMerger var1, IndexMerger var2, DiscreteVoxelShape var3, DiscreteVoxelShape var4, BooleanOp var5) {
-    fn join_is_not_empty_with_mergers(
-        var0: IndexMerger,
-        var1: IndexMerger,
-        var2: IndexMerger,
-        var3: DiscreteVoxelShape,
-        var4: DiscreteVoxelShape,
+    pub fn matches_anywhere_with_mergers(
+        merged_x: IndexMerger,
+        merged_y: IndexMerger,
+        merged_z: IndexMerger,
+        shape1: DiscreteVoxelShape,
+        shape2: DiscreteVoxelShape,
         op: fn(bool, bool) -> bool,
     ) -> bool {
-        //     return !var0.forMergedIndexes((var5x, var6, var7) -> {
-        var0.for_merged_indexes(|var5x, var6, var7| {
-            //        return var1.forMergedIndexes((var6x, var7x, var8) -> {
-            var1.for_merged_indexes(|var6x, var7x, var8| {
-                //           return var2.forMergedIndexes((var7, var8x, var9) -> {
-                var2.for_merged_indexes(|var7, var8x, var9| {
-                    //              return !var5.apply(var3.isFullWide(var5x, var6x, var7), var4.isFullWide(var6, var7x, var8x));
+        !merged_x.for_merged_indexes(|var5x, var6, var7| {
+            merged_y.for_merged_indexes(|var6x, var7x, var8| {
+                merged_z.for_merged_indexes(|var7, var8x, var9| {
                     !op(
-                        var3.is_full_wide(var5x as u32, var6x as u32, var7 as u32),
-                        var4.is_full_wide(var6 as u32, var7x as u32, var8x as u32),
+                        shape1.is_full_wide(var5x as u32, var6x as u32, var7 as u32),
+                        shape2.is_full_wide(var6 as u32, var7x as u32, var8x as u32),
                     )
-                    //           });
-                    //        });
-                    //     });
-                    //  }
                 })
             })
         })
@@ -292,36 +269,25 @@ impl Shapes {
         var3: bool,
         var4: bool,
     ) -> IndexMerger {
-        // int var5 = var1.size() - 1;
         let var5 = var1.len() - 1;
-        // int var6 = var2.size() - 1
         let var6 = var2.len() - 1;
-        // if (var1 instanceof CubePointRange && var2 instanceof CubePointRange) {
-        // downcast
-        if (&var1 as &dyn Any).is::<CubePointRange>() && (&var2 as &dyn Any).is::<CubePointRange>()
-        {
-            // return new DiscreteCubeMerger(var0, var5, var6, var3, var4);
-            let var7: i64 = lcm(var5 as u32, var6 as u32).try_into().unwrap();
-            //    if ((long)var0 * var7 <= 256L) {
-            if var0 as i64 * var7 <= 256 {
-                return IndexMerger::new_discrete_cube(var5 as u32, var6 as u32);
-            }
-        }
-
-        // if (var1.getDouble(var5) < var2.getDouble(0) - 1.0E-7D) {
-        //    return new NonOverlappingMerger(var1, var2, false);
-        // } else if (var2.getDouble(var6) < var1.getDouble(0) - 1.0E-7D) {
-        //    return new NonOverlappingMerger(var2, var1, true);
-        // } else {
-        //    return (IndexMerger)(var5 == var6 && Objects.equals(var1, var2) ? new IdenticalMerger(var1) : new IndirectMerger(var1, var2, var3, var4));
+        // if (&var1 as &dyn Any).is::<CubePointRange>() && (&var2 as &dyn Any).is::<CubePointRange>()
+        // {
+        // return new DiscreteCubeMerger(var0, var5, var6, var3, var4);
+        // let var7: i64 = lcm(var5 as u32, var6 as u32).try_into().unwrap();
+        // //    if ((long)var0 * var7 <= 256L) {
+        // if var0 as i64 * var7 <= 256 {
+        //     return IndexMerger::new_discrete_cube(var5 as u32, var6 as u32);
         // }
-        if var1[var5] < var2[0] - 1.0E-7 {
+        // }
+
+        if var1[var5] < var2[0] - EPSILON {
             IndexMerger::NonOverlapping {
                 lower: var1,
                 upper: var2,
                 swap: false,
             }
-        } else if var2[var6] < var1[0] - 1.0E-7 {
+        } else if var2[var6] < var1[0] - EPSILON {
             IndexMerger::NonOverlapping {
                 lower: var2,
                 upper: var1,
@@ -342,6 +308,31 @@ pub enum VoxelShape {
 }
 
 impl VoxelShape {
+    // public double min(Direction.Axis var1) {
+    //     int var2 = this.shape.firstFull(var1);
+    //     return var2 >= this.shape.getSize(var1) ? 1.0D / 0.0 : this.get(var1, var2);
+    // }
+    // public double max(Direction.Axis var1) {
+    //     int var2 = this.shape.lastFull(var1);
+    //     return var2 <= 0 ? -1.0D / 0.0 : this.get(var1, var2);
+    // }
+    fn min(&self, axis: Axis) -> f64 {
+        let first_full = self.shape().first_full(axis);
+        if first_full >= self.shape().size(axis) {
+            f64::INFINITY
+        } else {
+            self.get(axis, first_full.try_into().unwrap())
+        }
+    }
+    fn max(&self, axis: Axis) -> f64 {
+        let last_full = self.shape().last_full(axis);
+        if last_full <= 0 {
+            f64::NEG_INFINITY
+        } else {
+            self.get(axis, last_full.try_into().unwrap())
+        }
+    }
+
     pub fn shape(&self) -> DiscreteVoxelShape {
         match self {
             VoxelShape::Array(s) => s.shape(),
@@ -360,8 +351,7 @@ impl VoxelShape {
         self.shape().is_empty()
     }
 
-    // TODO: optimization: should this be changed to return ArrayVoxelShape?
-    // i might change the implementation of empty_shape in the future so not 100% sure
+    #[must_use]
     pub fn move_relative(&self, x: f64, y: f64, z: f64) -> VoxelShape {
         if self.shape().is_empty() {
             return empty_shape();
@@ -561,6 +551,14 @@ impl VoxelShape {
     }
 }
 
+impl From<AABB> for VoxelShape {
+    fn from(aabb: AABB) -> Self {
+        box_shape_unchecked(
+            aabb.min_x, aabb.min_y, aabb.min_z, aabb.max_x, aabb.max_y, aabb.max_z,
+        )
+    }
+}
+
 #[derive(Clone, PartialEq, Debug)]
 pub struct ArrayVoxelShape {
     shape: DiscreteVoxelShape,
@@ -638,26 +636,7 @@ impl CubeVoxelShape {
     }
 }
 
-// public class CubePointRange extends AbstractDoubleList {
-//     private final int parts;
-
-//     CubePointRange(int var1) {
-//        super();
-//        if (var1 <= 0) {
-//           throw new IllegalArgumentException("Need at least 1 part");
-//        } else {
-//           this.parts = var1;
-//        }
-//     }
-
-//     public double getDouble(int var1) {
-//        return (double)var1 / (double)this.parts;
-//     }
-
-//     public int size() {
-//        return this.parts + 1;
-//     }
-// }
+#[derive(Debug)]
 pub struct CubePointRange {
     /// Needs at least 1 part
     pub parts: NonZeroU32,
@@ -714,5 +693,14 @@ mod tests {
         assert_eq!(shape.get_coords(Axis::X).len(), 2);
         assert_eq!(shape.get_coords(Axis::Y).len(), 3);
         assert_eq!(shape.get_coords(Axis::Z).len(), 2);
+    }
+
+    #[test]
+    fn test_join_is_not_empty() {
+        let shape = box_shape(0., 0., 0., 1., 1., 1.);
+        let shape2 = box_shape(0., 0.5, 0., 1., 1., 1.);
+        // detect if the shapes intersect at all
+        let joined = Shapes::matches_anywhere(&shape, &shape2, |a, b| a && b);
+        assert!(joined, "Shapes should intersect");
     }
 }

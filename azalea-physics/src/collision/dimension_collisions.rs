@@ -105,8 +105,10 @@ impl<'a> Iterator for BlockCollisions<'a> {
             // } else {
             //     crate::collision::block_shape()
             // };
-            // let block_shape = block.get_collision_shape();
+
+            // if it's a full block do a faster collision check
             if block_shape == &crate::collision::block_shape() {
+                println!("is block shape");
                 // if true {
                 // TODO: this can be optimized
                 if !self.aabb.intersects_aabb(&AABB {
@@ -129,10 +131,12 @@ impl<'a> Iterator for BlockCollisions<'a> {
 
             let block_shape =
                 block_shape.move_relative(item.pos.x as f64, item.pos.y as f64, item.pos.z as f64);
-            if !Shapes::join_is_not_empty(block_shape, self.entity_shape, |a, b| a && b) {
+            // if the entity shape and block shape don't collide, continue
+            if !Shapes::matches_anywhere(&block_shape, &self.entity_shape, |a, b| a && b) {
                 continue;
             }
 
+            println!("ok!! {:?}", block_shape);
             return Some(block_shape);
         }
 

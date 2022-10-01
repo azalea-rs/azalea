@@ -1,8 +1,6 @@
 use super::mergers::IndexMerger;
 use azalea_core::{Axis, AxisCycle, BitSet};
 
-// TODO: every impl of DiscreteVoxelShape could be turned into a single enum as an optimization
-
 pub trait IntLineConsumer = FnMut(u32, u32, u32, u32, u32, u32);
 
 #[derive(Clone, PartialEq, Debug)]
@@ -11,72 +9,32 @@ pub enum DiscreteVoxelShape {
 }
 
 impl DiscreteVoxelShape {
-    // pub trait DiscreteVoxelShape: Send + Sync {
-    //     fn size(&self, axis: Axis) -> u32;
     pub fn size(&self, axis: Axis) -> u32 {
         match self {
             DiscreteVoxelShape::BitSet(shape) => shape.size(axis),
         }
     }
 
-    //     fn first_full_x(&self) -> u32;
-    //     fn first_full_y(&self) -> u32;
-    //     fn first_full_z(&self) -> u32;
-    pub fn first_full_x(&self) -> u32 {
+    pub fn first_full(&self, axis: Axis) -> u32 {
         match self {
-            DiscreteVoxelShape::BitSet(shape) => shape.first_full_x(),
-        }
-    }
-    pub fn first_full_y(&self) -> u32 {
-        match self {
-            DiscreteVoxelShape::BitSet(shape) => shape.first_full_y(),
-        }
-    }
-    pub fn first_full_z(&self) -> u32 {
-        match self {
-            DiscreteVoxelShape::BitSet(shape) => shape.first_full_z(),
+            DiscreteVoxelShape::BitSet(shape) => shape.first_full(axis),
         }
     }
 
-    //     fn last_full_x(&self) -> u32;
-    //     fn last_full_y(&self) -> u32;
-    //     fn last_full_z(&self) -> u32;
-    pub fn last_full_x(&self) -> u32 {
+    pub fn last_full(&self, axis: Axis) -> u32 {
         match self {
-            DiscreteVoxelShape::BitSet(shape) => shape.last_full_x(),
-        }
-    }
-    pub fn last_full_y(&self) -> u32 {
-        match self {
-            DiscreteVoxelShape::BitSet(shape) => shape.last_full_y(),
-        }
-    }
-    pub fn last_full_z(&self) -> u32 {
-        match self {
-            DiscreteVoxelShape::BitSet(shape) => shape.last_full_z(),
+            DiscreteVoxelShape::BitSet(shape) => shape.last_full(axis),
         }
     }
 
-    //     fn is_empty(&self) -> bool {
-    //         if self.first_full_x() >= self.last_full_x() {
-    //             return true;
-    //         }
-    //         if self.first_full_y() >= self.last_full_y() {
-    //             return true;
-    //         }
-    //         if self.first_full_x() >= self.last_full_x() {
-    //             return true;
-    //         }
-    //         false
-    //     }
     pub fn is_empty(&self) -> bool {
-        if self.first_full_x() >= self.last_full_x() {
+        if self.first_full(Axis::X) >= self.last_full(Axis::X) {
             return true;
         }
-        if self.first_full_y() >= self.last_full_y() {
+        if self.first_full(Axis::Y) >= self.last_full(Axis::Y) {
             return true;
         }
-        if self.first_full_x() >= self.last_full_x() {
+        if self.first_full(Axis::Z) >= self.last_full(Axis::Z) {
             return true;
         }
         false
@@ -502,24 +460,16 @@ impl BitSetDiscreteVoxelShape {
         axis.choose(self.x_size, self.y_size, self.z_size)
     }
 
-    fn first_full_x(&self) -> u32 {
-        self.x_min.try_into().unwrap()
-    }
-    fn first_full_y(&self) -> u32 {
-        self.y_min.try_into().unwrap()
-    }
-    fn first_full_z(&self) -> u32 {
-        self.z_min.try_into().unwrap()
+    fn first_full(&self, axis: Axis) -> u32 {
+        axis.choose(self.x_min, self.y_min, self.z_min)
+            .try_into()
+            .unwrap()
     }
 
-    fn last_full_x(&self) -> u32 {
-        self.x_max.try_into().unwrap()
-    }
-    fn last_full_y(&self) -> u32 {
-        self.y_max.try_into().unwrap()
-    }
-    fn last_full_z(&self) -> u32 {
-        self.z_max.try_into().unwrap()
+    fn last_full(&self, axis: Axis) -> u32 {
+        axis.choose(self.x_max, self.y_max, self.z_max)
+            .try_into()
+            .unwrap()
     }
 
     fn is_full(&self, x: u32, y: u32, z: u32) -> bool {
@@ -588,12 +538,12 @@ impl From<&DiscreteVoxelShape> for BitSetDiscreteVoxelShape {
             y_size,
             z_size,
             storage,
-            x_min: shape.first_full_x().try_into().unwrap(),
-            y_min: shape.first_full_y().try_into().unwrap(),
-            z_min: shape.first_full_z().try_into().unwrap(),
-            x_max: shape.last_full_x().try_into().unwrap(),
-            y_max: shape.last_full_y().try_into().unwrap(),
-            z_max: shape.last_full_z().try_into().unwrap(),
+            x_min: shape.first_full(Axis::X).try_into().unwrap(),
+            y_min: shape.first_full(Axis::Y).try_into().unwrap(),
+            z_min: shape.first_full(Axis::Z).try_into().unwrap(),
+            x_max: shape.last_full(Axis::X).try_into().unwrap(),
+            y_max: shape.last_full(Axis::Y).try_into().unwrap(),
+            z_max: shape.last_full(Axis::Z).try_into().unwrap(),
         }
     }
 }

@@ -3,6 +3,7 @@ use std::convert::TryInto;
 use super::CubePointRange;
 use azalea_core::{gcd, lcm, EPSILON};
 
+#[derive(Debug)]
 pub enum IndexMerger {
     Identical {
         coords: Vec<f64>,
