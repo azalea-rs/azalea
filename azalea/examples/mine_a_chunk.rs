@@ -12,15 +12,15 @@ async fn main() {
 
     let bots = accounts.join("localhost".try_into().unwrap()).await.unwrap();
 
-    bots.goto(azalea::BlockCoord(0, 70, 0)).await;
-    // or bots.goto_goal(pathfinder::Goals::Goto(azalea::BlockCoord(0, 70, 0))).await;
+    bots.goto(azalea::BlockPos::new(0, 70, 0)).await;
+    // or bots.goto_goal(pathfinder::Goals::Goto(azalea::BlockPos(0, 70, 0))).await;
 
     // destroy the blocks in this area and then leave
 
     bots.fill(
         azalea::Selection::Range(
-            azalea::BlockCoord(0, 0, 0),
-            azalea::BlockCoord(16, 255, 16)
+            azalea::BlockPos::new(0, 0, 0),
+            azalea::BlockPos::new(16, 255, 16)
         ),
         azalea::block::Air
     ).await;
