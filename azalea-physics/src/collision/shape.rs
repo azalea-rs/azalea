@@ -412,7 +412,6 @@ impl VoxelShape {
         let x_min_index = self.find_index(x_axis, min_x + EPSILON);
         let x_max_index = self.find_index(x_axis, max_x - EPSILON);
 
-        // i gave up on names at this point (these are the obfuscated names from fernflower)
         let y_min_index = cmp::max(
             0,
             self.find_index(y_axis, entity_box.min(&y_axis) + EPSILON),
@@ -435,16 +434,16 @@ impl VoxelShape {
 
         let var19 = self.shape().size(x_axis);
         if movement > 0. {
-            for var20 in x_max_index + 1..(var19 as i32) {
-                for var21 in y_min_index..y_max_index {
-                    for var22 in z_min_index..z_max_index {
+            for x in x_max_index + 1..(var19 as i32) {
+                for y in y_min_index..y_max_index {
+                    for z in z_min_index..z_max_index {
                         if self.shape().is_full_wide_axis_cycle(
                             inverse_axis_cycle,
-                            var20.try_into().unwrap(),
-                            var21.try_into().unwrap(),
-                            var22.try_into().unwrap(),
+                            x.try_into().unwrap(),
+                            y.try_into().unwrap(),
+                            z.try_into().unwrap(),
                         ) {
-                            let var23 = self.get(x_axis, var20 as usize) - max_x;
+                            let var23 = self.get(x_axis, x as usize) - max_x;
                             if var23 >= -EPSILON {
                                 movement = f64::min(movement, var23);
                             }
