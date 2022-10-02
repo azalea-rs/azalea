@@ -1,6 +1,7 @@
-from typing import Optional
-from lib.utils import to_snake_case, upper_first_letter, get_dir_location, to_camel_case
+from lib.utils import get_dir_location, to_camel_case
+from lib.code.utils import clean_property_name
 from ..mappings import Mappings
+from typing import Optional
 import re
 
 BLOCKS_RS_DIR = get_dir_location('../azalea-block/src/blocks.rs')
@@ -19,49 +20,6 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
     new_make_block_states_macro_code = []
     new_make_block_states_macro_code.append('make_block_states! {')
 
-    def get_property_struct_name(property: Optional[dict], block_data_burger: dict, property_variants: list[str]) -> str:
-        # these are hardcoded because otherwise they cause conflicts
-        # some names inspired by https://github.com/feather-rs/feather/blob/main/feather/blocks/src/generated/table.rs
-        if property_variants == ['north', 'east', 'south', 'west', 'up', 'down']:
-            return 'FacingCubic'
-        if property_variants == ['north', 'south', 'west', 'east']:
-            return 'FacingCardinal'
-        if property_variants == ['top', 'bottom']:
-            return 'TopBottom'
-        if property_variants == ['north_south', 'east_west', 'ascending_east', 'ascending_west', 'ascending_north', 'ascending_south']:
-            return 'RailShape'
-        if property_variants == ['straight', 'inner_left', 'inner_right', 'outer_left', 'outer_right']:
-            return 'StairShape'
-        if property_variants == ['normal', 'sticky']:
-            return 'PistonType'
-        if property_variants == ['x', 'z']:
-            return 'AxisXZ'
-        if property_variants == ['single', 'left', 'right']:
-            return 'ChestType'
-        if property_variants == ['compare', 'subtract']:
-            return 'ComparatorType'
-
-        if property is None:
-            return ''.join(map(to_camel_case, property_variants))
-
-        property_name = None
-        for class_name in [block_data_burger['class']] + block_data_burger['super']:
-            property_name = mappings.get_field(
-                class_name, property['field_name'])
-            if property_name:
-                break
-        assert property_name
-        property_name = to_camel_case(property_name.lower())
-        if property['type'] == 'int':
-            property_name = to_camel_case(
-                block_data_burger['text_id']) + property_name
-
-        # if property_variants == ['none', 'low', 'tall']:
-
-        if property_variants == ['up', 'side', 'none']:
-            property_name = 'Wire' + to_camel_case(property_name)
-
-        return property_name
 
     # Find properties
     properties = {}
@@ -87,7 +45,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
                     'Warning: The reports have states for a block, but Burger doesn\'t!', block_data_burger)
 
             property_struct_name = get_property_struct_name(
-                property_burger, block_data_burger, property_variants)
+                property_burger, block_data_burger, property_variants, mappings)
 
             if property_struct_name in properties:
                 if not properties[property_struct_name] == property_variants:
@@ -99,14 +57,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
 
             block_properties[property_struct_name] = property_variants
 
-            # if the name ends with _<number>, remove that part
-            ending = property_name.split('_')[-1]
-            if ending.isdigit():
-                property_name = property_name[:-(len(ending) + 1)]
-
-            # `type` is a reserved keyword, so we use kind instead ¯\_(ツ)_/¯
-            if property_name == 'type':
-                property_name = 'kind'
+            property_name = clean_property_name(property_name)
             property_struct_names_to_names[property_struct_name] = property_name
 
         properties.update(block_properties)
@@ -120,15 +71,20 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
         #     Ceiling,
         # },
         property_name = property_struct_names_to_names[property_struct_name]
-        new_make_block_states_macro_code.append(
-            f'        "{property_name}" => {property_struct_name} {{')
 
-        for variant in property_variants:
-            new_make_block_states_macro_code.append(
-                f'            {to_camel_case(variant)},')
+        # if the only variants are true and false, we can just make it a normal boolean
+        if property_variants == ['true', 'false']:
+            property_shape_code = 'bool'
+        else:
+            property_shape_code = f'{property_struct_name} {{\n'
+            for variant in property_variants:
+                property_shape_code += f'            {to_camel_case(variant)},\n'
+            property_shape_code += '        }'
 
         new_make_block_states_macro_code.append(
-            f'        }},')
+            f'        "{property_name}" => {property_shape_code},')
+
+
     new_make_block_states_macro_code.append('    },')
 
     # Block codegen
@@ -145,9 +101,8 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
             if state.get('default'):
                 default_property_variants = state.get('properties', {})
 
-        # TODO: use burger to generate the blockbehavior
-        new_make_block_states_macro_code.append(
-            f'        {block_id} => BlockBehavior::default(), {{')
+
+        properties_code = '{'
         for property_name in list(block_data_report.get('properties', {}).keys()):
             property_burger = None
             for property in block_data_burger.get('states', []):
@@ -159,11 +114,33 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
             property_variants = block_data_report['properties'][property_name]
 
             property_struct_name = get_property_struct_name(
-                property_burger, block_data_burger, property_variants)
+                property_burger, block_data_burger, property_variants, mappings)
+
+            is_boolean_property = property_variants == ['true', 'false']
+
+            if is_boolean_property:
+                # if it's a boolean, keep the type lowercase
+                # (so it's either `true` or `false`)
+                property_default_type = property_default
+            else:
+                property_default_type = f'{property_struct_name}::{to_camel_case(property_default)}'
+
             assert property_default is not None
-            new_make_block_states_macro_code.append(
-                f'            {property_struct_name}={to_camel_case(property_default)},')
-        new_make_block_states_macro_code.append('        },')
+
+            property_name = clean_property_name(property_name)
+            this_property_code = f'{property_name}: {property_default_type}'
+
+            properties_code += f'\n            {this_property_code},'
+        # if there's nothing inside the properties, keep it in one line
+        if properties_code == '{':
+            properties_code += '}'
+        else:
+            properties_code += '\n        }'
+
+        # TODO: use burger to generate the blockbehavior
+        new_make_block_states_macro_code.append(
+            f'        {block_id} => BlockBehavior::default(), {properties_code},')
+
     new_make_block_states_macro_code.append('    }')
     new_make_block_states_macro_code.append('}')
 
@@ -185,3 +162,47 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
 
     with open(BLOCKS_RS_DIR, 'w') as f:
         f.write('\n'.join(new_code))
+
+def get_property_struct_name(property: Optional[dict], block_data_burger: dict, property_variants: list[str], mappings: Mappings) -> str:
+    # these are hardcoded because otherwise they cause conflicts
+    # some names inspired by https://github.com/feather-rs/feather/blob/main/feather/blocks/src/generated/table.rs
+    if property_variants == ['north', 'east', 'south', 'west', 'up', 'down']:
+        return 'FacingCubic'
+    if property_variants == ['north', 'south', 'west', 'east']:
+        return 'FacingCardinal'
+    if property_variants == ['top', 'bottom']:
+        return 'TopBottom'
+    if property_variants == ['north_south', 'east_west', 'ascending_east', 'ascending_west', 'ascending_north', 'ascending_south']:
+        return 'RailShape'
+    if property_variants == ['straight', 'inner_left', 'inner_right', 'outer_left', 'outer_right']:
+        return 'StairShape'
+    if property_variants == ['normal', 'sticky']:
+        return 'PistonType'
+    if property_variants == ['x', 'z']:
+        return 'AxisXZ'
+    if property_variants == ['single', 'left', 'right']:
+        return 'ChestType'
+    if property_variants == ['compare', 'subtract']:
+        return 'ComparatorType'
+
+    if property is None:
+        return ''.join(map(to_camel_case, property_variants))
+
+    property_name = None
+    for class_name in [block_data_burger['class']] + block_data_burger['super']:
+        property_name = mappings.get_field(
+            class_name, property['field_name'])
+        if property_name:
+            break
+    assert property_name
+    property_name = to_camel_case(property_name.lower())
+    if property['type'] == 'int':
+        property_name = to_camel_case(
+            block_data_burger['text_id']) + property_name
+
+    # if property_variants == ['none', 'low', 'tall']:
+
+    if property_variants == ['up', 'side', 'none']:
+        property_name = 'Wire' + to_camel_case(property_name)
+
+    return property_name

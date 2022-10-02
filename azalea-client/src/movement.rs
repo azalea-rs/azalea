@@ -180,7 +180,8 @@ impl Client {
 
         let mut forward_impulse: f32 = 0.;
         let mut left_impulse: f32 = 0.;
-        match physics_state.move_direction {
+        let move_direction = physics_state.move_direction;
+        match move_direction {
             MoveDirection::Forward | MoveDirection::ForwardRight | MoveDirection::ForwardLeft => {
                 forward_impulse += 1.;
             }
@@ -191,7 +192,7 @@ impl Client {
             }
             _ => {}
         };
-        match physics_state.move_direction {
+        match move_direction {
             MoveDirection::Right | MoveDirection::ForwardRight | MoveDirection::BackwardRight => {
                 left_impulse += 1.;
             }

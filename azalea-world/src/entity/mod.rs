@@ -265,7 +265,7 @@ pub struct EntityData {
 impl EntityData {
     pub fn new(uuid: Uuid, pos: Vec3) -> Self {
         let dimensions = EntityDimensions {
-            width: 0.8,
+            width: 0.6,
             height: 1.8,
         };
 

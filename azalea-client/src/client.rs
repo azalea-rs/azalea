@@ -1,6 +1,5 @@
 use crate::{movement::MoveDirection, Account, Player};
 use azalea_auth::game_profile::GameProfile;
-use azalea_block::BlockState;
 use azalea_chat::component::Component;
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
@@ -618,17 +617,8 @@ impl Client {
             }
             ClientboundGamePacket::BlockUpdate(p) => {
                 debug!("Got block update packet {:?}", p);
-                // TODO: update world
                 let mut dimension = client.dimension.lock()?;
-                // dimension.get_block_state(pos)
-                if let Ok(block_state) = BlockState::try_from(p.block_state) {
-                    dimension.set_block_state(&p.pos, block_state);
-                } else {
-                    warn!(
-                        "Non-existent block state for block update packet {:?}",
-                        p.block_state
-                    );
-                }
+                dimension.set_block_state(&p.pos, p.block_state);
             }
             ClientboundGamePacket::Animate(p) => {
                 debug!("Got animate packet {:?}", p);

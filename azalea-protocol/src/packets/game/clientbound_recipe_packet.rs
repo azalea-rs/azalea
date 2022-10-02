@@ -46,9 +46,9 @@ impl McBufReadable for ClientboundRecipePacket {
         };
 
         Ok(ClientboundRecipePacket {
-            action: action,
-            settings: settings,
-            recipes: recipes,
+            action,
+            settings,
+            recipes,
         })
     }
 }

@@ -54,9 +54,11 @@ impl PlayerChatMessage {
                 .content
                 .decorated
                 .clone()
-                .unwrap_or(Component::from(self.signed_body.content.plain.clone()));
+                .unwrap_or_else(|| Component::from(self.signed_body.content.plain.clone()));
         }
-        self.unsigned_content.clone().unwrap_or(self.message(true))
+        self.unsigned_content
+            .clone()
+            .unwrap_or_else(|| self.message(true))
     }
 }
 

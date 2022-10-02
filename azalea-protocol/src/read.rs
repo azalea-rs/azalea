@@ -83,7 +83,7 @@ fn packet_decoder<P: ProtocolPacket>(stream: &mut impl Read) -> Result<P, ReadPa
     // Packet ID
     let packet_id =
         u32::var_read_from(stream).map_err(|e| ReadPacketError::ReadPacketId { source: e })?;
-    P::read(packet_id.try_into().unwrap(), stream)
+    P::read(packet_id, stream)
 }
 
 // this is always true in multiplayer, false in singleplayer
