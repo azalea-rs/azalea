@@ -1,7 +1,7 @@
 use super::mergers::IndexMerger;
 use crate::collision::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB};
-use azalea_core::{binary_search, lcm, Axis, AxisCycle, EPSILON};
-use std::{any::Any, cmp, num::NonZeroU32};
+use azalea_core::{binary_search, Axis, AxisCycle, EPSILON};
+use std::{cmp, num::NonZeroU32};
 
 pub struct Shapes {}
 
@@ -169,7 +169,7 @@ impl Shapes {
             op_true_false,
             op_false_true,
         );
-        let var8 = BitSetDiscreteVoxelShape::join(&a.shape(), &b.shape(), &var5, &var6, &var7, &op);
+        let var8 = BitSetDiscreteVoxelShape::join(&a.shape(), &b.shape(), &var5, &var6, &var7, op);
         // if var5.is_discrete_cube_merger()
         if let IndexMerger::DiscreteCube { .. } = var5
             && let IndexMerger::DiscreteCube { .. } = var6
@@ -312,7 +312,7 @@ impl VoxelShape {
     // }
     fn min(&self, axis: Axis) -> f64 {
         let first_full = self.shape().first_full(axis);
-        if first_full >= self.shape().size(axis) {
+        if first_full >= self.shape().size(axis) as i32 {
             f64::INFINITY
         } else {
             self.get(axis, first_full.try_into().unwrap())
@@ -428,12 +428,10 @@ impl VoxelShape {
             for x in x_max_index + 1..(self.shape().size(x_axis) as i32) {
                 for y in y_min_index..y_max_index {
                     for z in z_min_index..z_max_index {
-                        if self.shape().is_full_wide_axis_cycle(
-                            inverse_axis_cycle,
-                            x.try_into().unwrap(),
-                            y.try_into().unwrap(),
-                            z.try_into().unwrap(),
-                        ) {
+                        if self
+                            .shape()
+                            .is_full_wide_axis_cycle(inverse_axis_cycle, x, y, z)
+                        {
                             let var23 = self.get(x_axis, x as usize) - max_x;
                             if var23 >= -EPSILON {
                                 movement = f64::min(movement, var23);
@@ -447,12 +445,10 @@ impl VoxelShape {
             for x in (0..x_min_index).rev() {
                 for y in y_min_index..y_max_index {
                     for z in z_min_index..z_max_index {
-                        if self.shape().is_full_wide_axis_cycle(
-                            inverse_axis_cycle,
-                            x.try_into().unwrap(),
-                            y.try_into().unwrap(),
-                            z.try_into().unwrap(),
-                        ) {
+                        if self
+                            .shape()
+                            .is_full_wide_axis_cycle(inverse_axis_cycle, x, y, z)
+                        {
                             let var23 = self.get(x_axis, (x + 1) as usize) - min_x;
                             if var23 <= EPSILON {
                                 movement = f64::max(movement, var23);

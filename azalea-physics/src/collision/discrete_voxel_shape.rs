@@ -15,13 +15,13 @@ impl DiscreteVoxelShape {
         }
     }
 
-    pub fn first_full(&self, axis: Axis) -> u32 {
+    pub fn first_full(&self, axis: Axis) -> i32 {
         match self {
             DiscreteVoxelShape::BitSet(shape) => shape.first_full(axis),
         }
     }
 
-    pub fn last_full(&self, axis: Axis) -> u32 {
+    pub fn last_full(&self, axis: Axis) -> i32 {
         match self {
             DiscreteVoxelShape::BitSet(shape) => shape.last_full(axis),
         }
@@ -40,12 +40,8 @@ impl DiscreteVoxelShape {
         false
     }
 
-    //     fn is_full_wide(&self, x: u32, y: u32, z: u32) -> bool {
-    //         (x < self.size(Axis::X) && y < self.size(Axis::Y) && z < self.size(Axis::Z))
-    //             && (self.is_full(x, y, z))
-    //     }
     pub fn is_full_wide(&self, x: i32, y: i32, z: i32) -> bool {
-        if (x < 0 || y < 0 || z < 0) {
+        if x < 0 || y < 0 || z < 0 {
             return false;
         }
         let (x, y, z) = (x as u32, y as u32, z as u32);
@@ -61,23 +57,12 @@ impl DiscreteVoxelShape {
         )
     }
 
-    //     fn is_full(&self, x: u32, y: u32, z: u32) -> bool;
     pub fn is_full(&self, x: u32, y: u32, z: u32) -> bool {
         match self {
             DiscreteVoxelShape::BitSet(shape) => shape.is_full(x, y, z),
         }
     }
 
-    //     // public void forAllBoxes(DiscreteVoxelShape.IntLineConsumer var1, boolean var2) {
-    //     //     BitSetDiscreteVoxelShape.forAllBoxes(this, var1, var2);
-    //     // }
-    //     fn for_all_boxes(&self, consumer: impl IntLineConsumer, swap: bool)
-    //     where
-    //         Self: Sized,
-    //     {
-    //         BitSetDiscreteVoxelShape::for_all_boxes(self, consumer, swap);
-    //     }
-    // }
     pub fn for_all_boxes(&self, consumer: impl IntLineConsumer, swap: bool) {
         BitSetDiscreteVoxelShape::for_all_boxes(self, consumer, swap)
     }
@@ -99,13 +84,6 @@ pub struct BitSetDiscreteVoxelShape {
 }
 
 impl BitSetDiscreteVoxelShape {
-    // public BitSetDiscreteVoxelShape(int var1, int var2, int var3) {
-    // 	super(var1, var2, var3);
-    // 	this.storage = new BitSet(var1 * var2 * var3);
-    // 	this.xMin = var1;
-    // 	this.yMin = var2;
-    // 	this.zMin = var3;
-    // }
     pub fn new(x_min: u32, y_min: u32, z_min: u32) -> Self {
         BitSetDiscreteVoxelShape {
             x_size: x_min,
@@ -458,16 +436,12 @@ impl BitSetDiscreteVoxelShape {
         axis.choose(self.x_size, self.y_size, self.z_size)
     }
 
-    fn first_full(&self, axis: Axis) -> u32 {
+    fn first_full(&self, axis: Axis) -> i32 {
         axis.choose(self.x_min, self.y_min, self.z_min)
-            .try_into()
-            .unwrap()
     }
 
-    fn last_full(&self, axis: Axis) -> u32 {
+    fn last_full(&self, axis: Axis) -> i32 {
         axis.choose(self.x_max, self.y_max, self.z_max)
-            .try_into()
-            .unwrap()
     }
 
     fn is_full(&self, x: u32, y: u32, z: u32) -> bool {
@@ -536,12 +510,12 @@ impl From<&DiscreteVoxelShape> for BitSetDiscreteVoxelShape {
             y_size,
             z_size,
             storage,
-            x_min: shape.first_full(Axis::X).try_into().unwrap(),
-            y_min: shape.first_full(Axis::Y).try_into().unwrap(),
-            z_min: shape.first_full(Axis::Z).try_into().unwrap(),
-            x_max: shape.last_full(Axis::X).try_into().unwrap(),
-            y_max: shape.last_full(Axis::Y).try_into().unwrap(),
-            z_max: shape.last_full(Axis::Z).try_into().unwrap(),
+            x_min: shape.first_full(Axis::X),
+            y_min: shape.first_full(Axis::Y),
+            z_min: shape.first_full(Axis::Z),
+            x_max: shape.last_full(Axis::X),
+            y_max: shape.last_full(Axis::Y),
+            z_max: shape.last_full(Axis::Z),
         }
     }
 }

@@ -194,7 +194,7 @@ impl McBufWritable for u64 {
 
 impl McBufWritable for bool {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let byte: u8 = if *self { 1 } else { 0 };
+        let byte = u8::from(*self);
         byte.write_into(buf)
     }
 }

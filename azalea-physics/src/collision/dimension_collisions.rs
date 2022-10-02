@@ -35,7 +35,8 @@ pub struct BlockCollisions<'a> {
 }
 
 impl<'a> BlockCollisions<'a> {
-    pub fn new(dimension: &'a Dimension, entity: Option<&EntityData>, aabb: AABB) -> Self {
+    // TODO: the entity is stored in the context
+    pub fn new(dimension: &'a Dimension, _entity: Option<&EntityData>, aabb: AABB) -> Self {
         let origin_x = (aabb.min_x - EPSILON) as i32 - 1;
         let origin_y = (aabb.min_y - EPSILON) as i32 - 1;
         let origin_z = (aabb.min_z - EPSILON) as i32 - 1;

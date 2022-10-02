@@ -159,7 +159,6 @@ impl<S> CommandDispatcher<S> {
     }
 
     pub fn add_paths(
-        &self,
         node: Rc<RefCell<CommandNode<S>>>,
         result: &mut Vec<Vec<Rc<RefCell<CommandNode<S>>>>>,
         parents: Vec<Rc<RefCell<CommandNode<S>>>>,
@@ -169,14 +168,14 @@ impl<S> CommandDispatcher<S> {
         result.push(current.clone());
 
         for child in node.borrow().children.values() {
-            self.add_paths(child.clone(), result, current.clone());
+            Self::add_paths(child.clone(), result, current.clone());
         }
     }
 
     pub fn get_path(&self, target: CommandNode<S>) -> Vec<String> {
         let rc_target = Rc::new(RefCell::new(target));
         let mut nodes: Vec<Vec<Rc<RefCell<CommandNode<S>>>>> = Vec::new();
-        self.add_paths(self.root.clone(), &mut nodes, vec![]);
+        Self::add_paths(self.root.clone(), &mut nodes, vec![]);
 
         for list in nodes {
             if *list.last().expect("Nothing in list").borrow() == *rc_target.borrow() {

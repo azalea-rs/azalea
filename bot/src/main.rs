@@ -1,5 +1,4 @@
 use azalea_client::{Account, Client, Event, MoveDirection};
-use azalea_protocol::packets::game::ClientboundGamePacket;
 use std::convert::TryInto;
 
 #[tokio::main]
@@ -25,7 +24,7 @@ async fn handle_event(event: Event, mut bot: Client) -> anyhow::Result<()> {
             // }
             // bot.walk(MoveDirection::None);
         }
-        Event::Packet(packet) => {}
+        Event::Packet(_packet) => {}
         _ => {}
     }
 
