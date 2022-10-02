@@ -1,4 +1,4 @@
-use std::convert::TryInto;
+use std::{cmp::Ordering, convert::TryInto};
 
 use super::CubePointRange;
 use azalea_core::{gcd, lcm, EPSILON};
@@ -56,8 +56,8 @@ impl IndexMerger {
     pub fn for_merged_indexes(&self, mut consumer: impl IndexConsumer) -> bool {
         match self {
             IndexMerger::Identical { coords } => {
-                for var3 in 0..(coords.len() - 1) {
-                    if !consumer(var3 as i32, var3 as i32, var3 as i32) {
+                for coord in 0..(coords.len() - 1) {
+                    if !consumer(coord as i32, coord as i32, coord as i32) {
                         return false;
                     }
                 }
@@ -68,8 +68,7 @@ impl IndexMerger {
                 first_div,
                 second_div,
             } => {
-                let var2 = result.size() - 1;
-                for var3 in 0..var2 {
+                for var3 in 0..(result.size() - 1) {
                     if !consumer(
                         (var3 / second_div).try_into().unwrap(),
                         (var3 / first_div).try_into().unwrap(),
@@ -186,15 +185,18 @@ impl IndexMerger {
             } else {
                 var2[TryInto::<usize>::try_into(var19).unwrap()]
             };
-            if !(var5 >= var20 - 1.0e-7) {
-                first_indices[var12] = var18;
-                second_indices[var12] = var19;
-                result[var12] = var20;
-                var12 += 1;
-                var5 = var20;
-            } else {
-                first_indices[var12 - 1] = var18;
-                second_indices[var12 - 1] = var19;
+            match var5.partial_cmp(&(var20 - EPSILON)) {
+                None | Some(Ordering::Less) => {
+                    result[var12] = var20;
+                    first_indices[var12] = var18;
+                    second_indices[var12] = var19;
+                    var12 += 1;
+                    var5 = var20;
+                }
+                _ => {
+                    first_indices[var12 - 1] = var18;
+                    second_indices[var12 - 1] = var19;
+                }
             }
         }
     }
