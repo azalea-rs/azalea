@@ -110,7 +110,6 @@ impl MovableEntity for EntityMut<'_> {
         // movement = this.maybeBackOffFromEdge(movement, moverType);
 
         let collide_result = { self.dimension.collide(movement, self) };
-        println!("collide_result: {:?}", collide_result);
 
         let move_distance = collide_result.length_sqr();
 
@@ -209,7 +208,6 @@ fn collide_bounding_box(
     let block_collisions =
         dimension.get_block_collisions(entity, entity_bounding_box.expand_towards(movement));
     let block_collisions = block_collisions.collect::<Vec<_>>();
-    println!("block_collisions: {:?}", block_collisions);
     collision_boxes.extend(block_collisions);
     collide_with_shapes(movement, *entity_bounding_box, &collision_boxes)
 }
@@ -227,9 +225,7 @@ fn collide_with_shapes(
     let mut y_movement = movement.y;
     let mut z_movement = movement.z;
     if y_movement != 0. {
-        println!("colliding before: {:?}", y_movement);
         y_movement = Shapes::collide(&Axis::Y, &entity_box, collision_boxes, y_movement);
-        println!("colliding after: {:?}", y_movement);
         if y_movement != 0. {
             entity_box = entity_box.move_relative(0., y_movement, 0.);
         }

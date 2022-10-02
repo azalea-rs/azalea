@@ -202,8 +202,6 @@ impl Shapes {
         let op_true_false = op(true, false);
         let op_false_true = op(false, true);
 
-        println!("a");
-
         for axis in [Axis::X, Axis::Y, Axis::Z] {
             if a.max(axis) < b.min(axis) - EPSILON {
                 return op_true_false || op_false_true;
@@ -212,8 +210,6 @@ impl Shapes {
                 return op_true_false || op_false_true;
             }
         }
-
-        println!("b");
 
         let x_merger = Self::create_index_merger(
             1,
@@ -236,8 +232,6 @@ impl Shapes {
             op_true_false,
             op_false_true,
         );
-
-        println!("c {y_merger:?}");
 
         Self::matches_anywhere_with_mergers(x_merger, y_merger, z_merger, a.shape(), b.shape(), op)
     }
@@ -430,11 +424,8 @@ impl VoxelShape {
             self.find_index(z_axis, entity_box.max(&z_axis) - EPSILON) + 1,
         );
 
-        println!("movement: {movement}, min_index: {x_min_index}");
-
-        let var19 = self.shape().size(x_axis);
         if movement > 0. {
-            for x in x_max_index + 1..(var19 as i32) {
+            for x in x_max_index + 1..(self.shape().size(x_axis) as i32) {
                 for y in y_min_index..y_max_index {
                     for z in z_min_index..z_max_index {
                         if self.shape().is_full_wide_axis_cycle(
@@ -456,10 +447,6 @@ impl VoxelShape {
             for x in (0..x_min_index).rev() {
                 for y in y_min_index..y_max_index {
                     for z in z_min_index..z_max_index {
-                        println!(
-                            "x: {x}, y: {y}, z: {z}, shape: {shape:?}, inverse_axis_cycle: {inverse_axis_cycle:?}",
-                            shape = self.shape()
-                        );
                         if self.shape().is_full_wide_axis_cycle(
                             inverse_axis_cycle,
                             x.try_into().unwrap(),
@@ -470,7 +457,6 @@ impl VoxelShape {
                             if var23 <= EPSILON {
                                 movement = f64::max(movement, var23);
                             }
-                            println!("var23: {var23}, movement: {movement}");
                             return movement;
                         }
                     }

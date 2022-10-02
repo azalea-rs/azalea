@@ -95,22 +95,13 @@ impl<'a> Iterator for BlockCollisions<'a> {
 
             let pos = item.pos;
             let block_state: BlockState = chunk_lock.get(&(&pos).into(), self.dimension.min_y());
-            // let block: Box<dyn Block> = block_state.into();
 
             // TODO: continue if self.only_suffocating_blocks and the block is not suffocating
 
             let block_shape = block_state.shape();
-            // let block_shape = if block_state == BlockState::Air {
-            //     crate::collision::empty_shape()
-            // } else {
-            //     crate::collision::block_shape()
-            // };
 
             // if it's a full block do a faster collision check
             if block_shape == &crate::collision::block_shape() {
-                println!("is block shape");
-                // if true {
-                // TODO: this can be optimized
                 if !self.aabb.intersects_aabb(&AABB {
                     min_x: item.pos.x as f64,
                     min_y: item.pos.y as f64,
@@ -136,7 +127,6 @@ impl<'a> Iterator for BlockCollisions<'a> {
                 continue;
             }
 
-            println!("ok!! {:?}", block_shape);
             return Some(block_shape);
         }
 
