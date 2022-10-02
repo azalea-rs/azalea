@@ -402,7 +402,6 @@ impl VoxelShape {
 
         let inverse_axis_cycle = axis_cycle.inverse();
 
-        // probably not good names but idk what this does
         let x_axis = inverse_axis_cycle.cycle(Axis::X);
         let y_axis = inverse_axis_cycle.cycle(Axis::Y);
         let z_axis = inverse_axis_cycle.cycle(Axis::Z);
@@ -410,33 +409,35 @@ impl VoxelShape {
         let max_x = entity_box.max(&x_axis);
         let min_x = entity_box.min(&x_axis);
 
-        // i gave up on names at this point (these are the obfuscated names from fernflower)
-        let var13 = self.find_index(x_axis, min_x + EPSILON);
-        let var14 = self.find_index(x_axis, max_x - EPSILON);
+        let x_min_index = self.find_index(x_axis, min_x + EPSILON);
+        let x_max_index = self.find_index(x_axis, max_x - EPSILON);
 
-        let var15 = cmp::max(
+        // i gave up on names at this point (these are the obfuscated names from fernflower)
+        let y_min_index = cmp::max(
             0,
             self.find_index(y_axis, entity_box.min(&y_axis) + EPSILON),
         );
-        let var16 = cmp::min(
+        let y_max_index = cmp::min(
             self.shape().size(y_axis) as i32,
             self.find_index(y_axis, entity_box.max(&y_axis) - EPSILON) + 1,
         );
 
-        let var17 = cmp::max(
+        let z_min_index = cmp::max(
             0,
             self.find_index(z_axis, entity_box.min(&z_axis) + EPSILON),
         );
-        let var18 = cmp::min(
+        let z_max_index = cmp::min(
             self.shape().size(z_axis) as i32,
             self.find_index(z_axis, entity_box.max(&z_axis) - EPSILON) + 1,
         );
 
+        println!("movement: {movement}, min_index: {x_min_index}");
+
         let var19 = self.shape().size(x_axis);
         if movement > 0. {
-            for var20 in var14 + 1..(var19 as i32) {
-                for var21 in var15..var16 {
-                    for var22 in var17..var18 {
+            for var20 in x_max_index + 1..(var19 as i32) {
+                for var21 in y_min_index..y_max_index {
+                    for var22 in z_min_index..z_max_index {
                         if self.shape().is_full_wide_axis_cycle(
                             inverse_axis_cycle,
                             var20.try_into().unwrap(),
@@ -452,20 +453,25 @@ impl VoxelShape {
                     }
                 }
             }
-        } else if movement < 0. && var13 > 0 {
-            for var20 in (var13 - 1)..=0 {
-                for var21 in var15..var16 {
-                    for var22 in var17..var18 {
+        } else if movement < 0. && x_min_index > 0 {
+            for x in (0..x_min_index).rev() {
+                for y in y_min_index..y_max_index {
+                    for z in z_min_index..z_max_index {
+                        println!(
+                            "x: {x}, y: {y}, z: {z}, shape: {shape:?}, inverse_axis_cycle: {inverse_axis_cycle:?}",
+                            shape = self.shape()
+                        );
                         if self.shape().is_full_wide_axis_cycle(
                             inverse_axis_cycle,
-                            var20.try_into().unwrap(),
-                            var21.try_into().unwrap(),
-                            var22.try_into().unwrap(),
+                            x.try_into().unwrap(),
+                            y.try_into().unwrap(),
+                            z.try_into().unwrap(),
                         ) {
-                            let var23 = self.get(x_axis, (var20 + 1) as usize) - min_x;
+                            let var23 = self.get(x_axis, (x + 1) as usize) - min_x;
                             if var23 <= EPSILON {
                                 movement = f64::max(movement, var23);
                             }
+                            println!("var23: {var23}, movement: {movement}");
                             return movement;
                         }
                     }
