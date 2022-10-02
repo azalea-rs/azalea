@@ -244,12 +244,12 @@ impl Shapes {
         shape2: DiscreteVoxelShape,
         op: fn(bool, bool) -> bool,
     ) -> bool {
-        !merged_x.for_merged_indexes(|var5x, var6, var7| {
-            merged_y.for_merged_indexes(|var6x, var7x, var8| {
-                merged_z.for_merged_indexes(|var7, var8x, var9| {
+        !merged_x.for_merged_indexes(|var5x, var6, _var7| {
+            merged_y.for_merged_indexes(|var6x, var7x, _var8| {
+                merged_z.for_merged_indexes(|var7, var8x, _var9| {
                     !op(
-                        shape1.is_full_wide(var5x as u32, var6x as u32, var7 as u32),
-                        shape2.is_full_wide(var6 as u32, var7x as u32, var8x as u32),
+                        shape1.is_full_wide(var5x, var6x, var7),
+                        shape2.is_full_wide(var6, var7x, var8x),
                     )
                 })
             })
@@ -257,7 +257,7 @@ impl Shapes {
     }
 
     pub fn create_index_merger(
-        var0: i32,
+        _var0: i32,
         var1: Vec<f64>,
         var2: Vec<f64>,
         var3: bool,

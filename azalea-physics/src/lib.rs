@@ -194,11 +194,10 @@ mod tests {
                 },
             ),
         );
-        let old_block_state =
-            dim.set_block_state(&BlockPos { x: 0, y: 69, z: 0 }, BlockState::Stone);
+        let block_state = dim.set_block_state(&BlockPos { x: 0, y: 69, z: 0 }, BlockState::Stone);
         assert!(
-            old_block_state.is_some(),
-            "Old block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
+            block_state.is_some(),
+            "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
         let mut entity = dim.entity_mut(0).unwrap();
         entity.ai_step();
@@ -226,13 +225,13 @@ mod tests {
                 },
             ),
         );
-        let old_block_state = dim.set_block_state(
+        let block_state = dim.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
             BlockState::StoneSlab_BottomFalse,
         );
         assert!(
-            old_block_state.is_some(),
-            "Old block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
+            block_state.is_some(),
+            "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
         let mut entity = dim.entity_mut(0).unwrap();
         // do a few steps so we fall on the slab
@@ -258,13 +257,13 @@ mod tests {
                 },
             ),
         );
-        let old_block_state = dim.set_block_state(
+        let block_state = dim.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
             BlockState::StoneSlab_TopFalse,
         );
         assert!(
-            old_block_state.is_some(),
-            "Old block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
+            block_state.is_some(),
+            "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
         let mut entity = dim.entity_mut(0).unwrap();
         // do a few steps so we fall on the slab
@@ -272,5 +271,37 @@ mod tests {
             entity.ai_step();
         }
         assert_eq!(entity.pos().y, 70.);
+    }
+
+    #[test]
+    fn test_weird_wall_collision() {
+        let mut dim = Dimension::default();
+        dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
+            .unwrap();
+        dim.add_entity(
+            0,
+            EntityData::new(
+                Uuid::from_u128(0),
+                Vec3 {
+                    x: 0.5,
+                    y: 73.,
+                    z: 0.5,
+                },
+            ),
+        );
+        let block_state = dim.set_block_state(
+            &BlockPos { x: 0, y: 69, z: 0 },
+            BlockState::CobblestoneWall_LowLowLowFalseFalseLow,
+        );
+        assert!(
+            block_state.is_some(),
+            "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
+        );
+        let mut entity = dim.entity_mut(0).unwrap();
+        // do a few steps so we fall on the slab
+        for _ in 0..20 {
+            entity.ai_step();
+        }
+        assert_eq!(entity.pos().y, 70.5);
     }
 }

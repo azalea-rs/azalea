@@ -44,18 +44,16 @@ impl DiscreteVoxelShape {
     //         (x < self.size(Axis::X) && y < self.size(Axis::Y) && z < self.size(Axis::Z))
     //             && (self.is_full(x, y, z))
     //     }
-    pub fn is_full_wide(&self, x: u32, y: u32, z: u32) -> bool {
+    pub fn is_full_wide(&self, x: i32, y: i32, z: i32) -> bool {
+        if (x < 0 || y < 0 || z < 0) {
+            return false;
+        }
+        let (x, y, z) = (x as u32, y as u32, z as u32);
         (x < self.size(Axis::X) && y < self.size(Axis::Y) && z < self.size(Axis::Z))
             && (self.is_full(x, y, z))
     }
-    //     fn is_full_wide_axis_cycle(&self, axis_cycle: AxisCycle, x: u32, y: u32, z: u32) -> bool {
-    //         self.is_full_wide(
-    //             axis_cycle.cycle_xyz(x, y, z, Axis::X),
-    //             axis_cycle.cycle_xyz(x, y, z, Axis::Y),
-    //             axis_cycle.cycle_xyz(x, y, z, Axis::Z),
-    //         )
-    //     }
-    pub fn is_full_wide_axis_cycle(&self, axis_cycle: AxisCycle, x: u32, y: u32, z: u32) -> bool {
+
+    pub fn is_full_wide_axis_cycle(&self, axis_cycle: AxisCycle, x: i32, y: i32, z: i32) -> bool {
         self.is_full_wide(
             axis_cycle.cycle_xyz(x, y, z, Axis::X),
             axis_cycle.cycle_xyz(x, y, z, Axis::Y),
