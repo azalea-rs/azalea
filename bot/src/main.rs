@@ -18,11 +18,15 @@ async fn handle_event(event: Event, mut bot: Client) -> anyhow::Result<()> {
     match event {
         Event::Login => {
             // tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-            bot.walk(MoveDirection::Forward);
+            // bot.walk(MoveDirection::Forward);
+
             // loop {
             //     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
             // }
             // bot.walk(MoveDirection::None);
+        }
+        Event::GameTick => {
+            bot.set_jumping(true);
         }
         Event::Packet(_packet) => {}
         _ => {}

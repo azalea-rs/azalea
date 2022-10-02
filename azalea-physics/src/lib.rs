@@ -11,6 +11,8 @@ use collision::{MovableEntity, MoverType};
 pub trait HasPhysics {
     fn travel(&mut self, acceleration: &Vec3);
     fn ai_step(&mut self);
+
+    fn jump_from_ground(&mut self);
 }
 
 impl HasPhysics for EntityMut<'_> {
@@ -85,6 +87,14 @@ impl HasPhysics for EntityMut<'_> {
             self.delta.z = 0.;
         }
 
+        if self.jumping {
+            // TODO: jumping in liquids and jump delay
+
+            if self.on_ground {
+                self.jump_from_ground();
+            }
+        }
+
         self.xxa *= 0.98;
         self.zza *= 0.98;
 
@@ -96,6 +106,27 @@ impl HasPhysics for EntityMut<'_> {
         // freezing
         // pushEntities
         // drowning damage
+    }
+
+    fn jump_from_ground(&mut self) {
+        let jump_power: f64 = jump_power(self) as f64 + jump_boost_power(self);
+        let old_delta_movement = self.delta;
+        self.delta = Vec3 {
+            x: old_delta_movement.x,
+            y: jump_power,
+            z: old_delta_movement.z,
+        };
+        // if self.sprinting {
+        //     let y_rot = self.y_rot * 0.017453292;
+        //     self.delta = self.delta
+        //         + Vec3 {
+        //             x: (-f32::sin(y_rot) * 0.2) as f64,
+        //             y: 0.,
+        //             z: (f32::cos(y_rot) * 0.2) as f64,
+        //         };
+        // }
+
+        // self.has_impulse = true;
     }
 }
 
@@ -139,6 +170,54 @@ fn get_speed(entity: &EntityData, friction: f32) -> f32 {
         // entity.flying_speed
         0.02
     }
+}
+
+/// Returns the what the entity's jump should be multiplied by based on the
+/// block they're standing on.
+fn block_jump_factor(entity: &EntityMut) -> f32 {
+    let block_at_pos = entity.dimension.get_block_state(&entity.pos().into());
+    let block_below = entity
+        .dimension
+        .get_block_state(&get_block_pos_below_that_affects_movement(entity));
+
+    let block_at_pos_jump_factor = if let Some(block) = block_at_pos {
+        Box::<dyn Block>::from(block).behavior().jump_factor
+    } else {
+        1.
+    };
+    if block_at_pos_jump_factor != 1. {
+        return block_at_pos_jump_factor;
+    }
+
+    if let Some(block) = block_below {
+        Box::<dyn Block>::from(block).behavior().jump_factor
+    } else {
+        1.
+    }
+}
+
+// protected float getJumpPower() {
+//     return 0.42F * this.getBlockJumpFactor();
+// }
+// public double getJumpBoostPower() {
+//     return this.hasEffect(MobEffects.JUMP) ? (double)(0.1F * (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1)) : 0.0D;
+// }
+fn jump_power(entity: &EntityMut) -> f32 {
+    0.42 * block_jump_factor(entity)
+}
+
+fn jump_boost_power(_entity: &EntityMut) -> f64 {
+    // TODO: potion effects
+    // if let Some(effects) = entity.effects() {
+    //     if let Some(jump_effect) = effects.get(&Effect::Jump) {
+    //         0.1 * (jump_effect.amplifier + 1) as f32
+    //     } else {
+    //         0.
+    //     }
+    // } else {
+    //     0.
+    // }
+    0.
 }
 
 #[cfg(test)]

@@ -133,7 +133,7 @@ impl MovableEntity for EntityMut<'_> {
         let horizontal_collision = x_collision || z_collision;
         let vertical_collision = movement.y != collide_result.y;
         let on_ground = vertical_collision && movement.y < 0.;
-        // self.on_ground = on_ground;
+        self.on_ground = on_ground;
 
         // TODO: minecraft checks for a "minor" horizontal collision here
 
