@@ -1,1 +1,1 @@
-This is currently an advertisement crate for [Azalea](https://github.com/mat-1/azalea), it will have more stuff later!
+A wrapper over azalea-client, adding useful functions for making bots.

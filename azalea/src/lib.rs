@@ -1,2 +1,4 @@
-//! This is currently an advertisement crate for
-//! [Azalea](https://github.com/mat-1/azalea). More stuff will be here soon!
+mod bot;
+pub mod prelude;
+
+pub use azalea_client::Client;

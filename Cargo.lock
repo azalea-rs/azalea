@@ -103,6 +103,7 @@ name = "azalea"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "azalea-client",
  "env_logger",
  "tokio",
 ]
