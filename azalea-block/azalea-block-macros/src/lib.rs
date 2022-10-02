@@ -44,7 +44,7 @@ struct PropertyWithNameAndDefault {
     default: proc_macro2::TokenStream,
 }
 
-/// ```no_run
+/// ```ignore
 /// grass_block => BlockBehavior::default(), {
 ///   snowy: false,
 /// },
