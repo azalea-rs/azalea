@@ -22,7 +22,10 @@ async fn main() {
         account,
         address: "localhost",
         state: Arc::new(Mutex::new(State::default())),
-        plugins: vec![&autoeat::Plugin::default()],
+        plugins: vec![
+            Arc::new(autoeat::Plugin::default()),
+            Arc::new(pathfinder::Plugin::default()),
+        ],
         handle: Box::new(handle),
     })
     .await
