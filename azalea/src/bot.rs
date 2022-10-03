@@ -14,12 +14,12 @@ pub struct State {
 }
 
 pub trait BotTrait {
-    fn jump(&mut self);
+    fn jump(&self);
 }
 
 impl BotTrait for azalea_client::Client {
     /// Try to jump next tick.
-    fn jump(&mut self) {
+    fn jump(&self) {
         let player_lock = self.player.lock();
         let mut dimension_lock = self.dimension.lock();
 
@@ -33,7 +33,7 @@ impl BotTrait for azalea_client::Client {
 
 #[async_trait]
 impl crate::Plugin for Plugin {
-    async fn handle(&self, mut bot: Client, event: Arc<Event>) {
+    async fn handle(self: Arc<Self>, mut bot: Client, event: Arc<Event>) {
         match *event {
             Event::GameTick => {
                 let mut state = self.state.lock();

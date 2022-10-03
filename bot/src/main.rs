@@ -23,11 +23,7 @@ async fn main() {
     .unwrap();
 }
 
-async fn handle(
-    mut bot: Client,
-    event: Arc<Event>,
-    _state: Arc<Mutex<State>>,
-) -> anyhow::Result<()> {
+async fn handle(bot: Client, event: Arc<Event>, _state: Arc<Mutex<State>>) -> anyhow::Result<()> {
     match *event {
         Event::GameTick => {
             bot.jump();
