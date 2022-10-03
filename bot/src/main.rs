@@ -1,34 +1,37 @@
-use azalea_client::{Account, Client, Event};
-use std::convert::TryInto;
+use azalea::prelude::*;
+use azalea::{Account, Client, Event};
+use parking_lot::Mutex;
+use std::sync::Arc;
+
+#[derive(Default)]
+struct State {}
 
 #[tokio::main]
 async fn main() {
     env_logger::init();
 
-    let bot = Account::offline("bot");
+    let account = Account::offline("bot");
 
-    let (bot, mut rx) = bot.join(&"localhost".try_into().unwrap()).await.unwrap();
-
-    while let Some(event) = rx.recv().await {
-        tokio::spawn(handle_event(event, bot.clone()));
-    }
+    azalea::start(azalea::Options {
+        account,
+        address: "localhost",
+        state: Arc::new(Mutex::new(State::default())),
+        plugins: vec![],
+        handle: Box::new(handle),
+    })
+    .await
+    .unwrap();
 }
 
-async fn handle_event(event: Event, mut bot: Client) -> anyhow::Result<()> {
-    match event {
-        Event::Login => {
-            // tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-            // bot.walk(MoveDirection::Forward);
-
-            // loop {
-            //     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-            // }
-            // bot.walk(MoveDirection::None);
-        }
+async fn handle(
+    mut bot: Client,
+    event: Arc<Event>,
+    _state: Arc<Mutex<State>>,
+) -> anyhow::Result<()> {
+    match *event {
         Event::GameTick => {
-            bot.set_jumping(true);
+            bot.jump();
         }
-        Event::Packet(_packet) => {}
         _ => {}
     }
 

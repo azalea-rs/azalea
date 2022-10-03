@@ -343,11 +343,9 @@ name = "bot"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "azalea-client",
- "azalea-core",
- "azalea-physics",
- "azalea-protocol",
+ "azalea",
  "env_logger",
+ "parking_lot 0.12.1",
  "tokio",
  "uuid",
 ]
