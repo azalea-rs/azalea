@@ -1,6 +1,7 @@
 use crate::{Client, Event};
 use async_trait::async_trait;
-use std::sync::{Arc, Mutex};
+use parking_lot::Mutex;
+use std::sync::Arc;
 
 #[derive(Default)]
 pub struct Plugin {
@@ -17,9 +18,10 @@ pub trait BotTrait {
 }
 
 impl BotTrait for azalea_client::Client {
+    /// Try to jump next tick.
     fn jump(&mut self) {
-        let player_lock = self.player.lock().unwrap();
-        let mut dimension_lock = self.dimension.lock().unwrap();
+        let player_lock = self.player.lock();
+        let mut dimension_lock = self.dimension.lock();
 
         let mut player_entity = player_lock
             .entity_mut(&mut dimension_lock)
@@ -31,14 +33,14 @@ impl BotTrait for azalea_client::Client {
 
 #[async_trait]
 impl crate::Plugin for Plugin {
-    async fn handle(&self, bot: Client, event: Arc<Event>) {
+    async fn handle(&self, mut bot: Client, event: Arc<Event>) {
         match *event {
             Event::GameTick => {
-                let state = self.state.lock().unwrap();
-                let player_entity = bot.player_entity().unwrap();
-                if state.jumping_once {
-                    bot.set_jumping(true);
+                let mut state = self.state.lock();
+                if bot.jumping() {
                     state.jumping_once = false;
+                } else if state.jumping_once {
+                    bot.set_jumping(true);
                 }
             }
             _ => {}

@@ -1,14 +1,11 @@
 mod bot;
 pub mod prelude;
 
-use std::{
-    future::Future,
-    sync::{Arc, Mutex},
-};
-
 use async_trait::async_trait;
 pub use azalea_client::*;
 use azalea_protocol::ServerAddress;
+use parking_lot::Mutex;
+use std::{future::Future, sync::Arc};
 use thiserror::Error;
 
 /// Plugins can keep their own personal state, listen to events, and add new functions to Client.

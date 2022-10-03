@@ -1,4 +1,4 @@
-use azalea_client::{Account, Client, Event, MoveDirection};
+use azalea_client::{Account, Client, Event};
 use std::convert::TryInto;
 
 #[tokio::main]

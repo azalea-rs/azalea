@@ -31,9 +31,9 @@ impl Client {
     /// This gets called every tick.
     pub async fn send_position(&mut self) -> Result<(), MovePlayerError> {
         let packet = {
-            let player_lock = self.player.lock().unwrap();
-            let mut physics_state = self.physics_state.lock().unwrap();
-            let mut dimension_lock = self.dimension.lock().unwrap();
+            let player_lock = self.player.lock();
+            let mut physics_state = self.physics_state.lock();
+            let mut dimension_lock = self.dimension.lock();
 
             let mut player_entity = player_lock
                 .entity_mut(&mut dimension_lock)
@@ -129,8 +129,8 @@ impl Client {
 
     // Set our current position to the provided Vec3, potentially clipping through blocks.
     pub async fn set_pos(&mut self, new_pos: Vec3) -> Result<(), MovePlayerError> {
-        let player_lock = self.player.lock().unwrap();
-        let mut dimension_lock = self.dimension.lock().unwrap();
+        let player_lock = self.player.lock();
+        let mut dimension_lock = self.dimension.lock();
 
         dimension_lock.set_entity_pos(player_lock.entity_id, new_pos)?;
 
@@ -138,8 +138,8 @@ impl Client {
     }
 
     pub async fn move_entity(&mut self, movement: &Vec3) -> Result<(), MovePlayerError> {
-        let mut dimension_lock = self.dimension.lock().unwrap();
-        let player = self.player.lock().unwrap();
+        let mut dimension_lock = self.dimension.lock();
+        let player = self.player.lock();
 
         let mut entity = player
             .entity_mut(&mut dimension_lock)
@@ -157,15 +157,15 @@ impl Client {
     pub fn ai_step(&mut self) {
         self.tick_controls(None);
 
-        let player_lock = self.player.lock().unwrap();
-        let mut dimension_lock = self.dimension.lock().unwrap();
+        let player_lock = self.player.lock();
+        let mut dimension_lock = self.dimension.lock();
         let mut player_entity = player_lock
             .entity_mut(&mut dimension_lock)
             .expect("Player must exist");
 
         // server ai step
         {
-            let physics_state = self.physics_state.lock().unwrap();
+            let physics_state = self.physics_state.lock();
             player_entity.xxa = physics_state.left_impulse;
             player_entity.zza = physics_state.forward_impulse;
         }
@@ -175,7 +175,7 @@ impl Client {
 
     /// Update the impulse from self.move_direction. The multipler is used for sneaking.
     pub(crate) fn tick_controls(&mut self, multiplier: Option<f32>) {
-        let mut physics_state = self.physics_state.lock().unwrap();
+        let mut physics_state = self.physics_state.lock();
 
         let mut forward_impulse: f32 = 0.;
         let mut left_impulse: f32 = 0.;
@@ -211,7 +211,7 @@ impl Client {
 
     /// Start walking in the given direction.
     pub fn walk(&mut self, direction: MoveDirection) {
-        let mut physics_state = self.physics_state.lock().unwrap();
+        let mut physics_state = self.physics_state.lock();
         physics_state.move_direction = direction;
     }
 
@@ -221,13 +221,18 @@ impl Client {
     /// If you're making a realistic client, calling this function every tick is
     /// recommended.
     pub fn set_jumping(&mut self, jumping: bool) {
-        let player_lock = self.player.lock().unwrap();
-        let mut dimension_lock = self.dimension.lock().unwrap();
-        let mut player_entity = player_lock
-            .entity_mut(&mut dimension_lock)
-            .expect("Player must exist");
+        let mut dimension = self.dimension.lock();
+        let mut player_entity = self.entity_mut(&mut dimension);
 
         player_entity.jumping = jumping;
+    }
+
+    /// Returns whether the player will try to jump next tick.
+    pub fn jumping(&self) -> bool {
+        let dimension = self.dimension.lock();
+        let player_entity = self.entity(&dimension);
+
+        player_entity.jumping
     }
 }
 

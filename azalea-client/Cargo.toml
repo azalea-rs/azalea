@@ -16,6 +16,7 @@ azalea-physics = {path = "../azalea-physics"}
 azalea-protocol = {path = "../azalea-protocol"}
 azalea-world = {path = "../azalea-world"}
 log = "0.4.17"
+parking_lot = "0.12.1"
 thiserror = "^1.0.34"
 tokio = {version = "^1.19.2", features = ["sync"]}
 uuid = "^1.1.2"

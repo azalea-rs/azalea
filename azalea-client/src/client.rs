@@ -25,14 +25,13 @@ use azalea_protocol::{
     read::ReadPacketError,
     resolver, ServerAddress,
 };
-use azalea_world::entity::{EntityData, EntityMut, EntityRef};
-use azalea_world::Dimension;
-use log::{debug, error, warn};
-use std::{
-    fmt::Debug,
-    io,
-    sync::{Arc, Mutex, MutexGuard},
+use azalea_world::{
+    entity::{EntityData, EntityMut, EntityRef},
+    Dimension,
 };
+use log::{debug, error, warn};
+use parking_lot::Mutex;
+use std::{fmt::Debug, io, sync::Arc};
 use thiserror::Error;
 use tokio::{
     io::AsyncWriteExt,
@@ -221,7 +220,7 @@ impl Client {
         // read the error to see where the issue is
         // you might be able to just drop the lock or put it in its own scope to fix
         {
-            let mut tasks = client.tasks.lock().unwrap();
+            let mut tasks = client.tasks.lock();
             tasks.push(tokio::spawn(Self::protocol_loop(
                 client.clone(),
                 tx.clone(),
@@ -240,7 +239,7 @@ impl Client {
     /// Disconnect from the server, ending all tasks.
     pub async fn shutdown(self) -> Result<(), std::io::Error> {
         self.write_conn.lock().await.write_stream.shutdown().await?;
-        let tasks = self.tasks.lock().unwrap();
+        let tasks = self.tasks.lock();
         for task in tasks.iter() {
             task.abort();
         }
@@ -348,7 +347,7 @@ impl Client {
                         .as_int()
                         .expect("min_y tag is not an int");
 
-                    let mut dimension_lock = client.dimension.lock().unwrap();
+                    let mut dimension_lock = client.dimension.lock();
                     // the 16 here is our render distance
                     // i'll make this an actual setting later
                     *dimension_lock = Dimension::new(16, height, min_y);
@@ -356,7 +355,7 @@ impl Client {
                     let entity = EntityData::new(client.game_profile.uuid, Vec3::default());
                     dimension_lock.add_entity(p.player_id, entity);
 
-                    let mut player_lock = client.player.lock().unwrap();
+                    let mut player_lock = client.player.lock();
 
                     player_lock.set_entity_id(p.player_id);
                 }
@@ -413,11 +412,11 @@ impl Client {
 
                 let (new_pos, y_rot, x_rot) = {
                     let player_entity_id = {
-                        let player_lock = client.player.lock().unwrap();
+                        let player_lock = client.player.lock();
                         player_lock.entity_id
                     };
 
-                    let mut dimension_lock = client.dimension.lock().unwrap();
+                    let mut dimension_lock = client.dimension.lock();
 
                     let mut player_entity = dimension_lock
                         .entity_mut(player_entity_id)
@@ -505,7 +504,7 @@ impl Client {
                 debug!("Got chunk cache center packet {:?}", p);
                 client
                     .dimension
-                    .lock()?
+                    .lock()
                     .update_view_center(&ChunkPos::new(p.x, p.z));
             }
             ClientboundGamePacket::LevelChunkWithLight(p) => {
@@ -515,7 +514,7 @@ impl Client {
                 // debug("chunk {:?}")
                 client
                     .dimension
-                    .lock()?
+                    .lock()
                     .replace_with_packet_data(&pos, &mut p.chunk_data.data.as_slice())
                     .unwrap();
             }
@@ -525,7 +524,7 @@ impl Client {
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {:?}", p);
                 let entity = EntityData::from(p);
-                client.dimension.lock()?.add_entity(p.id, entity);
+                client.dimension.lock().add_entity(p.id, entity);
             }
             ClientboundGamePacket::SetEntityData(_p) => {
                 // debug!("Got set entity data packet {:?}", p);
@@ -542,7 +541,7 @@ impl Client {
             ClientboundGamePacket::AddPlayer(p) => {
                 debug!("Got add player packet {:?}", p);
                 let entity = EntityData::from(p);
-                client.dimension.lock()?.add_entity(p.id, entity);
+                client.dimension.lock().add_entity(p.id, entity);
             }
             ClientboundGamePacket::InitializeBorder(p) => {
                 debug!("Got initialize border packet {:?}", p);
@@ -563,7 +562,7 @@ impl Client {
                 debug!("Got set experience packet {:?}", p);
             }
             ClientboundGamePacket::TeleportEntity(p) => {
-                let mut dimension_lock = client.dimension.lock()?;
+                let mut dimension_lock = client.dimension.lock();
 
                 dimension_lock
                     .set_entity_pos(
@@ -583,14 +582,14 @@ impl Client {
                 // debug!("Got rotate head packet {:?}", p);
             }
             ClientboundGamePacket::MoveEntityPos(p) => {
-                let mut dimension_lock = client.dimension.lock()?;
+                let mut dimension_lock = client.dimension.lock();
 
                 dimension_lock
                     .move_entity_with_delta(p.entity_id, &p.delta)
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
             ClientboundGamePacket::MoveEntityPosRot(p) => {
-                let mut dimension_lock = client.dimension.lock()?;
+                let mut dimension_lock = client.dimension.lock();
 
                 dimension_lock
                     .move_entity_with_delta(p.entity_id, &p.delta)
@@ -625,7 +624,7 @@ impl Client {
             }
             ClientboundGamePacket::BlockUpdate(p) => {
                 debug!("Got block update packet {:?}", p);
-                let mut dimension = client.dimension.lock()?;
+                let mut dimension = client.dimension.lock();
                 dimension.set_block_state(&p.pos, p.block_state);
             }
             ClientboundGamePacket::Animate(p) => {
@@ -731,8 +730,8 @@ impl Client {
 
         // return if there's no chunk at the player's position
         {
-            let dimension_lock = client.dimension.lock().unwrap();
-            let player_lock = client.player.lock().unwrap();
+            let dimension_lock = client.dimension.lock();
+            let player_lock = client.player.lock();
             let player_entity = player_lock.entity(&dimension_lock);
             let player_entity = if let Some(player_entity) = player_entity {
                 player_entity
@@ -756,13 +755,24 @@ impl Client {
     }
 
     /// Returns the entity associated to the player.
-    pub fn entity(&self) -> EntityRef {
-        let player_lock = self.player.lock().unwrap();
-        let mut dimension_lock = self.dimension.lock().unwrap();
-        let entity = player_lock
-            .entity(&mut dimension_lock)
-            .expect("Player must exist");
-        entity
+    pub fn entity_mut<'d>(&self, dimension: &'d mut Dimension) -> EntityMut<'d> {
+        let entity_id = {
+            let player_lock = self.player.lock();
+            player_lock.entity_id
+        };
+        dimension
+            .entity_mut(entity_id)
+            .expect("Player entity should be in the given dimension")
+    }
+    /// Returns the entity associated to the player.
+    pub fn entity<'d>(&self, dimension: &'d Dimension) -> EntityRef<'d> {
+        let entity_id = {
+            let player_lock = self.player.lock();
+            player_lock.entity_id
+        };
+        dimension
+            .entity(entity_id)
+            .expect("Player entity should be in the given dimension")
     }
 }
 
