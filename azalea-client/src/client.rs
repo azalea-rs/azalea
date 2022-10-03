@@ -25,13 +25,13 @@ use azalea_protocol::{
     read::ReadPacketError,
     resolver, ServerAddress,
 };
-use azalea_world::entity::EntityData;
+use azalea_world::entity::{EntityData, EntityMut, EntityRef};
 use azalea_world::Dimension;
 use log::{debug, error, warn};
 use std::{
     fmt::Debug,
     io,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, MutexGuard},
 };
 use thiserror::Error;
 use tokio::{
@@ -41,6 +41,8 @@ use tokio::{
     time::{self},
 };
 
+/// Events are sent before they're processed, so for example game ticks happen
+/// at the beginning of a tick before anything has happened.
 #[derive(Debug, Clone)]
 pub enum Event {
     Login,
@@ -725,6 +727,8 @@ impl Client {
 
     /// Runs every 50 milliseconds.
     async fn game_tick(client: &mut Client, tx: &UnboundedSender<Event>) {
+        tx.send(Event::GameTick).unwrap();
+
         // return if there's no chunk at the player's position
         {
             let dimension_lock = client.dimension.lock().unwrap();
@@ -749,8 +753,16 @@ impl Client {
         client.ai_step();
 
         // TODO: minecraft does ambient sounds here
+    }
 
-        tx.send(Event::GameTick).unwrap();
+    /// Returns the entity associated to the player.
+    pub fn entity(&self) -> EntityRef {
+        let player_lock = self.player.lock().unwrap();
+        let mut dimension_lock = self.dimension.lock().unwrap();
+        let entity = player_lock
+            .entity(&mut dimension_lock)
+            .expect("Player must exist");
+        entity
     }
 }
 

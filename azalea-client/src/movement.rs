@@ -159,23 +159,15 @@ impl Client {
 
         let player_lock = self.player.lock().unwrap();
         let mut dimension_lock = self.dimension.lock().unwrap();
-
         let mut player_entity = player_lock
             .entity_mut(&mut dimension_lock)
             .expect("Player must exist");
 
         // server ai step
         {
-            let mut physics_state = self.physics_state.lock().unwrap();
+            let physics_state = self.physics_state.lock().unwrap();
             player_entity.xxa = physics_state.left_impulse;
             player_entity.zza = physics_state.forward_impulse;
-
-            // handle jumping_once
-            if physics_state.jumping_once {
-                player_entity.jumping = true;
-            } else if player_entity.jumping {
-                physics_state.jumping_once = false;
-            }
         }
 
         player_entity.ai_step();
@@ -221,13 +213,6 @@ impl Client {
     pub fn walk(&mut self, direction: MoveDirection) {
         let mut physics_state = self.physics_state.lock().unwrap();
         physics_state.move_direction = direction;
-    }
-
-    /// Jump once next tick. This acts as if you pressed space for one tick in
-    /// vanilla. If you want to jump continuously, use `set_jumping`.
-    pub fn jump(&mut self) {
-        let mut physics_state = self.physics_state.lock().unwrap();
-        physics_state.jumping_once = true;
     }
 
     /// Toggle whether we're jumping. This acts as if you held space in
