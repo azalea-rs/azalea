@@ -44,11 +44,13 @@ pub struct DStarLite<'a, N: Eq + Hash + Clone, W: Ord + Copy> {
     pub predecessors: EdgesFn<N, W>,
 
     pub start: Cow<'a, Vertex<N, W>>,
-    pub goal: Vertex<N, W>,
+    goal: Vertex<N, W>,
 
-    pub queue: PriorityQueue<Vertex<N, W>, Priority<W>>,
+    queue: PriorityQueue<Vertex<N, W>, Priority<W>>,
+    k_m: W,
 
-    pub k_m: W,
+    /// A list of edges and costs that we'll be updating next time.
+    pub updated_edge_costs: Vec<(Edge<'a, N, W>, W)>,
 }
 
 pub struct Edge<'a, N: Eq + Hash + Clone, W: Ord + Copy> {
@@ -106,7 +108,8 @@ where
 
             queue,
             k_m: W::default(),
-            // self.goal.rhs = W::default(),
+
+            updated_edge_costs: Vec::new(),
         }
     }
 
@@ -172,6 +175,28 @@ where
             }
         }
     }
+
+    pub fn update_from_updated_edges(&mut self) {
+        while let Some((mut edge, new_cost)) = self.updated_edge_costs.pop() {
+            let old_cost = edge.cost;
+            edge.cost = new_cost;
+            if old_cost > new_cost {
+                edge.successor.to_mut().rhs =
+                    Ord::min(edge.successor.rhs, edge.cost + edge.successor.g);
+            } else if edge.successor.rhs == old_cost + edge.successor.g {
+                if edge.successor.deref() != &self.goal {
+                    edge.successor.to_mut().rhs = (self.successors)(&edge.successor)
+                        .iter()
+                        .map(|s| s.cost + edge.successor.g)
+                        .min()
+                        .unwrap();
+                }
+            }
+            self.update_vertex(&edge.successor);
+        }
+    }
+
+    fn next(&mut self) {}
 
     // fn main(&mut self) {
     //     let s_last = &self.start;
