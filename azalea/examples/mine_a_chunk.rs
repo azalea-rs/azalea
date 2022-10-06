@@ -1,6 +1,6 @@
 use azalea::{pathfinder, Account, Accounts, Event};
-
-// You can use the `azalea::Bots` struct to control many bots as one unit.
+use parking_lot::Mutex;
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
@@ -10,22 +10,60 @@ async fn main() {
         accounts.add(Account::offline(format!("bot{}", i)));
     }
 
-    let bots = accounts
-        .join("localhost".try_into().unwrap())
-        .await
-        .unwrap();
+    azalea::start_group(azalea::GroupOptions {
+        accounts,
+        address: "localhost",
 
-    bots.goto(azalea::BlockPos::new(0, 70, 0)).await;
-    // or bots.goto_goal(pathfinder::Goals::Goto(azalea::BlockPos(0, 70, 0))).await;
+        group_state: Arc::new(Mutex::new(State::default())),
+        state: State::default(),
 
-    // destroy the blocks in this area and then leave
+        group_plugins: vec![Arc::new(pathfinder::Plugin::default())],
+        plugins: vec![],
 
-    bots.fill(
-        azalea::Selection::Range(
-            azalea::BlockPos::new(0, 0, 0),
-            azalea::BlockPos::new(16, 255, 16),
-        ),
-        azalea::block::Air,
-    )
-    .await;
+        handle: Box::new(handle),
+        group_handle: Box::new(handle),
+    })
+    .await
+    .unwrap();
+}
+
+#[derive(Default)]
+struct State {}
+
+#[derive(Default)]
+struct GroupState {}
+
+async fn handle(bot: Client, event: Arc<Event>, state: Arc<Mutex<State>>) -> anyhow::Result<()> {
+    match event {
+        _ => {}
+    }
+
+    Ok(())
+}
+
+async fn group_handle(
+    bots: Clients,
+    event: Arc<Event>,
+    state: Arc<Mutex<GroupState>>,
+) -> anyhow::Result<()> {
+    match event {
+        Event::Login => {
+            bots.goto(azalea::BlockPos::new(0, 70, 0)).await;
+            // or bots.goto_goal(pathfinder::Goals::Goto(azalea::BlockPos(0, 70, 0))).await;
+
+            // destroy the blocks in this area and then leave
+
+            bots.fill(
+                azalea::Selection::Range(
+                    azalea::BlockPos::new(0, 0, 0),
+                    azalea::BlockPos::new(16, 255, 16),
+                ),
+                azalea::block::Air,
+            )
+            .await;
+        }
+        _ => {}
+    }
+
+    Ok(())
 }

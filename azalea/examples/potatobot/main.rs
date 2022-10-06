@@ -2,15 +2,11 @@ mod autoeat;
 
 use azalea::prelude::*;
 use azalea::{pathfinder, Account, BlockPos, Client, Event, ItemKind, MoveDirection, Plugin, Vec3};
-use std::{
-    convert::TryInto,
-    sync::{Arc, Mutex},
-};
+use parking_lot::Mutex;
+use std::{convert::TryInto, sync::Arc};
 
 #[derive(Default)]
-struct State {
-    pub eating: bool,
-}
+struct State {}
 
 #[tokio::main]
 async fn main() {
