@@ -1,5 +1,11 @@
 //! An implementation of D* Lite: second version (optimized version) as
 //! described in https://www.cs.cmu.edu/~maxim/files/dlite_tro05.pdf
+//!
+//! Future optimization attempt ideas:
+//! - Store the `g` and `rhs` in their own HashMap instead of being in Vertex
+//! - Use a different priority queue (e.g. fibonacci heap)
+//! - Use FxHash instead of the default hasher
+//! - Have a `cost(a: Vertex, b: Vertex)` function instead of having the cost be stored in `Edge`
 
 use priority_queue::PriorityQueue;
 use std::{
@@ -70,6 +76,8 @@ where
 pub trait Max {
     const MAX: Self;
 }
+
+pub struct NoPathError;
 
 impl<N: Eq + Hash + Clone, W: Ord + Add<Output = W> + Default + Copy + Max> DStarLite<'_, N, W> {
     fn calculate_key(&self, s: &Vertex<N, W>) -> Priority<W> {
@@ -199,20 +207,21 @@ impl<N: Eq + Hash + Clone, W: Ord + Add<Output = W> + Default + Copy + Max> DSta
         }
     }
 
-    pub fn next(&mut self) -> Option<&N> {
+    pub fn next(&mut self) -> Result<Option<&N>, NoPathError> {
         while self.start.deref() != &self.goal {
             if self.start.rhs == W::MAX {
-                // no path
+                return Err(NoPathError);
             }
+
             *self.start.to_mut() = (self.successors)(&self.start)
                 .into_iter()
                 .min_by(|a, b| a.cost.cmp(&b.cost))
                 .expect("No possible successors")
                 .successor
                 .into_owned();
-            return Some(&self.start.as_ref().node);
+            return Ok(Some(&self.start.as_ref().node));
         }
 
-        None
+        Ok(None)
     }
 }
