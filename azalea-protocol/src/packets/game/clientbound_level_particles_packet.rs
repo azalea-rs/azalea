@@ -1,7 +1,7 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
 use azalea_core::ParticleData;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::Write;
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, ClientboundGamePacket)]
 pub struct ClientboundLevelParticlesPacket {
@@ -20,7 +20,7 @@ pub struct ClientboundLevelParticlesPacket {
 }
 
 impl McBufReadable for ClientboundLevelParticlesPacket {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let particle_id = u32::var_read_from(buf)?;
         let override_limiter = bool::read_from(buf)?;
         let x = f64::read_from(buf)?;

@@ -64,8 +64,8 @@ pub enum FrameSplitterError {
 
 /// Read a length, then read that amount of bytes from BytesMut. If there's not
 /// enough data, return None
-fn parse_frame(buffer: &mut BytesMut) -> Result<&[u8], FrameSplitterError> {
-    let buffer_copy = Cursor::new(&buffer[..]);
+fn parse_frame(buffer: &mut BytesMut) -> Result<BytesMut, FrameSplitterError> {
+    let mut buffer_copy = Cursor::new(buffer.to_vec());
     // Packet Length
     let length = match u32::var_read_from(&mut buffer_copy) {
         Ok(length) => length as usize,
@@ -87,8 +87,7 @@ fn parse_frame(buffer: &mut BytesMut) -> Result<&[u8], FrameSplitterError> {
 
     // the length of the varint that says the length of the whole packet
     let varint_length = buffer.len() - buffer_copy.get_ref().len();
-    let data = &buffer_copy.get_ref()[..length];
-    let _ = buffer.split_to(length + varint_length);
+    let data = buffer.split_to(varint_length + length);
 
     Ok(data)
 }
@@ -96,7 +95,7 @@ fn parse_frame(buffer: &mut BytesMut) -> Result<&[u8], FrameSplitterError> {
 async fn frame_splitter<'a, R: ?Sized + Sized>(
     stream: &mut R,
     buffer: &'a mut BytesMut,
-) -> Result<&'a [u8], FrameSplitterError>
+) -> Result<Vec<u8>, FrameSplitterError>
 where
     R: AsyncRead + std::marker::Unpin + std::marker::Send,
 {
@@ -104,7 +103,7 @@ where
     loop {
         let read_frame = parse_frame(buffer);
         match read_frame {
-            Ok(frame) => return Ok(frame),
+            Ok(frame) => return Ok(frame.to_vec()),
             Err(err) => match err {
                 FrameSplitterError::BadLength { .. } | FrameSplitterError::Io { .. } => {
                     // we probably just haven't read enough yet
@@ -113,18 +112,18 @@ where
             },
         }
 
-        // let read_buf: usize = AsyncReadExt::read_buf(stream, buffer).await?;
-        // if 0 == read_buf {
-        //     // The remote closed the connection. For this to be
-        //     // a clean shutdown, there should be no data in the
-        //     // read buffer. If there is, this means that the
-        //     // peer closed the socket while sending a frame.
-        //     if buffer.as_ref().is_empty() {
-        //         return Err(FrameSplitterError::ConnectionClosed);
-        //     } else {
-        //         return Err(FrameSplitterError::ConnectionReset);
-        //     }
-        // }
+        let read_buf: usize = AsyncReadExt::read_buf(stream, buffer).await?;
+        if 0 == read_buf {
+            // The remote closed the connection. For this to be
+            // a clean shutdown, there should be no data in the
+            // read buffer. If there is, this means that the
+            // peer closed the socket while sending a frame.
+            if buffer.as_ref().is_empty() {
+                return Err(FrameSplitterError::ConnectionClosed);
+            } else {
+                return Err(FrameSplitterError::ConnectionReset);
+            }
+        }
     }
 }
 
@@ -248,7 +247,7 @@ where
     let mut buf = Cursor::new(frame_splitter(&mut encrypted_stream, buffer).await?);
 
     if let Some(compression_threshold) = compression_threshold {
-        buf = Cursor::new(&compression_decoder(&mut buf, compression_threshold)?);
+        buf = Cursor::new(compression_decoder(&mut buf, compression_threshold)?);
     }
 
     if log_enabled!(log::Level::Trace) {

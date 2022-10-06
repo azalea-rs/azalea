@@ -41,19 +41,20 @@ pub enum BufReadError {
     Deserialization(#[from] serde_json::Error),
 }
 
-fn read_bytes<'a>(buf: &mut Cursor<Vec<u8>>, length: usize) -> Result<&'a [u8], BufReadError> {
+fn read_bytes<'a>(buf: &'a mut Cursor<&[u8]>, length: usize) -> Result<&'a [u8], BufReadError> {
     if length > buf.get_ref().len() {
         return Err(BufReadError::UnexpectedEof {
             attempted_read: length,
             actual_read: buf.get_ref().len(),
         });
     }
-    let data = &buf.get_ref()[buf.position() as usize..buf.position() as usize + length];
+    let initial_position = buf.position() as usize;
     buf.set_position(buf.position() + length as u64);
+    let data = &buf.get_ref()[initial_position..initial_position + length];
     Ok(data)
 }
 
-fn read_utf_with_len(buf: &mut Cursor<Vec<u8>>, max_length: u32) -> Result<String, BufReadError> {
+fn read_utf_with_len(buf: &mut Cursor<&[u8]>, max_length: u32) -> Result<String, BufReadError> {
     let length = u32::var_read_from(buf)?;
     // i don't know why it's multiplied by 4 but it's like that in mojang's code so
     if length as u32 > max_length * 4 {
@@ -95,18 +96,18 @@ pub trait McBufReadable
 where
     Self: Sized,
 {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError>;
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError>;
 }
 
 pub trait McBufVarReadable
 where
     Self: Sized,
 {
-    fn var_read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError>;
+    fn var_read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError>;
 }
 
 impl McBufReadable for i32 {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_i32::<BE>()?)
     }
 }
@@ -114,7 +115,7 @@ impl McBufReadable for i32 {
 impl McBufVarReadable for i32 {
     // fast varints modified from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
     /// Read a single varint from the reader and return the value
-    fn var_read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn var_read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut buffer = [0];
         let mut ans = 0;
         for i in 0..5 {
@@ -130,7 +131,7 @@ impl McBufVarReadable for i32 {
 
 impl McBufVarReadable for i64 {
     // fast varints modified from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L54
-    fn var_read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn var_read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut buffer = [0];
         let mut ans = 0;
         for i in 0..8 {
@@ -145,13 +146,13 @@ impl McBufVarReadable for i64 {
     }
 }
 impl McBufVarReadable for u64 {
-    fn var_read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn var_read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         i64::var_read_from(buf).map(|i| i as u64)
     }
 }
 
 impl McBufReadable for UnsizedByteArray {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         // read to end of the buffer
         let data = buf.get_ref()[buf.position() as usize..].to_vec();
         buf.set_position((buf.position()) + data.len() as u64);
@@ -160,7 +161,7 @@ impl McBufReadable for UnsizedByteArray {
 }
 
 impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
-    default fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    default fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = u32::var_read_from(buf)? as usize;
         // we don't set the capacity here so we can't get exploited into
         // allocating a bunch
@@ -173,7 +174,7 @@ impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
 }
 
 impl<K: McBufReadable + Send + Eq + Hash, V: McBufReadable + Send> McBufReadable for HashMap<K, V> {
-    default fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    default fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = i32::var_read_from(buf)? as usize;
         let mut contents = HashMap::new();
         for _ in 0..length {
@@ -186,7 +187,7 @@ impl<K: McBufReadable + Send + Eq + Hash, V: McBufReadable + Send> McBufReadable
 impl<K: McBufReadable + Send + Eq + Hash, V: McBufVarReadable + Send> McBufVarReadable
     for HashMap<K, V>
 {
-    default fn var_read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    default fn var_read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = i32::var_read_from(buf)? as usize;
         let mut contents = HashMap::new();
         for _ in 0..length {
@@ -197,50 +198,50 @@ impl<K: McBufReadable + Send + Eq + Hash, V: McBufVarReadable + Send> McBufVarRe
 }
 
 impl McBufReadable for Vec<u8> {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = i32::var_read_from(buf)? as usize;
         read_bytes(buf, length).map(|b| b.to_vec())
     }
 }
 
 impl McBufReadable for String {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         read_utf_with_len(buf, MAX_STRING_LENGTH.into())
     }
 }
 
 impl McBufReadable for u32 {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(i32::read_from(buf)? as u32)
     }
 }
 
 impl McBufVarReadable for u32 {
-    fn var_read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn var_read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(i32::var_read_from(buf)? as u32)
     }
 }
 
 impl McBufReadable for u16 {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         i16::read_from(buf).map(|i| i as u16)
     }
 }
 
 impl McBufReadable for i16 {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_i16::<BE>()?)
     }
 }
 
 impl McBufVarReadable for u16 {
-    fn var_read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn var_read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(i32::var_read_from(buf)? as u16)
     }
 }
 
 impl<T: McBufVarReadable> McBufVarReadable for Vec<T> {
-    fn var_read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn var_read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = i32::var_read_from(buf)? as usize;
         let mut contents = Vec::new();
         for _ in 0..length {
@@ -251,49 +252,49 @@ impl<T: McBufVarReadable> McBufVarReadable for Vec<T> {
 }
 
 impl McBufReadable for i64 {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_i64::<BE>()?)
     }
 }
 
 impl McBufReadable for u64 {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         i64::read_from(buf).map(|i| i as u64)
     }
 }
 
 impl McBufReadable for bool {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(u8::read_from(buf)? != 0)
     }
 }
 
 impl McBufReadable for u8 {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_u8()?)
     }
 }
 
 impl McBufReadable for i8 {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         u8::read_from(buf).map(|i| i as i8)
     }
 }
 
 impl McBufReadable for f32 {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_f32::<BE>()?)
     }
 }
 
 impl McBufReadable for f64 {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_f64::<BE>()?)
     }
 }
 
 impl<T: McBufReadable> McBufReadable for Option<T> {
-    default fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    default fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let present = bool::read_from(buf)?;
         Ok(if present {
             Some(T::read_from(buf)?)
@@ -304,7 +305,7 @@ impl<T: McBufReadable> McBufReadable for Option<T> {
 }
 
 impl<T: McBufVarReadable> McBufVarReadable for Option<T> {
-    default fn var_read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    default fn var_read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let present = bool::read_from(buf)?;
         Ok(if present {
             Some(T::var_read_from(buf)?)
@@ -316,7 +317,7 @@ impl<T: McBufVarReadable> McBufVarReadable for Option<T> {
 
 // [String; 4]
 impl<T: McBufReadable, const N: usize> McBufReadable for [T; N] {
-    default fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    default fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut contents = Vec::with_capacity(N);
         for _ in 0..N {
             contents.push(T::read_from(buf)?);

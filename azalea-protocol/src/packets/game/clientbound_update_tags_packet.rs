@@ -2,6 +2,7 @@ use azalea_buf::{BufReadError, McBuf, McBufVarReadable, McBufVarWritable};
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
+use std::io::Cursor;
 use std::ops::Deref;
 use std::{collections::HashMap, io::Write};
 
@@ -20,7 +21,7 @@ pub struct Tags {
 pub struct TagMap(HashMap<ResourceLocation, Vec<Tags>>);
 
 impl McBufReadable for TagMap {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = u32::var_read_from(buf)? as usize;
         let mut data = HashMap::with_capacity(length);
         for _ in 0..length {
@@ -48,7 +49,7 @@ impl McBufWritable for TagMap {
     }
 }
 impl McBufReadable for Tags {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let name = ResourceLocation::read_from(buf)?;
         let elements = Vec::<i32>::var_read_from(buf)?;
         Ok(Tags { name, elements })

@@ -2,7 +2,7 @@ use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_core::{ChunkSectionBlockPos, ChunkSectionPos};
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::Write;
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSectionBlocksUpdatePacket {
@@ -18,7 +18,7 @@ pub struct BlockStateWithPosition {
 }
 
 impl McBufReadable for BlockStateWithPosition {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let data = u64::var_read_from(buf)?;
         let position_part = data & 4095;
         let state = (data >> 12) as u32;

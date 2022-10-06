@@ -1,8 +1,7 @@
-use std::io::Write;
-
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
+use std::io::{Cursor, Write};
 
 use super::clientbound_sound_packet::SoundSource;
 
@@ -13,7 +12,7 @@ pub struct ClientboundStopSoundPacket {
 }
 
 impl McBufReadable for ClientboundStopSoundPacket {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let byte = u8::read_from(buf)?;
         let source = if byte & 1 != 0 {
             Some(SoundSource::read_from(buf)?)

@@ -8,12 +8,13 @@ use std::io::Cursor;
 use std::io::{BufRead, Read};
 
 #[inline]
-fn read_bytes<'a>(buf: &mut Cursor<Vec<u8>>, length: usize) -> Result<&'a [u8], Error> {
+fn read_bytes<'a>(buf: &'a mut Cursor<Vec<u8>>, length: usize) -> Result<&'a [u8], Error> {
     if length > buf.get_ref().len() {
         return Err(Error::UnexpectedEof);
     }
-    let data = &buf.get_ref()[..length];
+    let initial_position = buf.position() as usize;
     buf.set_position(buf.position() + length as u64);
+    let data = &buf.get_ref()[initial_position..initial_position + length];
     Ok(data)
 }
 
@@ -140,19 +141,19 @@ impl Tag {
         let mut gz = ZlibDecoder::new(stream);
         let mut buf = Vec::new();
         gz.read_to_end(&mut buf)?;
-        Tag::read(&mut Cursor::new(&buf[..]))
+        Tag::read(&mut Cursor::new(buf))
     }
 
     pub fn read_gzip(stream: &mut Cursor<Vec<u8>>) -> Result<Tag, Error> {
         let mut gz = GzDecoder::new(stream);
         let mut buf = Vec::new();
         gz.read_to_end(&mut buf)?;
-        Tag::read(&mut Cursor::new(&buf[..]))
+        Tag::read(&mut Cursor::new(buf))
     }
 }
 
 impl McBufReadable for Tag {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(Tag::read(buf)?)
     }
 }

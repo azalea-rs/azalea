@@ -67,7 +67,7 @@ impl Difficulty {
 }
 
 impl McBufReadable for Difficulty {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(Difficulty::by_id(u8::read_from(buf)?))
     }
 }

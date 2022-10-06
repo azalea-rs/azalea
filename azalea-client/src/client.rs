@@ -30,7 +30,7 @@ use azalea_world::Dimension;
 use log::{debug, error, warn};
 use std::{
     fmt::Debug,
-    io,
+    io::{self, Cursor},
     sync::{Arc, Mutex},
 };
 use thiserror::Error;
@@ -514,7 +514,7 @@ impl Client {
                 client
                     .dimension
                     .lock()?
-                    .replace_with_packet_data(&pos, &mut p.chunk_data.data.as_slice())
+                    .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data))
                     .unwrap();
             }
             ClientboundGamePacket::LightUpdate(p) => {

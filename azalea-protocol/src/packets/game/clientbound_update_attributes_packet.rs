@@ -2,7 +2,7 @@ use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::Write;
+use std::io::{Cursor, Write};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
@@ -34,7 +34,7 @@ enum Operation {
 }
 
 impl McBufReadable for Operation {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         match u8::read_from(buf)? {
             0 => Ok(Operation::Addition),
             1 => Ok(Operation::MultiplyBase),

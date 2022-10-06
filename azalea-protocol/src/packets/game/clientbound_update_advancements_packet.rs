@@ -3,6 +3,7 @@ use azalea_chat::component::Component;
 use azalea_core::{ResourceLocation, Slot};
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::collections::HashMap;
+use std::io::Cursor;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundUpdateAdvancementsPacket {
@@ -63,7 +64,7 @@ impl azalea_buf::McBufWritable for DisplayInfo {
     }
 }
 impl azalea_buf::McBufReadable for DisplayInfo {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, azalea_buf::BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
         let title = azalea_buf::McBufReadable::read_from(buf)?;
         let description = azalea_buf::McBufReadable::read_from(buf)?;
         let icon = azalea_buf::McBufReadable::read_from(buf)?;

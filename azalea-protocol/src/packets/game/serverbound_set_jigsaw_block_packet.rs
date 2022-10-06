@@ -5,6 +5,7 @@ use azalea_buf::McBufReadable;
 use azalea_core::BlockPos;
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ServerboundGamePacket;
+use std::io::Cursor;
 use std::io::Write;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
@@ -23,7 +24,7 @@ pub enum JointType {
 }
 
 impl McBufReadable for JointType {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let name = String::read_from(buf)?;
         match name.as_str() {
             "rollable" => Ok(JointType::Rollable),

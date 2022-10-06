@@ -33,7 +33,7 @@ impl SerializableUuid for Uuid {
 }
 
 impl McBufReadable for Uuid {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(Uuid::from_int_array([
             u32::read_from(buf)?,
             u32::read_from(buf)?,

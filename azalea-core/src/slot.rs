@@ -18,7 +18,7 @@ pub struct SlotData {
 }
 
 impl McBufReadable for Slot {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let present = bool::read_from(buf)?;
         if !present {
             return Ok(Slot::Empty);

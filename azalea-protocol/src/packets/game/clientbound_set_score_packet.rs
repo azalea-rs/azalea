@@ -1,6 +1,9 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::{io::Write, ops::Not};
+use std::{
+    io::{Cursor, Write},
+    ops::Not,
+};
 
 #[derive(Clone, Debug, ClientboundGamePacket)]
 pub struct ClientboundSetScorePacket {
@@ -10,7 +13,7 @@ pub struct ClientboundSetScorePacket {
 }
 
 impl McBufReadable for ClientboundSetScorePacket {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let owner = String::read_from(buf)?;
         let method_id = u32::var_read_from(buf)?;
         let objective_name = String::read_from(buf)?;

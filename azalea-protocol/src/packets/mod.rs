@@ -5,7 +5,7 @@ pub mod status;
 
 use crate::read::ReadPacketError;
 use azalea_buf::{BufReadError, McBufVarReadable, McBufVarWritable, McBufWritable};
-use std::io::Write;
+use std::io::{Cursor, Write};
 
 // TODO: rename the packet files to just like clientbound_add_entity instead of clientbound_add_entity_packet
 
@@ -45,7 +45,7 @@ where
 }
 
 impl azalea_buf::McBufReadable for ConnectionProtocol {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = i32::var_read_from(buf)?;
         ConnectionProtocol::from_i32(id).ok_or(BufReadError::UnexpectedEnumVariant { id })
     }

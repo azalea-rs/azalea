@@ -2,7 +2,7 @@ use crate::packets::BufReadError;
 use azalea_buf::{McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_core::Vec3;
 use azalea_protocol_macros::ServerboundGamePacket;
-use std::io::Write;
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundInteractPacket {
@@ -48,7 +48,7 @@ impl McBufWritable for ActionType {
 }
 
 impl McBufReadable for ActionType {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let action_type = u32::var_read_from(buf)?;
         match action_type {
             0 => {

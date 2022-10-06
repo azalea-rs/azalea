@@ -1,8 +1,8 @@
 use azalea_buf::{BufReadError, McBuf};
+use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::Slot;
 use azalea_protocol_macros::ClientboundGamePacket;
-
-use azalea_buf::{McBufReadable, McBufWritable};
+use std::io::Cursor;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSetEquipmentPacket {
@@ -17,7 +17,7 @@ pub struct EquipmentSlots {
 }
 
 impl McBufReadable for EquipmentSlots {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut slots = vec![];
 
         loop {

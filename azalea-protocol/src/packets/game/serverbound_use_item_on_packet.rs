@@ -2,7 +2,7 @@ use crate::packets::game::serverbound_interact_packet::InteractionHand;
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use azalea_core::{BlockPos, Direction, Vec3};
 use azalea_protocol_macros::ServerboundGamePacket;
-use std::io::Write;
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundUseItemOnPacket {
@@ -33,7 +33,7 @@ impl McBufWritable for BlockHitResult {
 }
 
 impl McBufReadable for BlockHitResult {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let block_pos = BlockPos::read_from(buf)?;
         let direction = Direction::read_from(buf)?;
         let cursor_x = f32::read_from(buf)?;

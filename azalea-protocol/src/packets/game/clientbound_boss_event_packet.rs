@@ -3,6 +3,7 @@ use azalea_buf::{
 };
 use azalea_chat::component::Component;
 use azalea_protocol_macros::ClientboundGamePacket;
+use std::io::Cursor;
 use std::io::Write;
 use uuid::Uuid;
 
@@ -23,7 +24,7 @@ pub enum Operation {
 }
 
 impl McBufReadable for Operation {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let operation_id = u32::var_read_from(buf)?;
         Ok(match operation_id {
             0 => Operation::Add(AddOperation::read_from(buf)?),
@@ -114,7 +115,7 @@ pub struct Properties {
 }
 
 impl McBufReadable for Properties {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let byte = u8::read_from(buf)?;
         Ok(Self {
             darken_screen: byte & 1 != 0,

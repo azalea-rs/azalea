@@ -46,7 +46,7 @@ impl std::fmt::Debug for ResourceLocation {
 }
 
 impl McBufReadable for ResourceLocation {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let location_string = String::read_from(buf)?;
         ResourceLocation::new(&location_string)
     }

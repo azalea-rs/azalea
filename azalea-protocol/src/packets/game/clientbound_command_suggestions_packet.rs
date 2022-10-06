@@ -6,7 +6,7 @@ use azalea_buf::{
     McBufWritable,
 };
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::Write;
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, ClientboundGamePacket)]
 pub struct ClientboundCommandSuggestionsPacket {

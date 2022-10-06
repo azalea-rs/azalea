@@ -4,6 +4,7 @@ use azalea_core::BitSet;
 use azalea_crypto::{MessageSignature, SignedMessageHeader};
 use azalea_protocol_macros::ClientboundGamePacket;
 use uuid::Uuid;
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundPlayerChatPacket {

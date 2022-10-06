@@ -249,7 +249,7 @@ impl ParticleData {
 }
 
 impl McBufReadable for ParticleData {
-    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = u32::var_read_from(buf)?;
         ParticleData::read_from_particle_id(buf, id)
     }

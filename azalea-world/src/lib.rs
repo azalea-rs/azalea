@@ -47,7 +47,7 @@ impl Dimension {
     pub fn replace_with_packet_data(
         &mut self,
         pos: &ChunkPos,
-        data: &mut Cursor<Vec<u8>>,
+        data: &mut Cursor<&[u8]>,
     ) -> Result<(), BufReadError> {
         self.chunk_storage.replace_with_packet_data(pos, data)
     }
