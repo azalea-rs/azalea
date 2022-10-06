@@ -44,6 +44,8 @@ pub struct DStarLite<'a, N: Eq + Hash + Clone, W: Ord + Copy> {
     pub predecessors: EdgesFn<N, W>,
 
     pub start: Cow<'a, Vertex<N, W>>,
+    start_last: Cow<'a, Vertex<N, W>>,
+
     goal: Vertex<N, W>,
 
     queue: PriorityQueue<Vertex<N, W>, Priority<W>>,
@@ -69,11 +71,7 @@ pub trait Max {
     const MAX: Self;
 }
 
-impl<N, W> DStarLite<'_, N, W>
-where
-    N: Eq + Hash + Clone,
-    W: Ord + Add<Output = W> + Default + Copy + Max,
-{
+impl<N: Eq + Hash + Clone, W: Ord + Add<Output = W> + Default + Copy + Max> DStarLite<'_, N, W> {
     fn calculate_key(&self, s: &Vertex<N, W>) -> Priority<W> {
         // return [min(g(s), rhs(s)) + h(s_start, s) + k_m, min(g(s), rhs(s))]
         Priority(
@@ -99,7 +97,9 @@ where
             Priority(heuristic(&start_vertex, &goal_vertex), W::default()),
         );
         Self {
-            start: Cow::Owned(start_vertex),
+            start: Cow::Owned(start_vertex.clone()),
+            start_last: Cow::Owned(start_vertex),
+
             goal: goal_vertex,
 
             heuristic,
@@ -177,6 +177,9 @@ where
     }
 
     pub fn update_from_updated_edges(&mut self) {
+        self.k_m = self.k_m + (self.heuristic)(&self.start, &self.start_last);
+        self.start_last = self.start.to_owned();
+
         while let Some((mut edge, new_cost)) = self.updated_edge_costs.pop() {
             let old_cost = edge.cost;
             edge.cost = new_cost;
@@ -196,20 +199,20 @@ where
         }
     }
 
-    fn next(&mut self) {}
+    pub fn next(&mut self) -> Option<&N> {
+        while self.start.deref() != &self.goal {
+            if self.start.rhs == W::MAX {
+                // no path
+            }
+            *self.start.to_mut() = (self.successors)(&self.start)
+                .into_iter()
+                .min_by(|a, b| a.cost.cmp(&b.cost))
+                .expect("No possible successors")
+                .successor
+                .into_owned();
+            return Some(&self.start.as_ref().node);
+        }
 
-    // fn main(&mut self) {
-    //     let s_last = &self.start;
-    //     self.compute_shortest_path();
-    //     while self.start.deref() != &self.goal {
-    //         self.start = (self.successors)(&self.start)
-    //             .into_iter()
-    //             .min_by(|a, b| a.cost.cmp(&b.cost))
-    //             .expect("No possible successors")
-    //             .successor;
-    //         if self.start.rhs == W::MAX {
-    //             // no path
-    //         }
-    //     }
-    // }
+        None
+    }
 }
