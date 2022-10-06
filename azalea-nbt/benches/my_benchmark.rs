@@ -3,7 +3,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughpu
 use flate2::read::GzDecoder;
 use std::{
     fs::File,
-    io::{self, Read},
+    io::{self, Cursor, Read},
 };
 
 fn bench_serialize(filename: &str, c: &mut Criterion) {
@@ -16,9 +16,11 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
     let mut decoded_src_decoder = GzDecoder::new(&mut src);
     let mut decoded_src = Vec::new();
     decoded_src_decoder.read_to_end(&mut decoded_src).unwrap();
-    let decoded_src_stream = &mut &decoded_src[..];
 
-    let nbt = Tag::read(decoded_src_stream).unwrap();
+    let mut decoded_src_stream = Cursor::new(&decoded_src[..]);
+
+    let nbt = Tag::read(&mut decoded_src_stream).unwrap();
+    decoded_src_stream.set_position(0);
 
     let mut group = c.benchmark_group(filename);
 
@@ -26,7 +28,8 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
 
     group.bench_function("Decode", |b| {
         b.iter(|| {
-            black_box(Tag::read(&mut &decoded_src_stream[..]).unwrap());
+            black_box(Tag::read(&mut decoded_src_stream).unwrap());
+            decoded_src_stream.set_position(0);
         })
     });
 
