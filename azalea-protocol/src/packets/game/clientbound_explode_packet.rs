@@ -112,7 +112,7 @@ mod tests {
         };
         let mut buf = Vec::new();
         packet.write_into(&mut buf).unwrap();
-        let packet2 = ClientboundExplodePacket::read_from(&mut Cursor::new(buf)).unwrap();
+        let packet2 = ClientboundExplodePacket::read_from(&mut Cursor::new(&buf)).unwrap();
         assert_eq!(packet, packet2);
     }
 }

@@ -52,6 +52,8 @@ pub async fn connect(address: ServerAddress) -> Result<(), Box<dyn std::error::E
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+
     use crate::{
         packets::login::{
             serverbound_hello_packet::{ProfilePublicKeyData, ServerboundHelloPacket},
@@ -80,11 +82,17 @@ mod tests {
             .await
             .unwrap();
 
-        let stream = &mut &stream[..];
+        println!("stream: {stream:?}");
 
-        let _ =
-            read_packet::<ServerboundLoginPacket, _>(stream, &mut BytesMut::new(), None, &mut None)
-                .await
-                .unwrap();
+        let mut stream = Cursor::new(stream);
+
+        let _ = read_packet::<ServerboundLoginPacket, _>(
+            &mut stream,
+            &mut BytesMut::new(),
+            None,
+            &mut None,
+        )
+        .await
+        .unwrap();
     }
 }

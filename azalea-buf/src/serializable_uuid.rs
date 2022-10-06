@@ -80,7 +80,7 @@ mod tests {
         u.write_into(&mut buf).unwrap();
         println!("{:?}", buf);
         assert_eq!(buf.len(), 16);
-        let u2 = Uuid::read_from(&mut buf.as_slice()).unwrap();
+        let u2 = Uuid::read_from(&mut Cursor::new(&buf)).unwrap();
         assert_eq!(u, u2);
     }
 }

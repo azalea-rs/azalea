@@ -18,6 +18,8 @@ pub struct ProfilePublicKeyData {
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+
     use super::*;
     use azalea_buf::{McBufReadable, McBufWritable};
 
@@ -28,9 +30,9 @@ mod tests {
             public_key: None,
             profile_id: Some(Uuid::from_u128(0)),
         };
-        let mut buf = Vec::new();
+        let mut buf: Vec<u8> = Vec::new();
         packet.write_into(&mut buf).unwrap();
-        let packet2 = ServerboundHelloPacket::read_from(&mut buf.as_slice()).unwrap();
+        let packet2 = ServerboundHelloPacket::read_from(&mut Cursor::new(&buf)).unwrap();
         assert_eq!(packet, packet2);
     }
 }

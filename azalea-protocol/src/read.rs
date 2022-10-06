@@ -2,6 +2,7 @@ use crate::packets::ProtocolPacket;
 use azalea_buf::BufReadError;
 use azalea_buf::McBufVarReadable;
 use azalea_crypto::Aes128CfbDec;
+use bytes::Buf;
 use bytes::BytesMut;
 use flate2::read::ZlibDecoder;
 use log::{log_enabled, trace};
@@ -87,8 +88,9 @@ fn parse_frame(buffer: &mut BytesMut) -> Result<BytesMut, FrameSplitterError> {
     // from the real buffer now
 
     // the length of the varint that says the length of the whole packet
-    let varint_length = buffer.len() - buffer_copy.get_ref().len();
-    let data = buffer.split_to(varint_length + length);
+    let varint_length = buffer.len() - buffer_copy.remaining();
+    let _ = buffer.split_to(varint_length);
+    let data = buffer.split_to(length);
 
     Ok(data)
 }
@@ -276,7 +278,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_packet() {
-        let mut buf: &mut Cursor<Vec<u8>> = &mut &[
+        let mut buf: Cursor<&[u8]> = Cursor::new(&[
             51, 0, 12, 177, 250, 155, 132, 106, 60, 218, 161, 217, 90, 157, 105, 57, 206, 20, 0, 5,
             104, 101, 108, 108, 111, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 116,
             123, 34, 101, 120, 116, 114, 97, 34, 58, 91, 123, 34, 99, 111, 108, 111, 114, 34, 58,
@@ -289,7 +291,7 @@ mod tests {
             34, 58, 34, 103, 114, 97, 121, 34, 44, 34, 116, 101, 120, 116, 34, 58, 34, 91, 77, 69,
             77, 66, 69, 82, 93, 32, 112, 108, 97, 121, 101, 114, 49, 34, 125, 93, 44, 34, 116, 101,
             120, 116, 34, 58, 34, 34, 125, 0,
-        ][..];
+        ]);
         let packet = packet_decoder::<ClientboundGamePacket>(&mut buf).unwrap();
         match &packet {
             ClientboundGamePacket::PlayerChat(m) => {

@@ -8,6 +8,8 @@ pub use tag::Tag;
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+
     use super::*;
     use ahash::AHashMap;
     use azalea_buf::{McBufReadable, McBufWritable};
@@ -24,7 +26,7 @@ mod tests {
         )]));
         tag.write_into(&mut buf).unwrap();
 
-        let mut buf = &mut &buf[..];
+        let mut buf = Cursor::new(&buf[..]);
 
         let result = Tag::read_from(&mut buf).unwrap();
         assert_eq!(

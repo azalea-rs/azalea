@@ -8,7 +8,7 @@ use std::io::{Cursor, Write};
 #[derive(Clone, Debug, Deserialize)]
 pub struct Version {
     pub name: Component,
-    pub protocol: u32,
+    pub protocol: i32,
 }
 
 #[derive(Clone, Debug, Deserialize)]
