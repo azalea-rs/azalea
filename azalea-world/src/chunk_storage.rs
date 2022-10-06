@@ -138,7 +138,7 @@ impl IndexMut<&ChunkPos> for ChunkStorage {
 
 impl Chunk {
     pub fn read_with_dimension(
-        buf: &mut Cursor<Vec<u8>>,
+        buf: &mut Cursor<&[u8]>,
         data: &Dimension,
     ) -> Result<Self, BufReadError> {
         Self::read_with_dimension_height(buf, data.height())

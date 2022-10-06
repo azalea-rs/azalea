@@ -1,6 +1,6 @@
-use super::ClientboundStatusPacket;
-use azalea_buf::{BufReadError, McBufReadable};
+use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_chat::component::Component;
+use azalea_protocol_macros::ClientboundStatusPacket;
 use serde::Deserialize;
 use serde_json::Value;
 use std::io::{Cursor, Write};
@@ -26,7 +26,7 @@ pub struct Players {
 }
 
 // the entire packet is just json, which is why it has deserialize
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, ClientboundStatusPacket)]
 pub struct ClientboundStatusResponsePacket {
     pub description: Component,
     pub favicon: Option<String>,
@@ -34,21 +34,17 @@ pub struct ClientboundStatusResponsePacket {
     pub version: Version,
 }
 
-impl ClientboundStatusResponsePacket {
-    pub fn get(self) -> ClientboundStatusPacket {
-        ClientboundStatusPacket::StatusResponse(self)
-    }
-
-    pub fn write(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
-        Ok(())
-    }
-
-    pub fn read(buf: &mut Cursor<Vec<u8>>) -> Result<ClientboundStatusPacket, BufReadError> {
+impl McBufReadable for ClientboundStatusResponsePacket {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<ClientboundStatusResponsePacket, BufReadError> {
         let status_string = String::read_from(buf)?;
         let status_json: Value = serde_json::from_str(status_string.as_str())?;
 
-        let packet = ClientboundStatusResponsePacket::deserialize(status_json)?.get();
+        Ok(ClientboundStatusResponsePacket::deserialize(status_json)?)
+    }
+}
 
-        Ok(packet)
+impl McBufWritable for ClientboundStatusResponsePacket {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        todo!()
     }
 }

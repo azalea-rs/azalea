@@ -30,7 +30,7 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
             }
 
             pub fn read(
-                buf: &mut std::io::Cursor<Vec<u8>>,
+                buf: &mut std::io::Cursor<&[u8]>,
             ) -> Result<#state, azalea_buf::BufReadError> {
                 use azalea_buf::McBufReadable;
                 Ok(Self::read_from(buf)?.get())
@@ -313,7 +313,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             /// Read a packet by its id, ConnectionProtocol, and flow
             fn read(
                 id: u32,
-                buf: &mut std::io::Cursor<Vec<u8>>,
+                buf: &mut std::io::Cursor<&[u8]>,
             ) -> Result<#serverbound_state_name, crate::read::ReadPacketError>
             where
                 Self: Sized,
@@ -344,7 +344,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             /// Read a packet by its id, ConnectionProtocol, and flow
             fn read(
                 id: u32,
-                buf: &mut std::io::Cursor<Vec<u8>>,
+                buf: &mut std::io::Cursor<&[u8]>,
             ) -> Result<#clientbound_state_name, crate::read::ReadPacketError>
             where
                 Self: Sized,

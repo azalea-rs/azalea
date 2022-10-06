@@ -153,7 +153,7 @@ pub struct VibrationParticle {
 }
 
 impl ParticleData {
-    pub fn read_from_particle_id(buf: &mut Cursor<Vec<u8>>, id: u32) -> Result<Self, BufReadError> {
+    pub fn read_from_particle_id(buf: &mut Cursor<&[u8]>, id: u32) -> Result<Self, BufReadError> {
         Ok(match id {
             0 => ParticleData::AmbientEntityEffect,
             1 => ParticleData::AngryVillager,

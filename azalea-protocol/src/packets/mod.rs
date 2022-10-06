@@ -39,7 +39,7 @@ where
     fn id(&self) -> u32;
 
     /// Read a packet by its id, ConnectionProtocol, and flow
-    fn read(id: u32, buf: &mut Cursor<Vec<u8>>) -> Result<Self, ReadPacketError>;
+    fn read(id: u32, buf: &mut Cursor<&[u8]>) -> Result<Self, ReadPacketError>;
 
     fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
 }

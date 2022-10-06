@@ -2,7 +2,6 @@ use crate::packets::ProtocolPacket;
 use azalea_buf::BufReadError;
 use azalea_buf::McBufVarReadable;
 use azalea_crypto::Aes128CfbDec;
-use bytes::Buf;
 use bytes::BytesMut;
 use flate2::read::ZlibDecoder;
 use log::{log_enabled, trace};
@@ -65,7 +64,9 @@ pub enum FrameSplitterError {
 /// Read a length, then read that amount of bytes from BytesMut. If there's not
 /// enough data, return None
 fn parse_frame(buffer: &mut BytesMut) -> Result<BytesMut, FrameSplitterError> {
-    let mut buffer_copy = Cursor::new(buffer.to_vec());
+    // copy the buffer first and read from the copy, then once we make sure
+    // the packet is all good we read it fully
+    let mut buffer_copy = Cursor::new(&buffer[..]);
     // Packet Length
     let length = match u32::var_read_from(&mut buffer_copy) {
         Ok(length) => length as usize,
@@ -127,7 +128,7 @@ where
     }
 }
 
-fn packet_decoder<P: ProtocolPacket>(stream: &mut Cursor<Vec<u8>>) -> Result<P, ReadPacketError> {
+fn packet_decoder<P: ProtocolPacket>(stream: &mut Cursor<&[u8]>) -> Result<P, ReadPacketError> {
     // Packet ID
     let packet_id =
         u32::var_read_from(stream).map_err(|e| ReadPacketError::ReadPacketId { source: e })?;
@@ -160,7 +161,7 @@ pub enum DecompressionError {
 }
 
 fn compression_decoder(
-    stream: &mut Cursor<Vec<u8>>,
+    stream: &mut Cursor<&[u8]>,
     compression_threshold: u32,
 ) -> Result<Vec<u8>, DecompressionError> {
     // Data Length
@@ -244,16 +245,16 @@ where
         stream: &mut Pin::new(stream),
     };
 
-    let mut buf = Cursor::new(frame_splitter(&mut encrypted_stream, buffer).await?);
+    let mut buf = frame_splitter(&mut encrypted_stream, buffer).await?;
 
     if let Some(compression_threshold) = compression_threshold {
-        buf = Cursor::new(compression_decoder(&mut buf, compression_threshold)?);
+        buf = compression_decoder(&mut Cursor::new(&buf[..]), compression_threshold)?;
     }
 
     if log_enabled!(log::Level::Trace) {
         let buf_string: String = {
-            if buf.remaining() > 500 {
-                let cut_off_buf = &buf.get_ref()[..((buf.position() + 500) as usize)];
+            if buf.len() > 500 {
+                let cut_off_buf = &buf[..500];
                 format!("{cut_off_buf:?}...")
             } else {
                 format!("{buf:?}")
@@ -262,7 +263,7 @@ where
         trace!("Reading packet with bytes: {buf_string}");
     }
 
-    let packet = packet_decoder(&mut buf)?;
+    let packet = packet_decoder(&mut Cursor::new(&buf[..]))?;
 
     Ok(packet)
 }

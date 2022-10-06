@@ -8,7 +8,7 @@ use std::io::Cursor;
 use std::io::{BufRead, Read};
 
 #[inline]
-fn read_bytes<'a>(buf: &'a mut Cursor<Vec<u8>>, length: usize) -> Result<&'a [u8], Error> {
+fn read_bytes<'a>(buf: &'a mut Cursor<&[u8]>, length: usize) -> Result<&'a [u8], Error> {
     if length > buf.get_ref().len() {
         return Err(Error::UnexpectedEof);
     }
@@ -19,7 +19,7 @@ fn read_bytes<'a>(buf: &'a mut Cursor<Vec<u8>>, length: usize) -> Result<&'a [u8
 }
 
 #[inline]
-fn read_string(stream: &mut Cursor<Vec<u8>>) -> Result<String, Error> {
+fn read_string(stream: &mut Cursor<&[u8]>) -> Result<String, Error> {
     let length = stream.read_u16::<BE>()? as usize;
 
     let buf = read_bytes(stream, length)?;
@@ -28,7 +28,7 @@ fn read_string(stream: &mut Cursor<Vec<u8>>) -> Result<String, Error> {
 
 impl Tag {
     #[inline]
-    fn read_known(stream: &mut Cursor<Vec<u8>>, id: u8) -> Result<Tag, Error> {
+    fn read_known(stream: &mut Cursor<&[u8]>, id: u8) -> Result<Tag, Error> {
         Ok(match id {
             // Signifies the end of a TAG_Compound. It is only ever used inside
             // a TAG_Compound, and is not named despite being in a TAG_Compound
@@ -121,7 +121,7 @@ impl Tag {
         })
     }
 
-    pub fn read(stream: &mut Cursor<Vec<u8>>) -> Result<Tag, Error> {
+    pub fn read(stream: &mut Cursor<&[u8]>) -> Result<Tag, Error> {
         // default to compound tag
 
         // the parent compound only ever has one item
@@ -141,14 +141,14 @@ impl Tag {
         let mut gz = ZlibDecoder::new(stream);
         let mut buf = Vec::new();
         gz.read_to_end(&mut buf)?;
-        Tag::read(&mut Cursor::new(buf))
+        Tag::read(&mut Cursor::new(&buf))
     }
 
     pub fn read_gzip(stream: &mut Cursor<Vec<u8>>) -> Result<Tag, Error> {
         let mut gz = GzDecoder::new(stream);
         let mut buf = Vec::new();
         gz.read_to_end(&mut buf)?;
-        Tag::read(&mut Cursor::new(buf))
+        Tag::read(&mut Cursor::new(&buf))
     }
 }
 
