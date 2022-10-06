@@ -1,9 +1,11 @@
-use crate::collision::{VoxelShape, AABB};
+use crate::collision::{BlockWithShape, VoxelShape, AABB};
 use azalea_block::BlockState;
 use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType, EPSILON};
 use azalea_world::entity::EntityData;
 use azalea_world::{Chunk, Dimension};
 use std::sync::{Arc, Mutex};
+
+use super::Shapes;
 
 pub trait CollisionGetter {
     fn get_block_collisions<'a>(
@@ -27,12 +29,13 @@ pub struct BlockCollisions<'a> {
     pub dimension: &'a Dimension,
     // context: CollisionContext,
     pub aabb: AABB,
-
+    pub entity_shape: VoxelShape,
     pub cursor: Cursor3d,
     pub only_suffocating_blocks: bool,
 }
 
 impl<'a> BlockCollisions<'a> {
+    // TODO: the entity is stored in the context
     pub fn new(dimension: &'a Dimension, _entity: Option<&EntityData>, aabb: AABB) -> Self {
         let origin_x = (aabb.min_x - EPSILON) as i32 - 1;
         let origin_y = (aabb.min_y - EPSILON) as i32 - 1;
@@ -47,6 +50,7 @@ impl<'a> BlockCollisions<'a> {
         Self {
             dimension,
             aabb,
+            entity_shape: VoxelShape::from(aabb),
             cursor,
             only_suffocating_blocks: false,
         }
@@ -75,7 +79,7 @@ impl<'a> BlockCollisions<'a> {
 }
 
 impl<'a> Iterator for BlockCollisions<'a> {
-    type Item = Box<dyn VoxelShape>;
+    type Item = VoxelShape;
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(item) = self.cursor.next() {
@@ -92,19 +96,13 @@ impl<'a> Iterator for BlockCollisions<'a> {
 
             let pos = item.pos;
             let block_state: BlockState = chunk_lock.get(&(&pos).into(), self.dimension.min_y());
-            // let block: Box<dyn Block> = block_state.into();
 
             // TODO: continue if self.only_suffocating_blocks and the block is not suffocating
 
-            let block_shape = if block_state == BlockState::Air {
-                crate::collision::empty_shape()
-            } else {
-                crate::collision::block_shape()
-            };
-            // let block_shape = block.get_collision_shape();
-            // if block_shape == Shapes::block() {
-            if true {
-                // TODO: this can be optimized
+            let block_shape = block_state.shape();
+
+            // if it's a full block do a faster collision check
+            if block_shape == &crate::collision::block_shape() {
                 if !self.aabb.intersects_aabb(&AABB {
                     min_x: item.pos.x as f64,
                     min_y: item.pos.y as f64,
@@ -123,12 +121,14 @@ impl<'a> Iterator for BlockCollisions<'a> {
                 ));
             }
 
-            // let block_shape = block_shape.move_relative(item.pos.x, item.pos.y, item.pos.z);
-            // if (!Shapes.joinIsNotEmpty(block_shape, this.entityShape, BooleanOp.AND)) {
-            //     continue;
-            // }
+            let block_shape =
+                block_shape.move_relative(item.pos.x as f64, item.pos.y as f64, item.pos.z as f64);
+            // if the entity shape and block shape don't collide, continue
+            if !Shapes::matches_anywhere(&block_shape, &self.entity_shape, |a, b| a && b) {
+                continue;
+            }
 
-            // return block_shape;
+            return Some(block_shape);
         }
 
         None

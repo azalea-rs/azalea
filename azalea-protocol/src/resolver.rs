@@ -47,7 +47,7 @@ pub async fn resolve_address(address: &ServerAddress) -> Result<ServerIpAddress,
             port: redirect_srv.port(),
         };
 
-        // println!("redirecting to {:?}", redirect_address);
+        // debug!("redirecting to {:?}", redirect_address);
 
         return resolve_address(&redirect_address).await;
     }

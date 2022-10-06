@@ -60,4 +60,13 @@ mod tests {
         assert!(BlockState::try_from(BlockState::max_state()).is_ok());
         assert!(BlockState::try_from(BlockState::max_state() + 1).is_err());
     }
+
+    #[test]
+    fn test_from_blockstate() {
+        let block: Box<dyn Block> = Box::<dyn Block>::from(BlockState::Air);
+        assert_eq!(block.id(), "air");
+
+        let block: Box<dyn Block> = Box::<dyn Block>::from(BlockState::FloweringAzalea);
+        assert_eq!(block.id(), "flowering_azalea");
+    }
 }

@@ -30,12 +30,11 @@ async fn handle_event(event: &Event, bot: &Bot, ctx: Arc<Context>) {
                 ctx_lock.started = true;
                 drop(ctx_lock);
 
-                bot.goto_goal(
+                bot.goto(
                     pathfinder::Goals::NearXZ(5, azalea::BlockXZ(0, 0))
                 ).await;
                 let chest = bot.open_container(&bot.world.find_one_block(|b| b.id == "minecraft:chest")).await.unwrap();
                 bot.take_amount(&chest, 5, |i| i.id == "#minecraft:planks").await;
-                // when rust adds async drop this won't be necessary
                 chest.close().await;
 
                 let crafting_table = bot.open_crafting_table(&bot.world.find_one_block(|b| b.id == "minecraft:crafting_table")).await.unwrap();

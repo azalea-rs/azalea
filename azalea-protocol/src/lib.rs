@@ -43,8 +43,10 @@ impl<'a> TryFrom<&'a str> for ServerAddress {
 
 #[cfg(feature = "connecting")]
 pub async fn connect(address: ServerAddress) -> Result<(), Box<dyn std::error::Error>> {
+    use log::debug;
+
     let resolved_address = resolver::resolve_address(&address).await;
-    println!("Resolved address: {:?}", resolved_address);
+    debug!("Resolved address: {:?}", resolved_address);
     Ok(())
 }
 

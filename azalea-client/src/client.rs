@@ -3,7 +3,7 @@ use azalea_auth::game_profile::GameProfile;
 use azalea_chat::component::Component;
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
-    connect::{Connection, ConnectionError},
+    connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
         game::{
             clientbound_player_chat_packet::ClientboundPlayerChatPacket,
@@ -27,6 +27,7 @@ use azalea_protocol::{
 };
 use azalea_world::entity::EntityData;
 use azalea_world::Dimension;
+use log::{debug, error, warn};
 use std::{
     fmt::Debug,
     io,
@@ -34,7 +35,9 @@ use std::{
 };
 use thiserror::Error;
 use tokio::{
+    io::AsyncWriteExt,
     sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
+    task::JoinHandle,
     time::{self},
 };
 
@@ -44,6 +47,7 @@ pub enum Event {
     Chat(ChatPacket),
     /// A game tick, happens 20 times per second.
     GameTick,
+    Packet(Box<ClientboundGamePacket>),
 }
 
 #[derive(Debug, Clone)]
@@ -65,10 +69,12 @@ impl ChatPacket {
 #[derive(Clone)]
 pub struct Client {
     game_profile: GameProfile,
-    pub conn: Arc<tokio::sync::Mutex<Connection<ClientboundGamePacket, ServerboundGamePacket>>>,
+    pub read_conn: Arc<tokio::sync::Mutex<ReadConnection<ClientboundGamePacket>>>,
+    pub write_conn: Arc<tokio::sync::Mutex<WriteConnection<ServerboundGamePacket>>>,
     pub player: Arc<Mutex<Player>>,
     pub dimension: Arc<Mutex<Dimension>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
+    tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
 }
 
 #[derive(Default)]
@@ -79,6 +85,12 @@ pub struct PhysicsState {
     pub move_direction: MoveDirection,
     pub forward_impulse: f32,
     pub left_impulse: f32,
+
+    /// Whether we will jump next tick. This is purely to help with bots,
+    /// realistic clients should change the `jumping` field in the player entity.
+    ///
+    /// TODO: have a convenient way to change the `jumping` field in the player entity.
+    pub jumping_once: bool,
 }
 
 /// Whether we should ignore errors when decoding packets.
@@ -145,7 +157,7 @@ impl Client {
             match packet_result {
                 Ok(packet) => match packet {
                     ClientboundLoginPacket::Hello(p) => {
-                        println!("Got encryption request");
+                        debug!("Got encryption request");
                         let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
 
                         // TODO: authenticate with the server here (authenticateServer)
@@ -163,18 +175,18 @@ impl Client {
                         conn.set_encryption_key(e.secret_key);
                     }
                     ClientboundLoginPacket::LoginCompression(p) => {
-                        println!("Got compression request {:?}", p.compression_threshold);
+                        debug!("Got compression request {:?}", p.compression_threshold);
                         conn.set_compression_threshold(p.compression_threshold);
                     }
                     ClientboundLoginPacket::GameProfile(p) => {
-                        println!("Got profile {:?}", p.game_profile);
+                        debug!("Got profile {:?}", p.game_profile);
                         break (conn.game(), p.game_profile);
                     }
                     ClientboundLoginPacket::LoginDisconnect(p) => {
-                        println!("Got disconnect {:?}", p);
+                        debug!("Got disconnect {:?}", p);
                     }
                     ClientboundLoginPacket::CustomQuery(p) => {
-                        println!("Got custom query {:?}", p);
+                        debug!("Got custom query {:?}", p);
                     }
                 },
                 Err(e) => {
@@ -183,17 +195,22 @@ impl Client {
             }
         };
 
-        let conn = Arc::new(tokio::sync::Mutex::new(conn));
+        let (read_conn, write_conn) = conn.into_split();
+
+        let read_conn = Arc::new(tokio::sync::Mutex::new(read_conn));
+        let write_conn = Arc::new(tokio::sync::Mutex::new(write_conn));
 
         let (tx, rx) = mpsc::unbounded_channel();
 
         // we got the GameConnection, so the server is now connected :)
         let client = Client {
             game_profile,
-            conn,
+            read_conn,
+            write_conn,
             player: Arc::new(Mutex::new(Player::default())),
             dimension: Arc::new(Mutex::new(Dimension::default())),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
+            tasks: Arc::new(Mutex::new(Vec::new())),
         };
 
         // just start up the game loop and we're ready!
@@ -201,20 +218,41 @@ impl Client {
         // if you get an error right here that means you're doing something with locks wrong
         // read the error to see where the issue is
         // you might be able to just drop the lock or put it in its own scope to fix
-        tokio::spawn(Self::protocol_loop(client.clone(), tx.clone()));
-        tokio::spawn(Self::game_tick_loop(client.clone(), tx));
+        {
+            let mut tasks = client.tasks.lock().unwrap();
+            tasks.push(tokio::spawn(Self::protocol_loop(
+                client.clone(),
+                tx.clone(),
+            )));
+            tasks.push(tokio::spawn(Self::game_tick_loop(client.clone(), tx)));
+        }
 
         Ok((client, rx))
     }
 
+    /// Write a packet directly to the server.
+    pub async fn write_packet(&self, packet: ServerboundGamePacket) -> Result<(), std::io::Error> {
+        self.write_conn.lock().await.write(packet).await
+    }
+
+    /// Disconnect from the server, ending all tasks.
+    pub async fn shutdown(self) -> Result<(), std::io::Error> {
+        self.write_conn.lock().await.write_stream.shutdown().await?;
+        let tasks = self.tasks.lock().unwrap();
+        for task in tasks.iter() {
+            task.abort();
+        }
+        Ok(())
+    }
+
     async fn protocol_loop(client: Client, tx: UnboundedSender<Event>) {
         loop {
-            let r = client.conn.lock().await.read().await;
+            let r = client.read_conn.lock().await.read().await;
             match r {
                 Ok(packet) => match Self::handle(&packet, &client, &tx).await {
                     Ok(_) => {}
                     Err(e) => {
-                        println!("Error handling packet: {}", e);
+                        error!("Error handling packet: {}", e);
                         if IGNORE_ERRORS {
                             continue;
                         } else {
@@ -224,7 +262,7 @@ impl Client {
                 },
                 Err(e) => {
                     if IGNORE_ERRORS {
-                        println!("{}", e);
+                        warn!("{}", e);
                         match e {
                             ReadPacketError::FrameSplitter { .. } => panic!("Error: {:?}", e),
                             _ => continue,
@@ -242,9 +280,10 @@ impl Client {
         client: &Client,
         tx: &UnboundedSender<Event>,
     ) -> Result<(), HandleError> {
+        tx.send(Event::Packet(Box::new(packet.clone()))).unwrap();
         match packet {
             ClientboundGamePacket::Login(p) => {
-                println!("Got login packet {:?}", p);
+                debug!("Got login packet {:?}", p);
 
                 {
                     // // write p into login.txt
@@ -321,10 +360,7 @@ impl Client {
                 }
 
                 client
-                    .conn
-                    .lock()
-                    .await
-                    .write(
+                    .write_packet(
                         ServerboundCustomPayloadPacket {
                             identifier: ResourceLocation::new("brand").unwrap(),
                             // they don't have to know :)
@@ -337,41 +373,41 @@ impl Client {
                 tx.send(Event::Login).unwrap();
             }
             ClientboundGamePacket::UpdateViewDistance(p) => {
-                println!("Got view distance packet {:?}", p);
+                debug!("Got view distance packet {:?}", p);
             }
             ClientboundGamePacket::CustomPayload(p) => {
-                println!("Got custom payload packet {:?}", p);
+                debug!("Got custom payload packet {:?}", p);
             }
             ClientboundGamePacket::ChangeDifficulty(p) => {
-                println!("Got difficulty packet {:?}", p);
+                debug!("Got difficulty packet {:?}", p);
             }
             ClientboundGamePacket::Commands(_p) => {
-                println!("Got declare commands packet");
+                debug!("Got declare commands packet");
             }
             ClientboundGamePacket::PlayerAbilities(p) => {
-                println!("Got player abilities packet {:?}", p);
+                debug!("Got player abilities packet {:?}", p);
             }
             ClientboundGamePacket::SetCarriedItem(p) => {
-                println!("Got set carried item packet {:?}", p);
+                debug!("Got set carried item packet {:?}", p);
             }
             ClientboundGamePacket::UpdateTags(_p) => {
-                println!("Got update tags packet");
+                debug!("Got update tags packet");
             }
             ClientboundGamePacket::Disconnect(p) => {
-                println!("Got disconnect packet {:?}", p);
+                debug!("Got disconnect packet {:?}", p);
             }
             ClientboundGamePacket::UpdateRecipes(_p) => {
-                println!("Got update recipes packet");
+                debug!("Got update recipes packet");
             }
             ClientboundGamePacket::EntityEvent(_p) => {
-                // println!("Got entity event packet {:?}", p);
+                // debug!("Got entity event packet {:?}", p);
             }
             ClientboundGamePacket::Recipe(_p) => {
-                println!("Got recipe packet");
+                debug!("Got recipe packet");
             }
             ClientboundGamePacket::PlayerPosition(p) => {
                 // TODO: reply with teleport confirm
-                println!("Got player position packet {:?}", p);
+                debug!("Got player position packet {:?}", p);
 
                 let (new_pos, y_rot, x_rot) = {
                     let player_entity_id = {
@@ -416,10 +452,10 @@ impl Client {
                     let mut y_rot = p.y_rot;
                     let mut x_rot = p.x_rot;
                     if p.relative_arguments.x_rot {
-                        y_rot += player_entity.x_rot;
+                        x_rot += player_entity.x_rot;
                     }
                     if p.relative_arguments.y_rot {
-                        x_rot += player_entity.y_rot;
+                        y_rot += player_entity.y_rot;
                     }
 
                     player_entity.delta = Vec3 {
@@ -442,12 +478,11 @@ impl Client {
                     (new_pos, y_rot, x_rot)
                 };
 
-                let mut conn_lock = client.conn.lock().await;
-                conn_lock
-                    .write(ServerboundAcceptTeleportationPacket { id: p.id }.get())
+                client
+                    .write_packet(ServerboundAcceptTeleportationPacket { id: p.id }.get())
                     .await?;
-                conn_lock
-                    .write(
+                client
+                    .write_packet(
                         ServerboundMovePlayerPosRotPacket {
                             x: new_pos.x,
                             y: new_pos.y,
@@ -462,20 +497,20 @@ impl Client {
                     .await?;
             }
             ClientboundGamePacket::PlayerInfo(p) => {
-                println!("Got player info packet {:?}", p);
+                debug!("Got player info packet {:?}", p);
             }
             ClientboundGamePacket::SetChunkCacheCenter(p) => {
-                println!("Got chunk cache center packet {:?}", p);
+                debug!("Got chunk cache center packet {:?}", p);
                 client
                     .dimension
                     .lock()?
                     .update_view_center(&ChunkPos::new(p.x, p.z));
             }
             ClientboundGamePacket::LevelChunkWithLight(p) => {
-                println!("Got chunk with light packet {} {}", p.x, p.z);
+                debug!("Got chunk with light packet {} {}", p.x, p.z);
                 let pos = ChunkPos::new(p.x, p.z);
                 // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
-                // println("chunk {:?}")
+                // debug("chunk {:?}")
                 client
                     .dimension
                     .lock()?
@@ -483,47 +518,47 @@ impl Client {
                     .unwrap();
             }
             ClientboundGamePacket::LightUpdate(p) => {
-                println!("Got light update packet {:?}", p);
+                debug!("Got light update packet {:?}", p);
             }
             ClientboundGamePacket::AddEntity(p) => {
-                println!("Got add entity packet {:?}", p);
+                debug!("Got add entity packet {:?}", p);
                 let entity = EntityData::from(p);
                 client.dimension.lock()?.add_entity(p.id, entity);
             }
             ClientboundGamePacket::SetEntityData(_p) => {
-                // println!("Got set entity data packet {:?}", p);
+                // debug!("Got set entity data packet {:?}", p);
             }
             ClientboundGamePacket::UpdateAttributes(_p) => {
-                // println!("Got update attributes packet {:?}", p);
+                // debug!("Got update attributes packet {:?}", p);
             }
             ClientboundGamePacket::EntityVelocity(_p) => {
-                // println!("Got entity velocity packet {:?}", p);
+                // debug!("Got entity velocity packet {:?}", p);
             }
             ClientboundGamePacket::SetEntityLink(p) => {
-                println!("Got set entity link packet {:?}", p);
+                debug!("Got set entity link packet {:?}", p);
             }
             ClientboundGamePacket::AddPlayer(p) => {
-                println!("Got add player packet {:?}", p);
+                debug!("Got add player packet {:?}", p);
                 let entity = EntityData::from(p);
                 client.dimension.lock()?.add_entity(p.id, entity);
             }
             ClientboundGamePacket::InitializeBorder(p) => {
-                println!("Got initialize border packet {:?}", p);
+                debug!("Got initialize border packet {:?}", p);
             }
             ClientboundGamePacket::SetTime(p) => {
-                println!("Got set time packet {:?}", p);
+                debug!("Got set time packet {:?}", p);
             }
             ClientboundGamePacket::SetDefaultSpawnPosition(p) => {
-                println!("Got set default spawn position packet {:?}", p);
+                debug!("Got set default spawn position packet {:?}", p);
             }
             ClientboundGamePacket::ContainerSetContent(p) => {
-                println!("Got container set content packet {:?}", p);
+                debug!("Got container set content packet {:?}", p);
             }
             ClientboundGamePacket::SetHealth(p) => {
-                println!("Got set health packet {:?}", p);
+                debug!("Got set health packet {:?}", p);
             }
             ClientboundGamePacket::SetExperience(p) => {
-                println!("Got set experience packet {:?}", p);
+                debug!("Got set experience packet {:?}", p);
             }
             ClientboundGamePacket::TeleportEntity(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
@@ -540,10 +575,10 @@ impl Client {
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
             ClientboundGamePacket::UpdateAdvancements(p) => {
-                println!("Got update advancements packet {:?}", p);
+                debug!("Got update advancements packet {:?}", p);
             }
             ClientboundGamePacket::RotateHead(_p) => {
-                // println!("Got rotate head packet {:?}", p);
+                // debug!("Got rotate head packet {:?}", p);
             }
             ClientboundGamePacket::MoveEntityPos(p) => {
                 let mut dimension_lock = client.dimension.lock()?;
@@ -560,63 +595,58 @@ impl Client {
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
             ClientboundGamePacket::MoveEntityRot(_p) => {
-                // println!("Got move entity rot packet {:?}", p);
+                // debug!("Got move entity rot packet {:?}", p);
             }
             ClientboundGamePacket::KeepAlive(p) => {
-                println!("Got keep alive packet {:?}", p);
+                debug!("Got keep alive packet {:?}", p);
                 client
-                    .conn
-                    .lock()
-                    .await
-                    .write(ServerboundKeepAlivePacket { id: p.id }.get())
+                    .write_packet(ServerboundKeepAlivePacket { id: p.id }.get())
                     .await?;
             }
             ClientboundGamePacket::RemoveEntities(p) => {
-                println!("Got remove entities packet {:?}", p);
+                debug!("Got remove entities packet {:?}", p);
             }
             ClientboundGamePacket::PlayerChat(p) => {
-                // println!("Got player chat packet {:?}", p);
+                // debug!("Got player chat packet {:?}", p);
                 tx.send(Event::Chat(ChatPacket::Player(Box::new(p.clone()))))
                     .unwrap();
             }
             ClientboundGamePacket::SystemChat(p) => {
-                println!("Got system chat packet {:?}", p);
+                debug!("Got system chat packet {:?}", p);
                 tx.send(Event::Chat(ChatPacket::System(p.clone()))).unwrap();
             }
             ClientboundGamePacket::Sound(p) => {
-                println!("Got sound packet {:?}", p);
+                debug!("Got sound packet {:?}", p);
             }
             ClientboundGamePacket::LevelEvent(p) => {
-                println!("Got level event packet {:?}", p);
+                debug!("Got level event packet {:?}", p);
             }
             ClientboundGamePacket::BlockUpdate(p) => {
-                println!("Got block update packet {:?}", p);
-                // TODO: update world
+                debug!("Got block update packet {:?}", p);
                 let mut dimension = client.dimension.lock()?;
-                // dimension.get_block_state(pos)
                 dimension.set_block_state(&p.pos, p.block_state);
             }
             ClientboundGamePacket::Animate(p) => {
-                println!("Got animate packet {:?}", p);
+                debug!("Got animate packet {:?}", p);
             }
             ClientboundGamePacket::SectionBlocksUpdate(p) => {
-                println!("Got section blocks update packet {:?}", p);
+                debug!("Got section blocks update packet {:?}", p);
                 // TODO: update world
             }
             ClientboundGamePacket::GameEvent(p) => {
-                println!("Got game event packet {:?}", p);
+                debug!("Got game event packet {:?}", p);
             }
             ClientboundGamePacket::LevelParticles(p) => {
-                println!("Got level particles packet {:?}", p);
+                debug!("Got level particles packet {:?}", p);
             }
             ClientboundGamePacket::ServerData(p) => {
-                println!("Got server data packet {:?}", p);
+                debug!("Got server data packet {:?}", p);
             }
             ClientboundGamePacket::SetEquipment(p) => {
-                println!("Got set equipment packet {:?}", p);
+                debug!("Got set equipment packet {:?}", p);
             }
             ClientboundGamePacket::UpdateMobEffect(p) => {
-                println!("Got update mob effect packet {:?}", p);
+                debug!("Got update mob effect packet {:?}", p);
             }
             ClientboundGamePacket::AddExperienceOrb(_) => {}
             ClientboundGamePacket::AwardStats(_) => {}
@@ -714,7 +744,7 @@ impl Client {
         // TODO: if we're a passenger, send the required packets
 
         if let Err(e) = client.send_position().await {
-            println!("Error sending position: {:?}", e);
+            warn!("Error sending position: {:?}", e);
         }
         client.ai_step();
 

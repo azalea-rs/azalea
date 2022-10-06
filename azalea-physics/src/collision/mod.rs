@@ -1,10 +1,13 @@
+mod blocks;
 mod dimension_collisions;
 mod discrete_voxel_shape;
+mod mergers;
 mod shape;
 
 use azalea_core::{Axis, PositionXYZ, Vec3, AABB, EPSILON};
 use azalea_world::entity::{EntityData, EntityMut};
 use azalea_world::{Dimension, MoveEntityError};
+pub use blocks::BlockWithShape;
 use dimension_collisions::CollisionGetter;
 pub use discrete_voxel_shape::*;
 pub use shape::*;
@@ -130,7 +133,7 @@ impl MovableEntity for EntityMut<'_> {
         let horizontal_collision = x_collision || z_collision;
         let vertical_collision = movement.y != collide_result.y;
         let on_ground = vertical_collision && movement.y < 0.;
-        // self.on_ground = on_ground;
+        self.on_ground = on_ground;
 
         // TODO: minecraft checks for a "minor" horizontal collision here
 
@@ -192,10 +195,9 @@ fn collide_bounding_box(
     movement: &Vec3,
     entity_bounding_box: &AABB,
     dimension: &Dimension,
-    entity_collisions: Vec<Box<dyn VoxelShape>>,
+    entity_collisions: Vec<VoxelShape>,
 ) -> Vec3 {
-    let mut collision_boxes: Vec<Box<dyn VoxelShape>> =
-        Vec::with_capacity(entity_collisions.len() + 1);
+    let mut collision_boxes: Vec<VoxelShape> = Vec::with_capacity(entity_collisions.len() + 1);
 
     if !entity_collisions.is_empty() {
         collision_boxes.extend(entity_collisions);
@@ -205,6 +207,7 @@ fn collide_bounding_box(
 
     let block_collisions =
         dimension.get_block_collisions(entity, entity_bounding_box.expand_towards(movement));
+    let block_collisions = block_collisions.collect::<Vec<_>>();
     collision_boxes.extend(block_collisions);
     collide_with_shapes(movement, *entity_bounding_box, &collision_boxes)
 }
@@ -212,7 +215,7 @@ fn collide_bounding_box(
 fn collide_with_shapes(
     movement: &Vec3,
     mut entity_box: AABB,
-    collision_boxes: &Vec<Box<dyn VoxelShape>>,
+    collision_boxes: &Vec<VoxelShape>,
 ) -> Vec3 {
     if collision_boxes.is_empty() {
         return *movement;

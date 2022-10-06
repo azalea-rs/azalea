@@ -4,7 +4,8 @@ use azalea_buf::McBufVarReadable;
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::Write;
+use log::warn;
+use std::io::{Read, Write};
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundCommandsPacket {
@@ -205,7 +206,7 @@ impl McBufReadable for BrigadierNodeStub {
     fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
         let flags = u8::read_from(buf)?;
         if flags > 31 {
-            eprintln!(
+            warn!(
                 "Warning: The flags from a Brigadier node are over 31 ({flags}; {flags:#b}). This is probably a bug.",
             );
         }

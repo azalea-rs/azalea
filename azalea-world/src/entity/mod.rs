@@ -113,8 +113,8 @@ impl<'d> EntityMut<'d> {
     }
 
     pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
-        self.y_rot = y_rot.clamp(-90.0, 90.0) % 360.0;
-        self.x_rot = x_rot % 360.0;
+        self.y_rot = y_rot % 360.0;
+        self.x_rot = x_rot.clamp(-90.0, 90.0) % 360.0;
         // TODO: minecraft also sets yRotO and xRotO to xRot and yRot ... but idk what they're used for so
     }
 
@@ -260,12 +260,16 @@ pub struct EntityData {
     pub dimensions: EntityDimensions,
     /// The bounding box of the entity. This is more than just width and height, unlike dimensions.
     pub bounding_box: AABB,
+
+    /// Whether the entity will try to jump every tick
+    /// (equivalent to the space key being held down in vanilla).
+    pub jumping: bool,
 }
 
 impl EntityData {
     pub fn new(uuid: Uuid, pos: Vec3) -> Self {
         let dimensions = EntityDimensions {
-            width: 0.8,
+            width: 0.6,
             height: 1.8,
         };
 
@@ -291,6 +295,8 @@ impl EntityData {
             // TODO: have this be based on the entity type
             bounding_box: dimensions.make_bounding_box(&pos),
             dimensions,
+
+            jumping: false,
         }
     }
 
