@@ -17,19 +17,15 @@ async fn main() {
         address: "localhost",
         state: Arc::new(Mutex::new(State::default())),
         plugins: vec![],
-        handle: Box::new(handle),
+        handle,
     })
     .await
     .unwrap();
 }
 
-#[allow(clippy::single_match)]
 async fn handle(bot: Client, event: Arc<Event>, _state: Arc<Mutex<State>>) -> anyhow::Result<()> {
-    match *event {
-        Event::GameTick => {
-            bot.jump();
-        }
-        _ => {}
+    if let Event::GameTick = *event {
+        bot.jump();
     }
 
     Ok(())

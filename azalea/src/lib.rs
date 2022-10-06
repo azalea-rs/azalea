@@ -14,6 +14,9 @@ pub trait Plugin: Send + Sync {
     async fn handle(self: Arc<Self>, bot: Client, event: Arc<Event>);
 }
 
+// pub type HeuristicFn<N, W> = fn(start: &Vertex<N, W>, current: &Vertex<N, W>) -> W;
+pub type HandleFn<Fut, S> = fn(Client, Arc<Event>, Arc<Mutex<S>>) -> Fut;
+
 pub struct Options<S, A, Fut>
 where
     A: TryInto<ServerAddress>,
@@ -23,7 +26,7 @@ where
     pub account: Account,
     pub plugins: Vec<Arc<dyn Plugin>>,
     pub state: Arc<Mutex<S>>,
-    pub handle: Box<dyn Fn(Client, Arc<Event>, Arc<Mutex<S>>) -> Fut + Send + Sync>,
+    pub handle: HandleFn<Fut, S>,
 }
 
 #[derive(Error, Debug)]
@@ -74,7 +77,7 @@ pub async fn start<
             let event = event.clone();
             tokio::spawn(bot::Plugin::handle(bot_plugin, bot, event));
         };
-        tokio::spawn((*options.handle)(bot.clone(), event.clone(), state.clone()));
+        tokio::spawn((options.handle)(bot.clone(), event.clone(), state.clone()));
     }
 
     Ok(())
