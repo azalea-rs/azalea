@@ -23,6 +23,7 @@ async fn main() {
     .unwrap();
 }
 
+#[allow(clippy::single_match)]
 async fn handle(bot: Client, event: Arc<Event>, _state: Arc<Mutex<State>>) -> anyhow::Result<()> {
     match *event {
         Event::GameTick => {
