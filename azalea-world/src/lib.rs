@@ -14,6 +14,7 @@ pub use chunk_storage::{Chunk, ChunkStorage};
 use entity::{EntityData, EntityMut, EntityRef};
 pub use entity_storage::EntityStorage;
 use std::{
+    io::Cursor,
     ops::{Index, IndexMut},
     sync::{Arc, Mutex},
 };
@@ -46,7 +47,7 @@ impl Dimension {
     pub fn replace_with_packet_data(
         &mut self,
         pos: &ChunkPos,
-        data: &mut &[u8],
+        data: &mut Cursor<Vec<u8>>,
     ) -> Result<(), BufReadError> {
         self.chunk_storage.replace_with_packet_data(pos, data)
     }

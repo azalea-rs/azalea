@@ -13,7 +13,7 @@ pub struct ClientboundStopSoundPacket {
 }
 
 impl McBufReadable for ClientboundStopSoundPacket {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let byte = u8::read_from(buf)?;
         let source = if byte & 1 != 0 {
             Some(SoundSource::read_from(buf)?)

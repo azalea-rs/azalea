@@ -1,5 +1,5 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use std::io::Write;
+use std::io::{Cursor, Write};
 
 #[derive(Hash, Copy, Clone, Debug)]
 pub enum GameType {
@@ -79,7 +79,7 @@ impl GameType {
 }
 
 impl McBufReadable for GameType {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let id = u8::read_from(buf)?;
         GameType::from_id(id).ok_or(BufReadError::UnexpectedEnumVariant { id: id as i32 })
     }
@@ -108,7 +108,7 @@ impl From<OptionalGameType> for Option<GameType> {
 }
 
 impl McBufReadable for OptionalGameType {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let id = i8::read_from(buf)?;
         GameType::from_optional_id(id).ok_or(BufReadError::UnexpectedEnumVariant { id: id as i32 })
     }

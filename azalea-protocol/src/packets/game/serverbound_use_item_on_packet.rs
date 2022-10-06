@@ -33,7 +33,7 @@ impl McBufWritable for BlockHitResult {
 }
 
 impl McBufReadable for BlockHitResult {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let block_pos = BlockPos::read_from(buf)?;
         let direction = Direction::read_from(buf)?;
         let cursor_x = f32::read_from(buf)?;

@@ -39,13 +39,13 @@ where
     fn id(&self) -> u32;
 
     /// Read a packet by its id, ConnectionProtocol, and flow
-    fn read(id: u32, buf: &mut &[u8]) -> Result<Self, ReadPacketError>;
+    fn read(id: u32, buf: &mut Cursor<Vec<u8>>) -> Result<Self, ReadPacketError>;
 
     fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
 }
 
 impl azalea_buf::McBufReadable for ConnectionProtocol {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let id = i32::var_read_from(buf)?;
         ConnectionProtocol::from_i32(id).ok_or(BufReadError::UnexpectedEnumVariant { id })
     }

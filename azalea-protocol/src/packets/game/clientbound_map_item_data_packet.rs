@@ -16,7 +16,7 @@ pub struct ClientboundMapItemDataPacket {
 }
 
 impl McBufReadable for ClientboundMapItemDataPacket {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let map_id = u32::var_read_from(buf)?;
         let scale = u8::read_from(buf)?;
         let locked = bool::read_from(buf)?;

@@ -34,7 +34,7 @@ enum Operation {
 }
 
 impl McBufReadable for Operation {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         match u8::read_from(buf)? {
             0 => Ok(Operation::Addition),
             1 => Ok(Operation::MultiplyBase),

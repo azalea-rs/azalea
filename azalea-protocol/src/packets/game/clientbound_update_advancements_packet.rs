@@ -63,7 +63,7 @@ impl azalea_buf::McBufWritable for DisplayInfo {
     }
 }
 impl azalea_buf::McBufReadable for DisplayInfo {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, azalea_buf::BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, azalea_buf::BufReadError> {
         let title = azalea_buf::McBufReadable::read_from(buf)?;
         let description = azalea_buf::McBufReadable::read_from(buf)?;
         let icon = azalea_buf::McBufReadable::read_from(buf)?;

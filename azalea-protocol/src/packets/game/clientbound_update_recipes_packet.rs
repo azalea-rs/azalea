@@ -47,7 +47,7 @@ impl McBufWritable for ShapedRecipe {
     }
 }
 impl McBufReadable for ShapedRecipe {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let width = u32::var_read_from(buf)?.try_into().unwrap();
         let height = u32::var_read_from(buf)?.try_into().unwrap();
         let group = String::read_from(buf)?;
@@ -127,7 +127,7 @@ impl McBufWritable for Recipe {
 }
 
 impl McBufReadable for Recipe {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let recipe_type = ResourceLocation::read_from(buf)?;
         let identifier = ResourceLocation::read_from(buf)?;
 

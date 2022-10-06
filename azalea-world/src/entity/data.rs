@@ -2,7 +2,7 @@ use azalea_buf::{BufReadError, McBufVarReadable};
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
 use azalea_chat::component::Component;
 use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot};
-use std::io::Write;
+use std::io::{Cursor, Write};
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]
@@ -17,7 +17,7 @@ pub struct EntityDataItem {
 }
 
 impl McBufReadable for EntityMetadata {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let mut metadata = Vec::new();
         loop {
             let index = u8::read_from(buf)?;
@@ -74,7 +74,7 @@ pub enum EntityDataValue {
 }
 
 impl McBufReadable for EntityDataValue {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let data_type = u32::var_read_from(buf)?;
         Ok(match data_type {
             0 => EntityDataValue::Byte(u8::read_from(buf)?),

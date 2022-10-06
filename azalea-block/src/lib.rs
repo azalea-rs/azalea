@@ -4,7 +4,10 @@ mod blocks;
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 pub use behavior::BlockBehavior;
 pub use blocks::*;
-use std::{io::Write, mem};
+use std::{
+    io::{Cursor, Write},
+    mem,
+};
 
 impl BlockState {
     /// Transmutes a u32 to a block state.
@@ -36,7 +39,7 @@ impl TryFrom<u32> for BlockState {
 }
 
 impl McBufReadable for BlockState {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let state_id = u32::var_read_from(buf)?;
         Self::try_from(state_id).map_err(|_| BufReadError::UnexpectedEnumVariant {
             id: state_id as i32,

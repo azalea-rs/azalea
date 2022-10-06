@@ -1,7 +1,7 @@
 // TODO: have an azalea-inventory or azalea-container crate and put this there
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use std::io::Write;
+use std::io::{Cursor, Write};
 
 #[derive(Debug, Clone)]
 pub enum Slot {
@@ -18,7 +18,7 @@ pub struct SlotData {
 }
 
 impl McBufReadable for Slot {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let present = bool::read_from(buf)?;
         if !present {
             return Ok(Slot::Empty);

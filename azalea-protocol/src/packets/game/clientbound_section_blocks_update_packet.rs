@@ -18,7 +18,7 @@ pub struct BlockStateWithPosition {
 }
 
 impl McBufReadable for BlockStateWithPosition {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let data = u64::var_read_from(buf)?;
         let position_part = data & 4095;
         let state = (data >> 12) as u32;

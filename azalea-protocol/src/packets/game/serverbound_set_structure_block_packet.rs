@@ -68,7 +68,7 @@ pub struct Flags {
 }
 
 impl McBufReadable for Flags {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let byte = u8::read_from(buf)?;
         Ok(Self {
             ignore_entities: byte & 1 != 0,

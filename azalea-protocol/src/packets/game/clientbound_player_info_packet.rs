@@ -65,7 +65,7 @@ pub struct RemovePlayer {
 }
 
 impl McBufReadable for Action {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let id = u8::read_from(buf)?;
         Ok(match id {
             0 => Action::AddPlayer(Vec::<AddPlayer>::read_from(buf)?),

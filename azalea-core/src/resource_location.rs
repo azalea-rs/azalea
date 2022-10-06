@@ -1,7 +1,7 @@
 //! A resource, like minecraft:stone
 
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use std::io::Write;
+use std::io::{Cursor, Write};
 
 #[derive(Hash, Clone, PartialEq, Eq)]
 pub struct ResourceLocation {
@@ -46,7 +46,7 @@ impl std::fmt::Debug for ResourceLocation {
 }
 
 impl McBufReadable for ResourceLocation {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let location_string = String::read_from(buf)?;
         ResourceLocation::new(&location_string)
     }

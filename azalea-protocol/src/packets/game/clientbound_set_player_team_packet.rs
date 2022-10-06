@@ -20,7 +20,7 @@ pub enum Method {
 }
 
 impl McBufReadable for Method {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         Ok(match u8::read_from(buf)? {
             0 => Method::Add((Parameters::read_from(buf)?, PlayerList::read_from(buf)?)),
             1 => Method::Remove,

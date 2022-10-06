@@ -4,20 +4,21 @@ use ahash::AHashMap;
 use azalea_buf::{BufReadError, McBufReadable};
 use byteorder::{ReadBytesExt, BE};
 use flate2::read::{GzDecoder, ZlibDecoder};
+use std::io::Cursor;
 use std::io::{BufRead, Read};
 
 #[inline]
-fn read_bytes<'a>(buf: &mut &'a [u8], length: usize) -> Result<&'a [u8], Error> {
-    if length > buf.len() {
+fn read_bytes<'a>(buf: &mut Cursor<Vec<u8>>, length: usize) -> Result<&'a [u8], Error> {
+    if length > buf.get_ref().len() {
         return Err(Error::UnexpectedEof);
     }
-    let read_buf = &buf[0..length];
-    *buf = &buf[length..];
-    Ok(read_buf)
+    let data = &buf.get_ref()[..length];
+    buf.set_position(buf.position() + length as u64);
+    Ok(data)
 }
 
 #[inline]
-fn read_string(stream: &mut &[u8]) -> Result<String, Error> {
+fn read_string(stream: &mut Cursor<Vec<u8>>) -> Result<String, Error> {
     let length = stream.read_u16::<BE>()? as usize;
 
     let buf = read_bytes(stream, length)?;
@@ -26,7 +27,7 @@ fn read_string(stream: &mut &[u8]) -> Result<String, Error> {
 
 impl Tag {
     #[inline]
-    fn read_known(stream: &mut &[u8], id: u8) -> Result<Tag, Error> {
+    fn read_known(stream: &mut Cursor<Vec<u8>>, id: u8) -> Result<Tag, Error> {
         Ok(match id {
             // Signifies the end of a TAG_Compound. It is only ever used inside
             // a TAG_Compound, and is not named despite being in a TAG_Compound
@@ -93,7 +94,7 @@ impl Tag {
             // integers.
             11 => {
                 let length = stream.read_u32::<BE>()? as usize;
-                if length * 4 > stream.len() {
+                if length * 4 > stream.get_ref().len() {
                     return Err(Error::UnexpectedEof);
                 }
                 let mut ints = Vec::with_capacity(length as usize);
@@ -106,7 +107,7 @@ impl Tag {
             // integer (thus 4 bytes) and indicates the number of 8 byte longs.
             12 => {
                 let length = stream.read_u32::<BE>()? as usize;
-                if length * 8 > stream.len() {
+                if length * 8 > stream.get_ref().len() {
                     return Err(Error::UnexpectedEof);
                 }
                 let mut longs = Vec::with_capacity(length as usize);
@@ -119,7 +120,7 @@ impl Tag {
         })
     }
 
-    pub fn read(stream: &mut &[u8]) -> Result<Tag, Error> {
+    pub fn read(stream: &mut Cursor<Vec<u8>>) -> Result<Tag, Error> {
         // default to compound tag
 
         // the parent compound only ever has one item
@@ -139,19 +140,19 @@ impl Tag {
         let mut gz = ZlibDecoder::new(stream);
         let mut buf = Vec::new();
         gz.read_to_end(&mut buf)?;
-        Tag::read(&mut &buf[..])
+        Tag::read(&mut Cursor::new(&buf[..]))
     }
 
-    pub fn read_gzip(stream: &mut &[u8]) -> Result<Tag, Error> {
+    pub fn read_gzip(stream: &mut Cursor<Vec<u8>>) -> Result<Tag, Error> {
         let mut gz = GzDecoder::new(stream);
         let mut buf = Vec::new();
         gz.read_to_end(&mut buf)?;
-        Tag::read(&mut &buf[..])
+        Tag::read(&mut Cursor::new(&buf[..]))
     }
 }
 
 impl McBufReadable for Tag {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         Ok(Tag::read(buf)?)
     }
 }

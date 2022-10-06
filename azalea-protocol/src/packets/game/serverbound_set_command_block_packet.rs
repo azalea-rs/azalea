@@ -22,7 +22,7 @@ pub enum Mode {
 }
 
 impl McBufReadable for ServerboundSetCommandBlockPacket {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let pos = BlockPos::read_from(buf)?;
         let command = String::read_from(buf)?;
         let mode = Mode::read_from(buf)?;

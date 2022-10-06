@@ -1,7 +1,7 @@
 use crate::ResourceLocation;
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use std::{
-    io::Write,
+    io::{Cursor, Write},
     ops::{Add, Mul, Rem},
 };
 
@@ -301,7 +301,7 @@ const Z_OFFSET: u64 = PACKED_Y_LENGTH;
 const X_OFFSET: u64 = PACKED_Y_LENGTH + PACKED_Z_LENGTH;
 
 impl McBufReadable for BlockPos {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let val = i64::read_from(buf)?;
         let x = (val << (64 - X_OFFSET - PACKED_X_LENGTH) >> (64 - PACKED_X_LENGTH)) as i32;
         let y = (val << (64 - PACKED_Y_LENGTH) >> (64 - PACKED_Y_LENGTH)) as i32;
@@ -311,7 +311,7 @@ impl McBufReadable for BlockPos {
 }
 
 impl McBufReadable for GlobalPos {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         Ok(GlobalPos {
             dimension: ResourceLocation::read_from(buf)?,
             pos: BlockPos::read_from(buf)?,
@@ -320,7 +320,7 @@ impl McBufReadable for GlobalPos {
 }
 
 impl McBufReadable for ChunkSectionPos {
-    fn read_from(buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         let long = i64::read_from(buf)?;
         Ok(ChunkSectionPos {
             x: (long >> 42) as i32,

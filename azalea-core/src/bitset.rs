@@ -1,4 +1,5 @@
-use azalea_buf::McBuf;
+use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+use std::io::{Cursor, Write};
 
 /// Represents Java's BitSet, a list of bits.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default, McBuf)]

@@ -16,7 +16,7 @@ pub struct ClientboundCommandSuggestionsPacket {
 }
 
 impl McBufReadable for ClientboundCommandSuggestionsPacket {
-    fn read_from(_buf: &mut &[u8]) -> Result<Self, BufReadError> {
+    fn read_from(_buf: &mut Cursor<Vec<u8>>) -> Result<Self, BufReadError> {
         // let id = u32::var_read_from(buf)?;
         // let start = u32::var_read_from(buf)? as usize;
         // let length = u32::var_read_from(buf)? as usize;

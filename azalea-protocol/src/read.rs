@@ -2,9 +2,11 @@ use crate::packets::ProtocolPacket;
 use azalea_buf::BufReadError;
 use azalea_buf::McBufVarReadable;
 use azalea_crypto::Aes128CfbDec;
+use bytes::Buf;
 use bytes::BytesMut;
 use flate2::read::ZlibDecoder;
 use log::{log_enabled, trace};
+use std::io::Cursor;
 use std::{
     cell::Cell,
     io::Read,
@@ -62,10 +64,10 @@ pub enum FrameSplitterError {
 
 /// Read a length, then read that amount of bytes from BytesMut. If there's not
 /// enough data, return None
-fn parse_frame(buffer: &mut BytesMut) -> Result<Vec<u8>, FrameSplitterError> {
-    let buffer_copy: &mut &[u8] = &mut &buffer[..];
+fn parse_frame(buffer: &mut BytesMut) -> Result<&[u8], FrameSplitterError> {
+    let buffer_copy = Cursor::new(&buffer[..]);
     // Packet Length
-    let length = match u32::var_read_from(buffer_copy) {
+    let length = match u32::var_read_from(&mut buffer_copy) {
         Ok(length) => length as usize,
         Err(err) => match err {
             BufReadError::Io(io_err) => return Err(FrameSplitterError::Io { source: io_err }),
@@ -73,9 +75,9 @@ fn parse_frame(buffer: &mut BytesMut) -> Result<Vec<u8>, FrameSplitterError> {
         },
     };
 
-    if length > buffer_copy.len() {
+    if length > buffer_copy.get_ref().len() {
         return Err(FrameSplitterError::BadLength {
-            max: buffer_copy.len(),
+            max: buffer_copy.get_ref().len(),
             size: length,
         });
     }
@@ -84,17 +86,17 @@ fn parse_frame(buffer: &mut BytesMut) -> Result<Vec<u8>, FrameSplitterError> {
     // from the real buffer now
 
     // the length of the varint that says the length of the whole packet
-    let varint_length = buffer.len() - buffer_copy.len();
-    let data = buffer_copy[..length].to_vec();
+    let varint_length = buffer.len() - buffer_copy.get_ref().len();
+    let data = &buffer_copy.get_ref()[..length];
     let _ = buffer.split_to(length + varint_length);
 
     Ok(data)
 }
 
-async fn frame_splitter<R: ?Sized + Sized>(
+async fn frame_splitter<'a, R: ?Sized + Sized>(
     stream: &mut R,
-    buffer: &mut BytesMut,
-) -> Result<Vec<u8>, FrameSplitterError>
+    buffer: &'a mut BytesMut,
+) -> Result<&'a [u8], FrameSplitterError>
 where
     R: AsyncRead + std::marker::Unpin + std::marker::Send,
 {
@@ -111,22 +113,22 @@ where
             },
         }
 
-        let read_buf: usize = AsyncReadExt::read_buf(stream, buffer).await?;
-        if 0 == read_buf {
-            // The remote closed the connection. For this to be
-            // a clean shutdown, there should be no data in the
-            // read buffer. If there is, this means that the
-            // peer closed the socket while sending a frame.
-            if buffer.is_empty() {
-                return Err(FrameSplitterError::ConnectionClosed);
-            } else {
-                return Err(FrameSplitterError::ConnectionReset);
-            }
-        }
+        // let read_buf: usize = AsyncReadExt::read_buf(stream, buffer).await?;
+        // if 0 == read_buf {
+        //     // The remote closed the connection. For this to be
+        //     // a clean shutdown, there should be no data in the
+        //     // read buffer. If there is, this means that the
+        //     // peer closed the socket while sending a frame.
+        //     if buffer.as_ref().is_empty() {
+        //         return Err(FrameSplitterError::ConnectionClosed);
+        //     } else {
+        //         return Err(FrameSplitterError::ConnectionReset);
+        //     }
+        // }
     }
 }
 
-fn packet_decoder<P: ProtocolPacket>(stream: &mut &[u8]) -> Result<P, ReadPacketError> {
+fn packet_decoder<P: ProtocolPacket>(stream: &mut Cursor<Vec<u8>>) -> Result<P, ReadPacketError> {
     // Packet ID
     let packet_id =
         u32::var_read_from(stream).map_err(|e| ReadPacketError::ReadPacketId { source: e })?;
@@ -159,7 +161,7 @@ pub enum DecompressionError {
 }
 
 fn compression_decoder(
-    stream: &mut &[u8],
+    stream: &mut Cursor<Vec<u8>>,
     compression_threshold: u32,
 ) -> Result<Vec<u8>, DecompressionError> {
     // Data Length
@@ -243,16 +245,16 @@ where
         stream: &mut Pin::new(stream),
     };
 
-    let mut buf = frame_splitter(&mut encrypted_stream, buffer).await?;
+    let mut buf = Cursor::new(frame_splitter(&mut encrypted_stream, buffer).await?);
 
     if let Some(compression_threshold) = compression_threshold {
-        buf = compression_decoder(&mut buf.as_slice(), compression_threshold)?;
+        buf = Cursor::new(&compression_decoder(&mut buf, compression_threshold)?);
     }
 
     if log_enabled!(log::Level::Trace) {
         let buf_string: String = {
-            if buf.len() > 500 {
-                let cut_off_buf = &buf[..500];
+            if buf.remaining() > 500 {
+                let cut_off_buf = &buf.get_ref()[..((buf.position() + 500) as usize)];
                 format!("{cut_off_buf:?}...")
             } else {
                 format!("{buf:?}")
@@ -261,7 +263,7 @@ where
         trace!("Reading packet with bytes: {buf_string}");
     }
 
-    let packet = packet_decoder(&mut buf.as_slice())?;
+    let packet = packet_decoder(&mut buf)?;
 
     Ok(packet)
 }
@@ -274,7 +276,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_packet() {
-        let mut buf: &mut &[u8] = &mut &[
+        let mut buf: &mut Cursor<Vec<u8>> = &mut &[
             51, 0, 12, 177, 250, 155, 132, 106, 60, 218, 161, 217, 90, 157, 105, 57, 206, 20, 0, 5,
             104, 101, 108, 108, 111, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 116,
             123, 34, 101, 120, 116, 114, 97, 34, 58, 91, 123, 34, 99, 111, 108, 111, 114, 34, 58,

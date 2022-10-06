@@ -41,7 +41,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
 
             quote! {
             impl azalea_buf::McBufReadable for #ident {
-                fn read_from(buf: &mut &[u8]) -> Result<Self, azalea_buf::BufReadError> {
+                fn read_from(buf: &mut std::io::Cursor<Vec<u8>>) -> Result<Self, azalea_buf::BufReadError> {
                     #(#read_fields)*
                     Ok(#ident {
                         #(#read_field_names: #read_field_names),*
@@ -105,7 +105,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
 
             quote! {
             impl azalea_buf::McBufReadable for #ident {
-                fn read_from(buf: &mut &[u8]) -> Result<Self, azalea_buf::BufReadError>
+                fn read_from(buf: &mut std::io::Cursor<Vec<u8>>) -> Result<Self, azalea_buf::BufReadError>
                 {
                     let id = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                     match id {
