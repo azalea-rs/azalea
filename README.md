@@ -24,7 +24,7 @@ I wanted a fun excuse to do something cool with Rust, and I also felt like I cou
 - Do everything a vanilla client can do.
 - Be intuitive and easy to use.
 - Make it easy to have many bots working at the same time.
-- Bypass most/all anticheats.
+- Don't trigger anticheats.
 - Support the latest Minecraft version.
 - Be fast and memory efficient.
 
