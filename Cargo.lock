@@ -233,6 +233,7 @@ dependencies = [
 name = "azalea-pathfinder"
 version = "0.1.0"
 dependencies = [
+ "num-traits",
  "priority-queue",
 ]
 
