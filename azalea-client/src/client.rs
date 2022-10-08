@@ -50,7 +50,7 @@ use tokio::{
 pub enum Event {
     Login,
     Chat(ChatPacket),
-    /// A game tick, happens 20 times per second.
+    /// Happens 20 times per second, but only when the world is loaded.
     Tick,
     Packet(Box<ClientboundGamePacket>),
 }
@@ -725,8 +725,6 @@ impl Client {
 
     /// Runs every 50 milliseconds.
     async fn game_tick(client: &mut Client, tx: &UnboundedSender<Event>) {
-        tx.send(Event::Tick).unwrap();
-
         // return if there's no chunk at the player's position
         {
             let dimension_lock = client.dimension.lock();
@@ -742,6 +740,8 @@ impl Client {
                 return;
             }
         }
+
+        tx.send(Event::Tick).unwrap();
 
         // TODO: if we're a passenger, send the required packets
 
