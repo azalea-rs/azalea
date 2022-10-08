@@ -1,8 +1,7 @@
 //! An implementation of D* Lite: second version (optimized version) as
-//! described in https://www.cs.cmu.edu/~maxim/files/dlite_tro05.pdf
+//! described in <https://www.cs.cmu.edu/~maxim/files/dlite_tro05.pdf>
 //!
 //! Future optimization attempt ideas:
-//! - Store the `g` and `rhs` in their own HashMap instead of being in Vertex
 //! - Use a different priority queue (e.g. fibonacci heap)
 //! - Use FxHash instead of the default hasher
 //! - Have a `cost(a: Vertex, b: Vertex)` function instead of having the cost be stored in `Edge`
@@ -13,7 +12,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::{
     borrow::Cow,
     collections::HashMap,
-    hash::{Hash, Hasher},
+    hash::Hash,
     ops::{Add, Deref},
 };
 
@@ -32,6 +31,7 @@ impl<W: Default + num_traits::Bounded + Debug> Default for VertexScore<W> {
     }
 }
 
+/// The D* Lite pathfinding algorithm
 pub struct DStarLite<
     'a,
     N: Eq + Hash + Clone,
@@ -143,7 +143,7 @@ impl<
 
         let mut s = Self {
             start: Cow::Owned(start.clone()),
-            start_last: Cow::Owned(start.clone()),
+            start_last: Cow::Owned(start),
 
             goal,
 
@@ -165,12 +165,12 @@ impl<
     pub fn update_vertex(&mut self, u: &N) {
         let VertexScore { g, rhs } = self.score(u);
         // if(g(u)) != rhs(u) AND u is in U) U.Update(u, calculate_key(u))
-        if g != rhs && self.queue.get(&u).is_some() {
-            self.queue.change_priority(&u, self.calculate_key(&u));
-        } else if g != rhs && self.queue.get(&u).is_none() {
-            self.queue.push(u.clone(), self.calculate_key(&u));
-        } else if g == rhs && self.queue.get(&u).is_some() {
-            self.queue.remove(&u);
+        if g != rhs && self.queue.get(u).is_some() {
+            self.queue.change_priority(u, self.calculate_key(u));
+        } else if g != rhs && self.queue.get(u).is_none() {
+            self.queue.push(u.clone(), self.calculate_key(u));
+        } else if g == rhs && self.queue.get(u).is_some() {
+            self.queue.remove(u);
         }
     }
 
@@ -213,14 +213,12 @@ impl<
                     }]
                     .into_iter(),
                 ) {
-                    if self.score(&s.target).rhs == s.cost + g_old {
-                        if s.target != self.goal {
-                            self.score_mut(&s.target).rhs = (self.successors)(&s.target)
-                                .iter()
-                                .map(|s_prime| s_prime.cost + self.score(&s_prime.target).g)
-                                .min()
-                                .unwrap();
-                        }
+                    if self.score(&s.target).rhs == s.cost + g_old && s.target != self.goal {
+                        self.score_mut(&s.target).rhs = (self.successors)(&s.target)
+                            .iter()
+                            .map(|s_prime| s_prime.cost + self.score(&s_prime.target).g)
+                            .min()
+                            .unwrap();
                     }
                     self.update_vertex(&s.target);
                 }
@@ -230,7 +228,7 @@ impl<
 
     pub fn update_from_updated_edges(&mut self) {
         self.k_m = self.k_m + (self.heuristic)(&self.start, &self.start_last);
-        self.start_last = self.start.to_owned();
+        self.start_last = self.start.clone();
 
         while let Some((mut edge, new_cost)) = self.updated_edge_costs.pop() {
             let old_cost = edge.cost;
@@ -251,11 +249,11 @@ impl<
     }
 
     /// Return the next vertex to visit and set our current position to be there.
-    pub fn next(&mut self) -> Result<Option<&N>, NoPathError> {
+    pub fn try_next(&mut self) -> Result<Option<&N>, NoPathError> {
         if self.start.deref() == &self.goal {
             return Ok(None);
         }
-    
+
         let start_score = self.score(&self.start);
         if start_score.rhs == W::max_value() {
             return Err(NoPathError);
@@ -367,18 +365,18 @@ mod tests {
         };
 
         let mut dstar = DStarLite::new((0, 0), (4, 4), heuristic, successors, predecessors);
-        assert!(dstar.next().unwrap() == Some(&(0, 1)));
-        assert!(dstar.next().unwrap() == Some(&(0, 2)));
-        assert!(dstar.next().unwrap() == Some(&(1, 2)));
-        assert!(dstar.next().unwrap() == Some(&(2, 2)));
-        assert!(dstar.next().unwrap() == Some(&(2, 1)));
-        assert!(dstar.next().unwrap() == Some(&(2, 0)));
-        assert!(dstar.next().unwrap() == Some(&(3, 0)));
-        assert!(dstar.next().unwrap() == Some(&(4, 0)));
-        assert!(dstar.next().unwrap() == Some(&(4, 1)));
-        assert!(dstar.next().unwrap() == Some(&(4, 2)));
-        assert!(dstar.next().unwrap() == Some(&(4, 3)));
-        assert!(dstar.next().unwrap() == Some(&(4, 4)));
-        assert!(dstar.next().unwrap() == None);
+        assert!(dstar.try_next().unwrap() == Some(&(0, 1)));
+        assert!(dstar.try_next().unwrap() == Some(&(0, 2)));
+        assert!(dstar.try_next().unwrap() == Some(&(1, 2)));
+        assert!(dstar.try_next().unwrap() == Some(&(2, 2)));
+        assert!(dstar.try_next().unwrap() == Some(&(2, 1)));
+        assert!(dstar.try_next().unwrap() == Some(&(2, 0)));
+        assert!(dstar.try_next().unwrap() == Some(&(3, 0)));
+        assert!(dstar.try_next().unwrap() == Some(&(4, 0)));
+        assert!(dstar.try_next().unwrap() == Some(&(4, 1)));
+        assert!(dstar.try_next().unwrap() == Some(&(4, 2)));
+        assert!(dstar.try_next().unwrap() == Some(&(4, 3)));
+        assert!(dstar.try_next().unwrap() == Some(&(4, 4)));
+        assert!(dstar.try_next().unwrap() == None);
     }
 }
