@@ -22,7 +22,7 @@ async fn main() {
             Arc::new(autoeat::Plugin::default()),
             Arc::new(pathfinder::Plugin::default()),
         ],
-        handle: Box::new(handle),
+        handle,
     })
     .await
     .unwrap();

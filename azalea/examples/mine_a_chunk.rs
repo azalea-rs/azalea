@@ -1,4 +1,4 @@
-use azalea::{pathfinder, Account, Accounts, Event};
+use azalea::{pathfinder, Account, Accounts, Client, Event};
 use parking_lot::Mutex;
 use std::sync::Arc;
 
@@ -42,7 +42,7 @@ async fn handle(bot: Client, event: Arc<Event>, state: Arc<Mutex<State>>) -> any
 }
 
 async fn group_handle(
-    bots: Clients,
+    bots: Swarm,
     event: Arc<Event>,
     state: Arc<Mutex<GroupState>>,
 ) -> anyhow::Result<()> {
