@@ -2,6 +2,12 @@ Tools for automatically generating code to help with updating Minecraft versions
 
 The directory name doesn't start with `azalea-` because it's not a Rust crate.
 
+## Requirements
+
+- Python 3.8+
+- Java 17+
+- Gradle
+
 ## Usage
 
 Generate packet:\

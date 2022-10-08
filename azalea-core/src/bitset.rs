@@ -1,8 +1,7 @@
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use std::io::{Read, Write};
+use azalea_buf::McBuf;
 
 /// Represents Java's BitSet, a list of bits.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, McBuf)]
 pub struct BitSet {
     data: Vec<u64>,
 }
@@ -21,70 +20,84 @@ impl BitSet {
         (self.data[index / 64] & (1u64 << (index % 64))) != 0
     }
 
-    // private static int wordIndex(int bitIndex) {
-    //     return bitIndex >> ADDRESS_BITS_PER_WORD;
-    // }
-    pub fn word_index(bit_index: usize) -> usize {
+    fn check_range(&self, from_index: usize, to_index: usize) {
+        assert!(
+            from_index <= to_index,
+            "fromIndex: {} > toIndex: {}",
+            from_index,
+            to_index
+        );
+    }
+
+    fn word_index(&self, bit_index: usize) -> usize {
         bit_index >> ADDRESS_BITS_PER_WORD
     }
 
-    pub fn clear_from_to(&mut self, from: usize, to: usize) {
-        assert!(from <= to);
-        assert!(to <= self.data.len() * 64);
-        assert!(to > 0);
+    pub fn clear(&mut self, from_index: usize, mut to_index: usize) {
+        self.check_range(from_index, to_index);
 
-        if from == to {
+        if from_index == to_index {
             return;
         }
 
-        // int startWordIndex = wordIndex(fromIndex);
-        // if (startWordIndex >= wordsInUse)
-        //     return;
+        let start_word_index = self.word_index(from_index);
+        if start_word_index >= self.data.len() {
+            return;
+        }
 
-        // int endWordIndex = wordIndex(toIndex - 1);
-        // if (endWordIndex >= wordsInUse) {
-        //     toIndex = length();
-        //     endWordIndex = wordsInUse - 1;
-        // }
+        let mut end_word_index = self.word_index(to_index - 1);
+        if end_word_index >= self.data.len() {
+            to_index = self.len();
+            end_word_index = self.data.len() - 1;
+        }
 
-        // long firstWordMask = WORD_MASK << fromIndex;
-        // long lastWordMask  = WORD_MASK >>> -toIndex;
-        // if (startWordIndex == endWordIndex) {
-        //     // Case 1: One word
-        //     words[startWordIndex] &= ~(firstWordMask & lastWordMask);
-        // } else {
-        //     // Case 2: Multiple words
-        //     // Handle first word
-        //     words[startWordIndex] &= ~firstWordMask;
+        let first_word_mask = u64::MAX << from_index;
+        let last_word_mask = u64::MAX >> (64 - (to_index % 64));
+        if start_word_index == end_word_index {
+            // Case 1: One word
+            self.data[start_word_index] &= !(first_word_mask & last_word_mask);
+        } else {
+            // Case 2: Multiple words
+            // Handle first word
+            self.data[start_word_index] &= !first_word_mask;
 
-        //     // Handle intermediate words, if any
-        //     for (int i = startWordIndex+1; i < endWordIndex; i++)
-        //         words[i] = 0;
+            // Handle intermediate words, if any
+            for i in start_word_index + 1..end_word_index {
+                self.data[i] = 0;
+            }
 
-        //     // Handle last word
-        //     words[endWordIndex] &= ~lastWordMask;
-        // }
-
-        // recalculateWordsInUse();
-        // checkInvariants();
+            // Handle last word
+            self.data[end_word_index] &= !last_word_mask;
+        }
     }
-}
 
-impl McBufReadable for BitSet {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
-        Ok(Self {
-            data: Vec::<u64>::read_from(buf)?,
-        })
+    /// Returns the maximum potential items in the BitSet. This will be divisible by 64.
+    fn len(&self) -> usize {
+        self.data.len() * 64
     }
-}
 
-impl McBufWritable for BitSet {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.data.write_into(buf)
+    /// Returns the index of the first bit that is set to `false`
+    /// that occurs on or after the specified starting index.
+    pub fn next_clear_bit(&self, from_index: usize) -> usize {
+        let mut u = self.word_index(from_index);
+        if u >= self.data.len() {
+            return from_index;
+        }
+
+        let mut word = !self.data[u] & (u64::MAX << from_index);
+
+        loop {
+            if word != 0 {
+                return (u * 64) + word.trailing_zeros() as usize;
+            }
+            u += 1;
+            if u == self.data.len() {
+                return self.data.len() * 64;
+            }
+            word = !self.data[u];
+        }
     }
-}
 
-impl BitSet {
     pub fn set(&mut self, bit_index: usize) {
         self.data[bit_index / 64] |= 1u64 << (bit_index % 64);
     }
@@ -104,5 +117,23 @@ mod tests {
         assert_eq!(bitset.index(0), false);
         assert_eq!(bitset.index(1), true);
         assert_eq!(bitset.index(2), false);
+    }
+
+    #[test]
+    fn test_clear() {
+        let mut bitset = BitSet::new(128);
+        bitset.set(62);
+        bitset.set(63);
+        bitset.set(64);
+        bitset.set(65);
+        bitset.set(66);
+
+        bitset.clear(63, 65);
+
+        assert_eq!(bitset.index(62), true);
+        assert_eq!(bitset.index(63), false);
+        assert_eq!(bitset.index(64), false);
+        assert_eq!(bitset.index(65), true);
+        assert_eq!(bitset.index(66), true);
     }
 }

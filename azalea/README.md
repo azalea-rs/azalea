@@ -1,1 +1,3 @@
-This is currently an advertisement crate for [Azalea](https://github.com/mat-1/azalea), it will have more stuff later!
+A framework for creating Minecraft bots.
+
+Interally, it's just a wrapper over azalea-client, adding useful functions for making bots.

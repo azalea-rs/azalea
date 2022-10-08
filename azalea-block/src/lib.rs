@@ -66,7 +66,10 @@ mod tests {
 
     #[test]
     fn test_from_blockstate() {
-        let box_block: Box<dyn Block> = Box::<dyn Block>::from(BlockState::Air);
-        assert_eq!(box_block.id(), "air");
+        let block: Box<dyn Block> = Box::<dyn Block>::from(BlockState::Air);
+        assert_eq!(block.id(), "air");
+
+        let block: Box<dyn Block> = Box::<dyn Block>::from(BlockState::FloweringAzalea);
+        assert_eq!(block.id(), "flowering_azalea");
     }
 }

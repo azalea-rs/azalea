@@ -260,12 +260,16 @@ pub struct EntityData {
     pub dimensions: EntityDimensions,
     /// The bounding box of the entity. This is more than just width and height, unlike dimensions.
     pub bounding_box: AABB,
+
+    /// Whether the entity will try to jump every tick
+    /// (equivalent to the space key being held down in vanilla).
+    pub jumping: bool,
 }
 
 impl EntityData {
     pub fn new(uuid: Uuid, pos: Vec3) -> Self {
         let dimensions = EntityDimensions {
-            width: 0.8,
+            width: 0.6,
             height: 1.8,
         };
 
@@ -291,6 +295,8 @@ impl EntityData {
             // TODO: have this be based on the entity type
             bounding_box: dimensions.make_bounding_box(&pos),
             dimensions,
+
+            jumping: false,
         }
     }
 
