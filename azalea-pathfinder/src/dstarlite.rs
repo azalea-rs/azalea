@@ -11,6 +11,7 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::{
     borrow::Cow,
+    cmp,
     collections::HashMap,
     hash::Hash,
     ops::{Add, Deref},
@@ -128,8 +129,11 @@ impl<
 
     fn calculate_key(&self, s: &N) -> Priority<W> {
         let s_score = self.score(s);
-        // return [min(g(s), rhs(s)) + h(s_start, s) + k_m, min(g(s), rhs(s))]
-        let min_score = Ord::min(s_score.g, s_score.rhs);
+        let min_score = if s_score.g < s_score.rhs {
+            s_score.g
+        } else {
+            s_score.rhs
+        };
         Priority(
             if min_score == W::max_value() {
                 min_score
@@ -218,7 +222,10 @@ impl<
                 self.queue.remove(&u);
                 for s in (self.predecessors)(&u) {
                     let target_score = self.score_mut(&s.target);
-                    target_score.rhs = Ord::min(target_score.rhs, s.cost + g_u);
+                    if s.cost + g_u < target_score.rhs {
+                        target_score.rhs = s.cost + g_u;
+                    }
+                    // TODO: i think this can be moved up, but i'm not 100% sure it won't break anything
                     self.update_vertex(&s.target);
                 }
             } else {
@@ -236,11 +243,14 @@ impl<
                     .into_iter(),
                 ) {
                     if self.score(&s.target).rhs == s.cost + g_old && s.target != self.goal {
-                        self.score_mut(&s.target).rhs = (self.successors)(&s.target)
-                            .iter()
-                            .map(|s_prime| s_prime.cost + self.score(&s_prime.target).g)
-                            .min()
-                            .unwrap();
+                        let mut lowest_score = W::max_value();
+                        for s_prime in (self.successors)(&s.target) {
+                            let s_prime_score = s_prime.cost + self.score(&s_prime.target).g;
+                            if s_prime_score < lowest_score {
+                                lowest_score = s_prime_score;
+                            }
+                        }
+                        self.score_mut(&s.target).rhs = lowest_score;
                     }
                     self.update_vertex(&s.target);
                 }
@@ -257,13 +267,21 @@ impl<
             edge.cost = new_cost;
             let target_score = self.score_mut(&edge.successor);
             if old_cost > new_cost {
-                target_score.rhs = Ord::min(target_score.rhs, edge.cost + target_score.g);
+                if edge.cost + target_score.g < target_score.rhs {
+                    target_score.rhs = edge.cost + target_score.g;
+                }
             } else if target_score.rhs == old_cost + target_score.g {
                 let g_score = target_score.g;
                 if edge.successor.deref() != &self.goal {
                     let successors = (self.successors)(&edge.successor);
-                    self.score_mut(&edge.successor).rhs =
-                        successors.iter().map(|s| s.cost + g_score).min().unwrap();
+                    let mut lowest_score = W::max_value();
+                    for s in successors {
+                        let score = s.cost + g_score;
+                        if score < lowest_score {
+                            lowest_score = score;
+                        }
+                    }
+                    self.score_mut(&edge.successor).rhs = lowest_score;
                 }
             }
             self.update_vertex(&edge.successor);
@@ -292,7 +310,7 @@ impl<
 
         *self.start.to_mut() = (self.successors)(&self.start)
             .into_iter()
-            .min_by(|a, b| get_score(a).cmp(&get_score(b)))
+            .min_by(|a, b| get_score(a).partial_cmp(&get_score(b)).unwrap())
             .expect("No possible successors")
             .target;
         return Ok(Some(self.start.as_ref()));
