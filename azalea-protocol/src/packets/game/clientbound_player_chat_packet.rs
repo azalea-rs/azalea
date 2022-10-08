@@ -95,10 +95,10 @@ mod tests {
 
     #[test]
     fn test_chat_type() {
-        let chat_type_enum = ChatType::read_from(&mut &[0x06][..]).unwrap();
+        let chat_type_enum = ChatType::read_from(&mut Cursor::new(&[0x06])).unwrap();
         assert_eq!(chat_type_enum, ChatType::EmoteCommand);
         assert_eq!(
-            ChatType::read_from(&mut &[0x07][..]).unwrap(),
+            ChatType::read_from(&mut Cursor::new(&[0x07])).unwrap(),
             ChatType::Chat
         );
     }

@@ -5,7 +5,8 @@ use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
 use log::warn;
-use std::io::{Read, Write};
+use std::io::Cursor;
+use std::io::Write;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundCommandsPacket {
@@ -28,7 +29,7 @@ pub struct BrigadierNumber<T> {
     max: Option<T>,
 }
 impl<T: McBufReadable> McBufReadable for BrigadierNumber<T> {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let flags = u8::read_from(buf)?;
         let min = if flags & 0x01 != 0 {
             Some(T::read_from(buf)?)
@@ -127,7 +128,7 @@ pub enum BrigadierParser {
 }
 
 impl McBufReadable for BrigadierParser {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let parser_type = u32::var_read_from(buf)?;
 
         match parser_type {
@@ -203,7 +204,7 @@ impl McBufReadable for BrigadierParser {
 
 // TODO: BrigadierNodeStub should have more stuff
 impl McBufReadable for BrigadierNodeStub {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let flags = u8::read_from(buf)?;
         if flags > 31 {
             warn!(

@@ -52,6 +52,8 @@ pub async fn connect(address: ServerAddress) -> Result<(), Box<dyn std::error::E
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+
     use crate::{
         packets::login::{
             serverbound_hello_packet::{ProfilePublicKeyData, ServerboundHelloPacket},
@@ -60,7 +62,7 @@ mod tests {
         read::read_packet,
         write::write_packet,
     };
-    use std::io::Cursor;
+    use bytes::BytesMut;
     use uuid::Uuid;
 
     #[tokio::test]
@@ -75,15 +77,22 @@ mod tests {
             profile_id: Some(Uuid::from_u128(0)),
         }
         .get();
-        let mut stream = Cursor::new(Vec::new());
+        let mut stream = Vec::new();
         write_packet(packet, &mut stream, None, &mut None)
             .await
             .unwrap();
 
-        stream.set_position(0);
+        println!("stream: {stream:?}");
 
-        let _ = read_packet::<ServerboundLoginPacket, _>(&mut stream, None, &mut None)
-            .await
-            .unwrap();
+        let mut stream = Cursor::new(stream);
+
+        let _ = read_packet::<ServerboundLoginPacket, _>(
+            &mut stream,
+            &mut BytesMut::new(),
+            None,
+            &mut None,
+        )
+        .await
+        .unwrap();
     }
 }

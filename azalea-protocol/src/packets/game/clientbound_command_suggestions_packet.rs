@@ -6,7 +6,7 @@ use azalea_buf::{
     McBufWritable,
 };
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Read, Write};
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, ClientboundGamePacket)]
 pub struct ClientboundCommandSuggestionsPacket {
@@ -16,7 +16,7 @@ pub struct ClientboundCommandSuggestionsPacket {
 }
 
 impl McBufReadable for ClientboundCommandSuggestionsPacket {
-    fn read_from(_buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(_buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         // let id = u32::var_read_from(buf)?;
         // let start = u32::var_read_from(buf)? as usize;
         // let length = u32::var_read_from(buf)? as usize;

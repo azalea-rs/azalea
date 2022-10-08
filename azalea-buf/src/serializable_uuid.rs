@@ -1,5 +1,5 @@
 use crate::{read::BufReadError, McBufReadable, McBufWritable};
-use std::io::{Read, Write};
+use std::io::{Cursor, Write};
 use uuid::Uuid;
 
 pub trait SerializableUuid {
@@ -33,7 +33,7 @@ impl SerializableUuid for Uuid {
 }
 
 impl McBufReadable for Uuid {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(Uuid::from_int_array([
             u32::read_from(buf)?,
             u32::read_from(buf)?,
@@ -80,7 +80,7 @@ mod tests {
         u.write_into(&mut buf).unwrap();
         println!("{:?}", buf);
         assert_eq!(buf.len(), 16);
-        let u2 = Uuid::read_from(&mut buf.as_slice()).unwrap();
+        let u2 = Uuid::read_from(&mut Cursor::new(&buf)).unwrap();
         assert_eq!(u, u2);
     }
 }

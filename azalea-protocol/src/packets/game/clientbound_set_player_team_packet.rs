@@ -1,8 +1,7 @@
-use std::io::{Read, Write};
-
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use azalea_chat::{component::Component, style::ChatFormatting};
 use azalea_protocol_macros::ClientboundGamePacket;
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSetPlayerTeamPacket {
@@ -20,7 +19,7 @@ pub enum Method {
 }
 
 impl McBufReadable for Method {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(match u8::read_from(buf)? {
             0 => Method::Add((Parameters::read_from(buf)?, PlayerList::read_from(buf)?)),
             1 => Method::Remove,

@@ -9,6 +9,7 @@ use crate::read::{read_packet, ReadPacketError};
 use crate::write::write_packet;
 use crate::ServerIpAddress;
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
+use bytes::BytesMut;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use thiserror::Error;
@@ -17,6 +18,7 @@ use tokio::net::TcpStream;
 
 pub struct ReadConnection<R: ProtocolPacket> {
     pub read_stream: OwnedReadHalf,
+    buffer: BytesMut,
     pub compression_threshold: Option<u32>,
     pub dec_cipher: Option<Aes128CfbDec>,
     _reading: PhantomData<R>,
@@ -41,6 +43,7 @@ where
     pub async fn read(&mut self) -> Result<R, ReadPacketError> {
         read_packet::<R, _>(
             &mut self.read_stream,
+            &mut self.buffer,
             self.compression_threshold,
             &mut self.dec_cipher,
         )
@@ -104,6 +107,7 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
         Ok(Connection {
             reader: ReadConnection {
                 read_stream,
+                buffer: BytesMut::new(),
                 compression_threshold: None,
                 dec_cipher: None,
                 _reading: PhantomData,
@@ -165,6 +169,7 @@ where
         Connection {
             reader: ReadConnection {
                 read_stream: connection.reader.read_stream,
+                buffer: connection.reader.buffer,
                 compression_threshold: connection.reader.compression_threshold,
                 dec_cipher: connection.reader.dec_cipher,
                 _reading: PhantomData,

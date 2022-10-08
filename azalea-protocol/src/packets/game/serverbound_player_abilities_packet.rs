@@ -1,6 +1,7 @@
 use crate::packets::BufReadError;
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_protocol_macros::ServerboundGamePacket;
+use std::io::Cursor;
 
 #[derive(Clone, Debug, ServerboundGamePacket)]
 pub struct ServerboundPlayerAbilitiesPacket {
@@ -8,7 +9,7 @@ pub struct ServerboundPlayerAbilitiesPacket {
 }
 
 impl McBufReadable for ServerboundPlayerAbilitiesPacket {
-    fn read_from(buf: &mut impl std::io::Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let byte = u8::read_from(buf)?;
         Ok(Self {
             is_flying: byte & 2 != 0,

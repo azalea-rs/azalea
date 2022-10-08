@@ -1,7 +1,7 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_core::BlockPos;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Read, Write};
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundExplodePacket {
@@ -16,7 +16,7 @@ pub struct ClientboundExplodePacket {
 }
 
 impl McBufReadable for ClientboundExplodePacket {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let x = f32::read_from(buf)?;
         let y = f32::read_from(buf)?;
         let z = f32::read_from(buf)?;
@@ -112,7 +112,7 @@ mod tests {
         };
         let mut buf = Vec::new();
         packet.write_into(&mut buf).unwrap();
-        let packet2 = ClientboundExplodePacket::read_from(&mut buf.as_slice()).unwrap();
+        let packet2 = ClientboundExplodePacket::read_from(&mut Cursor::new(&buf)).unwrap();
         assert_eq!(packet, packet2);
     }
 }

@@ -3,7 +3,7 @@ use azalea_buf::McBuf;
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::BlockPos;
 use azalea_protocol_macros::ServerboundGamePacket;
-use std::io::{Read, Write};
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundSetStructureBlockPacket {
@@ -68,7 +68,7 @@ pub struct Flags {
 }
 
 impl McBufReadable for Flags {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let byte = u8::read_from(buf)?;
         Ok(Self {
             ignore_entities: byte & 1 != 0,

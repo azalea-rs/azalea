@@ -31,7 +31,11 @@ use azalea_world::{
 };
 use log::{debug, error, warn};
 use parking_lot::Mutex;
-use std::{fmt::Debug, io, sync::Arc};
+use std::{
+    fmt::Debug,
+    io::{self, Cursor},
+    sync::Arc,
+};
 use thiserror::Error;
 use tokio::{
     io::AsyncWriteExt,
@@ -509,7 +513,7 @@ impl Client {
                 client
                     .dimension
                     .lock()
-                    .replace_with_packet_data(&pos, &mut p.chunk_data.data.as_slice())
+                    .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data))
                     .unwrap();
             }
             ClientboundGamePacket::LightUpdate(p) => {

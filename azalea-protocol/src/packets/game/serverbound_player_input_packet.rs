@@ -1,3 +1,5 @@
+use std::io::Cursor;
+
 use azalea_buf::BufReadError;
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_protocol_macros::ServerboundGamePacket;
@@ -11,7 +13,7 @@ pub struct ServerboundPlayerInputPacket {
 }
 
 impl McBufReadable for ServerboundPlayerInputPacket {
-    fn read_from(buf: &mut impl std::io::Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let xxa = f32::read_from(buf)?;
         let zza = f32::read_from(buf)?;
         let byte = u8::read_from(buf)?;

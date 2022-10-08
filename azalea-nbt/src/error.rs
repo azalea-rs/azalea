@@ -3,7 +3,8 @@ pub enum Error {
     InvalidTagType(u8),
     InvalidTag,
     WriteError(std::io::Error),
-    Utf8Error(std::string::FromUtf8Error),
+    Utf8Error(std::str::Utf8Error),
+    UnexpectedEof,
 }
 
 impl std::fmt::Display for Error {
@@ -13,6 +14,7 @@ impl std::fmt::Display for Error {
             Error::InvalidTag => write!(f, "Invalid tag"),
             Error::WriteError(e) => write!(f, "Write error: {}", e),
             Error::Utf8Error(e) => write!(f, "Utf8 error: {}", e),
+            Error::UnexpectedEof => write!(f, "Unexpected EOF"),
         }
     }
 }
@@ -22,8 +24,8 @@ impl From<std::io::Error> for Error {
         Error::WriteError(e)
     }
 }
-impl From<std::string::FromUtf8Error> for Error {
-    fn from(e: std::string::FromUtf8Error) -> Self {
+impl From<std::str::Utf8Error> for Error {
+    fn from(e: std::str::Utf8Error) -> Self {
         Error::Utf8Error(e)
     }
 }

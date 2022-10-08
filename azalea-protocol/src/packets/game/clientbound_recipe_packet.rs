@@ -3,6 +3,7 @@ use azalea_buf::{
 };
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, ClientboundGamePacket)]
 pub struct ClientboundRecipePacket {
@@ -12,7 +13,7 @@ pub struct ClientboundRecipePacket {
 }
 
 impl McBufWritable for ClientboundRecipePacket {
-    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self.action {
             State::Init { .. } => 0,
             State::Add => 1,
@@ -28,7 +29,7 @@ impl McBufWritable for ClientboundRecipePacket {
     }
 }
 impl McBufReadable for ClientboundRecipePacket {
-    fn read_from(buf: &mut impl std::io::Read) -> Result<Self, azalea_buf::BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
         let action_id = u32::var_read_from(buf)?;
         let settings = RecipeBookSettings::read_from(buf)?;
         let recipes = Vec::<ResourceLocation>::read_from(buf)?;

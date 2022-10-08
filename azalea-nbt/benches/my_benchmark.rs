@@ -1,25 +1,26 @@
 use azalea_nbt::Tag;
-use criterion::{criterion_group, criterion_main, Criterion, Throughput};
+use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use flate2::read::GzDecoder;
 use std::{
     fs::File,
-    io::{self, Read, Seek, SeekFrom},
+    io::{self, Cursor, Read},
 };
 
 fn bench_serialize(filename: &str, c: &mut Criterion) {
     let mut file = File::open(filename).unwrap();
     let mut contents = Vec::new();
     file.read_to_end(&mut contents).unwrap();
-    let mut src = std::io::Cursor::new(&contents[..]);
+    let mut src = &contents[..];
 
     // decode the original src so most of the time isn't spent on unzipping
     let mut decoded_src_decoder = GzDecoder::new(&mut src);
     let mut decoded_src = Vec::new();
     decoded_src_decoder.read_to_end(&mut decoded_src).unwrap();
-    let mut decoded_src_stream = std::io::Cursor::new(decoded_src.clone());
 
-    file.seek(SeekFrom::Start(0)).unwrap();
+    let mut decoded_src_stream = Cursor::new(&decoded_src[..]);
+
     let nbt = Tag::read(&mut decoded_src_stream).unwrap();
+    decoded_src_stream.set_position(0);
 
     let mut group = c.benchmark_group(filename);
 
@@ -27,9 +28,8 @@ fn bench_serialize(filename: &str, c: &mut Criterion) {
 
     group.bench_function("Decode", |b| {
         b.iter(|| {
-            let mut owned_decoded_src_stream = decoded_src_stream.clone();
-            owned_decoded_src_stream.seek(SeekFrom::Start(0)).unwrap();
-            Tag::read(&mut owned_decoded_src_stream).unwrap();
+            black_box(Tag::read(&mut decoded_src_stream).unwrap());
+            decoded_src_stream.set_position(0);
         })
     });
 
