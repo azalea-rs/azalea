@@ -367,9 +367,18 @@ mod tests {
         };
 
         let mut dstar = DStarLite::new((0, 0), (4, 4), heuristic, successors, predecessors);
-        while let Some(pos) = dstar.next().unwrap() {
-            println!("{:?}", pos);
-        }
-        panic!()
+        assert!(dstar.next().unwrap() == Some(&(0, 1)));
+        assert!(dstar.next().unwrap() == Some(&(0, 2)));
+        assert!(dstar.next().unwrap() == Some(&(1, 2)));
+        assert!(dstar.next().unwrap() == Some(&(2, 2)));
+        assert!(dstar.next().unwrap() == Some(&(2, 1)));
+        assert!(dstar.next().unwrap() == Some(&(2, 0)));
+        assert!(dstar.next().unwrap() == Some(&(3, 0)));
+        assert!(dstar.next().unwrap() == Some(&(4, 0)));
+        assert!(dstar.next().unwrap() == Some(&(4, 1)));
+        assert!(dstar.next().unwrap() == Some(&(4, 2)));
+        assert!(dstar.next().unwrap() == Some(&(4, 3)));
+        assert!(dstar.next().unwrap() == Some(&(4, 4)));
+        assert!(dstar.next().unwrap() == None);
     }
 }
