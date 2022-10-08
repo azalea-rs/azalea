@@ -1,7 +1,7 @@
 use crate::{movement::MoveDirection, Account, Player};
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::component::Component;
-use azalea_core::{ChunkPos, ResourceLocation, Vec3};
+use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
@@ -631,7 +631,10 @@ impl Client {
             }
             ClientboundGamePacket::SectionBlocksUpdate(p) => {
                 debug!("Got section blocks update packet {:?}", p);
-                // TODO: update world
+                let mut dimension = client.dimension.lock();
+                for state in &p.states {
+                    dimension.set_block_state(&(p.section_pos + state.pos), state.state);
+                }
             }
             ClientboundGamePacket::GameEvent(p) => {
                 debug!("Got game event packet {:?}", p);

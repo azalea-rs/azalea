@@ -12,7 +12,7 @@ use std::{
     io::{Cursor, Read},
 };
 use thiserror::Error;
-use tokio::io::{AsyncRead, AsyncReadExt};
+use tokio::io::AsyncRead;
 use tokio_util::codec::{BytesCodec, FramedRead};
 
 #[derive(Error, Debug)]
