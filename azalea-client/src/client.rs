@@ -1,7 +1,7 @@
 use crate::{movement::MoveDirection, Account, Player};
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::component::Component;
-use azalea_core::{ChunkPos, ResourceLocation, Vec3};
+use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
@@ -50,7 +50,7 @@ use tokio::{
 pub enum Event {
     Login,
     Chat(ChatPacket),
-    /// A game tick, happens 20 times per second.
+    /// Happens 20 times per second, but only when the world is loaded.
     Tick,
     Packet(Box<ClientboundGamePacket>),
 }
@@ -231,7 +231,8 @@ impl Client {
 
     /// Write a packet directly to the server.
     pub async fn write_packet(&self, packet: ServerboundGamePacket) -> Result<(), std::io::Error> {
-        self.write_conn.lock().await.write(packet).await
+        self.write_conn.lock().await.write(packet).await?;
+        Ok(())
     }
 
     /// Disconnect from the server, ending all tasks.
@@ -630,7 +631,10 @@ impl Client {
             }
             ClientboundGamePacket::SectionBlocksUpdate(p) => {
                 debug!("Got section blocks update packet {:?}", p);
-                // TODO: update world
+                let mut dimension = client.dimension.lock();
+                for state in &p.states {
+                    dimension.set_block_state(&(p.section_pos + state.pos), state.state);
+                }
             }
             ClientboundGamePacket::GameEvent(p) => {
                 debug!("Got game event packet {:?}", p);
@@ -724,8 +728,6 @@ impl Client {
 
     /// Runs every 50 milliseconds.
     async fn game_tick(client: &mut Client, tx: &UnboundedSender<Event>) {
-        tx.send(Event::Tick).unwrap();
-
         // return if there's no chunk at the player's position
         {
             let dimension_lock = client.dimension.lock();
@@ -741,6 +743,8 @@ impl Client {
                 return;
             }
         }
+
+        tx.send(Event::Tick).unwrap();
 
         // TODO: if we're a passenger, send the required packets
 

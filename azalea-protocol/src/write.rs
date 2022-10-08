@@ -69,7 +69,7 @@ async fn compression_encoder(
 }
 
 pub async fn write_packet<P, W>(
-    packet: P,
+    packet: &P,
     stream: &mut W,
     compression_threshold: Option<u32>,
     cipher: &mut Option<Aes128CfbEnc>,
@@ -78,7 +78,7 @@ where
     P: ProtocolPacket + Debug,
     W: AsyncWrite + Unpin + Send,
 {
-    let mut buf = packet_encoder(&packet).unwrap();
+    let mut buf = packet_encoder(packet).unwrap();
     if let Some(threshold) = compression_threshold {
         buf = compression_encoder(&buf, threshold).await.unwrap();
     }

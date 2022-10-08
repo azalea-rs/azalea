@@ -172,6 +172,18 @@ impl ChunkSectionBlockPos {
     }
 }
 
+impl Add<ChunkSectionBlockPos> for ChunkSectionPos {
+    type Output = BlockPos;
+
+    fn add(self, rhs: ChunkSectionBlockPos) -> Self::Output {
+        BlockPos {
+            x: self.x * 16 + rhs.x as i32,
+            y: self.y * 16 + rhs.y as i32,
+            z: self.z * 16 + rhs.z as i32,
+        }
+    }
+}
+
 /// A block pos with an attached dimension
 #[derive(Debug, Clone)]
 pub struct GlobalPos {
@@ -403,8 +415,8 @@ mod tests {
     fn test_read_blockpos_from() {
         let mut buf = Vec::new();
         13743895338965u64.write_into(&mut buf).unwrap();
-        let buf = &mut &buf[..];
-        let block_pos = BlockPos::read_from(buf).unwrap();
+        let mut buf = Cursor::new(&buf[..]);
+        let block_pos = BlockPos::read_from(&mut buf).unwrap();
         assert_eq!(block_pos, BlockPos::new(49, -43, -3));
     }
 }

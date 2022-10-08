@@ -94,7 +94,7 @@ mod tests {
             .write_into(&mut buf)
             .unwrap();
 
-        let mut buf = &mut &buf[..];
+        let mut buf = Cursor::new(&buf[..]);
 
         assert_eq!(
             ResourceLocation::read_from(&mut buf).unwrap(),

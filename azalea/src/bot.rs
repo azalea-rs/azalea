@@ -36,10 +36,12 @@ impl crate::Plugin for Plugin {
     async fn handle(self: Arc<Self>, mut bot: Client, event: Arc<Event>) {
         if let Event::Tick = *event {
             let mut state = self.state.lock();
-            if bot.jumping() {
-                state.jumping_once = false;
-            } else if state.jumping_once {
-                bot.set_jumping(true);
+            if state.jumping_once {
+                if bot.jumping() {
+                    state.jumping_once = false;
+                } else {
+                    bot.set_jumping(true);
+                }
             }
         }
     }
