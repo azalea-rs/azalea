@@ -252,30 +252,30 @@ impl<
 
     /// Return the next vertex to visit and set our current position to be there.
     pub fn next(&mut self) -> Result<Option<&N>, NoPathError> {
-        while self.start.deref() != &self.goal {
-            let start_score = self.score(&self.start);
-            if start_score.rhs == W::max_value() {
-                return Err(NoPathError);
-            }
-
-            let get_score = |edge: &EdgeTo<N, W>| -> W {
-                let g_score = self.score(&edge.target).g;
-                if g_score == W::max_value() {
-                    W::max_value()
-                } else {
-                    edge.cost + g_score
-                }
-            };
-
-            *self.start.to_mut() = (self.successors)(&self.start)
-                .into_iter()
-                .min_by(|a, b| get_score(a).cmp(&get_score(b)))
-                .expect("No possible successors")
-                .target;
-            return Ok(Some(self.start.as_ref()));
+        if self.start.deref() == &self.goal {
+            return Ok(None);
+        }
+    
+        let start_score = self.score(&self.start);
+        if start_score.rhs == W::max_value() {
+            return Err(NoPathError);
         }
 
-        Ok(None)
+        let get_score = |edge: &EdgeTo<N, W>| -> W {
+            let g_score = self.score(&edge.target).g;
+            if g_score == W::max_value() {
+                W::max_value()
+            } else {
+                edge.cost + g_score
+            }
+        };
+
+        *self.start.to_mut() = (self.successors)(&self.start)
+            .into_iter()
+            .min_by(|a, b| get_score(a).cmp(&get_score(b)))
+            .expect("No possible successors")
+            .target;
+        return Ok(Some(self.start.as_ref()));
     }
 
     // /// Change our current position.
