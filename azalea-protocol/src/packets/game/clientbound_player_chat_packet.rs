@@ -92,6 +92,7 @@ pub enum FilterMask {
 mod tests {
     use super::*;
     use azalea_buf::McBufReadable;
+    use std::io::Cursor;
 
     #[test]
     fn test_chat_type() {
