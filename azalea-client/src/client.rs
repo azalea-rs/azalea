@@ -86,12 +86,6 @@ pub struct PhysicsState {
     pub move_direction: MoveDirection,
     pub forward_impulse: f32,
     pub left_impulse: f32,
-
-    /// Whether we will jump next tick. This is purely to help with bots,
-    /// realistic clients should change the `jumping` field in the player entity.
-    ///
-    /// TODO: have a convenient way to change the `jumping` field in the player entity.
-    pub jumping_once: bool,
 }
 
 /// Whether we should ignore errors when decoding packets.
