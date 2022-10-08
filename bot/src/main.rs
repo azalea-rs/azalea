@@ -24,7 +24,7 @@ async fn main() {
 }
 
 async fn handle(bot: Client, event: Arc<Event>, _state: Arc<Mutex<State>>) -> anyhow::Result<()> {
-    if let Event::GameTick = *event {
+    if let Event::Tick = *event {
         bot.jump();
     }
 

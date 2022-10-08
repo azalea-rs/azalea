@@ -32,10 +32,13 @@ struct State {}
 struct SwarmState {}
 
 async fn handle(bots: Client, event: Arc<Event>, state: Arc<Mutex<State>>) {
-    match event {
+    match *event {
         Event::Tick => {
             // choose an arbitrary player within render distance to target
-            if let Some(target) = bots.world.find_one_entity(|e| e.id == "minecraft:player") {
+            if let Some(target) = bots
+                .dimension()
+                .find_one_entity(|e| e.id == "minecraft:player")
+            {
                 for bot in bots {
                     bot.tick_goto_goal(pathfinder::Goals::Reach(target.bounding_box));
                     // if target.bounding_box.distance(bot.eyes) < bot.reach_distance() {

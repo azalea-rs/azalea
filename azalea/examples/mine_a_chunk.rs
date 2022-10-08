@@ -46,7 +46,7 @@ async fn group_handle(
     event: Arc<Event>,
     state: Arc<Mutex<GroupState>>,
 ) -> anyhow::Result<()> {
-    match event {
+    match *event {
         Event::Login => {
             bots.goto(azalea::BlockPos::new(0, 70, 0)).await;
             // or bots.goto_goal(pathfinder::Goals::Goto(azalea::BlockPos(0, 70, 0))).await;

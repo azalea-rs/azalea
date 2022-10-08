@@ -47,7 +47,7 @@ pub enum Event {
     Login,
     Chat(ChatPacket),
     /// A game tick, happens 20 times per second.
-    GameTick,
+    Tick,
     Packet(Box<ClientboundGamePacket>),
 }
 
@@ -726,7 +726,7 @@ impl Client {
 
     /// Runs every 50 milliseconds.
     async fn game_tick(client: &mut Client, tx: &UnboundedSender<Event>) {
-        tx.send(Event::GameTick).unwrap();
+        tx.send(Event::Tick).unwrap();
 
         // return if there's no chunk at the player's position
         {
