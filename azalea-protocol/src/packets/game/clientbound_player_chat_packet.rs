@@ -3,7 +3,6 @@ use azalea_chat::component::Component;
 use azalea_core::BitSet;
 use azalea_crypto::{MessageSignature, SignedMessageHeader};
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Cursor, Write};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]

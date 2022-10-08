@@ -6,7 +6,7 @@ use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
 use log::warn;
 use std::io::Cursor;
-use std::io::{Read, Write};
+use std::io::Write;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundCommandsPacket {

@@ -30,13 +30,11 @@ use azalea_world::{
     Dimension,
 };
 use log::{debug, error, warn};
-use log::{debug, error, warn};
 use parking_lot::Mutex;
-use std::{fmt::Debug, io, sync::Arc};
 use std::{
     fmt::Debug,
     io::{self, Cursor},
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
 use thiserror::Error;
 use tokio::{

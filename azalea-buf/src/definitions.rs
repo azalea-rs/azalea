@@ -1,8 +1,4 @@
-use crate::{read::BufReadError, McBufReadable, McBufWritable};
-use std::{
-    io::{Cursor, Write},
-    ops::Deref,
-};
+use std::ops::Deref;
 
 /// A Vec<u8> that isn't prefixed by a VarInt with the size.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
