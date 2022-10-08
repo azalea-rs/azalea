@@ -1,9 +1,8 @@
-use std::io::{Read, Write};
-
 use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_chat::component::Component;
 use azalea_protocol_macros::ClientboundGamePacket;
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, ClientboundGamePacket)]
 pub struct ClientboundMapItemDataPacket {
@@ -16,7 +15,7 @@ pub struct ClientboundMapItemDataPacket {
 }
 
 impl McBufReadable for ClientboundMapItemDataPacket {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let map_id = u32::var_read_from(buf)?;
         let scale = u8::read_from(buf)?;
         let locked = bool::read_from(buf)?;

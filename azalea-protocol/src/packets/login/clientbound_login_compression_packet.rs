@@ -1,31 +1,9 @@
-use super::ClientboundLoginPacket;
-use azalea_buf::{BufReadError, McBufVarReadable, McBufVarWritable};
-use std::{
-    hash::Hash,
-    io::{Read, Write},
-};
+use azalea_buf::McBuf;
+use azalea_protocol_macros::ClientboundLoginPacket;
+use std::hash::Hash;
 
-#[derive(Hash, Clone, Debug)]
+#[derive(Hash, Clone, Debug, ClientboundLoginPacket, McBuf)]
 pub struct ClientboundLoginCompressionPacket {
+    #[var]
     pub compression_threshold: i32,
-}
-
-impl ClientboundLoginCompressionPacket {
-    pub fn get(self) -> ClientboundLoginPacket {
-        ClientboundLoginPacket::LoginCompression(self)
-    }
-
-    pub fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.compression_threshold.var_write_into(buf)?;
-        Ok(())
-    }
-
-    pub fn read(buf: &mut impl Read) -> Result<ClientboundLoginPacket, BufReadError> {
-        let compression_threshold = i32::var_read_from(buf)?;
-
-        Ok(ClientboundLoginCompressionPacket {
-            compression_threshold,
-        }
-        .get())
-    }
 }

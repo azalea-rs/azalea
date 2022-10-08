@@ -2,6 +2,7 @@ use crate::packets::BufReadError;
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ServerboundGamePacket;
+use std::io::Cursor;
 
 #[derive(Clone, Debug, ServerboundGamePacket)]
 pub struct ServerboundSeenAdvancementsPacket {
@@ -16,7 +17,7 @@ pub enum Action {
 }
 
 impl McBufReadable for ServerboundSeenAdvancementsPacket {
-    fn read_from(buf: &mut impl std::io::Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let action = Action::read_from(buf)?;
         let tab = if action == Action::OpenedTab {
             Some(ResourceLocation::read_from(buf)?)

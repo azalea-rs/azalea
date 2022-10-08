@@ -1,7 +1,7 @@
 use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Read, Write};
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundPlayerPositionPacket {
@@ -28,7 +28,7 @@ pub struct RelativeArguments {
 }
 
 impl McBufReadable for RelativeArguments {
-    fn read_from(buf: &mut impl Read) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let byte = u8::read_from(buf)?;
         Ok(RelativeArguments {
             x: byte & 0b1 != 0,
