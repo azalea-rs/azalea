@@ -8,6 +8,8 @@
 //! - Have a `cost(a: Vertex, b: Vertex)` function instead of having the cost be stored in `Edge`
 
 use priority_queue::PriorityQueue;
+use std::error::Error;
+use std::fmt::{Debug, Display, Formatter};
 use std::{
     borrow::Cow,
     collections::HashMap,
@@ -15,16 +17,25 @@ use std::{
     ops::{Add, Deref},
 };
 
-#[derive(Default)]
-pub struct VertexScore<W: Default> {
+#[derive(Debug)]
+pub struct VertexScore<W: Default + num_traits::Bounded + Debug> {
     pub g: W,
     pub rhs: W,
+}
+
+impl<W: Default + num_traits::Bounded + Debug> Default for VertexScore<W> {
+    fn default() -> Self {
+        Self {
+            g: W::max_value(),
+            rhs: W::max_value(),
+        }
+    }
 }
 
 pub struct DStarLite<
     'a,
     N: Eq + Hash + Clone,
-    W: Ord + Default + Copy,
+    W: Ord + Default + Copy + num_traits::Bounded + Debug,
     HeuristicFn: Fn(&N, &N) -> W,
     SuccessorsFn: Fn(&N) -> Vec<EdgeTo<N, W>>,
     PredcessorsFn: Fn(&N) -> Vec<EdgeTo<N, W>>,
@@ -45,7 +56,7 @@ pub struct DStarLite<
     k_m: W,
     vertex_scores: HashMap<N, VertexScore<W>>,
     /// This is just here so we can reference it. It should never be modified.
-    zero_score: VertexScore<W>,
+    default_score: VertexScore<W>,
 
     /// A list of edges and costs that we'll be updating next time.
     pub updated_edge_costs: Vec<(Edge<'a, N, W>, W)>,
@@ -63,24 +74,31 @@ pub struct EdgeTo<N: Eq + Hash + Clone, W: Ord + Copy> {
 }
 
 // rust does lexicographic ordering by default when we derive Ord
-#[derive(Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Eq, Ord, PartialEq, PartialOrd, Debug)]
 pub struct Priority<W>(W, W)
 where
-    W: Ord;
+    W: Ord + Debug;
 
+#[derive(Debug)]
 pub struct NoPathError;
+impl Error for NoPathError {}
+impl Display for NoPathError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "No path found")
+    }
+}
 
 impl<
         'a,
-        N: Eq + Hash + Clone,
-        W: Ord + Add<Output = W> + Default + Copy + num_traits::bounds::Bounded,
+        N: Eq + Hash + Clone + Debug,
+        W: Ord + Add<Output = W> + Default + Copy + num_traits::bounds::Bounded + Debug,
         HeuristicFn: Fn(&N, &N) -> W,
         SuccessorsFn: Fn(&N) -> Vec<EdgeTo<N, W>>,
         PredecessorsFn: Fn(&N) -> Vec<EdgeTo<N, W>>,
     > DStarLite<'a, N, W, HeuristicFn, SuccessorsFn, PredecessorsFn>
 {
     fn score(&self, node: &N) -> &VertexScore<W> {
-        self.vertex_scores.get(node).unwrap_or(&self.zero_score)
+        self.vertex_scores.get(node).unwrap_or(&self.default_score)
     }
     fn score_mut(&mut self, node: &N) -> &mut VertexScore<W> {
         self.vertex_scores.entry(node.clone()).or_default()
@@ -89,9 +107,14 @@ impl<
     fn calculate_key(&self, s: &N) -> Priority<W> {
         let s_score = self.score(s);
         // return [min(g(s), rhs(s)) + h(s_start, s) + k_m, min(g(s), rhs(s))]
+        let min_score = Ord::min(s_score.g, s_score.rhs);
         Priority(
-            Ord::min(s_score.g, s_score.rhs) + (self.heuristic)(&self.start, s) + self.k_m,
-            Ord::min(s_score.g, s_score.rhs),
+            if min_score == W::max_value() {
+                min_score
+            } else {
+                min_score + (self.heuristic)(&self.start, s) + self.k_m
+            },
+            min_score,
         )
     }
 
@@ -104,24 +127,34 @@ impl<
     ) -> Self {
         let mut queue = PriorityQueue::with_capacity(1);
         // Vertex<N, W>, Priority<W>
+
+        let mut vertex_scores = HashMap::new();
+        vertex_scores.insert(
+            goal.clone(),
+            VertexScore {
+                g: W::max_value(),
+                rhs: W::default(),
+            },
+        );
         queue.push(
             goal.clone(),
             Priority(heuristic(&start, &goal), W::default()),
         );
+
         let mut s = Self {
             start: Cow::Owned(start.clone()),
-            start_last: Cow::Owned(start),
+            start_last: Cow::Owned(start.clone()),
 
             goal,
 
             heuristic,
             successors,
             predecessors,
-            zero_score: VertexScore::default(),
+            default_score: VertexScore::default(),
 
             queue,
             k_m: W::default(),
-            vertex_scores: HashMap::new(),
+            vertex_scores,
 
             updated_edge_costs: Vec::new(),
         };
@@ -135,8 +168,7 @@ impl<
         if g != rhs && self.queue.get(&u).is_some() {
             self.queue.change_priority(&u, self.calculate_key(&u));
         } else if g != rhs && self.queue.get(&u).is_none() {
-            let key = self.calculate_key(&u);
-            self.queue.push(u.clone(), key);
+            self.queue.push(u.clone(), self.calculate_key(&u));
         } else if g == rhs && self.queue.get(&u).is_some() {
             self.queue.remove(&u);
         }
@@ -144,11 +176,12 @@ impl<
 
     fn compute_shortest_path(&mut self) {
         while {
-            let VertexScore {
-                g: start_g,
-                rhs: start_rhs,
-            } = self.score(&self.start);
-            self.queue.peek().unwrap().1 < &self.calculate_key(&self.start) || start_rhs > start_g
+            let score = self.score(&self.start);
+            if let Some(queue_top) = self.queue.peek() {
+                (queue_top.1 < &self.calculate_key(&self.start)) || (score.rhs > score.g)
+            } else {
+                false
+            }
         } {
             let (u, k_old) = self.queue.pop().unwrap();
             let k_new = self.calculate_key(&u);
@@ -159,15 +192,12 @@ impl<
             let u_score = self.score_mut(&u);
             if u_score.g > u_score.rhs {
                 u_score.g = u_score.rhs;
+                let g_u = u_score.g;
                 self.queue.remove(&u);
-                // for all s in Pred(u)
-                // rhs(s) = min(rhs(s), c(s, u) + g(u))
-                // update_vertex(s)
-                for edge in (self.predecessors)(&u) {
-                    let u_g_score = self.score(&u).g;
-                    let target_score = self.score_mut(&edge.target);
-                    target_score.rhs = Ord::min(target_score.rhs, edge.cost + u_g_score);
-                    self.update_vertex(&edge.target);
+                for s in (self.predecessors)(&u) {
+                    let target_score = self.score_mut(&s.target);
+                    target_score.rhs = Ord::min(target_score.rhs, s.cost + g_u);
+                    self.update_vertex(&s.target);
                 }
             } else {
                 let g_old = u_score.g;
@@ -176,26 +206,23 @@ impl<
                 //   if (rhs(s) = c(s, u) + g_old)
                 //     if (s != s_goal) rhs(s) = min s' in Succ(s) (c(s, s') + g(s'))
                 //   update_vertex(s)
-                for pred_edge in ((self.predecessors)(&u)).into_iter().chain(
+                for s in ((self.predecessors)(&u)).into_iter().chain(
                     [EdgeTo {
                         target: u,
                         cost: W::default(),
                     }]
                     .into_iter(),
                 ) {
-                    if self.score(&pred_edge.target).rhs == pred_edge.cost + g_old {
-                        if self.goal != pred_edge.target {
-                            let successors = (self.successors)(&pred_edge.target);
-                            self.score_mut(&pred_edge.target).rhs = successors
+                    if self.score(&s.target).rhs == s.cost + g_old {
+                        if s.target != self.goal {
+                            self.score_mut(&s.target).rhs = (self.successors)(&s.target)
                                 .iter()
-                                .map(|successor_edge| {
-                                    successor_edge.cost + self.score(&successor_edge.target).g
-                                })
+                                .map(|s_prime| s_prime.cost + self.score(&s_prime.target).g)
                                 .min()
                                 .unwrap();
                         }
                     }
-                    self.update_vertex(&pred_edge.target);
+                    self.update_vertex(&s.target);
                 }
             }
         }
@@ -231,9 +258,18 @@ impl<
                 return Err(NoPathError);
             }
 
+            let get_score = |edge: &EdgeTo<N, W>| -> W {
+                let g_score = self.score(&edge.target).g;
+                if g_score == W::max_value() {
+                    W::max_value()
+                } else {
+                    edge.cost + g_score
+                }
+            };
+
             *self.start.to_mut() = (self.successors)(&self.start)
                 .into_iter()
-                .min_by(|a, b| a.cost.cmp(&self.score(&b.target).g))
+                .min_by(|a, b| get_score(a).cmp(&get_score(b)))
                 .expect("No possible successors")
                 .target;
             return Ok(Some(self.start.as_ref()));
@@ -331,8 +367,7 @@ mod tests {
         };
 
         let mut dstar = DStarLite::new((0, 0), (4, 4), heuristic, successors, predecessors);
-        println!("getting move");
-        while let Ok(Some(pos)) = dstar.next() {
+        while let Some(pos) = dstar.next().unwrap() {
             println!("{:?}", pos);
         }
         panic!()
