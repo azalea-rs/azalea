@@ -35,7 +35,7 @@ impl<W: Default + num_traits::Bounded + Debug> Default for VertexScore<W> {
 pub struct DStarLite<
     'a,
     N: Eq + Hash + Clone,
-    W: Ord + Default + Copy + num_traits::Bounded + Debug,
+    W: PartialOrd + Eq + Default + Copy + num_traits::Bounded + Debug,
     HeuristicFn: Fn(&N, &N) -> W,
     SuccessorsFn: Fn(&N) -> Vec<EdgeTo<N, W>>,
     PredcessorsFn: Fn(&N) -> Vec<EdgeTo<N, W>>,
@@ -62,22 +62,44 @@ pub struct DStarLite<
     pub updated_edge_costs: Vec<(Edge<'a, N, W>, W)>,
 }
 
-pub struct Edge<'a, N: Eq + Hash + Clone, W: Ord + Copy> {
+pub struct Edge<'a, N: Eq + Hash + Clone, W: PartialOrd + Copy> {
     pub predecessor: Cow<'a, N>,
     pub successor: Cow<'a, N>,
     pub cost: W,
 }
 
-pub struct EdgeTo<N: Eq + Hash + Clone, W: Ord + Copy> {
+pub struct EdgeTo<N: Eq + Hash + Clone, W: PartialOrd + Copy> {
     pub target: N,
     pub cost: W,
 }
 
 // rust does lexicographic ordering by default when we derive Ord
-#[derive(Eq, Ord, PartialEq, PartialOrd, Debug)]
+#[derive(Eq, PartialEq, Debug)]
 pub struct Priority<W>(W, W)
 where
-    W: Ord + Debug;
+    W: PartialOrd + Debug;
+
+impl<W: PartialOrd + Debug> PartialOrd for Priority<W> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        if self.0 < other.0 {
+            Some(std::cmp::Ordering::Less)
+        } else if self.0 > other.0 {
+            Some(std::cmp::Ordering::Greater)
+        } else if self.1 < other.1 {
+            Some(std::cmp::Ordering::Less)
+        } else if self.1 > other.1 {
+            Some(std::cmp::Ordering::Greater)
+        } else {
+            Some(std::cmp::Ordering::Equal)
+        }
+    }
+}
+impl<W: PartialOrd + Debug + Eq> Ord for Priority<W> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other)
+            .expect("Partial compare should not fail for Priority")
+    }
+}
 
 #[derive(Debug)]
 pub struct NoPathError;
@@ -91,7 +113,7 @@ impl Display for NoPathError {
 impl<
         'a,
         N: Eq + Hash + Clone + Debug,
-        W: Ord + Add<Output = W> + Default + Copy + num_traits::bounds::Bounded + Debug,
+        W: PartialOrd + Eq + Add<Output = W> + Default + Copy + num_traits::bounds::Bounded + Debug,
         HeuristicFn: Fn(&N, &N) -> W,
         SuccessorsFn: Fn(&N) -> Vec<EdgeTo<N, W>>,
         PredecessorsFn: Fn(&N) -> Vec<EdgeTo<N, W>>,
