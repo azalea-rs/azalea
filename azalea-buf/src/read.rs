@@ -42,10 +42,10 @@ pub enum BufReadError {
 }
 
 fn read_bytes<'a>(buf: &'a mut Cursor<&[u8]>, length: usize) -> Result<&'a [u8], BufReadError> {
-    if length > buf.get_ref().len() {
+    if length > (buf.get_ref().len() - buf.position() as usize) {
         return Err(BufReadError::UnexpectedEof {
             attempted_read: length,
-            actual_read: buf.get_ref().len(),
+            actual_read: buf.get_ref().len() - buf.position() as usize,
         });
     }
     let initial_position = buf.position() as usize;

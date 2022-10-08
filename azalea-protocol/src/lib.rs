@@ -1,5 +1,9 @@
 //! This lib is responsible for parsing Minecraft packets.
 
+// these two are necessary for thiserror backtraces
+#![feature(error_generic_member_access)]
+#![feature(provide_any)]
+
 use std::net::IpAddr;
 use std::str::FromStr;
 
@@ -78,11 +82,9 @@ mod tests {
         }
         .get();
         let mut stream = Vec::new();
-        write_packet(packet, &mut stream, None, &mut None)
+        write_packet(&packet, &mut stream, None, &mut None)
             .await
             .unwrap();
-
-        println!("stream: {stream:?}");
 
         let mut stream = Cursor::new(stream);
 
@@ -94,5 +96,36 @@ mod tests {
         )
         .await
         .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_double_hello_packet() {
+        let packet = ServerboundHelloPacket {
+            username: "test".to_string(),
+            public_key: Some(ProfilePublicKeyData {
+                expires_at: 0,
+                key: b"idontthinkthisreallymattersijustwantittobelongforthetest".to_vec(),
+                key_signature: b"idontthinkthisreallymattersijustwantittobelongforthetest".to_vec(),
+            }),
+            profile_id: Some(Uuid::from_u128(0)),
+        }
+        .get();
+        let mut stream = Vec::new();
+        write_packet(&packet, &mut stream, None, &mut None)
+            .await
+            .unwrap();
+        write_packet(&packet, &mut stream, None, &mut None)
+            .await
+            .unwrap();
+        let mut stream = Cursor::new(stream);
+
+        let mut buffer = BytesMut::new();
+
+        let _ = read_packet::<ServerboundLoginPacket, _>(&mut stream, &mut buffer, None, &mut None)
+            .await
+            .unwrap();
+        let _ = read_packet::<ServerboundLoginPacket, _>(&mut stream, &mut buffer, None, &mut None)
+            .await
+            .unwrap();
     }
 }

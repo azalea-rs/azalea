@@ -9,7 +9,7 @@ use std::io::{BufRead, Read};
 
 #[inline]
 fn read_bytes<'a>(buf: &'a mut Cursor<&[u8]>, length: usize) -> Result<&'a [u8], Error> {
-    if length > buf.get_ref().len() {
+    if length > (buf.get_ref().len() - buf.position() as usize) {
         return Err(Error::UnexpectedEof);
     }
     let initial_position = buf.position() as usize;
@@ -95,7 +95,7 @@ impl Tag {
             // integers.
             11 => {
                 let length = stream.read_u32::<BE>()? as usize;
-                if length * 4 > stream.get_ref().len() {
+                if length * 4 > (stream.get_ref().len() - stream.position() as usize) {
                     return Err(Error::UnexpectedEof);
                 }
                 let mut ints = Vec::with_capacity(length as usize);
@@ -108,7 +108,7 @@ impl Tag {
             // integer (thus 4 bytes) and indicates the number of 8 byte longs.
             12 => {
                 let length = stream.read_u32::<BE>()? as usize;
-                if length * 8 > stream.get_ref().len() {
+                if length * 8 > (stream.get_ref().len() - stream.position() as usize) {
                     return Err(Error::UnexpectedEof);
                 }
                 let mut longs = Vec::with_capacity(length as usize);

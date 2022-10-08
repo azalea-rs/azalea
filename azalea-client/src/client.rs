@@ -231,7 +231,8 @@ impl Client {
 
     /// Write a packet directly to the server.
     pub async fn write_packet(&self, packet: ServerboundGamePacket) -> Result<(), std::io::Error> {
-        self.write_conn.lock().await.write(packet).await
+        self.write_conn.lock().await.write(packet).await?;
+        Ok(())
     }
 
     /// Disconnect from the server, ending all tasks.

@@ -57,7 +57,7 @@ where
     /// Write a packet to the server
     pub async fn write(&mut self, packet: W) -> std::io::Result<()> {
         write_packet(
-            packet,
+            &packet,
             &mut self.write_stream,
             self.compression_threshold,
             &mut self.enc_cipher,
