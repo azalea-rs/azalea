@@ -6,31 +6,37 @@ use azalea_block::BlockState;
 use azalea_core::{BlockPos, Vec3, AABB};
 pub use data::*;
 pub use dimensions::*;
+use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::ptr::NonNull;
 use uuid::Uuid;
 
 #[derive(Debug)]
-pub struct EntityRef<'d> {
+pub struct EntityRef<'d, D = &'d Dimension>
+where
+    D: Deref<Target = Dimension>,
+{
     /// The dimension this entity is in.
-    pub dimension: &'d Dimension,
+    pub dimension: D,
     /// The incrementing numerical id of the entity.
     pub id: u32,
-    pub data: &'d EntityData,
+    pub data: NonNull<EntityData>,
+    _marker: PhantomData<&'d ()>,
 }
 
-impl<'d> EntityRef<'d> {
-    pub fn new(dimension: &'d Dimension, id: u32, data: &'d EntityData) -> Self {
+impl<'d, D: Deref<Target = Dimension>> EntityRef<'d, D> {
+    pub fn new(dimension: D, id: u32, data: NonNull<EntityData>) -> Self {
         // TODO: have this be based on the entity type
         Self {
             dimension,
             id,
             data,
+            _marker: PhantomData,
         }
     }
 }
 
-impl<'d> EntityRef<'d> {
+impl<'d, D: Deref<Target = Dimension>> EntityRef<'d, D> {
     #[inline]
     pub fn pos(&self) -> &Vec3 {
         &self.pos
@@ -84,20 +90,25 @@ impl<'d> EntityRef<'d> {
 }
 
 #[derive(Debug)]
-pub struct EntityMut<'d> {
+pub struct EntityMut<'d, D = &'d mut Dimension>
+where
+    D: DerefMut<Target = Dimension>,
+{
     /// The dimension this entity is in.
-    pub dimension: &'d mut Dimension,
+    pub dimension: D,
     /// The incrementing numerical id of the entity.
     pub id: u32,
     pub data: NonNull<EntityData>,
+    _marker: PhantomData<&'d ()>,
 }
 
-impl<'d> EntityMut<'d> {
-    pub fn new(dimension: &'d mut Dimension, id: u32, data: NonNull<EntityData>) -> Self {
+impl<'d, D: DerefMut<Target = Dimension>> EntityMut<'d, D> {
+    pub fn new(dimension: D, id: u32, data: NonNull<EntityData>) -> Self {
         Self {
             dimension,
             id,
             data,
+            _marker: PhantomData,
         }
     }
 
@@ -144,7 +155,7 @@ impl<'d> EntityMut<'d> {
     }
 }
 
-impl<'d> EntityMut<'d> {
+impl<'d, D: DerefMut<Target = Dimension>> EntityMut<'d, D> {
     #[inline]
     pub fn pos(&self) -> &Vec3 {
         &self.pos
@@ -197,18 +208,18 @@ impl<'d> EntityMut<'d> {
     }
 }
 
-impl<'d> From<EntityMut<'d>> for EntityRef<'d> {
-    fn from(entity: EntityMut<'d>) -> EntityRef<'d> {
-        let data = unsafe { entity.data.as_ref() };
+impl<'d, D: DerefMut<Target = Dimension>> From<EntityMut<'d, D>> for EntityRef<'d, D> {
+    fn from(entity: EntityMut<'d, D>) -> EntityRef<'d, D> {
         EntityRef {
             dimension: entity.dimension,
             id: entity.id,
-            data,
+            data: entity.data,
+            _marker: PhantomData,
         }
     }
 }
 
-impl Deref for EntityMut<'_> {
+impl<D: DerefMut<Target = Dimension>> Deref for EntityMut<'_, D> {
     type Target = EntityData;
 
     fn deref(&self) -> &Self::Target {
@@ -216,17 +227,17 @@ impl Deref for EntityMut<'_> {
     }
 }
 
-impl DerefMut for EntityMut<'_> {
+impl<D: DerefMut<Target = Dimension>> DerefMut for EntityMut<'_, D> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { self.data.as_mut() }
     }
 }
 
-impl Deref for EntityRef<'_> {
+impl<D: Deref<Target = Dimension>> Deref for EntityRef<'_, D> {
     type Target = EntityData;
 
     fn deref(&self) -> &Self::Target {
-        self.data
+        unsafe { self.data.as_ref() }
     }
 }
 
@@ -305,8 +316,13 @@ impl EntityData {
         &self.pos
     }
 
-    pub(crate) unsafe fn as_ptr(&mut self) -> NonNull<EntityData> {
+    pub unsafe fn as_ptr(&mut self) -> NonNull<EntityData> {
         NonNull::new_unchecked(self as *mut EntityData)
+    }
+
+    pub unsafe fn as_const_ptr(&self) -> NonNull<EntityData> {
+        // this is cursed
+        NonNull::new_unchecked(self as *const EntityData as *mut EntityData)
     }
 }
 
@@ -320,7 +336,7 @@ mod tests {
         let uuid = Uuid::from_u128(100);
         dim.add_entity(0, EntityData::new(uuid, Vec3::default()));
         let entity: EntityMut = dim.entity_mut(0).unwrap();
-        let entity_ref: EntityRef = entity.into();
+        let entity_ref = EntityRef::from(entity);
         assert_eq!(entity_ref.uuid, uuid);
     }
 }

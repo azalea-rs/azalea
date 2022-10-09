@@ -221,16 +221,14 @@ impl Client {
     /// If you're making a realistic client, calling this function every tick is
     /// recommended.
     pub fn set_jumping(&mut self, jumping: bool) {
-        let mut dimension = self.dimension.lock();
-        let mut player_entity = self.entity_mut(&mut dimension);
+        let mut player_entity = self.entity_mut();
 
         player_entity.jumping = jumping;
     }
 
     /// Returns whether the player will try to jump next tick.
     pub fn jumping(&self) -> bool {
-        let dimension = self.dimension.lock();
-        let player_entity = self.entity(&dimension);
+        let player_entity = self.entity();
 
         player_entity.jumping
     }

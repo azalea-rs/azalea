@@ -29,15 +29,15 @@ pub trait Trait {
     fn goto(&self, goal: impl Goal);
 }
 
-impl Trait for azalea_client::Client {
-    fn goto(&self, goal: impl Goal) {
-        // let start = Node {
-        //     pos: BlockPos::from(self.position()),
-        // };
+// impl Trait for azalea_client::Client {
+//     fn goto(&self, goal: impl Goal) {
+//         let start = Node {
+//             pos: BlockPos::from(self.entity()),
+//         };
 
-        // let pf = MTDStarLite::new(start);
-    }
-}
+//         let pf = MTDStarLite::new(start);
+//     }
+// }
 
 pub struct Node {
     pub pos: BlockPos,
@@ -46,4 +46,7 @@ pub struct Node {
 pub trait Goal {
     fn heuristic(&self, x: i32, y: i32, z: i32) -> f32;
     fn success(&self, x: i32, y: i32, z: i32) -> bool;
+    // TODO: this should be removed and mtdstarlite should stop depending on
+    // being given a goal node
+    fn goal_node(&self, x: i32, y: i32, z: i32) -> bool;
 }

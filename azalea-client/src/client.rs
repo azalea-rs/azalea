@@ -1,7 +1,7 @@
 use crate::{movement::MoveDirection, Account, Player};
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::component::Component;
-use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3};
+use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
@@ -30,7 +30,7 @@ use azalea_world::{
     Dimension,
 };
 use log::{debug, error, warn};
-use parking_lot::Mutex;
+use parking_lot::{Mutex, MutexGuard};
 use std::{
     fmt::Debug,
     io::{self, Cursor},
@@ -757,24 +757,36 @@ impl Client {
     }
 
     /// Returns the entity associated to the player.
-    pub fn entity_mut<'d>(&self, dimension: &'d mut Dimension) -> EntityMut<'d> {
+    pub fn entity_mut(&self) -> EntityMut<MutexGuard<Dimension>> {
         let entity_id = {
             let player_lock = self.player.lock();
             player_lock.entity_id
         };
-        dimension
-            .entity_mut(entity_id)
-            .expect("Player entity should be in the given dimension")
+
+        let mut dimension = self.dimension.lock();
+
+        let entity_data = dimension
+            .entity_storage
+            .get_mut_by_id(entity_id)
+            .expect("Player entity should exist");
+        let entity_ptr = unsafe { entity_data.as_ptr() };
+        EntityMut::new(dimension, entity_id, entity_ptr)
     }
     /// Returns the entity associated to the player.
-    pub fn entity<'d>(&self, dimension: &'d Dimension) -> EntityRef<'d> {
+    pub fn entity(&self) -> EntityRef<MutexGuard<Dimension>> {
         let entity_id = {
             let player_lock = self.player.lock();
             player_lock.entity_id
         };
-        dimension
-            .entity(entity_id)
-            .expect("Player entity should be in the given dimension")
+
+        let dimension = self.dimension.lock();
+
+        let entity_data = dimension
+            .entity_storage
+            .get_by_id(entity_id)
+            .expect("Player entity should be in the given dimension");
+        let entity_ptr = unsafe { entity_data.as_const_ptr() };
+        EntityRef::new(dimension, entity_id, entity_ptr)
     }
 }
 

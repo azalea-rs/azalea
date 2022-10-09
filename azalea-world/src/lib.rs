@@ -23,11 +23,10 @@ use uuid::Uuid;
 
 /// A dimension is a collection of chunks and entities.
 /// Minecraft calls these "Levels", Fabric calls them "Worlds", Minestom calls them "Instances".
-/// Yeah.
 #[derive(Debug, Default)]
 pub struct Dimension {
-    chunk_storage: ChunkStorage,
-    entity_storage: EntityStorage,
+    pub chunk_storage: ChunkStorage,
+    pub entity_storage: EntityStorage,
 }
 
 #[derive(Error, Debug)]
@@ -129,12 +128,12 @@ impl Dimension {
 
     pub fn entity(&self, id: u32) -> Option<EntityRef> {
         let entity_data = self.entity_storage.get_by_id(id)?;
-        Some(EntityRef::new(self, id, entity_data))
+        let entity_ptr = unsafe { entity_data.as_const_ptr() };
+        Some(EntityRef::new(self, id, entity_ptr))
     }
 
     pub fn entity_mut(&mut self, id: u32) -> Option<EntityMut> {
         let entity_data = self.entity_storage.get_mut_by_id(id)?;
-
         let entity_ptr = unsafe { entity_data.as_ptr() };
         Some(EntityMut::new(self, id, entity_ptr))
     }
