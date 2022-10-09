@@ -14,7 +14,7 @@ use std::{collections::HashMap, fmt::Debug, hash::Hash, ops::Add};
 /// Nodes are coordinates.
 pub struct MTDStarLite<
     N: Eq + Hash + Copy + Debug,
-    W: PartialOrd + Eq + Default + Copy + num_traits::Bounded + Debug,
+    W: PartialOrd + Default + Copy + num_traits::Bounded + Debug,
     HeuristicFn: Fn(&N) -> W,
     SuccessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
     PredecessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
@@ -49,7 +49,7 @@ pub struct MTDStarLite<
 
 impl<
         N: Eq + Hash + Copy + Debug,
-        W: PartialOrd + Eq + Add<Output = W> + Default + Copy + num_traits::Bounded + Debug,
+        W: PartialOrd + Add<Output = W> + Default + Copy + num_traits::Bounded + Debug,
         HeuristicFn: Fn(&N) -> W,
         SuccessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
         PredecessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
@@ -307,7 +307,7 @@ impl<
     }
 }
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(PartialEq, Debug)]
 pub struct Priority<W>(W, W)
 where
     W: PartialOrd + Debug;
@@ -327,12 +327,13 @@ impl<W: PartialOrd + Debug> PartialOrd for Priority<W> {
         }
     }
 }
-impl<W: PartialOrd + Debug + Eq> Ord for Priority<W> {
+impl<W: PartialOrd + Debug> Ord for Priority<W> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.partial_cmp(other)
             .expect("Partial compare should not fail for Priority")
     }
 }
+impl<W: PartialOrd + Debug> Eq for Priority<W> {}
 
 #[derive(Debug)]
 pub struct NodeState<N: Eq + Hash + Copy + Debug, W: Default + num_traits::Bounded + Debug> {

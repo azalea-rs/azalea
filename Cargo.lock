@@ -116,7 +116,7 @@ dependencies = [
 name = "azalea-auth"
 version = "0.1.0"
 dependencies = [
- "azalea-buf 0.1.0",
+ "azalea-buf",
  "uuid",
 ]
 
@@ -125,7 +125,7 @@ name = "azalea-block"
 version = "0.1.0"
 dependencies = [
  "azalea-block-macros",
- "azalea-buf 0.1.0",
+ "azalea-buf",
 ]
 
 [[package]]
@@ -145,21 +145,7 @@ version = "0.1.0"
 name = "azalea-buf"
 version = "0.1.0"
 dependencies = [
- "azalea-buf-macros 0.1.0",
- "byteorder",
- "serde_json",
- "thiserror",
- "tokio",
- "uuid",
-]
-
-[[package]]
-name = "azalea-buf"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7b2b996a5642abaac7de05a9a1416c5fbaad28bdfe12d446f71a5f7a3075aa7"
-dependencies = [
- "azalea-buf-macros 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "azalea-buf-macros",
  "byteorder",
  "serde_json",
  "thiserror",
@@ -177,35 +163,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "azalea-buf-macros"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5d949019583d78ab38ca00305bdf7107a94a12496e5af2df45ebc6994a7fddd"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "azalea-chat"
 version = "0.1.1"
 dependencies = [
- "azalea-buf 0.1.0",
- "azalea-language 0.1.0",
- "lazy_static",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "azalea-chat"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ad571c2c007c414fdbc59becf49008ab28a745db55908169dcff3856cf6a04a"
-dependencies = [
- "azalea-buf 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "azalea-language 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "azalea-buf",
+ "azalea-language",
  "lazy_static",
  "serde",
  "serde_json",
@@ -218,8 +180,8 @@ dependencies = [
  "anyhow",
  "azalea-auth",
  "azalea-block",
- "azalea-chat 0.1.1",
- "azalea-core 0.1.0",
+ "azalea-chat",
+ "azalea-core",
  "azalea-crypto",
  "azalea-physics",
  "azalea-protocol",
@@ -235,21 +197,9 @@ dependencies = [
 name = "azalea-core"
 version = "0.1.0"
 dependencies = [
- "azalea-buf 0.1.0",
- "azalea-chat 0.1.1",
- "azalea-nbt 0.1.0",
- "uuid",
-]
-
-[[package]]
-name = "azalea-core"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e49ec44a7bc0627d66e417b645b35d58c42313cdf827dee98981fc4f99e3fc97"
-dependencies = [
- "azalea-buf 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "azalea-chat 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "azalea-nbt 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "azalea-buf",
+ "azalea-chat",
+ "azalea-nbt",
  "uuid",
 ]
 
@@ -258,7 +208,7 @@ name = "azalea-crypto"
 version = "0.1.0"
 dependencies = [
  "aes",
- "azalea-buf 0.1.0",
+ "azalea-buf",
  "cfb8",
  "criterion",
  "num-bigint",
@@ -278,38 +228,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "azalea-language"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e54337d15218c60db4bfcf7e0af1247f3dfabccb908fc75424656120380be78b"
-dependencies = [
- "lazy_static",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "azalea-nbt"
 version = "0.1.0"
 dependencies = [
  "ahash",
- "azalea-buf 0.1.0",
+ "azalea-buf",
  "byteorder",
  "criterion",
- "flate2",
- "num-derive",
- "num-traits",
-]
-
-[[package]]
-name = "azalea-nbt"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5bfb3dfcfac6014fdb75e95d36760985633300f8246e646979050f762f88f61a"
-dependencies = [
- "ahash",
- "azalea-buf 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "byteorder",
  "flate2",
  "num-derive",
  "num-traits",
@@ -323,7 +248,8 @@ dependencies = [
  "async-trait",
  "azalea",
  "azalea-client",
- "azalea-core 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "azalea-core",
+ "azalea-world",
  "num-traits",
  "priority-queue",
 ]
@@ -333,7 +259,7 @@ name = "azalea-physics"
 version = "0.1.0"
 dependencies = [
  "azalea-block",
- "azalea-core 0.1.0",
+ "azalea-core",
  "azalea-world",
  "lazy_static",
  "uuid",
@@ -348,11 +274,11 @@ dependencies = [
  "azalea-auth",
  "azalea-block",
  "azalea-brigadier",
- "azalea-buf 0.1.0",
- "azalea-chat 0.1.1",
- "azalea-core 0.1.0",
+ "azalea-buf",
+ "azalea-chat",
+ "azalea-core",
  "azalea-crypto",
- "azalea-nbt 0.1.0",
+ "azalea-nbt",
  "azalea-protocol-macros",
  "azalea-registry",
  "azalea-world",
@@ -384,7 +310,7 @@ dependencies = [
 name = "azalea-registry"
 version = "0.1.0"
 dependencies = [
- "azalea-buf 0.1.0",
+ "azalea-buf",
  "azalea-registry-macros",
 ]
 
@@ -402,10 +328,10 @@ name = "azalea-world"
 version = "0.1.0"
 dependencies = [
  "azalea-block",
- "azalea-buf 0.1.0",
- "azalea-chat 0.1.1",
- "azalea-core 0.1.0",
- "azalea-nbt 0.1.0",
+ "azalea-buf",
+ "azalea-chat",
+ "azalea-core",
+ "azalea-nbt",
  "azalea-registry",
  "log",
  "nohash-hasher",

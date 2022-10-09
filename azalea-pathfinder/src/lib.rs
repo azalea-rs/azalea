@@ -1,10 +1,12 @@
 #![feature(let_chains)]
 
+mod moves;
 mod mtdstarlite;
 
 use async_trait::async_trait;
 use azalea::{Client, Event};
 use azalea_core::BlockPos;
+use mtdstarlite::Edge;
 pub use mtdstarlite::MTDStarLite;
 use std::sync::{Arc, Mutex};
 
@@ -29,24 +31,48 @@ pub trait Trait {
     fn goto(&self, goal: impl Goal);
 }
 
-// impl Trait for azalea_client::Client {
-//     fn goto(&self, goal: impl Goal) {
-//         let start = Node {
-//             pos: BlockPos::from(self.entity()),
-//         };
+impl Trait for azalea_client::Client {
+    fn goto(&self, goal: impl Goal) {
+        let start = Node {
+            pos: BlockPos::from(self.entity().pos()),
+        };
+        let end = goal.goal_node();
 
-//         let pf = MTDStarLite::new(start);
-//     }
-// }
+        let successors = |node: &Node| {
+            let mut edges = Vec::new();
+            // for delta in azalea_core::PositionDelta8::ALL {
+            //     let pos = node.pos + delta;
+            //     if self.world().get_block_state(&pos).is_some() {
+            //         edges.push(Edge {
+            //             to: Node { pos },
+            //             cost: 1.0,
+            //         });
+            //     }
+            // }
+            edges
+        };
 
+        let mut pf = MTDStarLite::new(
+            start,
+            end,
+            |n| goal.heuristic(n),
+            successors,
+            successors,
+            |n| goal.success(n),
+        );
+        let p = pf.find_path();
+    }
+}
+
+#[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
 pub struct Node {
     pub pos: BlockPos,
 }
 
 pub trait Goal {
-    fn heuristic(&self, x: i32, y: i32, z: i32) -> f32;
-    fn success(&self, x: i32, y: i32, z: i32) -> bool;
+    fn heuristic(&self, n: &Node) -> f32;
+    fn success(&self, n: &Node) -> bool;
     // TODO: this should be removed and mtdstarlite should stop depending on
     // being given a goal node
-    fn goal_node(&self, x: i32, y: i32, z: i32) -> bool;
+    fn goal_node(&self) -> Node;
 }

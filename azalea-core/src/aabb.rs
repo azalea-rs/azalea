@@ -231,7 +231,7 @@ impl AABB {
         let z = max.z - min.z;
         let _dir = self.get_direction(self, min, &mut t, None, &Vec3 { x, y, z })?;
         let t = t[0];
-        Some(min.add(t * x, t * y, t * z))
+        Some(min.offset(t * x, t * y, t * z))
     }
 
     pub fn clip_iterable(
@@ -253,7 +253,7 @@ impl AABB {
         let dir = dir?;
         let t = t[0];
         Some(BlockHitResult {
-            location: from.add(t * x, t * y, t * z),
+            location: from.offset(t * x, t * y, t * z),
             direction: dir,
             block_pos: *pos,
             inside: false,

@@ -9,7 +9,8 @@ version = "0.1.0"
 anyhow = "1.0.65"
 async-trait = "0.1.57"
 azalea = {version = "0.1", path = "../azalea"}
-azalea-client = { version = "0.1.0", path = "../azalea-client" }
-azalea-core = "0.1.0"
+azalea-client = {version = "0.1.0", path = "../azalea-client"}
+azalea-core = {version = "0.1.0", path = "../azalea-core"}
+azalea-world = { version = "0.1.0", path = "../azalea-world" }
 num-traits = "0.2.15"
 priority-queue = "1.2.3"

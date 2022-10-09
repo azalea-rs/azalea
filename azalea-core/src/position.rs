@@ -37,7 +37,7 @@ where
         self.set_z(self.z() + n)
     }
 
-    fn add(&self, x: T, y: T, z: T) -> Self
+    fn offset(&self, x: T, y: T, z: T) -> Self
     where
         Self: Sized,
     {
@@ -52,7 +52,7 @@ where
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
 pub struct BlockPos {
     pub x: i32,
     pub y: i32,
@@ -65,7 +65,7 @@ impl BlockPos {
     }
 
     pub fn below(&self) -> Self {
-        self.add(0, -1, 0)
+        self.offset(0, -1, 0)
     }
 }
 
@@ -110,6 +110,18 @@ impl PositionXYZ<i32> for BlockPos {
             x: self.x,
             y: self.y,
             z: n,
+        }
+    }
+}
+
+impl Add<&BlockPos> for &BlockPos {
+    type Output = BlockPos;
+
+    fn add(self, rhs: &BlockPos) -> BlockPos {
+        BlockPos {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z,
         }
     }
 }
