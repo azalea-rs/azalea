@@ -39,14 +39,14 @@ pub struct DStarLite<
     W: PartialOrd + Eq + Default + Copy + num_traits::Bounded + Debug,
     HeuristicFn: Fn(&N, &N) -> W,
     SuccessorsFn: Fn(&N) -> Vec<EdgeTo<N, W>>,
-    PredcessorsFn: Fn(&N) -> Vec<EdgeTo<N, W>>,
+    PredecessorsFn: Fn(&N) -> Vec<EdgeTo<N, W>>,
 > {
     /// Rough estimate of how close we are to the goal. Lower = closer.
     pub heuristic: HeuristicFn,
     /// Get the nodes that can be reached from the current one
     pub successors: SuccessorsFn,
     /// Get the nodes that would direct us to the current node
-    pub predecessors: PredcessorsFn,
+    pub predecessors: PredecessorsFn,
 
     pub start: Cow<'a, N>,
     start_last: Cow<'a, N>,
@@ -231,10 +231,6 @@ impl<
             } else {
                 let g_old = u_score.g;
                 u_score.g = W::max_value();
-                // for all s in Pred(u) + {u}
-                //   if (rhs(s) = c(s, u) + g_old)
-                //     if (s != s_goal) rhs(s) = min s' in Succ(s) (c(s, s') + g(s'))
-                //   update_vertex(s)
                 for s in ((self.predecessors)(&u)).into_iter().chain(
                     [EdgeTo {
                         target: u,
