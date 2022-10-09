@@ -9,12 +9,7 @@
 //! - Store edge costs in their own map
 
 use priority_queue::DoublePriorityQueue;
-use std::{
-    collections::HashMap,
-    fmt::Debug,
-    hash::Hash,
-    ops::{Add, Sub},
-};
+use std::{collections::HashMap, fmt::Debug, hash::Hash, ops::Add};
 
 /// Nodes are coordinates.
 pub struct MTDStarLite<
@@ -33,12 +28,6 @@ pub struct MTDStarLite<
 
     start: N,
     goal: N,
-
-    // TODO: these are only used because the paper does it like this
-    // we should get rid of these and only rely on `start` and `goal` in the
-    // future
-    pub new_start: N,
-    pub new_goal: N,
 
     old_start: N,
     old_goal: N,
@@ -93,9 +82,6 @@ impl<
             start,
             goal,
 
-            new_start: start,
-            new_goal: goal,
-
             old_start: start,
             old_goal: goal,
 
@@ -149,7 +135,6 @@ impl<
             let u = self.state_mut(&u_node);
             if u.g > u.rhs {
                 u.g = u.rhs;
-                let u = self.state(&u_node);
                 self.open.remove(&u_node);
                 for edge in (self.successors)(&u_node) {
                     let s_node = edge.target;
@@ -207,34 +192,7 @@ impl<
             return None;
         }
 
-        self.old_start = self.start;
-        self.old_goal = self.goal;
-
-        self.compute_cost_minimal_path();
-        if self.state(&self.goal).rhs == W::max_value() {
-            // no path exists
-            return None;
-        }
-
-        let mut reverse_path = vec![self.goal];
-
-        // identify a path from sstart to sgoal using the parent pointers
-        let mut target = self.state(&self.goal).par;
-        while !(Some(self.start) == target) && let Some(this_target) = target {
-            // hunter follows path from self.start to self.goal;
-            reverse_path.push(this_target);
-            target = self.state(&this_target).par;
-        }
-
-        // if hunter caught target {
-        //     return None;
-        // }
-
-        let path: Vec<N> = reverse_path.into_iter().rev().collect();
-
-        self.start = self.new_start;
-        self.goal = self.new_goal;
-
+        //
         self.k_m = self.k_m + (self.heuristic)(&self.goal, &self.old_goal);
 
         if self.old_start != self.start {
@@ -274,6 +232,32 @@ impl<
                 self.update_state(&v_node);
             }
         }
+        //
+
+        self.old_start = self.start;
+        self.old_goal = self.goal;
+
+        self.compute_cost_minimal_path();
+        if self.state(&self.goal).rhs == W::max_value() {
+            // no path exists
+            return None;
+        }
+
+        let mut reverse_path = vec![self.goal];
+
+        // identify a path from sstart to sgoal using the parent pointers
+        let mut target = self.state(&self.goal).par;
+        while !(Some(self.start) == target) && let Some(this_target) = target {
+            // hunter follows path from self.start to self.goal;
+            reverse_path.push(this_target);
+            target = self.state(&this_target).par;
+        }
+
+        // if hunter caught target {
+        //     return None;
+        // }
+
+        let path: Vec<N> = reverse_path.into_iter().rev().collect();
 
         Some(path)
     }
@@ -378,7 +362,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_dstarlite() {
+    fn test_mtdstarlite() {
         let maze = [
             [0, 1, 0, 0, 0],
             [0, 1, 0, 1, 0],
