@@ -18,9 +18,8 @@ use std::{
 
 /// Nodes are coordinates.
 pub struct MTDStarLite<
-    N: Eq + Hash + Copy + Debug + Sub<Output = NDelta> + Add<NDelta, Output = N>,
+    N: Eq + Hash + Copy + Debug,
     W: PartialOrd + Eq + Default + Copy + num_traits::Bounded + Debug,
-    NDelta,
     HeuristicFn: Fn(&N, &N) -> W,
     SuccessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
     PredecessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
@@ -54,13 +53,12 @@ pub struct MTDStarLite<
 }
 
 impl<
-        N: Eq + Hash + Copy + Debug + Sub<Output = NDelta> + Add<NDelta, Output = N>,
+        N: Eq + Hash + Copy + Debug,
         W: PartialOrd + Eq + Add<Output = W> + Default + Copy + num_traits::Bounded + Debug,
-        NDelta,
         HeuristicFn: Fn(&N, &N) -> W,
         SuccessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
         PredecessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
-    > MTDStarLite<N, W, NDelta, HeuristicFn, SuccessorsFn, PredecessorsFn>
+    > MTDStarLite<N, W, HeuristicFn, SuccessorsFn, PredecessorsFn>
 {
     fn calculate_key(&self, n: &N) -> Priority<W> {
         let s = self.state(n);
@@ -204,7 +202,7 @@ impl<
         }
     }
 
-    pub fn find_path(&mut self) -> Option<()> {
+    pub fn find_path(&mut self) -> Option<Vec<N>> {
         if self.start == self.goal {
             return None;
         }
@@ -218,7 +216,7 @@ impl<
             return None;
         }
 
-        let mut reverse_path = vec![];
+        let mut reverse_path = vec![self.goal];
 
         // identify a path from sstart to sgoal using the parent pointers
         let mut target = self.state(&self.goal).par;
@@ -231,6 +229,8 @@ impl<
         // if hunter caught target {
         //     return None;
         // }
+
+        let path: Vec<N> = reverse_path.into_iter().rev().collect();
 
         self.start = self.new_start;
         self.goal = self.new_goal;
@@ -275,7 +275,7 @@ impl<
             }
         }
 
-        Some(())
+        Some(path)
     }
 
     fn optimized_deletion(&mut self) {
@@ -371,4 +371,121 @@ pub struct ChangedEdge<N: Eq + Hash + Clone, W: PartialOrd + Copy> {
     pub successor: N,
     pub old_cost: W,
     pub cost: W,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_dstarlite() {
+        let maze = [
+            [0, 1, 0, 0, 0],
+            [0, 1, 0, 1, 0],
+            [0, 0, 0, 1, 0],
+            [0, 1, 0, 1, 0],
+            [0, 0, 1, 0, 0],
+        ];
+        let width = maze[0].len();
+        let height = maze.len();
+
+        fn heuristic(a: &(usize, usize), b: &(usize, usize)) -> usize {
+            ((a.0 as isize - b.0 as isize).abs() + (a.1 as isize - b.1 as isize).abs()) as usize
+        }
+        let successors = |a: &(usize, usize)| -> Vec<Edge<(usize, usize), usize>> {
+            let mut successors = Vec::with_capacity(4);
+            let (x, y) = *a;
+
+            if x > 0 && maze[y][x - 1] == 0 {
+                successors.push(Edge {
+                    target: ((x - 1, y)),
+                    cost: 1,
+                });
+            }
+            if x < width - 1 && maze[y][x + 1] == 0 {
+                successors.push(Edge {
+                    target: ((x + 1, y)),
+                    cost: 1,
+                });
+            }
+            if y > 0 && maze[y - 1][x] == 0 {
+                successors.push(Edge {
+                    target: ((x, y - 1)),
+                    cost: 1,
+                });
+            }
+            if y < height - 1 && maze[y + 1][x] == 0 {
+                successors.push(Edge {
+                    target: ((x, y + 1)),
+                    cost: 1,
+                });
+            }
+
+            successors
+        };
+        let predecessors = |a: &(usize, usize)| -> Vec<Edge<(usize, usize), usize>> {
+            let mut predecessors = Vec::with_capacity(4);
+            let (x, y) = *a;
+
+            if x > 0 && maze[y][x - 1] == 0 {
+                predecessors.push(Edge {
+                    target: ((x - 1, y)),
+                    cost: 1,
+                });
+            }
+            if x < width - 1 && maze[y][x + 1] == 0 {
+                predecessors.push(Edge {
+                    target: ((x + 1, y)),
+                    cost: 1,
+                });
+            }
+            if y > 0 && maze[y - 1][x] == 0 {
+                predecessors.push(Edge {
+                    target: ((x, y - 1)),
+                    cost: 1,
+                });
+            }
+            if y < height - 1 && maze[y + 1][x] == 0 {
+                predecessors.push(Edge {
+                    target: ((x, y + 1)),
+                    cost: 1,
+                });
+            }
+
+            predecessors
+        };
+
+        let mut pf = MTDStarLite::new((0, 0), (4, 4), heuristic, successors, predecessors);
+        // assert!(pf.try_next().unwrap() == Some(&(0, 1)));
+        // assert!(pf.try_next().unwrap() == Some(&(0, 2)));
+        // assert!(pf.try_next().unwrap() == Some(&(1, 2)));
+        // assert!(pf.try_next().unwrap() == Some(&(2, 2)));
+        // assert!(pf.try_next().unwrap() == Some(&(2, 1)));
+        // assert!(pf.try_next().unwrap() == Some(&(2, 0)));
+        // assert!(pf.try_next().unwrap() == Some(&(3, 0)));
+        // assert!(pf.try_next().unwrap() == Some(&(4, 0)));
+        // assert!(pf.try_next().unwrap() == Some(&(4, 1)));
+        // assert!(pf.try_next().unwrap() == Some(&(4, 2)));
+        // assert!(pf.try_next().unwrap() == Some(&(4, 3)));
+        // assert!(pf.try_next().unwrap() == Some(&(4, 4)));
+        // assert!(pf.try_next().unwrap() == None);
+        let path = pf.find_path().unwrap();
+        assert_eq!(
+            path,
+            vec![
+                (0, 1),
+                (0, 2),
+                (1, 2),
+                (2, 2),
+                (2, 1),
+                (2, 0),
+                (3, 0),
+                (4, 0),
+                (4, 1),
+                (4, 2),
+                (4, 3),
+                (4, 4),
+            ]
+        );
+    }
 }
