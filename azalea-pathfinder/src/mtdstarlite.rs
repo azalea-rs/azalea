@@ -18,13 +18,19 @@ pub struct MTDStarLite<
     HeuristicFn: Fn(&N) -> W,
     SuccessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
     PredecessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
+    SuccessFn: Fn(&N) -> bool,
 > {
     /// Returns a rough estimate of how close we are to the goal. Lower = closer.
     pub heuristic: HeuristicFn,
     /// Returns the nodes that can be reached from the given node.
     pub successors: SuccessorsFn,
-    /// Returns the nodes that would direct us to the given node.
+    /// Returns the nodes that would direct us to the given node. If the graph
+    /// isn't directed (i.e. you can always return to the previous node), this
+    /// can be the same as `successors`.
     pub predecessors: PredecessorsFn,
+    /// Returns true if the given node is at the goal.
+    /// A simple implementation is to check if the given node is equal to the goal.
+    pub success: SuccessFn,
 
     start: N,
     goal: N,
@@ -47,7 +53,8 @@ impl<
         HeuristicFn: Fn(&N) -> W,
         SuccessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
         PredecessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
-    > MTDStarLite<N, W, HeuristicFn, SuccessorsFn, PredecessorsFn>
+        SuccessFn: Fn(&N) -> bool,
+    > MTDStarLite<N, W, HeuristicFn, SuccessorsFn, PredecessorsFn, SuccessFn>
 {
     fn calculate_key(&self, n: &N) -> Priority<W> {
         let s = self.state(n);
@@ -68,6 +75,7 @@ impl<
         heuristic: HeuristicFn,
         successors: SuccessorsFn,
         predecessors: PredecessorsFn,
+        success: SuccessFn,
     ) -> Self {
         let open = DoublePriorityQueue::default();
         let k_m = W::default();
@@ -78,6 +86,7 @@ impl<
             heuristic,
             successors,
             predecessors,
+            success,
 
             start,
             goal,
@@ -188,7 +197,7 @@ impl<
     }
 
     pub fn find_path(&mut self) -> Option<Vec<N>> {
-        if self.start == self.goal {
+        if (self.success)(&self.start) {
             return None;
         }
 
@@ -248,7 +257,7 @@ impl<
         // identify a path from sstart to sgoal using the parent pointers
         let mut target = self.state(&self.goal).par;
         while !(Some(self.start) == target) && let Some(this_target) = target {
-            // hunter follows path from self.start to self.goal;
+            // hunter follows path from start to goal;
             reverse_path.push(this_target);
             target = self.state(&this_target).par;
         }
@@ -379,9 +388,9 @@ mod tests {
             ((n.0 as isize - goal.0 as isize).abs() + (n.1 as isize - goal.1 as isize).abs())
                 as usize
         };
-        let successors = |a: &(usize, usize)| -> Vec<Edge<(usize, usize), usize>> {
+        let successors = |n: &(usize, usize)| -> Vec<Edge<(usize, usize), usize>> {
             let mut successors = Vec::with_capacity(4);
-            let (x, y) = *a;
+            let (x, y) = *n;
 
             if x > 0 && maze[y][x - 1] == 0 {
                 successors.push(Edge {
@@ -410,52 +419,12 @@ mod tests {
 
             successors
         };
-        let predecessors = |a: &(usize, usize)| -> Vec<Edge<(usize, usize), usize>> {
-            let mut predecessors = Vec::with_capacity(4);
-            let (x, y) = *a;
+        let predecessors =
+            |n: &(usize, usize)| -> Vec<Edge<(usize, usize), usize>> { successors(n) };
 
-            if x > 0 && maze[y][x - 1] == 0 {
-                predecessors.push(Edge {
-                    target: ((x - 1, y)),
-                    cost: 1,
-                });
-            }
-            if x < width - 1 && maze[y][x + 1] == 0 {
-                predecessors.push(Edge {
-                    target: ((x + 1, y)),
-                    cost: 1,
-                });
-            }
-            if y > 0 && maze[y - 1][x] == 0 {
-                predecessors.push(Edge {
-                    target: ((x, y - 1)),
-                    cost: 1,
-                });
-            }
-            if y < height - 1 && maze[y + 1][x] == 0 {
-                predecessors.push(Edge {
-                    target: ((x, y + 1)),
-                    cost: 1,
-                });
-            }
-
-            predecessors
-        };
-
-        let mut pf = MTDStarLite::new((0, 0), goal, heuristic, successors, predecessors);
-        // assert!(pf.try_next().unwrap() == Some(&(0, 1)));
-        // assert!(pf.try_next().unwrap() == Some(&(0, 2)));
-        // assert!(pf.try_next().unwrap() == Some(&(1, 2)));
-        // assert!(pf.try_next().unwrap() == Some(&(2, 2)));
-        // assert!(pf.try_next().unwrap() == Some(&(2, 1)));
-        // assert!(pf.try_next().unwrap() == Some(&(2, 0)));
-        // assert!(pf.try_next().unwrap() == Some(&(3, 0)));
-        // assert!(pf.try_next().unwrap() == Some(&(4, 0)));
-        // assert!(pf.try_next().unwrap() == Some(&(4, 1)));
-        // assert!(pf.try_next().unwrap() == Some(&(4, 2)));
-        // assert!(pf.try_next().unwrap() == Some(&(4, 3)));
-        // assert!(pf.try_next().unwrap() == Some(&(4, 4)));
-        // assert!(pf.try_next().unwrap() == None);
+        let mut pf = MTDStarLite::new((0, 0), goal, heuristic, successors, predecessors, |n| {
+            n == &goal
+        });
         let path = pf.find_path().unwrap();
         assert_eq!(
             path,
