@@ -15,7 +15,7 @@ use std::{collections::HashMap, fmt::Debug, hash::Hash, ops::Add};
 pub struct MTDStarLite<
     N: Eq + Hash + Copy + Debug,
     W: PartialOrd + Eq + Default + Copy + num_traits::Bounded + Debug,
-    HeuristicFn: Fn(&N, &N) -> W,
+    HeuristicFn: Fn(&N) -> W,
     SuccessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
     PredecessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
 > {
@@ -44,7 +44,7 @@ pub struct MTDStarLite<
 impl<
         N: Eq + Hash + Copy + Debug,
         W: PartialOrd + Eq + Add<Output = W> + Default + Copy + num_traits::Bounded + Debug,
-        HeuristicFn: Fn(&N, &N) -> W,
+        HeuristicFn: Fn(&N) -> W,
         SuccessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
         PredecessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
     > MTDStarLite<N, W, HeuristicFn, SuccessorsFn, PredecessorsFn>
@@ -56,7 +56,7 @@ impl<
             if min_score == W::max_value() {
                 min_score
             } else {
-                min_score + (self.heuristic)(n, &self.goal) + self.k_m
+                min_score + (self.heuristic)(n) + self.k_m
             },
             min_score,
         )
@@ -193,7 +193,7 @@ impl<
         }
 
         //
-        self.k_m = self.k_m + (self.heuristic)(&self.goal, &self.old_goal);
+        self.k_m = self.k_m + (self.heuristic)(&self.old_goal);
 
         if self.old_start != self.start {
             self.optimized_deletion();
@@ -373,9 +373,12 @@ mod tests {
         let width = maze[0].len();
         let height = maze.len();
 
-        fn heuristic(a: &(usize, usize), b: &(usize, usize)) -> usize {
-            ((a.0 as isize - b.0 as isize).abs() + (a.1 as isize - b.1 as isize).abs()) as usize
-        }
+        let goal = (4, 4);
+
+        let heuristic = |n: &(usize, usize)| -> usize {
+            ((n.0 as isize - goal.0 as isize).abs() + (n.1 as isize - goal.1 as isize).abs())
+                as usize
+        };
         let successors = |a: &(usize, usize)| -> Vec<Edge<(usize, usize), usize>> {
             let mut successors = Vec::with_capacity(4);
             let (x, y) = *a;
@@ -439,7 +442,7 @@ mod tests {
             predecessors
         };
 
-        let mut pf = MTDStarLite::new((0, 0), (4, 4), heuristic, successors, predecessors);
+        let mut pf = MTDStarLite::new((0, 0), goal, heuristic, successors, predecessors);
         // assert!(pf.try_next().unwrap() == Some(&(0, 1)));
         // assert!(pf.try_next().unwrap() == Some(&(0, 2)));
         // assert!(pf.try_next().unwrap() == Some(&(1, 2)));
