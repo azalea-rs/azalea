@@ -212,7 +212,7 @@ where
 
         // if we were given a cipher, decrypt the packet
         if let Some(message) = framed.next().await {
-            let mut bytes = message.unwrap();
+            let mut bytes = message?;
 
             if let Some(cipher) = cipher {
                 azalea_crypto::decrypt_packet(cipher, &mut bytes);
