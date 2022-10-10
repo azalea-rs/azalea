@@ -52,6 +52,10 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
         i += 1;
     }
 
+    if components.is_empty() {
+        return TextComponent::new("".to_string());
+    }
+
     // create the final component by using the first one as the base, and then adding the rest as siblings
     let mut final_component = components.remove(0);
     for component in components {

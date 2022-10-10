@@ -1,7 +1,7 @@
 use crate::{movement::MoveDirection, Account, Player};
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::component::Component;
-use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3};
+use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
