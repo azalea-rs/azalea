@@ -4,7 +4,7 @@ mod discrete_voxel_shape;
 mod mergers;
 mod shape;
 
-use azalea_core::{Axis, PositionXYZ, Vec3, AABB, EPSILON};
+use azalea_core::{Axis, Vec3, AABB, EPSILON};
 use azalea_world::entity::{EntityData, EntityMut};
 use azalea_world::{Dimension, MoveEntityError};
 pub use blocks::BlockWithShape;

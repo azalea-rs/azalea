@@ -70,10 +70,10 @@ impl<'d, D: Deref<Target = Dimension>> EntityRef<'d, D> {
         let pos = BlockPos { x, y, z };
 
         // TODO: check if block below is a fence, wall, or fence gate
-        let block_pos = pos.below();
+        let block_pos = pos.down(1);
         let block_state = self.dimension.get_block_state(&block_pos);
         if block_state == Some(BlockState::Air) {
-            let block_pos_below = block_pos.below();
+            let block_pos_below = block_pos.down(1);
             let block_state_below = self.dimension.get_block_state(&block_pos_below);
             if let Some(_block_state_below) = block_state_below {
                 // if block_state_below.is_fence()
@@ -189,10 +189,10 @@ impl<'d, D: DerefMut<Target = Dimension>> EntityMut<'d, D> {
         let pos = BlockPos { x, y, z };
 
         // TODO: check if block below is a fence, wall, or fence gate
-        let block_pos = pos.below();
+        let block_pos = pos.down(1);
         let block_state = self.dimension.get_block_state(&block_pos);
         if block_state == Some(BlockState::Air) {
-            let block_pos_below = block_pos.below();
+            let block_pos_below = block_pos.down(1);
             let block_state_below = self.dimension.get_block_state(&block_pos_below);
             if let Some(_block_state_below) = block_state_below {
                 // if block_state_below.is_fence()

@@ -2,129 +2,90 @@ use crate::ResourceLocation;
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use std::{
     io::{Cursor, Write},
-    ops::{Add, Mul, Rem},
+    ops::{Add, AddAssign, Rem},
 };
 
-pub trait PositionXYZ<T>
-where
-    T: Add<T, Output = T> + Mul<T, Output = T>,
-{
-    fn x(&self) -> T;
-    fn y(&self) -> T;
-    fn z(&self) -> T;
+macro_rules! vec3_impl {
+    ($name:ident, $type:ty) => {
+        impl $name {
+            pub fn new(x: $type, y: $type, z: $type) -> Self {
+                Self { x, y, z }
+            }
+            pub fn offset(&self, x: $type, y: $type, z: $type) -> Self {
+                Self {
+                    x: self.x + x,
+                    y: self.y + y,
+                    z: self.z + z,
+                }
+            }
+            pub fn length_sqr(&self) -> $type {
+                self.x * self.x + self.y * self.y + self.z * self.z
+            }
 
-    fn set_x(&self, n: T) -> Self;
-    fn set_y(&self, n: T) -> Self;
-    fn set_z(&self, n: T) -> Self;
+            pub fn down(&self, y: $type) -> Self {
+                Self {
+                    x: self.x,
+                    y: self.y - y,
+                    z: self.z,
+                }
+            }
+            pub fn up(&self, y: $type) -> Self {
+                Self {
+                    x: self.x,
+                    y: self.y + y,
+                    z: self.z,
+                }
+            }
+        }
 
-    // hopefully these get optimized
-    fn add_x(&self, n: T) -> Self
-    where
-        Self: Sized,
-    {
-        self.set_x(self.x() + n)
-    }
-    fn add_y(&self, n: T) -> Self
-    where
-        Self: Sized,
-    {
-        self.set_y(self.y() + n)
-    }
-    fn add_z(&self, n: T) -> Self
-    where
-        Self: Sized,
-    {
-        self.set_z(self.z() + n)
-    }
+        impl Add for &$name {
+            type Output = $name;
 
-    fn offset(&self, x: T, y: T, z: T) -> Self
-    where
-        Self: Sized,
-    {
-        self.add_x(x).add_y(y).add_z(z)
-    }
+            fn add(self, rhs: Self) -> Self::Output {
+                $name {
+                    x: self.x + rhs.x,
+                    y: self.y + rhs.y,
+                    z: self.z + rhs.z,
+                }
+            }
+        }
 
-    fn length_sqr(&self) -> T
-    where
-        Self: Sized,
-    {
-        self.x() * self.x() + self.y() * self.y() + self.z() * self.z()
-    }
+        impl AddAssign for $name {
+            fn add_assign(&mut self, rhs: Self) {
+                self.x += rhs.x;
+                self.y += rhs.y;
+                self.z += rhs.z;
+            }
+        }
+        impl Rem<$type> for $name {
+            type Output = Self;
+
+            fn rem(self, rhs: $type) -> Self::Output {
+                Self {
+                    x: self.x % rhs,
+                    y: self.y % rhs,
+                    z: self.z % rhs,
+                }
+            }
+        }
+    };
 }
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Vec3 {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+}
+vec3_impl!(Vec3, f64);
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct BlockPos {
     pub x: i32,
     pub y: i32,
     pub z: i32,
 }
-
-impl BlockPos {
-    pub fn new(x: i32, y: i32, z: i32) -> Self {
-        BlockPos { x, y, z }
-    }
-
-    pub fn below(&self) -> Self {
-        self.offset(0, -1, 0)
-    }
-}
-
-impl Rem<i32> for BlockPos {
-    type Output = Self;
-
-    fn rem(self, rhs: i32) -> Self {
-        BlockPos {
-            x: self.x % rhs,
-            y: self.y % rhs,
-            z: self.z % rhs,
-        }
-    }
-}
-
-impl PositionXYZ<i32> for BlockPos {
-    fn x(&self) -> i32 {
-        self.x
-    }
-    fn y(&self) -> i32 {
-        self.y
-    }
-    fn z(&self) -> i32 {
-        self.z
-    }
-    fn set_x(&self, n: i32) -> Self {
-        BlockPos {
-            x: n,
-            y: self.y,
-            z: self.z,
-        }
-    }
-    fn set_y(&self, n: i32) -> Self {
-        BlockPos {
-            x: self.x,
-            y: n,
-            z: self.z,
-        }
-    }
-    fn set_z(&self, n: i32) -> Self {
-        BlockPos {
-            x: self.x,
-            y: self.y,
-            z: n,
-        }
-    }
-}
-
-impl Add<&BlockPos> for &BlockPos {
-    type Output = BlockPos;
-
-    fn add(self, rhs: &BlockPos) -> BlockPos {
-        BlockPos {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-        }
-    }
-}
+vec3_impl!(BlockPos, i32);
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ChunkPos {
@@ -139,17 +100,15 @@ impl ChunkPos {
 }
 
 /// The coordinates of a chunk section in the world.
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ChunkSectionPos {
     pub x: i32,
     pub y: i32,
     pub z: i32,
 }
+vec3_impl!(ChunkSectionPos, i32);
 
 impl ChunkSectionPos {
-    pub fn new(x: i32, y: i32, z: i32) -> Self {
-        ChunkSectionPos { x, y, z }
-    }
     pub fn block_to_section_coord(block: i32) -> i32 {
         block >> 4
     }
@@ -167,32 +126,25 @@ impl ChunkBlockPos {
         ChunkBlockPos { x, y, z }
     }
 }
-/// The coordinates of a block inside a chunk section.
-#[derive(Clone, Copy, Debug, Default)]
+
+/// The coordinates of a block inside a chunk section. Each coordinate must be in the range [0, 15].
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ChunkSectionBlockPos {
-    /// A number between 0 and 16.
     pub x: u8,
-    /// A number between 0 and 16.
     pub y: u8,
-    /// A number between 0 and 16.
     pub z: u8,
 }
-
-impl ChunkSectionBlockPos {
-    pub fn new(x: u8, y: u8, z: u8) -> Self {
-        ChunkSectionBlockPos { x, y, z }
-    }
-}
+vec3_impl!(ChunkSectionBlockPos, u8);
 
 impl Add<ChunkSectionBlockPos> for ChunkSectionPos {
     type Output = BlockPos;
 
     fn add(self, rhs: ChunkSectionBlockPos) -> Self::Output {
-        BlockPos {
-            x: self.x * 16 + rhs.x as i32,
-            y: self.y * 16 + rhs.y as i32,
-            z: self.z * 16 + rhs.z as i32,
-        }
+        BlockPos::new(
+            self.x * 16 + rhs.x as i32,
+            self.y * 16 + rhs.y as i32,
+            self.z * 16 + rhs.z as i32,
+        )
     }
 }
 
@@ -202,47 +154,6 @@ pub struct GlobalPos {
     pub pos: BlockPos,
     // this is actually a ResourceKey in Minecraft, but i don't think it matters?
     pub dimension: ResourceLocation,
-}
-
-/// An exact point in the world.
-#[derive(Debug, Clone, Copy, Default, PartialEq)]
-pub struct Vec3 {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
-}
-
-impl PositionXYZ<f64> for Vec3 {
-    fn x(&self) -> f64 {
-        self.x
-    }
-    fn y(&self) -> f64 {
-        self.y
-    }
-    fn z(&self) -> f64 {
-        self.z
-    }
-    fn set_x(&self, n: f64) -> Self {
-        Vec3 {
-            x: n,
-            y: self.y,
-            z: self.z,
-        }
-    }
-    fn set_y(&self, n: f64) -> Self {
-        Vec3 {
-            x: self.x,
-            y: n,
-            z: self.z,
-        }
-    }
-    fn set_z(&self, n: f64) -> Self {
-        Vec3 {
-            x: self.x,
-            y: self.y,
-            z: n,
-        }
-    }
 }
 
 impl From<&BlockPos> for ChunkPos {

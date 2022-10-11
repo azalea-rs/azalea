@@ -1,4 +1,4 @@
-use crate::{Axis, BlockHitResult, BlockPos, Direction, PositionXYZ, Vec3};
+use crate::{Axis, BlockHitResult, BlockPos, Direction, Vec3};
 
 pub const EPSILON: f64 = 1.0E-7;
 
@@ -416,11 +416,11 @@ impl AABB {
     }
 
     pub fn get_center(&self) -> Vec3 {
-        Vec3 {
-            x: (self.min_x + self.max_x) / 2.0,
-            y: (self.min_y + self.max_y) / 2.0,
-            z: (self.min_z + self.max_z) / 2.0,
-        }
+        Vec3::new(
+            (self.min_x + self.max_x) / 2.0,
+            (self.min_y + self.max_y) / 2.0,
+            (self.min_z + self.max_z) / 2.0,
+        )
     }
 
     pub fn of_size(center: Vec3, dx: f64, dy: f64, dz: f64) -> AABB {

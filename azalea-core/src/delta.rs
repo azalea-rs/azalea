@@ -1,5 +1,3 @@
-use std::ops::{Add, AddAssign};
-
 use crate::Vec3;
 pub use azalea_buf::McBuf;
 
@@ -74,26 +72,5 @@ impl Vec3 {
     }
     pub fn scale(&self, amount: f64) -> Vec3 {
         self.multiply(amount, amount, amount)
-    }
-}
-
-// impl + and +=
-impl Add for Vec3 {
-    type Output = Vec3;
-
-    fn add(self, other: Vec3) -> Vec3 {
-        Vec3 {
-            x: self.x + other.x,
-            y: self.y + other.y,
-            z: self.z + other.z,
-        }
-    }
-}
-
-impl AddAssign for Vec3 {
-    fn add_assign(&mut self, other: Vec3) {
-        self.x += other.x;
-        self.y += other.y;
-        self.z += other.z;
     }
 }
