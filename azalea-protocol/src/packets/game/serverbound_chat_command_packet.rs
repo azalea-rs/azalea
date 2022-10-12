@@ -9,7 +9,7 @@ pub struct ServerboundChatCommandPacket {
     pub command: String,
     // TODO: Choose a real timestamp type
     pub timestamp: u64,
-    pub salt: i64,
+    pub salt: u64,
     pub argument_signatures: Vec<ArgumentSignature>,
     pub signed_preview: bool,
     pub last_seen_messages: LastSeenMessagesUpdate,
