@@ -40,15 +40,23 @@ impl Trait for azalea_client::Client {
 
         let successors = |node: &Node| {
             let mut edges = Vec::new();
-            // for delta in azalea_core::PositionDelta8::ALL {
-            //     let pos = node.pos + delta;
-            //     if self.world().get_block_state(&pos).is_some() {
-            //         edges.push(Edge {
-            //             to: Node { pos },
-            //             cost: 1.0,
-            //         });
-            //     }
-            // }
+            for possible_move in [
+                moves::NorthMove {},
+                moves::SouthMove {},
+                moves::EastMove {},
+                moves::WestMove {},
+            ]
+            .iter()
+            {
+                if possible_move.can_execute(&self.dimension(), &node.pos) {
+                    edges.push(Edge {
+                        node: Node {
+                            pos: node.pos + possible_move.offset(),
+                        },
+                        cost: 1.0,
+                    });
+                }
+            }
             edges
         };
 
