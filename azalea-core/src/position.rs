@@ -50,6 +50,14 @@ macro_rules! vec3_impl {
             }
         }
 
+        impl Add for $name {
+            type Output = $name;
+
+            fn add(self, rhs: Self) -> Self::Output {
+                (&self).add(&rhs)
+            }
+        }
+
         impl AddAssign for $name {
             fn add_assign(&mut self, rhs: Self) {
                 self.x += rhs.x;

@@ -40,17 +40,17 @@ impl Trait for azalea_client::Client {
 
         let successors = |node: &Node| {
             let mut edges = Vec::new();
-            for possible_move in [
-                moves::NorthMove {},
-                moves::SouthMove {},
-                moves::EastMove {},
-                moves::WestMove {},
-            ]
-            .iter()
-            {
-                if possible_move.can_execute(&self.dimension(), &node.pos) {
+            let possible_moves: Vec<&dyn moves::Move> = vec![
+                &moves::NorthMove {},
+                &moves::SouthMove {},
+                &moves::EastMove {},
+                &moves::WestMove {},
+            ];
+            let dimension = self.dimension.lock();
+            for possible_move in possible_moves.iter() {
+                if possible_move.can_execute(&dimension, &node.pos) {
                     edges.push(Edge {
-                        node: Node {
+                        target: Node {
                             pos: node.pos + possible_move.offset(),
                         },
                         cost: 1.0,
