@@ -9,6 +9,7 @@ use std::{
 
 use anyhow::anyhow;
 use azalea_buf::McBufWritable;
+use byteorder::WriteBytesExt;
 use num_bigint::BigUint;
 use reqwest::Url;
 use serde::Deserialize;
@@ -195,19 +196,19 @@ async fn auth_with_xbox_live(
         "TokenType": "JWT"
     });
     let payload = auth_json.to_string();
-    let signature = sign(
-        "https://user.auth.xboxlive.com/user/authenticate",
-        "",
-        &payload,
-    )?;
+    // let signature = sign(
+    //     "https://user.auth.xboxlive.com/user/authenticate",
+    //     "",
+    //     &payload,
+    // )?;
     println!("auth_json: {:#?}", auth_json);
     let res = client
         .post("https://user.auth.xboxlive.com/user/authenticate")
         .header("Content-Type", "application/json")
         .header("Accept", "application/json")
-        .header("x-xbl-contract-version", "2")
-        .header("Cache-Control", "no-store, must-revalidate, no-cache")
-        .header("Signature", base64::encode(signature))
+        .header("x-xbl-contract-version", "1")
+        // .header("Cache-Control", "no-store, must-revalidate, no-cache")
+        // .header("Signature", base64::encode(signature))
         .body(payload)
         .send()
         .await?
@@ -306,61 +307,67 @@ async fn get_profile(
     Ok(res)
 }
 
-// from https://github.com/PrismarineJS/prismarine-auth/blob/master/src/TokenManagers/XboxTokenManager.js#L112
-fn sign(url: &str, authorization_token: &str, payload: &str) -> anyhow::Result<Vec<u8>> {
-    // const windowsTimestamp = (BigInt((Date.now() / 1000) | 0) + 11644473600n) * 10000000n
-    // // Only the /uri?and-query-string
-    // const pathAndQuery = new URL(url).pathname
+// // from https://github.com/PrismarineJS/prismarine-auth/blob/master/src/TokenManagers/XboxTokenManager.js#L112
+// fn sign(url: &str, authorization_token: &str, payload: &str) -> anyhow::Result<Vec<u8>> {
+//     // const windowsTimestamp = (BigInt((Date.now() / 1000) | 0) + 11644473600n) * 10000000n
+//     // // Only the /uri?and-query-string
+//     // const pathAndQuery = new URL(url).pathname
 
-    // // Allocate the buffer for signature, TS, path, tokens and payload and NUL termination
-    // const allocSize = /* sig */ 5 + /* ts */ 9 + /* POST */ 5 + pathAndQuery.length + 1 + authorizationToken.length + 1 + payload.length + 1
-    // const buf = SmartBuffer.fromSize(allocSize)
-    // buf.writeInt32BE(1) // Policy Version
-    // buf.writeUInt8(0)
-    // buf.writeBigUInt64BE(windowsTimestamp)
-    // buf.writeUInt8(0) // null term
-    // buf.writeStringNT('POST')
-    // buf.writeStringNT(pathAndQuery)
-    // buf.writeStringNT(authorizationToken)
-    // buf.writeStringNT(payload)
+//     // // Allocate the buffer for signature, TS, path, tokens and payload and NUL termination
+//     // const allocSize = /* sig */ 5 + /* ts */ 9 + /* POST */ 5 + pathAndQuery.length + 1 + authorizationToken.length + 1 + payload.length + 1
+//     // const buf = SmartBuffer.fromSize(allocSize)
+//     // buf.writeInt32BE(1) // Policy Version
+//     // buf.writeUInt8(0)
+//     // buf.writeBigUInt64BE(windowsTimestamp)
+//     // buf.writeUInt8(0) // null term
+//     // buf.writeStringNT('POST')
+//     // buf.writeStringNT(pathAndQuery)
+//     // buf.writeStringNT(authorizationToken)
+//     // buf.writeStringNT(payload)
 
-    let windows_timestamp =
-        BigUint::from((SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs() + 11644473600))
-            * 10000000;
-    let path_and_query = Url::parse(url)?.path();
-    let mut buf = Vec::new();
-    1u32.write_into(&mut buf)?; // policy version
-    0u8.write_into(&mut buf)?;
-    windows_timestamp.write_into(&mut buf)?;
-    0u8.write_into(&mut buf)?; // null term
-    "POST".write_into(&mut buf)?;
-    path_and_query.write_into(&mut buf)?;
-    authorization_token.write_into(&mut buf)?;
-    payload.write_into(&mut buf)?;
+//     let windows_timestamp: BigUint =
+//         BigUint::from(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs() + 11644473600)
+//             * 10000000;
+//     let path_and_query = Url::parse(url)?.path();
+//     let mut buf = Vec::new();
+//     buf.write_u32(1); // policy version
+//     buf.write_u8(0);
+//     buf.write_u64(windows_timestamp.try_into().unwrap());
+//     buf.write_u8(0); // null term
+//     buf.extend_from_slice("POST\0".as_bytes());
 
-    // const keyPair = crypto.generateKeyPairSync('ec', { namedCurve: 'P-256' })
+//     buf.extend_from_slice(path_and_query.as_bytes());
+//     buf.write_u8(0);
 
-    // // Get the signature from the payload
-    // const signature = crypto.sign('SHA256', buf.toBuffer(), { key: this.key.privateKey, dsaEncoding: 'ieee-p1363' })
+//     buf.extend_from_slice(authorization_token.as_bytes());
+//     buf.write_u8(0);
 
-    // const header = SmartBuffer.fromSize(signature.length + 12)
-    // header.writeInt32BE(1) // Policy Version
-    // header.writeBigUInt64BE(windowsTimestamp)
-    // header.writeBuffer(signature) // Add signature at end of header
+//     buf.extend_from_slice(payload.as_bytes());
+//     buf.write_u8(0);
 
-    // return header.toBuffer()
+//     // const keyPair = crypto.generateKeyPairSync('ec', { namedCurve: 'P-256' })
 
-    let key_pair = EcKeyPair::generate(&EcParams::by_curve_nid(Nid::X9_62_PRIME256V1)?)?;
+//     // // Get the signature from the payload
+//     // const signature = crypto.sign('SHA256', buf.toBuffer(), { key: this.key.privateKey, dsaEncoding: 'ieee-p1363' })
 
-    let signature =
-        key_pair
-            .private_key()
-            .sign(MessageDigest::sha256(), &buf, &mut BigNumContext::new()?)?;
+//     // const header = SmartBuffer.fromSize(signature.length + 12)
+//     // header.writeInt32BE(1) // Policy Version
+//     // header.writeBigUInt64BE(windowsTimestamp)
+//     // header.writeBuffer(signature) // Add signature at end of header
 
-    let mut header = Vec::new();
-    1u32.write_into(&mut header)?; // policy version
-    windows_timestamp.write_into(&mut header)?;
-    signature.write_into(&mut header)?;
+//     // return header.toBuffer()
 
-    Ok(header)
-}
+//     let key_pair = ring::signature::EcdsaKeyPair::
+
+//     let signature =
+//         key_pair
+//             .private_key()
+//             .sign(MessageDigest::sha256(), &buf, &mut BigNumContext::new()?)?;
+
+//     let mut header = Vec::new();
+//     1u32.write_into(&mut header)?; // policy version
+//     windows_timestamp.write_into(&mut header)?;
+//     signature.write_into(&mut header)?;
+
+//     Ok(header)
+// }
