@@ -1,19 +1,11 @@
-//! Handle Minecraft authentication.
+//! Handle Minecraft (Xbox) authentication.
 
 pub mod game_profile;
 
-use std::{
-    collections::HashMap,
-    time::{Instant, SystemTime, UNIX_EPOCH},
-};
-
 use anyhow::anyhow;
-use azalea_buf::McBufWritable;
-use byteorder::WriteBytesExt;
-use num_bigint::BigUint;
-use reqwest::Url;
 use serde::Deserialize;
 use serde_json::json;
+use std::{collections::HashMap, time::Instant};
 
 #[derive(Default)]
 pub struct AuthOpts {
@@ -21,8 +13,13 @@ pub struct AuthOpts {
     /// fail if the user has Xbox Game Pass! Note that this isn't really
     /// necessary, since getting the user profile will check this anyways.
     pub check_ownership: bool,
+    // /// Whether we should get the Minecraft profile data (i.e. username, uuid,
+    // /// skin, etc) for the player.
+    // pub get_profile: bool,
 }
 
+/// Authenticate with authenticate with Microsoft. If the data isn't cached,
+/// they'll be asked to go to log into Microsoft in a web page.
 pub async fn auth(opts: Option<AuthOpts>) -> anyhow::Result<AuthResult> {
     let opts = opts.unwrap_or_default();
 
@@ -72,6 +69,7 @@ pub struct DeviceCodeResponse {
     interval: u64,
 }
 
+#[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct AccessTokenResponse {
     token_type: String,
@@ -82,6 +80,7 @@ pub struct AccessTokenResponse {
     user_id: String,
 }
 
+#[allow(unused)]
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct XboxLiveAuthResponse {
@@ -97,6 +96,7 @@ pub struct XboxLiveAuth {
     user_hash: String,
 }
 
+#[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct MinecraftAuthResponse {
     username: String,
@@ -106,6 +106,7 @@ pub struct MinecraftAuthResponse {
     expires_in: u64,
 }
 
+#[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct GameOwnershipResponse {
     items: Vec<GameOwnershipItem>,
@@ -113,6 +114,7 @@ pub struct GameOwnershipResponse {
     key_id: String,
 }
 
+#[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct GameOwnershipItem {
     name: String,
@@ -121,10 +123,10 @@ pub struct GameOwnershipItem {
 
 #[derive(Debug, Deserialize)]
 pub struct ProfileResponse {
-    id: String,
-    name: String,
-    skins: Vec<serde_json::Value>,
-    capes: Vec<serde_json::Value>,
+    pub id: String,
+    pub name: String,
+    pub skins: Vec<serde_json::Value>,
+    pub capes: Vec<serde_json::Value>,
 }
 
 /// Asks the user to go to a webpage and log in with Microsoft.
@@ -190,7 +192,9 @@ async fn auth_with_xbox_live(
         "Properties": {
             "AuthMethod": "RPS",
             "SiteName": "user.auth.xboxlive.com",
-            "RpsTicket": format!("d={}", access_token)
+            // i thought this was supposed to be d={} but it doesn't work for
+            // me when i add it ??????
+            "RpsTicket": format!("{}", access_token)
         },
         "RelyingParty": "http://auth.xboxlive.com",
         "TokenType": "JWT"
@@ -215,7 +219,6 @@ async fn auth_with_xbox_live(
         .json::<XboxLiveAuthResponse>()
         .await?;
     println!("got res: {:?}", res);
-    panic!("ok");
 
     Ok(XboxLiveAuth {
         token: res.token,
@@ -306,68 +309,3 @@ async fn get_profile(
 
     Ok(res)
 }
-
-// // from https://github.com/PrismarineJS/prismarine-auth/blob/master/src/TokenManagers/XboxTokenManager.js#L112
-// fn sign(url: &str, authorization_token: &str, payload: &str) -> anyhow::Result<Vec<u8>> {
-//     // const windowsTimestamp = (BigInt((Date.now() / 1000) | 0) + 11644473600n) * 10000000n
-//     // // Only the /uri?and-query-string
-//     // const pathAndQuery = new URL(url).pathname
-
-//     // // Allocate the buffer for signature, TS, path, tokens and payload and NUL termination
-//     // const allocSize = /* sig */ 5 + /* ts */ 9 + /* POST */ 5 + pathAndQuery.length + 1 + authorizationToken.length + 1 + payload.length + 1
-//     // const buf = SmartBuffer.fromSize(allocSize)
-//     // buf.writeInt32BE(1) // Policy Version
-//     // buf.writeUInt8(0)
-//     // buf.writeBigUInt64BE(windowsTimestamp)
-//     // buf.writeUInt8(0) // null term
-//     // buf.writeStringNT('POST')
-//     // buf.writeStringNT(pathAndQuery)
-//     // buf.writeStringNT(authorizationToken)
-//     // buf.writeStringNT(payload)
-
-//     let windows_timestamp: BigUint =
-//         BigUint::from(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs() + 11644473600)
-//             * 10000000;
-//     let path_and_query = Url::parse(url)?.path();
-//     let mut buf = Vec::new();
-//     buf.write_u32(1); // policy version
-//     buf.write_u8(0);
-//     buf.write_u64(windows_timestamp.try_into().unwrap());
-//     buf.write_u8(0); // null term
-//     buf.extend_from_slice("POST\0".as_bytes());
-
-//     buf.extend_from_slice(path_and_query.as_bytes());
-//     buf.write_u8(0);
-
-//     buf.extend_from_slice(authorization_token.as_bytes());
-//     buf.write_u8(0);
-
-//     buf.extend_from_slice(payload.as_bytes());
-//     buf.write_u8(0);
-
-//     // const keyPair = crypto.generateKeyPairSync('ec', { namedCurve: 'P-256' })
-
-//     // // Get the signature from the payload
-//     // const signature = crypto.sign('SHA256', buf.toBuffer(), { key: this.key.privateKey, dsaEncoding: 'ieee-p1363' })
-
-//     // const header = SmartBuffer.fromSize(signature.length + 12)
-//     // header.writeInt32BE(1) // Policy Version
-//     // header.writeBigUInt64BE(windowsTimestamp)
-//     // header.writeBuffer(signature) // Add signature at end of header
-
-//     // return header.toBuffer()
-
-//     let key_pair = ring::signature::EcdsaKeyPair::
-
-//     let signature =
-//         key_pair
-//             .private_key()
-//             .sign(MessageDigest::sha256(), &buf, &mut BigNumContext::new()?)?;
-
-//     let mut header = Vec::new();
-//     1u32.write_into(&mut header)?; // policy version
-//     windows_timestamp.write_into(&mut header)?;
-//     signature.write_into(&mut header)?;
-
-//     Ok(header)
-// }
