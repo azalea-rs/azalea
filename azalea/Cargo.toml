@@ -2,7 +2,6 @@
 description = "Advertisement crate for Azalea."
 edition = "2021"
 license = "MIT"
-
 name = "azalea"
 version = "0.1.0"
 
