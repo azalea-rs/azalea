@@ -110,7 +110,7 @@ impl McBufReadable for EntityDataValue {
                 if val == 0 {
                     None
                 } else {
-                    Some((val - 1) as u32)
+                    Some(val - 1)
                 }
             }),
             18 => EntityDataValue::Pose(Pose::read_from(buf)?),

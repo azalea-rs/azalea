@@ -29,7 +29,7 @@ fn packet_encoder<P: ProtocolPacket + std::fmt::Debug>(
     packet: &P,
 ) -> Result<Vec<u8>, PacketEncodeError> {
     let mut buf = Vec::new();
-    (packet.id() as u32).var_write_into(&mut buf)?;
+    packet.id().var_write_into(&mut buf)?;
     packet.write(&mut buf)?;
     if buf.len() > MAXIMUM_UNCOMPRESSED_LENGTH as usize {
         return Err(PacketEncodeError::TooBig {
