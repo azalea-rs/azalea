@@ -118,6 +118,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "azalea-buf",
+ "azalea-crypto",
  "log",
  "num-bigint",
  "reqwest",
