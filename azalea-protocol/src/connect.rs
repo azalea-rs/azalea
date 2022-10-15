@@ -2,32 +2,38 @@
 
 use crate::packets::game::{ClientboundGamePacket, ServerboundGamePacket};
 use crate::packets::handshake::{ClientboundHandshakePacket, ServerboundHandshakePacket};
+use crate::packets::login::clientbound_hello_packet::ClientboundHelloPacket;
 use crate::packets::login::{ClientboundLoginPacket, ServerboundLoginPacket};
 use crate::packets::status::{ClientboundStatusPacket, ServerboundStatusPacket};
 use crate::packets::ProtocolPacket;
 use crate::read::{read_packet, ReadPacketError};
 use crate::write::write_packet;
 use crate::ServerIpAddress;
+use azalea_auth::sessionserver::SessionServerError;
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use bytes::BytesMut;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use thiserror::Error;
+use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
+use uuid::Uuid;
 
 pub struct ReadConnection<R: ProtocolPacket> {
-    pub read_stream: OwnedReadHalf,
+    read_stream: OwnedReadHalf,
     buffer: BytesMut,
-    pub compression_threshold: Option<u32>,
-    pub dec_cipher: Option<Aes128CfbDec>,
+    compression_threshold: Option<u32>,
+    dec_cipher: Option<Aes128CfbDec>,
+    private_key: Option<[u8; 16]>,
     _reading: PhantomData<R>,
 }
 
 pub struct WriteConnection<W: ProtocolPacket> {
-    pub write_stream: OwnedWriteHalf,
-    pub compression_threshold: Option<u32>,
-    pub enc_cipher: Option<Aes128CfbEnc>,
+    write_stream: OwnedWriteHalf,
+    compression_threshold: Option<u32>,
+    enc_cipher: Option<Aes128CfbEnc>,
+    private_key: Option<[u8; 16]>,
     _writing: PhantomData<W>,
 }
 
@@ -63,6 +69,10 @@ where
             &mut self.enc_cipher,
         )
         .await
+    }
+
+    pub async fn shutdown(&mut self) -> std::io::Result<()> {
+        self.write_stream.shutdown().await
     }
 }
 
@@ -110,12 +120,14 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
                 buffer: BytesMut::new(),
                 compression_threshold: None,
                 dec_cipher: None,
+                private_key: None,
                 _reading: PhantomData,
             },
             writer: WriteConnection {
                 write_stream,
                 compression_threshold: None,
                 enc_cipher: None,
+                private_key: None,
                 _writing: PhantomData,
             },
         })
@@ -145,12 +157,54 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     pub fn set_encryption_key(&mut self, key: [u8; 16]) {
         // minecraft has a cipher decoder and encoder, i don't think it matters though?
         let (enc_cipher, dec_cipher) = azalea_crypto::create_cipher(&key);
-        self.writer.enc_cipher = Some(enc_cipher);
         self.reader.dec_cipher = Some(dec_cipher);
+        self.writer.enc_cipher = Some(enc_cipher);
+        self.reader.private_key = Some(key);
+        self.writer.private_key = Some(key);
     }
 
     pub fn game(self) -> Connection<ClientboundGamePacket, ServerboundGamePacket> {
         Connection::from(self)
+    }
+
+    /// Authenticate with Minecraft's servers, which is required to join
+    /// online-mode servers. This must happen when you get a
+    /// `ClientboundLoginPacket::Hello` packet.
+    ///
+    /// ```no_run
+    /// let token = azalea_auth::auth(azalea_auth::AuthOpts {
+    ///    ..Default::default()
+    /// })
+    /// .await;
+    /// let player_data = azalea_auth::get_profile(token).await;
+    ///
+    /// let mut connection = azalea::Connection::new(&server_address).await?;
+    ///
+    /// // transition to the login state, in a real program we would have done a handshake first
+    /// connection.login();
+    ///
+    /// match connection.read().await? {
+    ///    ClientboundLoginPacket::Hello(p) => {
+    ///       // tell Mojang we're joining the server
+    ///       connection.authenticate(&token, player_data.uuid, p).await?;
+    ///   }
+    ///  _ => {}
+    /// }
+    /// ```
+    pub async fn authenticate(
+        &self,
+        access_token: &str,
+        uuid: &Uuid,
+        packet: ClientboundHelloPacket,
+    ) -> Result<(), SessionServerError> {
+        azalea_auth::sessionserver::join(
+            access_token,
+            &packet.public_key,
+            &self.writer.private_key.expect("encryption key not set"),
+            uuid,
+            &packet.server_id,
+        )
+        .await
     }
 }
 
@@ -172,12 +226,14 @@ where
                 buffer: connection.reader.buffer,
                 compression_threshold: connection.reader.compression_threshold,
                 dec_cipher: connection.reader.dec_cipher,
+                private_key: connection.reader.private_key,
                 _reading: PhantomData,
             },
             writer: WriteConnection {
                 compression_threshold: connection.writer.compression_threshold,
                 write_stream: connection.writer.write_stream,
                 enc_cipher: connection.writer.enc_cipher,
+                private_key: connection.writer.private_key,
                 _writing: PhantomData,
             },
         }

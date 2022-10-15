@@ -1,6 +1,6 @@
 # Azalea Protocol
 
-Send and receive Minecraft packets. You should probably use `azalea` or `azalea-client` instead.
+A low-level crate to send and receive Minecraft packets. You should probably use `azalea` or `azalea-client` instead.
 
 The goal is to only support the latest Minecraft version in order to ease development.
 

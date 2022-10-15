@@ -18,6 +18,7 @@ serde_json = "1.0.86"
 tokio = "1.21.2"
 uuid = "^1.1.2"
 azalea-crypto = { path = "../azalea-crypto", version = "^0.1.0" }
+thiserror = "1.0.37"
 
 [dev-dependencies]
 tokio = { version = "1.21.2", features = ["full"] }

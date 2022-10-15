@@ -38,7 +38,6 @@ use std::{
 };
 use thiserror::Error;
 use tokio::{
-    io::AsyncWriteExt,
     sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
     task::JoinHandle,
     time::{self},
@@ -105,6 +104,8 @@ pub enum JoinError {
     ReadPacket(#[from] azalea_protocol::read::ReadPacketError),
     #[error("{0}")]
     Io(#[from] io::Error),
+    #[error("{0}")]
+    SessionServer(#[from] azalea_auth::sessionserver::SessionServerError),
 }
 
 #[derive(Error, Debug)]
@@ -158,6 +159,17 @@ impl Client {
                     ClientboundLoginPacket::Hello(p) => {
                         debug!("Got encryption request");
                         let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
+
+                        if let Some(access_token) = &account.access_token {
+                            conn.authenticate(
+                                &access_token,
+                                &account
+                                    .uuid
+                                    .expect("Uuid must be present if access token is present."),
+                                p,
+                            )
+                            .await?;
+                        }
 
                         // TODO: authenticate with the server here (authenticateServer)
 
@@ -237,7 +249,7 @@ impl Client {
 
     /// Disconnect from the server, ending all tasks.
     pub async fn shutdown(self) -> Result<(), std::io::Error> {
-        self.write_conn.lock().await.write_stream.shutdown().await?;
+        self.write_conn.lock().await.shutdown().await?;
         let tasks = self.tasks.lock();
         for task in tasks.iter() {
             task.abort();
