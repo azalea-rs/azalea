@@ -7,16 +7,16 @@ version = "0.1.0"
 
 [dependencies]
 anyhow = "1.0.59"
-azalea-auth = {path = "../azalea-auth"}
-azalea-block = {path = "../azalea-block"}
-azalea-chat = {path = "../azalea-chat"}
-azalea-core = {path = "../azalea-core"}
-azalea-crypto = {path = "../azalea-crypto"}
-azalea-physics = {path = "../azalea-physics"}
-azalea-protocol = {path = "../azalea-protocol"}
-azalea-world = {path = "../azalea-world"}
+azalea-auth = { path = "../azalea-auth", version = "0.1.0" }
+azalea-block = { path = "../azalea-block", version = "0.1.0" }
+azalea-chat = { path = "../azalea-chat", version = "0.1.0" }
+azalea-core = { path = "../azalea-core", version = "0.1.0" }
+azalea-crypto = { path = "../azalea-crypto", version = "0.1.0" }
+azalea-physics = { path = "../azalea-physics", version = "0.1.0" }
+azalea-protocol = { path = "../azalea-protocol", version = "0.1.0" }
+azalea-world = { path = "../azalea-world", version = "0.1.0" }
 log = "0.4.17"
 parking_lot = "0.12.1"
 thiserror = "^1.0.34"
-tokio = {version = "^1.19.2", features = ["sync"]}
+tokio = { version = "^1.19.2", features = ["sync"] }
 uuid = "^1.1.2"
