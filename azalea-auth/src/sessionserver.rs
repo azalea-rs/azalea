@@ -51,7 +51,6 @@ pub async fn join(
         "selectedProfile": undashed_uuid,
         "serverId": server_hash
     });
-    println!("data: {:?}", data);
     let res = client
         .post("https://sessionserver.mojang.com/session/minecraft/join")
         .json(&data)
