@@ -3,6 +3,7 @@
 mod account;
 mod chat;
 mod client;
+mod get_mc_dir;
 mod movement;
 pub mod ping;
 mod player;

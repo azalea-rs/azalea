@@ -57,7 +57,7 @@ fn read_bytes<'a>(buf: &'a mut Cursor<&[u8]>, length: usize) -> Result<&'a [u8],
 fn read_utf_with_len(buf: &mut Cursor<&[u8]>, max_length: u32) -> Result<String, BufReadError> {
     let length = u32::var_read_from(buf)?;
     // i don't know why it's multiplied by 4 but it's like that in mojang's code so
-    if length as u32 > max_length * 4 {
+    if length > max_length * 4 {
         return Err(BufReadError::StringLengthTooLong {
             length,
             max_length: max_length * 4,
