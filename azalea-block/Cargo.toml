@@ -11,4 +11,4 @@ version = "0.1.0"
 
 [dependencies]
 azalea-block-macros = {path = "./azalea-block-macros", version = "^0.1.0"}
-azalea-buf = {path = "../azalea-buf", version = "^0.1.0"}
+azalea-buf = {path = "../azalea-buf", version = "^0.2.0" }

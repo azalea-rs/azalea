@@ -9,7 +9,7 @@ version = "0.1.0"
 
 [dependencies]
 aes = "0.8.1"
-azalea-buf = {path = "../azalea-buf", version = "^0.1.0"}
+azalea-buf = {path = "../azalea-buf", version = "^0.2.0" }
 cfb8 = "0.8.1"
 num-bigint = "^0.4.3"
 rand = {version = "^0.8.4", features = ["getrandom"]}
