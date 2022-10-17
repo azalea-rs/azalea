@@ -10,7 +10,7 @@ struct State {}
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
-    let account = Account::microsoft("example@example.com").await?;
+    let account = Account::microsoft("example2@example.com").await?;
 
     azalea::start(azalea::Options {
         account,
@@ -26,9 +26,9 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn handle(bot: Client, event: Arc<Event>, _state: Arc<Mutex<State>>) -> anyhow::Result<()> {
-    // if let Event::Tick = *event {
-    //     bot.jump();
-    // }
+    if let Event::Tick = *event {
+        bot.jump();
+    }
 
     Ok(())
 }
