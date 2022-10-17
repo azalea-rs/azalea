@@ -149,7 +149,7 @@ impl PalettedContainer {
             }
             Palette::Linear(palette) => {
                 if let Some(index) = palette.iter().position(|v| *v == value) {
-                    return index as usize;
+                    return index;
                 }
                 let capacity = 2usize.pow(self.bits_per_entry.into());
                 if capacity > palette.len() {
@@ -162,7 +162,7 @@ impl PalettedContainer {
             Palette::Hashmap(palette) => {
                 // TODO? vanilla keeps this in memory as a hashmap, but also i don't care
                 if let Some(index) = palette.iter().position(|v| *v == value) {
-                    return index as usize;
+                    return index;
                 }
                 let capacity = 2usize.pow(self.bits_per_entry.into());
                 if capacity > palette.len() {

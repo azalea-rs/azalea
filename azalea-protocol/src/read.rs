@@ -106,7 +106,7 @@ fn parse_frame(buffer: &mut BytesMut) -> Result<BytesMut, FrameSplitterError> {
     Ok(data)
 }
 
-fn frame_splitter<'a>(buffer: &'a mut BytesMut) -> Result<Option<Vec<u8>>, FrameSplitterError> {
+fn frame_splitter(buffer: &mut BytesMut) -> Result<Option<Vec<u8>>, FrameSplitterError> {
     // https://tokio.rs/tokio/tutorial/framing
     let read_frame = parse_frame(buffer);
     match read_frame {

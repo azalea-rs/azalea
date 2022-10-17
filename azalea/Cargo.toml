@@ -1,8 +1,7 @@
 [package]
-description = "Advertisement crate for Azalea."
+description = "A framework for creating Minecraft bots."
 edition = "2021"
 license = "MIT"
-
 name = "azalea"
 version = "0.1.0"
 

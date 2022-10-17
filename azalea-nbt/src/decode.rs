@@ -98,7 +98,7 @@ impl Tag {
                 if length * 4 > (stream.get_ref().len() - stream.position() as usize) {
                     return Err(Error::UnexpectedEof);
                 }
-                let mut ints = Vec::with_capacity(length as usize);
+                let mut ints = Vec::with_capacity(length);
                 for _ in 0..length {
                     ints.push(stream.read_i32::<BE>()?);
                 }
@@ -111,7 +111,7 @@ impl Tag {
                 if length * 8 > (stream.get_ref().len() - stream.position() as usize) {
                     return Err(Error::UnexpectedEof);
                 }
-                let mut longs = Vec::with_capacity(length as usize);
+                let mut longs = Vec::with_capacity(length);
                 for _ in 0..length {
                     longs.push(stream.read_i64::<BE>()?);
                 }
