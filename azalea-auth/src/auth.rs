@@ -1,10 +1,15 @@
 //! Handle Minecraft (Xbox) authentication.
 
-
+use crate::cache::{self, CachedAccount, ExpiringValue};
 use anyhow::anyhow;
-use serde::Deserialize;
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::{collections::HashMap, time::Instant};
+use std::{
+    collections::HashMap,
+    path::PathBuf,
+    time::{Instant, SystemTime, UNIX_EPOCH},
+};
 
 #[derive(Default)]
 pub struct AuthOpts {
@@ -15,37 +20,93 @@ pub struct AuthOpts {
     // /// Whether we should get the Minecraft profile data (i.e. username, uuid,
     // /// skin, etc) for the player.
     // pub get_profile: bool,
+    /// The directory to store the cache in. If this is not set, caching is not
+    /// done.
+    pub cache_file: Option<PathBuf>,
 }
 
 /// Authenticate with authenticate with Microsoft. If the data isn't cached,
 /// they'll be asked to go to log into Microsoft in a web page.
-pub async fn auth(opts: Option<AuthOpts>) -> anyhow::Result<AuthResult> {
+///
+/// The email is technically only used as a cache key, so it *could* be
+/// anything. You should just have it be the actual email so it's not confusing
+/// though, and in case the Microsoft API does start providing the real email.
+pub async fn auth(email: &str, opts: Option<AuthOpts>) -> anyhow::Result<AuthResult> {
     let opts = opts.unwrap_or_default();
 
-    let client = reqwest::Client::new();
+    let cached_account = if let Some(cache_file) = &opts.cache_file && let Some(account) = cache::get_account_in_cache(&cache_file, email).await {
+        Some(account)
+    } else { None };
 
-    let auth_token_res = interactive_get_auth_token(&client).await?;
-    // TODO: cache this
-    println!("Got access token: {}", auth_token_res.access_token);
+    // these two MUST be set by the end, since we return them in AuthResult
+    let profile: ProfileResponse;
+    let minecraft_access_token: String;
 
-    let xbl_auth = auth_with_xbox_live(&client, &auth_token_res.access_token).await?;
+    if let Some(account) = &cached_account && !account.mca.is_expired() {
+        // the minecraft auth data is cached and not expired, so we can just
+        // use that instead of doing auth all over again :)
+        profile = account.profile.clone();
+        minecraft_access_token = account.mca.data.access_token.clone();
+    } else {
+        let client = reqwest::Client::new();
+        let mut msa = if let Some(account) = cached_account {
+            account.msa
+        } else {
+            interactive_get_auth_token(&client).await?
+        };
+        if msa.is_expired() {
+            todo!("refresh msa token");
+        }
+        let ms_access_token = &msa.data.access_token;
+        println!("Got access token: {}", ms_access_token);
 
-    let xsts_token = obtain_xsts_for_minecraft(&client, &xbl_auth).await?;
+        let xbl_auth = auth_with_xbox_live(&client, &ms_access_token).await?;
 
-    let minecraft_access_token =
-        auth_with_minecraft(&client, &xbl_auth.user_hash, &xsts_token).await?;
+        let xsts_token = obtain_xsts_for_minecraft(
+            &client,
+            &xbl_auth
+                .get()
+                .expect("Xbox Live auth token shouldn't have expired yet")
+                .token,
+        )
+        .await?;
 
-    if opts.check_ownership {
-        let has_game = check_ownership(&client, &minecraft_access_token).await?;
-        if !has_game {
-            panic!(
-                "The Minecraft API is indicating that you don't own the game. \
-				If you're using Xbox Game Pass, set `check_ownership` to false in the auth options."
-            );
+        // Minecraft auth
+        let mca = auth_with_minecraft(&client, &xbl_auth.data.user_hash, &xsts_token).await?;
+
+         minecraft_access_token = (&mca)
+            .get()
+            .expect("Minecraft auth shouldn't have expired yet")
+            .access_token
+            .to_string();
+
+        if opts.check_ownership {
+            let has_game = check_ownership(&client, &minecraft_access_token).await?;
+            if !has_game {
+                panic!(
+                    "The Minecraft API is indicating that you don't own the game. \
+                    If you're using Xbox Game Pass, set `check_ownership` to false in the auth options."
+                );
+            }
+        }
+
+        profile = get_profile(&client, &minecraft_access_token).await?;
+    
+        if let Some(cache_file) = opts.cache_file {
+            cache::set_account_in_cache(
+                &cache_file,
+                email,
+                CachedAccount {
+                    email: email.to_string(),
+                    mca,
+                    msa,
+                    xbl: xbl_auth,
+                    profile: profile.clone(),
+                },
+            )
+            .await?;
         }
     }
-
-    let profile = get_profile(&client, &minecraft_access_token).await?;
 
     Ok(AuthResult {
         access_token: minecraft_access_token,
@@ -69,7 +130,7 @@ pub struct DeviceCodeResponse {
 }
 
 #[allow(unused)]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AccessTokenResponse {
     token_type: String,
     expires_in: u64,
@@ -90,13 +151,14 @@ pub struct XboxLiveAuthResponse {
 }
 
 /// Just the important data
+#[derive(Serialize, Deserialize)]
 pub struct XboxLiveAuth {
     token: String,
     user_hash: String,
 }
 
 #[allow(unused)]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct MinecraftAuthResponse {
     username: String,
     roles: Vec<String>,
@@ -120,7 +182,7 @@ pub struct GameOwnershipItem {
     signature: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ProfileResponse {
     pub id: String,
     pub name: String,
@@ -131,7 +193,7 @@ pub struct ProfileResponse {
 /// Asks the user to go to a webpage and log in with Microsoft.
 async fn interactive_get_auth_token(
     client: &reqwest::Client,
-) -> anyhow::Result<AccessTokenResponse> {
+) -> anyhow::Result<ExpiringValue<AccessTokenResponse>> {
     // nintendo switch (real)
     let client_id = "00000000441cc96b";
 
@@ -152,15 +214,13 @@ async fn interactive_get_auth_token(
         res.verification_uri, res.user_code
     );
 
-    let access_token_response: AccessTokenResponse;
+    let login_expires_at = Instant::now() + std::time::Duration::from_secs(res.expires_in);
 
-    let expire_time = Instant::now() + std::time::Duration::from_secs(res.expires_in);
-
-    while Instant::now() < expire_time {
+    while Instant::now() < login_expires_at {
         tokio::time::sleep(std::time::Duration::from_secs(res.interval)).await;
 
         println!("trying");
-        if let Ok(res) = client
+        if let Ok(access_token_response) = client
             .post(format!(
                 "https://login.live.com/oauth20_token.srf?client_id={}",
                 client_id
@@ -175,8 +235,15 @@ async fn interactive_get_auth_token(
             .json::<AccessTokenResponse>()
             .await
         {
-            access_token_response = res;
-            return Ok(access_token_response);
+            let expires_at = SystemTime::now()
+                + std::time::Duration::from_secs(access_token_response.expires_in);
+            return Ok(ExpiringValue {
+                data: access_token_response,
+                expires_at: expires_at
+                    .duration_since(UNIX_EPOCH)
+                    .expect("Time went backwards")
+                    .as_secs(),
+            });
         }
     }
 
@@ -186,7 +253,7 @@ async fn interactive_get_auth_token(
 async fn auth_with_xbox_live(
     client: &reqwest::Client,
     access_token: &str,
-) -> anyhow::Result<XboxLiveAuth> {
+) -> anyhow::Result<ExpiringValue<XboxLiveAuth>> {
     let auth_json = json!({
         "Properties": {
             "AuthMethod": "RPS",
@@ -219,15 +286,28 @@ async fn auth_with_xbox_live(
         .await?;
     println!("got res: {:?}", res);
 
-    Ok(XboxLiveAuth {
-        token: res.token,
-        user_hash: res.display_claims["xui"].get(0).unwrap()["uhs"].clone(),
+    // not_after looks like 2020-12-21T19:52:08.4463796Z
+    let expires_at = DateTime::parse_from_rfc3339(&res.not_after)
+        .map_err(|_| {
+            anyhow!(
+                "Failed to parse not_after date from Xbox Live: {}",
+                res.not_after
+            )
+        })?
+        .with_timezone(&Utc)
+        .timestamp() as u64;
+    Ok(ExpiringValue {
+        data: XboxLiveAuth {
+            token: res.token,
+            user_hash: res.display_claims["xui"].get(0).unwrap()["uhs"].clone(),
+        },
+        expires_at,
     })
 }
 
 async fn obtain_xsts_for_minecraft(
     client: &reqwest::Client,
-    xbl_auth: &XboxLiveAuth,
+    xbl_auth_token: &str,
 ) -> anyhow::Result<String> {
     let res = client
         .post("https://xsts.auth.xboxlive.com/xsts/authorize")
@@ -235,7 +315,7 @@ async fn obtain_xsts_for_minecraft(
         .json(&json!({
             "Properties": {
                 "SandboxId": "RETAIL",
-                "UserTokens": [xbl_auth.token]
+                "UserTokens": [xbl_auth_token.to_string()]
             },
             "RelyingParty": "rp://api.minecraftservices.com/",
             "TokenType": "JWT"
@@ -253,7 +333,7 @@ async fn auth_with_minecraft(
     client: &reqwest::Client,
     user_hash: &str,
     xsts_token: &str,
-) -> anyhow::Result<String> {
+) -> anyhow::Result<ExpiringValue<MinecraftAuthResponse>> {
     let res = client
         .post("https://api.minecraftservices.com/authentication/login_with_xbox")
         .header("Accept", "application/json")
@@ -266,7 +346,12 @@ async fn auth_with_minecraft(
         .await?;
     println!("{:?}", res);
 
-    Ok(res.access_token)
+    let expires_at = SystemTime::now() + std::time::Duration::from_secs(res.expires_in);
+    Ok(ExpiringValue {
+        data: res,
+        // to seconds since epoch
+        expires_at: expires_at.duration_since(UNIX_EPOCH).unwrap().as_secs(),
+    })
 }
 
 async fn check_ownership(

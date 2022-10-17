@@ -1,4 +1,7 @@
+#![feature(let_chains)]
+
 pub mod auth;
+mod cache;
 pub mod game_profile;
 pub mod sessionserver;
 
@@ -6,17 +9,6 @@ use anyhow::anyhow;
 use serde::Deserialize;
 use serde_json::json;
 use std::{collections::HashMap, time::Instant};
-
-#[derive(Default)]
-pub struct AuthOpts {
-    /// Whether we should check if the user actually owns the game. This will
-    /// fail if the user has Xbox Game Pass! Note that this isn't really
-    /// necessary, since getting the user profile will check this anyways.
-    pub check_ownership: bool,
-    // /// Whether we should get the Minecraft profile data (i.e. username, uuid,
-    // /// skin, etc) for the player.
-    // pub get_profile: bool,
-}
 
 /// Ask the user to authenticate with Microsoft and return the user's Minecraft
 /// access token. There's caching, so if the user has already authenticated
@@ -48,6 +40,29 @@ pub async fn auth(opts: AuthOpts) -> anyhow::Result<String> {
     // let profile = get_profile(&client, &minecraft_access_token).await?;
 
     Ok(minecraft_access_token)
+}
+
+pub struct AuthOpts {
+    /// Whether we should check if the user actually owns the game. This will
+    /// fail if the user has Xbox Game Pass! Note that this isn't really
+    /// necessary, since getting the user profile will check this anyways.
+    pub check_ownership: bool,
+    // /// Whether we should get the Minecraft profile data (i.e. username, uuid,
+    // /// skin, etc) for the player.
+    // pub get_profile: bool,
+    /// The file to store cached data in. If this is `None`, then no
+    /// caching will be done.
+    pub cache_dir: Option<std::path::PathBuf>,
+}
+
+impl Default for AuthOpts {
+    fn default() -> Self {
+        Self {
+            check_ownership: true,
+            // get_profile: true,
+            cache_dir: None,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -260,7 +275,7 @@ async fn auth_with_minecraft(
     Ok(res.access_token)
 }
 
-async fn check_ownership(
+pub async fn check_ownership(
     client: &reqwest::Client,
     minecraft_access_token: &str,
 ) -> anyhow::Result<bool> {
@@ -281,7 +296,7 @@ async fn check_ownership(
     Ok(!res.items.is_empty())
 }
 
-async fn get_profile(
+pub async fn get_profile(
     client: &reqwest::Client,
     minecraft_access_token: &str,
 ) -> anyhow::Result<ProfileResponse> {
