@@ -162,7 +162,7 @@ impl Client {
 
                         if let Some(access_token) = &account.access_token {
                             conn.authenticate(
-                                &access_token,
+                                access_token,
                                 &account
                                     .uuid
                                     .expect("Uuid must be present if access token is present."),

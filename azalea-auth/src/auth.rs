@@ -55,7 +55,7 @@ pub enum AuthError {
 /// anything. You should just have it be the actual email so it's not confusing
 /// though, and in case the Microsoft API does start providing the real email.
 pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> {
-    let cached_account = if let Some(cache_file) = &opts.cache_file && let Some(account) = cache::get_account_in_cache(&cache_file, email).await {
+    let cached_account = if let Some(cache_file) = &opts.cache_file && let Some(account) = cache::get_account_in_cache(cache_file, email).await {
         Some(account)
     } else { None };
 
@@ -82,7 +82,7 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
         let ms_access_token = &msa.data.access_token;
         log::trace!("Got access token: {}", ms_access_token);
 
-        let xbl_auth = auth_with_xbox_live(&client, &ms_access_token).await?;
+        let xbl_auth = auth_with_xbox_live(&client, ms_access_token).await?;
 
         let xsts_token = obtain_xsts_for_minecraft(
             &client,
@@ -96,7 +96,7 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
         // Minecraft auth
         let mca = auth_with_minecraft(&client, &xbl_auth.data.user_hash, &xsts_token).await?;
 
-         minecraft_access_token = (&mca)
+         minecraft_access_token = mca
             .get()
             .expect("Minecraft auth shouldn't have expired yet")
             .access_token

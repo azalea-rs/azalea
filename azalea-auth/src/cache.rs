@@ -9,12 +9,12 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[derive(Debug, Error)]
 pub enum CacheError {
-    #[error("Failed to read cache file")]
-    ReadError(std::io::Error),
-    #[error("Failed to write cache file")]
-    WriteError(std::io::Error),
-    #[error("Failed to parse cache file")]
-    ParseError(serde_json::Error),
+    #[error("Failed to read cache file: {0}")]
+    Read(std::io::Error),
+    #[error("Failed to write cache file: {0}")]
+    Write(std::io::Error),
+    #[error("Failed to parse cache file: {0}")]
+    Parse(serde_json::Error),
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -43,7 +43,7 @@ impl<T> ExpiringValue<T> {
             < SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
-                .as_secs() as u64
+                .as_secs()
     }
 
     /// Return the data if it's not expired, otherwise return `None`
@@ -59,30 +59,26 @@ impl<T> ExpiringValue<T> {
 async fn get_entire_cache(cache_file: &Path) -> Result<Vec<CachedAccount>, CacheError> {
     let mut cache: Vec<CachedAccount> = Vec::new();
     if cache_file.exists() {
-        let mut cache_file = File::open(cache_file)
-            .await
-            .map_err(CacheError::ReadError)?;
+        let mut cache_file = File::open(cache_file).await.map_err(CacheError::Read)?;
         // read the file into a string
         let mut contents = String::new();
         cache_file
             .read_to_string(&mut contents)
             .await
-            .map_err(CacheError::ReadError)?;
-        cache = serde_json::from_str(&contents).map_err(CacheError::ParseError)?;
+            .map_err(CacheError::Read)?;
+        cache = serde_json::from_str(&contents).map_err(CacheError::Parse)?;
     }
     Ok(cache)
 }
 async fn set_entire_cache(cache_file: &Path, cache: Vec<CachedAccount>) -> Result<(), CacheError> {
     println!("saving cache: {:?}", cache);
 
-    let mut cache_file = File::create(cache_file)
-        .await
-        .map_err(CacheError::WriteError)?;
-    let cache = serde_json::to_string_pretty(&cache).map_err(CacheError::ParseError)?;
+    let mut cache_file = File::create(cache_file).await.map_err(CacheError::Write)?;
+    let cache = serde_json::to_string_pretty(&cache).map_err(CacheError::Parse)?;
     cache_file
         .write_all(cache.as_bytes())
         .await
-        .map_err(CacheError::WriteError)?;
+        .map_err(CacheError::Write)?;
 
     Ok(())
 }
