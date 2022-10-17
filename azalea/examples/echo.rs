@@ -6,7 +6,7 @@ use parking_lot::Mutex;
 #[tokio::main]
 async fn main() {
     let account = Account::offline("bot");
-    // or let account = azalea::Account::microsoft("access token").await;
+    // or let account = Account::microsoft("access token").await;
 
     azalea::start(azalea::Options {
         account,
