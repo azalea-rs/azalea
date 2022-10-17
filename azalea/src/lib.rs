@@ -11,10 +11,9 @@ use thiserror::Error;
 /// Plugins can keep their own personal state, listen to events, and add new functions to Client.
 #[async_trait]
 pub trait Plugin: Send + Sync {
-    async fn handle(self: Arc<Self>, bot: Client, event: Arc<Event>);
+    async fn handle(self: Arc<Self>, event: Arc<Event>, bot: Client);
 }
 
-// pub type HeuristicFn<N, W> = fn(start: &Vertex<N, W>, current: &Vertex<N, W>) -> W;
 pub type HandleFn<Fut, S> = fn(Client, Arc<Event>, Arc<Mutex<S>>) -> Fut;
 
 pub struct Options<S, A, Fut>
@@ -65,18 +64,18 @@ pub async fn start<
 
     while let Some(event) = rx.recv().await {
         // we put it into an Arc so it's cheaper to clone
+
         let event = Arc::new(event);
 
         for plugin in &options.plugins {
-            tokio::spawn(plugin.clone().handle(bot.clone(), event.clone()));
+            tokio::spawn(plugin.clone().handle(event.clone(), bot.clone()));
         }
 
-        {
-            let bot_plugin = bot_plugin.clone();
-            let bot = bot.clone();
-            let event = event.clone();
-            tokio::spawn(bot::Plugin::handle(bot_plugin, bot, event));
-        };
+        tokio::spawn(bot::Plugin::handle(
+            bot_plugin.clone(),
+            event.clone(),
+            bot.clone(),
+        ));
         tokio::spawn((options.handle)(bot.clone(), event.clone(), state.clone()));
     }
 

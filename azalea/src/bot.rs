@@ -33,7 +33,7 @@ impl BotTrait for azalea_client::Client {
 
 #[async_trait]
 impl crate::Plugin for Plugin {
-    async fn handle(self: Arc<Self>, mut bot: Client, event: Arc<Event>) {
+    async fn handle(self: Arc<Self>, event: Arc<Event>, mut bot: Client) {
         if let Event::Tick = *event {
             let mut state = self.state.lock();
             if state.jumping_once {
