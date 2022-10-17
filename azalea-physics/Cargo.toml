@@ -9,7 +9,7 @@ version = "0.1.0"
 
 [dependencies]
 azalea-block = { path = "../azalea-block", version = "^0.2.0" }
-azalea-core = { path = "../azalea-core", version = "^0.1.0" }
+azalea-core = { path = "../azalea-core", version = "^0.2.0" }
 azalea-world = { path = "../azalea-world", version = "^0.1.0" }
 lazy_static = "1.4.0"
 
