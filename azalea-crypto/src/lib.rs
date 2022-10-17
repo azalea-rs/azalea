@@ -18,8 +18,8 @@ fn generate_secret_key() -> [u8; 16] {
 pub fn digest_data(server_id: &[u8], public_key: &[u8], private_key: &[u8]) -> Vec<u8> {
     let mut digest = Sha1::new();
     digest.update(server_id);
-    digest.update(public_key);
     digest.update(private_key);
+    digest.update(public_key);
     digest.finalize().to_vec()
 }
 

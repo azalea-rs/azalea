@@ -116,7 +116,6 @@ dependencies = [
 name = "azalea-auth"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "azalea-buf",
  "azalea-crypto",
  "chrono",

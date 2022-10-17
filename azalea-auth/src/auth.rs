@@ -1,7 +1,6 @@
 //! Handle Minecraft (Xbox) authentication.
 
 use crate::cache::{self, CachedAccount, ExpiringValue};
-use anyhow::{anyhow, bail};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -10,6 +9,7 @@ use std::{
     path::PathBuf,
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
+use thiserror::Error;
 
 #[derive(Default)]
 pub struct AuthOpts {
@@ -25,13 +25,36 @@ pub struct AuthOpts {
     pub cache_file: Option<PathBuf>,
 }
 
+#[derive(Debug, Error)]
+pub enum AuthError {
+    #[error(
+        "The Minecraft API is indicating that you don't own the game. \
+        If you're using Xbox Game Pass, set `check_ownership` to false in the auth options."
+    )]
+    DoesNotOwnGame,
+    #[error("Error getting Microsoft auth token: {0}")]
+    GetMicrosoftAuthToken(#[from] GetMicrosoftAuthTokenError),
+    #[error("Error refreshing Microsoft auth token: {0}")]
+    RefreshMicrosoftAuthToken(#[from] RefreshMicrosoftAuthTokenError),
+    #[error("Error getting Xbox Live auth token: {0}")]
+    GetXboxLiveAuthToken(#[from] MinecraftXstsAuthError),
+    #[error("Error getting Minecraft profile: {0}")]
+    GetMinecraftProfile(#[from] GetProfileError),
+    #[error("Error checking ownership: {0}")]
+    CheckOwnership(#[from] CheckOwnershipError),
+    #[error("Error getting Minecraft auth token: {0}")]
+    GetMinecraftAuthToken(#[from] MinecraftAuthError),
+    #[error("Error authenticating with Xbox Live: {0}")]
+    GetXboxLiveAuth(#[from] XboxLiveAuthError),
+}
+
 /// Authenticate with authenticate with Microsoft. If the data isn't cached,
 /// they'll be asked to go to log into Microsoft in a web page.
 ///
 /// The email is technically only used as a cache key, so it *could* be
 /// anything. You should just have it be the actual email so it's not confusing
 /// though, and in case the Microsoft API does start providing the real email.
-pub async fn auth(email: &str, opts: AuthOpts) -> anyhow::Result<AuthResult> {
+pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> {
     let cached_account = if let Some(cache_file) = &opts.cache_file && let Some(account) = cache::get_account_in_cache(&cache_file, email).await {
         Some(account)
     } else { None };
@@ -82,17 +105,14 @@ pub async fn auth(email: &str, opts: AuthOpts) -> anyhow::Result<AuthResult> {
         if opts.check_ownership {
             let has_game = check_ownership(&client, &minecraft_access_token).await?;
             if !has_game {
-                bail!(
-                    "The Minecraft API is indicating that you don't own the game. \
-                    If you're using Xbox Game Pass, set `check_ownership` to false in the auth options."
-                );
+                return Err(AuthError::DoesNotOwnGame);
             }
         }
 
         profile = get_profile(&client, &minecraft_access_token).await?;
 
         if let Some(cache_file) = opts.cache_file {
-            cache::set_account_in_cache(
+            if let Err(e) = cache::set_account_in_cache(
                 &cache_file,
                 email,
                 CachedAccount {
@@ -103,7 +123,9 @@ pub async fn auth(email: &str, opts: AuthOpts) -> anyhow::Result<AuthResult> {
                     profile: profile.clone(),
                 },
             )
-            .await?;
+            .await {
+                log::warn!("Error while caching auth data: {}", e);
+            }
         }
     }
 
@@ -192,10 +214,18 @@ pub struct ProfileResponse {
 // nintendo switch (so it works for accounts that are under 18 years old)
 const CLIENT_ID: &str = "00000000441cc96b";
 
+#[derive(Debug, Error)]
+pub enum GetMicrosoftAuthTokenError {
+    #[error("Http error: {0}")]
+    Http(#[from] reqwest::Error),
+    #[error("Authentication timed out")]
+    Timeout,
+}
+
 /// Asks the user to go to a webpage and log in with Microsoft.
 async fn interactive_get_ms_auth_token(
     client: &reqwest::Client,
-) -> anyhow::Result<ExpiringValue<AccessTokenResponse>> {
+) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
     let res = client
         .post("https://login.live.com/oauth20_connect.srf")
         .form(&vec![
@@ -247,13 +277,19 @@ async fn interactive_get_ms_auth_token(
         }
     }
 
-    Err(anyhow!("Authentication timed out"))
+    Err(GetMicrosoftAuthTokenError::Timeout)
+}
+
+#[derive(Debug, Error)]
+pub enum RefreshMicrosoftAuthTokenError {
+    #[error("Http error: {0}")]
+    Http(#[from] reqwest::Error),
 }
 
 async fn refresh_ms_auth_token(
     client: &reqwest::Client,
     refresh_token: &str,
-) -> anyhow::Result<ExpiringValue<AccessTokenResponse>> {
+) -> Result<ExpiringValue<AccessTokenResponse>, RefreshMicrosoftAuthTokenError> {
     let access_token_response = client
         .post("https://login.live.com/oauth20_token.srf")
         .form(&vec![
@@ -278,10 +314,18 @@ async fn refresh_ms_auth_token(
     })
 }
 
+#[derive(Debug, Error)]
+pub enum XboxLiveAuthError {
+    #[error("Http error: {0}")]
+    Http(#[from] reqwest::Error),
+    #[error("Invalid expiry date: {0}")]
+    InvalidExpiryDate(String),
+}
+
 async fn auth_with_xbox_live(
     client: &reqwest::Client,
     access_token: &str,
-) -> anyhow::Result<ExpiringValue<XboxLiveAuth>> {
+) -> Result<ExpiringValue<XboxLiveAuth>, XboxLiveAuthError> {
     let auth_json = json!({
         "Properties": {
             "AuthMethod": "RPS",
@@ -311,12 +355,7 @@ async fn auth_with_xbox_live(
 
     // not_after looks like 2020-12-21T19:52:08.4463796Z
     let expires_at = DateTime::parse_from_rfc3339(&res.not_after)
-        .map_err(|_| {
-            anyhow!(
-                "Failed to parse not_after date from Xbox Live: {}",
-                res.not_after
-            )
-        })?
+        .map_err(|e| XboxLiveAuthError::InvalidExpiryDate(format!("{}: {}", res.not_after, e)))?
         .with_timezone(&Utc)
         .timestamp() as u64;
     Ok(ExpiringValue {
@@ -328,10 +367,16 @@ async fn auth_with_xbox_live(
     })
 }
 
+#[derive(Debug, Error)]
+pub enum MinecraftXstsAuthError {
+    #[error("Http error: {0}")]
+    Http(#[from] reqwest::Error),
+}
+
 async fn obtain_xsts_for_minecraft(
     client: &reqwest::Client,
     xbl_auth_token: &str,
-) -> anyhow::Result<String> {
+) -> Result<String, MinecraftXstsAuthError> {
     let res = client
         .post("https://xsts.auth.xboxlive.com/xsts/authorize")
         .header("Accept", "application/json")
@@ -352,11 +397,17 @@ async fn obtain_xsts_for_minecraft(
     Ok(res.token)
 }
 
+#[derive(Debug, Error)]
+pub enum MinecraftAuthError {
+    #[error("Http error: {0}")]
+    Http(#[from] reqwest::Error),
+}
+
 async fn auth_with_minecraft(
     client: &reqwest::Client,
     user_hash: &str,
     xsts_token: &str,
-) -> anyhow::Result<ExpiringValue<MinecraftAuthResponse>> {
+) -> Result<ExpiringValue<MinecraftAuthResponse>, MinecraftAuthError> {
     let res = client
         .post("https://api.minecraftservices.com/authentication/login_with_xbox")
         .header("Accept", "application/json")
@@ -377,10 +428,16 @@ async fn auth_with_minecraft(
     })
 }
 
+#[derive(Debug, Error)]
+pub enum CheckOwnershipError {
+    #[error("Http error: {0}")]
+    Http(#[from] reqwest::Error),
+}
+
 async fn check_ownership(
     client: &reqwest::Client,
     minecraft_access_token: &str,
-) -> anyhow::Result<bool> {
+) -> Result<bool, CheckOwnershipError> {
     let res = client
         .get("https://api.minecraftservices.com/entitlements/mcstore")
         .header(
@@ -399,10 +456,16 @@ async fn check_ownership(
     Ok(!res.items.is_empty())
 }
 
+#[derive(Debug, Error)]
+pub enum GetProfileError {
+    #[error("Http error: {0}")]
+    Http(#[from] reqwest::Error),
+}
+
 async fn get_profile(
     client: &reqwest::Client,
     minecraft_access_token: &str,
-) -> anyhow::Result<ProfileResponse> {
+) -> Result<ProfileResponse, GetProfileError> {
     let res = client
         .get("https://api.minecraftservices.com/minecraft/profile")
         .header(

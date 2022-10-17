@@ -25,7 +25,6 @@ pub struct ReadConnection<R: ProtocolPacket> {
     buffer: BytesMut,
     compression_threshold: Option<u32>,
     dec_cipher: Option<Aes128CfbDec>,
-    private_key: Option<[u8; 16]>,
     _reading: PhantomData<R>,
 }
 
@@ -33,7 +32,6 @@ pub struct WriteConnection<W: ProtocolPacket> {
     write_stream: OwnedWriteHalf,
     compression_threshold: Option<u32>,
     enc_cipher: Option<Aes128CfbEnc>,
-    private_key: Option<[u8; 16]>,
     _writing: PhantomData<W>,
 }
 
@@ -120,14 +118,12 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
                 buffer: BytesMut::new(),
                 compression_threshold: None,
                 dec_cipher: None,
-                private_key: None,
                 _reading: PhantomData,
             },
             writer: WriteConnection {
                 write_stream,
                 compression_threshold: None,
                 enc_cipher: None,
-                private_key: None,
                 _writing: PhantomData,
             },
         })
@@ -159,8 +155,6 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         let (enc_cipher, dec_cipher) = azalea_crypto::create_cipher(&key);
         self.reader.dec_cipher = Some(dec_cipher);
         self.writer.enc_cipher = Some(enc_cipher);
-        self.reader.private_key = Some(key);
-        self.writer.private_key = Some(key);
     }
 
     pub fn game(self) -> Connection<ClientboundGamePacket, ServerboundGamePacket> {
@@ -195,12 +189,13 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         &self,
         access_token: &str,
         uuid: &Uuid,
+        private_key: [u8; 16],
         packet: ClientboundHelloPacket,
     ) -> Result<(), SessionServerError> {
         azalea_auth::sessionserver::join(
             access_token,
             &packet.public_key,
-            &self.writer.private_key.expect("encryption key not set"),
+            &private_key,
             uuid,
             &packet.server_id,
         )
@@ -226,14 +221,12 @@ where
                 buffer: connection.reader.buffer,
                 compression_threshold: connection.reader.compression_threshold,
                 dec_cipher: connection.reader.dec_cipher,
-                private_key: connection.reader.private_key,
                 _reading: PhantomData,
             },
             writer: WriteConnection {
                 compression_threshold: connection.writer.compression_threshold,
                 write_stream: connection.writer.write_stream,
                 enc_cipher: connection.writer.enc_cipher,
-                private_key: connection.writer.private_key,
                 _writing: PhantomData,
             },
         }

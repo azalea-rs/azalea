@@ -166,12 +166,11 @@ impl Client {
                                 &account
                                     .uuid
                                     .expect("Uuid must be present if access token is present."),
+                                e.secret_key,
                                 p,
                             )
                             .await?;
                         }
-
-                        // TODO: authenticate with the server here (authenticateServer)
 
                         conn.write(
                             ServerboundKeyPacket {
@@ -183,6 +182,7 @@ impl Client {
                             .get(),
                         )
                         .await?;
+
                         conn.set_encryption_key(e.secret_key);
                     }
                     ClientboundLoginPacket::LoginCompression(p) => {

@@ -46,13 +46,15 @@ pub async fn join(
     let mut encode_buffer = Uuid::encode_buffer();
     let undashed_uuid = uuid.simple().encode_lower(&mut encode_buffer);
 
+    let data = json!({
+        "accessToken": access_token,
+        "selectedProfile": undashed_uuid,
+        "serverId": server_hash
+    });
+    println!("data: {:?}", data);
     let res = client
         .post("https://sessionserver.mojang.com/session/minecraft/join")
-        .json(&json!({
-            "accessToken": access_token,
-            "selectedProfile": undashed_uuid,
-            "serverId": server_hash
-        }))
+        .json(&data)
         .send()
         .await?;
 
