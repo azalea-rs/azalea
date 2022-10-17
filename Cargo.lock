@@ -120,6 +120,7 @@ dependencies = [
  "azalea-buf",
  "azalea-crypto",
  "chrono",
+ "env_logger",
  "log",
  "num-bigint",
  "reqwest",

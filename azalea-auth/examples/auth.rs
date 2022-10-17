@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
+
     let cache_file = PathBuf::from("example_cache.json");
 
     let auth_result = azalea_auth::auth(
