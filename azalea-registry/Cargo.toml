@@ -9,4 +9,4 @@ version = "0.1.0"
 
 [dependencies]
 azalea-buf = {path = "../azalea-buf", version = "^0.2.0" }
-azalea-registry-macros = {path = "./azalea-registry-macros", version = "^0.1.0"}
+azalea-registry-macros = {path = "./azalea-registry-macros", version = "^0.2.0" }
