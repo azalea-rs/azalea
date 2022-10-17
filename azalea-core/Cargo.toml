@@ -9,6 +9,6 @@ version = "0.1.0"
 
 [dependencies]
 azalea-buf = {path = "../azalea-buf", version = "^0.2.0" }
-azalea-chat = {path = "../azalea-chat", version = "^0.1.0"}
+azalea-chat = {path = "../azalea-chat", version = "^0.2.0" }
 azalea-nbt = {path = "../azalea-nbt", version = "^0.1.0"}
 uuid = "^1.1.2"
