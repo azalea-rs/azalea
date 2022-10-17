@@ -1,6 +1,7 @@
 //! Significantly abstract azalea-protocol so it's actually useable for bots.
 
 mod account;
+mod chat;
 mod client;
 mod get_mc_dir;
 mod movement;

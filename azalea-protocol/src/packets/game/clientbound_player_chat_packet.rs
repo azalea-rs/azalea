@@ -68,7 +68,7 @@ pub struct LastSeenMessagesEntry {
     pub last_signature: MessageSignature,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, McBuf, Default)]
 pub struct LastSeenMessagesUpdate {
     pub last_seen: Vec<LastSeenMessagesEntry>,
     pub last_received: Option<LastSeenMessagesEntry>,
