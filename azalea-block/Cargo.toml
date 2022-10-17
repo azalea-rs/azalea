@@ -3,7 +3,7 @@ description = "Representation of Minecraft block states."
 edition = "2021"
 license = "MIT"
 name = "azalea-block"
-version = "0.1.0"
+version = "0.2.0"
 
 [lib]
 

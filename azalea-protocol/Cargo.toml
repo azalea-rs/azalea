@@ -11,7 +11,7 @@ version = "0.1.0"
 async-compression = {version = "^0.3.8", features = ["tokio", "zlib"], optional = true}
 async-recursion = "1.0.0"
 azalea-auth = {path = "../azalea-auth", version = "^0.2.0" }
-azalea-block = {path = "../azalea-block", default-features = false, version = "^0.1.0"}
+azalea-block = {path = "../azalea-block", default-features = false, version = "^0.2.0" }
 azalea-brigadier = {path = "../azalea-brigadier", version = "^0.1.0"}
 azalea-buf = {path = "../azalea-buf", version = "^0.2.0" }
 azalea-chat = {path = "../azalea-chat", version = "^0.1.1"}

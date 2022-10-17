@@ -12,7 +12,7 @@ release = false
 [dependencies]
 anyhow = "1.0.59"
 azalea-auth = { path = "../azalea-auth", version = "0.2.0" }
-azalea-block = { path = "../azalea-block", version = "0.1.0" }
+azalea-block = { path = "../azalea-block", version = "0.2.0" }
 azalea-chat = { path = "../azalea-chat", version = "0.1.0" }
 azalea-core = { path = "../azalea-core", version = "0.1.0" }
 azalea-crypto = { path = "../azalea-crypto", version = "0.2.0" }
