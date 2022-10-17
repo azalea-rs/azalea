@@ -31,9 +31,7 @@ pub struct AuthOpts {
 /// The email is technically only used as a cache key, so it *could* be
 /// anything. You should just have it be the actual email so it's not confusing
 /// though, and in case the Microsoft API does start providing the real email.
-pub async fn auth(email: &str, opts: Option<AuthOpts>) -> anyhow::Result<AuthResult> {
-    let opts = opts.unwrap_or_default();
-
+pub async fn auth(email: &str, opts: AuthOpts) -> anyhow::Result<AuthResult> {
     let cached_account = if let Some(cache_file) = &opts.cache_file && let Some(account) = cache::get_account_in_cache(&cache_file, email).await {
         Some(account)
     } else { None };
