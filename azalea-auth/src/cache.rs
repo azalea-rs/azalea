@@ -71,7 +71,7 @@ async fn get_entire_cache(cache_file: &Path) -> Result<Vec<CachedAccount>, Cache
     Ok(cache)
 }
 async fn set_entire_cache(cache_file: &Path, cache: Vec<CachedAccount>) -> Result<(), CacheError> {
-    println!("saving cache: {:?}", cache);
+    log::trace!("saving cache: {:?}", cache);
 
     let mut cache_file = File::create(cache_file).await.map_err(CacheError::Write)?;
     let cache = serde_json::to_string_pretty(&cache).map_err(CacheError::Parse)?;
