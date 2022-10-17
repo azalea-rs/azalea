@@ -149,7 +149,7 @@ pub struct XboxLiveAuthResponse {
 }
 
 /// Just the important data
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct XboxLiveAuth {
     token: String,
     user_hash: String,
@@ -233,6 +233,7 @@ async fn interactive_get_auth_token(
             .json::<AccessTokenResponse>()
             .await
         {
+            println!("access_token_response: {:?}", access_token_response);
             let expires_at = SystemTime::now()
                 + std::time::Duration::from_secs(access_token_response.expires_in);
             return Ok(ExpiringValue {

@@ -17,7 +17,7 @@ pub enum CacheError {
     ParseError(serde_json::Error),
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct CachedAccount {
     pub email: String,
     /// Microsoft auth
@@ -30,7 +30,7 @@ pub struct CachedAccount {
     pub profile: crate::auth::ProfileResponse,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct ExpiringValue<T> {
     /// Seconds since the UNIX epoch
     pub expires_at: u64,
@@ -43,7 +43,7 @@ impl<T> ExpiringValue<T> {
             < SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
-                .as_millis() as u64
+                .as_secs() as u64
     }
 
     /// Return the data if it's not expired, otherwise return `None`
@@ -59,11 +59,10 @@ impl<T> ExpiringValue<T> {
 async fn get_entire_cache(cache_file: &Path) -> Result<Vec<CachedAccount>, CacheError> {
     let mut cache: Vec<CachedAccount> = Vec::new();
     if cache_file.exists() {
-        let cache_file = File::open(cache_file)
+        let mut cache_file = File::open(cache_file)
             .await
             .map_err(CacheError::ReadError)?;
         // read the file into a string
-        let mut cache_file = tokio::io::BufReader::new(cache_file);
         let mut contents = String::new();
         cache_file
             .read_to_string(&mut contents)
@@ -74,11 +73,12 @@ async fn get_entire_cache(cache_file: &Path) -> Result<Vec<CachedAccount>, Cache
     Ok(cache)
 }
 async fn set_entire_cache(cache_file: &Path, cache: Vec<CachedAccount>) -> Result<(), CacheError> {
-    let cache_file = File::create(cache_file)
+    println!("saving cache: {:?}", cache);
+
+    let mut cache_file = File::create(cache_file)
         .await
         .map_err(CacheError::WriteError)?;
-    let mut cache_file = tokio::io::BufWriter::new(cache_file);
-    let cache = serde_json::to_string(&cache).map_err(CacheError::ParseError)?;
+    let cache = serde_json::to_string_pretty(&cache).map_err(CacheError::ParseError)?;
     cache_file
         .write_all(cache.as_bytes())
         .await
