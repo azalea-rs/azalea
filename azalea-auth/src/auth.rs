@@ -50,10 +50,11 @@ pub async fn auth(email: &str, opts: AuthOpts) -> anyhow::Result<AuthResult> {
         let mut msa = if let Some(account) = cached_account {
             account.msa
         } else {
-            interactive_get_auth_token(&client).await?
+            interactive_get_ms_auth_token(&client).await?
         };
         if msa.is_expired() {
-            todo!("refresh msa token");
+            println!("refreshing Microsoft auth token");
+            msa = refresh_ms_auth_token(&client, &msa.data.refresh_token).await?;
         }
         let ms_access_token = &msa.data.access_token;
         println!("Got access token: {}", ms_access_token);
@@ -188,18 +189,19 @@ pub struct ProfileResponse {
     pub capes: Vec<serde_json::Value>,
 }
 
+// nintendo switch (so it works for accounts that are under 18 years old)
+const CLIENT_ID: &str = "00000000441cc96b";
+
 /// Asks the user to go to a webpage and log in with Microsoft.
-async fn interactive_get_auth_token(
+async fn interactive_get_ms_auth_token(
     client: &reqwest::Client,
 ) -> anyhow::Result<ExpiringValue<AccessTokenResponse>> {
-    // nintendo switch (real)
-    let client_id = "00000000441cc96b";
 
     let res = client
         .post("https://login.live.com/oauth20_connect.srf")
         .form(&vec![
             ("scope", "service::user.auth.xboxlive.com::MBI_SSL"),
-            ("client_id", client_id),
+            ("client_id", CLIENT_ID),
             ("response_type", "device_code"),
         ])
         .send()
@@ -221,10 +223,10 @@ async fn interactive_get_auth_token(
         if let Ok(access_token_response) = client
             .post(format!(
                 "https://login.live.com/oauth20_token.srf?client_id={}",
-                client_id
+                CLIENT_ID
             ))
             .form(&vec![
-                ("client_id", client_id),
+                ("client_id", CLIENT_ID),
                 ("device_code", &res.device_code),
                 ("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
             ])
@@ -247,6 +249,34 @@ async fn interactive_get_auth_token(
     }
 
     Err(anyhow!("Authentication timed out"))
+}
+
+async fn refresh_ms_auth_token(
+    client: &reqwest::Client,
+    refresh_token: &str,
+) -> anyhow::Result<ExpiringValue<AccessTokenResponse>> {
+    let access_token_response = client
+        .post("https://login.live.com/oauth20_token.srf")
+        .form(&vec![
+            ("scope", "service::user.auth.xboxlive.com::MBI_SSL"),
+            ("client_id", CLIENT_ID),
+            ("grant_type", "refresh_token"),
+            ("refresh_token", refresh_token),
+        ])
+        .send()
+        .await?
+        .json::<AccessTokenResponse>()
+        .await?;
+
+    let expires_at = SystemTime::now()
+        + std::time::Duration::from_secs(access_token_response.expires_in);
+    Ok(ExpiringValue {
+        data: access_token_response,
+        expires_at: expires_at
+            .duration_since(UNIX_EPOCH)
+            .expect("Time went backwards")
+            .as_secs(),
+    })
 }
 
 async fn auth_with_xbox_live(
@@ -369,7 +399,8 @@ async fn check_ownership(
         .await?;
     println!("{:?}", res);
 
-    // TODO: we *should* check with mojang's public key that the signatures are right
+    // vanilla checks here to make sure the signatures are right, but it's not
+    // actually required so we just don't
 
     Ok(!res.items.is_empty())
 }
