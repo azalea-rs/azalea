@@ -55,9 +55,15 @@ pub enum AuthError {
 /// anything. You should just have it be the actual email so it's not confusing
 /// though, and in case the Microsoft API does start providing the real email.
 pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> {
-    let cached_account = if let Some(cache_file) = &opts.cache_file && let Some(account) = cache::get_account_in_cache(cache_file, email).await {
-        Some(account)
-    } else { None };
+    let cached_account = if let Some(cache_file) = &opts.cache_file {
+        if let Some(account) = cache::get_account_in_cache(cache_file, email).await {
+            Some(account)
+        } else {
+            None
+        }
+    } else {
+        None
+    };
 
     // these two MUST be set by the end, since we return them in AuthResult
     let profile: ProfileResponse;
