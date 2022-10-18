@@ -6,6 +6,7 @@ use tokio::sync::mpsc::UnboundedReceiver;
 use uuid::Uuid;
 
 /// Something that can join Minecraft servers.
+#[derive(Clone, Debug)]
 pub struct Account {
     pub username: String,
     /// The access token for authentication. You can obtain one of these
