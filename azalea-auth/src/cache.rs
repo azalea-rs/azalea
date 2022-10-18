@@ -13,6 +13,8 @@ pub enum CacheError {
     Read(std::io::Error),
     #[error("Failed to write cache file: {0}")]
     Write(std::io::Error),
+    #[error("Failed to create cache file directory: {0}")]
+    MkDir(std::io::Error),
     #[error("Failed to parse cache file: {0}")]
     Parse(serde_json::Error),
 }
@@ -73,6 +75,16 @@ async fn get_entire_cache(cache_file: &Path) -> Result<Vec<CachedAccount>, Cache
 async fn set_entire_cache(cache_file: &Path, cache: Vec<CachedAccount>) -> Result<(), CacheError> {
     log::trace!("saving cache: {:?}", cache);
 
+    if !cache_file.exists() {
+        let cache_file_parent = cache_file
+            .parent()
+            .expect("Cache file is root directory and also doesn't exist.");
+        log::debug!(
+            "Making cache file parent directory at {}",
+            cache_file_parent.to_string_lossy()
+        );
+        std::fs::create_dir_all(cache_file_parent).map_err(CacheError::MkDir)?;
+    }
     let mut cache_file = File::create(cache_file).await.map_err(CacheError::Write)?;
     let cache = serde_json::to_string_pretty(&cache).map_err(CacheError::Parse)?;
     cache_file

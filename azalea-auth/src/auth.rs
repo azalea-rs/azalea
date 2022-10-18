@@ -130,7 +130,7 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
                 },
             )
             .await {
-                log::warn!("Error while caching auth data: {}", e);
+                log::error!("{}", e);
             }
         }
     }

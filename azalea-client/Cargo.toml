@@ -3,13 +3,13 @@ description = "A headless Minecraft client."
 edition = "2021"
 license = "MIT"
 name = "azalea-client"
-version = "0.2.1"
+version = "0.2.2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 anyhow = "1.0.59"
-azalea-auth = { path = "../azalea-auth", version = "0.2.0" }
+azalea-auth = { path = "../azalea-auth", version = "0.2.1" }
 azalea-block = { path = "../azalea-block", version = "0.2.0" }
 azalea-chat = { path = "../azalea-chat", version = "0.2.0" }
 azalea-core = { path = "../azalea-core", version = "0.2.0" }
