@@ -9,6 +9,7 @@ use azalea_protocol::{
             clientbound_player_chat_packet::ClientboundPlayerChatPacket,
             clientbound_system_chat_packet::ClientboundSystemChatPacket,
             serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
+            serverbound_client_information_packet::ServerboundClientInformationPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
             serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
@@ -30,7 +31,7 @@ use azalea_world::{
     Dimension,
 };
 use log::{debug, error, warn};
-use parking_lot::Mutex;
+use parking_lot::{Mutex, RwLock};
 use std::{
     fmt::Debug,
     io::{self, Cursor},
@@ -78,6 +79,7 @@ pub struct Client {
     pub player: Arc<Mutex<Player>>,
     pub dimension: Arc<Mutex<Dimension>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
+    pub options: Arc<RwLock<ServerboundClientInformationPacket>>,
     tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
 }
 
@@ -222,6 +224,7 @@ impl Client {
             dimension: Arc::new(Mutex::new(Dimension::default())),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
             tasks: Arc::new(Mutex::new(Vec::new())),
+            options: Arc::new(RwLock::new(Options::default())),
         };
 
         // just start up the game loop and we're ready!
@@ -787,6 +790,16 @@ impl Client {
         dimension
             .entity(entity_id)
             .expect("Player entity should be in the given dimension")
+    }
+
+    /// Change our options (i.e. render distance, main hand)
+    pub async fn set_options(&self, options: ServerboundClientInformationPacket) {
+        {
+            let mut options_lock = self.options.write();
+            *options_lock = options;
+        }
+        let options = self.options.read();
+        self.write_packet(options.clone().get());
     }
 }
 
