@@ -2,6 +2,7 @@ use crate::{movement::MoveDirection, Account, Player};
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::component::Component;
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
+pub use azalea_protocol::packets::game::serverbound_client_information_packet::ServerboundClientInformationPacket;
 use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
@@ -9,7 +10,6 @@ use azalea_protocol::{
             clientbound_player_chat_packet::ClientboundPlayerChatPacket,
             clientbound_system_chat_packet::ClientboundSystemChatPacket,
             serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
-            serverbound_client_information_packet::ServerboundClientInformationPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
             serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
@@ -224,7 +224,7 @@ impl Client {
             dimension: Arc::new(Mutex::new(Dimension::default())),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
             tasks: Arc::new(Mutex::new(Vec::new())),
-            options: Arc::new(RwLock::new(Options::default())),
+            options: Arc::new(RwLock::new(ServerboundClientInformationPacket::default())),
         };
 
         // just start up the game loop and we're ready!
@@ -793,13 +793,18 @@ impl Client {
     }
 
     /// Change our options (i.e. render distance, main hand)
-    pub async fn set_options(&self, options: ServerboundClientInformationPacket) {
+    pub async fn set_options(
+        &self,
+        options: ServerboundClientInformationPacket,
+    ) -> Result<(), std::io::Error> {
         {
             let mut options_lock = self.options.write();
             *options_lock = options;
         }
         let options = self.options.read();
-        self.write_packet(options.clone().get());
+        self.write_packet(options.clone().get()).await?;
+
+        Ok(())
     }
 }
 

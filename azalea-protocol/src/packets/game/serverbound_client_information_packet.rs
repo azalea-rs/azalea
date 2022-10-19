@@ -13,6 +13,21 @@ pub struct ServerboundClientInformationPacket {
     pub allows_listing: bool,
 }
 
+impl Default for ServerboundClientInformationPacket {
+    fn default() -> Self {
+        Self {
+            language: "en_us".to_string(),
+            view_distance: 8,
+            chat_visibility: ChatVisibility::Full,
+            chat_colors: true,
+            model_customisation: 0,
+            main_hand: HumanoidArm::Right,
+            text_filtering_enabled: false,
+            allows_listing: false,
+        }
+    }
+}
+
 #[derive(McBuf, Clone, Copy, Debug)]
 pub enum ChatVisibility {
     Full = 0,
