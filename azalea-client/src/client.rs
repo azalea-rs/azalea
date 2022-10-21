@@ -374,6 +374,11 @@ impl Client {
                     player_lock.set_entity_id(p.player_id);
                 }
 
+                let client_information_packet: ServerboundClientInformationPacket =
+                    client.options.read().clone();
+                client.write_packet(client_information_packet.get()).await?;
+
+                // brand
                 client
                     .write_packet(
                         ServerboundCustomPayloadPacket {
@@ -792,7 +797,15 @@ impl Client {
             .expect("Player entity should be in the given dimension")
     }
 
-    /// Change our options (i.e. render distance, main hand)
+    /// Returns whether we have a received the login packet yet.
+    pub fn logged_in(&self) -> bool {
+        let dimension = self.dimension.lock();
+        let player = self.player.lock();
+        player.entity(&dimension).is_some()
+    }
+
+    /// Tell the server we changed our game options (i.e. render distance, main hand).
+    /// If this is not set before the login packet, a default will be sent.
     pub async fn set_options(
         &self,
         options: ServerboundClientInformationPacket,
@@ -801,8 +814,11 @@ impl Client {
             let mut options_lock = self.options.write();
             *options_lock = options;
         }
-        let options = self.options.read();
-        self.write_packet(options.clone().get()).await?;
+
+        if self.logged_in() {
+            let options = self.options.read();
+            self.write_packet(options.clone().get()).await?;
+        }
 
         Ok(())
     }
