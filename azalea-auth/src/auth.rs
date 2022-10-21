@@ -69,7 +69,8 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
     let profile: ProfileResponse;
     let minecraft_access_token: String;
 
-    if let Some(account) = &cached_account && !account.mca.is_expired() {
+    if cached_account.is_some() && !cached_account.as_ref().unwrap().mca.is_expired() {
+        let account = cached_account.as_ref().unwrap();
         // the minecraft auth data is cached and not expired, so we can just
         // use that instead of doing auth all over again :)
         profile = account.profile.clone();
@@ -102,7 +103,7 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
         // Minecraft auth
         let mca = auth_with_minecraft(&client, &xbl_auth.data.user_hash, &xsts_token).await?;
 
-         minecraft_access_token = mca
+        minecraft_access_token = mca
             .get()
             .expect("Minecraft auth shouldn't have expired yet")
             .access_token
@@ -129,7 +130,8 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
                     profile: profile.clone(),
                 },
             )
-            .await {
+            .await
+            {
                 log::error!("{}", e);
             }
         }

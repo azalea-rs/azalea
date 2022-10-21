@@ -171,9 +171,10 @@ impl Shapes {
         );
         let var8 = BitSetDiscreteVoxelShape::join(&a.shape(), &b.shape(), &var5, &var6, &var7, op);
         // if var5.is_discrete_cube_merger()
-        if let IndexMerger::DiscreteCube { .. } = var5
-            && let IndexMerger::DiscreteCube { .. } = var6
-            && let IndexMerger::DiscreteCube { .. } = var7
+
+        if matches!(var5, IndexMerger::DiscreteCube { .. })
+            && matches!(var6, IndexMerger::DiscreteCube { .. })
+            && matches!(var7, IndexMerger::DiscreteCube { .. })
         {
             VoxelShape::Cube(CubeVoxelShape::new(DiscreteVoxelShape::BitSet(var8)))
         } else {
