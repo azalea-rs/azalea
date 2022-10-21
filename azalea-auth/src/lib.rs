@@ -1,5 +1,3 @@
-#![feature(let_chains)]
-
 mod auth;
 mod cache;
 pub mod game_profile;
