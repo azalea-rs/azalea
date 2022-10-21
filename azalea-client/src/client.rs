@@ -122,6 +122,8 @@ pub enum HandleError {
 
 impl Client {
     /// Connect to a Minecraft server with an account.
+    ///
+    /// To change the render distance and other settings, use [`Client::set_options`].
     pub async fn join(
         account: &Account,
         address: &ServerAddress,
