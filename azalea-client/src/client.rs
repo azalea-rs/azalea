@@ -64,7 +64,7 @@ impl ChatPacket {
     pub fn message(&self) -> Component {
         match self {
             ChatPacket::System(p) => p.content.clone(),
-            ChatPacket::Player(p) => p.message.message(false),
+            ChatPacket::Player(p) => p.message(false),
         }
     }
 }

@@ -123,13 +123,17 @@ def get_generator_mod_data(version_id: str, category: str):
         with open(get_dir_location(f'{generator_mod_dir}/src/main/resources/fabric.mod.json'), 'w') as f:
             json.dump(fabric_mod_json, f, indent=2)
 
-        try: os.system(f'cd {generator_mod_dir} && chmod u+x ./gradlew')
-        except: pass
+        try:
+            os.system(f'cd {generator_mod_dir} && chmod u+x ./gradlew')
+        except:
+            pass
 
         # set the server port to something other than 25565 so it doesn't
         # conflict with anything else that's running
-        try: os.makedirs(get_dir_location(f'{generator_mod_dir}/run'))
-        except: pass
+        try:
+            os.makedirs(get_dir_location(f'{generator_mod_dir}/run'))
+        except:
+            pass
         with open(get_dir_location(f'{generator_mod_dir}/run/server.properties'), 'w') as f:
             f.write('server-port=56553')
 
