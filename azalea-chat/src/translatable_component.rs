@@ -1,4 +1,4 @@
-use std::fmt::{self, Formatter};
+use std::fmt::{self, Display, Formatter};
 
 use crate::{
     base_component::BaseComponent, component::Component, style::Style,
@@ -115,13 +115,23 @@ impl TranslatableComponent {
     }
 }
 
-impl fmt::Display for TranslatableComponent {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", Component::Translatable(self.clone()))
+impl Display for TranslatableComponent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // this contains the final string will all the ansi escape codes
+        for component in Component::Translatable(self.clone()).into_iter() {
+            let component_text = match &component {
+                Component::Text(c) => c.text.to_string(),
+                Component::Translatable(c) => c.to_string(),
+            };
+
+            f.write_str(&component_text)?;
+        }
+
+        Ok(())
     }
 }
 
-impl fmt::Display for StringOrComponent {
+impl Display for StringOrComponent {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
             StringOrComponent::String(s) => write!(f, "{}", s),

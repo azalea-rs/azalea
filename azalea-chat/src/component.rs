@@ -267,16 +267,9 @@ impl From<String> for Component {
 
 impl Display for Component {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // this contains the final string will all the ansi escape codes
-        for component in self.clone().into_iter() {
-            let component_text = match &component {
-                Self::Text(c) => c.text.to_string(),
-                Self::Translatable(c) => c.to_string(),
-            };
-
-            f.write_str(&component_text)?;
+        match self {
+            Component::Text(c) => c.fmt(f),
+            Component::Translatable(c) => c.fmt(f),
         }
-
-        Ok(())
     }
 }
