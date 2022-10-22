@@ -85,7 +85,7 @@ impl TextComponent {
 
 impl fmt::Display for TextComponent {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.text.clone())
+        write!(f, "{}", Component::Text(self.clone()))
     }
 }
 

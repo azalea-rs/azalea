@@ -1,6 +1,9 @@
 use std::fmt::{self, Formatter};
 
-use crate::{base_component::BaseComponent, component::Component};
+use crate::{
+    base_component::BaseComponent, component::Component, style::Style,
+    text_component::TextComponent,
+};
 
 #[derive(Clone, Debug)]
 pub enum StringOrComponent {
@@ -24,38 +27,43 @@ impl TranslatableComponent {
         }
     }
 
-    pub fn read(&self) -> Result<String, fmt::Error> {
+    /// Convert the key and args to a Component.
+    pub fn read(&self) -> Result<TextComponent, fmt::Error> {
         let template = azalea_language::get(&self.key).unwrap_or(&self.key);
         // decode the % things
 
-        let mut result = String::new();
         let mut i = 0;
         let mut matched = 0;
 
-        // this code is ugly but it works
+        // every time we get a char we add it to built_text, and we push it to
+        // `arguments` and clear it when we add a new argument component
+        let mut built_text = String::new();
+        let mut components = Vec::new();
 
         while i < template.len() {
             if template.chars().nth(i).unwrap() == '%' {
                 let char_after = match template.chars().nth(i + 1) {
                     Some(c) => c,
                     None => {
-                        result.push(template.chars().nth(i).unwrap());
+                        built_text.push(template.chars().nth(i).unwrap());
                         break;
                     }
                 };
                 i += 1;
                 match char_after {
                     '%' => {
-                        result.push('%');
+                        built_text.push('%');
                     }
                     's' => {
-                        result.push_str(
-                            &self
-                                .args
-                                .get(matched)
-                                .unwrap_or(&StringOrComponent::String("".to_string()))
-                                .to_string(),
-                        );
+                        let arg_component = self
+                            .args
+                            .get(matched)
+                            .cloned()
+                            .unwrap_or(StringOrComponent::String("".to_string()));
+
+                        components.push(TextComponent::new(built_text.clone()));
+                        built_text.clear();
+                        components.push(TextComponent::from(arg_component));
                         matched += 1;
                     }
                     _ => {
@@ -65,7 +73,7 @@ impl TranslatableComponent {
                             if let Some('$') = template.chars().nth(i + 1) {
                                 if let Some('s') = template.chars().nth(i + 2) {
                                     i += 2;
-                                    result.push_str(
+                                    built_text.push_str(
                                         &self
                                             .args
                                             .get((d - 1) as usize)
@@ -80,24 +88,36 @@ impl TranslatableComponent {
                             }
                         } else {
                             i -= 1;
-                            result.push('%');
+                            built_text.push('%');
                         }
                     }
                 }
             } else {
-                result.push(template.chars().nth(i).unwrap());
+                built_text.push(template.chars().nth(i).unwrap());
             }
 
             i += 1
         }
 
-        Ok(result.to_string())
+        if components.is_empty() {
+            return Ok(TextComponent::new(built_text));
+        }
+
+        components.push(TextComponent::new(built_text));
+
+        Ok(TextComponent {
+            base: BaseComponent {
+                siblings: components.into_iter().map(|c| Component::Text(c)).collect(),
+                style: Style::default(),
+            },
+            text: "".to_string(),
+        })
     }
 }
 
 impl fmt::Display for TranslatableComponent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
-        write!(f, "{}", self.read()?)
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", Component::Translatable(self.clone()))
     }
 }
 
@@ -105,7 +125,16 @@ impl fmt::Display for StringOrComponent {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
             StringOrComponent::String(s) => write!(f, "{}", s),
-            StringOrComponent::Component(c) => write!(f, "{}", c.to_ansi(None)),
+            StringOrComponent::Component(c) => write!(f, "{}", c.to_string()),
+        }
+    }
+}
+
+impl From<StringOrComponent> for TextComponent {
+    fn from(soc: StringOrComponent) -> Self {
+        match soc {
+            StringOrComponent::String(s) => TextComponent::new(s),
+            StringOrComponent::Component(c) => TextComponent::new(c.to_string()),
         }
     }
 }
@@ -118,7 +147,7 @@ mod tests {
     #[test]
     fn test_none() {
         let c = TranslatableComponent::new("translation.test.none".to_string(), vec![]);
-        assert_eq!(c.read(), Ok("Hello, world!".to_string()));
+        assert_eq!(c.read().unwrap().to_string(), "Hello, world!".to_string());
     }
     #[test]
     fn test_complex() {
@@ -133,8 +162,8 @@ mod tests {
         );
         // so true mojang
         assert_eq!(
-            c.read(),
-            Ok("Prefix, ab again b and a lastly c and also a again!".to_string())
+            c.read().unwrap().to_string(),
+            "Prefix, ab again b and a lastly c and also a again!".to_string()
         );
     }
     #[test]
@@ -148,7 +177,7 @@ mod tests {
                 StringOrComponent::String("d".to_string()),
             ],
         );
-        assert_eq!(c.read(), Ok("%s %a %%s %%b".to_string()));
+        assert_eq!(c.read().unwrap().to_string(), "%s %a %%s %%b".to_string());
     }
     #[test]
     fn test_invalid() {
@@ -161,7 +190,7 @@ mod tests {
                 StringOrComponent::String("d".to_string()),
             ],
         );
-        assert_eq!(c.read(), Ok("hi %".to_string()));
+        assert_eq!(c.read().unwrap().to_string(), "hi %".to_string());
     }
     #[test]
     fn test_invalid2() {
@@ -174,6 +203,6 @@ mod tests {
                 StringOrComponent::String("d".to_string()),
             ],
         );
-        assert_eq!(c.read(), Ok("hi %  s".to_string()));
+        assert_eq!(c.read().unwrap().to_string(), "hi %  s".to_string());
     }
 }
