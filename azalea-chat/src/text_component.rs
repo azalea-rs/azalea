@@ -1,4 +1,4 @@
-use std::fmt;
+use std::fmt::Display;
 
 use crate::{base_component::BaseComponent, component::Component, style::ChatFormatting};
 
@@ -83,9 +83,19 @@ impl TextComponent {
     }
 }
 
-impl fmt::Display for TextComponent {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", Component::Text(self.clone()))
+impl Display for TextComponent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // this contains the final string will all the ansi escape codes
+        for component in Component::Text(self.clone()).into_iter() {
+            let component_text = match &component {
+                Component::Text(c) => c.text.to_string(),
+                Component::Translatable(c) => c.to_string(),
+            };
+
+            f.write_str(&component_text)?;
+        }
+
+        Ok(())
     }
 }
 
