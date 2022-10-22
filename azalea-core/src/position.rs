@@ -156,7 +156,7 @@ impl ChunkBlockPos {
     }
 }
 /// The coordinates of a block inside a chunk section.
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct ChunkSectionBlockPos {
     /// A number between 0 and 16.
     pub x: u8,

@@ -645,7 +645,7 @@ impl Client {
                 debug!("Got section blocks update packet {:?}", p);
                 let mut dimension = client.dimension.lock();
                 for state in &p.states {
-                    dimension.set_block_state(&(p.section_pos + state.pos), state.state);
+                    dimension.set_block_state(&(p.section_pos + state.pos.clone()), state.state);
                 }
             }
             ClientboundGamePacket::GameEvent(p) => {
