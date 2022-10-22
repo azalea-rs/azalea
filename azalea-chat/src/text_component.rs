@@ -89,7 +89,7 @@ impl Display for TextComponent {
         for component in Component::Text(self.clone()).into_iter() {
             let component_text = match &component {
                 Component::Text(c) => c.text.to_string(),
-                Component::Translatable(c) => c.to_string(),
+                Component::Translatable(c) => c.read()?.to_string(),
             };
 
             f.write_str(&component_text)?;
