@@ -123,6 +123,8 @@ pub enum HandleError {
 impl Client {
     /// Connect to a Minecraft server.
     ///
+    /// # Examples
+    ///
     /// ```rust,no_run
     /// use azalea_client::Client;
     ///
