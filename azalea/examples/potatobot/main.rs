@@ -17,10 +17,10 @@ async fn main() {
     azalea::start(azalea::Options {
         account,
         address: "localhost",
-        state: Arc::new(Mutex::new(State::default())),
+        state: State::default(),
         plugins: vec![
-            Arc::new(autoeat::Plugin::default()),
-            Arc::new(pathfinder::Plugin::default()),
+            Box::new(autoeat::Plugin::default()),
+            Box::new(pathfinder::Plugin::default()),
         ],
         handle,
     })
@@ -28,7 +28,7 @@ async fn main() {
     .unwrap();
 }
 
-async fn handle(bot: Client, event: Arc<Event>, state: Arc<Mutex<State>>) -> anyhow::Result<()> {
+async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     match event {
         Event::Login => {
             goto_farm(bot, state).await?;
@@ -42,14 +42,14 @@ async fn handle(bot: Client, event: Arc<Event>, state: Arc<Mutex<State>>) -> any
 }
 
 // go to the place where we start farming
-async fn goto_farm(bot: Client, state: Arc<Mutex<State>>) -> anyhow::Result<()> {
+async fn goto_farm(bot: Client, state: State) -> anyhow::Result<()> {
     bot.goto(pathfinder::Goals::Near(5, BlockPos::new(0, 70, 0)))
         .await?;
     Ok(())
 }
 
 // go to the chest and deposit everything in our inventory.
-async fn deposit(bot: &mut Client, state: &mut Arc<Mutex<State>>) -> anyhow::Result<()> {
+async fn deposit(bot: &mut Client, state: State) -> anyhow::Result<()> {
     // first throw away any garbage we might have
     bot.toss(|item| item.kind != ItemKind::Potato && item.kind != ItemKind::DiamondHoe);
 

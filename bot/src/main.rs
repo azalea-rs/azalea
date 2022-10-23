@@ -1,9 +1,7 @@
 use azalea::prelude::*;
 use azalea::{Account, Client, Event};
-use parking_lot::Mutex;
-use std::sync::Arc;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct State {}
 
 #[tokio::main]
@@ -15,7 +13,7 @@ async fn main() -> anyhow::Result<()> {
     azalea::start(azalea::Options {
         account,
         address: "localhost",
-        state: Arc::new(Mutex::new(State::default())),
+        state: State::default(),
         plugins: vec![],
         handle,
     })
@@ -25,8 +23,8 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn handle(bot: Client, event: Arc<Event>, _state: Arc<Mutex<State>>) -> anyhow::Result<()> {
-    match *event {
+async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
+    match event {
         Event::Login => {
             bot.chat("Hello world").await?;
         }

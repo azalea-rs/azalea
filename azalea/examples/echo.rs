@@ -12,7 +12,7 @@ async fn main() {
     azalea::start(azalea::Options {
         account,
         address: "localhost",
-        state: Arc::new(Mutex::new(State::default())),
+        state: State::default(),
         plugins: vec![],
         handle,
     })
@@ -20,19 +20,16 @@ async fn main() {
     .unwrap();
 }
 
+#[derive(Default, Clone)]
 pub struct State {}
 
-async fn handle(bot: Client, event: Arc<Event>, state: Arc<Mutex<State>>) -> anyhow::Result<()> {
-    match *event {
+async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    match event {
         Event::Chat(m) => {
             if m.username == bot.username {
                 return Ok(()); // ignore our own messages
             };
-            bot.chat(m.message).await;
-        }
-        Event::Kick(m) => {
-            println!(m);
-            bot.reconnect().await.unwrap();
+            bot.chat(m.content).await;
         }
         _ => {}
     }

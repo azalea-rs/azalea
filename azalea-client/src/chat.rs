@@ -83,7 +83,7 @@ impl Client {
     /// # }
     /// ```
     pub async fn chat(&self, message: &str) -> Result<(), std::io::Error> {
-        if message.chars().next() == Some('/') {
+        if message.starts_with('/') {
             self.send_command_packet(&message[1..]).await
         } else {
             self.send_chat_packet(message).await
