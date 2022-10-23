@@ -3,20 +3,20 @@ use azalea::{Bot, Client, Event};
 use parking_lot::Mutex;
 use std::sync::Arc;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct State {
-    pub started: bool,
+    pub started: Arc<Mutex<bool>>,
 }
 
 #[tokio::main]
 async fn main() {
     let account = Account::offline("bot");
-    // or let bot = Account::microsoft("access token").await;
+    // or let bot = Account::microsoft("email").await;
 
     azalea::start(azalea::Options {
         account,
         address: "localhost",
-        state: Arc::new(Mutex::new(State::default())),
+        state: State::default(),
         plugins: vec![],
         handle,
     })
@@ -24,13 +24,13 @@ async fn main() {
     .unwrap();
 }
 
-async fn handle(bot: Client, event: Arc<Event>, state: Arc<Mutex<State>>) {
+async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     match event {
-        Event::Message(m) => {
+        Event::Chat(m) => {
             if m.username == bot.player.username {
-                return;
+                return Ok(());
             };
-            if m.message = "go" {
+            if m.content == "go" {
                 // make sure we only start once
                 let ctx_lock = ctx.lock().unwrap();
                 if ctx_lock.started {
@@ -74,4 +74,6 @@ async fn handle(bot: Client, event: Arc<Event>, state: Arc<Mutex<State>>) {
         }
         _ => {}
     }
+
+    Ok(())
 }

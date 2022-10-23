@@ -1,4 +1,9 @@
-//! Significantly abstract azalea-protocol so it's actually useable for bots.
+//! Significantly abstract [`azalea_protocol`] so it's actually useable for
+//! real clients. If you want to make bots, however, you should use the
+//! [`azalea`] crate instead.
+//!
+//! [`azalea_protocol`]: https://crates.io/crates/azalea-protocol
+//! [`azalea`]: https://crates.io/crates/azalea
 
 mod account;
 mod chat;

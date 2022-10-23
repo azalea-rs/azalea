@@ -121,9 +121,8 @@ impl PalettedContainer {
     }
 
     fn on_resize(&mut self, bits_per_entry: u8, value: u32) -> usize {
-        if bits_per_entry > 5 {
-            panic!("bits_per_entry must be <= 5");
-        }
+        // in vanilla this is always true, but it's sometimes false in purpur servers
+        // assert!(bits_per_entry <= 5, "bits_per_entry must be <= 5");
         let mut new_data = self.create_or_reuse_data(bits_per_entry);
         new_data.copy_from(&self.palette, &self.storage);
         *self = new_data;

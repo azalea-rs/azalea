@@ -155,6 +155,8 @@ impl Client {
         Ok(())
     }
 
+    /// Makes the bot do one physics tick. Note that this is already handled
+    /// automatically by the client.
     pub fn ai_step(&mut self) {
         self.tick_controls(None);
 
