@@ -69,15 +69,16 @@ impl Client {
     /// #     azalea::start(azalea::Options {
     /// #         account,
     /// #         address: "localhost",
-    /// #         state: Arc::new(Mutex::new(State::default())),
+    /// #         state: State::default(),
     /// #         plugins: vec![],
     /// #         handle,
     /// #     })
     /// #     .await
     /// #     .unwrap();
     /// # }
+    /// # #[derive(Default, Clone)]
     /// # pub struct State {}
-    /// # async fn handle(bot: Client, event: Arc<Event>, state: Arc<Mutex<State>>) -> anyhow::Result<()> {
+    /// # async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     /// bot.chat("Hello, world!").await.unwrap();
     /// # Ok(())
     /// # }

@@ -14,7 +14,7 @@ async fn main() {
         accounts,
         address: "localhost",
 
-        swarm_state: Arc::new(Mutex::new(State::default())),
+        swarm_state: State::default(),
         state: State::default(),
 
         swarm_plugins: vec![Arc::new(pathfinder::Plugin::default())],
@@ -33,20 +33,12 @@ struct State {}
 #[derive(Default, Clone)]
 struct SwarmState {}
 
-async fn handle(bot: Client, event: Arc<Event>, state: Arc<Mutex<State>>) -> anyhow::Result<()> {
-    match event {
-        _ => {}
-    }
-
+async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn swarm_handle(
-    swarm: Swarm,
-    event: Arc<Event>,
-    state: Arc<Mutex<SwarmState>>,
-) -> anyhow::Result<()> {
-    match *event {
+async fn swarm_handle(swarm: Swarm, event: Event, state: SwarmState) -> anyhow::Result<()> {
+    match event {
         Event::Login => {
             swarm.goto(azalea::BlockPos::new(0, 70, 0)).await;
             // or bots.goto_goal(pathfinder::Goals::Goto(azalea::BlockPos(0, 70, 0))).await;

@@ -1,23 +1,21 @@
-use azalea::{pathfinder, Account, Accounts, Client, Event};
-use parking_lot::Mutex;
-use std::sync::Arc;
+use azalea::{pathfinder, Account, Client, Event};
 
 #[tokio::main]
 async fn main() {
-    let accounts = Accounts::new();
+    let accounts = Vec::new();
 
     for i in 0..10 {
-        accounts.add(Account::offline(&format!("bot{}", i)));
+        accounts.push(Account::offline(&format!("bot{}", i)));
     }
 
     azalea::start_swarm(azalea::SwarmOptions {
         accounts,
         address: "localhost",
 
-        swarm_state: Arc::new(Mutex::new(State::default())),
+        swarm_state: State::default(),
         state: State::default(),
 
-        swarm_plugins: vec![Arc::new(pathfinder::Plugin::default())],
+        swarm_plugins: vec![Box::new(pathfinder::Plugin::default())],
         plugins: vec![],
 
         handle: Box::new(handle),
@@ -48,7 +46,7 @@ async fn swarm_handle(swarm: Swarm, event: Event, state: State) {
                     if bot.entity.can_reach(target.bounding_box) {
                         bot.swing();
                     }
-                    if !h.using_held_item() && bot.state.lock().hunger <= 17 {
+                    if !bot.using_held_item() && bot.state.lock().hunger <= 17 {
                         bot.hold(azalea::ItemGroup::Food);
                         tokio::task::spawn(bot.use_held_item());
                     }

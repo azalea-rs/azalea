@@ -22,7 +22,7 @@
 //!     azalea::start(azalea::Options {
 //!         account,
 //!         address: "localhost",
-//!         state: Arc::new(Mutex::new(State::default())),
+//!         state: State::default(),
 //!         plugins: vec![],
 //!         handle,
 //!     })
@@ -33,8 +33,8 @@
 //! #[derive(Default, Clone)]
 //! pub struct State {}
 //!
-//! async fn handle(bot: Client, event: Arc<Event>, state: Arc<Mutex<State>>) -> anyhow::Result<()> {
-//!     match *event {
+//! async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+//!     match event {
 //!         Event::Chat(m) => {
 //!             println!(m.message().to_ansi(None));
 //!         }
@@ -129,13 +129,13 @@ pub enum Error {
 /// it gets disconnected from the server.
 ///
 /// ```rust,no_run
-/// azalea::start(azalea::Options {
+/// let error = azalea::start(azalea::Options {
 ///     account,
 ///     address: "localhost",
-///     state: Arc::new(Mutex::new(State::default())),
-///     plugins: vec![&autoeat::Plugin::default()],
-///     handle: Box::new(handle),
-/// }).await.unwrap();
+///     state: State::default(),
+///     plugins: vec![Box::new(autoeat::Plugin::default())],
+///     handle,
+/// }).await;
 /// ```
 pub async fn start<
     S: Send + Sync + Clone + 'static,

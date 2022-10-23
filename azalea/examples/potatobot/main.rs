@@ -2,10 +2,8 @@ mod autoeat;
 
 use azalea::prelude::*;
 use azalea::{pathfinder, Account, BlockPos, Client, Event, ItemKind, MoveDirection, Plugin, Vec3};
-use parking_lot::Mutex;
-use std::sync::Arc;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct State {}
 
 #[tokio::main]
