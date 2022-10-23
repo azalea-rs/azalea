@@ -59,7 +59,7 @@ impl TranslatableComponent {
                             .args
                             .get(matched)
                             .cloned()
-                            .unwrap_or(StringOrComponent::String("".to_string()));
+                            .unwrap_or_else(|| StringOrComponent::String("".to_string()));
 
                         components.push(TextComponent::new(built_text.clone()));
                         built_text.clear();
@@ -107,7 +107,7 @@ impl TranslatableComponent {
 
         Ok(TextComponent {
             base: BaseComponent {
-                siblings: components.into_iter().map(|c| Component::Text(c)).collect(),
+                siblings: components.into_iter().map(Component::Text).collect(),
                 style: Style::default(),
             },
             text: "".to_string(),
@@ -135,7 +135,7 @@ impl Display for StringOrComponent {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
             StringOrComponent::String(s) => write!(f, "{}", s),
-            StringOrComponent::Component(c) => write!(f, "{}", c.to_string()),
+            StringOrComponent::Component(c) => write!(f, "{}", c),
         }
     }
 }

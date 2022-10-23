@@ -845,8 +845,11 @@ impl Client {
         }
 
         if self.logged_in() {
-            let options = self.options.read();
-            self.write_packet(options.clone().get()).await?;
+            let options_packet = {
+                let options = self.options.read();
+                options.clone().get()
+            };
+            self.write_packet(options_packet).await?;
         }
 
         Ok(())
