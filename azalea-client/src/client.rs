@@ -127,6 +127,8 @@ impl Client {
     ///
     /// To change the render distance and other settings, use [`Client::set_options`].
     ///
+    /// # Examples
+    ///
     /// ```rust,no_run
     /// use azalea_client::Client;
     ///

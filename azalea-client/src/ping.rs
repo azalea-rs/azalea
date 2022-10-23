@@ -32,7 +32,9 @@ pub enum PingError {
 
 /// Ping a Minecraft server.
 ///
-/// ```
+/// # Examples
+///
+/// ```rust,no_run
 /// use azalea_client::ping;
 ///
 /// #[tokio::main]
