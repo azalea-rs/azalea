@@ -50,6 +50,11 @@ pub type ClientInformation = ServerboundClientInformationPacket;
 /// at the beginning of a tick before anything has happened.
 #[derive(Debug, Clone)]
 pub enum Event {
+    /// Happens right after the bot switches into the Game state, but before
+    /// it's actually spawned. This can be useful for setting the client
+    /// information with `Client::set_client_information`, so the packet
+    /// doesn't have to be sent twice.
+    Initialize,
     Login,
     Chat(ChatPacket),
     /// Happens 20 times per second, but only when the world is loaded.
@@ -248,6 +253,8 @@ impl Client {
             tasks: Arc::new(Mutex::new(Vec::new())),
             options: Arc::new(RwLock::new(ClientInformation::default())),
         };
+
+        tx.send(Event::Initialize).unwrap();
 
         // just start up the game loop and we're ready!
 
