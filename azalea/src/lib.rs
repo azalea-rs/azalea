@@ -129,7 +129,7 @@ pub enum Error {
 /// it gets disconnected from the server.
 ///
 /// # Examples
-/// 
+///
 /// ```rust,no_run
 /// let error = azalea::start(azalea::Options {
 ///     account,

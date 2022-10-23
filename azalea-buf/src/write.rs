@@ -110,7 +110,6 @@ impl McBufWritable for String {
     }
 }
 
-
 impl McBufWritable for &str {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         write_utf_with_len(buf, self, MAX_STRING_LENGTH.into())
