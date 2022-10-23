@@ -11,8 +11,9 @@ use crate::Client;
 
 impl Client {
     /// Sends chat message to the server. This only sends the chat packet and
-    /// not the command packet. The `chat` function handles checking whether
-    /// the message is a command and using the proper packet for you.
+    /// not the command packet. The [`Client::chat`] function handles checking whether
+    /// the message is a command and using the proper packet for you, so you
+    /// should use that instead.
     pub async fn send_chat_packet(&self, message: &str) -> Result<(), std::io::Error> {
         // TODO: chat signing
         let signature = sign_message();
@@ -54,6 +55,33 @@ impl Client {
         self.write_packet(packet).await
     }
 
+    /// Send a message in chat.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use azalea::prelude::*;
+    /// # use parking_lot::Mutex;
+    /// # use std::sync::Arc;
+    /// # #[tokio::main]
+    /// # async fn main() {
+    /// #     let account = Account::offline("bot");
+    /// #     azalea::start(azalea::Options {
+    /// #         account,
+    /// #         address: "localhost",
+    /// #         state: Arc::new(Mutex::new(State::default())),
+    /// #         plugins: vec![],
+    /// #         handle,
+    /// #     })
+    /// #     .await
+    /// #     .unwrap();
+    /// # }
+    /// # pub struct State {}
+    /// # async fn handle(bot: Client, event: Arc<Event>, state: Arc<Mutex<State>>) -> anyhow::Result<()> {
+    /// bot.chat("Hello, world!").await.unwrap();
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn chat(&self, message: &str) -> Result<(), std::io::Error> {
         if message.chars().next() == Some('/') {
             self.send_command_packet(&message[1..]).await

@@ -11,7 +11,7 @@ struct State {
 #[tokio::main]
 async fn main() {
     let account = Account::offline("bot");
-    // or let bot = Account::microsoft("access token").await;
+    // or let bot = Account::microsoft("email").await;
 
     azalea::start(azalea::Options {
         account,

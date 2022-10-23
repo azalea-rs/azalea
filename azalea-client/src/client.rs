@@ -69,7 +69,7 @@ impl ChatPacket {
     }
 }
 
-/// A player that you can control that is currently in a Minecraft server.
+/// A player that you control that is currently in a Minecraft server.
 #[derive(Clone)]
 pub struct Client {
     game_profile: GameProfile,
@@ -106,6 +106,8 @@ pub enum JoinError {
     Io(#[from] io::Error),
     #[error("{0}")]
     SessionServer(#[from] azalea_auth::sessionserver::SessionServerError),
+    #[error("The given address could not be parsed into a ServerAddress")]
+    InvalidAddress,
 }
 
 #[derive(Error, Debug)]
@@ -119,12 +121,26 @@ pub enum HandleError {
 }
 
 impl Client {
-    /// Connect to a Minecraft server with an account.
+    /// Connect to a Minecraft server.
+    ///
+    /// ```rust,no_run
+    /// use azalea_client::Client;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Box<dyn std::error::Error> {
+    ///     let account = Account::offline("bot");
+    ///     let client = Client::join(&account, "localhost").await?;
+    ///     client.chat("Hello, world!").await?;
+    ///     client.shutdown().await?;
+    /// }
+    /// ```
     pub async fn join(
         account: &Account,
-        address: &ServerAddress,
+        address: impl TryInto<ServerAddress>,
     ) -> Result<(Self, UnboundedReceiver<Event>), JoinError> {
-        let resolved_address = resolver::resolve_address(address).await?;
+        let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
+
+        let resolved_address = resolver::resolve_address(&address).await?;
 
         let mut conn = Connection::new(&resolved_address).await?;
 

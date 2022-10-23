@@ -1,12 +1,13 @@
-use std::sync::Arc;
+//! A simple bot that repeats chat messages sent by other players.
 
 use azalea::{Account, Client, Event};
 use parking_lot::Mutex;
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
     let account = Account::offline("bot");
-    // or let account = Account::microsoft("access token").await;
+    // or let account = Account::microsoft("email").await;
 
     azalea::start(azalea::Options {
         account,
@@ -22,7 +23,7 @@ async fn main() {
 pub struct State {}
 
 async fn handle(bot: Client, event: Arc<Event>, state: Arc<Mutex<State>>) -> anyhow::Result<()> {
-    match event {
+    match *event {
         Event::Chat(m) => {
             if m.username == bot.username {
                 return Ok(()); // ignore our own messages
@@ -32,12 +33,6 @@ async fn handle(bot: Client, event: Arc<Event>, state: Arc<Mutex<State>>) -> any
         Event::Kick(m) => {
             println!(m);
             bot.reconnect().await.unwrap();
-        }
-        Event::HungerUpdate(h) => {
-            if !h.using_held_item() && h.hunger <= 17 {
-                bot.hold(azalea::ItemGroup::Food).await?;
-                bot.use_held_item().await?;
-            }
         }
         _ => {}
     }

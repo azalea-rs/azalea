@@ -1,7 +1,6 @@
-use std::sync::Arc;
-
 use azalea::{pathfinder, Account, Accounts, Client, Event};
 use parking_lot::Mutex;
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {

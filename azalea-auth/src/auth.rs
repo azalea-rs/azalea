@@ -48,7 +48,7 @@ pub enum AuthError {
     GetXboxLiveAuth(#[from] XboxLiveAuthError),
 }
 
-/// Authenticate with authenticate with Microsoft. If the data isn't cached,
+/// Authenticate with Microsoft. If the data isn't cached,
 /// they'll be asked to go to log into Microsoft in a web page.
 ///
 /// The email is technically only used as a cache key, so it *could* be
