@@ -14,7 +14,7 @@ pub mod ping;
 mod player;
 
 pub use account::Account;
-pub use client::{Client, Event};
+pub use client::{Client, ClientInformation, Event};
 pub use movement::MoveDirection;
 pub use player::Player;
 

@@ -1,7 +1,7 @@
 mod autoeat;
 
 use azalea::prelude::*;
-use azalea::{pathfinder, Account, BlockPos, Client, Event, ItemKind, MoveDirection, Plugin, Vec3};
+use azalea::{pathfinder, BlockPos, ItemKind, Vec3};
 
 #[derive(Default, Clone)]
 struct State {}

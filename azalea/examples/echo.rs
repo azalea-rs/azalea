@@ -1,8 +1,6 @@
 //! A simple bot that repeats chat messages sent by other players.
 
-use azalea::{Account, Client, Event};
-use parking_lot::Mutex;
-use std::sync::Arc;
+use azalea::prelude::*;
 
 #[tokio::main]
 async fn main() {
