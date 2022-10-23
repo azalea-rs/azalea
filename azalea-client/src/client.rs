@@ -86,7 +86,7 @@ pub struct Client {
     pub player: Arc<Mutex<Player>>,
     pub dimension: Arc<Mutex<Dimension>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
-    pub options: Arc<RwLock<ClientInformation>>,
+    pub client_information: Arc<RwLock<ClientInformation>>,
     tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
 }
 
@@ -251,7 +251,7 @@ impl Client {
             dimension: Arc::new(Mutex::new(Dimension::default())),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
             tasks: Arc::new(Mutex::new(Vec::new())),
-            options: Arc::new(RwLock::new(ClientInformation::default())),
+            client_information: Arc::new(RwLock::new(ClientInformation::default())),
         };
 
         tx.send(Event::Initialize).unwrap();
@@ -404,7 +404,8 @@ impl Client {
                 }
 
                 // send the client information that we have set
-                let client_information_packet: ClientInformation = client.options.read().clone();
+                let client_information_packet: ClientInformation =
+                    client.client_information.read().clone();
                 client.write_packet(client_information_packet.get()).await?;
 
                 // brand
@@ -837,19 +838,19 @@ impl Client {
     /// If this is not set before the login packet, the default will be sent.
     pub async fn set_client_information(
         &self,
-        options: ServerboundClientInformationPacket,
+        client_information: ServerboundClientInformationPacket,
     ) -> Result<(), std::io::Error> {
         {
-            let mut options_lock = self.options.write();
-            *options_lock = options;
+            let mut client_information_lock = self.client_information.write();
+            *client_information_lock = client_information;
         }
 
         if self.logged_in() {
-            let options_packet = {
-                let options = self.options.read();
-                options.clone().get()
+            let client_information_packet = {
+                let client_information = self.client_information.read();
+                client_information.clone().get()
             };
-            self.write_packet(options_packet).await?;
+            self.write_packet(client_information_packet).await?;
         }
 
         Ok(())
