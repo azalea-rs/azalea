@@ -1,5 +1,5 @@
-use azalea::{pathfinder, Account};
-use azalea::{Bot, Client, Event};
+use azalea::pathfinder;
+use azalea::prelude::*;
 use parking_lot::Mutex;
 use std::sync::Arc;
 

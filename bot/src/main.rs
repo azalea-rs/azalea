@@ -28,6 +28,9 @@ async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> 
         Event::Login => {
             bot.chat("Hello world").await?;
         }
+        Event::Initialize => {
+            println!("initialized");
+        }
         Event::Tick => {
             bot.jump();
         }

@@ -166,7 +166,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// `ClientboundLoginPacket::Hello` packet.
     ///
     /// # Examples
-    /// 
+    ///
     /// ```rust,no_run
     /// let token = azalea_auth::auth(azalea_auth::AuthOpts {
     ///    ..Default::default()

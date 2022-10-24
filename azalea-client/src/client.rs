@@ -9,6 +9,7 @@ use azalea_protocol::{
             clientbound_player_chat_packet::ClientboundPlayerChatPacket,
             clientbound_system_chat_packet::ClientboundSystemChatPacket,
             serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
+            serverbound_client_information_packet::ServerboundClientInformationPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
             serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
@@ -30,7 +31,7 @@ use azalea_world::{
     Dimension,
 };
 use log::{debug, error, warn};
-use parking_lot::Mutex;
+use parking_lot::{Mutex, RwLock};
 use std::{
     fmt::Debug,
     io::{self, Cursor},
@@ -43,10 +44,17 @@ use tokio::{
     time::{self},
 };
 
+pub type ClientInformation = ServerboundClientInformationPacket;
+
 /// Events are sent before they're processed, so for example game ticks happen
 /// at the beginning of a tick before anything has happened.
 #[derive(Debug, Clone)]
 pub enum Event {
+    /// Happens right after the bot switches into the Game state, but before
+    /// it's actually spawned. This can be useful for setting the client
+    /// information with `Client::set_client_information`, so the packet
+    /// doesn't have to be sent twice.
+    Initialize,
     Login,
     Chat(ChatPacket),
     /// Happens 20 times per second, but only when the world is loaded.
@@ -78,6 +86,7 @@ pub struct Client {
     pub player: Arc<Mutex<Player>>,
     pub dimension: Arc<Mutex<Dimension>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
+    pub client_information: Arc<RwLock<ClientInformation>>,
     tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
 }
 
@@ -122,6 +131,8 @@ pub enum HandleError {
 
 impl Client {
     /// Connect to a Minecraft server.
+    ///
+    /// To change the render distance and other settings, use [`Client::set_client_information`].
     ///
     /// # Examples
     ///
@@ -240,7 +251,10 @@ impl Client {
             dimension: Arc::new(Mutex::new(Dimension::default())),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
             tasks: Arc::new(Mutex::new(Vec::new())),
+            client_information: Arc::new(RwLock::new(ClientInformation::default())),
         };
+
+        tx.send(Event::Initialize).unwrap();
 
         // just start up the game loop and we're ready!
 
@@ -389,6 +403,12 @@ impl Client {
                     player_lock.set_entity_id(p.player_id);
                 }
 
+                // send the client information that we have set
+                let client_information_packet: ClientInformation =
+                    client.client_information.read().clone();
+                client.write_packet(client_information_packet.get()).await?;
+
+                // brand
                 client
                     .write_packet(
                         ServerboundCustomPayloadPacket {
@@ -805,6 +825,35 @@ impl Client {
         dimension
             .entity(entity_id)
             .expect("Player entity should be in the given dimension")
+    }
+
+    /// Returns whether we have a received the login packet yet.
+    pub fn logged_in(&self) -> bool {
+        let dimension = self.dimension.lock();
+        let player = self.player.lock();
+        player.entity(&dimension).is_some()
+    }
+
+    /// Tell the server we changed our game options (i.e. render distance, main hand).
+    /// If this is not set before the login packet, the default will be sent.
+    pub async fn set_client_information(
+        &self,
+        client_information: ServerboundClientInformationPacket,
+    ) -> Result<(), std::io::Error> {
+        {
+            let mut client_information_lock = self.client_information.write();
+            *client_information_lock = client_information;
+        }
+
+        if self.logged_in() {
+            let client_information_packet = {
+                let client_information = self.client_information.read();
+                client_information.clone().get()
+            };
+            self.write_packet(client_information_packet).await?;
+        }
+
+        Ok(())
     }
 }
 

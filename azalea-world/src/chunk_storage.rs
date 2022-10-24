@@ -106,7 +106,8 @@ impl ChunkStorage {
         if !self.in_range(pos) {
             log::trace!(
                 "Ignoring chunk since it's not in the view range: {}, {}",
-                pos.x, pos.z
+                pos.x,
+                pos.z
             );
             return Ok(());
         }
