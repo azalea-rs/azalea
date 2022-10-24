@@ -1,10 +1,13 @@
-//! This lib is responsible for parsing Minecraft packets.
+//! A low-level crate to send and receive Minecraft packets.
+//!
+//! You should probably use [`azalea`] or [`azalea_client`] instead, as
+//! azalea_protocol delegates much of the work, such as auth, to the user of
+//! the crate.
 
 // these two are necessary for thiserror backtraces
 #![feature(error_generic_member_access)]
 #![feature(provide_any)]
 
-use std::net::IpAddr;
 use std::str::FromStr;
 
 #[cfg(feature = "connecting")]
@@ -15,15 +18,21 @@ pub mod read;
 pub mod resolver;
 pub mod write;
 
+/// A host and port. It's possible that the port doesn't resolve to anything.
+///
+/// # Examples
+///
+/// ServerAddress implements TryFrom<&str>, so you can use it like this:
+/// ```
+/// use azalea_protocol::ServerAddress;
+///
+/// let addr = ServerAddress::try_from("localhost:25565").unwrap();
+/// assert_eq!(addr.host, "localhost");
+/// assert_eq!(addr.port, 25565);
+/// ```
 #[derive(Debug)]
 pub struct ServerAddress {
     pub host: String,
-    pub port: u16,
-}
-
-#[derive(Debug)]
-pub struct ServerIpAddress {
-    pub ip: IpAddr,
     pub port: u16,
 }
 
