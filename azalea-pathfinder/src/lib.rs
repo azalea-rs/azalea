@@ -10,19 +10,19 @@ use mtdstarlite::Edge;
 pub use mtdstarlite::MTDStarLite;
 use std::sync::{Arc, Mutex};
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Plugin {
     pub state: Arc<Mutex<State>>,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct State {
     // pathfinder: Option<MTDStarLite<Node, f32>>,
 }
 
 #[async_trait]
 impl azalea::Plugin for Plugin {
-    async fn handle(self: Arc<Self>, bot: Client, event: Arc<Event>) {
+    async fn handle(self: Box<Self>, event: Event, bot: Client) {
         // match *
     }
 }
