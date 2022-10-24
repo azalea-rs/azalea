@@ -8,11 +8,11 @@ version = "0.1.0"
 [dependencies]
 anyhow = "1.0.65"
 async-trait = "0.1.57"
-azalea = {version = "0.1", path = "../azalea"}
-azalea-block = { version = "0.1.0", path = "../azalea-block" }
-azalea-client = {version = "0.1.0", path = "../azalea-client"}
-azalea-core = {version = "0.1.0", path = "../azalea-core"}
-azalea-physics = { version = "0.1.0", path = "../azalea-physics" }
-azalea-world = { version = "0.1.0", path = "../azalea-world" }
+azalea = {version = "0.2.4", path = "../azalea"}
+azalea-block = {version = "0.2.0", path = "../azalea-block"}
+azalea-client = {version = "0.2.2", path = "../azalea-client"}
+azalea-core = {version = "0.2.0", path = "../azalea-core"}
+azalea-physics = {version = "0.2.0", path = "../azalea-physics"}
+azalea-world = {version = "0.2.0", path = "../azalea-world"}
 num-traits = "0.2.15"
 priority-queue = "1.2.3"
