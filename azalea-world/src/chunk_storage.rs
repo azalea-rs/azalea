@@ -80,16 +80,16 @@ impl ChunkStorage {
     }
 
     pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
-        if pos.y < self.min_y || pos.y >= (self.min_y + self.height as i32) {
-            return None;
-        }
         let chunk_pos = ChunkPos::from(pos);
         let chunk = self[&chunk_pos].as_ref()?;
         let chunk = chunk.lock().unwrap();
-        Some(chunk.get(&ChunkBlockPos::from(pos), self.min_y))
+        chunk.get(&ChunkBlockPos::from(pos), self.min_y)
     }
 
     pub fn set_block_state(&self, pos: &BlockPos, state: BlockState) -> Option<BlockState> {
+        if pos.y < self.min_y || pos.y >= (self.min_y + self.height as i32) {
+            return None;
+        }
         let chunk_pos = ChunkPos::from(pos);
         let chunk = self[&chunk_pos].as_ref()?;
         let mut chunk = chunk.lock().unwrap();
@@ -163,17 +163,16 @@ impl Chunk {
         (y.div_floor(16) - min_section_index) as u32
     }
 
-    pub fn get(&self, pos: &ChunkBlockPos, min_y: i32) -> BlockState {
+    pub fn get(&self, pos: &ChunkBlockPos, min_y: i32) -> Option<BlockState> {
         let section_index = self.section_index(pos.y, min_y) as usize;
-        assert!(
-            section_index < self.sections.len(),
-            "Given y position ({}) is out of bounds",
-            pos.y
-        );
+        if section_index >= self.sections.len() {
+            // y position is out of bounds
+            return None;
+        };
         // TODO: make sure the section exists
         let section = &self.sections[section_index];
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
-        section.get(chunk_section_pos)
+        Some(section.get(chunk_section_pos))
     }
 
     pub fn get_and_set(
@@ -317,6 +316,9 @@ mod tests {
             .is_some());
         assert!(chunk_storage
             .get_block_state(&BlockPos { x: 0, y: 320, z: 0 })
+            .is_none());
+        assert!(chunk_storage
+            .get_block_state(&BlockPos { x: 0, y: 338, z: 0 })
             .is_none());
         assert!(chunk_storage
             .get_block_state(&BlockPos { x: 0, y: -64, z: 0 })
