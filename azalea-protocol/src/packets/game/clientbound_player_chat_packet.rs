@@ -1,9 +1,11 @@
-use std::io::{Cursor, Write};
-
-use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+use azalea_buf::{
+    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
+};
 use azalea_chat::component::Component;
+use azalea_core::BitSet;
 use azalea_crypto::MessageSignature;
 use azalea_protocol_macros::ClientboundGamePacket;
+use std::io::{Cursor, Write};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
@@ -12,16 +14,13 @@ pub struct ClientboundPlayerChatPacket {
     #[var]
     pub index: u32,
     pub signature: Option<MessageSignature>,
-    pub body: todo!(),
+    pub body: PackedSignedMessageBody,
     pub unsigned_content: Option<Component>,
-    // TODO: {'field': 'f.f', 'operation': 'write', 'type': 'enum'}
-    // TODO: {'condition': 'f.f == sl$a.c', 'instructions': [{'field': 'f.e.toLongArray().length', 'operation': 'write', 'type': 'varint'}, {'field': 'f.e.toLongArray()', 'operation': 'write', 'type': 'long[]'}], 'operation': 'if'}
-    // TODO: {'field': 'g.a', 'operation': 'write', 'type': 'varint'}
-    // TODO: {'field': 'g.b', 'operation': 'write', 'type': 'chatcomponent'}
+    pub filter_mask: FilterMask,
     pub chat_type: Option<Component>,
 }
 
-#[derive(McBuf)]
+#[derive(Clone, Debug, McBuf)]
 pub struct PackedSignedMessageBody {
     pub content: String,
     pub timestamp: u64,
@@ -29,6 +28,7 @@ pub struct PackedSignedMessageBody {
     pub last_seen: PackedLastSeenMessages,
 }
 
+#[derive(Clone, Debug, McBuf)]
 pub struct PackedLastSeenMessages {
     pub entries: PackedMessageSignature,
 }
@@ -38,6 +38,13 @@ pub struct PackedLastSeenMessages {
 pub enum PackedMessageSignature {
     Signature(MessageSignature),
     Id(u32),
+}
+
+#[derive(Clone, Debug, McBuf)]
+pub enum FilterMask {
+    PassThrough,
+    FullyFiltered,
+    PartiallyFiltered(BitSet),
 }
 
 impl McBufReadable for PackedMessageSignature {
