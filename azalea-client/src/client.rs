@@ -9,6 +9,7 @@ use azalea_protocol::{
             clientbound_player_chat_packet::ClientboundPlayerChatPacket,
             clientbound_system_chat_packet::ClientboundSystemChatPacket,
             serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
+            serverbound_client_information_packet::ServerboundClientInformationPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
             serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
@@ -30,7 +31,7 @@ use azalea_world::{
     Dimension,
 };
 use log::{debug, error, warn};
-use parking_lot::{Mutex, MutexGuard};
+use parking_lot::{Mutex, MutexGuard, RwLock};
 use std::{
     fmt::Debug,
     io::{self, Cursor},
@@ -38,16 +39,22 @@ use std::{
 };
 use thiserror::Error;
 use tokio::{
-    io::AsyncWriteExt,
     sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
     task::JoinHandle,
     time::{self},
 };
 
+pub type ClientInformation = ServerboundClientInformationPacket;
+
 /// Events are sent before they're processed, so for example game ticks happen
 /// at the beginning of a tick before anything has happened.
 #[derive(Debug, Clone)]
 pub enum Event {
+    /// Happens right after the bot switches into the Game state, but before
+    /// it's actually spawned. This can be useful for setting the client
+    /// information with `Client::set_client_information`, so the packet
+    /// doesn't have to be sent twice.
+    Initialize,
     Login,
     Chat(ChatPacket),
     /// Happens 20 times per second, but only when the world is loaded.
@@ -65,12 +72,12 @@ impl ChatPacket {
     pub fn message(&self) -> Component {
         match self {
             ChatPacket::System(p) => p.content.clone(),
-            ChatPacket::Player(p) => p.message.message(false),
+            ChatPacket::Player(p) => p.message(false),
         }
     }
 }
 
-/// A player that you can control that is currently in a Minecraft server.
+/// A player that you control that is currently in a Minecraft server.
 #[derive(Clone)]
 pub struct Client {
     game_profile: GameProfile,
@@ -79,6 +86,7 @@ pub struct Client {
     pub player: Arc<Mutex<Player>>,
     pub dimension: Arc<Mutex<Dimension>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
+    pub client_information: Arc<RwLock<ClientInformation>>,
     tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
 }
 
@@ -105,6 +113,10 @@ pub enum JoinError {
     ReadPacket(#[from] azalea_protocol::read::ReadPacketError),
     #[error("{0}")]
     Io(#[from] io::Error),
+    #[error("{0}")]
+    SessionServer(#[from] azalea_auth::sessionserver::SessionServerError),
+    #[error("The given address could not be parsed into a ServerAddress")]
+    InvalidAddress,
 }
 
 #[derive(Error, Debug)]
@@ -118,12 +130,30 @@ pub enum HandleError {
 }
 
 impl Client {
-    /// Connect to a Minecraft server with an account.
+    /// Connect to a Minecraft server.
+    ///
+    /// To change the render distance and other settings, use [`Client::set_client_information`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use azalea_client::Client;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Box<dyn std::error::Error> {
+    ///     let account = Account::offline("bot");
+    ///     let client = Client::join(&account, "localhost").await?;
+    ///     client.chat("Hello, world!").await?;
+    ///     client.shutdown().await?;
+    /// }
+    /// ```
     pub async fn join(
         account: &Account,
-        address: &ServerAddress,
+        address: impl TryInto<ServerAddress>,
     ) -> Result<(Self, UnboundedReceiver<Event>), JoinError> {
-        let resolved_address = resolver::resolve_address(address).await?;
+        let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
+
+        let resolved_address = resolver::resolve_address(&address).await?;
 
         let mut conn = Connection::new(&resolved_address).await?;
 
@@ -159,7 +189,17 @@ impl Client {
                         debug!("Got encryption request");
                         let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
 
-                        // TODO: authenticate with the server here (authenticateServer)
+                        if let Some(access_token) = &account.access_token {
+                            conn.authenticate(
+                                access_token,
+                                &account
+                                    .uuid
+                                    .expect("Uuid must be present if access token is present."),
+                                e.secret_key,
+                                p,
+                            )
+                            .await?;
+                        }
 
                         conn.write(
                             ServerboundKeyPacket {
@@ -171,6 +211,7 @@ impl Client {
                             .get(),
                         )
                         .await?;
+
                         conn.set_encryption_key(e.secret_key);
                     }
                     ClientboundLoginPacket::LoginCompression(p) => {
@@ -210,7 +251,10 @@ impl Client {
             dimension: Arc::new(Mutex::new(Dimension::default())),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
             tasks: Arc::new(Mutex::new(Vec::new())),
+            client_information: Arc::new(RwLock::new(ClientInformation::default())),
         };
+
+        tx.send(Event::Initialize).unwrap();
 
         // just start up the game loop and we're ready!
 
@@ -237,7 +281,7 @@ impl Client {
 
     /// Disconnect from the server, ending all tasks.
     pub async fn shutdown(self) -> Result<(), std::io::Error> {
-        self.write_conn.lock().await.write_stream.shutdown().await?;
+        self.write_conn.lock().await.shutdown().await?;
         let tasks = self.tasks.lock();
         for task in tasks.iter() {
             task.abort();
@@ -359,6 +403,12 @@ impl Client {
                     player_lock.set_entity_id(p.player_id);
                 }
 
+                // send the client information that we have set
+                let client_information_packet: ClientInformation =
+                    client.client_information.read().clone();
+                client.write_packet(client_information_packet.get()).await?;
+
+                // brand
                 client
                     .write_packet(
                         ServerboundCustomPayloadPacket {
@@ -633,7 +683,7 @@ impl Client {
                 debug!("Got section blocks update packet {:?}", p);
                 let mut dimension = client.dimension.lock();
                 for state in &p.states {
-                    dimension.set_block_state(&(p.section_pos + state.pos), state.state);
+                    dimension.set_block_state(&(p.section_pos + state.pos.clone()), state.state);
                 }
             }
             ClientboundGamePacket::GameEvent(p) => {
@@ -787,6 +837,35 @@ impl Client {
             .expect("Player entity should be in the given dimension");
         let entity_ptr = unsafe { entity_data.as_const_ptr() };
         EntityRef::new(dimension, entity_id, entity_ptr)
+    }
+
+    /// Returns whether we have a received the login packet yet.
+    pub fn logged_in(&self) -> bool {
+        let dimension = self.dimension.lock();
+        let player = self.player.lock();
+        player.entity(&dimension).is_some()
+    }
+
+    /// Tell the server we changed our game options (i.e. render distance, main hand).
+    /// If this is not set before the login packet, the default will be sent.
+    pub async fn set_client_information(
+        &self,
+        client_information: ServerboundClientInformationPacket,
+    ) -> Result<(), std::io::Error> {
+        {
+            let mut client_information_lock = self.client_information.write();
+            *client_information_lock = client_information;
+        }
+
+        if self.logged_in() {
+            let client_information_packet = {
+                let client_information = self.client_information.read();
+                client_information.clone().get()
+            };
+            self.write_packet(client_information_packet).await?;
+        }
+
+        Ok(())
     }
 }
 

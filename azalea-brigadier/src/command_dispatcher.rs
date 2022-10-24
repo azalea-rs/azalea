@@ -231,7 +231,6 @@ impl<S> CommandDispatcher<S> {
             for context in contexts.iter() {
                 let child = &context.child;
                 if let Some(child) = child {
-                    println!("aaaaaaa {:?}", child);
                     forked |= child.forks;
                     if child.has_nodes() {
                         found_command = true;

@@ -120,21 +120,21 @@ impl BitStorage {
 
         let values_per_long = 64 / bits;
         let magic_index = values_per_long - 1;
-        let (divide_mul, divide_add, divide_shift) = MAGIC[magic_index as usize];
+        let (divide_mul, divide_add, divide_shift) = MAGIC[magic_index];
         let calculated_length = (size + values_per_long - 1) / values_per_long;
 
         let mask = (1 << bits) - 1;
 
         let using_data = if let Some(data) = data {
-            if data.len() != calculated_length as usize {
+            if data.len() != calculated_length {
                 return Err(BitStorageError::InvalidLength {
                     got: data.len(),
-                    expected: calculated_length as usize,
+                    expected: calculated_length,
                 });
             }
             data
         } else {
-            vec![0; calculated_length as usize]
+            vec![0; calculated_length]
         };
 
         Ok(BitStorage {
@@ -179,7 +179,7 @@ impl BitStorage {
         }
 
         let cell_index = self.cell_index(index as u64);
-        let cell = &self.data[cell_index as usize];
+        let cell = &self.data[cell_index];
         let bit_index = (index - cell_index * self.values_per_long as usize) * self.bits;
         cell >> bit_index & self.mask
     }
@@ -193,7 +193,7 @@ impl BitStorage {
         assert!(index < self.size);
         assert!(value <= self.mask);
         let cell_index = self.cell_index(index as u64);
-        let cell = &mut self.data[cell_index as usize];
+        let cell = &mut self.data[cell_index];
         let bit_index = (index - cell_index * self.values_per_long as usize) * self.bits;
         let old_value = *cell >> (bit_index as u64) & self.mask;
         *cell = *cell & !(self.mask << bit_index) | (value & self.mask) << bit_index;
@@ -209,7 +209,7 @@ impl BitStorage {
         assert!(index < self.size);
         assert!(value <= self.mask);
         let cell_index = self.cell_index(index as u64);
-        let cell = &mut self.data[cell_index as usize];
+        let cell = &mut self.data[cell_index];
         let bit_index = (index - cell_index * self.values_per_long as usize) * self.bits;
         *cell = *cell & !(self.mask << bit_index) | (value & self.mask) << bit_index;
     }

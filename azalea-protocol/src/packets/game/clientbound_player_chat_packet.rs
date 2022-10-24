@@ -1,5 +1,8 @@
 use azalea_buf::McBuf;
-use azalea_chat::component::Component;
+use azalea_chat::{
+    component::Component,
+    translatable_component::{StringOrComponent, TranslatableComponent},
+};
 use azalea_core::BitSet;
 use azalea_crypto::{MessageSignature, SignedMessageHeader};
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -47,7 +50,10 @@ pub struct SignedMessageBody {
 }
 
 impl PlayerChatMessage {
-    pub fn message(&self, only_secure_chat: bool) -> Component {
+    /// Returns the content of the message. If you want to get the Component
+    /// for the whole message including the sender part, use
+    /// [`ClientboundPlayerChatPacket::message`].
+    pub fn content(&self, only_secure_chat: bool) -> Component {
         if only_secure_chat {
             return self
                 .signed_body
@@ -58,7 +64,56 @@ impl PlayerChatMessage {
         }
         self.unsigned_content
             .clone()
-            .unwrap_or_else(|| self.message(true))
+            .unwrap_or_else(|| self.content(true))
+    }
+}
+
+impl ClientboundPlayerChatPacket {
+    /// Get the full message, including the sender part.
+    pub fn message(&self, only_secure_chat: bool) -> Component {
+        let sender = self.chat_type.name.clone();
+        let content = self.message.content(only_secure_chat);
+        let target = self.chat_type.target_name.clone();
+
+        let translation_key = self.chat_type.chat_type.chat_translation_key();
+
+        let mut args = vec![
+            StringOrComponent::Component(sender),
+            StringOrComponent::Component(content),
+        ];
+        if let Some(target) = target {
+            args.push(StringOrComponent::Component(target));
+        }
+
+        let component = TranslatableComponent::new(translation_key.to_string(), args);
+
+        Component::Translatable(component)
+    }
+}
+
+impl ChatType {
+    pub fn chat_translation_key(&self) -> &'static str {
+        match self {
+            ChatType::Chat => "chat.type.text",
+            ChatType::SayCommand => "chat.type.announcement",
+            ChatType::MsgCommandIncoming => "commands.message.display.incoming",
+            ChatType::MsgCommandOutgoing => "commands.message.display.outgoing",
+            ChatType::TeamMsgCommandIncoming => "chat.type.team.text",
+            ChatType::TeamMsgCommandOutgoing => "chat.type.team.sent",
+            ChatType::EmoteCommand => "chat.type.emote",
+        }
+    }
+
+    pub fn narrator_translation_key(&self) -> &'static str {
+        match self {
+            ChatType::Chat => "chat.type.text.narrate",
+            ChatType::SayCommand => "chat.type.text.narrate",
+            ChatType::MsgCommandIncoming => "chat.type.text.narrate",
+            ChatType::MsgCommandOutgoing => "chat.type.text.narrate",
+            ChatType::TeamMsgCommandIncoming => "chat.type.text.narrate",
+            ChatType::TeamMsgCommandOutgoing => "chat.type.text.narrate",
+            ChatType::EmoteCommand => "chat.type.emote",
+        }
     }
 }
 
@@ -68,7 +123,7 @@ pub struct LastSeenMessagesEntry {
     pub last_signature: MessageSignature,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, McBuf, Default)]
 pub struct LastSeenMessagesUpdate {
     pub last_seen: Vec<LastSeenMessagesEntry>,
     pub last_received: Option<LastSeenMessagesEntry>,

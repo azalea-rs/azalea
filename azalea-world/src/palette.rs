@@ -121,9 +121,8 @@ impl PalettedContainer {
     }
 
     fn on_resize(&mut self, bits_per_entry: u8, value: u32) -> usize {
-        if bits_per_entry > 5 {
-            panic!("bits_per_entry must be <= 5");
-        }
+        // in vanilla this is always true, but it's sometimes false in purpur servers
+        // assert!(bits_per_entry <= 5, "bits_per_entry must be <= 5");
         let mut new_data = self.create_or_reuse_data(bits_per_entry);
         new_data.copy_from(&self.palette, &self.storage);
         *self = new_data;
@@ -149,7 +148,7 @@ impl PalettedContainer {
             }
             Palette::Linear(palette) => {
                 if let Some(index) = palette.iter().position(|v| *v == value) {
-                    return index as usize;
+                    return index;
                 }
                 let capacity = 2usize.pow(self.bits_per_entry.into());
                 if capacity > palette.len() {
@@ -162,7 +161,7 @@ impl PalettedContainer {
             Palette::Hashmap(palette) => {
                 // TODO? vanilla keeps this in memory as a hashmap, but also i don't care
                 if let Some(index) = palette.iter().position(|v| *v == value) {
-                    return index as usize;
+                    return index;
                 }
                 let capacity = 2usize.pow(self.bits_per_entry.into());
                 if capacity > palette.len() {

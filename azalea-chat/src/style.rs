@@ -274,7 +274,7 @@ impl TryFrom<ChatFormatting> for TextColor {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Style {
     // these are options instead of just bools because None is different than false in this case
     pub color: Option<TextColor>,
@@ -288,20 +288,8 @@ pub struct Style {
 }
 
 impl Style {
-    pub fn default() -> Self {
-        Self::empty()
-    }
-
     pub fn empty() -> Self {
-        Self {
-            color: None,
-            bold: None,
-            italic: None,
-            underlined: None,
-            strikethrough: None,
-            obfuscated: None,
-            reset: false,
-        }
+        Self::default()
     }
 
     pub fn deserialize(json: &Value) -> Style {

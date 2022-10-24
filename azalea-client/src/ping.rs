@@ -1,4 +1,5 @@
-///! Ping Minecraft servers.
+//! Ping Minecraft servers.
+
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
@@ -25,12 +26,29 @@ pub enum PingError {
     ReadPacket(#[from] azalea_protocol::read::ReadPacketError),
     #[error("{0}")]
     WritePacket(#[from] io::Error),
+    #[error("The given address could not be parsed into a ServerAddress")]
+    InvalidAddress,
 }
 
+/// Ping a Minecraft server.
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// use azalea_client::ping;
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let response = ping::ping_server("play.hypixel.net").await.unwrap();
+///     println!("{}", response.description.to_ansi(None));
+/// }
+/// ```
 pub async fn ping_server(
-    address: &ServerAddress,
+    address: impl TryInto<ServerAddress>,
 ) -> Result<ClientboundStatusResponsePacket, PingError> {
-    let resolved_address = resolver::resolve_address(address).await?;
+    let address: ServerAddress = address.try_into().map_err(|_| PingError::InvalidAddress)?;
+
+    let resolved_address = resolver::resolve_address(&address).await?;
 
     let mut conn = Connection::new(&resolved_address).await?;
 

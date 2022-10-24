@@ -104,9 +104,10 @@ impl ChunkStorage {
         data: &mut Cursor<&[u8]>,
     ) -> Result<(), BufReadError> {
         if !self.in_range(pos) {
-            println!(
+            log::trace!(
                 "Ignoring chunk since it's not in the view range: {}, {}",
-                pos.x, pos.z
+                pos.x,
+                pos.z
             );
             return Ok(());
         }
@@ -115,7 +116,8 @@ impl ChunkStorage {
             data,
             self.height,
         )?));
-        println!("Loaded chunk {:?}", pos);
+
+        log::trace!("Loaded chunk {:?}", pos);
         self[pos] = Some(chunk);
 
         Ok(())

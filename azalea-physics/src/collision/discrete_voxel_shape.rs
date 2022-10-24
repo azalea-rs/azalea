@@ -338,8 +338,7 @@ impl From<&DiscreteVoxelShape> for BitSetDiscreteVoxelShape {
                 for y in 0..y_size {
                     for z in 0..z_size {
                         if shape.is_full(x, y, z) {
-                            storage
-                                .set(Self::get_index_from_size(x, y, z, y_size, z_size) as usize);
+                            storage.set(Self::get_index_from_size(x, y, z, y_size, z_size));
                         }
                     }
                 }

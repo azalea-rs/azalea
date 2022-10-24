@@ -106,7 +106,7 @@ fn parse_frame(buffer: &mut BytesMut) -> Result<BytesMut, FrameSplitterError> {
     Ok(data)
 }
 
-fn frame_splitter<'a>(buffer: &'a mut BytesMut) -> Result<Option<Vec<u8>>, FrameSplitterError> {
+fn frame_splitter(buffer: &mut BytesMut) -> Result<Option<Vec<u8>>, FrameSplitterError> {
     // https://tokio.rs/tokio/tutorial/framing
     let read_frame = parse_frame(buffer);
     match read_frame {
@@ -212,7 +212,7 @@ where
 
         // if we were given a cipher, decrypt the packet
         if let Some(message) = framed.next().await {
-            let mut bytes = message.unwrap();
+            let mut bytes = message?;
 
             if let Some(cipher) = cipher {
                 azalea_crypto::decrypt_packet(cipher, &mut bytes);

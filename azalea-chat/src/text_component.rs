@@ -1,4 +1,4 @@
-use std::fmt;
+use std::fmt::Display;
 
 use crate::{base_component::BaseComponent, component::Component, style::ChatFormatting};
 
@@ -52,6 +52,10 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
         i += 1;
     }
 
+    if components.is_empty() {
+        return TextComponent::new("".to_string());
+    }
+
     // create the final component by using the first one as the base, and then adding the rest as siblings
     let mut final_component = components.remove(0);
     for component in components {
@@ -79,9 +83,19 @@ impl TextComponent {
     }
 }
 
-impl fmt::Display for TextComponent {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.text.clone())
+impl Display for TextComponent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // this contains the final string will all the ansi escape codes
+        for component in Component::Text(self.clone()).into_iter() {
+            let component_text = match &component {
+                Component::Text(c) => c.text.to_string(),
+                Component::Translatable(c) => c.read()?.to_string(),
+            };
+
+            f.write_str(&component_text)?;
+        }
+
+        Ok(())
     }
 }
 

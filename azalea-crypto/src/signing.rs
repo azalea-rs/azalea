@@ -17,3 +17,8 @@ pub struct SignedMessageHeader {
     pub previous_signature: Option<MessageSignature>,
     pub sender: Uuid,
 }
+
+/// Generates a random u64 to use as a salt
+pub fn make_salt() -> u64 {
+    rand::random()
+}

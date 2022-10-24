@@ -22,9 +22,9 @@ pub enum Action {
 
 #[derive(Clone, Debug, McBuf)]
 pub struct PlayerProperty {
-    name: String,
-    value: String,
-    signature: Option<String>,
+    pub name: String,
+    pub value: String,
+    pub signature: Option<String>,
 }
 
 #[derive(Clone, Debug, McBuf)]
@@ -42,26 +42,26 @@ pub struct AddPlayer {
 
 #[derive(Clone, Debug, McBuf)]
 pub struct UpdateGameMode {
-    uuid: Uuid,
+    pub uuid: Uuid,
     #[var]
-    gamemode: u32,
+    pub gamemode: u32,
 }
 
 #[derive(Clone, Debug, McBuf)]
 pub struct UpdateLatency {
-    uuid: Uuid,
+    pub uuid: Uuid,
     #[var]
-    ping: i32,
+    pub ping: i32,
 }
 
 #[derive(Clone, Debug, McBuf)]
 pub struct UpdateDisplayName {
-    uuid: Uuid,
-    display_name: Option<Component>,
+    pub uuid: Uuid,
+    pub display_name: Option<Component>,
 }
 #[derive(Clone, Debug, McBuf)]
 pub struct RemovePlayer {
-    uuid: Uuid,
+    pub uuid: Uuid,
 }
 
 impl McBufReadable for Action {

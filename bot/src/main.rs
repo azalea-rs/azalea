@@ -1,31 +1,40 @@
 use azalea::prelude::*;
 use azalea::{Account, Client, Event};
-use parking_lot::Mutex;
-use std::sync::Arc;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct State {}
 
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
-    let account = Account::offline("bot");
+    let account = Account::microsoft("example@example.com").await?;
 
     azalea::start(azalea::Options {
         account,
         address: "localhost",
-        state: Arc::new(Mutex::new(State::default())),
+        state: State::default(),
         plugins: vec![],
         handle,
     })
     .await
     .unwrap();
+
+    Ok(())
 }
 
-async fn handle(bot: Client, event: Arc<Event>, _state: Arc<Mutex<State>>) -> anyhow::Result<()> {
-    if let Event::Tick = *event {
-        bot.jump();
+async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
+    match event {
+        Event::Login => {
+            bot.chat("Hello world").await?;
+        }
+        Event::Initialize => {
+            println!("initialized");
+        }
+        Event::Tick => {
+            bot.jump();
+        }
+        _ => {}
     }
 
     Ok(())

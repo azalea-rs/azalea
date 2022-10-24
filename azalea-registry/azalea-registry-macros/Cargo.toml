@@ -3,7 +3,7 @@ description = "Macros internally used in azalea-registry."
 edition = "2021"
 license = "MIT"
 name = "azalea-registry-macros"
-version = "0.1.0"
+version = "0.2.0"
 
 [lib]
 proc-macro = true
