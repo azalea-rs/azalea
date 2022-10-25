@@ -10,6 +10,8 @@ pub mod clientbound_block_event_packet;
 pub mod clientbound_block_update_packet;
 pub mod clientbound_boss_event_packet;
 pub mod clientbound_change_difficulty_packet;
+pub mod clientbound_command_suggestions_packet;
+pub mod clientbound_commands_packet;
 pub mod clientbound_container_set_content_packet;
 pub mod clientbound_container_set_data_packet;
 pub mod clientbound_container_set_slot_packet;
@@ -21,7 +23,6 @@ pub mod clientbound_delete_chat_packet;
 pub mod clientbound_disconnect_packet;
 pub mod clientbound_disguised_chat_packet;
 pub mod clientbound_entity_event_packet;
-pub mod clientbound_entity_velocity_packet;
 pub mod clientbound_explode_packet;
 pub mod clientbound_forget_level_chunk_packet;
 pub mod clientbound_game_event_packet;
@@ -46,6 +47,8 @@ pub mod clientbound_ping_packet;
 pub mod clientbound_place_ghost_recipe_packet;
 pub mod clientbound_player_abilities_packet;
 pub mod clientbound_player_chat_packet;
+pub mod clientbound_player_combat_end_packet;
+pub mod clientbound_player_combat_enter_packet;
 pub mod clientbound_player_combat_kill_packet;
 pub mod clientbound_player_info_remove_packet;
 pub mod clientbound_player_info_update_packet;
@@ -71,6 +74,9 @@ pub mod clientbound_set_carried_item_packet;
 pub mod clientbound_set_chunk_cache_center_packet;
 pub mod clientbound_set_chunk_cache_radius_packet;
 pub mod clientbound_set_default_spawn_position_packet;
+pub mod clientbound_set_display_objective_packet;
+pub mod clientbound_set_entity_data_packet;
+pub mod clientbound_set_entity_link_packet;
 pub mod clientbound_set_entity_motion_packet;
 pub mod clientbound_set_equipment_packet;
 pub mod clientbound_set_experience_packet;
@@ -98,13 +104,15 @@ pub mod clientbound_update_enabled_features_packet;
 pub mod clientbound_update_mob_effect_packet;
 pub mod clientbound_update_recipes_packet;
 pub mod clientbound_update_tags_packet;
-pub mod clientbound_update_view_distance_packet;
 pub mod serverbound_accept_teleportation_packet;
 pub mod serverbound_block_entity_tag_query;
 pub mod serverbound_change_difficulty_packet;
 pub mod serverbound_chat_ack_packet;
 pub mod serverbound_chat_command_packet;
 pub mod serverbound_chat_packet;
+pub mod serverbound_client_command_packet;
+pub mod serverbound_client_information_packet;
+pub mod serverbound_command_suggestion_packet;
 pub mod serverbound_container_button_click_packet;
 pub mod serverbound_container_click_packet;
 pub mod serverbound_container_close_packet;
@@ -158,47 +166,50 @@ declare_state_packets!(
         0x03: serverbound_chat_ack_packet::ServerboundChatAckPacket,
         0x04: serverbound_chat_command_packet::ServerboundChatCommandPacket,
         0x05: serverbound_chat_packet::ServerboundChatPacket,
-        0x06: serverbound_container_button_click_packet::ServerboundContainerButtonClickPacket,
-        0x07: serverbound_container_click_packet::ServerboundContainerClickPacket,
-        0x08: serverbound_container_close_packet::ServerboundContainerClosePacket,
-        0x09: serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
-        0x0a: serverbound_edit_book_packet::ServerboundEditBookPacket,
-        0x0b: serverbound_entity_tag_query::ServerboundEntityTagQuery,
-        0x0c: serverbound_interact_packet::ServerboundInteractPacket,
-        0x0d: serverbound_jigsaw_generate_packet::ServerboundJigsawGeneratePacket,
-        0x0e: serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
-        0x0f: serverbound_lock_difficulty_packet::ServerboundLockDifficultyPacket,
-        0x10: serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
-        0x11: serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
-        0x12: serverbound_move_player_rot_packet::ServerboundMovePlayerRotPacket,
-        0x13: serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
-        0x14: serverbound_move_vehicle_packet::ServerboundMoveVehiclePacket,
-        0x15: serverbound_paddle_boat_packet::ServerboundPaddleBoatPacket,
-        0x16: serverbound_pick_item_packet::ServerboundPickItemPacket,
-        0x17: serverbound_place_recipe_packet::ServerboundPlaceRecipePacket,
-        0x18: serverbound_player_abilities_packet::ServerboundPlayerAbilitiesPacket,
-        0x19: serverbound_player_action_packet::ServerboundPlayerActionPacket,
-        0x1a: serverbound_player_command_packet::ServerboundPlayerCommandPacket,
-        0x1b: serverbound_player_input_packet::ServerboundPlayerInputPacket,
-        0x1c: serverbound_pong_packet::ServerboundPongPacket,
-        0x1d: serverbound_recipe_book_change_settings_packet::ServerboundRecipeBookChangeSettingsPacket,
-        0x1e: serverbound_recipe_book_seen_recipe_packet::ServerboundRecipeBookSeenRecipePacket,
-        0x1f: serverbound_rename_item_packet::ServerboundRenameItemPacket,
-        0x20: serverbound_resource_pack_packet::ServerboundResourcePackPacket,
-        0x21: serverbound_seen_advancements_packet::ServerboundSeenAdvancementsPacket,
-        0x22: serverbound_select_trade_packet::ServerboundSelectTradePacket,
-        0x23: serverbound_set_beacon_packet::ServerboundSetBeaconPacket,
-        0x24: serverbound_set_carried_item_packet::ServerboundSetCarriedItemPacket,
-        0x25: serverbound_set_command_block_packet::ServerboundSetCommandBlockPacket,
-        0x26: serverbound_set_command_minecart_packet::ServerboundSetCommandMinecartPacket,
-        0x27: serverbound_set_creative_mode_slot_packet::ServerboundSetCreativeModeSlotPacket,
-        0x28: serverbound_set_jigsaw_block_packet::ServerboundSetJigsawBlockPacket,
-        0x29: serverbound_set_structure_block_packet::ServerboundSetStructureBlockPacket,
-        0x2a: serverbound_sign_update_packet::ServerboundSignUpdatePacket,
-        0x2b: serverbound_swing_packet::ServerboundSwingPacket,
-        0x2c: serverbound_teleport_to_entity_packet::ServerboundTeleportToEntityPacket,
-        0x2d: serverbound_use_item_on_packet::ServerboundUseItemOnPacket,
-        0x2e: serverbound_use_item_packet::ServerboundUseItemPacket,
+        0x06: serverbound_client_command_packet::ServerboundClientCommandPacket,
+        0x07: serverbound_client_information_packet::ServerboundClientInformationPacket,
+        0x08: serverbound_command_suggestion_packet::ServerboundCommandSuggestionPacket,
+        0x09: serverbound_container_button_click_packet::ServerboundContainerButtonClickPacket,
+        0x0a: serverbound_container_click_packet::ServerboundContainerClickPacket,
+        0x0b: serverbound_container_close_packet::ServerboundContainerClosePacket,
+        0x0c: serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
+        0x0d: serverbound_edit_book_packet::ServerboundEditBookPacket,
+        0x0e: serverbound_entity_tag_query::ServerboundEntityTagQuery,
+        0x0f: serverbound_interact_packet::ServerboundInteractPacket,
+        0x10: serverbound_jigsaw_generate_packet::ServerboundJigsawGeneratePacket,
+        0x11: serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
+        0x12: serverbound_lock_difficulty_packet::ServerboundLockDifficultyPacket,
+        0x13: serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
+        0x14: serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
+        0x15: serverbound_move_player_rot_packet::ServerboundMovePlayerRotPacket,
+        0x16: serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
+        0x17: serverbound_move_vehicle_packet::ServerboundMoveVehiclePacket,
+        0x18: serverbound_paddle_boat_packet::ServerboundPaddleBoatPacket,
+        0x19: serverbound_pick_item_packet::ServerboundPickItemPacket,
+        0x1a: serverbound_place_recipe_packet::ServerboundPlaceRecipePacket,
+        0x1b: serverbound_player_abilities_packet::ServerboundPlayerAbilitiesPacket,
+        0x1c: serverbound_player_action_packet::ServerboundPlayerActionPacket,
+        0x1d: serverbound_player_command_packet::ServerboundPlayerCommandPacket,
+        0x1e: serverbound_player_input_packet::ServerboundPlayerInputPacket,
+        0x1f: serverbound_pong_packet::ServerboundPongPacket,
+        0x20: serverbound_recipe_book_change_settings_packet::ServerboundRecipeBookChangeSettingsPacket,
+        0x21: serverbound_recipe_book_seen_recipe_packet::ServerboundRecipeBookSeenRecipePacket,
+        0x22: serverbound_rename_item_packet::ServerboundRenameItemPacket,
+        0x23: serverbound_resource_pack_packet::ServerboundResourcePackPacket,
+        0x24: serverbound_seen_advancements_packet::ServerboundSeenAdvancementsPacket,
+        0x25: serverbound_select_trade_packet::ServerboundSelectTradePacket,
+        0x26: serverbound_set_beacon_packet::ServerboundSetBeaconPacket,
+        0x27: serverbound_set_carried_item_packet::ServerboundSetCarriedItemPacket,
+        0x28: serverbound_set_command_block_packet::ServerboundSetCommandBlockPacket,
+        0x29: serverbound_set_command_minecart_packet::ServerboundSetCommandMinecartPacket,
+        0x2a: serverbound_set_creative_mode_slot_packet::ServerboundSetCreativeModeSlotPacket,
+        0x2b: serverbound_set_jigsaw_block_packet::ServerboundSetJigsawBlockPacket,
+        0x2c: serverbound_set_structure_block_packet::ServerboundSetStructureBlockPacket,
+        0x2d: serverbound_sign_update_packet::ServerboundSignUpdatePacket,
+        0x2e: serverbound_swing_packet::ServerboundSwingPacket,
+        0x2f: serverbound_teleport_to_entity_packet::ServerboundTeleportToEntityPacket,
+        0x30: serverbound_use_item_on_packet::ServerboundUseItemOnPacket,
+        0x31: serverbound_use_item_packet::ServerboundUseItemPacket,
     },
     Clientbound => {
         0x00: clientbound_add_entity_packet::ClientboundAddEntityPacket,
@@ -213,16 +224,18 @@ declare_state_packets!(
         0x09: clientbound_block_update_packet::ClientboundBlockUpdatePacket,
         0x0a: clientbound_boss_event_packet::ClientboundBossEventPacket,
         0x0b: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
-        0x0d: clientbound_container_set_content_packet::ClientboundContainerSetContentPacket,
-        0x0e: clientbound_container_set_data_packet::ClientboundContainerSetDataPacket,
-        0x0f: clientbound_container_set_slot_packet::ClientboundContainerSetSlotPacket,
-        0x10: clientbound_cooldown_packet::ClientboundCooldownPacket,
-        0x11: clientbound_custom_chat_completions_packet::ClientboundCustomChatCompletionsPacket,
-        0x12: clientbound_custom_payload_packet::ClientboundCustomPayloadPacket,
-        0x13: clientbound_custom_sound_packet::ClientboundCustomSoundPacket,
-        0x14: clientbound_delete_chat_packet::ClientboundDeleteChatPacket,
-        0x15: clientbound_disconnect_packet::ClientboundDisconnectPacket,
-        0x16: clientbound_disguised_chat_packet::ClientboundDisguisedChatPacket,
+        0x0d: clientbound_command_suggestions_packet::ClientboundCommandSuggestionsPacket,
+        0x0e: clientbound_commands_packet::ClientboundCommandsPacket,
+        0x10: clientbound_container_set_content_packet::ClientboundContainerSetContentPacket,
+        0x11: clientbound_container_set_data_packet::ClientboundContainerSetDataPacket,
+        0x12: clientbound_container_set_slot_packet::ClientboundContainerSetSlotPacket,
+        0x13: clientbound_cooldown_packet::ClientboundCooldownPacket,
+        0x14: clientbound_custom_chat_completions_packet::ClientboundCustomChatCompletionsPacket,
+        0x15: clientbound_custom_payload_packet::ClientboundCustomPayloadPacket,
+        0x16: clientbound_custom_sound_packet::ClientboundCustomSoundPacket,
+        0x17: clientbound_delete_chat_packet::ClientboundDeleteChatPacket,
+        0x18: clientbound_disconnect_packet::ClientboundDisconnectPacket,
+        0x19: clientbound_disguised_chat_packet::ClientboundDisguisedChatPacket,
         0x1a: clientbound_entity_event_packet::ClientboundEntityEventPacket,
         0x1b: clientbound_explode_packet::ClientboundExplodePacket,
         0x1c: clientbound_forget_level_chunk_packet::ClientboundForgetLevelChunkPacket,
@@ -247,8 +260,10 @@ declare_state_packets!(
         0x2f: clientbound_ping_packet::ClientboundPingPacket,
         0x30: clientbound_place_ghost_recipe_packet::ClientboundPlaceGhostRecipePacket,
         0x31: clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
-        0x32: clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
         0x32: clientbound_player_chat_packet::ClientboundPlayerChatPacket,
+        0x33: clientbound_player_combat_end_packet::ClientboundPlayerCombatEndPacket,
+        0x34: clientbound_player_combat_enter_packet::ClientboundPlayerCombatEnterPacket,
+        0x35: clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
         0x36: clientbound_player_info_remove_packet::ClientboundPlayerInfoRemovePacket,
         0x37: clientbound_player_info_update_packet::ClientboundPlayerInfoUpdatePacket,
         0x38: clientbound_player_look_at_packet::ClientboundPlayerLookAtPacket,
@@ -271,33 +286,34 @@ declare_state_packets!(
         0x49: clientbound_set_camera_packet::ClientboundSetCameraPacket,
         0x4a: clientbound_set_carried_item_packet::ClientboundSetCarriedItemPacket,
         0x4b: clientbound_set_chunk_cache_center_packet::ClientboundSetChunkCacheCenterPacket,
-        0x4c: clientbound_update_view_distance_packet::ClientboundUpdateViewDistancePacket,
         0x4c: clientbound_set_chunk_cache_radius_packet::ClientboundSetChunkCacheRadiusPacket,
         0x4d: clientbound_set_default_spawn_position_packet::ClientboundSetDefaultSpawnPositionPacket,
-        0x4e: clientbound_entity_velocity_packet::ClientboundEntityVelocityPacket,
-        0x4e: clientbound_set_entity_motion_packet::ClientboundSetEntityMotionPacket,
-        0x4f: clientbound_set_equipment_packet::ClientboundSetEquipmentPacket,
-        0x50: clientbound_set_experience_packet::ClientboundSetExperiencePacket,
-        0x51: clientbound_set_health_packet::ClientboundSetHealthPacket,
-        0x52: clientbound_set_objective_packet::ClientboundSetObjectivePacket,
-        0x53: clientbound_set_passengers_packet::ClientboundSetPassengersPacket,
-        0x54: clientbound_set_player_team_packet::ClientboundSetPlayerTeamPacket,
-        0x55: clientbound_set_score_packet::ClientboundSetScorePacket,
-        0x56: clientbound_set_simulation_distance_packet::ClientboundSetSimulationDistancePacket,
-        0x57: clientbound_set_subtitle_text_packet::ClientboundSetSubtitleTextPacket,
-        0x58: clientbound_set_time_packet::ClientboundSetTimePacket,
-        0x59: clientbound_set_title_text_packet::ClientboundSetTitleTextPacket,
-        0x5a: clientbound_set_titles_animation_packet::ClientboundSetTitlesAnimationPacket,
-        0x5b: clientbound_sound_entity_packet::ClientboundSoundEntityPacket,
-        0x5c: clientbound_sound_packet::ClientboundSoundPacket,
-        0x5d: clientbound_stop_sound_packet::ClientboundStopSoundPacket,
-        0x5e: clientbound_system_chat_packet::ClientboundSystemChatPacket,
-        0x5f: clientbound_tab_list_packet::ClientboundTabListPacket,
-        0x60: clientbound_tag_query_packet::ClientboundTagQueryPacket,
-        0x61: clientbound_take_item_entity_packet::ClientboundTakeItemEntityPacket,
-        0x62: clientbound_teleport_entity_packet::ClientboundTeleportEntityPacket,
-        0x63: clientbound_update_advancements_packet::ClientboundUpdateAdvancementsPacket,
-        0x64: clientbound_update_attributes_packet::ClientboundUpdateAttributesPacket,
+        0x4e: clientbound_set_display_objective_packet::ClientboundSetDisplayObjectivePacket,
+        0x4f: clientbound_set_entity_data_packet::ClientboundSetEntityDataPacket,
+        0x50: clientbound_set_entity_link_packet::ClientboundSetEntityLinkPacket,
+        0x51: clientbound_set_entity_motion_packet::ClientboundSetEntityMotionPacket,
+        0x52: clientbound_set_equipment_packet::ClientboundSetEquipmentPacket,
+        0x53: clientbound_set_experience_packet::ClientboundSetExperiencePacket,
+        0x54: clientbound_set_health_packet::ClientboundSetHealthPacket,
+        0x55: clientbound_set_objective_packet::ClientboundSetObjectivePacket,
+        0x56: clientbound_set_passengers_packet::ClientboundSetPassengersPacket,
+        0x57: clientbound_set_player_team_packet::ClientboundSetPlayerTeamPacket,
+        0x58: clientbound_set_score_packet::ClientboundSetScorePacket,
+        0x59: clientbound_set_simulation_distance_packet::ClientboundSetSimulationDistancePacket,
+        0x5a: clientbound_set_subtitle_text_packet::ClientboundSetSubtitleTextPacket,
+        0x5b: clientbound_set_time_packet::ClientboundSetTimePacket,
+        0x5c: clientbound_set_title_text_packet::ClientboundSetTitleTextPacket,
+        0x5d: clientbound_set_titles_animation_packet::ClientboundSetTitlesAnimationPacket,
+        0x5e: clientbound_sound_entity_packet::ClientboundSoundEntityPacket,
+        0x5f: clientbound_sound_packet::ClientboundSoundPacket,
+        0x60: clientbound_stop_sound_packet::ClientboundStopSoundPacket,
+        0x61: clientbound_system_chat_packet::ClientboundSystemChatPacket,
+        0x62: clientbound_tab_list_packet::ClientboundTabListPacket,
+        0x63: clientbound_tag_query_packet::ClientboundTagQueryPacket,
+        0x64: clientbound_take_item_entity_packet::ClientboundTakeItemEntityPacket,
+        0x65: clientbound_teleport_entity_packet::ClientboundTeleportEntityPacket,
+        0x66: clientbound_update_advancements_packet::ClientboundUpdateAdvancementsPacket,
+        0x67: clientbound_update_attributes_packet::ClientboundUpdateAttributesPacket,
         0x68: clientbound_update_enabled_features_packet::ClientboundUpdateEnabledFeaturesPacket,
         0x69: clientbound_update_mob_effect_packet::ClientboundUpdateMobEffectPacket,
         0x6a: clientbound_update_recipes_packet::ClientboundUpdateRecipesPacket,
