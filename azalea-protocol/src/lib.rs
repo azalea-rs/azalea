@@ -87,7 +87,7 @@ mod tests {
                 key: b"idontthinkthisreallymattersijustwantittobelongforthetest".to_vec(),
                 key_signature: b"idontthinkthisreallymattersijustwantittobelongforthetest".to_vec(),
             }),
-            profile_id: Some(Uuid::from_u128(0)),
+            profile_id: Some(Uuid::nil()),
         }
         .get();
         let mut stream = Vec::new();
@@ -116,7 +116,7 @@ mod tests {
                 key: b"idontthinkthisreallymattersijustwantittobelongforthetest".to_vec(),
                 key_signature: b"idontthinkthisreallymattersijustwantittobelongforthetest".to_vec(),
             }),
-            profile_id: Some(Uuid::from_u128(0)),
+            profile_id: Some(Uuid::nil()),
         }
         .get();
         let mut stream = Vec::new();

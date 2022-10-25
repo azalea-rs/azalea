@@ -34,10 +34,10 @@ mod tests {
         let packet = ServerboundHelloPacket {
             name: "test".to_string(),
             chat_session: RemoteChatSessionData {
-                session_id: Uuid::default(),
+                session_id: Uuid::nil(),
                 profile_public_key: None,
             },
-            profile_id: Some(Uuid::from_u128(0)),
+            profile_id: Some(Uuid::nil()),
         };
         let mut buf: Vec<u8> = Vec::new();
         packet.write_into(&mut buf).unwrap();

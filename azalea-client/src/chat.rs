@@ -90,10 +90,6 @@ impl Client {
             self.send_chat_packet(message).await
         }
     }
-
-    // will be used for when the server tells the client about a chat preview
-    // with custom formatting
-    // pub fn acknowledge_preview(&self, message: &str) {}
 }
 
 // TODO

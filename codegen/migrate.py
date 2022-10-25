@@ -120,3 +120,4 @@ if old_ordered_blocks != new_ordered_blocks:
 lib.code.utils.fmt()
 
 print('Done!')
+print('Make sure to `cargo check` and look for the generated `TODO`s to make sure everything is correct!')

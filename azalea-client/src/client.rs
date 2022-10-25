@@ -17,7 +17,7 @@ use azalea_protocol::{
         },
         handshake::client_intention_packet::ClientIntentionPacket,
         login::{
-            serverbound_hello_packet::ServerboundHelloPacket,
+            serverbound_hello_packet::{RemoteChatSessionData, ServerboundHelloPacket},
             serverbound_key_packet::{NonceOrSaltSignature, ServerboundKeyPacket},
             ClientboundLoginPacket,
         },
@@ -43,6 +43,7 @@ use tokio::{
     task::JoinHandle,
     time::{self},
 };
+use uuid::Uuid;
 
 pub type ClientInformation = ServerboundClientInformationPacket;
 
@@ -72,7 +73,7 @@ impl ChatPacket {
     pub fn message(&self) -> Component {
         match self {
             ChatPacket::System(p) => p.content.clone(),
-            ChatPacket::Player(p) => p.message(false),
+            ChatPacket::Player(p) => p.message(),
         }
     }
 }
@@ -173,8 +174,11 @@ impl Client {
         // login
         conn.write(
             ServerboundHelloPacket {
-                username: account.username.clone(),
-                public_key: None,
+                name: account.username.clone(),
+                chat_session: RemoteChatSessionData {
+                    session_id: Uuid::nil(),
+                    profile_public_key: None,
+                },
                 profile_id: None,
             }
             .get(),
@@ -422,8 +426,8 @@ impl Client {
 
                 tx.send(Event::Login).unwrap();
             }
-            ClientboundGamePacket::UpdateViewDistance(p) => {
-                debug!("Got view distance packet {:?}", p);
+            ClientboundGamePacket::SetChunkCacheRadius(p) => {
+                debug!("Got set chunk cache radius packet {:?}", p);
             }
             ClientboundGamePacket::CustomPayload(p) => {
                 debug!("Got custom payload packet {:?}", p);
@@ -546,7 +550,7 @@ impl Client {
                     )
                     .await?;
             }
-            ClientboundGamePacket::PlayerInfo(p) => {
+            ClientboundGamePacket::PlayerInfoUpdate(p) => {
                 debug!("Got player info packet {:?}", p);
             }
             ClientboundGamePacket::SetChunkCacheCenter(p) => {
@@ -581,7 +585,7 @@ impl Client {
             ClientboundGamePacket::UpdateAttributes(_p) => {
                 // debug!("Got update attributes packet {:?}", p);
             }
-            ClientboundGamePacket::EntityVelocity(_p) => {
+            ClientboundGamePacket::SetEntityMotion(_p) => {
                 // debug!("Got entity velocity packet {:?}", p);
             }
             ClientboundGamePacket::SetEntityLink(p) => {
@@ -708,7 +712,6 @@ impl Client {
             ClientboundGamePacket::BlockEntityData(_) => {}
             ClientboundGamePacket::BlockEvent(_) => {}
             ClientboundGamePacket::BossEvent(_) => {}
-            ClientboundGamePacket::ChatPreview(_) => {}
             ClientboundGamePacket::CommandSuggestions(_) => {}
             ClientboundGamePacket::ContainerSetData(_) => {}
             ClientboundGamePacket::ContainerSetSlot(_) => {}
@@ -727,7 +730,6 @@ impl Client {
             ClientboundGamePacket::OpenSignEditor(_) => {}
             ClientboundGamePacket::Ping(_) => {}
             ClientboundGamePacket::PlaceGhostRecipe(_) => {}
-            ClientboundGamePacket::PlayerChatHeader(_) => {}
             ClientboundGamePacket::PlayerCombatEnd(_) => {}
             ClientboundGamePacket::PlayerCombatEnter(_) => {}
             ClientboundGamePacket::PlayerCombatKill(_) => {}
@@ -744,7 +746,6 @@ impl Client {
             ClientboundGamePacket::SetBorderWarningDistance(_) => {}
             ClientboundGamePacket::SetCamera(_) => {}
             ClientboundGamePacket::SetChunkCacheRadius(_) => {}
-            ClientboundGamePacket::SetDisplayChatPreview(_) => {}
             ClientboundGamePacket::SetDisplayObjective(_) => {}
             ClientboundGamePacket::SetEntityMotion(_) => {}
             ClientboundGamePacket::SetObjective(_) => {}
@@ -760,6 +761,9 @@ impl Client {
             ClientboundGamePacket::TabList(_) => {}
             ClientboundGamePacket::TagQuery(_) => {}
             ClientboundGamePacket::TakeItemEntity(_) => {}
+            ClientboundGamePacket::DisguisedChat(_) => {}
+            ClientboundGamePacket::PlayerInfoRemove(_) => {}
+            ClientboundGamePacket::UpdateEnabledFeatures(_) => {}
         }
 
         Ok(())
