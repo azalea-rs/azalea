@@ -158,7 +158,7 @@ impl Chunk {
     }
 
     pub fn section_index(&self, y: i32, min_y: i32) -> u32 {
-        assert!(y >= min_y, "y ({}) must be at least {}", y, min_y);
+        assert!(y >= min_y, "y ({y}) must be at least {min_y}");
         let min_section_index = min_y.div_floor(16);
         (y.div_floor(16) - min_section_index) as u32
     }

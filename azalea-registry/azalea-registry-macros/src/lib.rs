@@ -76,8 +76,8 @@ pub fn registry(input: TokenStream) -> TokenStream {
 
     let max_id = input.items.len() as u32;
 
-    let doc_0 = format!("Transmutes a u32 to a {}.", name);
-    let doc_1 = format!("The `id` should be at most {}.", max_id);
+    let doc_0 = format!("Transmutes a u32 to a {name}.");
+    let doc_1 = format!("The `id` should be at most {max_id}.");
 
     generated.extend(quote! {
         impl #name {
@@ -97,7 +97,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
         }
     });
 
-    let doc_0 = format!("Safely transmutes a u32 to a {}.", name);
+    let doc_0 = format!("Safely transmutes a u32 to a {name}.");
 
     generated.extend(quote! {
         impl TryFrom<u32> for #name {

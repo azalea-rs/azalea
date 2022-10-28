@@ -230,7 +230,7 @@ impl Client {
                     }
                 },
                 Err(e) => {
-                    panic!("Error: {:?}", e);
+                    panic!("Error: {e:?}");
                 }
             }
         };
@@ -300,7 +300,7 @@ impl Client {
                         if IGNORE_ERRORS {
                             continue;
                         } else {
-                            panic!("Error handling packet: {}", e);
+                            panic!("Error handling packet: {e}");
                         }
                     }
                 },
@@ -308,7 +308,7 @@ impl Client {
                     if IGNORE_ERRORS {
                         warn!("{}", e);
                         match e {
-                            ReadPacketError::FrameSplitter { .. } => panic!("Error: {:?}", e),
+                            ReadPacketError::FrameSplitter { .. } => panic!("Error: {e:?}"),
                             _ => continue,
                         }
                     } else {
@@ -422,8 +422,8 @@ impl Client {
 
                 tx.send(Event::Login).unwrap();
             }
-            ClientboundGamePacket::UpdateViewDistance(p) => {
-                debug!("Got view distance packet {:?}", p);
+            ClientboundGamePacket::SetChunkCacheRadius(p) => {
+                debug!("Got set chunk cache radius packet {:?}", p);
             }
             ClientboundGamePacket::CustomPayload(p) => {
                 debug!("Got custom payload packet {:?}", p);
@@ -581,7 +581,7 @@ impl Client {
             ClientboundGamePacket::UpdateAttributes(_p) => {
                 // debug!("Got update attributes packet {:?}", p);
             }
-            ClientboundGamePacket::EntityVelocity(_p) => {
+            ClientboundGamePacket::SetEntityMotion(_p) => {
                 // debug!("Got entity velocity packet {:?}", p);
             }
             ClientboundGamePacket::SetEntityLink(p) => {
@@ -743,10 +743,8 @@ impl Client {
             ClientboundGamePacket::SetBorderWarningDelay(_) => {}
             ClientboundGamePacket::SetBorderWarningDistance(_) => {}
             ClientboundGamePacket::SetCamera(_) => {}
-            ClientboundGamePacket::SetChunkCacheRadius(_) => {}
             ClientboundGamePacket::SetDisplayChatPreview(_) => {}
             ClientboundGamePacket::SetDisplayObjective(_) => {}
-            ClientboundGamePacket::SetEntityMotion(_) => {}
             ClientboundGamePacket::SetObjective(_) => {}
             ClientboundGamePacket::SetPassengers(_) => {}
             ClientboundGamePacket::SetPlayerTeam(_) => {}

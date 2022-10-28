@@ -134,8 +134,8 @@ impl Display for TranslatableComponent {
 impl Display for StringOrComponent {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
-            StringOrComponent::String(s) => write!(f, "{}", s),
-            StringOrComponent::Component(c) => write!(f, "{}", c),
+            StringOrComponent::String(s) => write!(f, "{s}"),
+            StringOrComponent::Component(c) => write!(f, "{c}"),
         }
     }
 }

@@ -45,35 +45,35 @@ impl fmt::Debug for BuiltInExceptions {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             BuiltInExceptions::DoubleTooSmall { found, min } => {
-                write!(f, "Double must not be less than {}, found {}", min, found)
+                write!(f, "Double must not be less than {min}, found {found}")
             }
             BuiltInExceptions::DoubleTooBig { found, max } => {
-                write!(f, "Double must not be more than {}, found {}", max, found)
+                write!(f, "Double must not be more than {max}, found {found}")
             }
 
             BuiltInExceptions::FloatTooSmall { found, min } => {
-                write!(f, "Float must not be less than {}, found {}", min, found)
+                write!(f, "Float must not be less than {min}, found {found}")
             }
             BuiltInExceptions::FloatTooBig { found, max } => {
-                write!(f, "Float must not be more than {}, found {}", max, found)
+                write!(f, "Float must not be more than {max}, found {found}")
             }
 
             BuiltInExceptions::IntegerTooSmall { found, min } => {
-                write!(f, "Integer must not be less than {}, found {}", min, found)
+                write!(f, "Integer must not be less than {min}, found {found}")
             }
             BuiltInExceptions::IntegerTooBig { found, max } => {
-                write!(f, "Integer must not be more than {}, found {}", max, found)
+                write!(f, "Integer must not be more than {max}, found {found}")
             }
 
             BuiltInExceptions::LongTooSmall { found, min } => {
-                write!(f, "Long must not be less than {}, found {}", min, found)
+                write!(f, "Long must not be less than {min}, found {found}")
             }
             BuiltInExceptions::LongTooBig { found, max } => {
-                write!(f, "Long must not be more than {}, found {}", max, found)
+                write!(f, "Long must not be more than {max}, found {found}")
             }
 
             BuiltInExceptions::LiteralIncorrect { expected } => {
-                write!(f, "Expected literal {}", expected)
+                write!(f, "Expected literal {expected}")
             }
 
             BuiltInExceptions::ReaderExpectedStartOfQuote => {
@@ -97,25 +97,25 @@ impl fmt::Debug for BuiltInExceptions {
                 )
             }
             BuiltInExceptions::ReaderInvalidInt { value } => {
-                write!(f, "Invalid Integer '{}'", value)
+                write!(f, "Invalid Integer '{value}'")
             }
             BuiltInExceptions::ReaderExpectedInt => {
                 write!(f, "Expected Integer")
             }
             BuiltInExceptions::ReaderInvalidLong { value } => {
-                write!(f, "Invalid long '{}'", value)
+                write!(f, "Invalid long '{value}'")
             }
             BuiltInExceptions::ReaderExpectedLong => {
                 write!(f, "Expected long")
             }
             BuiltInExceptions::ReaderInvalidDouble { value } => {
-                write!(f, "Invalid double '{}'", value)
+                write!(f, "Invalid double '{value}'")
             }
             BuiltInExceptions::ReaderExpectedDouble => {
                 write!(f, "Expected double")
             }
             BuiltInExceptions::ReaderInvalidFloat { value } => {
-                write!(f, "Invalid Float '{}'", value)
+                write!(f, "Invalid Float '{value}'")
             }
             BuiltInExceptions::ReaderExpectedFloat => {
                 write!(f, "Expected Float")
@@ -124,7 +124,7 @@ impl fmt::Debug for BuiltInExceptions {
                 write!(f, "Expected bool")
             }
             BuiltInExceptions::ReaderExpectedSymbol { symbol } => {
-                write!(f, "Expected '{}'", symbol)
+                write!(f, "Expected '{symbol}'")
             }
 
             BuiltInExceptions::DispatcherUnknownCommand => {
@@ -140,7 +140,7 @@ impl fmt::Debug for BuiltInExceptions {
                 )
             }
             BuiltInExceptions::DispatcherParseException { message } => {
-                write!(f, "Could not parse command: {}", message)
+                write!(f, "Could not parse command: {message}")
             }
         }
     }
@@ -148,12 +148,12 @@ impl fmt::Debug for BuiltInExceptions {
 
 impl BuiltInExceptions {
     pub fn create(self) -> CommandSyntaxException {
-        let message = Message::from(format!("{:?}", self));
+        let message = Message::from(format!("{self:?}"));
         CommandSyntaxException::create(self, message)
     }
 
     pub fn create_with_context(self, reader: &StringReader) -> CommandSyntaxException {
-        let message = Message::from(format!("{:?}", self));
+        let message = Message::from(format!("{self:?}"));
         CommandSyntaxException::new(self, message, reader.string(), reader.cursor())
     }
 }

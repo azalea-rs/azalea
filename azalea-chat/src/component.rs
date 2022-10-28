@@ -186,7 +186,7 @@ impl<'de> Deserialize<'de> for Component {
                     nbt
                 } else {
                     return Err(de::Error::custom(
-                        format!("Don't know how to turn {} into a Component", json).as_str(),
+                        format!("Don't know how to turn {json} into a Component").as_str(),
                     ));
                 };
                 let _separator = Component::parse_separator(&json).map_err(de::Error::custom)?;
@@ -223,7 +223,7 @@ impl<'de> Deserialize<'de> for Component {
         // ok so it's not an object, if it's an array deserialize every item
         else if !json.is_array() {
             return Err(de::Error::custom(
-                format!("Don't know how to turn {} into a Component", json).as_str(),
+                format!("Don't know how to turn {json} into a Component").as_str(),
             ));
         }
         let json_array = json.as_array().unwrap();
