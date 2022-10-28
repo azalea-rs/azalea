@@ -11,11 +11,9 @@ use std::ops::{Deref, DerefMut};
 use std::ptr::NonNull;
 use uuid::Uuid;
 
+/// A reference to an entity in a dimension.
 #[derive(Debug)]
-pub struct EntityRef<'d, D = &'d Dimension>
-where
-    D: Deref<Target = Dimension>,
-{
+pub struct Entity<'d, D = &'d mut Dimension> {
     /// The dimension this entity is in.
     pub dimension: D,
     /// The incrementing numerical id of the entity.
@@ -24,7 +22,7 @@ where
     _marker: PhantomData<&'d ()>,
 }
 
-impl<'d, D: Deref<Target = Dimension>> EntityRef<'d, D> {
+impl<'d, D: Deref<Target = Dimension>> Entity<'d, D> {
     pub fn new(dimension: D, id: u32, data: NonNull<EntityData>) -> Self {
         // TODO: have this be based on the entity type
         Self {
@@ -36,82 +34,7 @@ impl<'d, D: Deref<Target = Dimension>> EntityRef<'d, D> {
     }
 }
 
-impl<'d, D: Deref<Target = Dimension>> EntityRef<'d, D> {
-    #[inline]
-    pub fn pos(&self) -> &Vec3 {
-        &self.pos
-    }
-
-    pub fn make_bounding_box(&self) -> AABB {
-        self.dimensions.make_bounding_box(self.pos())
-    }
-
-    /// Get the position of the block below the entity, but a little lower.
-    pub fn on_pos_legacy(&self) -> BlockPos {
-        self.on_pos(0.2)
-    }
-
-    // int x = Mth.floor(this.position.x);
-    // int y = Mth.floor(this.position.y - (double)var1);
-    // int z = Mth.floor(this.position.z);
-    // BlockPos var5 = new BlockPos(x, y, z);
-    // if (this.level.getBlockState(var5).isAir()) {
-    //    BlockPos var6 = var5.below();
-    //    BlockState var7 = this.level.getBlockState(var6);
-    //    if (var7.is(BlockTags.FENCES) || var7.is(BlockTags.WALLS) || var7.getBlock() instanceof FenceGateBlock) {
-    //       return var6;
-    //    }
-    // }
-    // return var5;
-    pub fn on_pos(&self, offset: f32) -> BlockPos {
-        let x = self.pos().x.floor() as i32;
-        let y = (self.pos().y - offset as f64).floor() as i32;
-        let z = self.pos().z.floor() as i32;
-        let pos = BlockPos { x, y, z };
-
-        // TODO: check if block below is a fence, wall, or fence gate
-        let block_pos = pos.down(1);
-        let block_state = self.dimension.get_block_state(&block_pos);
-        if block_state == Some(BlockState::Air) {
-            let block_pos_below = block_pos.down(1);
-            let block_state_below = self.dimension.get_block_state(&block_pos_below);
-            if let Some(_block_state_below) = block_state_below {
-                // if block_state_below.is_fence()
-                //     || block_state_below.is_wall()
-                //     || block_state_below.is_fence_gate()
-                // {
-                //     return block_pos_below;
-                // }
-            }
-        }
-
-        pos
-    }
-}
-
-#[derive(Debug)]
-pub struct EntityMut<'d, D = &'d mut Dimension>
-where
-    D: DerefMut<Target = Dimension>,
-{
-    /// The dimension this entity is in.
-    pub dimension: D,
-    /// The incrementing numerical id of the entity.
-    pub id: u32,
-    pub data: NonNull<EntityData>,
-    _marker: PhantomData<&'d ()>,
-}
-
-impl<'d, D: DerefMut<Target = Dimension>> EntityMut<'d, D> {
-    pub fn new(dimension: D, id: u32, data: NonNull<EntityData>) -> Self {
-        Self {
-            dimension,
-            id,
-            data,
-            _marker: PhantomData,
-        }
-    }
-
+impl<'d, D: DerefMut<Target = Dimension>> Entity<'d, D> {
     /// Sets the position of the entity. This doesn't update the cache in
     /// azalea-world, and should only be used within azalea-world!
     ///
@@ -155,7 +78,7 @@ impl<'d, D: DerefMut<Target = Dimension>> EntityMut<'d, D> {
     }
 }
 
-impl<'d, D: DerefMut<Target = Dimension>> EntityMut<'d, D> {
+impl<'d, D: Deref<Target = Dimension>> Entity<'d, D> {
     #[inline]
     pub fn pos(&self) -> &Vec3 {
         &self.pos
@@ -208,32 +131,29 @@ impl<'d, D: DerefMut<Target = Dimension>> EntityMut<'d, D> {
     }
 }
 
-impl<'d, D: DerefMut<Target = Dimension>> From<EntityMut<'d, D>> for EntityRef<'d, D> {
-    fn from(entity: EntityMut<'d, D>) -> EntityRef<'d, D> {
-        EntityRef {
-            dimension: entity.dimension,
-            id: entity.id,
-            data: entity.data,
-            _marker: PhantomData,
-        }
-    }
-}
+// impl<
+//         'd,
+//         D: DerefMut<Target = Dimension> + Deref<Target = Dimension>,
+//         D2: Deref<Target = Dimension>,
+//     > From<Entity<'d, D>> for Entity<'d, D2>
+// {
+//     fn from(entity: Entity<'d, D>) -> Entity<'d, D> {
+//         Entity {
+//             dimension: entity.dimension,
+//             id: entity.id,
+//             data: entity.data,
+//             _marker: PhantomData,
+//         }
+//     }
+// }
 
-impl<D: DerefMut<Target = Dimension>> Deref for EntityMut<'_, D> {
-    type Target = EntityData;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { self.data.as_ref() }
-    }
-}
-
-impl<D: DerefMut<Target = Dimension>> DerefMut for EntityMut<'_, D> {
+impl<D: DerefMut<Target = Dimension>> DerefMut for Entity<'_, D> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { self.data.as_mut() }
     }
 }
 
-impl<D: Deref<Target = Dimension>> Deref for EntityRef<'_, D> {
+impl<D: Deref<Target = Dimension>> Deref for Entity<'_, D> {
     type Target = EntityData;
 
     fn deref(&self) -> &Self::Target {
@@ -335,8 +255,8 @@ mod tests {
         let mut dim = Dimension::default();
         let uuid = Uuid::from_u128(100);
         dim.add_entity(0, EntityData::new(uuid, Vec3::default()));
-        let entity: EntityMut = dim.entity_mut(0).unwrap();
-        let entity_ref = EntityRef::from(entity);
+        let entity: Entity = dim.entity_mut(0).unwrap();
+        let entity_ref = Entity::from(entity);
         assert_eq!(entity_ref.uuid, uuid);
     }
 }

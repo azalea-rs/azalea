@@ -11,7 +11,7 @@ use azalea_buf::BufReadError;
 use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
 pub use bit_storage::BitStorage;
 pub use chunk_storage::{Chunk, ChunkStorage};
-use entity::{EntityData, EntityMut, EntityRef};
+use entity::{Entity, EntityData};
 pub use entity_storage::EntityStorage;
 use std::{
     io::Cursor,
@@ -126,16 +126,16 @@ impl Dimension {
         self.entity_storage.get_mut_by_id(id)
     }
 
-    pub fn entity(&self, id: u32) -> Option<EntityRef> {
+    pub fn entity(&self, id: u32) -> Option<Entity<&Dimension>> {
         let entity_data = self.entity_storage.get_by_id(id)?;
         let entity_ptr = unsafe { entity_data.as_const_ptr() };
-        Some(EntityRef::new(self, id, entity_ptr))
+        Some(Entity::new(self, id, entity_ptr))
     }
 
-    pub fn entity_mut(&mut self, id: u32) -> Option<EntityMut> {
+    pub fn entity_mut(&mut self, id: u32) -> Option<Entity<'_, &mut Dimension>> {
         let entity_data = self.entity_storage.get_mut_by_id(id)?;
         let entity_ptr = unsafe { entity_data.as_ptr() };
-        Some(EntityMut::new(self, id, entity_ptr))
+        Some(Entity::new(self, id, entity_ptr))
     }
 
     pub fn entity_by_uuid(&self, uuid: &Uuid) -> Option<&EntityData> {

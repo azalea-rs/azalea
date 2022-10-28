@@ -1,4 +1,4 @@
-use azalea_world::entity::{EntityMut, EntityRef};
+use azalea_world::entity::Entity;
 use azalea_world::Dimension;
 use uuid::Uuid;
 
@@ -18,12 +18,12 @@ pub struct Player {
 
 impl Player {
     /// Get a reference to the entity of the player in the world.
-    pub fn entity<'d>(&'d self, dimension: &'d Dimension) -> Option<EntityRef> {
+    pub fn entity<'d>(&'d self, dimension: &'d Dimension) -> Option<Entity<&Dimension>> {
         dimension.entity(self.entity_id)
     }
 
     /// Get a mutable reference to the entity of the player in the world.
-    pub fn entity_mut<'d>(&'d self, dimension: &'d mut Dimension) -> Option<EntityMut> {
+    pub fn entity_mut<'d>(&'d self, dimension: &'d mut Dimension) -> Option<Entity> {
         dimension.entity_mut(self.entity_id)
     }
 
