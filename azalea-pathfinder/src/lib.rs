@@ -4,8 +4,10 @@ mod moves;
 mod mtdstarlite;
 
 use async_trait::async_trait;
+use azalea::prelude::*;
 use azalea::{Client, Event};
 use azalea_core::BlockPos;
+use azalea_world::entity::EntityData;
 use mtdstarlite::Edge;
 pub use mtdstarlite::MTDStarLite;
 use std::sync::{Arc, Mutex};
@@ -29,7 +31,7 @@ impl azalea::Plugin for Plugin {
 
 pub trait Trait {
     fn goto(&self, goal: impl Goal);
-    fn execute_path(&self, path: &Vec<Node>);
+    fn execute_path(&mut self, path: &Vec<Node>);
 }
 
 impl Trait for azalea_client::Client {
@@ -72,10 +74,10 @@ impl Trait for azalea_client::Client {
         let p = pf.find_path();
     }
 
-    fn execute_path(&self, path: &Vec<Node>) {
+    fn execute_path(&mut self, path: &Vec<Node>) {
         let start = path[0];
-        // self.entity_mut().set_rotation(y_rot, x_rot)
-        // self.look_at(start.pos);
+        let center = start.pos.center();
+        self.look_at(&center);
     }
 }
 
@@ -90,4 +92,12 @@ pub trait Goal {
     // TODO: this should be removed and mtdstarlite should stop depending on
     // being given a goal node
     fn goal_node(&self) -> Node;
+}
+
+impl Node {
+    /// Returns whether the entity is at the node and should start going to the
+    /// next node.
+    pub fn is_reached(&self, entity: &EntityData) -> bool {
+        entity.yya == 0. && BlockPos::from(entity.pos()) == self.pos
+    }
 }

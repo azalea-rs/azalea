@@ -231,6 +231,7 @@ impl EntityData {
         }
     }
 
+    /// Get the position of the entity in the dimension.
     #[inline]
     pub fn pos(&self) -> &Vec3 {
         &self.pos

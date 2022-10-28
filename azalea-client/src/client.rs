@@ -31,7 +31,7 @@ use azalea_world::{
     Dimension,
 };
 use log::{debug, error, warn};
-use parking_lot::{Mutex, MutexGuard, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use parking_lot::{Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::{
     fmt::Debug,
     io::{self, Cursor},

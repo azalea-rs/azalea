@@ -125,6 +125,17 @@ pub struct BlockPos {
 }
 vec3_impl!(BlockPos, i32);
 
+impl BlockPos {
+    /// Get the absolute center of a block position by adding 0.5 to each coordinate.
+    pub fn center(&self) -> Vec3 {
+        Vec3 {
+            x: self.x as f64 + 0.5,
+            y: self.y as f64 + 0.5,
+            z: self.z as f64 + 0.5,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ChunkPos {
     pub x: i32,
