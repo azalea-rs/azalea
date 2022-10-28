@@ -1,5 +1,6 @@
 use crate::{Client, Event};
 use async_trait::async_trait;
+use azalea_core::Vec3;
 use parking_lot::Mutex;
 use std::sync::Arc;
 
@@ -15,6 +16,7 @@ pub struct State {
 
 pub trait BotTrait {
     fn jump(&self);
+    fn look_at(&mut self, pos: &Vec3);
 }
 
 impl BotTrait for azalea_client::Client {
@@ -28,6 +30,16 @@ impl BotTrait for azalea_client::Client {
             .expect("Player must exist");
 
         player_entity.jumping = true;
+    }
+
+    /// Turn the bot's head to look at the coordinate in the world.
+    fn look_at(&mut self, pos: &Vec3) {
+        // borrowed from mineflayer's Bot.lookAt because i didn't want to do math
+        let delta = self.entity().pos() - pos;
+        let x_rot = f64::atan2(-delta.x, -delta.z);
+        let ground_distance = f64::sqrt(delta.x * delta.x + delta.z * delta.z);
+        let y_rot = f64::atan2(delta.y, ground_distance);
+        self.set_rotation(y_rot as f32, x_rot as f32);
     }
 }
 

@@ -2,7 +2,7 @@ use crate::ResourceLocation;
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use std::{
     io::{Cursor, Write},
-    ops::{Add, AddAssign, Rem},
+    ops::{Add, AddAssign, Mul, Rem, Sub},
 };
 
 macro_rules! vec3_impl {
@@ -11,17 +11,13 @@ macro_rules! vec3_impl {
             pub fn new(x: $type, y: $type, z: $type) -> Self {
                 Self { x, y, z }
             }
-            pub fn offset(&self, x: $type, y: $type, z: $type) -> Self {
-                Self {
-                    x: self.x + x,
-                    y: self.y + y,
-                    z: self.z + z,
-                }
-            }
+
             pub fn length_sqr(&self) -> $type {
                 self.x * self.x + self.y * self.y + self.z * self.z
             }
 
+            /// Return a new instance of this position with the y coordinate
+            /// decreased by the given number.
             pub fn down(&self, y: $type) -> Self {
                 Self {
                     x: self.x,
@@ -29,6 +25,8 @@ macro_rules! vec3_impl {
                     z: self.z,
                 }
             }
+            /// Return a new instance of this position with the y coordinate
+            /// increased by the given number.
             pub fn up(&self, y: $type) -> Self {
                 Self {
                     x: self.x,
@@ -73,6 +71,38 @@ macro_rules! vec3_impl {
                     x: self.x % rhs,
                     y: self.y % rhs,
                     z: self.z % rhs,
+                }
+            }
+        }
+
+        impl Sub for &$name {
+            type Output = $name;
+
+            /// Find the difference between two positions.
+            fn sub(self, other: Self) -> Self::Output {
+                Self::Output {
+                    x: self.x - other.x,
+                    y: self.y - other.y,
+                    z: self.z - other.z,
+                }
+            }
+        }
+        impl Sub for $name {
+            type Output = Self;
+
+            fn sub(self, other: Self) -> Self::Output {
+                (&self).sub(&other)
+            }
+        }
+
+        impl Mul<$type> for $name {
+            type Output = Self;
+
+            fn mul(self, multiplier: $type) -> Self::Output {
+                Self {
+                    x: self.x * multiplier,
+                    y: self.y * multiplier,
+                    z: self.z * multiplier,
                 }
             }
         }

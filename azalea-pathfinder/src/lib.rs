@@ -74,6 +74,7 @@ impl Trait for azalea_client::Client {
 
     fn execute_path(&self, path: &Vec<Node>) {
         let start = path[0];
+        // self.entity_mut().set_rotation(y_rot, x_rot)
         // self.look_at(start.pos);
     }
 }

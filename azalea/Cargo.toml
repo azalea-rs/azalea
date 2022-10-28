@@ -12,6 +12,7 @@ anyhow = "^1.0.65"
 async-trait = "^0.1.57"
 azalea-client = { version = "0.2.2", path = "../azalea-client" }
 azalea-protocol = { version = "0.2.0", path = "../azalea-protocol" }
+azalea-core = { version = "0.2.0", path = "../azalea-core" }
 parking_lot = "^0.12.1"
 thiserror = "^1.0.37"
 tokio = "^1.21.1"

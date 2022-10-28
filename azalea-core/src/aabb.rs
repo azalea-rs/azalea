@@ -15,7 +15,7 @@ pub struct AABB {
 }
 
 pub struct ClipPointOpts<'a> {
-    pub t: &'a mut [f64],
+    pub t: &'a mut f64,
     pub approach_dir: Option<Direction>,
     pub delta: &'a Vec3,
     pub begin: f64,
@@ -225,13 +225,10 @@ impl AABB {
     }
 
     pub fn clip(&self, min: &Vec3, max: &Vec3) -> Option<Vec3> {
-        let mut t = [1.0];
-        let x = max.x - min.x;
-        let y = max.y - min.y;
-        let z = max.z - min.z;
-        let _dir = self.get_direction(self, min, &mut t, None, &Vec3 { x, y, z })?;
-        let t = t[0];
-        Some(min.offset(t * x, t * y, t * z))
+        let mut t = 1.0;
+        let delta = max - min;
+        let _dir = self.get_direction(self, min, &mut t, None, &delta)?;
+        Some(min + &(delta * t))
     }
 
     pub fn clip_iterable(
@@ -241,19 +238,16 @@ impl AABB {
         to: &Vec3,
         pos: &BlockPos,
     ) -> Option<BlockHitResult> {
-        let mut t = [1.0];
+        let mut t = 1.0;
         let mut dir = None;
-        let x = to.x - from.x;
-        let y = to.y - from.y;
-        let z = to.z - from.z;
+        let delta = to - from;
 
         for aabb in boxes {
-            dir = self.get_direction(aabb, from, &mut t, dir, &Vec3 { x, y, z });
+            dir = self.get_direction(aabb, from, &mut t, dir, &delta);
         }
         let dir = dir?;
-        let t = t[0];
         Some(BlockHitResult {
-            location: from.offset(t * x, t * y, t * z),
+            location: from + &(delta * t),
             direction: dir,
             block_pos: *pos,
             inside: false,
@@ -265,7 +259,7 @@ impl AABB {
         &self,
         aabb: &AABB,
         from: &Vec3,
-        t: &mut [f64],
+        t: &mut f64,
         dir: Option<Direction>,
         delta: &Vec3,
     ) -> Option<Direction> {
@@ -393,13 +387,13 @@ impl AABB {
         let t_y = (opts.start.y + t_x) / opts.delta.y;
         let t_z = (opts.start.z + t_x) / opts.delta.z;
         if 0.0 < t_x
-            && t_x < opts.t[0]
+            && t_x < *opts.t
             && opts.min_x - EPSILON < t_y
             && t_y < opts.max_x + EPSILON
             && opts.min_z - EPSILON < t_z
             && t_z < opts.max_z + EPSILON
         {
-            opts.t[0] = t_x;
+            *opts.t = t_x;
             Some(opts.result_dir)
         } else {
             opts.approach_dir

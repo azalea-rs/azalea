@@ -105,6 +105,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "azalea-client",
+ "azalea-core",
  "azalea-protocol",
  "env_logger",
  "parking_lot 0.12.1",
