@@ -15,5 +15,5 @@ async fn main() {
     )
     .await
     .unwrap();
-    println!("{:?}", auth_result);
+    println!("{auth_result:?}");
 }

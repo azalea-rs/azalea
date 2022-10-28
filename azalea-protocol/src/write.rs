@@ -35,7 +35,7 @@ fn packet_encoder<P: ProtocolPacket + std::fmt::Debug>(
         return Err(PacketEncodeError::TooBig {
             actual: buf.len(),
             maximum: MAXIMUM_UNCOMPRESSED_LENGTH as usize,
-            packet_string: format!("{:?}", packet),
+            packet_string: format!("{packet:?}"),
         });
     }
     Ok(buf)

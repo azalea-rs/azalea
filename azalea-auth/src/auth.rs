@@ -336,7 +336,7 @@ async fn auth_with_xbox_live(
             "SiteName": "user.auth.xboxlive.com",
             // i thought this was supposed to be d={} but it doesn't work for
             // me when i add it ??????
-            "RpsTicket": format!("{}", access_token)
+            "RpsTicket": format!("{access_token}")
         },
         "RelyingParty": "http://auth.xboxlive.com",
         "TokenType": "JWT"
@@ -359,7 +359,7 @@ async fn auth_with_xbox_live(
 
     // not_after looks like 2020-12-21T19:52:08.4463796Z
     let expires_at = DateTime::parse_from_rfc3339(&res.not_after)
-        .map_err(|e| XboxLiveAuthError::InvalidExpiryDate(format!("{}: {}", res.not_after, e)))?
+        .map_err(|e| XboxLiveAuthError::InvalidExpiryDate(format!("{}: {e}", res.not_after)))?
         .with_timezone(&Utc)
         .timestamp() as u64;
     Ok(ExpiringValue {
@@ -416,7 +416,7 @@ async fn auth_with_minecraft(
         .post("https://api.minecraftservices.com/authentication/login_with_xbox")
         .header("Accept", "application/json")
         .json(&json!({
-            "identityToken": format!("XBL3.0 x={};{}", user_hash, xsts_token)
+            "identityToken": format!("XBL3.0 x={user_hash};{xsts_token}")
         }))
         .send()
         .await?
@@ -446,7 +446,7 @@ async fn check_ownership(
         .get("https://api.minecraftservices.com/entitlements/mcstore")
         .header(
             "Authorization",
-            format!("Bearer {}", minecraft_access_token),
+            format!("Bearer {minecraft_access_token}"),
         )
         .send()
         .await?
@@ -474,7 +474,7 @@ async fn get_profile(
         .get("https://api.minecraftservices.com/minecraft/profile")
         .header(
             "Authorization",
-            format!("Bearer {}", minecraft_access_token),
+            format!("Bearer {minecraft_access_token}"),
         )
         .send()
         .await?

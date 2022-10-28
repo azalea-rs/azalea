@@ -10,10 +10,10 @@ pub enum Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Error::InvalidTagType(id) => write!(f, "Invalid tag type: {}", id),
+            Error::InvalidTagType(id) => write!(f, "Invalid tag type: {id}"),
             Error::InvalidTag => write!(f, "Invalid tag"),
-            Error::WriteError(e) => write!(f, "Write error: {}", e),
-            Error::Utf8Error(e) => write!(f, "Utf8 error: {}", e),
+            Error::WriteError(e) => write!(f, "Write error: {e}"),
+            Error::Utf8Error(e) => write!(f, "Utf8 error: {e}"),
             Error::UnexpectedEof => write!(f, "Unexpected EOF"),
         }
     }

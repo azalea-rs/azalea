@@ -230,7 +230,7 @@ impl Client {
                     }
                 },
                 Err(e) => {
-                    panic!("Error: {:?}", e);
+                    panic!("Error: {e:?}");
                 }
             }
         };
@@ -300,7 +300,7 @@ impl Client {
                         if IGNORE_ERRORS {
                             continue;
                         } else {
-                            panic!("Error handling packet: {}", e);
+                            panic!("Error handling packet: {e}");
                         }
                     }
                 },
@@ -308,7 +308,7 @@ impl Client {
                     if IGNORE_ERRORS {
                         warn!("{}", e);
                         match e {
-                            ReadPacketError::FrameSplitter { .. } => panic!("Error: {:?}", e),
+                            ReadPacketError::FrameSplitter { .. } => panic!("Error: {e:?}"),
                             _ => continue,
                         }
                     } else {

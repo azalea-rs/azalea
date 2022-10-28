@@ -19,7 +19,7 @@ pub fn box_shape(
     max_y: f64,
     max_z: f64,
 ) -> VoxelShape {
-    assert!(min_x >= 0., "min_x must be >= 0 but was {}", min_x);
+    assert!(min_x >= 0., "min_x must be >= 0 but was {min_x}");
     assert!(min_y >= 0.);
     assert!(min_z >= 0.);
     assert!(max_x >= 0.);
