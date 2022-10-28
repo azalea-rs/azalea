@@ -80,8 +80,14 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
                     enum_first_part_name)
                 print('enum_first_part_obfuscated_name',
                       enum_first_part_obfuscated_name)
-                enum_name = mappings.get_method_type(
-                    enum_first_part_obfuscated_name, enum_field.split('.')[1].split('(')[0], '')
+                print('enum field', enum_field.split('.')[1].split('(')[0])
+                try:
+                    enum_name = mappings.get_method_type(
+                        enum_first_part_obfuscated_name, enum_field.split('.')[1].split('(')[0], '')
+                except KeyError:
+                    # sometimes enums are fields instead of methods
+                    enum_name = mappings.get_field_type(
+                        enum_first_part_obfuscated_name, enum_field.split('.')[1].split('(')[0])
 
                 print('hm', enum_name)
             else:
@@ -158,6 +164,5 @@ def clean_property_name(property_name):
     # `type` is a reserved keyword, so we use kind instead ¯\_(ツ)_/¯
     if property_name == 'type':
         property_name = 'kind'
-    
-    return property_name
 
+    return property_name

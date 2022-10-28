@@ -1,6 +1,6 @@
-use crate::{ServerAddress, ServerIpAddress};
+use crate::ServerAddress;
 use async_recursion::async_recursion;
-use std::net::IpAddr;
+use std::net::{IpAddr, SocketAddr};
 use thiserror::Error;
 use trust_dns_resolver::{
     config::{ResolverConfig, ResolverOpts},
@@ -18,13 +18,10 @@ pub enum ResolverError {
 /// Resolve a Minecraft server address into an IP address and port.
 /// If it's already an IP address, it's returned as-is.
 #[async_recursion]
-pub async fn resolve_address(address: &ServerAddress) -> Result<ServerIpAddress, ResolverError> {
+pub async fn resolve_address(address: &ServerAddress) -> Result<SocketAddr, ResolverError> {
     // If the address.host is already in the format of an ip address, return it.
     if let Ok(ip) = address.host.parse::<IpAddr>() {
-        return Ok(ServerIpAddress {
-            ip,
-            port: address.port,
-        });
+        return Ok(SocketAddr::new(ip, address.port));
     }
 
     // we specify Cloudflare instead of the default resolver because trust_dns_resolver has an issue on Windows where it's really slow using the default resolver
@@ -56,8 +53,8 @@ pub async fn resolve_address(address: &ServerAddress) -> Result<ServerIpAddress,
     let lookup_ip_result = resolver.lookup_ip(address.host.clone()).await;
     let lookup_ip = lookup_ip_result.map_err(|_| ResolverError::NoIp)?;
 
-    Ok(ServerIpAddress {
-        ip: lookup_ip.iter().next().unwrap(),
-        port: address.port,
-    })
+    Ok(SocketAddr::new(
+        lookup_ip.iter().next().unwrap(),
+        address.port,
+    ))
 }

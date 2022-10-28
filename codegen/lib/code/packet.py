@@ -121,6 +121,9 @@ def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target
 def set_packets(packet_ids: list[int], packet_class_names: list[str], direction: str, state: str):
     assert len(packet_ids) == len(packet_class_names)
 
+    # ids are repeated
+    assert len(packet_ids) == len(set(packet_ids))
+
     # sort the packets by id
     packet_ids, packet_class_names = [list(x) for x in zip(
         *sorted(zip(packet_ids, packet_class_names), key=lambda pair: pair[0]))]  # type: ignore
@@ -376,6 +379,8 @@ def change_packet_ids(id_map: dict[int, int], direction: str, state: str):
 
     for packet_id in existing_packet_ids:
         new_packet_id = id_map.get(packet_id, packet_id)
+        if new_packet_id in new_packet_ids:
+            raise Exception('Two packets have the same id')
         new_packet_ids.append(new_packet_id)
 
     set_packets(new_packet_ids, existing_packet_class_names, direction, state)

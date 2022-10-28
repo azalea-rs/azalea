@@ -95,7 +95,9 @@ impl<'a> Iterator for BlockCollisions<'a> {
             let chunk_lock = chunk.lock().unwrap();
 
             let pos = item.pos;
-            let block_state: BlockState = chunk_lock.get(&(&pos).into(), self.dimension.min_y());
+            let block_state: BlockState = chunk_lock
+                .get(&(&pos).into(), self.dimension.min_y())
+                .unwrap_or(BlockState::Air);
 
             // TODO: continue if self.only_suffocating_blocks and the block is not suffocating
 
