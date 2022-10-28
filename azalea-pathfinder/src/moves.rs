@@ -32,7 +32,7 @@ pub trait Move {
     fn offset(&self) -> BlockPos;
 }
 
-pub struct NorthMove {}
+pub struct NorthMove;
 impl Move for NorthMove {
     fn can_execute(&self, dim: &Dimension, pos: &BlockPos) -> bool {
         is_standable(&(pos + &self.offset()), dim)
@@ -42,7 +42,7 @@ impl Move for NorthMove {
     }
 }
 
-pub struct SouthMove {}
+pub struct SouthMove;
 impl Move for SouthMove {
     fn can_execute(&self, dim: &Dimension, pos: &BlockPos) -> bool {
         is_standable(&(pos + &self.offset()), dim)
@@ -52,7 +52,7 @@ impl Move for SouthMove {
     }
 }
 
-pub struct EastMove {}
+pub struct EastMove;
 impl Move for EastMove {
     fn can_execute(&self, dim: &Dimension, pos: &BlockPos) -> bool {
         is_standable(&(pos + &self.offset()), dim)
@@ -62,7 +62,7 @@ impl Move for EastMove {
     }
 }
 
-pub struct WestMove {}
+pub struct WestMove;
 impl Move for WestMove {
     fn can_execute(&self, dim: &Dimension, pos: &BlockPos) -> bool {
         is_standable(&(pos + &self.offset()), dim)

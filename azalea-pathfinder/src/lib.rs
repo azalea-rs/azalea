@@ -29,6 +29,7 @@ impl azalea::Plugin for Plugin {
 
 pub trait Trait {
     fn goto(&self, goal: impl Goal);
+    fn execute_path(&self, path: &Vec<Node>);
 }
 
 impl Trait for azalea_client::Client {
@@ -41,10 +42,10 @@ impl Trait for azalea_client::Client {
         let successors = |node: &Node| {
             let mut edges = Vec::new();
             let possible_moves: Vec<&dyn moves::Move> = vec![
-                &moves::NorthMove {},
-                &moves::SouthMove {},
-                &moves::EastMove {},
-                &moves::WestMove {},
+                &moves::NorthMove,
+                &moves::SouthMove,
+                &moves::EastMove,
+                &moves::WestMove,
             ];
             let dimension = self.dimension.lock();
             for possible_move in possible_moves.iter() {
@@ -69,6 +70,11 @@ impl Trait for azalea_client::Client {
             |n| goal.success(n),
         );
         let p = pf.find_path();
+    }
+
+    fn execute_path(&self, path: &Vec<Node>) {
+        let start = path[0];
+        // self.look_at(start.pos);
     }
 }
 
