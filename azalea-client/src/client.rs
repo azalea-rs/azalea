@@ -182,55 +182,48 @@ impl Client {
         .await?;
 
         let (conn, game_profile) = loop {
-            let packet_result = conn.read().await;
-            match packet_result {
-                Ok(packet) => match packet {
-                    ClientboundLoginPacket::Hello(p) => {
-                        debug!("Got encryption request");
-                        let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
+            let packet = conn.read().await?;
+            match packet {
+                ClientboundLoginPacket::Hello(p) => {
+                    debug!("Got encryption request");
+                    let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
 
-                        if let Some(access_token) = &account.access_token {
-                            conn.authenticate(
-                                access_token,
-                                &account
-                                    .uuid
-                                    .expect("Uuid must be present if access token is present."),
-                                e.secret_key,
-                                p,
-                            )
-                            .await?;
-                        }
-
-                        conn.write(
-                            ServerboundKeyPacket {
-                                nonce_or_salt_signature: NonceOrSaltSignature::Nonce(
-                                    e.encrypted_nonce,
-                                ),
-                                key_bytes: e.encrypted_public_key,
-                            }
-                            .get(),
+                    if let Some(access_token) = &account.access_token {
+                        conn.authenticate(
+                            access_token,
+                            &account
+                                .uuid
+                                .expect("Uuid must be present if access token is present."),
+                            e.secret_key,
+                            p,
                         )
                         .await?;
+                    }
 
-                        conn.set_encryption_key(e.secret_key);
-                    }
-                    ClientboundLoginPacket::LoginCompression(p) => {
-                        debug!("Got compression request {:?}", p.compression_threshold);
-                        conn.set_compression_threshold(p.compression_threshold);
-                    }
-                    ClientboundLoginPacket::GameProfile(p) => {
-                        debug!("Got profile {:?}", p.game_profile);
-                        break (conn.game(), p.game_profile);
-                    }
-                    ClientboundLoginPacket::LoginDisconnect(p) => {
-                        debug!("Got disconnect {:?}", p);
-                    }
-                    ClientboundLoginPacket::CustomQuery(p) => {
-                        debug!("Got custom query {:?}", p);
-                    }
-                },
-                Err(e) => {
-                    panic!("Error: {e:?}");
+                    conn.write(
+                        ServerboundKeyPacket {
+                            nonce_or_salt_signature: NonceOrSaltSignature::Nonce(e.encrypted_nonce),
+                            key_bytes: e.encrypted_public_key,
+                        }
+                        .get(),
+                    )
+                    .await?;
+
+                    conn.set_encryption_key(e.secret_key);
+                }
+                ClientboundLoginPacket::LoginCompression(p) => {
+                    debug!("Got compression request {:?}", p.compression_threshold);
+                    conn.set_compression_threshold(p.compression_threshold);
+                }
+                ClientboundLoginPacket::GameProfile(p) => {
+                    debug!("Got profile {:?}", p.game_profile);
+                    break (conn.game(), p.game_profile);
+                }
+                ClientboundLoginPacket::LoginDisconnect(p) => {
+                    debug!("Got disconnect {:?}", p);
+                }
+                ClientboundLoginPacket::CustomQuery(p) => {
+                    debug!("Got custom query {:?}", p);
                 }
             }
         };
