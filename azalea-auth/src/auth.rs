@@ -444,10 +444,7 @@ async fn check_ownership(
 ) -> Result<bool, CheckOwnershipError> {
     let res = client
         .get("https://api.minecraftservices.com/entitlements/mcstore")
-        .header(
-            "Authorization",
-            format!("Bearer {minecraft_access_token}"),
-        )
+        .header("Authorization", format!("Bearer {minecraft_access_token}"))
         .send()
         .await?
         .json::<GameOwnershipResponse>()
@@ -472,10 +469,7 @@ async fn get_profile(
 ) -> Result<ProfileResponse, GetProfileError> {
     let res = client
         .get("https://api.minecraftservices.com/minecraft/profile")
-        .header(
-            "Authorization",
-            format!("Bearer {minecraft_access_token}"),
-        )
+        .header("Authorization", format!("Bearer {minecraft_access_token}"))
         .send()
         .await?
         .json::<ProfileResponse>()
