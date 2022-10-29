@@ -123,6 +123,8 @@ where
 pub enum Error {
     #[error("Invalid address")]
     InvalidAddress,
+    #[error("Join error: {0}")]
+    Join(#[from] azalea_client::JoinError),
 }
 
 /// Join a server and start handling events. This function will run forever until
@@ -151,7 +153,7 @@ pub async fn start<
         Err(_) => return Err(Error::InvalidAddress),
     };
 
-    let (bot, mut rx) = Client::join(&options.account, address).await.unwrap();
+    let (bot, mut rx) = Client::join(&options.account, address).await?;
 
     let state = options.state;
     let bot_plugin = bot::Plugin::default();
