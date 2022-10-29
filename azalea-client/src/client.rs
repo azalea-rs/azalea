@@ -751,6 +751,7 @@ impl Client {
             ClientboundGamePacket::TabList(_) => {}
             ClientboundGamePacket::TagQuery(_) => {}
             ClientboundGamePacket::TakeItemEntity(_) => {}
+            ClientboundGamePacket::ContainerClose(_) => {}
         }
 
         Ok(())
