@@ -1,6 +1,6 @@
 use azalea_buf::{BufReadError, McBufVarReadable};
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
-use azalea_chat::component::Component;
+use azalea_chat::Component;
 use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot};
 use std::io::{Cursor, Write};
 use uuid::Uuid;

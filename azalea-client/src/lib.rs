@@ -14,7 +14,7 @@ pub mod ping;
 mod player;
 
 pub use account::Account;
-pub use client::{Client, ClientInformation, Event, JoinError};
+pub use client::{ChatPacket, Client, ClientInformation, Event, JoinError};
 pub use movement::MoveDirection;
 pub use player::Player;
 

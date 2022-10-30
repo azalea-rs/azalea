@@ -1,6 +1,6 @@
 use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
-use azalea_chat::component::Component;
+use azalea_chat::Component;
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Cursor, Write};
 

@@ -6,6 +6,18 @@ use uuid::Uuid;
 /// Something that can join Minecraft servers.
 ///
 /// To join a server using this account, use [`crate::Client::join`].
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// use azalea_client::Account;
+///
+/// # #[tokio::main]
+/// # async fn main() {
+/// let account = Account::microsoft("example@example.com").await;
+/// // or Account::offline("example");
+/// # }
+/// ```
 #[derive(Clone, Debug)]
 pub struct Account {
     /// The Minecraft username of the account.

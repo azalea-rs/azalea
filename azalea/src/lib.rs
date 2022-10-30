@@ -94,8 +94,10 @@ where
     /// The address of the server that we're connecting to. This can be a
     /// `&str`, [`ServerAddress`], or anything that implements
     /// `TryInto<ServerAddress>`.
+    ///
+    /// [`ServerAddress`]: azalea_protocol::ServerAddress
     pub address: A,
-    /// The account that's going to join the server,
+    /// The account that's going to join the server.
     pub account: Account,
     /// A list of plugins that are going to be used. Plugins are external
     /// crates that add extra functionality to Azalea.
@@ -116,6 +118,17 @@ where
     /// ```
     pub state: S,
     /// The function that's called whenever we get an event.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use anyhow::Result;
+    /// use azalea::prelude::*;
+    ///
+    /// async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    ///     Ok(())
+    /// }
+    /// ```
     pub handle: HandleFn<Fut, S>,
 }
 

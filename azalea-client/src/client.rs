@@ -1,6 +1,6 @@
 use crate::{movement::MoveDirection, Account, Player};
 use azalea_auth::game_profile::GameProfile;
-use azalea_chat::component::Component;
+use azalea_chat::Component;
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
@@ -62,6 +62,7 @@ pub enum Event {
     Packet(Box<ClientboundGamePacket>),
 }
 
+/// A chat packet, either a system message or a chat message.
 #[derive(Debug, Clone)]
 pub enum ChatPacket {
     System(ClientboundSystemChatPacket),
@@ -69,6 +70,7 @@ pub enum ChatPacket {
 }
 
 impl ChatPacket {
+    /// Get the message shown in chat for this packet.
     pub fn message(&self) -> Component {
         match self {
             ChatPacket::System(p) => p.content.clone(),
