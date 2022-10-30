@@ -4,6 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea-client"
 version = "0.2.2"
+repository = "https://github.com/mat-1/azalea/tree/main/azalea-client"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

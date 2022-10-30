@@ -4,6 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea-crypto"
 version = "0.2.0"
+repository = "https://github.com/mat-1/azalea/tree/main/azalea-crypto"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
