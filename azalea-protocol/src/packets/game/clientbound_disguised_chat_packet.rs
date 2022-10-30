@@ -1,6 +1,6 @@
 use super::clientbound_player_chat_packet::ChatTypeBound;
 use azalea_buf::McBuf;
-use azalea_chat::component::Component;
+use azalea_chat::Component;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]

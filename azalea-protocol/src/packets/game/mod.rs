@@ -22,6 +22,7 @@ pub mod clientbound_custom_payload_packet;
 pub mod clientbound_custom_sound_packet;
 pub mod clientbound_delete_chat_packet;
 pub mod clientbound_disconnect_packet;
+pub mod clientbound_disguised_chat_packet;
 pub mod clientbound_entity_event_packet;
 pub mod clientbound_explode_packet;
 pub mod clientbound_forget_level_chunk_packet;
@@ -50,6 +51,8 @@ pub mod clientbound_player_chat_packet;
 pub mod clientbound_player_combat_end_packet;
 pub mod clientbound_player_combat_enter_packet;
 pub mod clientbound_player_combat_kill_packet;
+pub mod clientbound_player_info_remove_packet;
+pub mod clientbound_player_info_update_packet;
 pub mod clientbound_player_look_at_packet;
 pub mod clientbound_player_position_packet;
 pub mod clientbound_recipe_packet;
@@ -232,6 +235,7 @@ declare_state_packets!(
         0x16: clientbound_custom_sound_packet::ClientboundCustomSoundPacket,
         0x17: clientbound_delete_chat_packet::ClientboundDeleteChatPacket,
         0x18: clientbound_disconnect_packet::ClientboundDisconnectPacket,
+        0x19: clientbound_disguised_chat_packet::ClientboundDisguisedChatPacket,
         0x1a: clientbound_entity_event_packet::ClientboundEntityEventPacket,
         0x1b: clientbound_explode_packet::ClientboundExplodePacket,
         0x1c: clientbound_forget_level_chunk_packet::ClientboundForgetLevelChunkPacket,
@@ -260,6 +264,8 @@ declare_state_packets!(
         0x33: clientbound_player_combat_end_packet::ClientboundPlayerCombatEndPacket,
         0x34: clientbound_player_combat_enter_packet::ClientboundPlayerCombatEnterPacket,
         0x35: clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
+        0x36: clientbound_player_info_remove_packet::ClientboundPlayerInfoRemovePacket,
+        0x37: clientbound_player_info_update_packet::ClientboundPlayerInfoUpdatePacket,
         0x38: clientbound_player_look_at_packet::ClientboundPlayerLookAtPacket,
         0x39: clientbound_player_position_packet::ClientboundPlayerPositionPacket,
         0x3a: clientbound_recipe_packet::ClientboundRecipePacket,

@@ -1,6 +1,45 @@
 use proc_macro::TokenStream;
+use proc_macro2::Span;
 use quote::{quote, ToTokens};
-use syn::{self, parse_macro_input, Data, DeriveInput, FieldsNamed, Ident};
+use syn::{
+    self, parse_macro_input, punctuated::Punctuated, token::Comma, Data, DeriveInput, Field,
+    FieldsNamed, Ident,
+};
+
+fn read_named_fields(
+    named: &Punctuated<Field, Comma>,
+) -> (Vec<proc_macro2::TokenStream>, Vec<&Option<Ident>>) {
+    let read_fields = named
+        .iter()
+        .map(|f| {
+            let field_name = &f.ident;
+            let field_type = &f.ty;
+            // do a different buf.write_* for each field depending on the type
+            // if it's a string, use buf.write_string
+            match field_type {
+                syn::Type::Path(_) | syn::Type::Array(_) => {
+                    if f.attrs.iter().any(|a| a.path.is_ident("var")) {
+                        quote! {
+                            let #field_name = azalea_buf::McBufVarReadable::var_read_from(buf)?;
+                        }
+                    } else {
+                        quote! {
+                            let #field_name = azalea_buf::McBufReadable::read_from(buf)?;
+                        }
+                    }
+                }
+                _ => panic!(
+                    "Error reading field {}: {}",
+                    field_name.clone().unwrap(),
+                    field_type.to_token_stream()
+                ),
+            }
+        })
+        .collect::<Vec<_>>();
+    let read_field_names = named.iter().map(|f| &f.ident).collect::<Vec<_>>();
+
+    (read_fields, read_field_names)
+}
 
 fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
     match data {
@@ -10,34 +49,7 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                 _ => panic!("#[derive(McBuf)] can only be used on structs with named fields"),
             };
 
-            let read_fields = named
-                .iter()
-                .map(|f| {
-                    let field_name = &f.ident;
-                    let field_type = &f.ty;
-                    // do a different buf.write_* for each field depending on the type
-                    // if it's a string, use buf.write_string
-                    match field_type {
-                        syn::Type::Path(_) | syn::Type::Array(_) => {
-                            if f.attrs.iter().any(|a| a.path.is_ident("var")) {
-                                quote! {
-                                    let #field_name = azalea_buf::McBufVarReadable::var_read_from(buf)?;
-                                }
-                            } else {
-                                quote! {
-                                    let #field_name = azalea_buf::McBufReadable::read_from(buf)?;
-                                }
-                            }
-                        }
-                        _ => panic!(
-                            "Error reading field {}: {}",
-                            field_name.clone().unwrap(),
-                            field_type.to_token_stream()
-                        ),
-                    }
-                })
-                .collect::<Vec<_>>();
-            let read_field_names = named.iter().map(|f| &f.ident).collect::<Vec<_>>();
+            let (read_fields, read_field_names) = read_named_fields(named);
 
             quote! {
             impl azalea_buf::McBufReadable for #ident {
@@ -78,9 +90,16 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         }
                     }
                 }
-                let reader = match variant.fields {
-                    syn::Fields::Named(_) => {
-                        panic!("writing named fields in enums is not supported")
+                let reader = match &variant.fields {
+                    syn::Fields::Named(f) => {
+                        let (read_fields, read_field_names) = read_named_fields(&f.named);
+
+                        quote! {
+                            #(#read_fields)*
+                            Ok(#ident::#variant_name {
+                                #(#read_field_names: #read_field_names),*
+                            })
+                        }
                     }
                     syn::Fields::Unnamed(_) => quote! {
                         Ok(Self::#variant_name(azalea_buf::McBufReadable::read_from(buf)?))
@@ -105,13 +124,12 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
 
             quote! {
             impl azalea_buf::McBufReadable for #ident {
-                fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError>
-                {
+                fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
                     let id = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                     match id {
                         #match_contents
                         // you'd THINK this throws an error, but mojang decided to make it default for some reason
-                        _ => #first_reader
+                        _ => {#first_reader}
                     }
                 }
             }
@@ -119,6 +137,41 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
         }
         _ => panic!("#[derive(McBuf)] can only be used on structs"),
     }
+}
+
+fn write_named_fields(
+    named: &Punctuated<Field, Comma>,
+    ident_name: Option<&Ident>,
+) -> proc_macro2::TokenStream {
+    let write_fields = named.iter().map(|f| {
+        let field_name = &f.ident;
+        let field_type = &f.ty;
+        let ident_dot_field = match ident_name {
+            Some(ident) => quote! { &#ident.#field_name },
+            None => quote! { #field_name },
+        };
+        // do a different buf.write_* for each field depending on the type
+        // if it's a string, use buf.write_string
+        match field_type {
+            syn::Type::Path(_) | syn::Type::Array(_) => {
+                if f.attrs.iter().any(|attr| attr.path.is_ident("var")) {
+                    quote! {
+                        azalea_buf::McBufVarWritable::var_write_into(#ident_dot_field, buf)?;
+                    }
+                } else {
+                    quote! {
+                        azalea_buf::McBufWritable::write_into(#ident_dot_field, buf)?;
+                    }
+                }
+            }
+            _ => panic!(
+                "Error writing field {}: {}",
+                field_name.clone().unwrap(),
+                field_type.to_token_stream()
+            ),
+        }
+    });
+    quote! { #(#write_fields)* }
 }
 
 fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
@@ -129,38 +182,13 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                 _ => panic!("#[derive(McBuf)] can only be used on structs with named fields"),
             };
 
-            let write_fields = named
-            .iter()
-            .map(|f| {
-                let field_name = &f.ident;
-                let field_type = &f.ty;
-                // do a different buf.write_* for each field depending on the type
-                // if it's a string, use buf.write_string
-                match field_type {
-                    syn::Type::Path(_) | syn::Type::Array(_) => {
-                        if f.attrs.iter().any(|attr| attr.path.is_ident("var")) {
-                            quote! {
-                                azalea_buf::McBufVarWritable::var_write_into(&self.#field_name, buf)?;
-                            }
-                        } else {
-                            quote! {
-                                azalea_buf::McBufWritable::write_into(&self.#field_name, buf)?;
-                            }
-                        }
-                    }
-                    _ => panic!(
-                        "Error writing field {}: {}",
-                        field_name.clone().unwrap(),
-                        field_type.to_token_stream()
-                    ),
-                }
-            })
-            .collect::<Vec<_>>();
+            let write_fields =
+                write_named_fields(named, Some(&Ident::new("self", Span::call_site())));
 
             quote! {
                 impl azalea_buf::McBufWritable for #ident {
                     fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-                        #(#write_fields)*
+                        #write_fields
                         Ok(())
                     }
                 }
@@ -197,12 +225,24 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                     }
                 }
 
+                let variant_name = &variant.ident;
                 match &variant.fields {
-                    syn::Fields::Named(_) => {
-                        panic!("Enum variants with named fields are not supported yet");
+                    syn::Fields::Named(f) => {
+                        is_data_enum = true;
+                        let field_names = f
+                            .named
+                            .iter()
+                            .map(|f| f.ident.clone().unwrap())
+                            .collect::<Vec<_>>();
+                        let write_fields = write_named_fields(&f.named, None);
+                        match_arms.extend(quote! {
+                            Self::#variant_name { #(#field_names),* } => {
+                                azalea_buf::McBufVarWritable::var_write_into(&#variant_discrim, buf)?;
+                                #write_fields
+                            }
+                        });
                     }
                     syn::Fields::Unit => {
-                        let variant_name = &variant.ident;
                         match_arms.extend(quote! {
                             Self::#variant_name => {
                                 azalea_buf::McBufVarWritable::var_write_into(&#variant_discrim, buf)?;
@@ -211,7 +251,6 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                     }
                     syn::Fields::Unnamed(_) => {
                         is_data_enum = true;
-                        let variant_name = &variant.ident;
                         match_arms.extend(quote! {
                             Self::#variant_name(data) => {
                                 azalea_buf::McBufVarWritable::var_write_into(&#variant_discrim, buf)?;

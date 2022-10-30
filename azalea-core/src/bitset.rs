@@ -1,4 +1,6 @@
-use azalea_buf::McBuf;
+use std::io::{Cursor, Read};
+
+use azalea_buf::{BufReadError, McBuf};
 
 /// Represents Java's BitSet, a list of bits.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default, McBuf)]
@@ -100,6 +102,29 @@ impl BitSet {
 
     pub fn set(&mut self, bit_index: usize) {
         self.data[bit_index / 64] |= 1u64 << (bit_index % 64);
+    }
+
+    /// Read a BitSet with a known length.
+    pub fn read_fixed(buf: &mut Cursor<&[u8]>, length: usize) -> Result<Self, BufReadError> {
+        let mut data = vec![0; length.div_ceil(8)];
+        buf.read_exact(&mut data)?;
+        Ok(BitSet::from(data))
+    }
+}
+
+impl From<Vec<u64>> for BitSet {
+    fn from(data: Vec<u64>) -> Self {
+        BitSet { data }
+    }
+}
+
+impl From<Vec<u8>> for BitSet {
+    fn from(data: Vec<u8>) -> Self {
+        let mut words = vec![0; data.len().div_ceil(8)];
+        for (i, byte) in data.iter().enumerate() {
+            words[i / 8] |= (*byte as u64) << ((i % 8) * 8);
+        }
+        BitSet { data: words }
     }
 }
 

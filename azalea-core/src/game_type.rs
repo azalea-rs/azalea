@@ -1,8 +1,9 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use std::io::{Cursor, Write};
 
-#[derive(Hash, Copy, Clone, Debug)]
+#[derive(Hash, Copy, Clone, Debug, Default)]
 pub enum GameType {
+    #[default]
     SURVIVAL,
     CREATIVE,
     ADVENTURE,
