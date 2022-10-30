@@ -1,5 +1,7 @@
 # Azalea
 
+[![docs.rs](https://img.shields.io/docsrs/azalea)](https://docs.rs/azalea)
+
 A collection of Rust crates for making Minecraft bots, clients, and tools.
 
 <p align="center">

@@ -275,7 +275,7 @@ fn execute_redirected_multiple_times() {
         child2.clone().unwrap().nodes[0].range,
         child2.clone().unwrap().range
     );
-    assert_eq!(child2.clone().unwrap().nodes[0].node, concrete_node);
+    assert_eq!(child2.unwrap().nodes[0].node, concrete_node);
 
     assert_eq!(CommandDispatcher::execute_parsed(parse).unwrap(), 42);
 }
@@ -406,5 +406,5 @@ fn get_path() {
 fn find_node_doesnt_exist() {
     let subject = CommandDispatcher::<()>::new();
 
-    assert_eq!(subject.find_node(&vec!["foo", "bar"]), None)
+    assert_eq!(subject.find_node(&["foo", "bar"]), None)
 }

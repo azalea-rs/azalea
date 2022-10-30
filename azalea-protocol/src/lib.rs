@@ -3,6 +3,9 @@
 //! You should probably use [`azalea`] or [`azalea_client`] instead, as
 //! azalea_protocol delegates much of the work, such as auth, to the user of
 //! the crate.
+//!
+//! [`azalea`]: https://crates.io/crates/azalea
+//! [`azalea_client`]: https://crates.io/crates/azalea-client
 
 // these two are necessary for thiserror backtraces
 #![feature(error_generic_member_access)]

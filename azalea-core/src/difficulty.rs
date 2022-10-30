@@ -20,7 +20,7 @@ pub enum Err {
 impl Debug for Err {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         match self {
-            Err::InvalidDifficulty(s) => write!(f, "Invalid difficulty: {}", s),
+            Err::InvalidDifficulty(s) => write!(f, "Invalid difficulty: {s}"),
         }
     }
 }
@@ -52,7 +52,7 @@ impl Difficulty {
             2 => Difficulty::NORMAL,
             3 => Difficulty::HARD,
             // this shouldn't be possible because of the modulo, so panicking is fine
-            _ => panic!("Unknown difficulty id: {}", id),
+            _ => panic!("Unknown difficulty id: {id}"),
         }
     }
 

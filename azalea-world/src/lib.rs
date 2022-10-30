@@ -62,11 +62,11 @@ impl Dimension {
     }
 
     pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
-        self.chunk_storage.get_block_state(pos, self.min_y())
+        self.chunk_storage.get_block_state(pos)
     }
 
     pub fn set_block_state(&mut self, pos: &BlockPos, state: BlockState) -> Option<BlockState> {
-        self.chunk_storage.set_block_state(pos, state, self.min_y())
+        self.chunk_storage.set_block_state(pos, state)
     }
 
     pub fn set_entity_pos(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), MoveEntityError> {

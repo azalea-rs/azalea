@@ -3,23 +3,24 @@ description = "A port of Mojang's Authlib and launcher authentication."
 edition = "2021"
 license = "MIT"
 name = "azalea-auth"
-version = "0.2.2"
+repository = "https://github.com/mat-1/azalea/tree/main/azalea-auth"
+version = "0.3.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-buf = { path = "../azalea-buf", version = "^0.2.0" }
-azalea-crypto = { path = "../azalea-crypto", version = "^0.2.0" }
-chrono = { version = "0.4.22", default-features = false }
+azalea-buf = {path = "../azalea-buf", version = "^0.3.0" }
+azalea-crypto = {path = "../azalea-crypto", version = "^0.3.0" }
+chrono = {version = "0.4.22", default-features = false}
 log = "0.4.17"
 num-bigint = "0.4.3"
-reqwest = { version = "0.11.12", features = ["json"] }
-serde = { version = "1.0.145", features = ["derive"] }
+reqwest = {version = "0.11.12", features = ["json"]}
+serde = {version = "1.0.145", features = ["derive"]}
 serde_json = "1.0.86"
 thiserror = "1.0.37"
-tokio = { version = "1.21.2", features = ["fs"] }
+tokio = {version = "1.21.2", features = ["fs"]}
 uuid = "^1.1.2"
 
 [dev-dependencies]
 env_logger = "0.9.1"
-tokio = { version = "1.21.2", features = ["full"] }
+tokio = {version = "1.21.2", features = ["full"]}

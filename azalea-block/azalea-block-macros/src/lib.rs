@@ -317,7 +317,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             // }
             let property_variants = properties_map
                 .get(property_name)
-                .unwrap_or_else(|| panic!("Property '{}' not found", property_name))
+                .unwrap_or_else(|| panic!("Property '{property_name}' not found"))
                 .clone();
             block_properties_vec.push(property_variants);
         }
@@ -354,7 +354,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             previous_names.push(property_name.clone());
             if let Some(index) = index {
                 // property_name.push_str(&format!("_{}", &index.to_string()));
-                write!(property_name, "_{}", index).unwrap();
+                write!(property_name, "_{index}").unwrap();
             }
             properties_with_name.push(PropertyWithNameAndDefault {
                 name: Ident::new(&property_name, proc_macro2::Span::call_site()),
@@ -391,7 +391,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             proc_macro2::Span::call_site(),
         );
         let block_struct_name = Ident::new(
-            &format!("{}Block", block_name_pascal_case),
+            &format!("{block_name_pascal_case}Block"),
             proc_macro2::Span::call_site(),
         );
 

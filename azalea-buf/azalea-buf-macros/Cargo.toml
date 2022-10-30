@@ -3,7 +3,8 @@ description = "#[derive(McBuf)]"
 edition = "2021"
 license = "MIT"
 name = "azalea-buf-macros"
-version = "0.2.0"
+repository = "https://github.com/mat-1/azalea/tree/main/azalea-buf"
+version = "0.3.0"
 
 [lib]
 proc-macro = true

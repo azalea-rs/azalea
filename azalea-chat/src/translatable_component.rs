@@ -1,8 +1,7 @@
 use std::fmt::{self, Display, Formatter};
 
 use crate::{
-    base_component::BaseComponent, component::Component, style::Style,
-    text_component::TextComponent,
+    base_component::BaseComponent, style::Style, text_component::TextComponent, Component,
 };
 
 #[derive(Clone, Debug)]
@@ -11,6 +10,7 @@ pub enum StringOrComponent {
     Component(Component),
 }
 
+/// A message whose content depends on the client's language.
 #[derive(Clone, Debug)]
 pub struct TranslatableComponent {
     pub base: BaseComponent,
@@ -134,8 +134,8 @@ impl Display for TranslatableComponent {
 impl Display for StringOrComponent {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
-            StringOrComponent::String(s) => write!(f, "{}", s),
-            StringOrComponent::Component(c) => write!(f, "{}", c),
+            StringOrComponent::String(s) => write!(f, "{s}"),
+            StringOrComponent::Component(c) => write!(f, "{c}"),
         }
     }
 }

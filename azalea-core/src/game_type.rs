@@ -73,7 +73,7 @@ impl GameType {
             "creative" => GameType::CREATIVE,
             "adventure" => GameType::ADVENTURE,
             "spectator" => GameType::SPECTATOR,
-            _ => panic!("Unknown game type name: {}", name),
+            _ => panic!("Unknown game type name: {name}"),
         }
     }
 }

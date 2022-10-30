@@ -100,7 +100,7 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
 name = "azalea"
-version = "0.2.4"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -114,7 +114,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-auth"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "azalea-buf",
  "azalea-crypto",
@@ -132,7 +132,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-block"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "azalea-block-macros",
  "azalea-buf",
@@ -140,7 +140,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-block-macros"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -149,11 +149,11 @@ dependencies = [
 
 [[package]]
 name = "azalea-brigadier"
-version = "0.2.0"
+version = "0.3.0"
 
 [[package]]
 name = "azalea-buf"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "azalea-buf-macros",
  "byteorder",
@@ -165,7 +165,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-buf-macros"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -174,7 +174,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-chat"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "azalea-buf",
  "azalea-language",
@@ -185,7 +185,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-client"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "azalea-auth",
@@ -205,7 +205,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-core"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "azalea-buf",
  "azalea-chat",
@@ -215,7 +215,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-crypto"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "aes",
  "azalea-buf",
@@ -230,7 +230,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-language"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "lazy_static",
  "serde",
@@ -239,7 +239,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-nbt"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "ahash",
  "azalea-buf",
@@ -252,7 +252,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-physics"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "azalea-block",
  "azalea-core",
@@ -263,7 +263,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-protocol"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "async-compression",
  "async-recursion",
@@ -295,7 +295,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-protocol-macros"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -304,7 +304,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-registry"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "azalea-buf",
  "azalea-registry-macros",
@@ -312,7 +312,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-registry-macros"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -321,7 +321,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-world"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "azalea-block",
  "azalea-buf",

@@ -1,5 +1,5 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use azalea_chat::component::Component;
+use azalea_chat::Component;
 use azalea_protocol_macros::ClientboundStatusPacket;
 use serde::Deserialize;
 use serde_json::Value;

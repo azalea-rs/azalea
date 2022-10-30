@@ -42,7 +42,7 @@ impl Axis {
             0 => Axis::X,
             1 => Axis::Y,
             2 => Axis::Z,
-            _ => panic!("Invalid ordinal {}", ordinal),
+            _ => panic!("Invalid ordinal {ordinal}"),
         }
     }
 }

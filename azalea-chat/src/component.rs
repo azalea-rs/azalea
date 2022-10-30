@@ -13,6 +13,7 @@ use crate::{
     translatable_component::{StringOrComponent, TranslatableComponent},
 };
 
+/// A chat component, basically anything you can see in chat.
 #[derive(Clone, Debug)]
 pub enum Component {
     Text(TextComponent),
@@ -57,7 +58,22 @@ impl Component {
         Ok(None)
     }
 
-    /// Convert this component into an ansi string
+    /// Convert this component into an
+    /// [ANSI string](https://en.wikipedia.org/wiki/ANSI_escape_code), so you
+    /// can print it to your terminal and get styling.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use azalea_chat::Component;
+    ///
+    /// let component = Component::deserialize(&serde_json::json!({
+    ///    "text": "Hello, world!",
+    ///    "color": "red",
+    /// })).unwrap();
+    ///
+    /// println!("{}", component.to_ansi());
+    /// ```
     pub fn to_ansi(&self, default_style: Option<&Style>) -> String {
         // default the default_style to white if it's not set
         let default_style: &Style = default_style.unwrap_or(&DEFAULT_STYLE);
@@ -186,7 +202,7 @@ impl<'de> Deserialize<'de> for Component {
                     nbt
                 } else {
                     return Err(de::Error::custom(
-                        format!("Don't know how to turn {} into a Component", json).as_str(),
+                        format!("Don't know how to turn {json} into a Component").as_str(),
                     ));
                 };
                 let _separator = Component::parse_separator(&json).map_err(de::Error::custom)?;
@@ -223,7 +239,7 @@ impl<'de> Deserialize<'de> for Component {
         // ok so it's not an object, if it's an array deserialize every item
         else if !json.is_array() {
             return Err(de::Error::custom(
-                format!("Don't know how to turn {} into a Component", json).as_str(),
+                format!("Don't know how to turn {json} into a Component").as_str(),
             ));
         }
         let json_array = json.as_array().unwrap();
