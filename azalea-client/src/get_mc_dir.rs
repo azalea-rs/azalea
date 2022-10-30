@@ -13,7 +13,7 @@ use std::path::PathBuf;
 /// If the environment variable is not set, this will return `None`.
 pub fn minecraft_dir() -> Option<PathBuf> {
     let env_var = home_env_var();
-    let home = std::env::var(env_var)?;
+    let home = std::env::var(env_var).ok()?;
     let path = PathBuf::from(home).join(minecraft_dir_relative());
     Some(path)
 }
