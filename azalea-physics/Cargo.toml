@@ -3,15 +3,15 @@ description = "Physics for Minecraft entities."
 edition = "2021"
 license = "MIT"
 name = "azalea-physics"
-version = "0.2.0"
+version = "0.3.0"
 repository = "https://github.com/mat-1/azalea/tree/main/azalea-physics"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-block = { path = "../azalea-block", version = "^0.2.0" }
-azalea-core = { path = "../azalea-core", version = "^0.2.0" }
-azalea-world = { path = "../azalea-world", version = "^0.2.0" }
+azalea-block = { path = "../azalea-block", version = "^0.3.0" }
+azalea-core = { path = "../azalea-core", version = "^0.3.0" }
+azalea-world = { path = "../azalea-world", version = "^0.3.0" }
 lazy_static = "1.4.0"
 
 [dev-dependencies]
