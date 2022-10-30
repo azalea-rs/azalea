@@ -55,26 +55,24 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///         hostname: address.host.to_string(),
 ///         port: address.port,
 ///         intention: ConnectionProtocol::Login,
-///     }
-///     .get(),
-/// )
-/// .await?;
-/// let mut conn = conn.login();
+///     }.get());
 ///
-/// // login
-/// conn.write(
-///     ServerboundHelloPacket {
-///         username,
-///         public_key: None,
-///         profile_id: None,
-///     }
-///     .get(),
-/// )
-/// .await?;
+///     .await?;
+///     let mut conn = conn.login();
 ///
-/// let (conn, game_profile) = loop {
-///     let packet_result = conn.read().await;
-///     match packet_result {
+///     // login
+///     conn.write(
+///         ServerboundHelloPacket {
+///             username,
+///             public_key: None,
+///             profile_id: None,
+///         }
+///         .get(),
+///     )
+///     .await?;
+///
+///     let (conn, game_profile) = loop {
+///         let packet_result = conn.read().await?;
 ///         Ok(packet) => match packet {
 ///             ClientboundLoginPacket::Hello(p) => {
 ///                 let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
@@ -87,7 +85,8 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///                     .get(),
 ///                 )
 ///                 .await?;
-///                 conn.set_encryption_key(e.secret_key);            }
+///                 conn.set_encryption_key(e.secret_key);
+///             }
 ///             ClientboundLoginPacket::LoginCompression(p) => {
 ///                 conn.set_compression_threshold(p.compression_threshold);
 ///             }

@@ -34,7 +34,13 @@ impl Account {
     /// a key for the cache, but it's recommended to use the real email to
     /// avoid confusion.
     pub async fn microsoft(email: &str) -> Result<Self, azalea_auth::AuthError> {
-        let minecraft_dir = get_mc_dir::minecraft_dir().unwrap();
+        let minecraft_dir = get_mc_dir::minecraft_dir().expect(
+            format!(
+                "No {} environment variable found",
+                get_mc_dir::home_env_var()
+            )
+            .as_str(),
+        );
         let auth_result = azalea_auth::auth(
             email,
             azalea_auth::AuthOpts {
