@@ -9,13 +9,8 @@ pub struct ServerboundChatCommandPacket {
     pub command: String,
     pub timestamp: u64,
     pub salt: u64,
-    pub argument_signatures: ArgumentSignatures,
+    pub argument_signatures: Vec<ArgumentSignature>,
     pub last_seen_messages: LastSeenMessagesUpdate,
-}
-
-#[derive(Clone, Debug, McBuf)]
-pub struct ArgumentSignatures {
-    pub entries: Vec<ArgumentSignature>,
 }
 
 #[derive(Clone, Debug, McBuf)]

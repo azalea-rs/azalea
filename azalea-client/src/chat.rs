@@ -2,9 +2,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use azalea_crypto::MessageSignature;
 use azalea_protocol::packets::game::{
-    clientbound_player_chat_packet::LastSeenMessagesUpdate,
     serverbound_chat_command_packet::ServerboundChatCommandPacket,
-    serverbound_chat_packet::ServerboundChatPacket,
+    serverbound_chat_packet::{LastSeenMessagesUpdate, ServerboundChatPacket},
 };
 
 use crate::Client;
@@ -16,7 +15,7 @@ impl Client {
     /// should use that instead.
     pub async fn send_chat_packet(&self, message: &str) -> Result<(), std::io::Error> {
         // TODO: chat signing
-        let signature = sign_message();
+        // let signature = sign_message();
         let packet = ServerboundChatPacket {
             message: message.to_string(),
             timestamp: SystemTime::now()
@@ -26,8 +25,7 @@ impl Client {
                 .try_into()
                 .expect("Instant should fit into a u64"),
             salt: azalea_crypto::make_salt(),
-            signature,
-            signed_preview: false,
+            signature: None,
             last_seen_messages: LastSeenMessagesUpdate::default(),
         }
         .get();
@@ -48,7 +46,6 @@ impl Client {
                 .expect("Instant should fit into a u64"),
             salt: azalea_crypto::make_salt(),
             argument_signatures: vec![],
-            signed_preview: false,
             last_seen_messages: LastSeenMessagesUpdate::default(),
         }
         .get();

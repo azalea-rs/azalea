@@ -179,6 +179,14 @@ where
         Ok(())
     }
 }
+impl<const N: usize> Default for FixedBitSet<N>
+where
+    [u64; N.div_ceil(64)]: Sized,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 #[cfg(test)]
 mod tests {

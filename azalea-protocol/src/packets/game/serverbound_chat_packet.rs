@@ -12,7 +12,7 @@ pub struct ServerboundChatPacket {
     pub last_seen_messages: LastSeenMessagesUpdate,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, McBuf, Default)]
 pub struct LastSeenMessagesUpdate {
     #[var]
     pub offset: u32,
