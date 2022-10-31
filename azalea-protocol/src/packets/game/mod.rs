@@ -101,6 +101,7 @@ pub mod clientbound_take_item_entity_packet;
 pub mod clientbound_teleport_entity_packet;
 pub mod clientbound_update_advancements_packet;
 pub mod clientbound_update_attributes_packet;
+pub mod clientbound_update_enabled_features_packet;
 pub mod clientbound_update_mob_effect_packet;
 pub mod clientbound_update_recipes_packet;
 pub mod clientbound_update_tags_packet;
@@ -226,6 +227,7 @@ declare_state_packets!(
         0x0b: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
         0x0d: clientbound_command_suggestions_packet::ClientboundCommandSuggestionsPacket,
         0x0e: clientbound_commands_packet::ClientboundCommandsPacket,
+        0x0f: clientbound_container_close_packet::ClientboundContainerClosePacket,
         0x10: clientbound_container_set_content_packet::ClientboundContainerSetContentPacket,
         0x11: clientbound_container_set_data_packet::ClientboundContainerSetDataPacket,
         0x12: clientbound_container_set_slot_packet::ClientboundContainerSetSlotPacket,
@@ -314,6 +316,7 @@ declare_state_packets!(
         0x65: clientbound_teleport_entity_packet::ClientboundTeleportEntityPacket,
         0x66: clientbound_update_advancements_packet::ClientboundUpdateAdvancementsPacket,
         0x67: clientbound_update_attributes_packet::ClientboundUpdateAttributesPacket,
+        0x68: clientbound_update_enabled_features_packet::ClientboundUpdateEnabledFeaturesPacket,
         0x69: clientbound_update_mob_effect_packet::ClientboundUpdateMobEffectPacket,
         0x6a: clientbound_update_recipes_packet::ClientboundUpdateRecipesPacket,
         0x6b: clientbound_update_tags_packet::ClientboundUpdateTagsPacket,
