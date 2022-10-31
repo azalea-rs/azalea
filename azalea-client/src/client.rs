@@ -1,4 +1,4 @@
-use crate::{movement::MoveDirection, Account, Player};
+use crate::{movement::WalkDirection, Account, Player};
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::component::Component;
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
@@ -95,7 +95,7 @@ pub struct PhysicsState {
     /// Minecraft only sends a movement packet either after 20 ticks or if the player moved enough. This is that tick counter.
     pub position_remainder: u32,
 
-    pub move_direction: MoveDirection,
+    pub move_direction: WalkDirection,
     pub forward_impulse: f32,
     pub left_impulse: f32,
 }

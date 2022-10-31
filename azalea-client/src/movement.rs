@@ -184,21 +184,21 @@ impl Client {
         let mut left_impulse: f32 = 0.;
         let move_direction = physics_state.move_direction;
         match move_direction {
-            MoveDirection::Forward | MoveDirection::ForwardRight | MoveDirection::ForwardLeft => {
+            WalkDirection::Forward | WalkDirection::ForwardRight | WalkDirection::ForwardLeft => {
                 forward_impulse += 1.;
             }
-            MoveDirection::Backward
-            | MoveDirection::BackwardRight
-            | MoveDirection::BackwardLeft => {
+            WalkDirection::Backward
+            | WalkDirection::BackwardRight
+            | WalkDirection::BackwardLeft => {
                 forward_impulse -= 1.;
             }
             _ => {}
         };
         match move_direction {
-            MoveDirection::Right | MoveDirection::ForwardRight | MoveDirection::BackwardRight => {
+            WalkDirection::Right | WalkDirection::ForwardRight | WalkDirection::BackwardRight => {
                 left_impulse += 1.;
             }
-            MoveDirection::Left | MoveDirection::ForwardLeft | MoveDirection::BackwardLeft => {
+            WalkDirection::Left | WalkDirection::ForwardLeft | WalkDirection::BackwardLeft => {
                 left_impulse -= 1.;
             }
             _ => {}
@@ -213,7 +213,7 @@ impl Client {
     }
 
     /// Start walking in the given direction.
-    pub fn walk(&mut self, direction: MoveDirection) {
+    pub fn walk(&mut self, direction: WalkDirection) {
         let mut physics_state = self.physics_state.lock();
         physics_state.move_direction = direction;
     }
@@ -246,7 +246,7 @@ impl Client {
 }
 
 #[derive(Clone, Copy, Debug, Default)]
-pub enum MoveDirection {
+pub enum WalkDirection {
     #[default]
     None,
     Forward,

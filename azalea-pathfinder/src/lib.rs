@@ -4,7 +4,7 @@ mod moves;
 mod mtdstarlite;
 
 use async_trait::async_trait;
-use azalea::prelude::*;
+use azalea::{prelude::*, WalkDirection};
 use azalea::{Client, Event};
 use azalea_core::BlockPos;
 use azalea_world::entity::EntityData;
@@ -31,7 +31,7 @@ impl azalea::Plugin for Plugin {
 
 pub trait Trait {
     fn goto(&self, goal: impl Goal);
-    fn execute_path(&mut self, path: &Vec<Node>);
+    fn tick_execute_path(&mut self, path: &Vec<Node>);
 }
 
 impl Trait for azalea_client::Client {
@@ -74,10 +74,11 @@ impl Trait for azalea_client::Client {
         let p = pf.find_path();
     }
 
-    fn execute_path(&mut self, path: &Vec<Node>) {
+    fn tick_execute_path(&mut self, path: &Vec<Node>) {
         let start = path[0];
         let center = start.pos.center();
         self.look_at(&center);
+        self.walk(WalkDirection::Forward);
     }
 }
 

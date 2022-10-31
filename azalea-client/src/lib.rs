@@ -15,7 +15,7 @@ mod player;
 
 pub use account::Account;
 pub use client::{Client, ClientInformation, Event};
-pub use movement::MoveDirection;
+pub use movement::WalkDirection;
 pub use player::Player;
 
 #[cfg(test)]
