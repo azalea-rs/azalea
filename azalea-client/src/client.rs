@@ -17,9 +17,8 @@ use azalea_protocol::{
         },
         handshake::client_intention_packet::ClientIntentionPacket,
         login::{
-            serverbound_hello_packet::{RemoteChatSessionData, ServerboundHelloPacket},
-            serverbound_key_packet::{NonceOrSaltSignature, ServerboundKeyPacket},
-            ClientboundLoginPacket,
+            serverbound_hello_packet::ServerboundHelloPacket,
+            serverbound_key_packet::ServerboundKeyPacket, ClientboundLoginPacket,
         },
         ConnectionProtocol, PROTOCOL_VERSION,
     },
@@ -177,10 +176,6 @@ impl Client {
         conn.write(
             ServerboundHelloPacket {
                 name: account.username.clone(),
-                chat_session: RemoteChatSessionData {
-                    session_id: Uuid::nil(),
-                    profile_public_key: None,
-                },
                 profile_id: None,
             }
             .get(),
@@ -208,8 +203,8 @@ impl Client {
 
                     conn.write(
                         ServerboundKeyPacket {
-                            nonce_or_salt_signature: NonceOrSaltSignature::Nonce(e.encrypted_nonce),
                             key_bytes: e.encrypted_public_key,
+                            encrypted_challenge: e.encrypted_nonce,
                         }
                         .get(),
                     )

@@ -5,21 +5,7 @@ use uuid::Uuid;
 #[derive(Clone, Debug, PartialEq, Eq, McBuf, ServerboundLoginPacket)]
 pub struct ServerboundHelloPacket {
     pub name: String,
-    pub chat_session: RemoteChatSessionData,
     pub profile_id: Option<Uuid>,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, McBuf)]
-pub struct RemoteChatSessionData {
-    pub session_id: Uuid,
-    pub profile_public_key: Option<ProfilePublicKeyData>,
-}
-
-#[derive(Clone, Debug, McBuf, PartialEq, Eq)]
-pub struct ProfilePublicKeyData {
-    pub expires_at: u64,
-    pub key: Vec<u8>,
-    pub key_signature: Vec<u8>,
 }
 
 #[cfg(test)]
@@ -33,10 +19,6 @@ mod tests {
     fn test_read_write() {
         let packet = ServerboundHelloPacket {
             name: "test".to_string(),
-            chat_session: RemoteChatSessionData {
-                session_id: Uuid::nil(),
-                profile_public_key: None,
-            },
             profile_id: Some(Uuid::nil()),
         };
         let mut buf: Vec<u8> = Vec::new();

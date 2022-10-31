@@ -1,4 +1,3 @@
-use crate::packets::login::serverbound_hello_packet::RemoteChatSessionData;
 use azalea_auth::game_profile::{GameProfile, ProfilePropertyValue};
 use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
@@ -27,6 +26,19 @@ pub struct PlayerInfoEntry {
     pub game_mode: GameType,
     pub display_name: Option<Component>,
     pub chat_session: Option<RemoteChatSessionData>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, McBuf)]
+pub struct RemoteChatSessionData {
+    pub session_id: Uuid,
+    pub profile_public_key: Option<ProfilePublicKeyData>,
+}
+
+#[derive(Clone, Debug, McBuf, PartialEq, Eq)]
+pub struct ProfilePublicKeyData {
+    pub expires_at: u64,
+    pub key: Vec<u8>,
+    pub key_signature: Vec<u8>,
 }
 
 #[derive(Clone, Debug, McBuf)]

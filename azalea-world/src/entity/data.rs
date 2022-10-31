@@ -1,4 +1,5 @@
-use azalea_buf::{BufReadError, McBufVarReadable};
+use azalea_block::BlockState;
+use azalea_buf::{BufReadError, McBufVarReadable, McBufVarWritable};
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
 use azalea_chat::Component;
 use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot};
@@ -12,7 +13,7 @@ pub struct EntityMetadata(Vec<EntityDataItem>);
 pub struct EntityDataItem {
     // we can't identify what the index is for here because we don't know the
     // entity type
-    pub index: u8,
+    pub id: u8,
     pub value: EntityDataValue,
 }
 
@@ -20,12 +21,12 @@ impl McBufReadable for EntityMetadata {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut metadata = Vec::new();
         loop {
-            let index = u8::read_from(buf)?;
-            if index == 0xff {
+            let id = u8::read_from(buf)?;
+            if id == 0xff {
                 break;
             }
             let value = EntityDataValue::read_from(buf)?;
-            metadata.push(EntityDataItem { index, value });
+            metadata.push(EntityDataItem { id, value });
         }
         Ok(EntityMetadata(metadata))
     }
@@ -34,7 +35,7 @@ impl McBufReadable for EntityMetadata {
 impl McBufWritable for EntityMetadata {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         for item in &self.0 {
-            item.index.write_into(buf)?;
+            item.id.write_into(buf)?;
             item.value.write_into(buf)?;
         }
         0xffu8.write_into(buf)?;
@@ -42,11 +43,12 @@ impl McBufWritable for EntityMetadata {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, McBuf)]
 pub enum EntityDataValue {
     Byte(u8),
     // varint
     Int(i32),
+    Long(i64),
     Float(f32),
     String(String),
     Component(Component),
@@ -60,78 +62,37 @@ pub enum EntityDataValue {
     OptionalUuid(Option<Uuid>),
     // 0 for absent (implies air); otherwise, a block state ID as per the global palette
     // this is a varint
-    OptionalBlockState(Option<i32>),
+    BlockState(BlockState),
     CompoundTag(azalea_nbt::Tag),
     Particle(Particle),
     VillagerData(VillagerData),
     // 0 for absent; 1 + actual value otherwise. Used for entity IDs.
-    OptionalUnsignedInt(Option<u32>),
+    OptionalUnsignedInt(OptionalUnsignedInt),
     Pose(Pose),
     CatVariant(azalea_registry::CatVariant),
     FrogVariant(azalea_registry::FrogVariant),
-    GlobalPos(GlobalPos),
+    OptionalGlobalPos(Option<GlobalPos>),
     PaintingVariant(azalea_registry::PaintingVariant),
 }
 
-impl McBufReadable for EntityDataValue {
+#[derive(Clone, Debug)]
+pub struct OptionalUnsignedInt {
+    pub value: Option<u32>,
+}
+impl McBufReadable for OptionalUnsignedInt {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let data_type = u32::var_read_from(buf)?;
-        Ok(match data_type {
-            0 => EntityDataValue::Byte(u8::read_from(buf)?),
-            1 => EntityDataValue::Int(i32::var_read_from(buf)?),
-            2 => EntityDataValue::Float(f32::read_from(buf)?),
-            3 => EntityDataValue::String(String::read_from(buf)?),
-            4 => EntityDataValue::Component(Component::read_from(buf)?),
-            5 => EntityDataValue::OptionalComponent(Option::<Component>::read_from(buf)?),
-            6 => EntityDataValue::ItemStack(Slot::read_from(buf)?),
-            7 => EntityDataValue::Boolean(bool::read_from(buf)?),
-            8 => EntityDataValue::Rotations {
-                x: f32::read_from(buf)?,
-                y: f32::read_from(buf)?,
-                z: f32::read_from(buf)?,
-            },
-            9 => EntityDataValue::BlockPos(BlockPos::read_from(buf)?),
-            10 => EntityDataValue::OptionalBlockPos(Option::<BlockPos>::read_from(buf)?),
-            11 => EntityDataValue::Direction(Direction::read_from(buf)?),
-            12 => EntityDataValue::OptionalUuid(Option::<Uuid>::read_from(buf)?),
-            13 => EntityDataValue::OptionalBlockState({
-                let val = i32::var_read_from(buf)?;
-                if val == 0 {
-                    None
-                } else {
-                    Some(val)
-                }
-            }),
-            14 => EntityDataValue::CompoundTag(azalea_nbt::Tag::read_from(buf)?),
-            15 => EntityDataValue::Particle(Particle::read_from(buf)?),
-            16 => EntityDataValue::VillagerData(VillagerData::read_from(buf)?),
-            17 => EntityDataValue::OptionalUnsignedInt({
-                let val = u32::var_read_from(buf)?;
-                if val == 0 {
-                    None
-                } else {
-                    Some(val - 1)
-                }
-            }),
-            18 => EntityDataValue::Pose(Pose::read_from(buf)?),
-            19 => EntityDataValue::CatVariant(azalea_registry::CatVariant::read_from(buf)?),
-            20 => EntityDataValue::FrogVariant(azalea_registry::FrogVariant::read_from(buf)?),
-            21 => EntityDataValue::GlobalPos(GlobalPos::read_from(buf)?),
-            22 => {
-                EntityDataValue::PaintingVariant(azalea_registry::PaintingVariant::read_from(buf)?)
-            }
-            _ => {
-                return Err(BufReadError::UnexpectedEnumVariant {
-                    id: data_type as i32,
-                })
-            }
+        let val = u32::var_read_from(buf)?;
+        Ok(OptionalUnsignedInt {
+            value: if val == 0 { None } else { Some(val - 1) },
         })
     }
 }
-
-impl McBufWritable for EntityDataValue {
-    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
-        todo!();
+impl McBufWritable for OptionalUnsignedInt {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        match self.value {
+            Some(val) => (val + 1).var_write_into(buf),
+            None => 0u32.var_write_into(buf),
+        }
     }
 }
 

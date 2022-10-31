@@ -111,6 +111,7 @@ pub mod serverbound_change_difficulty_packet;
 pub mod serverbound_chat_ack_packet;
 pub mod serverbound_chat_command_packet;
 pub mod serverbound_chat_packet;
+pub mod serverbound_chat_session_update_packet;
 pub mod serverbound_client_command_packet;
 pub mod serverbound_client_information_packet;
 pub mod serverbound_command_suggestion_packet;
@@ -193,24 +194,25 @@ declare_state_packets!(
         0x1d: serverbound_player_command_packet::ServerboundPlayerCommandPacket,
         0x1e: serverbound_player_input_packet::ServerboundPlayerInputPacket,
         0x1f: serverbound_pong_packet::ServerboundPongPacket,
-        0x20: serverbound_recipe_book_change_settings_packet::ServerboundRecipeBookChangeSettingsPacket,
-        0x21: serverbound_recipe_book_seen_recipe_packet::ServerboundRecipeBookSeenRecipePacket,
-        0x22: serverbound_rename_item_packet::ServerboundRenameItemPacket,
-        0x23: serverbound_resource_pack_packet::ServerboundResourcePackPacket,
-        0x24: serverbound_seen_advancements_packet::ServerboundSeenAdvancementsPacket,
-        0x25: serverbound_select_trade_packet::ServerboundSelectTradePacket,
-        0x26: serverbound_set_beacon_packet::ServerboundSetBeaconPacket,
-        0x27: serverbound_set_carried_item_packet::ServerboundSetCarriedItemPacket,
-        0x28: serverbound_set_command_block_packet::ServerboundSetCommandBlockPacket,
-        0x29: serverbound_set_command_minecart_packet::ServerboundSetCommandMinecartPacket,
-        0x2a: serverbound_set_creative_mode_slot_packet::ServerboundSetCreativeModeSlotPacket,
-        0x2b: serverbound_set_jigsaw_block_packet::ServerboundSetJigsawBlockPacket,
-        0x2c: serverbound_set_structure_block_packet::ServerboundSetStructureBlockPacket,
-        0x2d: serverbound_sign_update_packet::ServerboundSignUpdatePacket,
-        0x2e: serverbound_swing_packet::ServerboundSwingPacket,
-        0x2f: serverbound_teleport_to_entity_packet::ServerboundTeleportToEntityPacket,
-        0x30: serverbound_use_item_on_packet::ServerboundUseItemOnPacket,
-        0x31: serverbound_use_item_packet::ServerboundUseItemPacket,
+        0x20: serverbound_chat_session_update_packet::ServerboundChatSessionUpdatePacket,
+        0x21: serverbound_recipe_book_change_settings_packet::ServerboundRecipeBookChangeSettingsPacket,
+        0x22: serverbound_recipe_book_seen_recipe_packet::ServerboundRecipeBookSeenRecipePacket,
+        0x23: serverbound_rename_item_packet::ServerboundRenameItemPacket,
+        0x24: serverbound_resource_pack_packet::ServerboundResourcePackPacket,
+        0x25: serverbound_seen_advancements_packet::ServerboundSeenAdvancementsPacket,
+        0x26: serverbound_select_trade_packet::ServerboundSelectTradePacket,
+        0x27: serverbound_set_beacon_packet::ServerboundSetBeaconPacket,
+        0x28: serverbound_set_carried_item_packet::ServerboundSetCarriedItemPacket,
+        0x29: serverbound_set_command_block_packet::ServerboundSetCommandBlockPacket,
+        0x2a: serverbound_set_command_minecart_packet::ServerboundSetCommandMinecartPacket,
+        0x2b: serverbound_set_creative_mode_slot_packet::ServerboundSetCreativeModeSlotPacket,
+        0x2c: serverbound_set_jigsaw_block_packet::ServerboundSetJigsawBlockPacket,
+        0x2d: serverbound_set_structure_block_packet::ServerboundSetStructureBlockPacket,
+        0x2e: serverbound_sign_update_packet::ServerboundSignUpdatePacket,
+        0x2f: serverbound_swing_packet::ServerboundSwingPacket,
+        0x30: serverbound_teleport_to_entity_packet::ServerboundTeleportToEntityPacket,
+        0x31: serverbound_use_item_on_packet::ServerboundUseItemOnPacket,
+        0x32: serverbound_use_item_packet::ServerboundUseItemPacket,
     },
     Clientbound => {
         0x00: clientbound_add_entity_packet::ClientboundAddEntityPacket,
