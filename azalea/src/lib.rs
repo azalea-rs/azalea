@@ -122,7 +122,6 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use anyhow::Result;
     /// use azalea::prelude::*;
     ///
     /// async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
