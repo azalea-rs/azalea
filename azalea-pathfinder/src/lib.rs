@@ -9,6 +9,7 @@ use azalea_world::entity::EntityData;
 use mtdstarlite::Edge;
 pub use mtdstarlite::MTDStarLite;
 use parking_lot::Mutex;
+use std::collections::VecDeque;
 use std::sync::Arc;
 
 #[derive(Default, Clone)]
@@ -19,16 +20,16 @@ pub struct Plugin {
 #[derive(Default, Clone)]
 pub struct State {
     // pathfinder: Option<MTDStarLite<Node, f32>>,
-    pub path: Arc<Mutex<Vec<Node>>>,
+    pub path: Arc<Mutex<VecDeque<Node>>>,
 }
 
 #[async_trait]
 impl azalea::Plugin for Plugin {
     async fn handle(self: Box<Self>, event: Event, mut bot: Client) {
-        let path = self.state.path.lock();
+        let mut path = self.state.path.lock();
 
         if !path.is_empty() {
-            tick_execute_path(&mut bot, &path);
+            tick_execute_path(&mut bot, &mut path);
         }
     }
 }
@@ -78,11 +79,19 @@ impl Trait for azalea_client::Client {
     }
 }
 
-fn tick_execute_path(bot: &mut Client, path: &Vec<Node>) {
-    let start = path[0];
-    let center = start.pos.center();
+fn tick_execute_path(bot: &mut Client, path: &mut VecDeque<Node>) {
+    let target = if let Some(target) = path.front() {
+        target
+    } else {
+        return;
+    };
+    let center = target.pos.center();
     bot.look_at(&center);
     bot.walk(WalkDirection::Forward);
+
+    if target.is_reached(&bot.entity()) {
+        path.pop_front();
+    }
 }
 
 #[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
