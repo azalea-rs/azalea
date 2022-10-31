@@ -1,6 +1,6 @@
-use std::io::{Cursor, Read};
+use std::io::{Cursor, Read, Write};
 
-use azalea_buf::{BufReadError, McBuf};
+use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 
 /// Represents Java's BitSet, a list of bits.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default, McBuf)]
@@ -125,6 +125,58 @@ impl From<Vec<u8>> for BitSet {
             words[i / 8] |= (*byte as u64) << ((i % 8) * 8);
         }
         BitSet { data: words }
+    }
+}
+
+/// A list of bits with a known fixed size.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct FixedBitSet<const N: usize>
+where
+    [u64; N.div_ceil(64)]: Sized,
+{
+    data: [u64; N.div_ceil(64)],
+}
+
+impl<const N: usize> FixedBitSet<N>
+where
+    [u64; N.div_ceil(64)]: Sized,
+{
+    pub fn new() -> Self {
+        FixedBitSet {
+            data: [0; N.div_ceil(64)],
+        }
+    }
+
+    pub fn index(&self, index: usize) -> bool {
+        (self.data[index / 64] & (1u64 << (index % 64))) != 0
+    }
+
+    pub fn set(&mut self, bit_index: usize) {
+        self.data[bit_index / 64] |= 1u64 << (bit_index % 64);
+    }
+}
+
+impl<const N: usize> McBufReadable for FixedBitSet<N>
+where
+    [u64; N.div_ceil(64)]: Sized,
+{
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let mut data = [0; N.div_ceil(64)];
+        for i in 0..N.div_ceil(64) {
+            data[i] = u64::read_from(buf)?;
+        }
+        Ok(FixedBitSet { data })
+    }
+}
+impl<const N: usize> McBufWritable for FixedBitSet<N>
+where
+    [u64; N.div_ceil(64)]: Sized,
+{
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        for i in 0..N.div_ceil(64) {
+            self.data[i].write_into(buf)?;
+        }
+        Ok(())
     }
 }
 

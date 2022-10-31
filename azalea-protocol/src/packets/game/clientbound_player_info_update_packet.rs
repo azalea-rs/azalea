@@ -59,7 +59,7 @@ pub struct UpdateDisplayNameAction {
 impl McBufReadable for ClientboundPlayerInfoUpdatePacket {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let actions = ActionEnumSet::read_from(buf)?;
-        let entries = vec![];
+        let mut entries = vec![];
 
         let entry_count = u32::var_read_from(buf)?;
         for _ in 0..entry_count {
@@ -110,14 +110,14 @@ impl McBufWritable for ClientboundPlayerInfoUpdatePacket {
 
             if self.actions.add_player {
                 AddPlayerAction {
-                    name: entry.profile.name,
-                    properties: entry.profile.properties,
+                    name: entry.profile.name.clone(),
+                    properties: entry.profile.properties.clone(),
                 }
                 .write_into(buf)?;
             }
             if self.actions.initialize_chat {
                 InitializeChatAction {
-                    chat_session: entry.chat_session,
+                    chat_session: entry.chat_session.clone(),
                 }
                 .write_into(buf)?;
             }
@@ -141,7 +141,7 @@ impl McBufWritable for ClientboundPlayerInfoUpdatePacket {
             }
             if self.actions.update_display_name {
                 UpdateDisplayNameAction {
-                    display_name: entry.display_name,
+                    display_name: entry.display_name.clone(),
                 }
                 .write_into(buf)?;
             }
@@ -163,7 +163,7 @@ pub struct ActionEnumSet {
 
 impl McBufReadable for ActionEnumSet {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let mut set = BitSet::read_fixed(buf, 6)?;
+        let set = BitSet::read_fixed(buf, 6)?;
         Ok(ActionEnumSet {
             add_player: set.index(0),
             initialize_chat: set.index(1),
