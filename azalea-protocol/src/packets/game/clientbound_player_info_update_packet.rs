@@ -11,6 +11,8 @@ use std::{
 };
 use uuid::Uuid;
 
+use super::serverbound_chat_session_update_packet::RemoteChatSessionData;
+
 #[derive(Clone, Debug, ClientboundGamePacket)]
 pub struct ClientboundPlayerInfoUpdatePacket {
     pub actions: ActionEnumSet,
@@ -26,19 +28,6 @@ pub struct PlayerInfoEntry {
     pub game_mode: GameType,
     pub display_name: Option<Component>,
     pub chat_session: Option<RemoteChatSessionData>,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, McBuf)]
-pub struct RemoteChatSessionData {
-    pub session_id: Uuid,
-    pub profile_public_key: Option<ProfilePublicKeyData>,
-}
-
-#[derive(Clone, Debug, McBuf, PartialEq, Eq)]
-pub struct ProfilePublicKeyData {
-    pub expires_at: u64,
-    pub key: Vec<u8>,
-    pub key_signature: Vec<u8>,
 }
 
 #[derive(Clone, Debug, McBuf)]
