@@ -257,6 +257,7 @@ impl<'de> Deserialize<'de> for Component {
 impl McBufReadable for Component {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let string = String::read_from(buf)?;
+        println!("string: {}", string);
         let json: serde_json::Value = serde_json::from_str(string.as_str())?;
         let component = Component::deserialize(json)?;
         Ok(component)

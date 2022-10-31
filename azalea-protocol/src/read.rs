@@ -22,7 +22,7 @@ pub enum ReadPacketError {
     Parse {
         packet_id: u32,
         packet_name: String,
-        #[backtrace]
+        backtrace: Backtrace,
         source: BufReadError,
     },
     #[error("Unknown packet id {id} in state {state_name}")]
@@ -63,8 +63,8 @@ pub enum FrameSplitterError {
     #[error("Io error")]
     Io {
         #[from]
-        #[backtrace]
         source: std::io::Error,
+        backtrace: Backtrace,
     },
     #[error("Packet is longer than {max} bytes (is {size})")]
     BadLength { max: usize, size: usize },
@@ -84,7 +84,9 @@ fn parse_frame(buffer: &mut BytesMut) -> Result<BytesMut, FrameSplitterError> {
     let length = match u32::var_read_from(&mut buffer_copy) {
         Ok(length) => length as usize,
         Err(err) => match err {
-            BufReadError::Io(io_err) => return Err(FrameSplitterError::Io { source: io_err }),
+            BufReadError::Io { source, backtrace } => {
+                return Err(FrameSplitterError::Io { source, backtrace })
+            }
             _ => return Err(err.into()),
         },
     };

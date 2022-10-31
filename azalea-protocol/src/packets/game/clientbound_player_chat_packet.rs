@@ -33,7 +33,7 @@ pub struct PackedSignedMessageBody {
 
 #[derive(Clone, Debug, McBuf)]
 pub struct PackedLastSeenMessages {
-    pub entries: PackedMessageSignature,
+    pub entries: Vec<PackedMessageSignature>,
 }
 
 /// Messages can be deleted by either their signature or message id.

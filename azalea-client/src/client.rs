@@ -32,6 +32,8 @@ use azalea_world::{
 use log::{debug, error, warn};
 use parking_lot::{Mutex, RwLock};
 use std::{
+    any,
+    backtrace::Backtrace,
     fmt::Debug,
     io::{self, Cursor},
     sync::Arc,
@@ -299,14 +301,19 @@ impl Client {
                     }
                 },
                 Err(e) => {
+                    let default_backtrace = Backtrace::capture();
                     if IGNORE_ERRORS {
-                        warn!("{}", e);
+                        let backtrace =
+                            any::request_ref::<Backtrace>(&e).unwrap_or(&default_backtrace);
+                        warn!("{e}\n{backtrace}");
                         match e {
                             ReadPacketError::FrameSplitter { .. } => panic!("Error: {e:?}"),
                             _ => continue,
                         }
                     } else {
-                        panic!("{}", e);
+                        let backtrace =
+                            any::request_ref::<Backtrace>(&e).unwrap_or(&default_backtrace);
+                        panic!("{e}\n{backtrace}")
                     }
                 }
             };
