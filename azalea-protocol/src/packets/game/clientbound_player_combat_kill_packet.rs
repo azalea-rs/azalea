@@ -1,7 +1,8 @@
 use azalea_buf::McBuf;
-use azalea_chat::component::Component;
+use azalea_chat::Component;
 use azalea_protocol_macros::ClientboundGamePacket;
 
+/// Used to send a respawn screen.
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundPlayerCombatKillPacket {
     #[var]

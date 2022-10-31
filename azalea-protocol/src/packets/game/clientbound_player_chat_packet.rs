@@ -1,7 +1,7 @@
 use azalea_buf::McBuf;
 use azalea_chat::{
-    component::Component,
     translatable_component::{StringOrComponent, TranslatableComponent},
+    Component,
 };
 use azalea_core::BitSet;
 use azalea_crypto::{MessageSignature, SignedMessageHeader};

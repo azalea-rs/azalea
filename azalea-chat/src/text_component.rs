@@ -1,7 +1,8 @@
 use std::fmt::Display;
 
-use crate::{base_component::BaseComponent, component::Component, style::ChatFormatting};
+use crate::{base_component::BaseComponent, style::ChatFormatting, Component};
 
+/// A component that contains text that's the same in all locales.
 #[derive(Clone, Debug)]
 pub struct TextComponent {
     pub base: BaseComponent,

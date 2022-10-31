@@ -1,4 +1,4 @@
-use crate::{component::Component, style::Style};
+use crate::{style::Style, Component};
 
 #[derive(Clone, Debug)]
 pub struct BaseComponent {

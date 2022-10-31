@@ -5,6 +5,17 @@
 //! refer to `azalea_client`. You can just replace these with `azalea` in your
 //! code, since everything from azalea_client is re-exported in azalea.
 //!
+//! # Installation
+//! 
+//! First, install Rust nightly with `rustup install nightly` and `rustup
+//! default nightly`.
+//! 
+//! Then, add one of the following lines to your Cargo.toml.\
+//! Latest bleeding-edge version:
+//! `azalea = { git="https://github.com/mat-1/Cargo.toml" }`
+//! Latest "stable" release:
+//! `azalea = "0.3"`
+//! 
 //! # Examples
 //!
 //! ```rust,no_run
@@ -94,8 +105,10 @@ where
     /// The address of the server that we're connecting to. This can be a
     /// `&str`, [`ServerAddress`], or anything that implements
     /// `TryInto<ServerAddress>`.
+    ///
+    /// [`ServerAddress`]: azalea_protocol::ServerAddress
     pub address: A,
-    /// The account that's going to join the server,
+    /// The account that's going to join the server.
     pub account: Account,
     /// A list of plugins that are going to be used. Plugins are external
     /// crates that add extra functionality to Azalea.
@@ -116,6 +129,16 @@ where
     /// ```
     pub state: S,
     /// The function that's called whenever we get an event.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use azalea::prelude::*;
+    ///
+    /// async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    ///     Ok(())
+    /// }
+    /// ```
     pub handle: HandleFn<Fut, S>,
 }
 
@@ -123,6 +146,8 @@ where
 pub enum Error {
     #[error("Invalid address")]
     InvalidAddress,
+    #[error("Join error: {0}")]
+    Join(#[from] azalea_client::JoinError),
 }
 
 /// Join a server and start handling events. This function will run forever until
@@ -151,7 +176,7 @@ pub async fn start<
         Err(_) => return Err(Error::InvalidAddress),
     };
 
-    let (bot, mut rx) = Client::join(&options.account, address).await.unwrap();
+    let (bot, mut rx) = Client::join(&options.account, address).await?;
 
     let state = options.state;
     let bot_plugin = bot::Plugin::default();

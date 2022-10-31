@@ -13,6 +13,7 @@ pub mod clientbound_change_difficulty_packet;
 pub mod clientbound_chat_preview_packet;
 pub mod clientbound_command_suggestions_packet;
 pub mod clientbound_commands_packet;
+pub mod clientbound_container_close_packet;
 pub mod clientbound_container_set_content_packet;
 pub mod clientbound_container_set_data_packet;
 pub mod clientbound_container_set_slot_packet;
@@ -229,6 +230,7 @@ declare_state_packets!(
         0x0c: clientbound_chat_preview_packet::ClientboundChatPreviewPacket,
         0x0e: clientbound_command_suggestions_packet::ClientboundCommandSuggestionsPacket,
         0x0f: clientbound_commands_packet::ClientboundCommandsPacket,
+        0x10: clientbound_container_close_packet::ClientboundContainerClosePacket,
         0x11: clientbound_container_set_content_packet::ClientboundContainerSetContentPacket,
         0x12: clientbound_container_set_data_packet::ClientboundContainerSetDataPacket,
         0x13: clientbound_container_set_slot_packet::ClientboundContainerSetSlotPacket,

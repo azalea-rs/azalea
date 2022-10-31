@@ -6,6 +6,18 @@ use uuid::Uuid;
 /// Something that can join Minecraft servers.
 ///
 /// To join a server using this account, use [`crate::Client::join`].
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// use azalea_client::Account;
+///
+/// # #[tokio::main]
+/// # async fn main() {
+/// let account = Account::microsoft("example@example.com").await;
+/// // or Account::offline("example");
+/// # }
+/// ```
 #[derive(Clone, Debug)]
 pub struct Account {
     /// The Minecraft username of the account.
@@ -34,7 +46,12 @@ impl Account {
     /// a key for the cache, but it's recommended to use the real email to
     /// avoid confusion.
     pub async fn microsoft(email: &str) -> Result<Self, azalea_auth::AuthError> {
-        let minecraft_dir = get_mc_dir::minecraft_dir().unwrap();
+        let minecraft_dir = get_mc_dir::minecraft_dir().unwrap_or_else(|| {
+            panic!(
+                "No {} environment variable found",
+                get_mc_dir::home_env_var()
+            )
+        });
         let auth_result = azalea_auth::auth(
             email,
             azalea_auth::AuthOpts {
