@@ -17,6 +17,7 @@ use azalea_protocol::{
         },
         handshake::client_intention_packet::ClientIntentionPacket,
         login::{
+            serverbound_custom_query_packet::ServerboundCustomQueryPacket,
             serverbound_hello_packet::ServerboundHelloPacket,
             serverbound_key_packet::{NonceOrSaltSignature, ServerboundKeyPacket},
             ClientboundLoginPacket,
@@ -226,10 +227,13 @@ impl Client {
                 }
                 ClientboundLoginPacket::CustomQuery(p) => {
                     debug!("Got custom query {:?}", p);
-                    conn.write(ServerboundCustomQueryPacket {
-                        transaction_id: p.transaction_id,
-                        data: None,
-                    })
+                    conn.write(
+                        ServerboundCustomQueryPacket {
+                            transaction_id: p.transaction_id,
+                            data: None,
+                        }
+                        .get(),
+                    )
                     .await?;
                 }
             }
