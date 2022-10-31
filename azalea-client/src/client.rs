@@ -226,6 +226,11 @@ impl Client {
                 }
                 ClientboundLoginPacket::CustomQuery(p) => {
                     debug!("Got custom query {:?}", p);
+                    conn.write(ServerboundCustomQueryPacket {
+                        transaction_id: p.transaction_id,
+                        data: None,
+                    })
+                    .await?;
                 }
             }
         };
