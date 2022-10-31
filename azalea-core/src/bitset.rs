@@ -132,48 +132,48 @@ impl From<Vec<u8>> for BitSet {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FixedBitSet<const N: usize>
 where
-    [(); N.div_ceil(64)]: Sized,
+    [(); N.div_ceil(8)]: Sized,
 {
-    data: [u64; N.div_ceil(64)],
+    data: [u8; N.div_ceil(8)],
 }
 
 impl<const N: usize> FixedBitSet<N>
 where
-    [u64; N.div_ceil(64)]: Sized,
+    [u8; N.div_ceil(8)]: Sized,
 {
     pub fn new() -> Self {
         FixedBitSet {
-            data: [0; N.div_ceil(64)],
+            data: [0; N.div_ceil(8)],
         }
     }
 
     pub fn index(&self, index: usize) -> bool {
-        (self.data[index / 64] & (1u64 << (index % 64))) != 0
+        (self.data[index / 8] & (1u8 << (index % 8))) != 0
     }
 
     pub fn set(&mut self, bit_index: usize) {
-        self.data[bit_index / 64] |= 1u64 << (bit_index % 64);
+        self.data[bit_index / 8] |= 1u8 << (bit_index % 8);
     }
 }
 
 impl<const N: usize> McBufReadable for FixedBitSet<N>
 where
-    [u64; N.div_ceil(64)]: Sized,
+    [u8; N.div_ceil(8)]: Sized,
 {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let mut data = [0; N.div_ceil(64)];
-        for i in 0..N.div_ceil(64) {
-            data[i] = u64::read_from(buf)?;
+        let mut data = [0; N.div_ceil(8)];
+        for i in 0..N.div_ceil(8) {
+            data[i] = u8::read_from(buf)?;
         }
         Ok(FixedBitSet { data })
     }
 }
 impl<const N: usize> McBufWritable for FixedBitSet<N>
 where
-    [u64; N.div_ceil(64)]: Sized,
+    [u8; N.div_ceil(8)]: Sized,
 {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        for i in 0..N.div_ceil(64) {
+        for i in 0..N.div_ceil(8) {
             self.data[i].write_into(buf)?;
         }
         Ok(())
@@ -181,7 +181,7 @@ where
 }
 impl<const N: usize> Default for FixedBitSet<N>
 where
-    [u64; N.div_ceil(64)]: Sized,
+    [u8; N.div_ceil(8)]: Sized,
 {
     fn default() -> Self {
         Self::new()

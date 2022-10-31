@@ -221,11 +221,18 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
         });
         serverbound_read_match_contents.extend(quote! {
             #id => {
-                let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse { source: e, packet_id: #id, packet_name: #name_litstr.to_string() })?;
-                let mut leftover = Vec::new();
-                let _ = std::io::Read::read_to_end(buf, &mut leftover);
-                if !leftover.is_empty() {
-                    return Err(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover });
+                let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
+                    source: e,
+                    packet_id: #id,
+                    packet_name: #name_litstr.to_string(),
+                })?;
+                #[cfg(debug_assertions)]
+                {
+                    let mut leftover = Vec::new();
+                    let _ = std::io::Read::read_to_end(buf, &mut leftover);
+                    if !leftover.is_empty() {
+                        return Err(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover });
+                    }
                 }
                 data
             },
@@ -246,7 +253,11 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
         });
         clientbound_read_match_contents.extend(quote! {
             #id => {
-                let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse { source: e, packet_id: #id, packet_name: #name_litstr.to_string() })?;
+                let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
+                    source: e,
+                    packet_id: #id,
+                    packet_name: #name_litstr.to_string(),
+                })?;
                 #[cfg(debug_assertions)]
                 {
                     let mut leftover = Vec::new();

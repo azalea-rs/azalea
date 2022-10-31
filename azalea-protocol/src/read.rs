@@ -7,6 +7,7 @@ use bytes::BytesMut;
 use flate2::read::ZlibDecoder;
 use futures::StreamExt;
 use log::{log_enabled, trace};
+use std::backtrace::Backtrace;
 use std::{
     fmt::Debug,
     io::{Cursor, Read},
@@ -17,10 +18,11 @@ use tokio_util::codec::{BytesCodec, FramedRead};
 
 #[derive(Error, Debug)]
 pub enum ReadPacketError {
-    #[error("Error reading packet {packet_name} ({packet_id}): {source}")]
+    #[error("Error reading packet {packet_name} (id {packet_id}): {source}")]
     Parse {
         packet_id: u32,
         packet_name: String,
+        #[backtrace]
         source: BufReadError,
     },
     #[error("Unknown packet id {id} in state {state_name}")]
