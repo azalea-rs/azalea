@@ -46,8 +46,7 @@ impl McBufWritable for EntityMetadata {
 #[derive(Clone, Debug, McBuf)]
 pub enum EntityDataValue {
     Byte(u8),
-    // varint
-    Int(i32),
+    Int(#[var] i32),
     Long(i64),
     Float(f32),
     String(String),
@@ -110,10 +109,8 @@ pub enum Pose {
 
 #[derive(Debug, Clone, McBuf)]
 pub struct VillagerData {
-    #[var]
-    type_: u32,
-    #[var]
-    profession: u32,
+    kind: azalea_registry::VillagerType,
+    profession: azalea_registry::VillagerProfession,
     #[var]
     level: u32,
 }

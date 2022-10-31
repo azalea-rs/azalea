@@ -101,9 +101,21 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                             })
                         }
                     }
-                    syn::Fields::Unnamed(_) => quote! {
-                        Ok(Self::#variant_name(azalea_buf::McBufReadable::read_from(buf)?))
-                    },
+                    syn::Fields::Unnamed(fields) => {
+                        let mut reader_code = quote! {};
+                        for f in &fields.unnamed {
+                            if f.attrs.iter().any(|attr| attr.path.is_ident("var")) {
+                                reader_code.extend(quote! {
+                                    Self::#variant_name(azalea_buf::McBufVarReadable::var_read_from(buf)?),
+                                })
+                            } else {
+                                reader_code.extend(quote! {
+                                    Self::#variant_name(azalea_buf::McBufReadable::read_from(buf)?),
+                                })
+                            }
+                        }
+                        quote! { Ok(#reader_code) }
+                    }
                     syn::Fields::Unit => quote! {
                         Ok(Self::#variant_name)
                     },
@@ -249,12 +261,27 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                             }
                         });
                     }
-                    syn::Fields::Unnamed(_) => {
+                    syn::Fields::Unnamed(fields) => {
                         is_data_enum = true;
+                        let mut writers_code = quote! {};
+                        let mut params_code = quote! {};
+                        for (i, f) in fields.unnamed.iter().enumerate() {
+                            let param_ident = Ident::new(&format!("data{i}"), Span::call_site());
+                            params_code.extend(quote! { #param_ident, });
+                            if f.attrs.iter().any(|attr| attr.path.is_ident("var")) {
+                                writers_code.extend(quote! {
+                                    azalea_buf::McBufVarWritable::var_write_into(#param_ident, buf)?;
+                                })
+                            } else {
+                                writers_code.extend(quote! {
+                                    azalea_buf::McBufWritable::write_into(#param_ident, buf)?;
+                                })
+                            }
+                        }
                         match_arms.extend(quote! {
-                            Self::#variant_name(data) => {
+                            Self::#variant_name(#params_code) => {
                                 azalea_buf::McBufVarWritable::var_write_into(&#variant_discrim, buf)?;
-                                azalea_buf::McBufWritable::write_into(data, buf)?;
+                                #writers_code
                             }
                         });
                     }
