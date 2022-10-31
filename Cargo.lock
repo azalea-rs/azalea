@@ -264,6 +264,7 @@ dependencies = [
  "azalea-physics",
  "azalea-world",
  "num-traits",
+ "parking_lot 0.12.1",
  "priority-queue",
 ]
 

@@ -256,7 +256,12 @@ impl<
 
         // identify a path from sstart to sgoal using the parent pointers
         let mut target = self.state(&self.goal).par;
-        while !(Some(self.start) == target) && let Some(this_target) = target {
+        while !(Some(self.start) == target) {
+            let this_target = if let Some(this_target) = target {
+                this_target
+            } else {
+                break;
+            };
             // hunter follows path from start to goal;
             reverse_path.push(this_target);
             target = self.state(&this_target).par;

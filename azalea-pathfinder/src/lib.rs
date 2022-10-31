@@ -1,5 +1,3 @@
-#![feature(let_chains)]
-
 mod moves;
 mod mtdstarlite;
 
@@ -10,28 +8,33 @@ use azalea_core::BlockPos;
 use azalea_world::entity::EntityData;
 use mtdstarlite::Edge;
 pub use mtdstarlite::MTDStarLite;
-use std::sync::{Arc, Mutex};
+use parking_lot::Mutex;
+use std::sync::Arc;
 
 #[derive(Default, Clone)]
 pub struct Plugin {
-    pub state: Arc<Mutex<State>>,
+    pub state: State,
 }
 
 #[derive(Default, Clone)]
 pub struct State {
     // pathfinder: Option<MTDStarLite<Node, f32>>,
+    pub path: Arc<Mutex<Vec<Node>>>,
 }
 
 #[async_trait]
 impl azalea::Plugin for Plugin {
-    async fn handle(self: Box<Self>, event: Event, bot: Client) {
-        // match *
+    async fn handle(self: Box<Self>, event: Event, mut bot: Client) {
+        let path = self.state.path.lock();
+
+        if !path.is_empty() {
+            tick_execute_path(&mut bot, &path);
+        }
     }
 }
 
 pub trait Trait {
     fn goto(&self, goal: impl Goal);
-    fn tick_execute_path(&mut self, path: &Vec<Node>);
 }
 
 impl Trait for azalea_client::Client {
@@ -73,13 +76,13 @@ impl Trait for azalea_client::Client {
         );
         let p = pf.find_path();
     }
+}
 
-    fn tick_execute_path(&mut self, path: &Vec<Node>) {
-        let start = path[0];
-        let center = start.pos.center();
-        self.look_at(&center);
-        self.walk(WalkDirection::Forward);
-    }
+fn tick_execute_path(bot: &mut Client, path: &Vec<Node>) {
+    let start = path[0];
+    let center = start.pos.center();
+    bot.look_at(&center);
+    bot.walk(WalkDirection::Forward);
 }
 
 #[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
