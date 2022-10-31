@@ -10,7 +10,7 @@ pub struct ServerboundChatSessionUpdatePacket {
 #[derive(Clone, Debug, PartialEq, Eq, McBuf)]
 pub struct RemoteChatSessionData {
     pub session_id: Uuid,
-    pub profile_public_key: Option<ProfilePublicKeyData>,
+    pub profile_public_key: ProfilePublicKeyData,
 }
 
 #[derive(Clone, Debug, McBuf, PartialEq, Eq)]
