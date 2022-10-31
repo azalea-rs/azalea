@@ -5,6 +5,17 @@
 //! refer to `azalea_client`. You can just replace these with `azalea` in your
 //! code, since everything from azalea_client is re-exported in azalea.
 //!
+//! # Installation
+//! 
+//! First, install Rust nightly with `rustup install nightly` and `rustup
+//! default nightly`.
+//! 
+//! Then, add one of the following lines to your Cargo.toml.\
+//! Latest bleeding-edge version:
+//! `azalea = { git="https://github.com/mat-1/Cargo.toml" }`
+//! Latest "stable" release:
+//! `azalea = "0.3"`
+//! 
 //! # Examples
 //!
 //! ```rust,no_run
