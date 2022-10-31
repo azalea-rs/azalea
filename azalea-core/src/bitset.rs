@@ -132,7 +132,7 @@ impl From<Vec<u8>> for BitSet {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FixedBitSet<const N: usize>
 where
-    [u64; N.div_ceil(64)]: Sized,
+    [(); N.div_ceil(64)]: Sized,
 {
     data: [u64; N.div_ceil(64)],
 }
