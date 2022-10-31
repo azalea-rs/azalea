@@ -35,7 +35,7 @@ impl HasPhysics for Entity<'_> {
         let block_pos_below = get_block_pos_below_that_affects_movement(self);
 
         let block_state_below = self
-            .dimension
+            .world
             .get_block_state(&block_pos_below)
             .unwrap_or(BlockState::Air);
         let block_below: Box<dyn Block> = block_state_below.into();
@@ -174,9 +174,9 @@ fn get_speed(entity: &EntityData, friction: f32) -> f32 {
 /// Returns the what the entity's jump should be multiplied by based on the
 /// block they're standing on.
 fn block_jump_factor(entity: &Entity) -> f32 {
-    let block_at_pos = entity.dimension.get_block_state(&entity.pos().into());
+    let block_at_pos = entity.world.get_block_state(&entity.pos().into());
     let block_below = entity
-        .dimension
+        .world
         .get_block_state(&get_block_pos_below_that_affects_movement(entity));
 
     let block_at_pos_jump_factor = if let Some(block) = block_at_pos {
@@ -223,12 +223,12 @@ fn jump_boost_power(_entity: &Entity) -> f64 {
 mod tests {
     use super::*;
     use azalea_core::ChunkPos;
-    use azalea_world::{Chunk, Dimension};
+    use azalea_world::{Chunk, World};
     use uuid::Uuid;
 
     #[test]
     fn test_gravity() {
-        let mut dim = Dimension::default();
+        let mut dim = World::default();
 
         dim.add_entity(
             0,
@@ -258,7 +258,7 @@ mod tests {
     }
     #[test]
     fn test_collision() {
-        let mut dim = Dimension::default();
+        let mut dim = World::default();
         dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
             .unwrap();
         dim.add_entity(
@@ -289,7 +289,7 @@ mod tests {
 
     #[test]
     fn test_slab_collision() {
-        let mut dim = Dimension::default();
+        let mut dim = World::default();
         dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
             .unwrap();
         dim.add_entity(
@@ -321,7 +321,7 @@ mod tests {
 
     #[test]
     fn test_top_slab_collision() {
-        let mut dim = Dimension::default();
+        let mut dim = World::default();
         dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
             .unwrap();
         dim.add_entity(
@@ -353,7 +353,7 @@ mod tests {
 
     #[test]
     fn test_weird_wall_collision() {
-        let mut dim = Dimension::default();
+        let mut dim = World::default();
         dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
             .unwrap();
         dim.add_entity(

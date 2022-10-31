@@ -11,7 +11,7 @@ pub struct ClientboundLoginPacket {
     pub levels: Vec<ResourceLocation>,
     pub registry_holder: azalea_nbt::Tag,
     pub dimension_type: ResourceLocation,
-    pub dimension: ResourceLocation,
+    pub world: ResourceLocation,
     pub seed: i64,
     #[var]
     pub max_players: i32,

@@ -53,9 +53,9 @@ impl Trait for azalea_client::Client {
                 &moves::EastMove,
                 &moves::WestMove,
             ];
-            let dimension = self.dimension.read();
+            let world = self.world.read();
             for possible_move in possible_moves.iter() {
-                if possible_move.can_execute(&dimension, &node.pos) {
+                if possible_move.can_execute(&world, &node.pos) {
                     edges.push(Edge {
                         target: Node {
                             pos: node.pos + possible_move.offset(),

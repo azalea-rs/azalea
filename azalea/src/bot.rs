@@ -23,10 +23,10 @@ impl BotTrait for azalea_client::Client {
     /// Queue a jump for the next tick.
     fn jump(&self) {
         let player_lock = self.player.lock();
-        let mut dimension_lock = self.dimension.write();
+        let mut world_lock = self.world.write();
 
         let mut player_entity = player_lock
-            .entity_mut(&mut dimension_lock)
+            .entity_mut(&mut world_lock)
             .expect("Player must exist");
 
         player_entity.jumping = true;

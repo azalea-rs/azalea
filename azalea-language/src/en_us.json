@@ -4921,7 +4921,7 @@
   "commands.data.entity.invalid": "Unable to modify player data",
   "commands.teammsg.failed.noteam": "You must be on a team to message your team",
   "argument.color.invalid": "Unknown color '%s'",
-  "argument.dimension.invalid": "Unknown dimension '%s'",
+  "argument.world.invalid": "Unknown dimension '%s'",
   "argument.component.invalid": "Invalid chat component: %s",
   "argument.anchor.invalid": "Invalid entity anchor position %s",
   "enchantment.unknown": "Unknown enchantment: %s",

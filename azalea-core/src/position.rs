@@ -197,7 +197,7 @@ impl Add<ChunkSectionBlockPos> for ChunkSectionPos {
     }
 }
 
-/// A block pos with an attached dimension
+/// A block pos with an attached world
 #[derive(Debug, Clone)]
 pub struct GlobalPos {
     pub pos: BlockPos,
@@ -326,7 +326,7 @@ impl McBufWritable for BlockPos {
 
 impl McBufWritable for GlobalPos {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        ResourceLocation::write_into(&self.dimension, buf)?;
+        ResourceLocation::write_into(&self.world, buf)?;
         BlockPos::write_into(&self.pos, buf)?;
 
         Ok(())

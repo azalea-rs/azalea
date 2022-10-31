@@ -116,7 +116,7 @@ pub enum BrigadierParser {
     FloatRange,
     ItemEnchantment,
     EntitySummon,
-    Dimension,
+    World,
     Uuid,
     NbtTag,
     NbtCompoundTag,
@@ -184,7 +184,7 @@ impl McBufReadable for BrigadierParser {
             38 => Ok(BrigadierParser::FloatRange),
             39 => Ok(BrigadierParser::ItemEnchantment),
             40 => Ok(BrigadierParser::EntitySummon),
-            41 => Ok(BrigadierParser::Dimension),
+            41 => Ok(BrigadierParser::World),
             42 => Ok(BrigadierParser::Time),
             43 => Ok(BrigadierParser::ResourceOrTag {
                 registry_key: ResourceLocation::read_from(buf)?,
