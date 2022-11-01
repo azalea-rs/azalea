@@ -233,9 +233,9 @@ impl From<ChunkSectionPos> for ChunkPos {
 impl From<&BlockPos> for ChunkBlockPos {
     fn from(pos: &BlockPos) -> Self {
         ChunkBlockPos {
-            x: pos.x.rem_euclid(16).unsigned_abs() as u8,
+            x: pos.x.rem_euclid(16) as u8,
             y: pos.y,
-            z: pos.z.rem_euclid(16).unsigned_abs() as u8,
+            z: pos.z.rem_euclid(16) as u8,
         }
     }
 }
@@ -243,9 +243,9 @@ impl From<&BlockPos> for ChunkBlockPos {
 impl From<&BlockPos> for ChunkSectionBlockPos {
     fn from(pos: &BlockPos) -> Self {
         ChunkSectionBlockPos {
-            x: pos.x.rem(16).unsigned_abs() as u8,
-            y: pos.y.rem(16).unsigned_abs() as u8,
-            z: pos.z.rem(16).unsigned_abs() as u8,
+            x: pos.x.rem_euclid(16) as u8,
+            y: pos.y.rem_euclid(16) as u8,
+            z: pos.z.rem_euclid(16) as u8,
         }
     }
 }
@@ -254,7 +254,7 @@ impl From<&ChunkBlockPos> for ChunkSectionBlockPos {
     fn from(pos: &ChunkBlockPos) -> Self {
         ChunkSectionBlockPos {
             x: pos.x,
-            y: pos.y.rem(16).unsigned_abs() as u8,
+            y: pos.y.rem_euclid(16) as u8,
             z: pos.z,
         }
     }
@@ -392,8 +392,11 @@ mod tests {
         assert_eq!(block_pos, BlockPos::new(49, -43, -3));
     }
 
-    #{test}
+    #[test]
     fn test_into_chunk_section_block_pos() {
+        let block_pos = BlockPos::new(0, -60, 0);
+        let section_pos = ChunkSectionBlockPos::from(&block_pos);
+        assert_eq!(section_pos, ChunkSectionBlockPos::new(0, 4, 0));
         // TODO
     }
 }
