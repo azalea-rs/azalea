@@ -47,6 +47,7 @@ impl Trait for azalea_client::Client {
         println!("start: {:?}, end: {:?}", start, end);
 
         let successors = |node: &Node| {
+            println!("successors for {:?}", node);
             let mut edges = Vec::new();
             let possible_moves: Vec<&dyn moves::Move> = vec![
                 &moves::NorthMove,
@@ -56,15 +57,16 @@ impl Trait for azalea_client::Client {
             ];
             let dimension = self.dimension.read();
             for possible_move in possible_moves.iter() {
-                if possible_move.can_execute(&dimension, &node.pos) {
-                    edges.push(Edge {
-                        target: Node {
-                            pos: node.pos + possible_move.offset(),
-                        },
-                        cost: 1.0,
-                    });
-                }
+                let can_execute = possible_move.can_execute(&dimension, &node.pos);
+                edges.push(Edge {
+                    target: Node {
+                        pos: node.pos + possible_move.offset(),
+                    },
+                    cost: if can_execute { 1.0 } else { f32::INFINITY },
+                });
+                println!("can execute for {:?}: {}", node, can_execute);
             }
+            println!("edges: {}", edges.len());
             edges
         };
 
