@@ -1,13 +1,14 @@
-use azalea::{Account, Accounts, Client, Event, Swarm};
+use azalea::prelude::*;
 use parking_lot::Mutex;
 use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
-    let accounts = Accounts::new();
+    let mut accounts = Vec::new();
+    let mut states = Vec::new();
 
     for i in 0..10 {
-        accounts.add(Account::offline(&format!("bot{}", i)));
+        accounts.push(Account::offline(&format!("bot{}", i)));
     }
 
     azalea::start_swarm(azalea::SwarmOptions {
@@ -15,13 +16,13 @@ async fn main() {
         address: "localhost",
 
         swarm_state: State::default(),
-        state: State::default(),
+        states,
 
         swarm_plugins: plugins![azalea_pathfinder::Plugin::default()],
         plugins: plugins![],
 
-        handle: Box::new(handle),
-        swarm_handle: Box::new(swarm_handle),
+        handle,
+        swarm_handle,
     })
     .await
     .unwrap();

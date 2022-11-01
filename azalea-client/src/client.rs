@@ -159,7 +159,6 @@ impl Client {
         address: impl TryInto<ServerAddress>,
     ) -> Result<(Self, UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
-
         let resolved_address = resolver::resolve_address(&address).await?;
 
         let mut conn = Connection::new(&resolved_address).await?;

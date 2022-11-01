@@ -11,7 +11,7 @@
 #![feature(error_generic_member_access)]
 #![feature(provide_any)]
 
-use std::str::FromStr;
+use std::{net::SocketAddr, str::FromStr};
 
 #[cfg(feature = "connecting")]
 pub mod connect;
@@ -33,13 +33,12 @@ pub mod write;
 /// assert_eq!(addr.host, "localhost");
 /// assert_eq!(addr.port, 25565);
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ServerAddress {
     pub host: String,
     pub port: u16,
 }
 
-// impl try_from for ServerAddress
 impl<'a> TryFrom<&'a str> for ServerAddress {
     type Error = String;
 
@@ -54,6 +53,18 @@ impl<'a> TryFrom<&'a str> for ServerAddress {
         let port = parts.next().unwrap_or("25565");
         let port = u16::from_str(port).map_err(|_| "Invalid port specified")?;
         Ok(ServerAddress { host, port })
+    }
+}
+
+impl From<SocketAddr> for ServerAddress {
+    /// Convert an existing SocketAddr into a ServerAddress. This just converts
+    /// the ip to a string and passes along the port. The resolver will realize
+    /// it's already an IP address and not do any DNS requests.
+    fn from(addr: SocketAddr) -> Self {
+        ServerAddress {
+            host: addr.ip().to_string(),
+            port: addr.port(),
+        }
     }
 }
 

@@ -17,6 +17,7 @@ azalea-core = { version = "0.3.0", path = "../azalea-core" }
 parking_lot = "^0.12.1"
 thiserror = "^1.0.37"
 tokio = "^1.21.1"
+futures = "0.3.25"
 
 [dev-dependencies]
 anyhow = "^1.0.65"
