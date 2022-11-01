@@ -45,7 +45,7 @@
 //! }
 //! ```
 //!
-//! [`azalea_client`]: https://crates.io/crates/azalea-client
+//! [`azalea_client`]: https://docs.rs/azalea-client
 
 mod bot;
 pub mod prelude;

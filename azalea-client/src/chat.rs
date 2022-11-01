@@ -91,6 +91,6 @@ impl Client {
 
 // TODO
 // MessageSigner, ChatMessageContent, LastSeenMessages
-fn sign_message() -> MessageSignature {
-    MessageSignature::default()
-}
+// fn sign_message() -> MessageSignature {
+//     MessageSignature::default()
+// }

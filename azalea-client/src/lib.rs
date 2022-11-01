@@ -1,9 +1,9 @@
-//! Significantly abstract [`azalea_protocol`] so it's actually useable for
+//! Significantly abstract [`azalea_protocol`] so it's actually usable for
 //! real clients. If you want to make bots, however, you should use the
 //! [`azalea`] crate instead.
 //!
-//! [`azalea_protocol`]: https://crates.io/crates/azalea-protocol
-//! [`azalea`]: https://crates.io/crates/azalea
+//! [`azalea_protocol`]: https://docs.rs/azalea-protocol
+//! [`azalea`]: https://docs.rs/azalea
 
 mod account;
 mod chat;

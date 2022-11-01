@@ -42,12 +42,14 @@ use tokio::{
     task::JoinHandle,
     time::{self},
 };
-use uuid::Uuid;
 
 pub type ClientInformation = ServerboundClientInformationPacket;
 
-/// Events are sent before they're processed, so for example game ticks happen
-/// at the beginning of a tick before anything has happened.
+/// Something that happened in-game, such as a tick passing or chat message
+/// being sent.
+///
+/// Note: Events are sent before they're processed, so for example game ticks
+/// happen at the beginning of a tick before anything has happened.
 #[derive(Debug, Clone)]
 pub enum Event {
     /// Happens right after the bot switches into the Game state, but before
@@ -55,6 +57,7 @@ pub enum Event {
     /// information with `Client::set_client_information`, so the packet
     /// doesn't have to be sent twice.
     Initialize,
+    /// The client is now in the world. Fired when we receive a login packet.
     Login,
     Chat(ChatPacket),
     /// Happens 20 times per second, but only when the world is loaded.
@@ -105,6 +108,7 @@ pub struct PhysicsState {
 /// Whether we should ignore errors when decoding packets.
 const IGNORE_ERRORS: bool = !cfg!(debug_assertions);
 
+/// An error that happened while joining the server.
 #[derive(Error, Debug)]
 pub enum JoinError {
     #[error("{0}")]
@@ -735,7 +739,6 @@ impl Client {
             ClientboundGamePacket::SetBorderWarningDelay(_) => {}
             ClientboundGamePacket::SetBorderWarningDistance(_) => {}
             ClientboundGamePacket::SetCamera(_) => {}
-            ClientboundGamePacket::SetChunkCacheRadius(_) => {}
             ClientboundGamePacket::SetDisplayObjective(_) => {}
             ClientboundGamePacket::SetObjective(_) => {}
             ClientboundGamePacket::SetPassengers(_) => {}
