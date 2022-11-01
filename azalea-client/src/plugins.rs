@@ -36,7 +36,7 @@ impl Plugins {
         self.map
             .as_ref()
             .and_then(|map| map.get(&TypeId::of::<T>()))
-            .and_then(|boxed| (&*boxed as &(dyn Any + 'static)).downcast_ref())
+            .and_then(|boxed| (boxed.as_ref() as &dyn Any).downcast_ref::<T>())
     }
 }
 
@@ -54,7 +54,7 @@ impl IntoIterator for Plugins {
 
 /// Plugins can keep their own personal state, listen to events, and add new functions to Client.
 #[async_trait]
-pub trait Plugin: Send + Sync + PluginClone + 'static {
+pub trait Plugin: Send + Sync + PluginClone + Any + 'static {
     async fn handle(self: Box<Self>, event: Event, bot: Client);
 }
 

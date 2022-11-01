@@ -158,10 +158,11 @@ pub async fn start<
 
     let (mut bot, mut rx) = Client::join(&options.account, address).await?;
 
-    bot.plugins = Arc::new(options.plugins);
+    let mut plugins = options.plugins;
+    plugins.add(bot::Plugin::default());
+    bot.plugins = Arc::new(plugins);
 
     let state = options.state;
-    let bot_plugin = bot::Plugin::default();
 
     while let Some(event) = rx.recv().await {
         let cloned_plugins = (*bot.plugins).clone();
@@ -169,8 +170,9 @@ pub async fn start<
             tokio::spawn(plugin.handle(event.clone(), bot.clone()));
         }
 
+        let bot_plugin = bot.plugins.get::<bot::Plugin>().unwrap().clone();
         tokio::spawn(bot::Plugin::handle(
-            Box::new(bot_plugin.clone()),
+            Box::new(bot_plugin),
             event.clone(),
             bot.clone(),
         ));
@@ -179,7 +181,6 @@ pub async fn start<
 
     Ok(())
 }
-
 
 /// A helper macro that generates a [`Plugins`] struct from a list of objects
 /// that implement [`Plugin`].
@@ -191,7 +192,7 @@ pub async fn start<
 macro_rules! plugins {
     ($($plugin:expr),*) => {
         {
-            let mut plugins = azalea_client::Plugins::new();
+            let mut plugins = azalea::Plugins::new();
             $(
                 plugins.add($plugin);
             )*

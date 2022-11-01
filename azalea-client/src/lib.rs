@@ -5,6 +5,8 @@
 //! [`azalea_protocol`]: https://crates.io/crates/azalea-protocol
 //! [`azalea`]: https://crates.io/crates/azalea
 
+#![feature(trait_upcasting)]
+
 mod account;
 mod chat;
 mod client;

@@ -15,7 +15,7 @@ async fn main() -> anyhow::Result<()> {
         account,
         address: "localhost",
         state: State::default(),
-        plugins: vec![Box::new(azalea_pathfinder::Plugin::default())],
+        plugins: plugins![azalea_pathfinder::Plugin::default()],
         handle,
     })
     .await
@@ -28,7 +28,12 @@ async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> 
     match event {
         Event::Login => {
             bot.chat("Hello world").await?;
-            bot.goto(BlockPosGoal::from(BlockPos::new(0, -60, 12)));
+        }
+        Event::Chat(m) => {
+            println!("{}", m.message().to_ansi(None));
+            if m.message().to_string() == "<py5> goto" {
+                bot.goto(BlockPosGoal::from(BlockPos::new(0, -60, 12)));
+            }
         }
         Event::Initialize => {
             println!("initialized");

@@ -44,6 +44,7 @@ impl Trait for azalea_client::Client {
             pos: BlockPos::from(self.entity().pos()),
         };
         let end = goal.goal_node();
+        println!("start: {:?}, end: {:?}", start, end);
 
         let successors = |node: &Node| {
             let mut edges = Vec::new();
@@ -76,6 +77,10 @@ impl Trait for azalea_client::Client {
             |n| goal.success(n),
         );
         let p = pf.find_path();
+
+        let state = self.plugins.get::<Plugin>().unwrap().state.clone();
+        // convert the Option<Vec<Node>> to a VecDeque<Node>
+        *state.path.lock() = p.expect("no path").into_iter().collect();
     }
 }
 
