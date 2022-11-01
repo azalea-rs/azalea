@@ -61,7 +61,14 @@ impl Dimension {
     }
 
     pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
-        self.chunk_storage.get_block_state(pos)
+        let block_state = self.chunk_storage.get_block_state(pos);
+        if pos.y == -61 {
+            println!(
+                "block at {pos:?} is {:?}",
+                block_state.map(|b| Box::<dyn azalea_block::Block>::from(b).id())
+            )
+        }
+        block_state
     }
 
     pub fn set_block_state(&mut self, pos: &BlockPos, state: BlockState) -> Option<BlockState> {

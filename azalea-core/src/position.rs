@@ -391,4 +391,9 @@ mod tests {
         let block_pos = BlockPos::read_from(&mut buf).unwrap();
         assert_eq!(block_pos, BlockPos::new(49, -43, -3));
     }
+
+    #{test}
+    fn test_into_chunk_section_block_pos() {
+        // TODO
+    }
 }

@@ -27,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
 async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
     match event {
         Event::Login => {
-            bot.chat("Hello world").await?;
+            // bot.chat("Hello world").await?;
         }
         Event::Chat(m) => {
             println!("{}", m.message().to_ansi(None));
@@ -39,7 +39,7 @@ async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> 
             println!("initialized");
         }
         Event::Tick => {
-            // bot.jump();
+            bot.jump();
         }
         _ => {}
     }

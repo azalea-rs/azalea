@@ -176,6 +176,9 @@ impl Chunk {
         // TODO: make sure the section exists
         let section = &self.sections[section_index];
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
+        if pos.y == -61 {
+            println!("chunk_section_pos: {chunk_section_pos:?}, section_index: {section_index}");
+        }
         Some(section.get(chunk_section_pos))
     }
 
