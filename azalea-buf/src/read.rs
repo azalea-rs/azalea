@@ -1,6 +1,7 @@
 use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use byteorder::{ReadBytesExt, BE};
 use std::{
+    backtrace::Backtrace,
     collections::HashMap,
     hash::Hash,
     io::{Cursor, Read},
@@ -17,12 +18,12 @@ pub enum BufReadError {
     CouldNotReadBytes,
     #[error("The received encoded string buffer length is longer than maximum allowed ({length} > {max_length})")]
     StringLengthTooLong { length: u32, max_length: u32 },
-    #[error("{0}")]
-    Io(
+    #[error("{source}")]
+    Io {
         #[from]
-        #[backtrace]
-        std::io::Error,
-    ),
+        source: std::io::Error,
+        backtrace: Backtrace,
+    },
     #[error("Invalid UTF-8")]
     InvalidUtf8,
     #[error("Unexpected enum variant {id}")]
@@ -37,8 +38,12 @@ pub enum BufReadError {
     #[error("{0}")]
     Custom(String),
     #[cfg(feature = "serde_json")]
-    #[error("{0}")]
-    Deserialization(#[from] serde_json::Error),
+    #[error("{source}")]
+    Deserialization {
+        #[from]
+        source: serde_json::Error,
+        backtrace: Backtrace,
+    },
 }
 
 fn read_bytes<'a>(buf: &'a mut Cursor<&[u8]>, length: usize) -> Result<&'a [u8], BufReadError> {

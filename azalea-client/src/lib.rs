@@ -5,6 +5,8 @@
 //! [`azalea_protocol`]: https://docs.rs/azalea-protocol
 //! [`azalea`]: https://docs.rs/azalea
 
+#![feature(provide_any)]
+
 mod account;
 mod chat;
 mod client;
