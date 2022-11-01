@@ -72,9 +72,9 @@ dependencies = [
 
 [[package]]
 name = "async-trait"
-version = "0.1.57"
+version = "0.1.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76464446b8bc32758d7e88ee1a804d9914cd9b1cb264c029899680b0be29826f"
+checksum = "1e805d94e6b5001b651426cf4cd446b1ab5f319d27bab5c644f61de0a804360c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -189,6 +189,7 @@ name = "azalea-client"
 version = "0.3.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "azalea-auth",
  "azalea-block",
  "azalea-chat",
@@ -198,9 +199,11 @@ dependencies = [
  "azalea-protocol",
  "azalea-world",
  "log",
+ "nohash-hasher",
  "parking_lot 0.12.1",
  "thiserror",
  "tokio",
+ "typemap_rev",
  "uuid",
 ]
 
@@ -381,6 +384,7 @@ version = "0.2.0"
 dependencies = [
  "anyhow",
  "azalea",
+ "azalea-pathfinder",
  "env_logger",
  "parking_lot 0.12.1",
  "tokio",
@@ -2039,6 +2043,12 @@ name = "try-lock"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59547bce71d9c38b83d9c0e92b6066c4253371f15005def0c30d9657f50c7642"
+
+[[package]]
+name = "typemap_rev"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fc45e9608894c9fefd9792d880560280086d73a4d8c8cb7436f27ca98550fb5"
 
 [[package]]
 name = "typenum"

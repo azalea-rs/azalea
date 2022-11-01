@@ -164,6 +164,10 @@ impl Chunk {
     }
 
     pub fn get(&self, pos: &ChunkBlockPos, min_y: i32) -> Option<BlockState> {
+        if pos.y < min_y {
+            // y position is out of bounds
+            return None;
+        }
         let section_index = self.section_index(pos.y, min_y) as usize;
         if section_index >= self.sections.len() {
             // y position is out of bounds

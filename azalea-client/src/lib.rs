@@ -12,11 +12,13 @@ mod get_mc_dir;
 mod movement;
 pub mod ping;
 mod player;
+mod plugins;
 
 pub use account::Account;
 pub use client::{ChatPacket, Client, ClientInformation, Event, JoinError};
 pub use movement::WalkDirection;
 pub use player::Player;
+pub use plugins::{Plugin, Plugins};
 
 #[cfg(test)]
 mod tests {

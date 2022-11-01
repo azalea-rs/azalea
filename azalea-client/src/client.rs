@@ -1,4 +1,4 @@
-use crate::{movement::WalkDirection, Account, Player};
+use crate::{movement::WalkDirection, plugins::Plugins, Account, Player};
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::Component;
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
@@ -90,6 +90,10 @@ pub struct Client {
     pub dimension: Arc<RwLock<Dimension>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
     pub client_information: Arc<RwLock<ClientInformation>>,
+    /// Plugins are a way for other crates to add custom functionality to the
+    /// client and keep state. If you're not making a plugin and you're using
+    /// the `azalea` crate. you can ignore this field.
+    pub plugins: Arc<Plugins>,
     tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
 }
 
@@ -254,8 +258,11 @@ impl Client {
             player: Arc::new(Mutex::new(Player::default())),
             dimension: Arc::new(RwLock::new(Dimension::default())),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
-            tasks: Arc::new(Mutex::new(Vec::new())),
             client_information: Arc::new(RwLock::new(ClientInformation::default())),
+            // The plugins can be modified by the user by replacing the plugins
+            // field right after this. No Mutex so the user doesn't need to .lock().
+            plugins: Arc::new(Plugins::new()),
+            tasks: Arc::new(Mutex::new(Vec::new())),
         };
 
         tx.send(Event::Initialize).unwrap();

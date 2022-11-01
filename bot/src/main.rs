@@ -1,5 +1,6 @@
-use azalea::prelude::*;
+use azalea::{prelude::*, BlockPos};
 use azalea::{Account, Client, Event};
+use azalea_pathfinder::{BlockPosGoal, Trait};
 
 #[derive(Default, Clone)]
 struct State {}
@@ -14,7 +15,7 @@ async fn main() -> anyhow::Result<()> {
         account,
         address: "localhost",
         state: State::default(),
-        plugins: vec![],
+        plugins: vec![Box::new(azalea_pathfinder::Plugin::default())],
         handle,
     })
     .await
@@ -27,12 +28,13 @@ async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> 
     match event {
         Event::Login => {
             bot.chat("Hello world").await?;
+            bot.goto(BlockPosGoal::from(BlockPos::new(0, -60, 12)));
         }
         Event::Initialize => {
             println!("initialized");
         }
         Event::Tick => {
-            bot.jump();
+            // bot.jump();
         }
         _ => {}
     }

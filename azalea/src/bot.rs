@@ -29,6 +29,8 @@ impl BotTrait for azalea_client::Client {
             .entity_mut(&mut dimension_lock)
             .expect("Player must exist");
 
+        let state = self.plugins.get::<Plugin>().unwrap().state.clone();
+        *state.jumping_once.lock() = true;
         player_entity.jumping = true;
     }
 
