@@ -2,6 +2,7 @@
 
 from lib.download import get_server_jar, get_burger, get_client_jar, get_generator_mod, get_yarn_data, get_fabric_api_versions, get_fabric_loader_versions
 from lib.utils import get_dir_location
+from zipfile import ZipFile
 import subprocess
 import json
 import re
@@ -159,3 +160,14 @@ def get_generator_mod_data(version_id: str, category: str):
 
     with open(f'{target_dir}/{category}.json', 'r') as f:
         return json.load(f)
+
+def get_file_from_jar(version_id: str, file_dir: str):
+    get_client_jar(version_id)
+    with ZipFile(get_dir_location(f'downloads/client-{version_id}.jar')) as z:
+        with z.open(file_dir) as f:
+            return f.read()
+
+def get_en_us_lang(version_id: str):
+    return json.loads(
+        get_file_from_jar(version_id, 'assets/minecraft/lang/en_us.json')
+    )

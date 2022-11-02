@@ -116,6 +116,10 @@ if old_ordered_blocks != new_ordered_blocks:
     lib.code.blocks.generate_blocks(
         block_states_burger, block_states_report, old_ordered_blocks, new_mappings)
 
+print('Getting en_us.json...')
+language = lib.extract.get_en_us_lang(version_id)
+lib.code.language.write_language(language)
+
 
 lib.code.utils.fmt()
 
