@@ -1,4 +1,5 @@
 use azalea::prelude::*;
+use azalea::Swarm;
 use parking_lot::Mutex;
 use std::sync::Arc;
 
