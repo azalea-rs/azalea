@@ -236,8 +236,8 @@ impl Client {
         player_entity.jumping
     }
 
-    /// Sets your rotation. `y_rot` is pitch (looking up and down), `x_rot` is
-    /// yaw (looking to the side). You can get these numbers from the vanilla
+    /// Sets your rotation. `y_rot` is yaw (looking to the side), `x_rot` is
+    /// pitch (looking up and down). You can get these numbers from the vanilla
     /// f3 screen.
     pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
         let mut player_entity = self.entity_mut();
