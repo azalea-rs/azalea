@@ -47,7 +47,6 @@ impl McBufWritable for EntityMetadata {
 #[derive(Clone, Debug, EnumAsInner)]
 pub enum EntityDataValue {
     Byte(u8),
-    // varint
     Int(i32),
     Float(f32),
     String(String),
