@@ -20,7 +20,8 @@ First, run `python migrate.py [new version]`. This will run a script that automa
 - Adding, removing, and updating packets in azalea-protocol (limited)
 - Updating supported version in README.md
 - Updating the `PROTOCOL_VERSION` variable in azalea-protocol
-- Generating blocks and block shapes in azalea-block
+- Generating blocks in azalea-block
+- Generating block shapes in azalea-physics
 - Generating registries in azalea-registries
 - Updating en_us.json in azalea-language
 
