@@ -37,6 +37,8 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
     ]
 
     code = []
+    code.append('// This file is generated from codegen/lib/code/entity.py')
+    code.append('')
     code.append('use super::{EntityDataValue, Rotations, VillagerData, Pose};')
     code.append('use azalea_chat::Component;')
     code.append('use azalea_core::{BlockPos, Direction, Particle, Slot};')

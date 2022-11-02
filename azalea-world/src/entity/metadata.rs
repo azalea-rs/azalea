@@ -1,3 +1,5 @@
+// This file is generated from codegen/lib/code/entity.py
+
 use super::{EntityDataValue, Pose, Rotations, VillagerData};
 use azalea_chat::Component;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
