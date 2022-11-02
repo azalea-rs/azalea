@@ -158,6 +158,8 @@ impl MovableEntity for Entity<'_> {
 
         if vertical_collision {
             // blockBelow.updateEntityAfterFallOn(this.level, this);
+            // the default implementation of updateEntityAfterFallOn sets the y movement to 0
+            self.delta.y = 0.;
         }
 
         if on_ground {

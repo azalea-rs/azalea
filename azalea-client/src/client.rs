@@ -86,7 +86,7 @@ pub struct Client {
     game_profile: GameProfile,
     pub read_conn: Arc<tokio::sync::Mutex<ReadConnection<ClientboundGamePacket>>>,
     pub write_conn: Arc<tokio::sync::Mutex<WriteConnection<ServerboundGamePacket>>>,
-    pub player: Arc<Mutex<Player>>,
+    pub player: Arc<RwLock<Player>>,
     pub dimension: Arc<RwLock<Dimension>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
     pub client_information: Arc<RwLock<ClientInformation>>,
@@ -254,7 +254,7 @@ impl Client {
             game_profile,
             read_conn,
             write_conn,
-            player: Arc::new(Mutex::new(Player::default())),
+            player: Arc::new(RwLock::new(Player::default())),
             dimension: Arc::new(RwLock::new(Dimension::default())),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
             client_information: Arc::new(RwLock::new(ClientInformation::default())),
@@ -408,7 +408,7 @@ impl Client {
                     let entity = EntityData::new(client.game_profile.uuid, Vec3::default());
                     dimension_lock.add_entity(p.player_id, entity);
 
-                    let mut player_lock = client.player.lock();
+                    let mut player_lock = client.player.write();
 
                     player_lock.set_entity_id(p.player_id);
                 }
@@ -471,7 +471,7 @@ impl Client {
 
                 let (new_pos, y_rot, x_rot) = {
                     let player_entity_id = {
-                        let player_lock = client.player.lock();
+                        let player_lock = client.player.write();
                         player_lock.entity_id
                     };
 
@@ -571,9 +571,8 @@ impl Client {
                 let pos = ChunkPos::new(p.x, p.z);
                 // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
                 // debug("chunk {:?}")
-                client
-                    .dimension
-                    .write()
+                let mut dimension_lock = client.dimension.write();
+                dimension_lock
                     .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data))
                     .unwrap();
             }
@@ -790,7 +789,7 @@ impl Client {
         // return if there's no chunk at the player's position
         {
             let dimension_lock = client.dimension.write();
-            let player_lock = client.player.lock();
+            let player_lock = client.player.write();
             let player_entity = player_lock.entity(&dimension_lock);
             let player_entity = if let Some(player_entity) = player_entity {
                 player_entity
@@ -818,7 +817,7 @@ impl Client {
     /// Returns the entity associated to the player.
     pub fn entity_mut(&self) -> Entity<RwLockWriteGuard<Dimension>> {
         let entity_id = {
-            let player_lock = self.player.lock();
+            let player_lock = self.player.write();
             player_lock.entity_id
         };
 
@@ -834,7 +833,7 @@ impl Client {
     /// Returns the entity associated to the player.
     pub fn entity(&self) -> Entity<RwLockReadGuard<Dimension>> {
         let entity_id = {
-            let player_lock = self.player.lock();
+            let player_lock = self.player.read();
             player_lock.entity_id
         };
 
@@ -851,7 +850,7 @@ impl Client {
     /// Returns whether we have a received the login packet yet.
     pub fn logged_in(&self) -> bool {
         let dimension = self.dimension.read();
-        let player = self.player.lock();
+        let player = self.player.write();
         player.entity(&dimension).is_some()
     }
 

@@ -2,7 +2,8 @@
 
 use async_trait::async_trait;
 use azalea::{Client, Event};
-use std::sync::{Arc, Mutex};
+use parking_lot::Mutex;
+use std::sync::Arc;
 
 #[derive(Default, Clone)]
 pub struct Plugin {

@@ -143,12 +143,16 @@ fn handle_relative_friction_and_calculate_movement(
     acceleration: &Vec3,
     block_friction: f32,
 ) -> Vec3 {
-    entity.move_relative(get_speed(&*entity, block_friction), acceleration);
+    entity.move_relative(
+        get_friction_influenced_speed(&*entity, block_friction),
+        acceleration,
+    );
     // entity.delta = entity.handle_on_climbable(entity.delta);
     entity
         .move_colliding(&MoverType::Own, &entity.delta.clone())
         .expect("Entity should exist.");
     // let delta_movement = entity.delta;
+    // ladders
     //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable() || entity.getFeetBlockState().is(Blocks.POWDER_SNOW) && PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {
     //      var3 = new Vec3(var3.x, 0.2D, var3.z);
     //   }
@@ -160,10 +164,10 @@ fn handle_relative_friction_and_calculate_movement(
 // private float getFrictionInfluencedSpeed(float friction) {
 //     return this.onGround ? this.getSpeed() * (0.21600002F / (friction * friction * friction)) : this.flyingSpeed;
 // }
-fn get_speed(entity: &EntityData, friction: f32) -> f32 {
+fn get_friction_influenced_speed(entity: &EntityData, friction: f32) -> f32 {
     // TODO: have speed & flying_speed fields in entity
     if entity.on_ground {
-        let speed: f32 = 0.7;
+        let speed: f32 = 0.1;
         speed * (0.216f32 / (friction * friction * friction))
     } else {
         // entity.flying_speed
