@@ -80,10 +80,10 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
                 code.append(f'pub {name}: {rust_type},')
 
                 type_name_field = to_snake_case(type_name)
-                reader_code.append(f'let {name} = metadata.pop_front()?.as_{type_name_field}()?.clone();')
+                reader_code.append(f'let {name} = metadata.pop_front()?.into_{type_name_field}().ok()?;')
                 writer_code.append(f'metadata.push(EntityDataValue::{type_name}(self.{name}.clone()));')
             else:
-                reader_code.append('let bitfield = *metadata.pop_front()?.as_byte()?;')
+                reader_code.append('let bitfield = metadata.pop_front()?.into_byte().ok()?;')
                 writer_code.append('let mut bitfield = 0u8;')
                 for mask, name in name_or_bitfield.items():
                     if name == 'type':

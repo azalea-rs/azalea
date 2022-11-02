@@ -14,8 +14,8 @@ pub struct Allay {
 
 impl Allay {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let dancing = metadata.pop_front()?.as_boolean()?.clone();
-        let can_duplicate = metadata.pop_front()?.as_boolean()?.clone();
+        let dancing = metadata.pop_front()?.into_boolean().ok()?;
+        let can_duplicate = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_creature: AbstractCreature::read(metadata)?,
             dancing,
@@ -40,10 +40,10 @@ pub struct AreaEffectCloud {
 
 impl AreaEffectCloud {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let radius = metadata.pop_front()?.as_float()?.clone();
-        let color = metadata.pop_front()?.as_int()?.clone();
-        let waiting = metadata.pop_front()?.as_boolean()?.clone();
-        let particle = metadata.pop_front()?.as_particle()?.clone();
+        let radius = metadata.pop_front()?.into_float().ok()?;
+        let color = metadata.pop_front()?.into_int().ok()?;
+        let waiting = metadata.pop_front()?.into_boolean().ok()?;
+        let particle = metadata.pop_front()?.into_particle().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             radius,
@@ -78,17 +78,17 @@ pub struct ArmorStand {
 
 impl ArmorStand {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let small = bitfield & 0x1 != 1;
         let show_arms = bitfield & 0x4 != 1;
         let no_base_plate = bitfield & 0x8 != 1;
         let marker = bitfield & 0x10 != 1;
-        let head_pose = metadata.pop_front()?.as_rotations()?.clone();
-        let body_pose = metadata.pop_front()?.as_rotations()?.clone();
-        let left_arm_pose = metadata.pop_front()?.as_rotations()?.clone();
-        let right_arm_pose = metadata.pop_front()?.as_rotations()?.clone();
-        let left_leg_pose = metadata.pop_front()?.as_rotations()?.clone();
-        let right_leg_pose = metadata.pop_front()?.as_rotations()?.clone();
+        let head_pose = metadata.pop_front()?.into_rotations().ok()?;
+        let body_pose = metadata.pop_front()?.into_rotations().ok()?;
+        let left_arm_pose = metadata.pop_front()?.into_rotations().ok()?;
+        let right_arm_pose = metadata.pop_front()?.into_rotations().ok()?;
+        let left_leg_pose = metadata.pop_front()?.into_rotations().ok()?;
+        let right_leg_pose = metadata.pop_front()?.into_rotations().ok()?;
         Some(Self {
             abstract_living: AbstractLiving::read(metadata)?,
             small,
@@ -140,12 +140,12 @@ pub struct Arrow {
 
 impl Arrow {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let crit_arrow = bitfield & 0x1 != 1;
         let shot_from_crossbow = bitfield & 0x4 != 1;
         let no_physics = bitfield & 0x2 != 1;
-        let pierce_level = metadata.pop_front()?.as_byte()?.clone();
-        let effect_color = metadata.pop_front()?.as_int()?.clone();
+        let pierce_level = metadata.pop_front()?.into_byte().ok()?;
+        let effect_color = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             crit_arrow,
@@ -183,9 +183,9 @@ pub struct Axolotl {
 
 impl Axolotl {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let variant = metadata.pop_front()?.as_int()?.clone();
-        let playing_dead = metadata.pop_front()?.as_boolean()?.clone();
-        let from_bucket = metadata.pop_front()?.as_boolean()?.clone();
+        let variant = metadata.pop_front()?.into_int().ok()?;
+        let playing_dead = metadata.pop_front()?.into_boolean().ok()?;
+        let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             variant,
@@ -209,7 +209,7 @@ pub struct Bat {
 
 impl Bat {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let resting = bitfield & 0x1 != 1;
         Some(Self {
             abstract_insentient: AbstractInsentient::read(metadata)?,
@@ -237,11 +237,11 @@ pub struct Bee {
 
 impl Bee {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let has_nectar = bitfield & 0x8 != 1;
         let has_stung = bitfield & 0x4 != 1;
         let rolling = bitfield & 0x2 != 1;
-        let remaining_anger_time = metadata.pop_front()?.as_int()?.clone();
+        let remaining_anger_time = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             has_nectar,
@@ -275,7 +275,7 @@ pub struct Blaze {
 
 impl Blaze {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let charged = bitfield & 0x1 != 1;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
@@ -306,13 +306,13 @@ pub struct Boat {
 
 impl Boat {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let hurt = metadata.pop_front()?.as_int()?.clone();
-        let hurtdir = metadata.pop_front()?.as_int()?.clone();
-        let damage = metadata.pop_front()?.as_float()?.clone();
-        let kind = metadata.pop_front()?.as_int()?.clone();
-        let paddle_left = metadata.pop_front()?.as_boolean()?.clone();
-        let paddle_right = metadata.pop_front()?.as_boolean()?.clone();
-        let bubble_time = metadata.pop_front()?.as_int()?.clone();
+        let hurt = metadata.pop_front()?.into_int().ok()?;
+        let hurtdir = metadata.pop_front()?.into_int().ok()?;
+        let damage = metadata.pop_front()?.into_float().ok()?;
+        let kind = metadata.pop_front()?.into_int().ok()?;
+        let paddle_left = metadata.pop_front()?.into_boolean().ok()?;
+        let paddle_right = metadata.pop_front()?.into_boolean().ok()?;
+        let bubble_time = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             hurt,
@@ -347,10 +347,10 @@ pub struct Cat {
 
 impl Cat {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let variant = metadata.pop_front()?.as_cat_variant()?.clone();
-        let is_lying = metadata.pop_front()?.as_boolean()?.clone();
-        let relax_state_one = metadata.pop_front()?.as_boolean()?.clone();
-        let collar_color = metadata.pop_front()?.as_int()?.clone();
+        let variant = metadata.pop_front()?.into_cat_variant().ok()?;
+        let is_lying = metadata.pop_front()?.into_boolean().ok()?;
+        let relax_state_one = metadata.pop_front()?.into_boolean().ok()?;
+        let collar_color = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_tameable: AbstractTameable::read(metadata)?,
             variant,
@@ -440,7 +440,7 @@ pub struct Cod {
 
 impl Cod {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let from_bucket = metadata.pop_front()?.as_boolean()?.clone();
+        let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_creature: AbstractCreature::read(metadata)?,
             from_bucket,
@@ -461,8 +461,8 @@ pub struct CommandBlockMinecart {
 
 impl CommandBlockMinecart {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let command_name = metadata.pop_front()?.as_string()?.clone();
-        let last_output = metadata.pop_front()?.as_component()?.clone();
+        let command_name = metadata.pop_front()?.into_string().ok()?;
+        let last_output = metadata.pop_front()?.into_component().ok()?;
         Some(Self {
             abstract_minecart: AbstractMinecart::read(metadata)?,
             command_name,
@@ -502,9 +502,9 @@ pub struct Creeper {
 
 impl Creeper {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let swell_dir = metadata.pop_front()?.as_int()?.clone();
-        let is_powered = metadata.pop_front()?.as_boolean()?.clone();
-        let is_ignited = metadata.pop_front()?.as_boolean()?.clone();
+        let swell_dir = metadata.pop_front()?.into_int().ok()?;
+        let is_powered = metadata.pop_front()?.into_boolean().ok()?;
+        let is_ignited = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             swell_dir,
@@ -530,9 +530,9 @@ pub struct Dolphin {
 
 impl Dolphin {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let treasure_pos = metadata.pop_front()?.as_block_pos()?.clone();
-        let got_fish = metadata.pop_front()?.as_boolean()?.clone();
-        let moistness_level = metadata.pop_front()?.as_int()?.clone();
+        let treasure_pos = metadata.pop_front()?.into_block_pos().ok()?;
+        let got_fish = metadata.pop_front()?.into_boolean().ok()?;
+        let moistness_level = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_creature: AbstractCreature::read(metadata)?,
             treasure_pos,
@@ -562,14 +562,14 @@ pub struct Donkey {
 
 impl Donkey {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let tamed = bitfield & 0x2 != 1;
         let eating = bitfield & 0x10 != 1;
         let standing = bitfield & 0x20 != 1;
         let bred = bitfield & 0x8 != 1;
         let saddled = bitfield & 0x4 != 1;
-        let owner_uuid = metadata.pop_front()?.as_optional_uuid()?.clone();
-        let chest = metadata.pop_front()?.as_boolean()?.clone();
+        let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
+        let chest = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             tamed,
@@ -645,7 +645,7 @@ pub struct Egg {
 
 impl Egg {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let item_stack = metadata.pop_front()?.as_item_stack()?.clone();
+        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             item_stack,
@@ -682,8 +682,8 @@ pub struct EndCrystal {
 
 impl EndCrystal {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let beam_target = metadata.pop_front()?.as_optional_block_pos()?.clone();
-        let show_bottom = metadata.pop_front()?.as_boolean()?.clone();
+        let beam_target = metadata.pop_front()?.into_optional_block_pos().ok()?;
+        let show_bottom = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             beam_target,
@@ -705,7 +705,7 @@ pub struct EnderDragon {
 
 impl EnderDragon {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let phase = metadata.pop_front()?.as_int()?.clone();
+        let phase = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_insentient: AbstractInsentient::read(metadata)?,
             phase,
@@ -725,7 +725,7 @@ pub struct EnderPearl {
 
 impl EnderPearl {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let item_stack = metadata.pop_front()?.as_item_stack()?.clone();
+        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             item_stack,
@@ -747,9 +747,9 @@ pub struct Enderman {
 
 impl Enderman {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let carry_state = metadata.pop_front()?.as_optional_block_state()?.clone();
-        let creepy = metadata.pop_front()?.as_boolean()?.clone();
-        let stared_at = metadata.pop_front()?.as_boolean()?.clone();
+        let carry_state = metadata.pop_front()?.into_optional_block_state().ok()?;
+        let creepy = metadata.pop_front()?.into_boolean().ok()?;
+        let stared_at = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             carry_state,
@@ -792,8 +792,8 @@ pub struct Evoker {
 
 impl Evoker {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let is_celebrating = metadata.pop_front()?.as_boolean()?.clone();
-        let spell_casting = metadata.pop_front()?.as_byte()?.clone();
+        let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
+        let spell_casting = metadata.pop_front()?.into_byte().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             is_celebrating,
@@ -831,7 +831,7 @@ pub struct ExperienceBottle {
 
 impl ExperienceBottle {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let item_stack = metadata.pop_front()?.as_item_stack()?.clone();
+        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             item_stack,
@@ -867,7 +867,7 @@ pub struct EyeOfEnder {
 
 impl EyeOfEnder {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let item_stack = metadata.pop_front()?.as_item_stack()?.clone();
+        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             item_stack,
@@ -887,7 +887,7 @@ pub struct FallingBlock {
 
 impl FallingBlock {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let start_pos = metadata.pop_front()?.as_block_pos()?.clone();
+        let start_pos = metadata.pop_front()?.into_block_pos().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             start_pos,
@@ -907,7 +907,7 @@ pub struct Fireball {
 
 impl Fireball {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let item_stack = metadata.pop_front()?.as_item_stack()?.clone();
+        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             item_stack,
@@ -929,9 +929,9 @@ pub struct FireworkRocket {
 
 impl FireworkRocket {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let fireworks_item = metadata.pop_front()?.as_item_stack()?.clone();
-        let attached_to_target = metadata.pop_front()?.as_optional_unsigned_int()?.clone();
-        let shot_at_angle = metadata.pop_front()?.as_boolean()?.clone();
+        let fireworks_item = metadata.pop_front()?.into_item_stack().ok()?;
+        let attached_to_target = metadata.pop_front()?.into_optional_unsigned_int().ok()?;
+        let shot_at_angle = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             fireworks_item,
@@ -958,8 +958,8 @@ pub struct FishingBobber {
 
 impl FishingBobber {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let hooked_entity = metadata.pop_front()?.as_int()?.clone();
-        let biting = metadata.pop_front()?.as_boolean()?.clone();
+        let hooked_entity = metadata.pop_front()?.into_int().ok()?;
+        let biting = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             hooked_entity,
@@ -989,16 +989,16 @@ pub struct Fox {
 
 impl Fox {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let kind = metadata.pop_front()?.as_int()?.clone();
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let kind = metadata.pop_front()?.into_int().ok()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let sitting = bitfield & 0x1 != 1;
         let faceplanted = bitfield & 0x40 != 1;
         let sleeping = bitfield & 0x20 != 1;
         let pouncing = bitfield & 0x10 != 1;
         let crouching = bitfield & 0x4 != 1;
         let interested = bitfield & 0x8 != 1;
-        let trusted_id_0 = metadata.pop_front()?.as_optional_uuid()?.clone();
-        let trusted_id_1 = metadata.pop_front()?.as_optional_uuid()?.clone();
+        let trusted_id_0 = metadata.pop_front()?.into_optional_uuid().ok()?;
+        let trusted_id_1 = metadata.pop_front()?.into_optional_uuid().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             kind,
@@ -1049,8 +1049,8 @@ pub struct Frog {
 
 impl Frog {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let variant = metadata.pop_front()?.as_frog_variant()?.clone();
-        let tongue_target = metadata.pop_front()?.as_optional_unsigned_int()?.clone();
+        let variant = metadata.pop_front()?.into_frog_variant().ok()?;
+        let tongue_target = metadata.pop_front()?.into_optional_unsigned_int().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             variant,
@@ -1074,7 +1074,7 @@ pub struct FurnaceMinecart {
 
 impl FurnaceMinecart {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let fuel = metadata.pop_front()?.as_boolean()?.clone();
+        let fuel = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_minecart: AbstractMinecart::read(metadata)?,
             fuel,
@@ -1094,7 +1094,7 @@ pub struct Ghast {
 
 impl Ghast {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let is_charging = metadata.pop_front()?.as_boolean()?.clone();
+        let is_charging = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_insentient: AbstractInsentient::read(metadata)?,
             is_charging,
@@ -1146,7 +1146,7 @@ pub struct GlowSquid {
 
 impl GlowSquid {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let dark_ticks_remaining = metadata.pop_front()?.as_int()?.clone();
+        let dark_ticks_remaining = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             squid: Squid::read(metadata)?,
             dark_ticks_remaining,
@@ -1168,9 +1168,9 @@ pub struct Goat {
 
 impl Goat {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let is_screaming_goat = metadata.pop_front()?.as_boolean()?.clone();
-        let has_left_horn = metadata.pop_front()?.as_boolean()?.clone();
-        let has_right_horn = metadata.pop_front()?.as_boolean()?.clone();
+        let is_screaming_goat = metadata.pop_front()?.into_boolean().ok()?;
+        let has_left_horn = metadata.pop_front()?.into_boolean().ok()?;
+        let has_right_horn = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             is_screaming_goat,
@@ -1195,8 +1195,8 @@ pub struct Guardian {
 
 impl Guardian {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let moving = metadata.pop_front()?.as_boolean()?.clone();
-        let attack_target = metadata.pop_front()?.as_int()?.clone();
+        let moving = metadata.pop_front()?.into_boolean().ok()?;
+        let attack_target = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             moving,
@@ -1218,7 +1218,7 @@ pub struct Hoglin {
 
 impl Hoglin {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let immune_to_zombification = metadata.pop_front()?.as_boolean()?.clone();
+        let immune_to_zombification = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             immune_to_zombification,
@@ -1262,14 +1262,14 @@ pub struct Horse {
 
 impl Horse {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let tamed = bitfield & 0x2 != 1;
         let eating = bitfield & 0x10 != 1;
         let standing = bitfield & 0x20 != 1;
         let bred = bitfield & 0x8 != 1;
         let saddled = bitfield & 0x4 != 1;
-        let owner_uuid = metadata.pop_front()?.as_optional_uuid()?.clone();
-        let type_variant = metadata.pop_front()?.as_int()?.clone();
+        let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
+        let type_variant = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             tamed,
@@ -1330,8 +1330,8 @@ pub struct Illusioner {
 
 impl Illusioner {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let is_celebrating = metadata.pop_front()?.as_boolean()?.clone();
-        let spell_casting = metadata.pop_front()?.as_byte()?.clone();
+        let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
+        let spell_casting = metadata.pop_front()?.into_byte().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             is_celebrating,
@@ -1353,7 +1353,7 @@ pub struct IronGolem {
 
 impl IronGolem {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let player_created = bitfield & 0x1 != 1;
         Some(Self {
             abstract_creature: AbstractCreature::read(metadata)?,
@@ -1378,7 +1378,7 @@ pub struct Item {
 
 impl Item {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let item = metadata.pop_front()?.as_item_stack()?.clone();
+        let item = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             item,
@@ -1399,8 +1399,8 @@ pub struct ItemFrame {
 
 impl ItemFrame {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let item = metadata.pop_front()?.as_item_stack()?.clone();
-        let rotation = metadata.pop_front()?.as_int()?.clone();
+        let item = metadata.pop_front()?.into_item_stack().ok()?;
+        let rotation = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             item,
@@ -1463,17 +1463,17 @@ pub struct Llama {
 
 impl Llama {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let tamed = bitfield & 0x2 != 1;
         let eating = bitfield & 0x10 != 1;
         let standing = bitfield & 0x20 != 1;
         let bred = bitfield & 0x8 != 1;
         let saddled = bitfield & 0x4 != 1;
-        let owner_uuid = metadata.pop_front()?.as_optional_uuid()?.clone();
-        let chest = metadata.pop_front()?.as_boolean()?.clone();
-        let strength = metadata.pop_front()?.as_int()?.clone();
-        let swag = metadata.pop_front()?.as_int()?.clone();
-        let variant = metadata.pop_front()?.as_int()?.clone();
+        let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
+        let chest = metadata.pop_front()?.into_boolean().ok()?;
+        let strength = metadata.pop_front()?.into_int().ok()?;
+        let swag = metadata.pop_front()?.into_int().ok()?;
+        let variant = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             tamed,
@@ -1587,7 +1587,7 @@ pub struct Mooshroom {
 
 impl Mooshroom {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let kind = metadata.pop_front()?.as_string()?.clone();
+        let kind = metadata.pop_front()?.into_string().ok()?;
         Some(Self {
             cow: Cow::read(metadata)?,
             kind,
@@ -1613,14 +1613,14 @@ pub struct Mule {
 
 impl Mule {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let tamed = bitfield & 0x2 != 1;
         let eating = bitfield & 0x10 != 1;
         let standing = bitfield & 0x20 != 1;
         let bred = bitfield & 0x8 != 1;
         let saddled = bitfield & 0x4 != 1;
-        let owner_uuid = metadata.pop_front()?.as_optional_uuid()?.clone();
-        let chest = metadata.pop_front()?.as_boolean()?.clone();
+        let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
+        let chest = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             tamed,
@@ -1664,7 +1664,7 @@ pub struct Ocelot {
 
 impl Ocelot {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let trusting = metadata.pop_front()?.as_boolean()?.clone();
+        let trusting = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             trusting,
@@ -1684,7 +1684,7 @@ pub struct Painting {
 
 impl Painting {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let painting_variant = metadata.pop_front()?.as_painting_variant()?.clone();
+        let painting_variant = metadata.pop_front()?.into_painting_variant().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             painting_variant,
@@ -1714,16 +1714,16 @@ pub struct Panda {
 
 impl Panda {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let unhappy_counter = metadata.pop_front()?.as_int()?.clone();
-        let sneeze_counter = metadata.pop_front()?.as_int()?.clone();
-        let eat_counter = metadata.pop_front()?.as_int()?.clone();
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let unhappy_counter = metadata.pop_front()?.into_int().ok()?;
+        let sneeze_counter = metadata.pop_front()?.into_int().ok()?;
+        let eat_counter = metadata.pop_front()?.into_int().ok()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let sneezing = bitfield & 0x2 != 1;
         let sitting = bitfield & 0x8 != 1;
         let on_back = bitfield & 0x10 != 1;
         let rolling = bitfield & 0x4 != 1;
-        let hidden_gene = metadata.pop_front()?.as_byte()?.clone();
-        let flags = metadata.pop_front()?.as_byte()?.clone();
+        let hidden_gene = metadata.pop_front()?.into_byte().ok()?;
+        let flags = metadata.pop_front()?.into_byte().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             unhappy_counter,
@@ -1769,7 +1769,7 @@ pub struct Parrot {
 
 impl Parrot {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let variant = metadata.pop_front()?.as_int()?.clone();
+        let variant = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_tameable: AbstractTameable::read(metadata)?,
             variant,
@@ -1789,7 +1789,7 @@ pub struct Phantom {
 
 impl Phantom {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let size = metadata.pop_front()?.as_int()?.clone();
+        let size = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_insentient: AbstractInsentient::read(metadata)?,
             size,
@@ -1810,8 +1810,8 @@ pub struct Pig {
 
 impl Pig {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let saddle = metadata.pop_front()?.as_boolean()?.clone();
-        let boost_time = metadata.pop_front()?.as_int()?.clone();
+        let saddle = metadata.pop_front()?.into_boolean().ok()?;
+        let boost_time = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             saddle,
@@ -1836,10 +1836,10 @@ pub struct Piglin {
 
 impl Piglin {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let immune_to_zombification = metadata.pop_front()?.as_boolean()?.clone();
-        let baby = metadata.pop_front()?.as_boolean()?.clone();
-        let is_charging_crossbow = metadata.pop_front()?.as_boolean()?.clone();
-        let is_dancing = metadata.pop_front()?.as_boolean()?.clone();
+        let immune_to_zombification = metadata.pop_front()?.into_boolean().ok()?;
+        let baby = metadata.pop_front()?.into_boolean().ok()?;
+        let is_charging_crossbow = metadata.pop_front()?.into_boolean().ok()?;
+        let is_dancing = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             immune_to_zombification,
@@ -1867,7 +1867,7 @@ pub struct PiglinBrute {
 
 impl PiglinBrute {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let immune_to_zombification = metadata.pop_front()?.as_boolean()?.clone();
+        let immune_to_zombification = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             immune_to_zombification,
@@ -1890,8 +1890,8 @@ pub struct Pillager {
 
 impl Pillager {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let is_celebrating = metadata.pop_front()?.as_boolean()?.clone();
-        let is_charging_crossbow = metadata.pop_front()?.as_boolean()?.clone();
+        let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
+        let is_charging_crossbow = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             is_celebrating,
@@ -1918,12 +1918,12 @@ pub struct Player {
 
 impl Player {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let player_absorption = metadata.pop_front()?.as_float()?.clone();
-        let score = metadata.pop_front()?.as_int()?.clone();
-        let player_mode_customisation = metadata.pop_front()?.as_byte()?.clone();
-        let player_main_hand = metadata.pop_front()?.as_byte()?.clone();
-        let shoulder_left = metadata.pop_front()?.as_compound_tag()?.clone();
-        let shoulder_right = metadata.pop_front()?.as_compound_tag()?.clone();
+        let player_absorption = metadata.pop_front()?.into_float().ok()?;
+        let score = metadata.pop_front()?.into_int().ok()?;
+        let player_mode_customisation = metadata.pop_front()?.into_byte().ok()?;
+        let player_main_hand = metadata.pop_front()?.into_byte().ok()?;
+        let shoulder_left = metadata.pop_front()?.into_compound_tag().ok()?;
+        let shoulder_right = metadata.pop_front()?.into_compound_tag().ok()?;
         Some(Self {
             abstract_living: AbstractLiving::read(metadata)?,
             player_absorption,
@@ -1955,7 +1955,7 @@ pub struct PolarBear {
 
 impl PolarBear {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let standing = metadata.pop_front()?.as_boolean()?.clone();
+        let standing = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             standing,
@@ -1975,7 +1975,7 @@ pub struct Potion {
 
 impl Potion {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let item_stack = metadata.pop_front()?.as_item_stack()?.clone();
+        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             item_stack,
@@ -1996,8 +1996,8 @@ pub struct Pufferfish {
 
 impl Pufferfish {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let from_bucket = metadata.pop_front()?.as_boolean()?.clone();
-        let puff_state = metadata.pop_front()?.as_int()?.clone();
+        let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
+        let puff_state = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_creature: AbstractCreature::read(metadata)?,
             from_bucket,
@@ -2019,7 +2019,7 @@ pub struct Rabbit {
 
 impl Rabbit {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let kind = metadata.pop_front()?.as_int()?.clone();
+        let kind = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             kind,
@@ -2039,7 +2039,7 @@ pub struct Ravager {
 
 impl Ravager {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let is_celebrating = metadata.pop_front()?.as_boolean()?.clone();
+        let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             is_celebrating,
@@ -2059,7 +2059,7 @@ pub struct Salmon {
 
 impl Salmon {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let from_bucket = metadata.pop_front()?.as_boolean()?.clone();
+        let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_creature: AbstractCreature::read(metadata)?,
             from_bucket,
@@ -2079,7 +2079,7 @@ pub struct Sheep {
 
 impl Sheep {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let sheared = bitfield & 0x10 != 1;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
@@ -2106,9 +2106,9 @@ pub struct Shulker {
 
 impl Shulker {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let attach_face = metadata.pop_front()?.as_direction()?.clone();
-        let peek = metadata.pop_front()?.as_byte()?.clone();
-        let color = metadata.pop_front()?.as_byte()?.clone();
+        let attach_face = metadata.pop_front()?.into_direction().ok()?;
+        let peek = metadata.pop_front()?.into_byte().ok()?;
+        let color = metadata.pop_front()?.into_byte().ok()?;
         Some(Self {
             abstract_creature: AbstractCreature::read(metadata)?,
             attach_face,
@@ -2164,7 +2164,7 @@ pub struct Skeleton {
 
 impl Skeleton {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let stray_conversion = metadata.pop_front()?.as_boolean()?.clone();
+        let stray_conversion = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             stray_conversion,
@@ -2189,13 +2189,13 @@ pub struct SkeletonHorse {
 
 impl SkeletonHorse {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let tamed = bitfield & 0x2 != 1;
         let eating = bitfield & 0x10 != 1;
         let standing = bitfield & 0x20 != 1;
         let bred = bitfield & 0x8 != 1;
         let saddled = bitfield & 0x4 != 1;
-        let owner_uuid = metadata.pop_front()?.as_optional_uuid()?.clone();
+        let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             tamed,
@@ -2237,7 +2237,7 @@ pub struct Slime {
 
 impl Slime {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let size = metadata.pop_front()?.as_int()?.clone();
+        let size = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_insentient: AbstractInsentient::read(metadata)?,
             size,
@@ -2257,7 +2257,7 @@ pub struct SmallFireball {
 
 impl SmallFireball {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let item_stack = metadata.pop_front()?.as_item_stack()?.clone();
+        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             item_stack,
@@ -2277,7 +2277,7 @@ pub struct SnowGolem {
 
 impl SnowGolem {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let has_pumpkin = bitfield & 0x10 != 1;
         Some(Self {
             abstract_creature: AbstractCreature::read(metadata)?,
@@ -2302,7 +2302,7 @@ pub struct Snowball {
 
 impl Snowball {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let item_stack = metadata.pop_front()?.as_item_stack()?.clone();
+        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             item_stack,
@@ -2341,11 +2341,11 @@ pub struct SpectralArrow {
 
 impl SpectralArrow {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let crit_arrow = bitfield & 0x1 != 1;
         let shot_from_crossbow = bitfield & 0x4 != 1;
         let no_physics = bitfield & 0x2 != 1;
-        let pierce_level = metadata.pop_front()?.as_byte()?.clone();
+        let pierce_level = metadata.pop_front()?.into_byte().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             crit_arrow,
@@ -2379,7 +2379,7 @@ pub struct Spider {
 
 impl Spider {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let climbing = bitfield & 0x1 != 1;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
@@ -2438,9 +2438,9 @@ pub struct Strider {
 
 impl Strider {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let boost_time = metadata.pop_front()?.as_int()?.clone();
-        let suffocating = metadata.pop_front()?.as_boolean()?.clone();
-        let saddle = metadata.pop_front()?.as_boolean()?.clone();
+        let boost_time = metadata.pop_front()?.into_int().ok()?;
+        let suffocating = metadata.pop_front()?.into_boolean().ok()?;
+        let saddle = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             boost_time,
@@ -2464,7 +2464,7 @@ pub struct Tadpole {
 
 impl Tadpole {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let from_bucket = metadata.pop_front()?.as_boolean()?.clone();
+        let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_creature: AbstractCreature::read(metadata)?,
             from_bucket,
@@ -2484,7 +2484,7 @@ pub struct Tnt {
 
 impl Tnt {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let fuse = metadata.pop_front()?.as_int()?.clone();
+        let fuse = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             fuse,
@@ -2541,13 +2541,13 @@ pub struct Trident {
 
 impl Trident {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let crit_arrow = bitfield & 0x1 != 1;
         let shot_from_crossbow = bitfield & 0x4 != 1;
         let no_physics = bitfield & 0x2 != 1;
-        let pierce_level = metadata.pop_front()?.as_byte()?.clone();
-        let loyalty = metadata.pop_front()?.as_byte()?.clone();
-        let foil = metadata.pop_front()?.as_boolean()?.clone();
+        let pierce_level = metadata.pop_front()?.into_byte().ok()?;
+        let loyalty = metadata.pop_front()?.into_byte().ok()?;
+        let foil = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             crit_arrow,
@@ -2586,8 +2586,8 @@ pub struct TropicalFish {
 
 impl TropicalFish {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let from_bucket = metadata.pop_front()?.as_boolean()?.clone();
-        let type_variant = metadata.pop_front()?.as_int()?.clone();
+        let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
+        let type_variant = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_creature: AbstractCreature::read(metadata)?,
             from_bucket,
@@ -2614,12 +2614,12 @@ pub struct Turtle {
 
 impl Turtle {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let home_pos = metadata.pop_front()?.as_block_pos()?.clone();
-        let has_egg = metadata.pop_front()?.as_boolean()?.clone();
-        let laying_egg = metadata.pop_front()?.as_boolean()?.clone();
-        let travel_pos = metadata.pop_front()?.as_block_pos()?.clone();
-        let going_home = metadata.pop_front()?.as_boolean()?.clone();
-        let travelling = metadata.pop_front()?.as_boolean()?.clone();
+        let home_pos = metadata.pop_front()?.into_block_pos().ok()?;
+        let has_egg = metadata.pop_front()?.into_boolean().ok()?;
+        let laying_egg = metadata.pop_front()?.into_boolean().ok()?;
+        let travel_pos = metadata.pop_front()?.into_block_pos().ok()?;
+        let going_home = metadata.pop_front()?.into_boolean().ok()?;
+        let travelling = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             home_pos,
@@ -2649,7 +2649,7 @@ pub struct Vex {
 
 impl Vex {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let flags = metadata.pop_front()?.as_byte()?.clone();
+        let flags = metadata.pop_front()?.into_byte().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             flags,
@@ -2670,8 +2670,8 @@ pub struct Villager {
 
 impl Villager {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let unhappy_counter = metadata.pop_front()?.as_int()?.clone();
-        let villager_data = metadata.pop_front()?.as_villager_data()?.clone();
+        let unhappy_counter = metadata.pop_front()?.into_int().ok()?;
+        let villager_data = metadata.pop_front()?.into_villager_data().ok()?;
         Some(Self {
             abstract_ageable: AbstractAgeable::read(metadata)?,
             unhappy_counter,
@@ -2693,7 +2693,7 @@ pub struct Vindicator {
 
 impl Vindicator {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let is_celebrating = metadata.pop_front()?.as_boolean()?.clone();
+        let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             is_celebrating,
@@ -2713,7 +2713,7 @@ pub struct WanderingTrader {
 
 impl WanderingTrader {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let unhappy_counter = metadata.pop_front()?.as_int()?.clone();
+        let unhappy_counter = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_ageable: AbstractAgeable::read(metadata)?,
             unhappy_counter,
@@ -2733,7 +2733,7 @@ pub struct Warden {
 
 impl Warden {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let client_anger_level = metadata.pop_front()?.as_int()?.clone();
+        let client_anger_level = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             client_anger_level,
@@ -2754,8 +2754,8 @@ pub struct Witch {
 
 impl Witch {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let is_celebrating = metadata.pop_front()?.as_boolean()?.clone();
-        let using_item = metadata.pop_front()?.as_boolean()?.clone();
+        let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
+        let using_item = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             is_celebrating,
@@ -2780,10 +2780,10 @@ pub struct Wither {
 
 impl Wither {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let target_a = metadata.pop_front()?.as_int()?.clone();
-        let target_b = metadata.pop_front()?.as_int()?.clone();
-        let target_c = metadata.pop_front()?.as_int()?.clone();
-        let inv = metadata.pop_front()?.as_int()?.clone();
+        let target_a = metadata.pop_front()?.into_int().ok()?;
+        let target_b = metadata.pop_front()?.into_int().ok()?;
+        let target_c = metadata.pop_front()?.into_int().ok()?;
+        let inv = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             target_a,
@@ -2825,7 +2825,7 @@ pub struct WitherSkull {
 
 impl WitherSkull {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let dangerous = metadata.pop_front()?.as_boolean()?.clone();
+        let dangerous = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             dangerous,
@@ -2847,9 +2847,9 @@ pub struct Wolf {
 
 impl Wolf {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let interested = metadata.pop_front()?.as_boolean()?.clone();
-        let collar_color = metadata.pop_front()?.as_int()?.clone();
-        let remaining_anger_time = metadata.pop_front()?.as_int()?.clone();
+        let interested = metadata.pop_front()?.into_boolean().ok()?;
+        let collar_color = metadata.pop_front()?.into_int().ok()?;
+        let remaining_anger_time = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_tameable: AbstractTameable::read(metadata)?,
             interested,
@@ -2873,7 +2873,7 @@ pub struct Zoglin {
 
 impl Zoglin {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let baby = metadata.pop_front()?.as_boolean()?.clone();
+        let baby = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             baby,
@@ -2895,9 +2895,9 @@ pub struct Zombie {
 
 impl Zombie {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let baby = metadata.pop_front()?.as_boolean()?.clone();
-        let special_type = metadata.pop_front()?.as_int()?.clone();
-        let drowned_conversion = metadata.pop_front()?.as_boolean()?.clone();
+        let baby = metadata.pop_front()?.into_boolean().ok()?;
+        let special_type = metadata.pop_front()?.into_int().ok()?;
+        let drowned_conversion = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_monster: AbstractMonster::read(metadata)?,
             baby,
@@ -2926,13 +2926,13 @@ pub struct ZombieHorse {
 
 impl ZombieHorse {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let tamed = bitfield & 0x2 != 1;
         let eating = bitfield & 0x10 != 1;
         let standing = bitfield & 0x20 != 1;
         let bred = bitfield & 0x8 != 1;
         let saddled = bitfield & 0x4 != 1;
-        let owner_uuid = metadata.pop_front()?.as_optional_uuid()?.clone();
+        let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             tamed,
@@ -2975,8 +2975,8 @@ pub struct ZombieVillager {
 
 impl ZombieVillager {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let converting = metadata.pop_front()?.as_boolean()?.clone();
-        let villager_data = metadata.pop_front()?.as_villager_data()?.clone();
+        let converting = metadata.pop_front()?.into_boolean().ok()?;
+        let villager_data = metadata.pop_front()?.into_villager_data().ok()?;
         Some(Self {
             zombie: Zombie::read(metadata)?,
             converting,
@@ -3014,7 +3014,7 @@ pub struct AbstractAgeable {
 
 impl AbstractAgeable {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let baby = metadata.pop_front()?.as_boolean()?.clone();
+        let baby = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_creature: AbstractCreature::read(metadata)?,
             baby,
@@ -3078,7 +3078,7 @@ pub struct AbstractEntity {
 
 impl AbstractEntity {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let on_fire = bitfield & 0x1 != 1;
         let shift_key_down = bitfield & 0x2 != 1;
         let sprinting = bitfield & 0x8 != 1;
@@ -3086,13 +3086,13 @@ impl AbstractEntity {
         let currently_glowing = bitfield & 0x40 != 1;
         let invisible = bitfield & 0x20 != 1;
         let fall_flying = bitfield & 0x80 != 1;
-        let air_supply = metadata.pop_front()?.as_int()?.clone();
-        let custom_name = metadata.pop_front()?.as_optional_component()?.clone();
-        let custom_name_visible = metadata.pop_front()?.as_boolean()?.clone();
-        let silent = metadata.pop_front()?.as_boolean()?.clone();
-        let no_gravity = metadata.pop_front()?.as_boolean()?.clone();
-        let pose = metadata.pop_front()?.as_pose()?.clone();
-        let ticks_frozen = metadata.pop_front()?.as_int()?.clone();
+        let air_supply = metadata.pop_front()?.into_int().ok()?;
+        let custom_name = metadata.pop_front()?.into_optional_component().ok()?;
+        let custom_name_visible = metadata.pop_front()?.into_boolean().ok()?;
+        let silent = metadata.pop_front()?.into_boolean().ok()?;
+        let no_gravity = metadata.pop_front()?.into_boolean().ok()?;
+        let pose = metadata.pop_front()?.into_pose().ok()?;
+        let ticks_frozen = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             on_fire,
             shift_key_down,
@@ -3155,7 +3155,7 @@ pub struct AbstractInsentient {
 
 impl AbstractInsentient {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let no_ai = bitfield & 0x1 != 1;
         let left_handed = bitfield & 0x2 != 1;
         let aggressive = bitfield & 0x4 != 1;
@@ -3197,15 +3197,15 @@ pub struct AbstractLiving {
 
 impl AbstractLiving {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let auto_spin_attack = bitfield & 0x4 != 1;
         let using_item = bitfield & 0x1 != 1;
-        let health = metadata.pop_front()?.as_float()?.clone();
-        let effect_color = metadata.pop_front()?.as_int()?.clone();
-        let effect_ambience = metadata.pop_front()?.as_boolean()?.clone();
-        let arrow_count = metadata.pop_front()?.as_int()?.clone();
-        let stinger_count = metadata.pop_front()?.as_int()?.clone();
-        let sleeping_pos = metadata.pop_front()?.as_optional_block_pos()?.clone();
+        let health = metadata.pop_front()?.into_float().ok()?;
+        let effect_color = metadata.pop_front()?.into_int().ok()?;
+        let effect_ambience = metadata.pop_front()?.into_boolean().ok()?;
+        let arrow_count = metadata.pop_front()?.into_int().ok()?;
+        let stinger_count = metadata.pop_front()?.into_int().ok()?;
+        let sleeping_pos = metadata.pop_front()?.into_optional_block_pos().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             auto_spin_attack,
@@ -3250,12 +3250,12 @@ pub struct AbstractMinecart {
 
 impl AbstractMinecart {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let hurt = metadata.pop_front()?.as_int()?.clone();
-        let hurtdir = metadata.pop_front()?.as_int()?.clone();
-        let damage = metadata.pop_front()?.as_float()?.clone();
-        let display_block = metadata.pop_front()?.as_int()?.clone();
-        let display_offset = metadata.pop_front()?.as_int()?.clone();
-        let custom_display = metadata.pop_front()?.as_boolean()?.clone();
+        let hurt = metadata.pop_front()?.into_int().ok()?;
+        let hurtdir = metadata.pop_front()?.into_int().ok()?;
+        let damage = metadata.pop_front()?.into_float().ok()?;
+        let display_block = metadata.pop_front()?.into_int().ok()?;
+        let display_offset = metadata.pop_front()?.into_int().ok()?;
+        let custom_display = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
             abstract_entity: AbstractEntity::read(metadata)?,
             hurt,
@@ -3303,10 +3303,10 @@ pub struct AbstractTameable {
 
 impl AbstractTameable {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = *metadata.pop_front()?.as_byte()?;
+        let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let tame = bitfield & 0x4 != 1;
         let in_sitting_pose = bitfield & 0x1 != 1;
-        let owneruuid = metadata.pop_front()?.as_optional_uuid()?.clone();
+        let owneruuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         Some(Self {
             abstract_animal: AbstractAnimal::read(metadata)?,
             tame,
