@@ -36,12 +36,8 @@ impl BotTrait for azalea_client::Client {
 
     /// Turn the bot's head to look at the coordinate in the world.
     fn look_at(&mut self, pos: &Vec3) {
-        // borrowed from mineflayer's Bot.lookAt because i didn't want to do math
-        let delta = self.entity().pos() - pos;
-        let y_rot = (PI - f64::atan2(-delta.x, -delta.z)) * (180.0 / PI);
-        let ground_distance = f64::sqrt(delta.x * delta.x + delta.z * delta.z);
-        let x_rot = f64::atan2(delta.y, ground_distance) * -(180.0 / PI);
-        self.set_rotation(y_rot as f32, x_rot as f32);
+        let (y_rot, x_rot) = direction_looking_at(self.entity().pos(), pos);
+        self.set_rotation(y_rot, x_rot);
     }
 }
 
@@ -58,4 +54,13 @@ impl crate::Plugin for Plugin {
             }
         }
     }
+}
+
+fn direction_looking_at(current: &Vec3, target: &Vec3) -> (f32, f32) {
+    // borrowed from mineflayer's Bot.lookAt because i didn't want to do math
+    let delta = target - current;
+    let y_rot = (PI - f64::atan2(-delta.x, -delta.z)) * (180.0 / PI);
+    let ground_distance = f64::sqrt(delta.x * delta.x + delta.z * delta.z);
+    let x_rot = f64::atan2(delta.y, ground_distance) * -(180.0 / PI);
+    (y_rot as f32, x_rot as f32)
 }
