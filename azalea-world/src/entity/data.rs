@@ -2,6 +2,8 @@ use azalea_buf::{BufReadError, McBufVarReadable};
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
 use azalea_chat::Component;
 use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot};
+use enum_as_inner::EnumAsInner;
+use nohash_hasher::IntSet;
 use std::io::{Cursor, Write};
 use uuid::Uuid;
 
@@ -42,7 +44,7 @@ impl McBufWritable for EntityMetadata {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, EnumAsInner)]
 pub enum EntityDataValue {
     Byte(u8),
     // varint
@@ -53,7 +55,7 @@ pub enum EntityDataValue {
     OptionalComponent(Option<Component>),
     ItemStack(Slot),
     Boolean(bool),
-    Rotations { x: f32, y: f32, z: f32 },
+    Rotations(Rotations),
     BlockPos(BlockPos),
     OptionalBlockPos(Option<BlockPos>),
     Direction(Direction),
@@ -73,6 +75,13 @@ pub enum EntityDataValue {
     PaintingVariant(azalea_registry::PaintingVariant),
 }
 
+#[derive(Clone, Debug, McBuf)]
+pub struct Rotations {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+}
+
 impl McBufReadable for EntityDataValue {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let data_type = u32::var_read_from(buf)?;
@@ -85,11 +94,7 @@ impl McBufReadable for EntityDataValue {
             5 => EntityDataValue::OptionalComponent(Option::<Component>::read_from(buf)?),
             6 => EntityDataValue::ItemStack(Slot::read_from(buf)?),
             7 => EntityDataValue::Boolean(bool::read_from(buf)?),
-            8 => EntityDataValue::Rotations {
-                x: f32::read_from(buf)?,
-                y: f32::read_from(buf)?,
-                z: f32::read_from(buf)?,
-            },
+            8 => EntityDataValue::Rotations(Rotations::read_from(buf)?),
             9 => EntityDataValue::BlockPos(BlockPos::read_from(buf)?),
             10 => EntityDataValue::OptionalBlockPos(Option::<BlockPos>::read_from(buf)?),
             11 => EntityDataValue::Direction(Direction::read_from(buf)?),
@@ -155,4 +160,33 @@ pub struct VillagerData {
     profession: u32,
     #[var]
     level: u32,
+}
+
+impl TryFrom<EntityMetadata> for Vec<EntityDataValue> {
+    type Error = String;
+
+    fn try_from(data: EntityMetadata) -> Result<Self, Self::Error> {
+        let mut data = data.0;
+
+        data.sort_by(|a, b| a.index.cmp(&b.index));
+
+        let mut prev_indexes = IntSet::default();
+        let len = data.len();
+        // check to make sure it's valid, in vanilla this is guaranteed to pass
+        // but it's possible there's mods that mess with it so we want to make
+        // sure it's good
+        for item in &data {
+            if prev_indexes.contains(&item.index) {
+                return Err(format!("Index {} is duplicated", item.index));
+            }
+            if item.index as usize > len {
+                return Err(format!("Index {} is too big", item.index));
+            }
+            prev_indexes.insert(item.index);
+        }
+
+        let data = data.into_iter().map(|d| d.value).collect();
+
+        Ok(data)
+    }
 }

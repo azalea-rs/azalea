@@ -1,5 +1,6 @@
 mod data;
 mod dimensions;
+mod metadata;
 
 use crate::Dimension;
 use azalea_block::BlockState;
