@@ -11,8 +11,8 @@ The directory name doesn't start with `azalea-` because it's not a Rust crate.
 ## Usage
 
 Generate packet:\
-`python newpacket.py [packet id] [clientbound or serverbound] \[game/handshake/login/status\]`\
-This will create a new file in the `azalea-protocol/src/packets/\[state\] directory`. You will probably have to manually fix up the auto generated code.
+`python newpacket.py [packet id] [clientbound or serverbound] [game/handshake/login/status]`\
+This will create a new file in the `azalea-protocol/src/packets/[state] directory`. You will probably have to manually fix up the auto generated code.
 
 ## Updating to a new Minecraft version
 
