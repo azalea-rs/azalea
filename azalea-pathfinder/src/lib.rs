@@ -100,6 +100,9 @@ fn tick_execute_path(bot: &mut Client, path: &mut VecDeque<Node>) {
     if target.is_reached(&bot.entity()) {
         println!("ok target reached");
         path.pop_front();
+        if path.is_empty() {
+            bot.walk(WalkDirection::None);
+        }
     }
 }
 
@@ -120,12 +123,12 @@ impl Node {
     /// Returns whether the entity is at the node and should start going to the
     /// next node.
     pub fn is_reached(&self, entity: &EntityData) -> bool {
-        println!(
-            "entity.yya: {} {:?}=={:?}",
-            entity.yya,
-            BlockPos::from(entity.pos()),
-            self.pos
-        );
+        // println!(
+        //     "entity.yya: {} {:?}=={:?}",
+        //     entity.yya,
+        //     BlockPos::from(entity.pos()),
+        //     self.pos
+        // );
         entity.yya == 0. && BlockPos::from(entity.pos()) == self.pos
     }
 }
