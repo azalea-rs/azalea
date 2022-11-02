@@ -32,14 +32,21 @@ async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> 
         Event::Chat(m) => {
             println!("{}", m.message().to_ansi(None));
             if m.message().to_string() == "<py5> goto" {
-                bot.goto(BlockPosGoal::from(BlockPos::new(0, -60, 12)));
+                let target_pos: BlockPos = bot
+                    .dimension
+                    .read()
+                    .entity_by_uuid(&uuid::uuid!("6536bfed869548fd83a1ecd24cf2a0fd"))
+                    .unwrap()
+                    .pos()
+                    .into();
+                bot.goto(BlockPosGoal::from(target_pos));
             }
         }
         Event::Initialize => {
             println!("initialized");
         }
         Event::Tick => {
-            bot.jump();
+            // bot.jump();
         }
         _ => {}
     }

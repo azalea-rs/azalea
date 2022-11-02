@@ -2,7 +2,7 @@ use crate::{Client, Event};
 use async_trait::async_trait;
 use azalea_core::Vec3;
 use parking_lot::Mutex;
-use std::sync::Arc;
+use std::{f64::consts::PI, sync::Arc};
 
 #[derive(Default, Clone)]
 pub struct Plugin {
@@ -38,9 +38,10 @@ impl BotTrait for azalea_client::Client {
     fn look_at(&mut self, pos: &Vec3) {
         // borrowed from mineflayer's Bot.lookAt because i didn't want to do math
         let delta = self.entity().pos() - pos;
-        let x_rot = f64::atan2(-delta.x, -delta.z);
+        let x_rot = (PI - f64::atan2(-delta.x, -delta.z)) * (180.0 / PI);
         let ground_distance = f64::sqrt(delta.x * delta.x + delta.z * delta.z);
-        let y_rot = f64::atan2(delta.y, ground_distance);
+        let y_rot = f64::atan2(delta.y, ground_distance) * -(180.0 / PI);
+        println!("x_rot: {}, y_rot: {}", x_rot, y_rot);
         self.set_rotation(y_rot as f32, x_rot as f32);
     }
 }
