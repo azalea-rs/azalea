@@ -31,7 +31,7 @@ impl Client {
     /// This gets called every tick.
     pub async fn send_position(&mut self) -> Result<(), MovePlayerError> {
         let packet = {
-            let player_lock = self.player.lock();
+            let player_lock = self.player.write();
             let mut physics_state = self.physics_state.lock();
             let mut dimension_lock = self.dimension.write();
 
@@ -129,7 +129,7 @@ impl Client {
 
     // Set our current position to the provided Vec3, potentially clipping through blocks.
     pub async fn set_pos(&mut self, new_pos: Vec3) -> Result<(), MovePlayerError> {
-        let player_lock = self.player.lock();
+        let player_lock = self.player.write();
         let mut dimension_lock = self.dimension.write();
 
         dimension_lock.set_entity_pos(player_lock.entity_id, new_pos)?;
@@ -139,7 +139,7 @@ impl Client {
 
     pub async fn move_entity(&mut self, movement: &Vec3) -> Result<(), MovePlayerError> {
         let mut dimension_lock = self.dimension.write();
-        let player = self.player.lock();
+        let player = self.player.write();
 
         let mut entity = player
             .entity_mut(&mut dimension_lock)
@@ -161,7 +161,7 @@ impl Client {
         self.tick_controls(None);
 
         let mut dimension_lock = self.dimension.write();
-        let player_lock = self.player.lock();
+        let player_lock = self.player.write();
         let mut player_entity = player_lock
             .entity_mut(&mut dimension_lock)
             .expect("Player must exist");

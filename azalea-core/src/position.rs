@@ -395,8 +395,9 @@ mod tests {
     #[test]
     fn test_into_chunk_section_block_pos() {
         let block_pos = BlockPos::new(0, -60, 0);
-        let section_pos = ChunkSectionBlockPos::from(&block_pos);
-        assert_eq!(section_pos, ChunkSectionBlockPos::new(0, 4, 0));
-        // TODO
+        assert_eq!(
+            ChunkSectionBlockPos::from(&block_pos),
+            ChunkSectionBlockPos::new(0, 4, 0)
+        );
     }
 }

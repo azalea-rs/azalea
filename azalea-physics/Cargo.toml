@@ -13,6 +13,7 @@ azalea-block = { path = "../azalea-block", version = "^0.3.0" }
 azalea-core = { path = "../azalea-core", version = "^0.3.0" }
 azalea-world = { path = "../azalea-world", version = "^0.3.0" }
 lazy_static = "1.4.0"
+parking_lot = "0.12.1"
 
 [dev-dependencies]
 uuid = "^1.1.2"

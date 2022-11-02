@@ -15,7 +15,7 @@ azalea-core = { version = "0.3.0", path = "../azalea-core" }
 azalea-physics = { version = "0.3.0", path = "../azalea-physics" }
 azalea-world = { version = "0.3.0", path = "../azalea-world" }
 num-traits = "0.2.15"
-parking_lot = "0.12.1"
+parking_lot = {version = "0.12.1", features = ["deadlock_detection"]}
 priority-queue = "1.2.3"
 
 [dev-dependencies]

@@ -22,16 +22,16 @@ pub trait BotTrait {
 impl BotTrait for azalea_client::Client {
     /// Queue a jump for the next tick.
     fn jump(&self) {
-        let player_lock = self.player.lock();
-        let mut dimension_lock = self.dimension.write();
-
-        let mut player_entity = player_lock
-            .entity_mut(&mut dimension_lock)
-            .expect("Player must exist");
-
+        {
+            let player_entity_id = self.player.read().entity_id;
+            let mut dimension_lock = self.dimension.write();
+            let mut player_entity = dimension_lock
+                .entity_mut(player_entity_id)
+                .expect("Player must exist");
+            player_entity.jumping = true;
+        }
         let state = self.plugins.get::<Plugin>().unwrap().state.clone();
         *state.jumping_once.lock() = true;
-        player_entity.jumping = true;
     }
 
     /// Turn the bot's head to look at the coordinate in the world.
