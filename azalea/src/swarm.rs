@@ -89,7 +89,7 @@ pub async fn start_swarm<
     let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
     let resolved_address = resolver::resolve_address(&address).await?;
 
-    let mut bots = try_join_all(
+    let bots = try_join_all(
         options
             .accounts
             .iter()
@@ -117,6 +117,7 @@ pub async fn start_swarm<
     let states = options.states;
     let swarm_state = options.swarm_state;
 
+    // bot events
     while let (Some(event), bot_index) = swarm.bot_recv().await {
         let bot = swarm.bots.lock()[bot_index].clone();
         let bot_state = states[bot_index].clone();
