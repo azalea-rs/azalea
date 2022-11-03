@@ -11,9 +11,9 @@ use crate::Client;
 
 impl Client {
     /// Sends chat message to the server. This only sends the chat packet and
-    /// not the command packet. The [`Client::chat`] function handles checking whether
-    /// the message is a command and using the proper packet for you, so you
-    /// should use that instead.
+    /// not the command packet. The [`Client::chat`] function handles checking
+    /// whether the message is a command and using the proper packet for you,
+    /// so you should use that instead.
     pub async fn send_chat_packet(&self, message: &str) -> Result<(), std::io::Error> {
         // TODO: chat signing
         let signature = sign_message();
