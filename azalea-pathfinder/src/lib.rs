@@ -42,31 +42,36 @@ impl Trait for azalea_client::Client {
     fn goto(&self, goal: impl Goal) {
         let start = Node {
             pos: BlockPos::from(self.entity().pos()),
+            vertical_vel: VerticalVel::None,
         };
         let end = goal.goal_node();
         println!("start: {:?}, end: {:?}", start, end);
 
         let successors = |node: &Node| {
-            println!("successors for {:?}", node);
             let mut edges = Vec::new();
             let possible_moves: Vec<&dyn moves::Move> = vec![
                 &moves::NorthMove,
                 &moves::SouthMove,
                 &moves::EastMove,
                 &moves::WestMove,
+                &moves::JumpUpMove,
+                &moves::FallNorthMove,
+                &moves::FallSouthMove,
+                &moves::FallEastMove,
+                &moves::FallWestMove,
+                &moves::LandMove,
             ];
             let dimension = self.dimension.read();
             for possible_move in possible_moves.iter() {
-                let can_execute = possible_move.can_execute(&dimension, &node.pos);
                 edges.push(Edge {
-                    target: Node {
-                        pos: node.pos + possible_move.offset(),
+                    target: possible_move.next_node(&node),
+                    cost: if possible_move.can_execute(&dimension, node) {
+                        possible_move.cost()
+                    } else {
+                        f32::INFINITY
                     },
-                    cost: if can_execute { 1.0 } else { f32::INFINITY },
                 });
-                println!("can execute for {:?}: {}", node, can_execute);
             }
-            println!("edges: {}", edges.len());
             edges
         };
 
@@ -79,6 +84,7 @@ impl Trait for azalea_client::Client {
             |n| goal.success(n),
         );
         let p = pf.find_path();
+        println!("path: {:?}", p);
 
         let state = self.plugins.get::<Plugin>().unwrap().state.clone();
         // convert the Option<Vec<Node>> to a VecDeque<Node>
@@ -93,22 +99,39 @@ fn tick_execute_path(bot: &mut Client, path: &mut VecDeque<Node>) {
         return;
     };
     let center = target.pos.center();
-    println!("going to {center:?} (at {pos:?})", pos = bot.entity().pos());
+    // println!("going to {center:?} (at {pos:?})", pos = bot.entity().pos());
     bot.look_at(&center);
     bot.walk(WalkDirection::Forward);
+    // check if we should jump
+    if target.pos.y > bot.entity().pos().y.floor() as i32 {
+        bot.jump();
+    }
 
     if target.is_reached(&bot.entity()) {
-        println!("ok target reached");
+        println!("ok target {target:?} reached");
         path.pop_front();
         if path.is_empty() {
             bot.walk(WalkDirection::None);
         }
+        // tick again, maybe we already reached the next node!
+        tick_execute_path(bot, path);
     }
+}
+
+/// Information about our vertical velocity
+#[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
+pub enum VerticalVel {
+    None,
+    /// No vertical velocity, but we're not on the ground
+    NoneMidair,
+    // less than 3 blocks (no fall damage)
+    FallingLittle,
 }
 
 #[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
 pub struct Node {
     pub pos: BlockPos,
+    pub vertical_vel: VerticalVel,
 }
 
 pub trait Goal {
@@ -123,13 +146,19 @@ impl Node {
     /// Returns whether the entity is at the node and should start going to the
     /// next node.
     pub fn is_reached(&self, entity: &EntityData) -> bool {
-        // println!(
-        //     "entity.yya: {} {:?}=={:?}",
-        //     entity.yya,
-        //     BlockPos::from(entity.pos()),
-        //     self.pos
-        // );
-        entity.yya == 0. && BlockPos::from(entity.pos()) == self.pos
+        println!(
+            "entity.delta.y: {} {:?}=={:?}, self.vertical_vel={:?}",
+            entity.delta.y,
+            BlockPos::from(entity.pos()),
+            self.pos,
+            self.vertical_vel
+        );
+        BlockPos::from(entity.pos()) == self.pos
+            && match self.vertical_vel {
+                VerticalVel::NoneMidair => (entity.delta.y > -0.1 && entity.delta.y < 0.1),
+                VerticalVel::None => entity.on_ground,
+                VerticalVel::FallingLittle => entity.delta.y < -0.1,
+            }
     }
 }
 
@@ -147,7 +176,10 @@ impl Goal for BlockPosGoal {
         n.pos == self.pos
     }
     fn goal_node(&self) -> Node {
-        Node { pos: self.pos }
+        Node {
+            pos: self.pos,
+            vertical_vel: VerticalVel::None,
+        }
     }
 }
 

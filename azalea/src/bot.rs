@@ -15,21 +15,14 @@ pub struct State {
 }
 
 pub trait BotTrait {
-    fn jump(&self);
+    fn jump(&mut self);
     fn look_at(&mut self, pos: &Vec3);
 }
 
 impl BotTrait for azalea_client::Client {
     /// Queue a jump for the next tick.
-    fn jump(&self) {
-        {
-            let player_entity_id = self.player.read().entity_id;
-            let mut dimension_lock = self.dimension.write();
-            let mut player_entity = dimension_lock
-                .entity_mut(player_entity_id)
-                .expect("Player must exist");
-            player_entity.jumping = true;
-        }
+    fn jump(&mut self) {
+        self.set_jumping(true);
         let state = self.plugins.get::<Plugin>().unwrap().state.clone();
         *state.jumping_once.lock() = true;
     }
@@ -48,8 +41,7 @@ impl crate::Plugin for Plugin {
             if *self.state.jumping_once.lock() {
                 if bot.jumping() {
                     *self.state.jumping_once.lock() = false;
-                } else {
-                    bot.set_jumping(true);
+                    bot.set_jumping(false);
                 }
             }
         }

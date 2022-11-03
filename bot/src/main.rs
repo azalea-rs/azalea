@@ -40,8 +40,8 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     .pos()
                     .clone();
                 let target_pos: BlockPos = (&target_pos_vec3).into();
-                bot.look_at(&target_pos_vec3);
-                // bot.goto(BlockPosGoal::from(target_pos));
+                // bot.look_at(&target_pos_vec3);
+                bot.goto(BlockPosGoal::from(target_pos));
                 // bot.walk(WalkDirection::Forward);
             }
         }
