@@ -2,6 +2,7 @@ mod data;
 mod dimensions;
 mod metadata;
 
+use self::metadata::EntityMetadata;
 use crate::Dimension;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, Vec3, AABB};
@@ -265,10 +266,13 @@ pub struct EntityData {
     /// Whether the entity will try to jump every tick
     /// (equivalent to the space key being held down in vanilla).
     pub jumping: bool,
+
+    /// Stores some extra data about the entity, including the entity type.
+    pub metadata: EntityMetadata,
 }
 
 impl EntityData {
-    pub fn new(uuid: Uuid, pos: Vec3) -> Self {
+    pub fn new(uuid: Uuid, pos: Vec3, metadata: EntityMetadata) -> Self {
         let dimensions = EntityDimensions {
             width: 0.6,
             height: 1.8,
@@ -298,6 +302,8 @@ impl EntityData {
             dimensions,
 
             jumping: false,
+
+            metadata,
         }
     }
 
@@ -319,7 +325,14 @@ mod tests {
     fn from_mut_entity_to_ref_entity() {
         let mut dim = Dimension::default();
         let uuid = Uuid::from_u128(100);
-        dim.add_entity(0, EntityData::new(uuid, Vec3::default()));
+        dim.add_entity(
+            0,
+            EntityData::new(
+                uuid,
+                Vec3::default(),
+                EntityMetadata::Player(metadata::Player::default()),
+            ),
+        );
         let entity: EntityMut = dim.entity_mut(0).unwrap();
         let entity_ref: EntityRef = entity.into();
         assert_eq!(entity_ref.uuid, uuid);

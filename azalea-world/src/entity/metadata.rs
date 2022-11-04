@@ -1,11 +1,13 @@
-// This file is generated from codegen/lib/code/entity.py
+// This file is generated from codegen/lib/code/entity.py.
+// Don't change it manually!
 
 use super::{EntityDataValue, Pose, Rotations, VillagerData};
 use azalea_chat::Component;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
-use std::collections::VecDeque;
+use std::{collections::VecDeque, ops::Deref};
 use uuid::Uuid;
 
+#[derive(Debug, Clone, Default)]
 pub struct Allay {
     pub abstract_creature: AbstractCreature,
     pub dancing: bool,
@@ -30,6 +32,15 @@ impl Allay {
         metadata
     }
 }
+
+impl Deref for Allay {
+    type Target = AbstractCreature;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_creature
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct AreaEffectCloud {
     pub abstract_entity: AbstractEntity,
     pub radius: f32,
@@ -62,6 +73,15 @@ impl AreaEffectCloud {
         metadata
     }
 }
+
+impl Deref for AreaEffectCloud {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ArmorStand {
     pub abstract_living: AbstractLiving,
     pub small: bool,
@@ -129,6 +149,15 @@ impl ArmorStand {
         metadata
     }
 }
+
+impl Deref for ArmorStand {
+    type Target = AbstractLiving;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_living
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Arrow {
     pub abstract_entity: AbstractEntity,
     pub crit_arrow: bool,
@@ -174,6 +203,15 @@ impl Arrow {
         metadata
     }
 }
+
+impl Deref for Arrow {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Axolotl {
     pub abstract_animal: AbstractAnimal,
     pub variant: i32,
@@ -202,6 +240,15 @@ impl Axolotl {
         metadata
     }
 }
+
+impl Deref for Axolotl {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Bat {
     pub abstract_insentient: AbstractInsentient,
     pub resting: bool,
@@ -227,6 +274,15 @@ impl Bat {
         metadata
     }
 }
+
+impl Deref for Bat {
+    type Target = AbstractInsentient;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_insentient
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Bee {
     pub abstract_animal: AbstractAnimal,
     pub has_nectar: bool,
@@ -268,6 +324,15 @@ impl Bee {
         metadata
     }
 }
+
+impl Deref for Bee {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Blaze {
     pub abstract_monster: AbstractMonster,
     pub charged: bool,
@@ -293,6 +358,15 @@ impl Blaze {
         metadata
     }
 }
+
+impl Deref for Blaze {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Boat {
     pub abstract_entity: AbstractEntity,
     pub hurt: i32,
@@ -337,6 +411,15 @@ impl Boat {
         metadata
     }
 }
+
+impl Deref for Boat {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Cat {
     pub abstract_tameable: AbstractTameable,
     pub variant: azalea_registry::CatVariant,
@@ -369,6 +452,15 @@ impl Cat {
         metadata
     }
 }
+
+impl Deref for Cat {
+    type Target = AbstractTameable;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_tameable
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct CaveSpider {
     pub spider: Spider,
 }
@@ -385,6 +477,15 @@ impl CaveSpider {
         metadata
     }
 }
+
+impl Deref for CaveSpider {
+    type Target = Spider;
+    fn deref(&self) -> &Self::Target {
+        &self.spider
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ChestBoat {
     pub boat: Boat,
 }
@@ -401,6 +502,15 @@ impl ChestBoat {
         metadata
     }
 }
+
+impl Deref for ChestBoat {
+    type Target = Boat;
+    fn deref(&self) -> &Self::Target {
+        &self.boat
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ChestMinecart {
     pub abstract_minecart: AbstractMinecart,
 }
@@ -417,6 +527,15 @@ impl ChestMinecart {
         metadata
     }
 }
+
+impl Deref for ChestMinecart {
+    type Target = AbstractMinecart;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_minecart
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Chicken {
     pub abstract_animal: AbstractAnimal,
 }
@@ -433,6 +552,15 @@ impl Chicken {
         metadata
     }
 }
+
+impl Deref for Chicken {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Cod {
     pub abstract_creature: AbstractCreature,
     pub from_bucket: bool,
@@ -453,6 +581,15 @@ impl Cod {
         metadata
     }
 }
+
+impl Deref for Cod {
+    type Target = AbstractCreature;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_creature
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct CommandBlockMinecart {
     pub abstract_minecart: AbstractMinecart,
     pub command_name: String,
@@ -477,6 +614,15 @@ impl CommandBlockMinecart {
         metadata
     }
 }
+
+impl Deref for CommandBlockMinecart {
+    type Target = AbstractMinecart;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_minecart
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Cow {
     pub abstract_animal: AbstractAnimal,
 }
@@ -493,6 +639,15 @@ impl Cow {
         metadata
     }
 }
+
+impl Deref for Cow {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Creeper {
     pub abstract_monster: AbstractMonster,
     pub swell_dir: i32,
@@ -521,6 +676,15 @@ impl Creeper {
         metadata
     }
 }
+
+impl Deref for Creeper {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Dolphin {
     pub abstract_creature: AbstractCreature,
     pub treasure_pos: BlockPos,
@@ -549,6 +713,15 @@ impl Dolphin {
         metadata
     }
 }
+
+impl Deref for Dolphin {
+    type Target = AbstractCreature;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_creature
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Donkey {
     pub abstract_animal: AbstractAnimal,
     pub tamed: bool,
@@ -606,6 +779,15 @@ impl Donkey {
         metadata
     }
 }
+
+impl Deref for Donkey {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct DragonFireball {
     pub abstract_entity: AbstractEntity,
 }
@@ -622,6 +804,15 @@ impl DragonFireball {
         metadata
     }
 }
+
+impl Deref for DragonFireball {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Drowned {
     pub zombie: Zombie,
 }
@@ -638,6 +829,15 @@ impl Drowned {
         metadata
     }
 }
+
+impl Deref for Drowned {
+    type Target = Zombie;
+    fn deref(&self) -> &Self::Target {
+        &self.zombie
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Egg {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -658,6 +858,15 @@ impl Egg {
         metadata
     }
 }
+
+impl Deref for Egg {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ElderGuardian {
     pub guardian: Guardian,
 }
@@ -674,6 +883,15 @@ impl ElderGuardian {
         metadata
     }
 }
+
+impl Deref for ElderGuardian {
+    type Target = Guardian;
+    fn deref(&self) -> &Self::Target {
+        &self.guardian
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct EndCrystal {
     pub abstract_entity: AbstractEntity,
     pub beam_target: Option<BlockPos>,
@@ -698,6 +916,15 @@ impl EndCrystal {
         metadata
     }
 }
+
+impl Deref for EndCrystal {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct EnderDragon {
     pub abstract_insentient: AbstractInsentient,
     pub phase: i32,
@@ -718,6 +945,15 @@ impl EnderDragon {
         metadata
     }
 }
+
+impl Deref for EnderDragon {
+    type Target = AbstractInsentient;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_insentient
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct EnderPearl {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -738,6 +974,15 @@ impl EnderPearl {
         metadata
     }
 }
+
+impl Deref for EnderPearl {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Enderman {
     pub abstract_monster: AbstractMonster,
     pub carry_state: Option<i32>,
@@ -768,6 +1013,15 @@ impl Enderman {
         metadata
     }
 }
+
+impl Deref for Enderman {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Endermite {
     pub abstract_monster: AbstractMonster,
 }
@@ -784,6 +1038,15 @@ impl Endermite {
         metadata
     }
 }
+
+impl Deref for Endermite {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Evoker {
     pub abstract_monster: AbstractMonster,
     pub is_celebrating: bool,
@@ -808,6 +1071,15 @@ impl Evoker {
         metadata
     }
 }
+
+impl Deref for Evoker {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct EvokerFangs {
     pub abstract_entity: AbstractEntity,
 }
@@ -824,6 +1096,15 @@ impl EvokerFangs {
         metadata
     }
 }
+
+impl Deref for EvokerFangs {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ExperienceBottle {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -844,6 +1125,15 @@ impl ExperienceBottle {
         metadata
     }
 }
+
+impl Deref for ExperienceBottle {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ExperienceOrb {
     pub abstract_entity: AbstractEntity,
 }
@@ -860,6 +1150,15 @@ impl ExperienceOrb {
         metadata
     }
 }
+
+impl Deref for ExperienceOrb {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct EyeOfEnder {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -880,6 +1179,15 @@ impl EyeOfEnder {
         metadata
     }
 }
+
+impl Deref for EyeOfEnder {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct FallingBlock {
     pub abstract_entity: AbstractEntity,
     pub start_pos: BlockPos,
@@ -900,6 +1208,15 @@ impl FallingBlock {
         metadata
     }
 }
+
+impl Deref for FallingBlock {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Fireball {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -920,6 +1237,15 @@ impl Fireball {
         metadata
     }
 }
+
+impl Deref for Fireball {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct FireworkRocket {
     pub abstract_entity: AbstractEntity,
     pub fireworks_item: Slot,
@@ -950,6 +1276,15 @@ impl FireworkRocket {
         metadata
     }
 }
+
+impl Deref for FireworkRocket {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct FishingBobber {
     pub abstract_entity: AbstractEntity,
     pub hooked_entity: i32,
@@ -974,6 +1309,15 @@ impl FishingBobber {
         metadata
     }
 }
+
+impl Deref for FishingBobber {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Fox {
     pub abstract_animal: AbstractAnimal,
     pub kind: i32,
@@ -1041,6 +1385,15 @@ impl Fox {
         metadata
     }
 }
+
+impl Deref for Fox {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Frog {
     pub abstract_animal: AbstractAnimal,
     pub variant: azalea_registry::FrogVariant,
@@ -1067,6 +1420,15 @@ impl Frog {
         metadata
     }
 }
+
+impl Deref for Frog {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct FurnaceMinecart {
     pub abstract_minecart: AbstractMinecart,
     pub fuel: bool,
@@ -1087,6 +1449,15 @@ impl FurnaceMinecart {
         metadata
     }
 }
+
+impl Deref for FurnaceMinecart {
+    type Target = AbstractMinecart;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_minecart
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Ghast {
     pub abstract_insentient: AbstractInsentient,
     pub is_charging: bool,
@@ -1107,6 +1478,15 @@ impl Ghast {
         metadata
     }
 }
+
+impl Deref for Ghast {
+    type Target = AbstractInsentient;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_insentient
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Giant {
     pub abstract_monster: AbstractMonster,
 }
@@ -1123,6 +1503,15 @@ impl Giant {
         metadata
     }
 }
+
+impl Deref for Giant {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct GlowItemFrame {
     pub item_frame: ItemFrame,
 }
@@ -1139,6 +1528,15 @@ impl GlowItemFrame {
         metadata
     }
 }
+
+impl Deref for GlowItemFrame {
+    type Target = ItemFrame;
+    fn deref(&self) -> &Self::Target {
+        &self.item_frame
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct GlowSquid {
     pub squid: Squid,
     pub dark_ticks_remaining: i32,
@@ -1159,6 +1557,15 @@ impl GlowSquid {
         metadata
     }
 }
+
+impl Deref for GlowSquid {
+    type Target = Squid;
+    fn deref(&self) -> &Self::Target {
+        &self.squid
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Goat {
     pub abstract_animal: AbstractAnimal,
     pub is_screaming_goat: bool,
@@ -1187,6 +1594,15 @@ impl Goat {
         metadata
     }
 }
+
+impl Deref for Goat {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Guardian {
     pub abstract_monster: AbstractMonster,
     pub moving: bool,
@@ -1211,6 +1627,15 @@ impl Guardian {
         metadata
     }
 }
+
+impl Deref for Guardian {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Hoglin {
     pub abstract_animal: AbstractAnimal,
     pub immune_to_zombification: bool,
@@ -1233,6 +1658,15 @@ impl Hoglin {
         metadata
     }
 }
+
+impl Deref for Hoglin {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct HopperMinecart {
     pub abstract_minecart: AbstractMinecart,
 }
@@ -1249,6 +1683,15 @@ impl HopperMinecart {
         metadata
     }
 }
+
+impl Deref for HopperMinecart {
+    type Target = AbstractMinecart;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_minecart
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Horse {
     pub abstract_animal: AbstractAnimal,
     pub tamed: bool,
@@ -1306,6 +1749,15 @@ impl Horse {
         metadata
     }
 }
+
+impl Deref for Horse {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Husk {
     pub zombie: Zombie,
 }
@@ -1322,6 +1774,15 @@ impl Husk {
         metadata
     }
 }
+
+impl Deref for Husk {
+    type Target = Zombie;
+    fn deref(&self) -> &Self::Target {
+        &self.zombie
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Illusioner {
     pub abstract_monster: AbstractMonster,
     pub is_celebrating: bool,
@@ -1346,6 +1807,15 @@ impl Illusioner {
         metadata
     }
 }
+
+impl Deref for Illusioner {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct IronGolem {
     pub abstract_creature: AbstractCreature,
     pub player_created: bool,
@@ -1371,6 +1841,15 @@ impl IronGolem {
         metadata
     }
 }
+
+impl Deref for IronGolem {
+    type Target = AbstractCreature;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_creature
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Item {
     pub abstract_entity: AbstractEntity,
     pub item: Slot,
@@ -1391,6 +1870,15 @@ impl Item {
         metadata
     }
 }
+
+impl Deref for Item {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ItemFrame {
     pub abstract_entity: AbstractEntity,
     pub item: Slot,
@@ -1415,6 +1903,15 @@ impl ItemFrame {
         metadata
     }
 }
+
+impl Deref for ItemFrame {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct LeashKnot {
     pub abstract_entity: AbstractEntity,
 }
@@ -1431,6 +1928,15 @@ impl LeashKnot {
         metadata
     }
 }
+
+impl Deref for LeashKnot {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct LightningBolt {
     pub abstract_entity: AbstractEntity,
 }
@@ -1447,6 +1953,15 @@ impl LightningBolt {
         metadata
     }
 }
+
+impl Deref for LightningBolt {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Llama {
     pub abstract_animal: AbstractAnimal,
     pub tamed: bool,
@@ -1516,6 +2031,15 @@ impl Llama {
         metadata
     }
 }
+
+impl Deref for Llama {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct LlamaSpit {
     pub abstract_entity: AbstractEntity,
 }
@@ -1532,6 +2056,15 @@ impl LlamaSpit {
         metadata
     }
 }
+
+impl Deref for LlamaSpit {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct MagmaCube {
     pub slime: Slime,
 }
@@ -1548,6 +2081,15 @@ impl MagmaCube {
         metadata
     }
 }
+
+impl Deref for MagmaCube {
+    type Target = Slime;
+    fn deref(&self) -> &Self::Target {
+        &self.slime
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Marker {
     pub abstract_entity: AbstractEntity,
 }
@@ -1564,6 +2106,15 @@ impl Marker {
         metadata
     }
 }
+
+impl Deref for Marker {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Minecart {
     pub abstract_minecart: AbstractMinecart,
 }
@@ -1580,6 +2131,15 @@ impl Minecart {
         metadata
     }
 }
+
+impl Deref for Minecart {
+    type Target = AbstractMinecart;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_minecart
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Mooshroom {
     pub cow: Cow,
     pub kind: String,
@@ -1600,6 +2160,15 @@ impl Mooshroom {
         metadata
     }
 }
+
+impl Deref for Mooshroom {
+    type Target = Cow;
+    fn deref(&self) -> &Self::Target {
+        &self.cow
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Mule {
     pub abstract_animal: AbstractAnimal,
     pub tamed: bool,
@@ -1657,6 +2226,15 @@ impl Mule {
         metadata
     }
 }
+
+impl Deref for Mule {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Ocelot {
     pub abstract_animal: AbstractAnimal,
     pub trusting: bool,
@@ -1677,6 +2255,15 @@ impl Ocelot {
         metadata
     }
 }
+
+impl Deref for Ocelot {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Painting {
     pub abstract_entity: AbstractEntity,
     pub painting_variant: azalea_registry::PaintingVariant,
@@ -1699,6 +2286,15 @@ impl Painting {
         metadata
     }
 }
+
+impl Deref for Painting {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Panda {
     pub abstract_animal: AbstractAnimal,
     pub unhappy_counter: i32,
@@ -1762,6 +2358,15 @@ impl Panda {
         metadata
     }
 }
+
+impl Deref for Panda {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Parrot {
     pub abstract_tameable: AbstractTameable,
     pub variant: i32,
@@ -1782,6 +2387,15 @@ impl Parrot {
         metadata
     }
 }
+
+impl Deref for Parrot {
+    type Target = AbstractTameable;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_tameable
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Phantom {
     pub abstract_insentient: AbstractInsentient,
     pub size: i32,
@@ -1802,6 +2416,15 @@ impl Phantom {
         metadata
     }
 }
+
+impl Deref for Phantom {
+    type Target = AbstractInsentient;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_insentient
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Pig {
     pub abstract_animal: AbstractAnimal,
     pub saddle: bool,
@@ -1826,6 +2449,15 @@ impl Pig {
         metadata
     }
 }
+
+impl Deref for Pig {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Piglin {
     pub abstract_monster: AbstractMonster,
     pub immune_to_zombification: bool,
@@ -1860,6 +2492,15 @@ impl Piglin {
         metadata
     }
 }
+
+impl Deref for Piglin {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct PiglinBrute {
     pub abstract_monster: AbstractMonster,
     pub immune_to_zombification: bool,
@@ -1882,6 +2523,15 @@ impl PiglinBrute {
         metadata
     }
 }
+
+impl Deref for PiglinBrute {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Pillager {
     pub abstract_monster: AbstractMonster,
     pub is_celebrating: bool,
@@ -1906,6 +2556,15 @@ impl Pillager {
         metadata
     }
 }
+
+impl Deref for Pillager {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Player {
     pub abstract_living: AbstractLiving,
     pub player_absorption: f32,
@@ -1948,6 +2607,15 @@ impl Player {
         metadata
     }
 }
+
+impl Deref for Player {
+    type Target = AbstractLiving;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_living
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct PolarBear {
     pub abstract_animal: AbstractAnimal,
     pub standing: bool,
@@ -1968,6 +2636,15 @@ impl PolarBear {
         metadata
     }
 }
+
+impl Deref for PolarBear {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Potion {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -1988,6 +2665,15 @@ impl Potion {
         metadata
     }
 }
+
+impl Deref for Potion {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Pufferfish {
     pub abstract_creature: AbstractCreature,
     pub from_bucket: bool,
@@ -2012,6 +2698,15 @@ impl Pufferfish {
         metadata
     }
 }
+
+impl Deref for Pufferfish {
+    type Target = AbstractCreature;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_creature
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Rabbit {
     pub abstract_animal: AbstractAnimal,
     pub kind: i32,
@@ -2032,6 +2727,15 @@ impl Rabbit {
         metadata
     }
 }
+
+impl Deref for Rabbit {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Ravager {
     pub abstract_monster: AbstractMonster,
     pub is_celebrating: bool,
@@ -2052,6 +2756,15 @@ impl Ravager {
         metadata
     }
 }
+
+impl Deref for Ravager {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Salmon {
     pub abstract_creature: AbstractCreature,
     pub from_bucket: bool,
@@ -2072,6 +2785,15 @@ impl Salmon {
         metadata
     }
 }
+
+impl Deref for Salmon {
+    type Target = AbstractCreature;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_creature
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Sheep {
     pub abstract_animal: AbstractAnimal,
     pub sheared: bool,
@@ -2097,6 +2819,15 @@ impl Sheep {
         metadata
     }
 }
+
+impl Deref for Sheep {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Shulker {
     pub abstract_creature: AbstractCreature,
     pub attach_face: Direction,
@@ -2125,6 +2856,15 @@ impl Shulker {
         metadata
     }
 }
+
+impl Deref for Shulker {
+    type Target = AbstractCreature;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_creature
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ShulkerBullet {
     pub abstract_entity: AbstractEntity,
 }
@@ -2141,6 +2881,15 @@ impl ShulkerBullet {
         metadata
     }
 }
+
+impl Deref for ShulkerBullet {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Silverfish {
     pub abstract_monster: AbstractMonster,
 }
@@ -2157,6 +2906,15 @@ impl Silverfish {
         metadata
     }
 }
+
+impl Deref for Silverfish {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Skeleton {
     pub abstract_monster: AbstractMonster,
     pub stray_conversion: bool,
@@ -2177,6 +2935,15 @@ impl Skeleton {
         metadata
     }
 }
+
+impl Deref for Skeleton {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct SkeletonHorse {
     pub abstract_animal: AbstractAnimal,
     pub tamed: bool,
@@ -2230,6 +2997,15 @@ impl SkeletonHorse {
         metadata
     }
 }
+
+impl Deref for SkeletonHorse {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Slime {
     pub abstract_insentient: AbstractInsentient,
     pub size: i32,
@@ -2250,6 +3026,15 @@ impl Slime {
         metadata
     }
 }
+
+impl Deref for Slime {
+    type Target = AbstractInsentient;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_insentient
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct SmallFireball {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -2270,6 +3055,15 @@ impl SmallFireball {
         metadata
     }
 }
+
+impl Deref for SmallFireball {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct SnowGolem {
     pub abstract_creature: AbstractCreature,
     pub has_pumpkin: bool,
@@ -2295,6 +3089,15 @@ impl SnowGolem {
         metadata
     }
 }
+
+impl Deref for SnowGolem {
+    type Target = AbstractCreature;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_creature
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Snowball {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -2315,6 +3118,15 @@ impl Snowball {
         metadata
     }
 }
+
+impl Deref for Snowball {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct SpawnerMinecart {
     pub abstract_minecart: AbstractMinecart,
 }
@@ -2331,6 +3143,15 @@ impl SpawnerMinecart {
         metadata
     }
 }
+
+impl Deref for SpawnerMinecart {
+    type Target = AbstractMinecart;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_minecart
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct SpectralArrow {
     pub abstract_entity: AbstractEntity,
     pub crit_arrow: bool,
@@ -2372,6 +3193,15 @@ impl SpectralArrow {
         metadata
     }
 }
+
+impl Deref for SpectralArrow {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Spider {
     pub abstract_monster: AbstractMonster,
     pub climbing: bool,
@@ -2397,6 +3227,15 @@ impl Spider {
         metadata
     }
 }
+
+impl Deref for Spider {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Squid {
     pub abstract_creature: AbstractCreature,
 }
@@ -2413,6 +3252,15 @@ impl Squid {
         metadata
     }
 }
+
+impl Deref for Squid {
+    type Target = AbstractCreature;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_creature
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Stray {
     pub abstract_monster: AbstractMonster,
 }
@@ -2429,6 +3277,15 @@ impl Stray {
         metadata
     }
 }
+
+impl Deref for Stray {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Strider {
     pub abstract_animal: AbstractAnimal,
     pub boost_time: i32,
@@ -2457,6 +3314,15 @@ impl Strider {
         metadata
     }
 }
+
+impl Deref for Strider {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Tadpole {
     pub abstract_creature: AbstractCreature,
     pub from_bucket: bool,
@@ -2477,6 +3343,15 @@ impl Tadpole {
         metadata
     }
 }
+
+impl Deref for Tadpole {
+    type Target = AbstractCreature;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_creature
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Tnt {
     pub abstract_entity: AbstractEntity,
     pub fuse: i32,
@@ -2497,6 +3372,15 @@ impl Tnt {
         metadata
     }
 }
+
+impl Deref for Tnt {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct TntMinecart {
     pub abstract_minecart: AbstractMinecart,
 }
@@ -2513,6 +3397,15 @@ impl TntMinecart {
         metadata
     }
 }
+
+impl Deref for TntMinecart {
+    type Target = AbstractMinecart;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_minecart
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct TraderLlama {
     pub llama: Llama,
 }
@@ -2529,6 +3422,15 @@ impl TraderLlama {
         metadata
     }
 }
+
+impl Deref for TraderLlama {
+    type Target = Llama;
+    fn deref(&self) -> &Self::Target {
+        &self.llama
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Trident {
     pub abstract_entity: AbstractEntity,
     pub crit_arrow: bool,
@@ -2578,6 +3480,15 @@ impl Trident {
         metadata
     }
 }
+
+impl Deref for Trident {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct TropicalFish {
     pub abstract_creature: AbstractCreature,
     pub from_bucket: bool,
@@ -2602,6 +3513,15 @@ impl TropicalFish {
         metadata
     }
 }
+
+impl Deref for TropicalFish {
+    type Target = AbstractCreature;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_creature
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Turtle {
     pub abstract_animal: AbstractAnimal,
     pub home_pos: BlockPos,
@@ -2642,6 +3562,15 @@ impl Turtle {
         metadata
     }
 }
+
+impl Deref for Turtle {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Vex {
     pub abstract_monster: AbstractMonster,
     pub flags: u8,
@@ -2662,6 +3591,15 @@ impl Vex {
         metadata
     }
 }
+
+impl Deref for Vex {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Villager {
     pub abstract_ageable: AbstractAgeable,
     pub unhappy_counter: i32,
@@ -2686,6 +3624,15 @@ impl Villager {
         metadata
     }
 }
+
+impl Deref for Villager {
+    type Target = AbstractAgeable;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_ageable
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Vindicator {
     pub abstract_monster: AbstractMonster,
     pub is_celebrating: bool,
@@ -2706,6 +3653,15 @@ impl Vindicator {
         metadata
     }
 }
+
+impl Deref for Vindicator {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct WanderingTrader {
     pub abstract_ageable: AbstractAgeable,
     pub unhappy_counter: i32,
@@ -2726,6 +3682,15 @@ impl WanderingTrader {
         metadata
     }
 }
+
+impl Deref for WanderingTrader {
+    type Target = AbstractAgeable;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_ageable
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Warden {
     pub abstract_monster: AbstractMonster,
     pub client_anger_level: i32,
@@ -2746,6 +3711,15 @@ impl Warden {
         metadata
     }
 }
+
+impl Deref for Warden {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Witch {
     pub abstract_monster: AbstractMonster,
     pub is_celebrating: bool,
@@ -2770,6 +3744,15 @@ impl Witch {
         metadata
     }
 }
+
+impl Deref for Witch {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Wither {
     pub abstract_monster: AbstractMonster,
     pub target_a: i32,
@@ -2802,6 +3785,15 @@ impl Wither {
         metadata
     }
 }
+
+impl Deref for Wither {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct WitherSkeleton {
     pub abstract_monster: AbstractMonster,
 }
@@ -2818,6 +3810,15 @@ impl WitherSkeleton {
         metadata
     }
 }
+
+impl Deref for WitherSkeleton {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct WitherSkull {
     pub abstract_entity: AbstractEntity,
     pub dangerous: bool,
@@ -2838,6 +3839,15 @@ impl WitherSkull {
         metadata
     }
 }
+
+impl Deref for WitherSkull {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Wolf {
     pub abstract_tameable: AbstractTameable,
     pub interested: bool,
@@ -2866,6 +3876,15 @@ impl Wolf {
         metadata
     }
 }
+
+impl Deref for Wolf {
+    type Target = AbstractTameable;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_tameable
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Zoglin {
     pub abstract_monster: AbstractMonster,
     pub baby: bool,
@@ -2886,6 +3905,15 @@ impl Zoglin {
         metadata
     }
 }
+
+impl Deref for Zoglin {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct Zombie {
     pub abstract_monster: AbstractMonster,
     pub baby: bool,
@@ -2914,6 +3942,15 @@ impl Zombie {
         metadata
     }
 }
+
+impl Deref for Zombie {
+    type Target = AbstractMonster;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_monster
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ZombieHorse {
     pub abstract_animal: AbstractAnimal,
     pub tamed: bool,
@@ -2967,6 +4004,15 @@ impl ZombieHorse {
         metadata
     }
 }
+
+impl Deref for ZombieHorse {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ZombieVillager {
     pub zombie: Zombie,
     pub converting: bool,
@@ -2991,6 +4037,15 @@ impl ZombieVillager {
         metadata
     }
 }
+
+impl Deref for ZombieVillager {
+    type Target = Zombie;
+    fn deref(&self) -> &Self::Target {
+        &self.zombie
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ZombifiedPiglin {
     pub zombie: Zombie,
 }
@@ -3007,6 +4062,15 @@ impl ZombifiedPiglin {
         metadata
     }
 }
+
+impl Deref for ZombifiedPiglin {
+    type Target = Zombie;
+    fn deref(&self) -> &Self::Target {
+        &self.zombie
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct AbstractAgeable {
     pub abstract_creature: AbstractCreature,
     pub baby: bool,
@@ -3027,6 +4091,15 @@ impl AbstractAgeable {
         metadata
     }
 }
+
+impl Deref for AbstractAgeable {
+    type Target = AbstractCreature;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_creature
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct AbstractAnimal {
     pub abstract_ageable: AbstractAgeable,
 }
@@ -3043,6 +4116,15 @@ impl AbstractAnimal {
         metadata
     }
 }
+
+impl Deref for AbstractAnimal {
+    type Target = AbstractAgeable;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_ageable
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct AbstractCreature {
     pub abstract_insentient: AbstractInsentient,
 }
@@ -3059,6 +4141,15 @@ impl AbstractCreature {
         metadata
     }
 }
+
+impl Deref for AbstractCreature {
+    type Target = AbstractInsentient;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_insentient
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct AbstractEntity {
     pub on_fire: bool,
     pub shift_key_down: bool,
@@ -3146,6 +4237,8 @@ impl AbstractEntity {
         metadata
     }
 }
+
+#[derive(Debug, Clone, Default)]
 pub struct AbstractInsentient {
     pub abstract_living: AbstractLiving,
     pub no_ai: bool,
@@ -3183,6 +4276,15 @@ impl AbstractInsentient {
         metadata
     }
 }
+
+impl Deref for AbstractInsentient {
+    type Target = AbstractLiving;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_living
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct AbstractLiving {
     pub abstract_entity: AbstractEntity,
     pub auto_spin_attack: bool,
@@ -3238,6 +4340,15 @@ impl AbstractLiving {
         metadata
     }
 }
+
+impl Deref for AbstractLiving {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct AbstractMinecart {
     pub abstract_entity: AbstractEntity,
     pub hurt: i32,
@@ -3278,6 +4389,15 @@ impl AbstractMinecart {
         metadata
     }
 }
+
+impl Deref for AbstractMinecart {
+    type Target = AbstractEntity;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_entity
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct AbstractMonster {
     pub abstract_creature: AbstractCreature,
 }
@@ -3294,6 +4414,15 @@ impl AbstractMonster {
         metadata
     }
 }
+
+impl Deref for AbstractMonster {
+    type Target = AbstractCreature;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_creature
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct AbstractTameable {
     pub abstract_animal: AbstractAnimal,
     pub tame: bool,
@@ -3328,4 +4457,142 @@ impl AbstractTameable {
         metadata.push(EntityDataValue::OptionalUuid(self.owneruuid.clone()));
         metadata
     }
+}
+
+impl Deref for AbstractTameable {
+    type Target = AbstractAnimal;
+    fn deref(&self) -> &Self::Target {
+        &self.abstract_animal
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum EntityMetadata {
+    Allay(Allay),
+    AreaEffectCloud(AreaEffectCloud),
+    ArmorStand(ArmorStand),
+    Arrow(Arrow),
+    Axolotl(Axolotl),
+    Bat(Bat),
+    Bee(Bee),
+    Blaze(Blaze),
+    Boat(Boat),
+    Cat(Cat),
+    CaveSpider(CaveSpider),
+    ChestBoat(ChestBoat),
+    ChestMinecart(ChestMinecart),
+    Chicken(Chicken),
+    Cod(Cod),
+    CommandBlockMinecart(CommandBlockMinecart),
+    Cow(Cow),
+    Creeper(Creeper),
+    Dolphin(Dolphin),
+    Donkey(Donkey),
+    DragonFireball(DragonFireball),
+    Drowned(Drowned),
+    Egg(Egg),
+    ElderGuardian(ElderGuardian),
+    EndCrystal(EndCrystal),
+    EnderDragon(EnderDragon),
+    EnderPearl(EnderPearl),
+    Enderman(Enderman),
+    Endermite(Endermite),
+    Evoker(Evoker),
+    EvokerFangs(EvokerFangs),
+    ExperienceBottle(ExperienceBottle),
+    ExperienceOrb(ExperienceOrb),
+    EyeOfEnder(EyeOfEnder),
+    FallingBlock(FallingBlock),
+    Fireball(Fireball),
+    FireworkRocket(FireworkRocket),
+    FishingBobber(FishingBobber),
+    Fox(Fox),
+    Frog(Frog),
+    FurnaceMinecart(FurnaceMinecart),
+    Ghast(Ghast),
+    Giant(Giant),
+    GlowItemFrame(GlowItemFrame),
+    GlowSquid(GlowSquid),
+    Goat(Goat),
+    Guardian(Guardian),
+    Hoglin(Hoglin),
+    HopperMinecart(HopperMinecart),
+    Horse(Horse),
+    Husk(Husk),
+    Illusioner(Illusioner),
+    IronGolem(IronGolem),
+    Item(Item),
+    ItemFrame(ItemFrame),
+    LeashKnot(LeashKnot),
+    LightningBolt(LightningBolt),
+    Llama(Llama),
+    LlamaSpit(LlamaSpit),
+    MagmaCube(MagmaCube),
+    Marker(Marker),
+    Minecart(Minecart),
+    Mooshroom(Mooshroom),
+    Mule(Mule),
+    Ocelot(Ocelot),
+    Painting(Painting),
+    Panda(Panda),
+    Parrot(Parrot),
+    Phantom(Phantom),
+    Pig(Pig),
+    Piglin(Piglin),
+    PiglinBrute(PiglinBrute),
+    Pillager(Pillager),
+    Player(Player),
+    PolarBear(PolarBear),
+    Potion(Potion),
+    Pufferfish(Pufferfish),
+    Rabbit(Rabbit),
+    Ravager(Ravager),
+    Salmon(Salmon),
+    Sheep(Sheep),
+    Shulker(Shulker),
+    ShulkerBullet(ShulkerBullet),
+    Silverfish(Silverfish),
+    Skeleton(Skeleton),
+    SkeletonHorse(SkeletonHorse),
+    Slime(Slime),
+    SmallFireball(SmallFireball),
+    SnowGolem(SnowGolem),
+    Snowball(Snowball),
+    SpawnerMinecart(SpawnerMinecart),
+    SpectralArrow(SpectralArrow),
+    Spider(Spider),
+    Squid(Squid),
+    Stray(Stray),
+    Strider(Strider),
+    Tadpole(Tadpole),
+    Tnt(Tnt),
+    TntMinecart(TntMinecart),
+    TraderLlama(TraderLlama),
+    Trident(Trident),
+    TropicalFish(TropicalFish),
+    Turtle(Turtle),
+    Vex(Vex),
+    Villager(Villager),
+    Vindicator(Vindicator),
+    WanderingTrader(WanderingTrader),
+    Warden(Warden),
+    Witch(Witch),
+    Wither(Wither),
+    WitherSkeleton(WitherSkeleton),
+    WitherSkull(WitherSkull),
+    Wolf(Wolf),
+    Zoglin(Zoglin),
+    Zombie(Zombie),
+    ZombieHorse(ZombieHorse),
+    ZombieVillager(ZombieVillager),
+    ZombifiedPiglin(ZombifiedPiglin),
+    AbstractAgeable(AbstractAgeable),
+    AbstractAnimal(AbstractAnimal),
+    AbstractCreature(AbstractCreature),
+    AbstractEntity(AbstractEntity),
+    AbstractInsentient(AbstractInsentient),
+    AbstractLiving(AbstractLiving),
+    AbstractMinecart(AbstractMinecart),
+    AbstractMonster(AbstractMonster),
+    AbstractTameable(AbstractTameable),
 }

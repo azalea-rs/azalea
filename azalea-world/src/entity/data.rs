@@ -8,7 +8,7 @@ use std::io::{Cursor, Write};
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]
-pub struct EntityMetadata(Vec<EntityDataItem>);
+pub struct EntityMetadataItems(Vec<EntityDataItem>);
 
 #[derive(Clone, Debug)]
 pub struct EntityDataItem {
@@ -18,7 +18,7 @@ pub struct EntityDataItem {
     pub value: EntityDataValue,
 }
 
-impl McBufReadable for EntityMetadata {
+impl McBufReadable for EntityMetadataItems {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut metadata = Vec::new();
         loop {
@@ -29,11 +29,11 @@ impl McBufReadable for EntityMetadata {
             let value = EntityDataValue::read_from(buf)?;
             metadata.push(EntityDataItem { index, value });
         }
-        Ok(EntityMetadata(metadata))
+        Ok(EntityMetadataItems(metadata))
     }
 }
 
-impl McBufWritable for EntityMetadata {
+impl McBufWritable for EntityMetadataItems {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         for item in &self.0 {
             item.index.write_into(buf)?;
@@ -161,10 +161,10 @@ pub struct VillagerData {
     level: u32,
 }
 
-impl TryFrom<EntityMetadata> for Vec<EntityDataValue> {
+impl TryFrom<EntityMetadataItems> for Vec<EntityDataValue> {
     type Error = String;
 
-    fn try_from(data: EntityMetadata) -> Result<Self, Self::Error> {
+    fn try_from(data: EntityMetadataItems) -> Result<Self, Self::Error> {
         let mut data = data.0;
 
         data.sort_by(|a, b| a.index.cmp(&b.index));
