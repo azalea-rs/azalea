@@ -39,5 +39,5 @@ I wanted a fun excuse to do something cool with Rust, and I also felt like I cou
 
 ## Stretch goals
 
-- Server implementation.
+- Server implementation. (if you're interested in making this then please contact me, I'd love for it to be a thing. [@mat:matdoes.dev](https://matrix.to/#/@mat:matdoes.dev) / mat#1592)
 - Having branches for several popular Minecraft versions.
