@@ -7,7 +7,7 @@ use azalea_core::{BlockPos, Direction, Particle, Slot};
 use std::{collections::VecDeque, ops::Deref};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Allay {
     pub abstract_creature: AbstractCreature,
     pub dancing: bool,
@@ -33,6 +33,16 @@ impl Allay {
     }
 }
 
+impl Default for Allay {
+    fn default() -> Self {
+        Self {
+            abstract_creature: Default::default(),
+            dancing: false,
+            can_duplicate: true,
+        }
+    }
+}
+
 impl Deref for Allay {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -40,7 +50,7 @@ impl Deref for Allay {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct AreaEffectCloud {
     pub abstract_entity: AbstractEntity,
     pub radius: f32,
@@ -74,6 +84,18 @@ impl AreaEffectCloud {
     }
 }
 
+impl Default for AreaEffectCloud {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            radius: 0.5,
+            color: 0,
+            waiting: false,
+            particle: Default::default(),
+        }
+    }
+}
+
 impl Deref for AreaEffectCloud {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -81,7 +103,7 @@ impl Deref for AreaEffectCloud {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ArmorStand {
     pub abstract_living: AbstractLiving,
     pub small: bool,
@@ -150,6 +172,24 @@ impl ArmorStand {
     }
 }
 
+impl Default for ArmorStand {
+    fn default() -> Self {
+        Self {
+            abstract_living: Default::default(),
+            small: false,
+            show_arms: false,
+            no_base_plate: false,
+            marker: false,
+            head_pose: Default::default(),
+            body_pose: Default::default(),
+            left_arm_pose: Default::default(),
+            right_arm_pose: Default::default(),
+            left_leg_pose: Default::default(),
+            right_leg_pose: Default::default(),
+        }
+    }
+}
+
 impl Deref for ArmorStand {
     type Target = AbstractLiving;
     fn deref(&self) -> &Self::Target {
@@ -157,7 +197,7 @@ impl Deref for ArmorStand {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Arrow {
     pub abstract_entity: AbstractEntity,
     pub crit_arrow: bool,
@@ -204,6 +244,19 @@ impl Arrow {
     }
 }
 
+impl Default for Arrow {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            crit_arrow: false,
+            shot_from_crossbow: false,
+            no_physics: false,
+            pierce_level: 0,
+            effect_color: -1,
+        }
+    }
+}
+
 impl Deref for Arrow {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -211,7 +264,7 @@ impl Deref for Arrow {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Axolotl {
     pub abstract_animal: AbstractAnimal,
     pub variant: i32,
@@ -241,6 +294,17 @@ impl Axolotl {
     }
 }
 
+impl Default for Axolotl {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            variant: 0,
+            playing_dead: false,
+            from_bucket: false,
+        }
+    }
+}
+
 impl Deref for Axolotl {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -248,7 +312,7 @@ impl Deref for Axolotl {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Bat {
     pub abstract_insentient: AbstractInsentient,
     pub resting: bool,
@@ -275,6 +339,15 @@ impl Bat {
     }
 }
 
+impl Default for Bat {
+    fn default() -> Self {
+        Self {
+            abstract_insentient: Default::default(),
+            resting: false,
+        }
+    }
+}
+
 impl Deref for Bat {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
@@ -282,7 +355,7 @@ impl Deref for Bat {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Bee {
     pub abstract_animal: AbstractAnimal,
     pub has_nectar: bool,
@@ -325,6 +398,18 @@ impl Bee {
     }
 }
 
+impl Default for Bee {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            has_nectar: false,
+            has_stung: false,
+            rolling: false,
+            remaining_anger_time: 0,
+        }
+    }
+}
+
 impl Deref for Bee {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -332,7 +417,7 @@ impl Deref for Bee {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Blaze {
     pub abstract_monster: AbstractMonster,
     pub charged: bool,
@@ -359,6 +444,15 @@ impl Blaze {
     }
 }
 
+impl Default for Blaze {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            charged: false,
+        }
+    }
+}
+
 impl Deref for Blaze {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -366,7 +460,7 @@ impl Deref for Blaze {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Boat {
     pub abstract_entity: AbstractEntity,
     pub hurt: i32,
@@ -412,6 +506,21 @@ impl Boat {
     }
 }
 
+impl Default for Boat {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            hurt: 0,
+            hurtdir: 1,
+            damage: 0.0,
+            kind: Default::default(),
+            paddle_left: false,
+            paddle_right: false,
+            bubble_time: 0,
+        }
+    }
+}
+
 impl Deref for Boat {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -419,7 +528,7 @@ impl Deref for Boat {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Cat {
     pub abstract_tameable: AbstractTameable,
     pub variant: azalea_registry::CatVariant,
@@ -453,6 +562,18 @@ impl Cat {
     }
 }
 
+impl Default for Cat {
+    fn default() -> Self {
+        Self {
+            abstract_tameable: Default::default(),
+            variant: Default::default(),
+            is_lying: false,
+            relax_state_one: false,
+            collar_color: Default::default(),
+        }
+    }
+}
+
 impl Deref for Cat {
     type Target = AbstractTameable;
     fn deref(&self) -> &Self::Target {
@@ -460,7 +581,7 @@ impl Deref for Cat {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct CaveSpider {
     pub spider: Spider,
 }
@@ -478,6 +599,14 @@ impl CaveSpider {
     }
 }
 
+impl Default for CaveSpider {
+    fn default() -> Self {
+        Self {
+            spider: Default::default(),
+        }
+    }
+}
+
 impl Deref for CaveSpider {
     type Target = Spider;
     fn deref(&self) -> &Self::Target {
@@ -485,7 +614,7 @@ impl Deref for CaveSpider {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ChestBoat {
     pub boat: Boat,
 }
@@ -503,6 +632,14 @@ impl ChestBoat {
     }
 }
 
+impl Default for ChestBoat {
+    fn default() -> Self {
+        Self {
+            boat: Default::default(),
+        }
+    }
+}
+
 impl Deref for ChestBoat {
     type Target = Boat;
     fn deref(&self) -> &Self::Target {
@@ -510,7 +647,7 @@ impl Deref for ChestBoat {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ChestMinecart {
     pub abstract_minecart: AbstractMinecart,
 }
@@ -528,6 +665,14 @@ impl ChestMinecart {
     }
 }
 
+impl Default for ChestMinecart {
+    fn default() -> Self {
+        Self {
+            abstract_minecart: Default::default(),
+        }
+    }
+}
+
 impl Deref for ChestMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
@@ -535,7 +680,7 @@ impl Deref for ChestMinecart {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Chicken {
     pub abstract_animal: AbstractAnimal,
 }
@@ -553,6 +698,14 @@ impl Chicken {
     }
 }
 
+impl Default for Chicken {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+        }
+    }
+}
+
 impl Deref for Chicken {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -560,7 +713,7 @@ impl Deref for Chicken {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Cod {
     pub abstract_creature: AbstractCreature,
     pub from_bucket: bool,
@@ -582,6 +735,15 @@ impl Cod {
     }
 }
 
+impl Default for Cod {
+    fn default() -> Self {
+        Self {
+            abstract_creature: Default::default(),
+            from_bucket: false,
+        }
+    }
+}
+
 impl Deref for Cod {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -589,7 +751,7 @@ impl Deref for Cod {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct CommandBlockMinecart {
     pub abstract_minecart: AbstractMinecart,
     pub command_name: String,
@@ -615,6 +777,16 @@ impl CommandBlockMinecart {
     }
 }
 
+impl Default for CommandBlockMinecart {
+    fn default() -> Self {
+        Self {
+            abstract_minecart: Default::default(),
+            command_name: String::new(""),
+            last_output: Default::default(),
+        }
+    }
+}
+
 impl Deref for CommandBlockMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
@@ -622,7 +794,7 @@ impl Deref for CommandBlockMinecart {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Cow {
     pub abstract_animal: AbstractAnimal,
 }
@@ -640,6 +812,14 @@ impl Cow {
     }
 }
 
+impl Default for Cow {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+        }
+    }
+}
+
 impl Deref for Cow {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -647,7 +827,7 @@ impl Deref for Cow {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Creeper {
     pub abstract_monster: AbstractMonster,
     pub swell_dir: i32,
@@ -677,6 +857,17 @@ impl Creeper {
     }
 }
 
+impl Default for Creeper {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            swell_dir: -1,
+            is_powered: false,
+            is_ignited: false,
+        }
+    }
+}
+
 impl Deref for Creeper {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -684,7 +875,7 @@ impl Deref for Creeper {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Dolphin {
     pub abstract_creature: AbstractCreature,
     pub treasure_pos: BlockPos,
@@ -714,6 +905,17 @@ impl Dolphin {
     }
 }
 
+impl Default for Dolphin {
+    fn default() -> Self {
+        Self {
+            abstract_creature: Default::default(),
+            treasure_pos: String::new("(0, 0, 0)"),
+            got_fish: false,
+            moistness_level: 2400,
+        }
+    }
+}
+
 impl Deref for Dolphin {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -721,7 +923,7 @@ impl Deref for Dolphin {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Donkey {
     pub abstract_animal: AbstractAnimal,
     pub tamed: bool,
@@ -780,6 +982,21 @@ impl Donkey {
     }
 }
 
+impl Default for Donkey {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            tamed: false,
+            eating: false,
+            standing: false,
+            bred: false,
+            saddled: false,
+            owner_uuid: String::new("Empty"),
+            chest: false,
+        }
+    }
+}
+
 impl Deref for Donkey {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -787,7 +1004,7 @@ impl Deref for Donkey {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct DragonFireball {
     pub abstract_entity: AbstractEntity,
 }
@@ -805,6 +1022,14 @@ impl DragonFireball {
     }
 }
 
+impl Default for DragonFireball {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+        }
+    }
+}
+
 impl Deref for DragonFireball {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -812,7 +1037,7 @@ impl Deref for DragonFireball {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Drowned {
     pub zombie: Zombie,
 }
@@ -830,6 +1055,14 @@ impl Drowned {
     }
 }
 
+impl Default for Drowned {
+    fn default() -> Self {
+        Self {
+            zombie: Default::default(),
+        }
+    }
+}
+
 impl Deref for Drowned {
     type Target = Zombie;
     fn deref(&self) -> &Self::Target {
@@ -837,7 +1070,7 @@ impl Deref for Drowned {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Egg {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -859,6 +1092,15 @@ impl Egg {
     }
 }
 
+impl Default for Egg {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            item_stack: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for Egg {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -866,7 +1108,7 @@ impl Deref for Egg {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ElderGuardian {
     pub guardian: Guardian,
 }
@@ -884,6 +1126,14 @@ impl ElderGuardian {
     }
 }
 
+impl Default for ElderGuardian {
+    fn default() -> Self {
+        Self {
+            guardian: Default::default(),
+        }
+    }
+}
+
 impl Deref for ElderGuardian {
     type Target = Guardian;
     fn deref(&self) -> &Self::Target {
@@ -891,7 +1141,7 @@ impl Deref for ElderGuardian {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct EndCrystal {
     pub abstract_entity: AbstractEntity,
     pub beam_target: Option<BlockPos>,
@@ -917,6 +1167,16 @@ impl EndCrystal {
     }
 }
 
+impl Default for EndCrystal {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            beam_target: String::new("Empty"),
+            show_bottom: true,
+        }
+    }
+}
+
 impl Deref for EndCrystal {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -924,7 +1184,7 @@ impl Deref for EndCrystal {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct EnderDragon {
     pub abstract_insentient: AbstractInsentient,
     pub phase: i32,
@@ -946,6 +1206,15 @@ impl EnderDragon {
     }
 }
 
+impl Default for EnderDragon {
+    fn default() -> Self {
+        Self {
+            abstract_insentient: Default::default(),
+            phase: Default::default(),
+        }
+    }
+}
+
 impl Deref for EnderDragon {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
@@ -953,7 +1222,7 @@ impl Deref for EnderDragon {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct EnderPearl {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -975,6 +1244,15 @@ impl EnderPearl {
     }
 }
 
+impl Default for EnderPearl {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            item_stack: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for EnderPearl {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -982,7 +1260,7 @@ impl Deref for EnderPearl {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Enderman {
     pub abstract_monster: AbstractMonster,
     pub carry_state: Option<i32>,
@@ -1014,6 +1292,17 @@ impl Enderman {
     }
 }
 
+impl Default for Enderman {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            carry_state: String::new("Empty"),
+            creepy: false,
+            stared_at: false,
+        }
+    }
+}
+
 impl Deref for Enderman {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -1021,7 +1310,7 @@ impl Deref for Enderman {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Endermite {
     pub abstract_monster: AbstractMonster,
 }
@@ -1039,6 +1328,14 @@ impl Endermite {
     }
 }
 
+impl Default for Endermite {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+        }
+    }
+}
+
 impl Deref for Endermite {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -1046,7 +1343,7 @@ impl Deref for Endermite {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Evoker {
     pub abstract_monster: AbstractMonster,
     pub is_celebrating: bool,
@@ -1072,6 +1369,16 @@ impl Evoker {
     }
 }
 
+impl Default for Evoker {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            is_celebrating: false,
+            spell_casting: 0,
+        }
+    }
+}
+
 impl Deref for Evoker {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -1079,7 +1386,7 @@ impl Deref for Evoker {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct EvokerFangs {
     pub abstract_entity: AbstractEntity,
 }
@@ -1097,6 +1404,14 @@ impl EvokerFangs {
     }
 }
 
+impl Default for EvokerFangs {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+        }
+    }
+}
+
 impl Deref for EvokerFangs {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1104,7 +1419,7 @@ impl Deref for EvokerFangs {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ExperienceBottle {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -1126,6 +1441,15 @@ impl ExperienceBottle {
     }
 }
 
+impl Default for ExperienceBottle {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            item_stack: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for ExperienceBottle {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1133,7 +1457,7 @@ impl Deref for ExperienceBottle {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ExperienceOrb {
     pub abstract_entity: AbstractEntity,
 }
@@ -1151,6 +1475,14 @@ impl ExperienceOrb {
     }
 }
 
+impl Default for ExperienceOrb {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+        }
+    }
+}
+
 impl Deref for ExperienceOrb {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1158,7 +1490,7 @@ impl Deref for ExperienceOrb {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct EyeOfEnder {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -1180,6 +1512,15 @@ impl EyeOfEnder {
     }
 }
 
+impl Default for EyeOfEnder {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            item_stack: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for EyeOfEnder {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1187,7 +1528,7 @@ impl Deref for EyeOfEnder {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct FallingBlock {
     pub abstract_entity: AbstractEntity,
     pub start_pos: BlockPos,
@@ -1209,6 +1550,15 @@ impl FallingBlock {
     }
 }
 
+impl Default for FallingBlock {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            start_pos: String::new("(0, 0, 0)"),
+        }
+    }
+}
+
 impl Deref for FallingBlock {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1216,7 +1566,7 @@ impl Deref for FallingBlock {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Fireball {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -1238,6 +1588,15 @@ impl Fireball {
     }
 }
 
+impl Default for Fireball {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            item_stack: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for Fireball {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1245,7 +1604,7 @@ impl Deref for Fireball {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct FireworkRocket {
     pub abstract_entity: AbstractEntity,
     pub fireworks_item: Slot,
@@ -1277,6 +1636,17 @@ impl FireworkRocket {
     }
 }
 
+impl Default for FireworkRocket {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            fireworks_item: String::new("Empty"),
+            attached_to_target: String::new("Empty"),
+            shot_at_angle: false,
+        }
+    }
+}
+
 impl Deref for FireworkRocket {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1284,7 +1654,7 @@ impl Deref for FireworkRocket {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct FishingBobber {
     pub abstract_entity: AbstractEntity,
     pub hooked_entity: i32,
@@ -1310,6 +1680,16 @@ impl FishingBobber {
     }
 }
 
+impl Default for FishingBobber {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            hooked_entity: 0,
+            biting: false,
+        }
+    }
+}
+
 impl Deref for FishingBobber {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1317,7 +1697,7 @@ impl Deref for FishingBobber {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Fox {
     pub abstract_animal: AbstractAnimal,
     pub kind: i32,
@@ -1386,6 +1766,23 @@ impl Fox {
     }
 }
 
+impl Default for Fox {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            kind: 0,
+            sitting: false,
+            faceplanted: false,
+            sleeping: false,
+            pouncing: false,
+            crouching: false,
+            interested: false,
+            trusted_id_0: String::new("Empty"),
+            trusted_id_1: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for Fox {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -1393,7 +1790,7 @@ impl Deref for Fox {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Frog {
     pub abstract_animal: AbstractAnimal,
     pub variant: azalea_registry::FrogVariant,
@@ -1421,6 +1818,16 @@ impl Frog {
     }
 }
 
+impl Default for Frog {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            variant: Default::default(),
+            tongue_target: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for Frog {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -1428,7 +1835,7 @@ impl Deref for Frog {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct FurnaceMinecart {
     pub abstract_minecart: AbstractMinecart,
     pub fuel: bool,
@@ -1450,6 +1857,15 @@ impl FurnaceMinecart {
     }
 }
 
+impl Default for FurnaceMinecart {
+    fn default() -> Self {
+        Self {
+            abstract_minecart: Default::default(),
+            fuel: false,
+        }
+    }
+}
+
 impl Deref for FurnaceMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
@@ -1457,7 +1873,7 @@ impl Deref for FurnaceMinecart {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Ghast {
     pub abstract_insentient: AbstractInsentient,
     pub is_charging: bool,
@@ -1479,6 +1895,15 @@ impl Ghast {
     }
 }
 
+impl Default for Ghast {
+    fn default() -> Self {
+        Self {
+            abstract_insentient: Default::default(),
+            is_charging: false,
+        }
+    }
+}
+
 impl Deref for Ghast {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
@@ -1486,7 +1911,7 @@ impl Deref for Ghast {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Giant {
     pub abstract_monster: AbstractMonster,
 }
@@ -1504,6 +1929,14 @@ impl Giant {
     }
 }
 
+impl Default for Giant {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+        }
+    }
+}
+
 impl Deref for Giant {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -1511,7 +1944,7 @@ impl Deref for Giant {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct GlowItemFrame {
     pub item_frame: ItemFrame,
 }
@@ -1529,6 +1962,14 @@ impl GlowItemFrame {
     }
 }
 
+impl Default for GlowItemFrame {
+    fn default() -> Self {
+        Self {
+            item_frame: Default::default(),
+        }
+    }
+}
+
 impl Deref for GlowItemFrame {
     type Target = ItemFrame;
     fn deref(&self) -> &Self::Target {
@@ -1536,7 +1977,7 @@ impl Deref for GlowItemFrame {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct GlowSquid {
     pub squid: Squid,
     pub dark_ticks_remaining: i32,
@@ -1558,6 +1999,15 @@ impl GlowSquid {
     }
 }
 
+impl Default for GlowSquid {
+    fn default() -> Self {
+        Self {
+            squid: Default::default(),
+            dark_ticks_remaining: 0,
+        }
+    }
+}
+
 impl Deref for GlowSquid {
     type Target = Squid;
     fn deref(&self) -> &Self::Target {
@@ -1565,7 +2015,7 @@ impl Deref for GlowSquid {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Goat {
     pub abstract_animal: AbstractAnimal,
     pub is_screaming_goat: bool,
@@ -1595,6 +2045,17 @@ impl Goat {
     }
 }
 
+impl Default for Goat {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            is_screaming_goat: false,
+            has_left_horn: true,
+            has_right_horn: true,
+        }
+    }
+}
+
 impl Deref for Goat {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -1602,7 +2063,7 @@ impl Deref for Goat {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Guardian {
     pub abstract_monster: AbstractMonster,
     pub moving: bool,
@@ -1628,6 +2089,16 @@ impl Guardian {
     }
 }
 
+impl Default for Guardian {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            moving: false,
+            attack_target: 0,
+        }
+    }
+}
+
 impl Deref for Guardian {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -1635,7 +2106,7 @@ impl Deref for Guardian {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Hoglin {
     pub abstract_animal: AbstractAnimal,
     pub immune_to_zombification: bool,
@@ -1659,6 +2130,15 @@ impl Hoglin {
     }
 }
 
+impl Default for Hoglin {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            immune_to_zombification: false,
+        }
+    }
+}
+
 impl Deref for Hoglin {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -1666,7 +2146,7 @@ impl Deref for Hoglin {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct HopperMinecart {
     pub abstract_minecart: AbstractMinecart,
 }
@@ -1684,6 +2164,14 @@ impl HopperMinecart {
     }
 }
 
+impl Default for HopperMinecart {
+    fn default() -> Self {
+        Self {
+            abstract_minecart: Default::default(),
+        }
+    }
+}
+
 impl Deref for HopperMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
@@ -1691,7 +2179,7 @@ impl Deref for HopperMinecart {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Horse {
     pub abstract_animal: AbstractAnimal,
     pub tamed: bool,
@@ -1750,6 +2238,21 @@ impl Horse {
     }
 }
 
+impl Default for Horse {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            tamed: false,
+            eating: false,
+            standing: false,
+            bred: false,
+            saddled: false,
+            owner_uuid: String::new("Empty"),
+            type_variant: 0,
+        }
+    }
+}
+
 impl Deref for Horse {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -1757,7 +2260,7 @@ impl Deref for Horse {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Husk {
     pub zombie: Zombie,
 }
@@ -1775,6 +2278,14 @@ impl Husk {
     }
 }
 
+impl Default for Husk {
+    fn default() -> Self {
+        Self {
+            zombie: Default::default(),
+        }
+    }
+}
+
 impl Deref for Husk {
     type Target = Zombie;
     fn deref(&self) -> &Self::Target {
@@ -1782,7 +2293,7 @@ impl Deref for Husk {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Illusioner {
     pub abstract_monster: AbstractMonster,
     pub is_celebrating: bool,
@@ -1808,6 +2319,16 @@ impl Illusioner {
     }
 }
 
+impl Default for Illusioner {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            is_celebrating: false,
+            spell_casting: 0,
+        }
+    }
+}
+
 impl Deref for Illusioner {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -1815,7 +2336,7 @@ impl Deref for Illusioner {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct IronGolem {
     pub abstract_creature: AbstractCreature,
     pub player_created: bool,
@@ -1842,6 +2363,15 @@ impl IronGolem {
     }
 }
 
+impl Default for IronGolem {
+    fn default() -> Self {
+        Self {
+            abstract_creature: Default::default(),
+            player_created: false,
+        }
+    }
+}
+
 impl Deref for IronGolem {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -1849,7 +2379,7 @@ impl Deref for IronGolem {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Item {
     pub abstract_entity: AbstractEntity,
     pub item: Slot,
@@ -1871,6 +2401,15 @@ impl Item {
     }
 }
 
+impl Default for Item {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            item: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for Item {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1878,7 +2417,7 @@ impl Deref for Item {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ItemFrame {
     pub abstract_entity: AbstractEntity,
     pub item: Slot,
@@ -1904,6 +2443,16 @@ impl ItemFrame {
     }
 }
 
+impl Default for ItemFrame {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            item: String::new("Empty"),
+            rotation: 0,
+        }
+    }
+}
+
 impl Deref for ItemFrame {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1911,7 +2460,7 @@ impl Deref for ItemFrame {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct LeashKnot {
     pub abstract_entity: AbstractEntity,
 }
@@ -1929,6 +2478,14 @@ impl LeashKnot {
     }
 }
 
+impl Default for LeashKnot {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+        }
+    }
+}
+
 impl Deref for LeashKnot {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1936,7 +2493,7 @@ impl Deref for LeashKnot {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct LightningBolt {
     pub abstract_entity: AbstractEntity,
 }
@@ -1954,6 +2511,14 @@ impl LightningBolt {
     }
 }
 
+impl Default for LightningBolt {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+        }
+    }
+}
+
 impl Deref for LightningBolt {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1961,7 +2526,7 @@ impl Deref for LightningBolt {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Llama {
     pub abstract_animal: AbstractAnimal,
     pub tamed: bool,
@@ -2032,6 +2597,24 @@ impl Llama {
     }
 }
 
+impl Default for Llama {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            tamed: false,
+            eating: false,
+            standing: false,
+            bred: false,
+            saddled: false,
+            owner_uuid: String::new("Empty"),
+            chest: false,
+            strength: 0,
+            swag: -1,
+            variant: 0,
+        }
+    }
+}
+
 impl Deref for Llama {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -2039,7 +2622,7 @@ impl Deref for Llama {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct LlamaSpit {
     pub abstract_entity: AbstractEntity,
 }
@@ -2057,6 +2640,14 @@ impl LlamaSpit {
     }
 }
 
+impl Default for LlamaSpit {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+        }
+    }
+}
+
 impl Deref for LlamaSpit {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -2064,7 +2655,7 @@ impl Deref for LlamaSpit {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct MagmaCube {
     pub slime: Slime,
 }
@@ -2082,6 +2673,14 @@ impl MagmaCube {
     }
 }
 
+impl Default for MagmaCube {
+    fn default() -> Self {
+        Self {
+            slime: Default::default(),
+        }
+    }
+}
+
 impl Deref for MagmaCube {
     type Target = Slime;
     fn deref(&self) -> &Self::Target {
@@ -2089,7 +2688,7 @@ impl Deref for MagmaCube {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Marker {
     pub abstract_entity: AbstractEntity,
 }
@@ -2107,6 +2706,14 @@ impl Marker {
     }
 }
 
+impl Default for Marker {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+        }
+    }
+}
+
 impl Deref for Marker {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -2114,7 +2721,7 @@ impl Deref for Marker {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Minecart {
     pub abstract_minecart: AbstractMinecart,
 }
@@ -2132,6 +2739,14 @@ impl Minecart {
     }
 }
 
+impl Default for Minecart {
+    fn default() -> Self {
+        Self {
+            abstract_minecart: Default::default(),
+        }
+    }
+}
+
 impl Deref for Minecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
@@ -2139,7 +2754,7 @@ impl Deref for Minecart {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Mooshroom {
     pub cow: Cow,
     pub kind: String,
@@ -2161,6 +2776,15 @@ impl Mooshroom {
     }
 }
 
+impl Default for Mooshroom {
+    fn default() -> Self {
+        Self {
+            cow: Default::default(),
+            kind: Default::default(),
+        }
+    }
+}
+
 impl Deref for Mooshroom {
     type Target = Cow;
     fn deref(&self) -> &Self::Target {
@@ -2168,7 +2792,7 @@ impl Deref for Mooshroom {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Mule {
     pub abstract_animal: AbstractAnimal,
     pub tamed: bool,
@@ -2227,6 +2851,21 @@ impl Mule {
     }
 }
 
+impl Default for Mule {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            tamed: false,
+            eating: false,
+            standing: false,
+            bred: false,
+            saddled: false,
+            owner_uuid: String::new("Empty"),
+            chest: false,
+        }
+    }
+}
+
 impl Deref for Mule {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -2234,7 +2873,7 @@ impl Deref for Mule {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Ocelot {
     pub abstract_animal: AbstractAnimal,
     pub trusting: bool,
@@ -2256,6 +2895,15 @@ impl Ocelot {
     }
 }
 
+impl Default for Ocelot {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            trusting: false,
+        }
+    }
+}
+
 impl Deref for Ocelot {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -2263,7 +2911,7 @@ impl Deref for Ocelot {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Painting {
     pub abstract_entity: AbstractEntity,
     pub painting_variant: azalea_registry::PaintingVariant,
@@ -2287,6 +2935,15 @@ impl Painting {
     }
 }
 
+impl Default for Painting {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            painting_variant: Default::default(),
+        }
+    }
+}
+
 impl Deref for Painting {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -2294,7 +2951,7 @@ impl Deref for Painting {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Panda {
     pub abstract_animal: AbstractAnimal,
     pub unhappy_counter: i32,
@@ -2359,6 +3016,23 @@ impl Panda {
     }
 }
 
+impl Default for Panda {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            unhappy_counter: 0,
+            sneeze_counter: 0,
+            eat_counter: 0,
+            sneezing: false,
+            sitting: false,
+            on_back: false,
+            rolling: false,
+            hidden_gene: 0,
+            flags: 0,
+        }
+    }
+}
+
 impl Deref for Panda {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -2366,7 +3040,7 @@ impl Deref for Panda {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Parrot {
     pub abstract_tameable: AbstractTameable,
     pub variant: i32,
@@ -2388,6 +3062,15 @@ impl Parrot {
     }
 }
 
+impl Default for Parrot {
+    fn default() -> Self {
+        Self {
+            abstract_tameable: Default::default(),
+            variant: 0,
+        }
+    }
+}
+
 impl Deref for Parrot {
     type Target = AbstractTameable;
     fn deref(&self) -> &Self::Target {
@@ -2395,7 +3078,7 @@ impl Deref for Parrot {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Phantom {
     pub abstract_insentient: AbstractInsentient,
     pub size: i32,
@@ -2417,6 +3100,15 @@ impl Phantom {
     }
 }
 
+impl Default for Phantom {
+    fn default() -> Self {
+        Self {
+            abstract_insentient: Default::default(),
+            size: 0,
+        }
+    }
+}
+
 impl Deref for Phantom {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
@@ -2424,7 +3116,7 @@ impl Deref for Phantom {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Pig {
     pub abstract_animal: AbstractAnimal,
     pub saddle: bool,
@@ -2450,6 +3142,16 @@ impl Pig {
     }
 }
 
+impl Default for Pig {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            saddle: false,
+            boost_time: 0,
+        }
+    }
+}
+
 impl Deref for Pig {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -2457,7 +3159,7 @@ impl Deref for Pig {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Piglin {
     pub abstract_monster: AbstractMonster,
     pub immune_to_zombification: bool,
@@ -2493,6 +3195,18 @@ impl Piglin {
     }
 }
 
+impl Default for Piglin {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            immune_to_zombification: false,
+            baby: false,
+            is_charging_crossbow: false,
+            is_dancing: false,
+        }
+    }
+}
+
 impl Deref for Piglin {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -2500,7 +3214,7 @@ impl Deref for Piglin {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct PiglinBrute {
     pub abstract_monster: AbstractMonster,
     pub immune_to_zombification: bool,
@@ -2524,6 +3238,15 @@ impl PiglinBrute {
     }
 }
 
+impl Default for PiglinBrute {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            immune_to_zombification: false,
+        }
+    }
+}
+
 impl Deref for PiglinBrute {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -2531,7 +3254,7 @@ impl Deref for PiglinBrute {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Pillager {
     pub abstract_monster: AbstractMonster,
     pub is_celebrating: bool,
@@ -2557,6 +3280,16 @@ impl Pillager {
     }
 }
 
+impl Default for Pillager {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            is_celebrating: false,
+            is_charging_crossbow: false,
+        }
+    }
+}
+
 impl Deref for Pillager {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -2564,7 +3297,7 @@ impl Deref for Pillager {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Player {
     pub abstract_living: AbstractLiving,
     pub player_absorption: f32,
@@ -2608,6 +3341,20 @@ impl Player {
     }
 }
 
+impl Default for Player {
+    fn default() -> Self {
+        Self {
+            abstract_living: Default::default(),
+            player_absorption: 0.0,
+            score: 0,
+            player_mode_customisation: 0,
+            player_main_hand: 1,
+            shoulder_left: String::new("Empty"),
+            shoulder_right: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for Player {
     type Target = AbstractLiving;
     fn deref(&self) -> &Self::Target {
@@ -2615,7 +3362,7 @@ impl Deref for Player {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct PolarBear {
     pub abstract_animal: AbstractAnimal,
     pub standing: bool,
@@ -2637,6 +3384,15 @@ impl PolarBear {
     }
 }
 
+impl Default for PolarBear {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            standing: false,
+        }
+    }
+}
+
 impl Deref for PolarBear {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -2644,7 +3400,7 @@ impl Deref for PolarBear {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Potion {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -2666,6 +3422,15 @@ impl Potion {
     }
 }
 
+impl Default for Potion {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            item_stack: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for Potion {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -2673,7 +3438,7 @@ impl Deref for Potion {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Pufferfish {
     pub abstract_creature: AbstractCreature,
     pub from_bucket: bool,
@@ -2699,6 +3464,16 @@ impl Pufferfish {
     }
 }
 
+impl Default for Pufferfish {
+    fn default() -> Self {
+        Self {
+            abstract_creature: Default::default(),
+            from_bucket: false,
+            puff_state: 0,
+        }
+    }
+}
+
 impl Deref for Pufferfish {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -2706,7 +3481,7 @@ impl Deref for Pufferfish {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Rabbit {
     pub abstract_animal: AbstractAnimal,
     pub kind: i32,
@@ -2728,6 +3503,15 @@ impl Rabbit {
     }
 }
 
+impl Default for Rabbit {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            kind: 0,
+        }
+    }
+}
+
 impl Deref for Rabbit {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -2735,7 +3519,7 @@ impl Deref for Rabbit {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Ravager {
     pub abstract_monster: AbstractMonster,
     pub is_celebrating: bool,
@@ -2757,6 +3541,15 @@ impl Ravager {
     }
 }
 
+impl Default for Ravager {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            is_celebrating: false,
+        }
+    }
+}
+
 impl Deref for Ravager {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -2764,7 +3557,7 @@ impl Deref for Ravager {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Salmon {
     pub abstract_creature: AbstractCreature,
     pub from_bucket: bool,
@@ -2786,6 +3579,15 @@ impl Salmon {
     }
 }
 
+impl Default for Salmon {
+    fn default() -> Self {
+        Self {
+            abstract_creature: Default::default(),
+            from_bucket: false,
+        }
+    }
+}
+
 impl Deref for Salmon {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -2793,7 +3595,7 @@ impl Deref for Salmon {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Sheep {
     pub abstract_animal: AbstractAnimal,
     pub sheared: bool,
@@ -2820,6 +3622,15 @@ impl Sheep {
     }
 }
 
+impl Default for Sheep {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            sheared: false,
+        }
+    }
+}
+
 impl Deref for Sheep {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -2827,7 +3638,7 @@ impl Deref for Sheep {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Shulker {
     pub abstract_creature: AbstractCreature,
     pub attach_face: Direction,
@@ -2857,6 +3668,17 @@ impl Shulker {
     }
 }
 
+impl Default for Shulker {
+    fn default() -> Self {
+        Self {
+            abstract_creature: Default::default(),
+            attach_face: Default::default(),
+            peek: 0,
+            color: 16,
+        }
+    }
+}
+
 impl Deref for Shulker {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -2864,7 +3686,7 @@ impl Deref for Shulker {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ShulkerBullet {
     pub abstract_entity: AbstractEntity,
 }
@@ -2882,6 +3704,14 @@ impl ShulkerBullet {
     }
 }
 
+impl Default for ShulkerBullet {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+        }
+    }
+}
+
 impl Deref for ShulkerBullet {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -2889,7 +3719,7 @@ impl Deref for ShulkerBullet {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Silverfish {
     pub abstract_monster: AbstractMonster,
 }
@@ -2907,6 +3737,14 @@ impl Silverfish {
     }
 }
 
+impl Default for Silverfish {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+        }
+    }
+}
+
 impl Deref for Silverfish {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -2914,7 +3752,7 @@ impl Deref for Silverfish {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Skeleton {
     pub abstract_monster: AbstractMonster,
     pub stray_conversion: bool,
@@ -2936,6 +3774,15 @@ impl Skeleton {
     }
 }
 
+impl Default for Skeleton {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            stray_conversion: false,
+        }
+    }
+}
+
 impl Deref for Skeleton {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -2943,7 +3790,7 @@ impl Deref for Skeleton {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct SkeletonHorse {
     pub abstract_animal: AbstractAnimal,
     pub tamed: bool,
@@ -2998,6 +3845,20 @@ impl SkeletonHorse {
     }
 }
 
+impl Default for SkeletonHorse {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            tamed: false,
+            eating: false,
+            standing: false,
+            bred: false,
+            saddled: false,
+            owner_uuid: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for SkeletonHorse {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -3005,7 +3866,7 @@ impl Deref for SkeletonHorse {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Slime {
     pub abstract_insentient: AbstractInsentient,
     pub size: i32,
@@ -3027,6 +3888,15 @@ impl Slime {
     }
 }
 
+impl Default for Slime {
+    fn default() -> Self {
+        Self {
+            abstract_insentient: Default::default(),
+            size: 1,
+        }
+    }
+}
+
 impl Deref for Slime {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
@@ -3034,7 +3904,7 @@ impl Deref for Slime {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct SmallFireball {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -3056,6 +3926,15 @@ impl SmallFireball {
     }
 }
 
+impl Default for SmallFireball {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            item_stack: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for SmallFireball {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -3063,7 +3942,7 @@ impl Deref for SmallFireball {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct SnowGolem {
     pub abstract_creature: AbstractCreature,
     pub has_pumpkin: bool,
@@ -3090,6 +3969,15 @@ impl SnowGolem {
     }
 }
 
+impl Default for SnowGolem {
+    fn default() -> Self {
+        Self {
+            abstract_creature: Default::default(),
+            has_pumpkin: true,
+        }
+    }
+}
+
 impl Deref for SnowGolem {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -3097,7 +3985,7 @@ impl Deref for SnowGolem {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Snowball {
     pub abstract_entity: AbstractEntity,
     pub item_stack: Slot,
@@ -3119,6 +4007,15 @@ impl Snowball {
     }
 }
 
+impl Default for Snowball {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            item_stack: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for Snowball {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -3126,7 +4023,7 @@ impl Deref for Snowball {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct SpawnerMinecart {
     pub abstract_minecart: AbstractMinecart,
 }
@@ -3144,6 +4041,14 @@ impl SpawnerMinecart {
     }
 }
 
+impl Default for SpawnerMinecart {
+    fn default() -> Self {
+        Self {
+            abstract_minecart: Default::default(),
+        }
+    }
+}
+
 impl Deref for SpawnerMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
@@ -3151,7 +4056,7 @@ impl Deref for SpawnerMinecart {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct SpectralArrow {
     pub abstract_entity: AbstractEntity,
     pub crit_arrow: bool,
@@ -3194,6 +4099,18 @@ impl SpectralArrow {
     }
 }
 
+impl Default for SpectralArrow {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            crit_arrow: false,
+            shot_from_crossbow: false,
+            no_physics: false,
+            pierce_level: 0,
+        }
+    }
+}
+
 impl Deref for SpectralArrow {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -3201,7 +4118,7 @@ impl Deref for SpectralArrow {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Spider {
     pub abstract_monster: AbstractMonster,
     pub climbing: bool,
@@ -3228,6 +4145,15 @@ impl Spider {
     }
 }
 
+impl Default for Spider {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            climbing: false,
+        }
+    }
+}
+
 impl Deref for Spider {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3235,7 +4161,7 @@ impl Deref for Spider {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Squid {
     pub abstract_creature: AbstractCreature,
 }
@@ -3253,6 +4179,14 @@ impl Squid {
     }
 }
 
+impl Default for Squid {
+    fn default() -> Self {
+        Self {
+            abstract_creature: Default::default(),
+        }
+    }
+}
+
 impl Deref for Squid {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -3260,7 +4194,7 @@ impl Deref for Squid {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Stray {
     pub abstract_monster: AbstractMonster,
 }
@@ -3278,6 +4212,14 @@ impl Stray {
     }
 }
 
+impl Default for Stray {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+        }
+    }
+}
+
 impl Deref for Stray {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3285,7 +4227,7 @@ impl Deref for Stray {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Strider {
     pub abstract_animal: AbstractAnimal,
     pub boost_time: i32,
@@ -3315,6 +4257,17 @@ impl Strider {
     }
 }
 
+impl Default for Strider {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            boost_time: 0,
+            suffocating: false,
+            saddle: false,
+        }
+    }
+}
+
 impl Deref for Strider {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -3322,7 +4275,7 @@ impl Deref for Strider {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Tadpole {
     pub abstract_creature: AbstractCreature,
     pub from_bucket: bool,
@@ -3344,6 +4297,15 @@ impl Tadpole {
     }
 }
 
+impl Default for Tadpole {
+    fn default() -> Self {
+        Self {
+            abstract_creature: Default::default(),
+            from_bucket: false,
+        }
+    }
+}
+
 impl Deref for Tadpole {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -3351,7 +4313,7 @@ impl Deref for Tadpole {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Tnt {
     pub abstract_entity: AbstractEntity,
     pub fuse: i32,
@@ -3373,6 +4335,15 @@ impl Tnt {
     }
 }
 
+impl Default for Tnt {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            fuse: 80,
+        }
+    }
+}
+
 impl Deref for Tnt {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -3380,7 +4351,7 @@ impl Deref for Tnt {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct TntMinecart {
     pub abstract_minecart: AbstractMinecart,
 }
@@ -3398,6 +4369,14 @@ impl TntMinecart {
     }
 }
 
+impl Default for TntMinecart {
+    fn default() -> Self {
+        Self {
+            abstract_minecart: Default::default(),
+        }
+    }
+}
+
 impl Deref for TntMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
@@ -3405,7 +4384,7 @@ impl Deref for TntMinecart {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct TraderLlama {
     pub llama: Llama,
 }
@@ -3423,6 +4402,14 @@ impl TraderLlama {
     }
 }
 
+impl Default for TraderLlama {
+    fn default() -> Self {
+        Self {
+            llama: Default::default(),
+        }
+    }
+}
+
 impl Deref for TraderLlama {
     type Target = Llama;
     fn deref(&self) -> &Self::Target {
@@ -3430,7 +4417,7 @@ impl Deref for TraderLlama {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Trident {
     pub abstract_entity: AbstractEntity,
     pub crit_arrow: bool,
@@ -3481,6 +4468,20 @@ impl Trident {
     }
 }
 
+impl Default for Trident {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            crit_arrow: false,
+            shot_from_crossbow: false,
+            no_physics: false,
+            pierce_level: 0,
+            loyalty: 0,
+            foil: false,
+        }
+    }
+}
+
 impl Deref for Trident {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -3488,7 +4489,7 @@ impl Deref for Trident {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct TropicalFish {
     pub abstract_creature: AbstractCreature,
     pub from_bucket: bool,
@@ -3514,6 +4515,16 @@ impl TropicalFish {
     }
 }
 
+impl Default for TropicalFish {
+    fn default() -> Self {
+        Self {
+            abstract_creature: Default::default(),
+            from_bucket: false,
+            type_variant: 0,
+        }
+    }
+}
+
 impl Deref for TropicalFish {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -3521,7 +4532,7 @@ impl Deref for TropicalFish {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Turtle {
     pub abstract_animal: AbstractAnimal,
     pub home_pos: BlockPos,
@@ -3563,6 +4574,20 @@ impl Turtle {
     }
 }
 
+impl Default for Turtle {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            home_pos: String::new("(0, 0, 0)"),
+            has_egg: false,
+            laying_egg: false,
+            travel_pos: String::new("(0, 0, 0)"),
+            going_home: false,
+            travelling: false,
+        }
+    }
+}
+
 impl Deref for Turtle {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -3570,7 +4595,7 @@ impl Deref for Turtle {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Vex {
     pub abstract_monster: AbstractMonster,
     pub flags: u8,
@@ -3592,6 +4617,15 @@ impl Vex {
     }
 }
 
+impl Default for Vex {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            flags: 0,
+        }
+    }
+}
+
 impl Deref for Vex {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3599,7 +4633,7 @@ impl Deref for Vex {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Villager {
     pub abstract_ageable: AbstractAgeable,
     pub unhappy_counter: i32,
@@ -3625,6 +4659,16 @@ impl Villager {
     }
 }
 
+impl Default for Villager {
+    fn default() -> Self {
+        Self {
+            abstract_ageable: Default::default(),
+            unhappy_counter: 0,
+            villager_data: Default::default(),
+        }
+    }
+}
+
 impl Deref for Villager {
     type Target = AbstractAgeable;
     fn deref(&self) -> &Self::Target {
@@ -3632,7 +4676,7 @@ impl Deref for Villager {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Vindicator {
     pub abstract_monster: AbstractMonster,
     pub is_celebrating: bool,
@@ -3654,6 +4698,15 @@ impl Vindicator {
     }
 }
 
+impl Default for Vindicator {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            is_celebrating: false,
+        }
+    }
+}
+
 impl Deref for Vindicator {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3661,7 +4714,7 @@ impl Deref for Vindicator {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct WanderingTrader {
     pub abstract_ageable: AbstractAgeable,
     pub unhappy_counter: i32,
@@ -3683,6 +4736,15 @@ impl WanderingTrader {
     }
 }
 
+impl Default for WanderingTrader {
+    fn default() -> Self {
+        Self {
+            abstract_ageable: Default::default(),
+            unhappy_counter: 0,
+        }
+    }
+}
+
 impl Deref for WanderingTrader {
     type Target = AbstractAgeable;
     fn deref(&self) -> &Self::Target {
@@ -3690,7 +4752,7 @@ impl Deref for WanderingTrader {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Warden {
     pub abstract_monster: AbstractMonster,
     pub client_anger_level: i32,
@@ -3712,6 +4774,15 @@ impl Warden {
     }
 }
 
+impl Default for Warden {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            client_anger_level: 0,
+        }
+    }
+}
+
 impl Deref for Warden {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3719,7 +4790,7 @@ impl Deref for Warden {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Witch {
     pub abstract_monster: AbstractMonster,
     pub is_celebrating: bool,
@@ -3745,6 +4816,16 @@ impl Witch {
     }
 }
 
+impl Default for Witch {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            is_celebrating: false,
+            using_item: false,
+        }
+    }
+}
+
 impl Deref for Witch {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3752,7 +4833,7 @@ impl Deref for Witch {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Wither {
     pub abstract_monster: AbstractMonster,
     pub target_a: i32,
@@ -3786,6 +4867,18 @@ impl Wither {
     }
 }
 
+impl Default for Wither {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            target_a: 0,
+            target_b: 0,
+            target_c: 0,
+            inv: 0,
+        }
+    }
+}
+
 impl Deref for Wither {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3793,7 +4886,7 @@ impl Deref for Wither {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct WitherSkeleton {
     pub abstract_monster: AbstractMonster,
 }
@@ -3811,6 +4904,14 @@ impl WitherSkeleton {
     }
 }
 
+impl Default for WitherSkeleton {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+        }
+    }
+}
+
 impl Deref for WitherSkeleton {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3818,7 +4919,7 @@ impl Deref for WitherSkeleton {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct WitherSkull {
     pub abstract_entity: AbstractEntity,
     pub dangerous: bool,
@@ -3840,6 +4941,15 @@ impl WitherSkull {
     }
 }
 
+impl Default for WitherSkull {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            dangerous: false,
+        }
+    }
+}
+
 impl Deref for WitherSkull {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -3847,7 +4957,7 @@ impl Deref for WitherSkull {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Wolf {
     pub abstract_tameable: AbstractTameable,
     pub interested: bool,
@@ -3877,6 +4987,17 @@ impl Wolf {
     }
 }
 
+impl Default for Wolf {
+    fn default() -> Self {
+        Self {
+            abstract_tameable: Default::default(),
+            interested: false,
+            collar_color: Default::default(),
+            remaining_anger_time: 0,
+        }
+    }
+}
+
 impl Deref for Wolf {
     type Target = AbstractTameable;
     fn deref(&self) -> &Self::Target {
@@ -3884,7 +5005,7 @@ impl Deref for Wolf {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Zoglin {
     pub abstract_monster: AbstractMonster,
     pub baby: bool,
@@ -3906,6 +5027,15 @@ impl Zoglin {
     }
 }
 
+impl Default for Zoglin {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            baby: false,
+        }
+    }
+}
+
 impl Deref for Zoglin {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3913,7 +5043,7 @@ impl Deref for Zoglin {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Zombie {
     pub abstract_monster: AbstractMonster,
     pub baby: bool,
@@ -3943,6 +5073,17 @@ impl Zombie {
     }
 }
 
+impl Default for Zombie {
+    fn default() -> Self {
+        Self {
+            abstract_monster: Default::default(),
+            baby: false,
+            special_type: 0,
+            drowned_conversion: false,
+        }
+    }
+}
+
 impl Deref for Zombie {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3950,7 +5091,7 @@ impl Deref for Zombie {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ZombieHorse {
     pub abstract_animal: AbstractAnimal,
     pub tamed: bool,
@@ -4005,6 +5146,20 @@ impl ZombieHorse {
     }
 }
 
+impl Default for ZombieHorse {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            tamed: false,
+            eating: false,
+            standing: false,
+            bred: false,
+            saddled: false,
+            owner_uuid: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for ZombieHorse {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -4012,7 +5167,7 @@ impl Deref for ZombieHorse {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ZombieVillager {
     pub zombie: Zombie,
     pub converting: bool,
@@ -4038,6 +5193,16 @@ impl ZombieVillager {
     }
 }
 
+impl Default for ZombieVillager {
+    fn default() -> Self {
+        Self {
+            zombie: Default::default(),
+            converting: false,
+            villager_data: Default::default(),
+        }
+    }
+}
+
 impl Deref for ZombieVillager {
     type Target = Zombie;
     fn deref(&self) -> &Self::Target {
@@ -4045,7 +5210,7 @@ impl Deref for ZombieVillager {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ZombifiedPiglin {
     pub zombie: Zombie,
 }
@@ -4063,6 +5228,14 @@ impl ZombifiedPiglin {
     }
 }
 
+impl Default for ZombifiedPiglin {
+    fn default() -> Self {
+        Self {
+            zombie: Default::default(),
+        }
+    }
+}
+
 impl Deref for ZombifiedPiglin {
     type Target = Zombie;
     fn deref(&self) -> &Self::Target {
@@ -4070,7 +5243,7 @@ impl Deref for ZombifiedPiglin {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct AbstractAgeable {
     pub abstract_creature: AbstractCreature,
     pub baby: bool,
@@ -4092,6 +5265,15 @@ impl AbstractAgeable {
     }
 }
 
+impl Default for AbstractAgeable {
+    fn default() -> Self {
+        Self {
+            abstract_creature: Default::default(),
+            baby: false,
+        }
+    }
+}
+
 impl Deref for AbstractAgeable {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -4099,7 +5281,7 @@ impl Deref for AbstractAgeable {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct AbstractAnimal {
     pub abstract_ageable: AbstractAgeable,
 }
@@ -4117,6 +5299,14 @@ impl AbstractAnimal {
     }
 }
 
+impl Default for AbstractAnimal {
+    fn default() -> Self {
+        Self {
+            abstract_ageable: Default::default(),
+        }
+    }
+}
+
 impl Deref for AbstractAnimal {
     type Target = AbstractAgeable;
     fn deref(&self) -> &Self::Target {
@@ -4124,7 +5314,7 @@ impl Deref for AbstractAnimal {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct AbstractCreature {
     pub abstract_insentient: AbstractInsentient,
 }
@@ -4142,6 +5332,14 @@ impl AbstractCreature {
     }
 }
 
+impl Default for AbstractCreature {
+    fn default() -> Self {
+        Self {
+            abstract_insentient: Default::default(),
+        }
+    }
+}
+
 impl Deref for AbstractCreature {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
@@ -4149,7 +5347,7 @@ impl Deref for AbstractCreature {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct AbstractEntity {
     pub on_fire: bool,
     pub shift_key_down: bool,
@@ -4238,7 +5436,28 @@ impl AbstractEntity {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+impl Default for AbstractEntity {
+    fn default() -> Self {
+        Self {
+            on_fire: false,
+            shift_key_down: false,
+            sprinting: false,
+            swimming: false,
+            currently_glowing: false,
+            invisible: false,
+            fall_flying: false,
+            air_supply: Default::default(),
+            custom_name: String::new("Empty"),
+            custom_name_visible: false,
+            silent: false,
+            no_gravity: false,
+            pose: Default::default(),
+            ticks_frozen: 0,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct AbstractInsentient {
     pub abstract_living: AbstractLiving,
     pub no_ai: bool,
@@ -4277,6 +5496,17 @@ impl AbstractInsentient {
     }
 }
 
+impl Default for AbstractInsentient {
+    fn default() -> Self {
+        Self {
+            abstract_living: Default::default(),
+            no_ai: false,
+            left_handed: false,
+            aggressive: false,
+        }
+    }
+}
+
 impl Deref for AbstractInsentient {
     type Target = AbstractLiving;
     fn deref(&self) -> &Self::Target {
@@ -4284,7 +5514,7 @@ impl Deref for AbstractInsentient {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct AbstractLiving {
     pub abstract_entity: AbstractEntity,
     pub auto_spin_attack: bool,
@@ -4341,6 +5571,22 @@ impl AbstractLiving {
     }
 }
 
+impl Default for AbstractLiving {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            auto_spin_attack: false,
+            using_item: false,
+            health: 1.0,
+            effect_color: 0,
+            effect_ambience: false,
+            arrow_count: 0,
+            stinger_count: 0,
+            sleeping_pos: String::new("Empty"),
+        }
+    }
+}
+
 impl Deref for AbstractLiving {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -4348,7 +5594,7 @@ impl Deref for AbstractLiving {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct AbstractMinecart {
     pub abstract_entity: AbstractEntity,
     pub hurt: i32,
@@ -4390,6 +5636,20 @@ impl AbstractMinecart {
     }
 }
 
+impl Default for AbstractMinecart {
+    fn default() -> Self {
+        Self {
+            abstract_entity: Default::default(),
+            hurt: 0,
+            hurtdir: 1,
+            damage: 0.0,
+            display_block: Default::default(),
+            display_offset: 6,
+            custom_display: false,
+        }
+    }
+}
+
 impl Deref for AbstractMinecart {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -4397,7 +5657,7 @@ impl Deref for AbstractMinecart {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct AbstractMonster {
     pub abstract_creature: AbstractCreature,
 }
@@ -4415,6 +5675,14 @@ impl AbstractMonster {
     }
 }
 
+impl Default for AbstractMonster {
+    fn default() -> Self {
+        Self {
+            abstract_creature: Default::default(),
+        }
+    }
+}
+
 impl Deref for AbstractMonster {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -4422,7 +5690,7 @@ impl Deref for AbstractMonster {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct AbstractTameable {
     pub abstract_animal: AbstractAnimal,
     pub tame: bool,
@@ -4456,6 +5724,17 @@ impl AbstractTameable {
         metadata.push(EntityDataValue::Byte(bitfield));
         metadata.push(EntityDataValue::OptionalUuid(self.owneruuid.clone()));
         metadata
+    }
+}
+
+impl Default for AbstractTameable {
+    fn default() -> Self {
+        Self {
+            abstract_animal: Default::default(),
+            tame: false,
+            in_sitting_pose: false,
+            owneruuid: String::new("Empty"),
+        }
     }
 }
 

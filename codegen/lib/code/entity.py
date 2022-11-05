@@ -63,14 +63,11 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
             parent_field_name = to_snake_case(parent_struct_name)
         entity_structs.append(struct_name)
 
-        print()
-        print(entity_parents, entity_metadata, entity_metadata_names)
-
         reader_code = []
         writer_code = []
         field_names = []
 
-        code.append(f'#[derive(Debug, Clone, Default)]')
+        code.append(f'#[derive(Debug, Clone)]')
         code.append(f'pub struct {struct_name} {{')
 
         if parent_struct_name:
@@ -78,6 +75,7 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
             code.append(f'pub {parent_field_name}: {parent_struct_name},')
         for index, name_or_bitfield in entity_metadata_names.items():
             if isinstance(name_or_bitfield, str):
+                # normal field (can be any type)
                 name = name_or_bitfield
                 if name == 'type':
                     name = 'kind'
@@ -95,6 +93,7 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
                 writer_code.append(
                     f'metadata.push(EntityDataValue::{type_name}(self.{name}.clone()));')
             else:
+                # bitfield (sent as a byte, each bit in the byte is used as a boolean)
                 reader_code.append(
                     'let bitfield = metadata.pop_front()?.into_byte().ok()?;')
                 writer_code.append('let mut bitfield = 0u8;')
@@ -137,6 +136,51 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
         code.append('}')
         code.append('')
 
+        # default
+        code.append(f'impl Default for {struct_name} {{')
+        code.append('fn default() -> Self {')
+        default_fields_code = []
+        if parent_struct_name:
+            assert parent_field_name
+            default_fields_code.append(f'{parent_field_name}: Default::default()')
+        
+        def python_value_to_rust_value(v):
+            if v.startswith('\'') and v.endswith('\''):
+                v = f'String::new("{v[1:-1]}")'
+            if v == 'False': return 'false'
+            if v == 'True': return 'true'
+            return v
+
+        for index, name_or_bitfield in entity_metadata_names.items():
+            default = next(filter(lambda i: i['index'] == index, entity_metadata)).get('default', 'Default::default()')
+            if isinstance(name_or_bitfield, str):
+                # TODO: burger doesn't get the default if it's a complex type
+                # like `Rotations`, so entities like armor stands will have the
+                # wrong default metadatas
+                if default is None: default = 'Default::default()'
+                else: default = python_value_to_rust_value(repr(default))
+                print(default, name_or_bitfield)
+                name = name_or_bitfield
+                if name == 'type':
+                    name = 'kind'
+                default_fields_code.append(f'{name}: {default}')
+            else:
+                # if it's a bitfield, we'll have to extract the default for
+                # each bool from each bit in the default
+                for mask, name in name_or_bitfield.items():
+                    if name == 'type':
+                        name = 'kind'
+                    mask = int(mask, 0)
+                    field_names.append(name)
+                    bit_default = 'true' if (default & mask != 0) else 'false'
+                    default_fields_code.append(f'{name}: {bit_default}')
+
+                # Self { abstract_creature: Default::default(), dancing: Default::default(), can_duplicate: Default::default() }
+        code.append(f'Self {{ {", ".join(default_fields_code)} }}')
+        code.append('}')
+        code.append('}')
+        code.append('')
+
         # deref
         if parent_struct_name:
             code.append(f'impl Deref for {struct_name} {{')
@@ -144,8 +188,8 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
             code.append(
                 f'fn deref(&self) -> &Self::Target {{ &self.{parent_field_name} }}')
             code.append('}')
-
             code.append('')
+
 
     # make the EntityMetadata enum from entity_structs
     code.append(f'#[derive(Debug, Clone)]')
@@ -182,6 +226,7 @@ def get_entity_metadata(entity_id: str, burger_entity_data: dict):
                 entity_useful_metadata.append({
                     'index': metadata_attribute['index'],
                     'type_id': metadata_attribute['serializer_id'],
+                    'default': metadata_attribute.get('default')
                 })
     return entity_useful_metadata
 

@@ -74,7 +74,7 @@ pub enum EntityDataValue {
     PaintingVariant(azalea_registry::PaintingVariant),
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, McBuf, Default)]
 pub struct Rotations {
     pub x: f32,
     pub y: f32,
@@ -139,19 +139,20 @@ impl McBufWritable for EntityDataValue {
     }
 }
 
-#[derive(Clone, Debug, Copy, McBuf)]
+#[derive(Clone, Debug, Copy, McBuf, Default)]
 pub enum Pose {
+    #[default]
     Standing = 0,
-    FallFlying = 1,
-    Sleeping = 2,
-    Swimming = 3,
-    SpinAttack = 4,
-    Sneaking = 5,
-    LongJumping = 6,
-    Dying = 7,
+    FallFlying,
+    Sleeping,
+    Swimming,
+    SpinAttack,
+    Sneaking,
+    LongJumping,
+    Dying,
 }
 
-#[derive(Debug, Clone, McBuf)]
+#[derive(Debug, Clone, McBuf, Default)]
 pub struct VillagerData {
     #[var]
     type_: u32,

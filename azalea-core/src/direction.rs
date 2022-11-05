@@ -2,14 +2,15 @@ use azalea_buf::McBuf;
 
 use crate::floor_mod;
 
-#[derive(Clone, Copy, Debug, McBuf)]
+#[derive(Clone, Copy, Debug, McBuf, Default)]
 pub enum Direction {
+    #[default]
     Down = 0,
-    Up = 1,
-    North = 2,
-    South = 3,
-    West = 4,
-    East = 5,
+    Up,
+    North,
+    South,
+    West,
+    East,
 }
 
 #[derive(Clone, Copy, Debug)]
