@@ -144,6 +144,18 @@ impl<'d> EntityMut<'d> {
             z: acceleration.z * (x_rot as f64) + acceleration.x * (y_rot as f64),
         }
     }
+
+    /// Apply the given metadata items to the entity. Everything that isn't
+    /// included in items will be left unchanged. If an error occured, None
+    /// will be returned.
+    ///
+    /// TODO: this should be changed to have a proper error.
+    pub fn apply_metadata(&mut self, items: &Vec<EntityDataItem>) -> Option<()> {
+        for item in items {
+            self.metadata.set_index(item.index, item.value.clone())?;
+        }
+        Some(())
+    }
 }
 
 impl<'d> EntityMut<'d> {

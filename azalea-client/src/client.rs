@@ -585,6 +585,9 @@ impl Client {
             }
             ClientboundGamePacket::SetEntityData(p) => {
                 debug!("Got set entity data packet {:?}", p);
+                let mut dimension = client.dimension.lock();
+                let mut entity = dimension.entity_mut(p.id).expect("Entity doesn't exist");
+                entity.apply_metadata(&p.packed_items.0);
             }
             ClientboundGamePacket::UpdateAttributes(_p) => {
                 // debug!("Got update attributes packet {:?}", p);

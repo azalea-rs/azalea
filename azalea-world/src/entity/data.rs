@@ -10,7 +10,7 @@ use std::io::{Cursor, Write};
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]
-pub struct EntityMetadataItems(Vec<EntityDataItem>);
+pub struct EntityMetadataItems(pub Vec<EntityDataItem>);
 
 #[derive(Clone, Debug)]
 pub struct EntityDataItem {
