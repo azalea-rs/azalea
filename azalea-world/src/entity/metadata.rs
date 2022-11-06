@@ -47,6 +47,17 @@ impl Default for Allay {
     }
 }
 
+impl Allay {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_creature.set_index(index, value)?,
+            16 => self.dancing = value.into_boolean().ok()?,
+            17 => self.can_duplicate = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Allay {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -102,6 +113,19 @@ impl Default for AreaEffectCloud {
     }
 }
 
+impl AreaEffectCloud {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.radius = value.into_float().ok()?,
+            9 => self.color = value.into_int().ok()?,
+            10 => self.waiting = value.into_boolean().ok()?,
+            11 => self.particle = value.into_particle().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for AreaEffectCloud {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -198,6 +222,28 @@ impl Default for ArmorStand {
     }
 }
 
+impl ArmorStand {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=14 => self.abstract_living.set_index(index, value)?,
+            15 => {
+                let bitfield = value.into_byte().ok()?;
+                self.small = bitfield & 0x1 != 0;
+                self.show_arms = bitfield & 0x4 != 0;
+                self.no_base_plate = bitfield & 0x8 != 0;
+                self.marker = bitfield & 0x10 != 0;
+            }
+            16 => self.head_pose = value.into_rotations().ok()?,
+            17 => self.body_pose = value.into_rotations().ok()?,
+            18 => self.left_arm_pose = value.into_rotations().ok()?,
+            19 => self.right_arm_pose = value.into_rotations().ok()?,
+            20 => self.left_leg_pose = value.into_rotations().ok()?,
+            21 => self.right_leg_pose = value.into_rotations().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for ArmorStand {
     type Target = AbstractLiving;
     fn deref(&self) -> &Self::Target {
@@ -267,6 +313,23 @@ impl Default for Arrow {
     }
 }
 
+impl Arrow {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => {
+                let bitfield = value.into_byte().ok()?;
+                self.crit_arrow = bitfield & 0x1 != 0;
+                self.shot_from_crossbow = bitfield & 0x4 != 0;
+                self.no_physics = bitfield & 0x2 != 0;
+            }
+            9 => self.pierce_level = value.into_byte().ok()?,
+            10 => self.effect_color = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Arrow {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -317,6 +380,18 @@ impl Default for Axolotl {
     }
 }
 
+impl Axolotl {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => self.variant = value.into_int().ok()?,
+            18 => self.playing_dead = value.into_boolean().ok()?,
+            19 => self.from_bucket = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Axolotl {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -362,6 +437,19 @@ impl Default for Bat {
     }
 }
 
+impl Bat {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_insentient.set_index(index, value)?,
+            16 => {
+                let bitfield = value.into_byte().ok()?;
+                self.resting = bitfield & 0x1 != 0;
+            }
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Bat {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
@@ -426,6 +514,22 @@ impl Default for Bee {
     }
 }
 
+impl Bee {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => {
+                let bitfield = value.into_byte().ok()?;
+                self.has_nectar = bitfield & 0x8 != 0;
+                self.has_stung = bitfield & 0x4 != 0;
+                self.rolling = bitfield & 0x2 != 0;
+            }
+            18 => self.remaining_anger_time = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Bee {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -471,6 +575,19 @@ impl Default for Blaze {
     }
 }
 
+impl Blaze {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => {
+                let bitfield = value.into_byte().ok()?;
+                self.charged = bitfield & 0x1 != 0;
+            }
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Blaze {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -541,6 +658,22 @@ impl Default for Boat {
     }
 }
 
+impl Boat {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.hurt = value.into_int().ok()?,
+            9 => self.hurtdir = value.into_int().ok()?,
+            10 => self.damage = value.into_float().ok()?,
+            11 => self.kind = value.into_int().ok()?,
+            12 => self.paddle_left = value.into_boolean().ok()?,
+            13 => self.paddle_right = value.into_boolean().ok()?,
+            14 => self.bubble_time = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Boat {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -596,6 +729,19 @@ impl Default for Cat {
     }
 }
 
+impl Cat {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=18 => self.abstract_tameable.set_index(index, value)?,
+            19 => self.variant = value.into_cat_variant().ok()?,
+            20 => self.is_lying = value.into_boolean().ok()?,
+            21 => self.relax_state_one = value.into_boolean().ok()?,
+            22 => self.collar_color = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Cat {
     type Target = AbstractTameable;
     fn deref(&self) -> &Self::Target {
@@ -629,6 +775,11 @@ impl Default for CaveSpider {
     }
 }
 
+impl CaveSpider {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.spider.set_index(index, value)
+    }
+}
 impl Deref for CaveSpider {
     type Target = Spider;
     fn deref(&self) -> &Self::Target {
@@ -662,6 +813,11 @@ impl Default for ChestBoat {
     }
 }
 
+impl ChestBoat {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.boat.set_index(index, value)
+    }
+}
 impl Deref for ChestBoat {
     type Target = Boat;
     fn deref(&self) -> &Self::Target {
@@ -695,6 +851,11 @@ impl Default for ChestMinecart {
     }
 }
 
+impl ChestMinecart {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_minecart.set_index(index, value)
+    }
+}
 impl Deref for ChestMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
@@ -728,6 +889,11 @@ impl Default for Chicken {
     }
 }
 
+impl Chicken {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_animal.set_index(index, value)
+    }
+}
 impl Deref for Chicken {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -768,6 +934,16 @@ impl Default for Cod {
     }
 }
 
+impl Cod {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_creature.set_index(index, value)?,
+            16 => self.from_bucket = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Cod {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -813,6 +989,17 @@ impl Default for CommandBlockMinecart {
     }
 }
 
+impl CommandBlockMinecart {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=13 => self.abstract_minecart.set_index(index, value)?,
+            14 => self.command_name = value.into_string().ok()?,
+            15 => self.last_output = value.into_component().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for CommandBlockMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
@@ -846,6 +1033,11 @@ impl Default for Cow {
     }
 }
 
+impl Cow {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_animal.set_index(index, value)
+    }
+}
 impl Deref for Cow {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -896,6 +1088,18 @@ impl Default for Creeper {
     }
 }
 
+impl Creeper {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.swell_dir = value.into_int().ok()?,
+            17 => self.is_powered = value.into_boolean().ok()?,
+            18 => self.is_ignited = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Creeper {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -946,6 +1150,18 @@ impl Default for Dolphin {
     }
 }
 
+impl Dolphin {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_creature.set_index(index, value)?,
+            16 => self.treasure_pos = value.into_block_pos().ok()?,
+            17 => self.got_fish = value.into_boolean().ok()?,
+            18 => self.moistness_level = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Dolphin {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -1029,6 +1245,25 @@ impl Default for Donkey {
     }
 }
 
+impl Donkey {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => {
+                let bitfield = value.into_byte().ok()?;
+                self.tamed = bitfield & 0x2 != 0;
+                self.eating = bitfield & 0x10 != 0;
+                self.standing = bitfield & 0x20 != 0;
+                self.bred = bitfield & 0x8 != 0;
+                self.saddled = bitfield & 0x4 != 0;
+            }
+            18 => self.owner_uuid = value.into_optional_uuid().ok()?,
+            19 => self.chest = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Donkey {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -1062,6 +1297,11 @@ impl Default for DragonFireball {
     }
 }
 
+impl DragonFireball {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_entity.set_index(index, value)
+    }
+}
 impl Deref for DragonFireball {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1095,6 +1335,11 @@ impl Default for Drowned {
     }
 }
 
+impl Drowned {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.zombie.set_index(index, value)
+    }
+}
 impl Deref for Drowned {
     type Target = Zombie;
     fn deref(&self) -> &Self::Target {
@@ -1135,6 +1380,16 @@ impl Default for Egg {
     }
 }
 
+impl Egg {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.item_stack = value.into_item_stack().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Egg {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1168,6 +1423,11 @@ impl Default for ElderGuardian {
     }
 }
 
+impl ElderGuardian {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.guardian.set_index(index, value)
+    }
+}
 impl Deref for ElderGuardian {
     type Target = Guardian;
     fn deref(&self) -> &Self::Target {
@@ -1213,6 +1473,17 @@ impl Default for EndCrystal {
     }
 }
 
+impl EndCrystal {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.beam_target = value.into_optional_block_pos().ok()?,
+            9 => self.show_bottom = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for EndCrystal {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1253,6 +1524,16 @@ impl Default for EnderDragon {
     }
 }
 
+impl EnderDragon {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_insentient.set_index(index, value)?,
+            16 => self.phase = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for EnderDragon {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
@@ -1293,6 +1574,16 @@ impl Default for EnderPearl {
     }
 }
 
+impl EnderPearl {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.item_stack = value.into_item_stack().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for EnderPearl {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1345,6 +1636,18 @@ impl Default for Enderman {
     }
 }
 
+impl Enderman {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.carry_state = value.into_optional_block_state().ok()?,
+            17 => self.creepy = value.into_boolean().ok()?,
+            18 => self.stared_at = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Enderman {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -1378,6 +1681,11 @@ impl Default for Endermite {
     }
 }
 
+impl Endermite {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_monster.set_index(index, value)
+    }
+}
 impl Deref for Endermite {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -1423,6 +1731,17 @@ impl Default for Evoker {
     }
 }
 
+impl Evoker {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.is_celebrating = value.into_boolean().ok()?,
+            17 => self.spell_casting = value.into_byte().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Evoker {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -1456,6 +1775,11 @@ impl Default for EvokerFangs {
     }
 }
 
+impl EvokerFangs {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_entity.set_index(index, value)
+    }
+}
 impl Deref for EvokerFangs {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1496,6 +1820,16 @@ impl Default for ExperienceBottle {
     }
 }
 
+impl ExperienceBottle {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.item_stack = value.into_item_stack().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for ExperienceBottle {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1529,6 +1863,11 @@ impl Default for ExperienceOrb {
     }
 }
 
+impl ExperienceOrb {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_entity.set_index(index, value)
+    }
+}
 impl Deref for ExperienceOrb {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1569,6 +1908,16 @@ impl Default for EyeOfEnder {
     }
 }
 
+impl EyeOfEnder {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.item_stack = value.into_item_stack().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for EyeOfEnder {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1609,6 +1958,16 @@ impl Default for FallingBlock {
     }
 }
 
+impl FallingBlock {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.start_pos = value.into_block_pos().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for FallingBlock {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1649,6 +2008,16 @@ impl Default for Fireball {
     }
 }
 
+impl Fireball {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.item_stack = value.into_item_stack().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Fireball {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1701,6 +2070,18 @@ impl Default for FireworkRocket {
     }
 }
 
+impl FireworkRocket {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.fireworks_item = value.into_item_stack().ok()?,
+            9 => self.attached_to_target = value.into_optional_unsigned_int().ok()?,
+            10 => self.shot_at_angle = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for FireworkRocket {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1746,6 +2127,17 @@ impl Default for FishingBobber {
     }
 }
 
+impl FishingBobber {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.hooked_entity = value.into_int().ok()?,
+            9 => self.biting = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for FishingBobber {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -1841,6 +2233,27 @@ impl Default for Fox {
     }
 }
 
+impl Fox {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => self.kind = value.into_int().ok()?,
+            18 => {
+                let bitfield = value.into_byte().ok()?;
+                self.sitting = bitfield & 0x1 != 0;
+                self.faceplanted = bitfield & 0x40 != 0;
+                self.sleeping = bitfield & 0x20 != 0;
+                self.pouncing = bitfield & 0x10 != 0;
+                self.crouching = bitfield & 0x4 != 0;
+                self.interested = bitfield & 0x8 != 0;
+            }
+            19 => self.trusted_id_0 = value.into_optional_uuid().ok()?,
+            20 => self.trusted_id_1 = value.into_optional_uuid().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Fox {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -1888,6 +2301,17 @@ impl Default for Frog {
     }
 }
 
+impl Frog {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => self.variant = value.into_frog_variant().ok()?,
+            18 => self.tongue_target = value.into_optional_unsigned_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Frog {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -1928,6 +2352,16 @@ impl Default for FurnaceMinecart {
     }
 }
 
+impl FurnaceMinecart {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=13 => self.abstract_minecart.set_index(index, value)?,
+            14 => self.fuel = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for FurnaceMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
@@ -1968,6 +2402,16 @@ impl Default for Ghast {
     }
 }
 
+impl Ghast {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_insentient.set_index(index, value)?,
+            16 => self.is_charging = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Ghast {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
@@ -2001,6 +2445,11 @@ impl Default for Giant {
     }
 }
 
+impl Giant {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_monster.set_index(index, value)
+    }
+}
 impl Deref for Giant {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -2034,6 +2483,11 @@ impl Default for GlowItemFrame {
     }
 }
 
+impl GlowItemFrame {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.item_frame.set_index(index, value)
+    }
+}
 impl Deref for GlowItemFrame {
     type Target = ItemFrame;
     fn deref(&self) -> &Self::Target {
@@ -2074,6 +2528,16 @@ impl Default for GlowSquid {
     }
 }
 
+impl GlowSquid {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.squid.set_index(index, value)?,
+            16 => self.dark_ticks_remaining = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for GlowSquid {
     type Target = Squid;
     fn deref(&self) -> &Self::Target {
@@ -2124,6 +2588,18 @@ impl Default for Goat {
     }
 }
 
+impl Goat {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => self.is_screaming_goat = value.into_boolean().ok()?,
+            18 => self.has_left_horn = value.into_boolean().ok()?,
+            19 => self.has_right_horn = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Goat {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -2169,6 +2645,17 @@ impl Default for Guardian {
     }
 }
 
+impl Guardian {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.moving = value.into_boolean().ok()?,
+            17 => self.attack_target = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Guardian {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -2211,6 +2698,16 @@ impl Default for Hoglin {
     }
 }
 
+impl Hoglin {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => self.immune_to_zombification = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Hoglin {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -2244,6 +2741,11 @@ impl Default for HopperMinecart {
     }
 }
 
+impl HopperMinecart {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_minecart.set_index(index, value)
+    }
+}
 impl Deref for HopperMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
@@ -2327,6 +2829,25 @@ impl Default for Horse {
     }
 }
 
+impl Horse {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => {
+                let bitfield = value.into_byte().ok()?;
+                self.tamed = bitfield & 0x2 != 0;
+                self.eating = bitfield & 0x10 != 0;
+                self.standing = bitfield & 0x20 != 0;
+                self.bred = bitfield & 0x8 != 0;
+                self.saddled = bitfield & 0x4 != 0;
+            }
+            18 => self.owner_uuid = value.into_optional_uuid().ok()?,
+            19 => self.type_variant = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Horse {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -2360,6 +2881,11 @@ impl Default for Husk {
     }
 }
 
+impl Husk {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.zombie.set_index(index, value)
+    }
+}
 impl Deref for Husk {
     type Target = Zombie;
     fn deref(&self) -> &Self::Target {
@@ -2405,6 +2931,17 @@ impl Default for Illusioner {
     }
 }
 
+impl Illusioner {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.is_celebrating = value.into_boolean().ok()?,
+            17 => self.spell_casting = value.into_byte().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Illusioner {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -2450,6 +2987,19 @@ impl Default for IronGolem {
     }
 }
 
+impl IronGolem {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_creature.set_index(index, value)?,
+            16 => {
+                let bitfield = value.into_byte().ok()?;
+                self.player_created = bitfield & 0x1 != 0;
+            }
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for IronGolem {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -2490,6 +3040,16 @@ impl Default for Item {
     }
 }
 
+impl Item {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.item = value.into_item_stack().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Item {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -2535,6 +3095,17 @@ impl Default for ItemFrame {
     }
 }
 
+impl ItemFrame {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.item = value.into_item_stack().ok()?,
+            9 => self.rotation = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for ItemFrame {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -2568,6 +3139,11 @@ impl Default for LeashKnot {
     }
 }
 
+impl LeashKnot {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_entity.set_index(index, value)
+    }
+}
 impl Deref for LeashKnot {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -2601,6 +3177,11 @@ impl Default for LightningBolt {
     }
 }
 
+impl LightningBolt {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_entity.set_index(index, value)
+    }
+}
 impl Deref for LightningBolt {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -2699,6 +3280,28 @@ impl Default for Llama {
     }
 }
 
+impl Llama {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => {
+                let bitfield = value.into_byte().ok()?;
+                self.tamed = bitfield & 0x2 != 0;
+                self.eating = bitfield & 0x10 != 0;
+                self.standing = bitfield & 0x20 != 0;
+                self.bred = bitfield & 0x8 != 0;
+                self.saddled = bitfield & 0x4 != 0;
+            }
+            18 => self.owner_uuid = value.into_optional_uuid().ok()?,
+            19 => self.chest = value.into_boolean().ok()?,
+            20 => self.strength = value.into_int().ok()?,
+            21 => self.swag = value.into_int().ok()?,
+            22 => self.variant = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Llama {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -2732,6 +3335,11 @@ impl Default for LlamaSpit {
     }
 }
 
+impl LlamaSpit {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_entity.set_index(index, value)
+    }
+}
 impl Deref for LlamaSpit {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -2765,6 +3373,11 @@ impl Default for MagmaCube {
     }
 }
 
+impl MagmaCube {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.slime.set_index(index, value)
+    }
+}
 impl Deref for MagmaCube {
     type Target = Slime;
     fn deref(&self) -> &Self::Target {
@@ -2798,6 +3411,11 @@ impl Default for Marker {
     }
 }
 
+impl Marker {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_entity.set_index(index, value)
+    }
+}
 impl Deref for Marker {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -2831,6 +3449,11 @@ impl Default for Minecart {
     }
 }
 
+impl Minecart {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_minecart.set_index(index, value)
+    }
+}
 impl Deref for Minecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
@@ -2868,6 +3491,16 @@ impl Default for Mooshroom {
     }
 }
 
+impl Mooshroom {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.cow.set_index(index, value)?,
+            17 => self.kind = value.into_string().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Mooshroom {
     type Target = Cow;
     fn deref(&self) -> &Self::Target {
@@ -2951,6 +3584,25 @@ impl Default for Mule {
     }
 }
 
+impl Mule {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => {
+                let bitfield = value.into_byte().ok()?;
+                self.tamed = bitfield & 0x2 != 0;
+                self.eating = bitfield & 0x10 != 0;
+                self.standing = bitfield & 0x20 != 0;
+                self.bred = bitfield & 0x8 != 0;
+                self.saddled = bitfield & 0x4 != 0;
+            }
+            18 => self.owner_uuid = value.into_optional_uuid().ok()?,
+            19 => self.chest = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Mule {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -2991,6 +3643,16 @@ impl Default for Ocelot {
     }
 }
 
+impl Ocelot {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => self.trusting = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Ocelot {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -3033,6 +3695,16 @@ impl Default for Painting {
     }
 }
 
+impl Painting {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.painting_variant = value.into_painting_variant().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Painting {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -3124,6 +3796,27 @@ impl Default for Panda {
     }
 }
 
+impl Panda {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => self.unhappy_counter = value.into_int().ok()?,
+            18 => self.sneeze_counter = value.into_int().ok()?,
+            19 => self.eat_counter = value.into_int().ok()?,
+            20 => {
+                let bitfield = value.into_byte().ok()?;
+                self.sneezing = bitfield & 0x2 != 0;
+                self.sitting = bitfield & 0x8 != 0;
+                self.on_back = bitfield & 0x10 != 0;
+                self.rolling = bitfield & 0x4 != 0;
+            }
+            21 => self.hidden_gene = value.into_byte().ok()?,
+            22 => self.flags = value.into_byte().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Panda {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -3164,6 +3857,16 @@ impl Default for Parrot {
     }
 }
 
+impl Parrot {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=18 => self.abstract_tameable.set_index(index, value)?,
+            19 => self.variant = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Parrot {
     type Target = AbstractTameable;
     fn deref(&self) -> &Self::Target {
@@ -3204,6 +3907,16 @@ impl Default for Phantom {
     }
 }
 
+impl Phantom {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_insentient.set_index(index, value)?,
+            16 => self.size = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Phantom {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
@@ -3249,6 +3962,17 @@ impl Default for Pig {
     }
 }
 
+impl Pig {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => self.saddle = value.into_boolean().ok()?,
+            18 => self.boost_time = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Pig {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -3306,6 +4030,19 @@ impl Default for Piglin {
     }
 }
 
+impl Piglin {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.immune_to_zombification = value.into_boolean().ok()?,
+            17 => self.baby = value.into_boolean().ok()?,
+            18 => self.is_charging_crossbow = value.into_boolean().ok()?,
+            19 => self.is_dancing = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Piglin {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3348,6 +4085,16 @@ impl Default for PiglinBrute {
     }
 }
 
+impl PiglinBrute {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.immune_to_zombification = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for PiglinBrute {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3393,6 +4140,17 @@ impl Default for Pillager {
     }
 }
 
+impl Pillager {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.is_celebrating = value.into_boolean().ok()?,
+            17 => self.is_charging_crossbow = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Pillager {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3460,6 +4218,21 @@ impl Default for Player {
     }
 }
 
+impl Player {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=14 => self.abstract_living.set_index(index, value)?,
+            15 => self.player_absorption = value.into_float().ok()?,
+            16 => self.score = value.into_int().ok()?,
+            17 => self.player_mode_customisation = value.into_byte().ok()?,
+            18 => self.player_main_hand = value.into_byte().ok()?,
+            19 => self.shoulder_left = value.into_compound_tag().ok()?,
+            20 => self.shoulder_right = value.into_compound_tag().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Player {
     type Target = AbstractLiving;
     fn deref(&self) -> &Self::Target {
@@ -3500,6 +4273,16 @@ impl Default for PolarBear {
     }
 }
 
+impl PolarBear {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => self.standing = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for PolarBear {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -3540,6 +4323,16 @@ impl Default for Potion {
     }
 }
 
+impl Potion {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.item_stack = value.into_item_stack().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Potion {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -3585,6 +4378,17 @@ impl Default for Pufferfish {
     }
 }
 
+impl Pufferfish {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_creature.set_index(index, value)?,
+            16 => self.from_bucket = value.into_boolean().ok()?,
+            17 => self.puff_state = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Pufferfish {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -3625,6 +4429,16 @@ impl Default for Rabbit {
     }
 }
 
+impl Rabbit {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => self.kind = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Rabbit {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -3665,6 +4479,16 @@ impl Default for Ravager {
     }
 }
 
+impl Ravager {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.is_celebrating = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Ravager {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3705,6 +4529,16 @@ impl Default for Salmon {
     }
 }
 
+impl Salmon {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_creature.set_index(index, value)?,
+            16 => self.from_bucket = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Salmon {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -3750,6 +4584,19 @@ impl Default for Sheep {
     }
 }
 
+impl Sheep {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => {
+                let bitfield = value.into_byte().ok()?;
+                self.sheared = bitfield & 0x10 != 0;
+            }
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Sheep {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -3800,6 +4647,18 @@ impl Default for Shulker {
     }
 }
 
+impl Shulker {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_creature.set_index(index, value)?,
+            16 => self.attach_face = value.into_direction().ok()?,
+            17 => self.peek = value.into_byte().ok()?,
+            18 => self.color = value.into_byte().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Shulker {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -3833,6 +4692,11 @@ impl Default for ShulkerBullet {
     }
 }
 
+impl ShulkerBullet {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_entity.set_index(index, value)
+    }
+}
 impl Deref for ShulkerBullet {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -3866,6 +4730,11 @@ impl Default for Silverfish {
     }
 }
 
+impl Silverfish {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_monster.set_index(index, value)
+    }
+}
 impl Deref for Silverfish {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3906,6 +4775,16 @@ impl Default for Skeleton {
     }
 }
 
+impl Skeleton {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.stray_conversion = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Skeleton {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -3984,6 +4863,24 @@ impl Default for SkeletonHorse {
     }
 }
 
+impl SkeletonHorse {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => {
+                let bitfield = value.into_byte().ok()?;
+                self.tamed = bitfield & 0x2 != 0;
+                self.eating = bitfield & 0x10 != 0;
+                self.standing = bitfield & 0x20 != 0;
+                self.bred = bitfield & 0x8 != 0;
+                self.saddled = bitfield & 0x4 != 0;
+            }
+            18 => self.owner_uuid = value.into_optional_uuid().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for SkeletonHorse {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -4024,6 +4921,16 @@ impl Default for Slime {
     }
 }
 
+impl Slime {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_insentient.set_index(index, value)?,
+            16 => self.size = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Slime {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
@@ -4064,6 +4971,16 @@ impl Default for SmallFireball {
     }
 }
 
+impl SmallFireball {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.item_stack = value.into_item_stack().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for SmallFireball {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -4109,6 +5026,19 @@ impl Default for SnowGolem {
     }
 }
 
+impl SnowGolem {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_creature.set_index(index, value)?,
+            16 => {
+                let bitfield = value.into_byte().ok()?;
+                self.has_pumpkin = bitfield & 0x10 != 0;
+            }
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for SnowGolem {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -4149,6 +5079,16 @@ impl Default for Snowball {
     }
 }
 
+impl Snowball {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.item_stack = value.into_item_stack().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Snowball {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -4182,6 +5122,11 @@ impl Default for SpawnerMinecart {
     }
 }
 
+impl SpawnerMinecart {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_minecart.set_index(index, value)
+    }
+}
 impl Deref for SpawnerMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
@@ -4246,6 +5191,22 @@ impl Default for SpectralArrow {
     }
 }
 
+impl SpectralArrow {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => {
+                let bitfield = value.into_byte().ok()?;
+                self.crit_arrow = bitfield & 0x1 != 0;
+                self.shot_from_crossbow = bitfield & 0x4 != 0;
+                self.no_physics = bitfield & 0x2 != 0;
+            }
+            9 => self.pierce_level = value.into_byte().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for SpectralArrow {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -4291,6 +5252,19 @@ impl Default for Spider {
     }
 }
 
+impl Spider {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => {
+                let bitfield = value.into_byte().ok()?;
+                self.climbing = bitfield & 0x1 != 0;
+            }
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Spider {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -4324,6 +5298,11 @@ impl Default for Squid {
     }
 }
 
+impl Squid {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_creature.set_index(index, value)
+    }
+}
 impl Deref for Squid {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -4357,6 +5336,11 @@ impl Default for Stray {
     }
 }
 
+impl Stray {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_monster.set_index(index, value)
+    }
+}
 impl Deref for Stray {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -4407,6 +5391,18 @@ impl Default for Strider {
     }
 }
 
+impl Strider {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => self.boost_time = value.into_int().ok()?,
+            18 => self.suffocating = value.into_boolean().ok()?,
+            19 => self.saddle = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Strider {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -4447,6 +5443,16 @@ impl Default for Tadpole {
     }
 }
 
+impl Tadpole {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_creature.set_index(index, value)?,
+            16 => self.from_bucket = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Tadpole {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -4487,6 +5493,16 @@ impl Default for Tnt {
     }
 }
 
+impl Tnt {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.fuse = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Tnt {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -4520,6 +5536,11 @@ impl Default for TntMinecart {
     }
 }
 
+impl TntMinecart {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_minecart.set_index(index, value)
+    }
+}
 impl Deref for TntMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
@@ -4553,6 +5574,11 @@ impl Default for TraderLlama {
     }
 }
 
+impl TraderLlama {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.llama.set_index(index, value)
+    }
+}
 impl Deref for TraderLlama {
     type Target = Llama;
     fn deref(&self) -> &Self::Target {
@@ -4627,6 +5653,24 @@ impl Default for Trident {
     }
 }
 
+impl Trident {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => {
+                let bitfield = value.into_byte().ok()?;
+                self.crit_arrow = bitfield & 0x1 != 0;
+                self.shot_from_crossbow = bitfield & 0x4 != 0;
+                self.no_physics = bitfield & 0x2 != 0;
+            }
+            9 => self.pierce_level = value.into_byte().ok()?,
+            10 => self.loyalty = value.into_byte().ok()?,
+            11 => self.foil = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Trident {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -4672,6 +5716,17 @@ impl Default for TropicalFish {
     }
 }
 
+impl TropicalFish {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_creature.set_index(index, value)?,
+            16 => self.from_bucket = value.into_boolean().ok()?,
+            17 => self.type_variant = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for TropicalFish {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -4737,6 +5792,21 @@ impl Default for Turtle {
     }
 }
 
+impl Turtle {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => self.home_pos = value.into_block_pos().ok()?,
+            18 => self.has_egg = value.into_boolean().ok()?,
+            19 => self.laying_egg = value.into_boolean().ok()?,
+            20 => self.travel_pos = value.into_block_pos().ok()?,
+            21 => self.going_home = value.into_boolean().ok()?,
+            22 => self.travelling = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Turtle {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -4777,6 +5847,16 @@ impl Default for Vex {
     }
 }
 
+impl Vex {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.flags = value.into_byte().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Vex {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -4822,6 +5902,17 @@ impl Default for Villager {
     }
 }
 
+impl Villager {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_ageable.set_index(index, value)?,
+            17 => self.unhappy_counter = value.into_int().ok()?,
+            18 => self.villager_data = value.into_villager_data().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Villager {
     type Target = AbstractAgeable;
     fn deref(&self) -> &Self::Target {
@@ -4862,6 +5953,16 @@ impl Default for Vindicator {
     }
 }
 
+impl Vindicator {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.is_celebrating = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Vindicator {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -4902,6 +6003,16 @@ impl Default for WanderingTrader {
     }
 }
 
+impl WanderingTrader {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_ageable.set_index(index, value)?,
+            17 => self.unhappy_counter = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for WanderingTrader {
     type Target = AbstractAgeable;
     fn deref(&self) -> &Self::Target {
@@ -4942,6 +6053,16 @@ impl Default for Warden {
     }
 }
 
+impl Warden {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.client_anger_level = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Warden {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -4987,6 +6108,17 @@ impl Default for Witch {
     }
 }
 
+impl Witch {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.is_celebrating = value.into_boolean().ok()?,
+            17 => self.using_item = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Witch {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -5042,6 +6174,19 @@ impl Default for Wither {
     }
 }
 
+impl Wither {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.target_a = value.into_int().ok()?,
+            17 => self.target_b = value.into_int().ok()?,
+            18 => self.target_c = value.into_int().ok()?,
+            19 => self.inv = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Wither {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -5075,6 +6220,11 @@ impl Default for WitherSkeleton {
     }
 }
 
+impl WitherSkeleton {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_monster.set_index(index, value)
+    }
+}
 impl Deref for WitherSkeleton {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -5115,6 +6265,16 @@ impl Default for WitherSkull {
     }
 }
 
+impl WitherSkull {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.dangerous = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for WitherSkull {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -5165,6 +6325,18 @@ impl Default for Wolf {
     }
 }
 
+impl Wolf {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=18 => self.abstract_tameable.set_index(index, value)?,
+            19 => self.interested = value.into_boolean().ok()?,
+            20 => self.collar_color = value.into_int().ok()?,
+            21 => self.remaining_anger_time = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Wolf {
     type Target = AbstractTameable;
     fn deref(&self) -> &Self::Target {
@@ -5205,6 +6377,16 @@ impl Default for Zoglin {
     }
 }
 
+impl Zoglin {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.baby = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Zoglin {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -5255,6 +6437,18 @@ impl Default for Zombie {
     }
 }
 
+impl Zombie {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_monster.set_index(index, value)?,
+            16 => self.baby = value.into_boolean().ok()?,
+            17 => self.special_type = value.into_int().ok()?,
+            18 => self.drowned_conversion = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for Zombie {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
@@ -5333,6 +6527,24 @@ impl Default for ZombieHorse {
     }
 }
 
+impl ZombieHorse {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => {
+                let bitfield = value.into_byte().ok()?;
+                self.tamed = bitfield & 0x2 != 0;
+                self.eating = bitfield & 0x10 != 0;
+                self.standing = bitfield & 0x20 != 0;
+                self.bred = bitfield & 0x8 != 0;
+                self.saddled = bitfield & 0x4 != 0;
+            }
+            18 => self.owner_uuid = value.into_optional_uuid().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for ZombieHorse {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -5378,6 +6590,17 @@ impl Default for ZombieVillager {
     }
 }
 
+impl ZombieVillager {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=18 => self.zombie.set_index(index, value)?,
+            19 => self.converting = value.into_boolean().ok()?,
+            20 => self.villager_data = value.into_villager_data().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for ZombieVillager {
     type Target = Zombie;
     fn deref(&self) -> &Self::Target {
@@ -5411,6 +6634,11 @@ impl Default for ZombifiedPiglin {
     }
 }
 
+impl ZombifiedPiglin {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.zombie.set_index(index, value)
+    }
+}
 impl Deref for ZombifiedPiglin {
     type Target = Zombie;
     fn deref(&self) -> &Self::Target {
@@ -5451,6 +6679,16 @@ impl Default for AbstractAgeable {
     }
 }
 
+impl AbstractAgeable {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=15 => self.abstract_creature.set_index(index, value)?,
+            16 => self.baby = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for AbstractAgeable {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -5484,6 +6722,11 @@ impl Default for AbstractAnimal {
     }
 }
 
+impl AbstractAnimal {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_ageable.set_index(index, value)
+    }
+}
 impl Deref for AbstractAnimal {
     type Target = AbstractAgeable;
     fn deref(&self) -> &Self::Target {
@@ -5519,6 +6762,11 @@ impl Default for AbstractCreature {
     }
 }
 
+impl AbstractCreature {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_insentient.set_index(index, value)
+    }
+}
 impl Deref for AbstractCreature {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
@@ -5636,6 +6884,31 @@ impl Default for AbstractEntity {
     }
 }
 
+impl AbstractEntity {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0 => {
+                let bitfield = value.into_byte().ok()?;
+                self.on_fire = bitfield & 0x1 != 0;
+                self.shift_key_down = bitfield & 0x2 != 0;
+                self.sprinting = bitfield & 0x8 != 0;
+                self.swimming = bitfield & 0x10 != 0;
+                self.currently_glowing = bitfield & 0x40 != 0;
+                self.invisible = bitfield & 0x20 != 0;
+                self.fall_flying = bitfield & 0x80 != 0;
+            }
+            1 => self.air_supply = value.into_int().ok()?,
+            2 => self.custom_name = value.into_optional_component().ok()?,
+            3 => self.custom_name_visible = value.into_boolean().ok()?,
+            4 => self.silent = value.into_boolean().ok()?,
+            5 => self.no_gravity = value.into_boolean().ok()?,
+            6 => self.pose = value.into_pose().ok()?,
+            7 => self.ticks_frozen = value.into_int().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 #[derive(Debug, Clone)]
 pub struct AbstractInsentient {
     pub abstract_living: AbstractLiving,
@@ -5688,6 +6961,21 @@ impl Default for AbstractInsentient {
     }
 }
 
+impl AbstractInsentient {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=14 => self.abstract_living.set_index(index, value)?,
+            15 => {
+                let bitfield = value.into_byte().ok()?;
+                self.no_ai = bitfield & 0x1 != 0;
+                self.left_handed = bitfield & 0x2 != 0;
+                self.aggressive = bitfield & 0x4 != 0;
+            }
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for AbstractInsentient {
     type Target = AbstractLiving;
     fn deref(&self) -> &Self::Target {
@@ -5770,6 +7058,26 @@ impl Default for AbstractLiving {
     }
 }
 
+impl AbstractLiving {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => {
+                let bitfield = value.into_byte().ok()?;
+                self.auto_spin_attack = bitfield & 0x4 != 0;
+                self.using_item = bitfield & 0x1 != 0;
+            }
+            9 => self.health = value.into_float().ok()?,
+            10 => self.effect_color = value.into_int().ok()?,
+            11 => self.effect_ambience = value.into_boolean().ok()?,
+            12 => self.arrow_count = value.into_int().ok()?,
+            13 => self.stinger_count = value.into_int().ok()?,
+            14 => self.sleeping_pos = value.into_optional_block_pos().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for AbstractLiving {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -5835,6 +7143,21 @@ impl Default for AbstractMinecart {
     }
 }
 
+impl AbstractMinecart {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=7 => self.abstract_entity.set_index(index, value)?,
+            8 => self.hurt = value.into_int().ok()?,
+            9 => self.hurtdir = value.into_int().ok()?,
+            10 => self.damage = value.into_float().ok()?,
+            11 => self.display_block = value.into_int().ok()?,
+            12 => self.display_offset = value.into_int().ok()?,
+            13 => self.custom_display = value.into_boolean().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for AbstractMinecart {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
@@ -5868,6 +7191,11 @@ impl Default for AbstractMonster {
     }
 }
 
+impl AbstractMonster {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        self.abstract_creature.set_index(index, value)
+    }
+}
 impl Deref for AbstractMonster {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
@@ -5925,6 +7253,21 @@ impl Default for AbstractTameable {
     }
 }
 
+impl AbstractTameable {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match index {
+            0..=16 => self.abstract_animal.set_index(index, value)?,
+            17 => {
+                let bitfield = value.into_byte().ok()?;
+                self.tame = bitfield & 0x4 != 0;
+                self.in_sitting_pose = bitfield & 0x1 != 0;
+            }
+            18 => self.owneruuid = value.into_optional_uuid().ok()?,
+            _ => {}
+        }
+        Some(())
+    }
+}
 impl Deref for AbstractTameable {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
@@ -6277,6 +7620,131 @@ impl From<azalea_registry::EntityType> for EntityMetadata {
             azalea_registry::EntityType::ZombifiedPiglin => {
                 EntityMetadata::ZombifiedPiglin(ZombifiedPiglin::default())
             }
+        }
+    }
+}
+
+impl EntityMetadata {
+    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        match self {
+            EntityMetadata::Allay(entity) => entity.set_index(index, value),
+            EntityMetadata::AreaEffectCloud(entity) => entity.set_index(index, value),
+            EntityMetadata::ArmorStand(entity) => entity.set_index(index, value),
+            EntityMetadata::Arrow(entity) => entity.set_index(index, value),
+            EntityMetadata::Axolotl(entity) => entity.set_index(index, value),
+            EntityMetadata::Bat(entity) => entity.set_index(index, value),
+            EntityMetadata::Bee(entity) => entity.set_index(index, value),
+            EntityMetadata::Blaze(entity) => entity.set_index(index, value),
+            EntityMetadata::Boat(entity) => entity.set_index(index, value),
+            EntityMetadata::Cat(entity) => entity.set_index(index, value),
+            EntityMetadata::CaveSpider(entity) => entity.set_index(index, value),
+            EntityMetadata::ChestBoat(entity) => entity.set_index(index, value),
+            EntityMetadata::ChestMinecart(entity) => entity.set_index(index, value),
+            EntityMetadata::Chicken(entity) => entity.set_index(index, value),
+            EntityMetadata::Cod(entity) => entity.set_index(index, value),
+            EntityMetadata::CommandBlockMinecart(entity) => entity.set_index(index, value),
+            EntityMetadata::Cow(entity) => entity.set_index(index, value),
+            EntityMetadata::Creeper(entity) => entity.set_index(index, value),
+            EntityMetadata::Dolphin(entity) => entity.set_index(index, value),
+            EntityMetadata::Donkey(entity) => entity.set_index(index, value),
+            EntityMetadata::DragonFireball(entity) => entity.set_index(index, value),
+            EntityMetadata::Drowned(entity) => entity.set_index(index, value),
+            EntityMetadata::Egg(entity) => entity.set_index(index, value),
+            EntityMetadata::ElderGuardian(entity) => entity.set_index(index, value),
+            EntityMetadata::EndCrystal(entity) => entity.set_index(index, value),
+            EntityMetadata::EnderDragon(entity) => entity.set_index(index, value),
+            EntityMetadata::EnderPearl(entity) => entity.set_index(index, value),
+            EntityMetadata::Enderman(entity) => entity.set_index(index, value),
+            EntityMetadata::Endermite(entity) => entity.set_index(index, value),
+            EntityMetadata::Evoker(entity) => entity.set_index(index, value),
+            EntityMetadata::EvokerFangs(entity) => entity.set_index(index, value),
+            EntityMetadata::ExperienceBottle(entity) => entity.set_index(index, value),
+            EntityMetadata::ExperienceOrb(entity) => entity.set_index(index, value),
+            EntityMetadata::EyeOfEnder(entity) => entity.set_index(index, value),
+            EntityMetadata::FallingBlock(entity) => entity.set_index(index, value),
+            EntityMetadata::Fireball(entity) => entity.set_index(index, value),
+            EntityMetadata::FireworkRocket(entity) => entity.set_index(index, value),
+            EntityMetadata::FishingBobber(entity) => entity.set_index(index, value),
+            EntityMetadata::Fox(entity) => entity.set_index(index, value),
+            EntityMetadata::Frog(entity) => entity.set_index(index, value),
+            EntityMetadata::FurnaceMinecart(entity) => entity.set_index(index, value),
+            EntityMetadata::Ghast(entity) => entity.set_index(index, value),
+            EntityMetadata::Giant(entity) => entity.set_index(index, value),
+            EntityMetadata::GlowItemFrame(entity) => entity.set_index(index, value),
+            EntityMetadata::GlowSquid(entity) => entity.set_index(index, value),
+            EntityMetadata::Goat(entity) => entity.set_index(index, value),
+            EntityMetadata::Guardian(entity) => entity.set_index(index, value),
+            EntityMetadata::Hoglin(entity) => entity.set_index(index, value),
+            EntityMetadata::HopperMinecart(entity) => entity.set_index(index, value),
+            EntityMetadata::Horse(entity) => entity.set_index(index, value),
+            EntityMetadata::Husk(entity) => entity.set_index(index, value),
+            EntityMetadata::Illusioner(entity) => entity.set_index(index, value),
+            EntityMetadata::IronGolem(entity) => entity.set_index(index, value),
+            EntityMetadata::Item(entity) => entity.set_index(index, value),
+            EntityMetadata::ItemFrame(entity) => entity.set_index(index, value),
+            EntityMetadata::LeashKnot(entity) => entity.set_index(index, value),
+            EntityMetadata::LightningBolt(entity) => entity.set_index(index, value),
+            EntityMetadata::Llama(entity) => entity.set_index(index, value),
+            EntityMetadata::LlamaSpit(entity) => entity.set_index(index, value),
+            EntityMetadata::MagmaCube(entity) => entity.set_index(index, value),
+            EntityMetadata::Marker(entity) => entity.set_index(index, value),
+            EntityMetadata::Minecart(entity) => entity.set_index(index, value),
+            EntityMetadata::Mooshroom(entity) => entity.set_index(index, value),
+            EntityMetadata::Mule(entity) => entity.set_index(index, value),
+            EntityMetadata::Ocelot(entity) => entity.set_index(index, value),
+            EntityMetadata::Painting(entity) => entity.set_index(index, value),
+            EntityMetadata::Panda(entity) => entity.set_index(index, value),
+            EntityMetadata::Parrot(entity) => entity.set_index(index, value),
+            EntityMetadata::Phantom(entity) => entity.set_index(index, value),
+            EntityMetadata::Pig(entity) => entity.set_index(index, value),
+            EntityMetadata::Piglin(entity) => entity.set_index(index, value),
+            EntityMetadata::PiglinBrute(entity) => entity.set_index(index, value),
+            EntityMetadata::Pillager(entity) => entity.set_index(index, value),
+            EntityMetadata::Player(entity) => entity.set_index(index, value),
+            EntityMetadata::PolarBear(entity) => entity.set_index(index, value),
+            EntityMetadata::Potion(entity) => entity.set_index(index, value),
+            EntityMetadata::Pufferfish(entity) => entity.set_index(index, value),
+            EntityMetadata::Rabbit(entity) => entity.set_index(index, value),
+            EntityMetadata::Ravager(entity) => entity.set_index(index, value),
+            EntityMetadata::Salmon(entity) => entity.set_index(index, value),
+            EntityMetadata::Sheep(entity) => entity.set_index(index, value),
+            EntityMetadata::Shulker(entity) => entity.set_index(index, value),
+            EntityMetadata::ShulkerBullet(entity) => entity.set_index(index, value),
+            EntityMetadata::Silverfish(entity) => entity.set_index(index, value),
+            EntityMetadata::Skeleton(entity) => entity.set_index(index, value),
+            EntityMetadata::SkeletonHorse(entity) => entity.set_index(index, value),
+            EntityMetadata::Slime(entity) => entity.set_index(index, value),
+            EntityMetadata::SmallFireball(entity) => entity.set_index(index, value),
+            EntityMetadata::SnowGolem(entity) => entity.set_index(index, value),
+            EntityMetadata::Snowball(entity) => entity.set_index(index, value),
+            EntityMetadata::SpawnerMinecart(entity) => entity.set_index(index, value),
+            EntityMetadata::SpectralArrow(entity) => entity.set_index(index, value),
+            EntityMetadata::Spider(entity) => entity.set_index(index, value),
+            EntityMetadata::Squid(entity) => entity.set_index(index, value),
+            EntityMetadata::Stray(entity) => entity.set_index(index, value),
+            EntityMetadata::Strider(entity) => entity.set_index(index, value),
+            EntityMetadata::Tadpole(entity) => entity.set_index(index, value),
+            EntityMetadata::Tnt(entity) => entity.set_index(index, value),
+            EntityMetadata::TntMinecart(entity) => entity.set_index(index, value),
+            EntityMetadata::TraderLlama(entity) => entity.set_index(index, value),
+            EntityMetadata::Trident(entity) => entity.set_index(index, value),
+            EntityMetadata::TropicalFish(entity) => entity.set_index(index, value),
+            EntityMetadata::Turtle(entity) => entity.set_index(index, value),
+            EntityMetadata::Vex(entity) => entity.set_index(index, value),
+            EntityMetadata::Villager(entity) => entity.set_index(index, value),
+            EntityMetadata::Vindicator(entity) => entity.set_index(index, value),
+            EntityMetadata::WanderingTrader(entity) => entity.set_index(index, value),
+            EntityMetadata::Warden(entity) => entity.set_index(index, value),
+            EntityMetadata::Witch(entity) => entity.set_index(index, value),
+            EntityMetadata::Wither(entity) => entity.set_index(index, value),
+            EntityMetadata::WitherSkeleton(entity) => entity.set_index(index, value),
+            EntityMetadata::WitherSkull(entity) => entity.set_index(index, value),
+            EntityMetadata::Wolf(entity) => entity.set_index(index, value),
+            EntityMetadata::Zoglin(entity) => entity.set_index(index, value),
+            EntityMetadata::Zombie(entity) => entity.set_index(index, value),
+            EntityMetadata::ZombieHorse(entity) => entity.set_index(index, value),
+            EntityMetadata::ZombieVillager(entity) => entity.set_index(index, value),
+            EntityMetadata::ZombifiedPiglin(entity) => entity.set_index(index, value),
         }
     }
 }

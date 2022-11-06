@@ -68,6 +68,7 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
 
         reader_code = []
         writer_code = []
+        set_index_code = []
         field_names = []
 
         code.append(f'#[derive(Debug, Clone)]')
@@ -99,11 +100,19 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
                     f'let {name} = metadata.pop_front()?.into_{type_name_field}().ok()?;')
                 writer_code.append(
                     f'metadata.push(EntityDataValue::{type_name}(self.{name}.clone()));')
+
+                # 1 => self.dancing = value.into_boolean().ok()?,
+                set_index_code.append(
+                    f'{index} => self.{name} = value.into_{type_name_field}().ok()?,'
+                )
             else:
                 # bitfield (sent as a byte, each bit in the byte is used as a boolean)
                 reader_code.append(
                     'let bitfield = metadata.pop_front()?.into_byte().ok()?;')
                 writer_code.append('let mut bitfield = 0u8;')
+                set_index_code.append(f'{index} => {{')
+                set_index_code.append(
+                    f'let bitfield = value.into_byte().ok()?;')
                 for mask, name in name_or_bitfield.items():
                     if name == 'type':
                         name = 'kind'
@@ -113,8 +122,11 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
                     reader_code.append(f'let {name} = bitfield & {mask} != 0;')
                     writer_code.append(
                         f'if self.{name} {{ bitfield &= {mask}; }}')
+                    set_index_code.append(
+                        f'self.{name} = bitfield & {mask} != 0;')
                 writer_code.append(
                     'metadata.push(EntityDataValue::Byte(bitfield));')
+                set_index_code.append('},')
 
         code.append('}')
         code.append('')
@@ -220,6 +232,38 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
         code.append('}')
         code.append('')
 
+        # impl Allay {
+        #     pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
+        #         match index {
+        #             0..=0 => self.abstract_creature.set_index(index, value),
+        #             1 => self.dancing = value.into_boolean().ok()?,
+        #             2 => self.can_duplicate = value.into_boolean().ok()?,
+        #             _ => {}
+        #         }
+        #         Some(())
+        #     }
+        # }
+        code.append(f'impl {struct_name} {{')
+        code.append(
+            'pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {')
+        if len(entity_metadata_names) > 0:
+            code.append('match index {')
+            # get the smallest index for this entity
+            smallest_index = min(entity_metadata_names.keys())
+            if parent_struct_name:
+                code.append(
+                    f'0..={smallest_index-1} => self.{parent_field_name}.set_index(index, value)?,')
+            code.extend(set_index_code)
+            code.append('_ => {}')
+            code.append('}')
+            code.append('Some(())')
+        elif parent_struct_name:
+            code.append(f'self.{parent_field_name}.set_index(index, value)')
+        else:
+            code.append('Some(())')
+        code.append('}')
+        code.append('}')
+
         # deref
         if parent_struct_name:
             code.append(f'impl Deref for {struct_name} {{')
@@ -245,6 +289,21 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
     for struct_name in entity_structs:
         code.append(
             f'azalea_registry::EntityType::{struct_name} => EntityMetadata::{struct_name}({struct_name}::default()),')
+    code.append('}')
+    code.append('}')
+    code.append('}')
+    code.append('')
+
+    # impl EntityMetadata
+    # pub fn set_index(&mut self, index: u8, value: EntityDataValue)
+    code.append('impl EntityMetadata {')
+    code.append(
+        'pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {')
+    code.append('match self {')
+    # EntityMetadata::Allay(allay) => allay.set_index(index, value),
+    for struct_name in entity_structs:
+        code.append(
+            f'EntityMetadata::{struct_name}(entity) => entity.set_index(index, value),')
     code.append('}')
     code.append('}')
     code.append('}')

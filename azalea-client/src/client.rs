@@ -583,8 +583,8 @@ impl Client {
                 let entity = EntityData::from(p);
                 client.dimension.lock().add_entity(p.id, entity);
             }
-            ClientboundGamePacket::SetEntityData(_p) => {
-                // debug!("Got set entity data packet {:?}", p);
+            ClientboundGamePacket::SetEntityData(p) => {
+                debug!("Got set entity data packet {:?}", p);
             }
             ClientboundGamePacket::UpdateAttributes(_p) => {
                 // debug!("Got update attributes packet {:?}", p);
