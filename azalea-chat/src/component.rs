@@ -289,3 +289,9 @@ impl Display for Component {
         }
     }
 }
+
+impl Default for Component {
+    fn default() -> Self {
+        Component::Text(TextComponent::default())
+    }
+}

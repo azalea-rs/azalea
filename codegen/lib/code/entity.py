@@ -23,7 +23,7 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
         {'name': 'OptionalBlockPos', 'type': 'Option<BlockPos>'},
         {'name': 'Direction', 'type': 'Direction'},
         {'name': 'OptionalUuid', 'type': 'Option<Uuid>'},
-        {'name': 'OptionalBlockState', 'type': 'Option<i32>'},
+        {'name': 'OptionalBlockState', 'type': 'Option<BlockState>'},
         {'name': 'CompoundTag', 'type': 'azalea_nbt::Tag'},
         {'name': 'Particle', 'type': 'Particle'},
         {'name': 'VillagerData', 'type': 'VillagerData'},
@@ -40,6 +40,7 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
     code.append("// Don't change it manually!")
     code.append('')
     code.append('use super::{EntityDataValue, Rotations, VillagerData, Pose};')
+    code.append('use azalea_block::BlockState;')
     code.append('use azalea_chat::Component;')
     code.append('use azalea_core::{BlockPos, Direction, Particle, Slot};')
     code.append('use std::{collections::VecDeque, ops::Deref};')
@@ -142,24 +143,56 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
         default_fields_code = []
         if parent_struct_name:
             assert parent_field_name
-            default_fields_code.append(f'{parent_field_name}: Default::default()')
-        
-        def python_value_to_rust_value(v):
-            if v.startswith('\'') and v.endswith('\''):
-                v = f'String::new("{v[1:-1]}")'
-            if v == 'False': return 'false'
-            if v == 'True': return 'true'
-            return v
-
+            default_fields_code.append(
+                f'{parent_field_name}: Default::default()')
         for index, name_or_bitfield in entity_metadata_names.items():
-            default = next(filter(lambda i: i['index'] == index, entity_metadata)).get('default', 'Default::default()')
+            default = next(filter(lambda i: i['index'] == index, entity_metadata)).get(
+                'default', 'Default::default()')
             if isinstance(name_or_bitfield, str):
+                type_id = next(filter(lambda i: i['index'] == index, entity_metadata))[
+                    'type_id']
+                metadata_type_data = metadata_types[type_id]
+                type_name = metadata_type_data['name']
+
                 # TODO: burger doesn't get the default if it's a complex type
                 # like `Rotations`, so entities like armor stands will have the
-                # wrong default metadatas
-                if default is None: default = 'Default::default()'
-                else: default = python_value_to_rust_value(repr(default))
-                print(default, name_or_bitfield)
+                # wrong default metadatas. This should be added to Burger.
+                if default is None:
+                    # some types don't have Default implemented
+                    if type_name == 'CompoundTag':
+                        default = 'azalea_nbt::Tag::Compound(Default::default())'
+                    elif type_name == 'CatVariant':
+                        default = 'azalea_registry::CatVariant::Tabby'
+                    elif type_name == 'PaintingVariant':
+                        default = 'azalea_registry::PaintingVariant::Kebab'
+                    elif type_name == 'FrogVariant':
+                        default = 'azalea_registry::FrogVariant::Temperate'
+                    else:
+                        default = 'Default::default()'
+                else:
+                    if type_name == 'Boolean':
+                        default = 'true' if default else 'false'
+                    elif type_name == 'String':
+                        string_escaped = default.replace('"', '\\"')
+                        default = f'"{string_escaped}".to_string()'
+                    elif type_name == 'BlockPos':
+                        default = f'BlockPos::new{default}'
+                    elif type_name == 'OptionalBlockPos':  # Option<BlockPos>
+                        default = f'Some(BlockPos::new{default})' if default != 'Empty' else 'None'
+                    elif type_name == 'OptionalUuid':
+                        default = f'Some(uuid::uuid!({default}))' if default != 'Empty' else 'None'
+                    elif type_name == 'OptionalUnsignedInt':
+                        default = f'Some({default})' if default != 'Empty' else 'None'
+                    elif type_name == 'ItemStack':
+                        default = f'Slot::Present({default})' if default != 'Empty' else 'Slot::Empty'
+                    elif type_name == 'OptionalBlockState':
+                        default = f'Some({default})' if default != 'Empty' else 'None'
+                    elif type_name == 'OptionalComponent':
+                        default = f'Some({default})' if default != 'Empty' else 'None'
+                    elif type_name == 'CompoundTag':
+                        default = f'azalea_nbt::Tag::Compound({default})' if default != 'Empty' else 'azalea_nbt::Tag::Compound(Default::default())'
+
+                print(default, name_or_bitfield, type_name)
                 name = name_or_bitfield
                 if name == 'type':
                     name = 'kind'
@@ -189,7 +222,6 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
                 f'fn deref(&self) -> &Self::Target {{ &self.{parent_field_name} }}')
             code.append('}')
             code.append('')
-
 
     # make the EntityMetadata enum from entity_structs
     code.append(f'#[derive(Debug, Clone)]')

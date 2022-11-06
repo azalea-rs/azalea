@@ -2,6 +2,7 @@
 // Don't change it manually!
 
 use super::{EntityDataValue, Pose, Rotations, VillagerData};
+use azalea_block::BlockState;
 use azalea_chat::Component;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
 use std::{collections::VecDeque, ops::Deref};
@@ -566,7 +567,7 @@ impl Default for Cat {
     fn default() -> Self {
         Self {
             abstract_tameable: Default::default(),
-            variant: Default::default(),
+            variant: azalea_registry::CatVariant::Tabby,
             is_lying: false,
             relax_state_one: false,
             collar_color: Default::default(),
@@ -781,7 +782,7 @@ impl Default for CommandBlockMinecart {
     fn default() -> Self {
         Self {
             abstract_minecart: Default::default(),
-            command_name: String::new(""),
+            command_name: "".to_string(),
             last_output: Default::default(),
         }
     }
@@ -909,7 +910,7 @@ impl Default for Dolphin {
     fn default() -> Self {
         Self {
             abstract_creature: Default::default(),
-            treasure_pos: String::new("(0, 0, 0)"),
+            treasure_pos: BlockPos::new(0, 0, 0),
             got_fish: false,
             moistness_level: 2400,
         }
@@ -991,7 +992,7 @@ impl Default for Donkey {
             standing: false,
             bred: false,
             saddled: false,
-            owner_uuid: String::new("Empty"),
+            owner_uuid: None,
             chest: false,
         }
     }
@@ -1096,7 +1097,7 @@ impl Default for Egg {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            item_stack: String::new("Empty"),
+            item_stack: Slot::Empty,
         }
     }
 }
@@ -1171,7 +1172,7 @@ impl Default for EndCrystal {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            beam_target: String::new("Empty"),
+            beam_target: None,
             show_bottom: true,
         }
     }
@@ -1248,7 +1249,7 @@ impl Default for EnderPearl {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            item_stack: String::new("Empty"),
+            item_stack: Slot::Empty,
         }
     }
 }
@@ -1263,7 +1264,7 @@ impl Deref for EnderPearl {
 #[derive(Debug, Clone)]
 pub struct Enderman {
     pub abstract_monster: AbstractMonster,
-    pub carry_state: Option<i32>,
+    pub carry_state: Option<BlockState>,
     pub creepy: bool,
     pub stared_at: bool,
 }
@@ -1296,7 +1297,7 @@ impl Default for Enderman {
     fn default() -> Self {
         Self {
             abstract_monster: Default::default(),
-            carry_state: String::new("Empty"),
+            carry_state: None,
             creepy: false,
             stared_at: false,
         }
@@ -1445,7 +1446,7 @@ impl Default for ExperienceBottle {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            item_stack: String::new("Empty"),
+            item_stack: Slot::Empty,
         }
     }
 }
@@ -1516,7 +1517,7 @@ impl Default for EyeOfEnder {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            item_stack: String::new("Empty"),
+            item_stack: Slot::Empty,
         }
     }
 }
@@ -1554,7 +1555,7 @@ impl Default for FallingBlock {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            start_pos: String::new("(0, 0, 0)"),
+            start_pos: BlockPos::new(0, 0, 0),
         }
     }
 }
@@ -1592,7 +1593,7 @@ impl Default for Fireball {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            item_stack: String::new("Empty"),
+            item_stack: Slot::Empty,
         }
     }
 }
@@ -1640,8 +1641,8 @@ impl Default for FireworkRocket {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            fireworks_item: String::new("Empty"),
-            attached_to_target: String::new("Empty"),
+            fireworks_item: Slot::Empty,
+            attached_to_target: None,
             shot_at_angle: false,
         }
     }
@@ -1777,8 +1778,8 @@ impl Default for Fox {
             pouncing: false,
             crouching: false,
             interested: false,
-            trusted_id_0: String::new("Empty"),
-            trusted_id_1: String::new("Empty"),
+            trusted_id_0: None,
+            trusted_id_1: None,
         }
     }
 }
@@ -1822,8 +1823,8 @@ impl Default for Frog {
     fn default() -> Self {
         Self {
             abstract_animal: Default::default(),
-            variant: Default::default(),
-            tongue_target: String::new("Empty"),
+            variant: azalea_registry::FrogVariant::Temperate,
+            tongue_target: None,
         }
     }
 }
@@ -2247,7 +2248,7 @@ impl Default for Horse {
             standing: false,
             bred: false,
             saddled: false,
-            owner_uuid: String::new("Empty"),
+            owner_uuid: None,
             type_variant: 0,
         }
     }
@@ -2405,7 +2406,7 @@ impl Default for Item {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            item: String::new("Empty"),
+            item: Slot::Empty,
         }
     }
 }
@@ -2447,7 +2448,7 @@ impl Default for ItemFrame {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            item: String::new("Empty"),
+            item: Slot::Empty,
             rotation: 0,
         }
     }
@@ -2606,7 +2607,7 @@ impl Default for Llama {
             standing: false,
             bred: false,
             saddled: false,
-            owner_uuid: String::new("Empty"),
+            owner_uuid: None,
             chest: false,
             strength: 0,
             swag: -1,
@@ -2860,7 +2861,7 @@ impl Default for Mule {
             standing: false,
             bred: false,
             saddled: false,
-            owner_uuid: String::new("Empty"),
+            owner_uuid: None,
             chest: false,
         }
     }
@@ -2939,7 +2940,7 @@ impl Default for Painting {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            painting_variant: Default::default(),
+            painting_variant: azalea_registry::PaintingVariant::Kebab,
         }
     }
 }
@@ -3349,8 +3350,8 @@ impl Default for Player {
             score: 0,
             player_mode_customisation: 0,
             player_main_hand: 1,
-            shoulder_left: String::new("Empty"),
-            shoulder_right: String::new("Empty"),
+            shoulder_left: azalea_nbt::Tag::Compound(Default::default()),
+            shoulder_right: azalea_nbt::Tag::Compound(Default::default()),
         }
     }
 }
@@ -3426,7 +3427,7 @@ impl Default for Potion {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            item_stack: String::new("Empty"),
+            item_stack: Slot::Empty,
         }
     }
 }
@@ -3854,7 +3855,7 @@ impl Default for SkeletonHorse {
             standing: false,
             bred: false,
             saddled: false,
-            owner_uuid: String::new("Empty"),
+            owner_uuid: None,
         }
     }
 }
@@ -3930,7 +3931,7 @@ impl Default for SmallFireball {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            item_stack: String::new("Empty"),
+            item_stack: Slot::Empty,
         }
     }
 }
@@ -4011,7 +4012,7 @@ impl Default for Snowball {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            item_stack: String::new("Empty"),
+            item_stack: Slot::Empty,
         }
     }
 }
@@ -4578,10 +4579,10 @@ impl Default for Turtle {
     fn default() -> Self {
         Self {
             abstract_animal: Default::default(),
-            home_pos: String::new("(0, 0, 0)"),
+            home_pos: BlockPos::new(0, 0, 0),
             has_egg: false,
             laying_egg: false,
-            travel_pos: String::new("(0, 0, 0)"),
+            travel_pos: BlockPos::new(0, 0, 0),
             going_home: false,
             travelling: false,
         }
@@ -5155,7 +5156,7 @@ impl Default for ZombieHorse {
             standing: false,
             bred: false,
             saddled: false,
-            owner_uuid: String::new("Empty"),
+            owner_uuid: None,
         }
     }
 }
@@ -5447,7 +5448,7 @@ impl Default for AbstractEntity {
             invisible: false,
             fall_flying: false,
             air_supply: Default::default(),
-            custom_name: String::new("Empty"),
+            custom_name: None,
             custom_name_visible: false,
             silent: false,
             no_gravity: false,
@@ -5582,7 +5583,7 @@ impl Default for AbstractLiving {
             effect_ambience: false,
             arrow_count: 0,
             stinger_count: 0,
-            sleeping_pos: String::new("Empty"),
+            sleeping_pos: None,
         }
     }
 }
@@ -5733,7 +5734,7 @@ impl Default for AbstractTameable {
             abstract_animal: Default::default(),
             tame: false,
             in_sitting_pose: false,
-            owneruuid: String::new("Empty"),
+            owneruuid: None,
         }
     }
 }

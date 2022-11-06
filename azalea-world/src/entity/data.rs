@@ -1,8 +1,10 @@
+use azalea_block::BlockState;
 use azalea_buf::{BufReadError, McBufVarReadable};
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
 use azalea_chat::Component;
 use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot};
 use enum_as_inner::EnumAsInner;
+use log::warn;
 use nohash_hasher::IntSet;
 use std::io::{Cursor, Write};
 use uuid::Uuid;
@@ -61,7 +63,7 @@ pub enum EntityDataValue {
     OptionalUuid(Option<Uuid>),
     // 0 for absent (implies air); otherwise, a block state ID as per the global palette
     // this is a varint
-    OptionalBlockState(Option<i32>),
+    OptionalBlockState(Option<BlockState>),
     CompoundTag(azalea_nbt::Tag),
     Particle(Particle),
     VillagerData(VillagerData),
@@ -99,11 +101,14 @@ impl McBufReadable for EntityDataValue {
             11 => EntityDataValue::Direction(Direction::read_from(buf)?),
             12 => EntityDataValue::OptionalUuid(Option::<Uuid>::read_from(buf)?),
             13 => EntityDataValue::OptionalBlockState({
-                let val = i32::var_read_from(buf)?;
+                let val = u32::var_read_from(buf)?;
                 if val == 0 {
                     None
                 } else {
-                    Some(val)
+                    Some(BlockState::try_from(val - 1).unwrap_or_else(|_| {
+                        warn!("Invalid block state ID {} in entity metadata", val - 1);
+                        BlockState::Air
+                    }))
                 }
             }),
             14 => EntityDataValue::CompoundTag(azalea_nbt::Tag::read_from(buf)?),
