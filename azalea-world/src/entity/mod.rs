@@ -1,8 +1,8 @@
 mod data;
 mod dimensions;
-mod metadata;
+pub mod metadata;
 
-use self::metadata::EntityMetadata;
+pub use self::metadata::EntityMetadata;
 use crate::Dimension;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, Vec3, AABB};

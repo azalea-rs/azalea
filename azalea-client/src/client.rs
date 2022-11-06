@@ -28,7 +28,7 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{
-    entity::{EntityData, EntityMut, EntityRef},
+    entity::{metadata, EntityData, EntityMetadata, EntityMut, EntityRef},
     Dimension,
 };
 use log::{debug, error, warn};
@@ -399,7 +399,11 @@ impl Client {
                     // i'll make this an actual setting later
                     *dimension_lock = Dimension::new(16, height, min_y);
 
-                    let entity = EntityData::new(client.game_profile.uuid, Vec3::default());
+                    let entity = EntityData::new(
+                        client.game_profile.uuid,
+                        Vec3::default(),
+                        EntityMetadata::Player(metadata::Player::default()),
+                    );
                     dimension_lock.add_entity(p.player_id, entity);
 
                     let mut player_lock = client.player.lock();

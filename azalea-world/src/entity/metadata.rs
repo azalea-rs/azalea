@@ -17,10 +17,11 @@ pub struct Allay {
 
 impl Allay {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_creature = AbstractCreature::read(metadata)?;
         let dancing = metadata.pop_front()?.into_boolean().ok()?;
         let can_duplicate = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_creature: AbstractCreature::read(metadata)?,
+            abstract_creature,
             dancing,
             can_duplicate,
         })
@@ -28,6 +29,7 @@ impl Allay {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_creature.write());
         metadata.push(EntityDataValue::Boolean(self.dancing.clone()));
         metadata.push(EntityDataValue::Boolean(self.can_duplicate.clone()));
         metadata
@@ -62,12 +64,13 @@ pub struct AreaEffectCloud {
 
 impl AreaEffectCloud {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let radius = metadata.pop_front()?.into_float().ok()?;
         let color = metadata.pop_front()?.into_int().ok()?;
         let waiting = metadata.pop_front()?.into_boolean().ok()?;
         let particle = metadata.pop_front()?.into_particle().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             radius,
             color,
             waiting,
@@ -77,6 +80,7 @@ impl AreaEffectCloud {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::Float(self.radius.clone()));
         metadata.push(EntityDataValue::Int(self.color.clone()));
         metadata.push(EntityDataValue::Boolean(self.waiting.clone()));
@@ -121,6 +125,7 @@ pub struct ArmorStand {
 
 impl ArmorStand {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_living = AbstractLiving::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let small = bitfield & 0x1 != 1;
         let show_arms = bitfield & 0x4 != 1;
@@ -133,7 +138,7 @@ impl ArmorStand {
         let left_leg_pose = metadata.pop_front()?.into_rotations().ok()?;
         let right_leg_pose = metadata.pop_front()?.into_rotations().ok()?;
         Some(Self {
-            abstract_living: AbstractLiving::read(metadata)?,
+            abstract_living,
             small,
             show_arms,
             no_base_plate,
@@ -149,6 +154,7 @@ impl ArmorStand {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_living.write());
         let mut bitfield = 0u8;
         if self.small {
             bitfield &= 0x1;
@@ -210,6 +216,7 @@ pub struct Arrow {
 
 impl Arrow {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let crit_arrow = bitfield & 0x1 != 1;
         let shot_from_crossbow = bitfield & 0x4 != 1;
@@ -217,7 +224,7 @@ impl Arrow {
         let pierce_level = metadata.pop_front()?.into_byte().ok()?;
         let effect_color = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             crit_arrow,
             shot_from_crossbow,
             no_physics,
@@ -228,6 +235,7 @@ impl Arrow {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         let mut bitfield = 0u8;
         if self.crit_arrow {
             bitfield &= 0x1;
@@ -275,11 +283,12 @@ pub struct Axolotl {
 
 impl Axolotl {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let variant = metadata.pop_front()?.into_int().ok()?;
         let playing_dead = metadata.pop_front()?.into_boolean().ok()?;
         let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             variant,
             playing_dead,
             from_bucket,
@@ -288,6 +297,7 @@ impl Axolotl {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         metadata.push(EntityDataValue::Int(self.variant.clone()));
         metadata.push(EntityDataValue::Boolean(self.playing_dead.clone()));
         metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
@@ -321,16 +331,18 @@ pub struct Bat {
 
 impl Bat {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_insentient = AbstractInsentient::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let resting = bitfield & 0x1 != 1;
         Some(Self {
-            abstract_insentient: AbstractInsentient::read(metadata)?,
+            abstract_insentient,
             resting,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_insentient.write());
         let mut bitfield = 0u8;
         if self.resting {
             bitfield &= 0x1;
@@ -367,13 +379,14 @@ pub struct Bee {
 
 impl Bee {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let has_nectar = bitfield & 0x8 != 1;
         let has_stung = bitfield & 0x4 != 1;
         let rolling = bitfield & 0x2 != 1;
         let remaining_anger_time = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             has_nectar,
             has_stung,
             rolling,
@@ -383,6 +396,7 @@ impl Bee {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         let mut bitfield = 0u8;
         if self.has_nectar {
             bitfield &= 0x8;
@@ -426,16 +440,18 @@ pub struct Blaze {
 
 impl Blaze {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let charged = bitfield & 0x1 != 1;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             charged,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         let mut bitfield = 0u8;
         if self.charged {
             bitfield &= 0x1;
@@ -475,6 +491,7 @@ pub struct Boat {
 
 impl Boat {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let hurt = metadata.pop_front()?.into_int().ok()?;
         let hurtdir = metadata.pop_front()?.into_int().ok()?;
         let damage = metadata.pop_front()?.into_float().ok()?;
@@ -483,7 +500,7 @@ impl Boat {
         let paddle_right = metadata.pop_front()?.into_boolean().ok()?;
         let bubble_time = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             hurt,
             hurtdir,
             damage,
@@ -496,6 +513,7 @@ impl Boat {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::Int(self.hurt.clone()));
         metadata.push(EntityDataValue::Int(self.hurtdir.clone()));
         metadata.push(EntityDataValue::Float(self.damage.clone()));
@@ -540,12 +558,13 @@ pub struct Cat {
 
 impl Cat {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_tameable = AbstractTameable::read(metadata)?;
         let variant = metadata.pop_front()?.into_cat_variant().ok()?;
         let is_lying = metadata.pop_front()?.into_boolean().ok()?;
         let relax_state_one = metadata.pop_front()?.into_boolean().ok()?;
         let collar_color = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_tameable: AbstractTameable::read(metadata)?,
+            abstract_tameable,
             variant,
             is_lying,
             relax_state_one,
@@ -555,6 +574,7 @@ impl Cat {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_tameable.write());
         metadata.push(EntityDataValue::CatVariant(self.variant.clone()));
         metadata.push(EntityDataValue::Boolean(self.is_lying.clone()));
         metadata.push(EntityDataValue::Boolean(self.relax_state_one.clone()));
@@ -589,13 +609,13 @@ pub struct CaveSpider {
 
 impl CaveSpider {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            spider: Spider::read(metadata)?,
-        })
+        let spider = Spider::read(metadata)?;
+        Some(Self { spider })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.spider.write());
         metadata
     }
 }
@@ -622,13 +642,13 @@ pub struct ChestBoat {
 
 impl ChestBoat {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            boat: Boat::read(metadata)?,
-        })
+        let boat = Boat::read(metadata)?;
+        Some(Self { boat })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.boat.write());
         metadata
     }
 }
@@ -655,13 +675,13 @@ pub struct ChestMinecart {
 
 impl ChestMinecart {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_minecart: AbstractMinecart::read(metadata)?,
-        })
+        let abstract_minecart = AbstractMinecart::read(metadata)?;
+        Some(Self { abstract_minecart })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_minecart.write());
         metadata
     }
 }
@@ -688,13 +708,13 @@ pub struct Chicken {
 
 impl Chicken {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
-        })
+        let abstract_animal = AbstractAnimal::read(metadata)?;
+        Some(Self { abstract_animal })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         metadata
     }
 }
@@ -722,15 +742,17 @@ pub struct Cod {
 
 impl Cod {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_creature = AbstractCreature::read(metadata)?;
         let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_creature: AbstractCreature::read(metadata)?,
+            abstract_creature,
             from_bucket,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_creature.write());
         metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
         metadata
     }
@@ -761,10 +783,11 @@ pub struct CommandBlockMinecart {
 
 impl CommandBlockMinecart {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_minecart = AbstractMinecart::read(metadata)?;
         let command_name = metadata.pop_front()?.into_string().ok()?;
         let last_output = metadata.pop_front()?.into_component().ok()?;
         Some(Self {
-            abstract_minecart: AbstractMinecart::read(metadata)?,
+            abstract_minecart,
             command_name,
             last_output,
         })
@@ -772,6 +795,7 @@ impl CommandBlockMinecart {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_minecart.write());
         metadata.push(EntityDataValue::String(self.command_name.clone()));
         metadata.push(EntityDataValue::Component(self.last_output.clone()));
         metadata
@@ -802,13 +826,13 @@ pub struct Cow {
 
 impl Cow {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
-        })
+        let abstract_animal = AbstractAnimal::read(metadata)?;
+        Some(Self { abstract_animal })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         metadata
     }
 }
@@ -838,11 +862,12 @@ pub struct Creeper {
 
 impl Creeper {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let swell_dir = metadata.pop_front()?.into_int().ok()?;
         let is_powered = metadata.pop_front()?.into_boolean().ok()?;
         let is_ignited = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             swell_dir,
             is_powered,
             is_ignited,
@@ -851,6 +876,7 @@ impl Creeper {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Int(self.swell_dir.clone()));
         metadata.push(EntityDataValue::Boolean(self.is_powered.clone()));
         metadata.push(EntityDataValue::Boolean(self.is_ignited.clone()));
@@ -886,11 +912,12 @@ pub struct Dolphin {
 
 impl Dolphin {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_creature = AbstractCreature::read(metadata)?;
         let treasure_pos = metadata.pop_front()?.into_block_pos().ok()?;
         let got_fish = metadata.pop_front()?.into_boolean().ok()?;
         let moistness_level = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_creature: AbstractCreature::read(metadata)?,
+            abstract_creature,
             treasure_pos,
             got_fish,
             moistness_level,
@@ -899,6 +926,7 @@ impl Dolphin {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_creature.write());
         metadata.push(EntityDataValue::BlockPos(self.treasure_pos.clone()));
         metadata.push(EntityDataValue::Boolean(self.got_fish.clone()));
         metadata.push(EntityDataValue::Int(self.moistness_level.clone()));
@@ -938,6 +966,7 @@ pub struct Donkey {
 
 impl Donkey {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let tamed = bitfield & 0x2 != 1;
         let eating = bitfield & 0x10 != 1;
@@ -947,7 +976,7 @@ impl Donkey {
         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         let chest = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             tamed,
             eating,
             standing,
@@ -960,6 +989,7 @@ impl Donkey {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         let mut bitfield = 0u8;
         if self.tamed {
             bitfield &= 0x2;
@@ -1012,13 +1042,13 @@ pub struct DragonFireball {
 
 impl DragonFireball {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
-        })
+        let abstract_entity = AbstractEntity::read(metadata)?;
+        Some(Self { abstract_entity })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata
     }
 }
@@ -1045,13 +1075,13 @@ pub struct Drowned {
 
 impl Drowned {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            zombie: Zombie::read(metadata)?,
-        })
+        let zombie = Zombie::read(metadata)?;
+        Some(Self { zombie })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.zombie.write());
         metadata
     }
 }
@@ -1079,15 +1109,17 @@ pub struct Egg {
 
 impl Egg {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             item_stack,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
         metadata
     }
@@ -1116,13 +1148,13 @@ pub struct ElderGuardian {
 
 impl ElderGuardian {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            guardian: Guardian::read(metadata)?,
-        })
+        let guardian = Guardian::read(metadata)?;
+        Some(Self { guardian })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.guardian.write());
         metadata
     }
 }
@@ -1151,10 +1183,11 @@ pub struct EndCrystal {
 
 impl EndCrystal {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let beam_target = metadata.pop_front()?.into_optional_block_pos().ok()?;
         let show_bottom = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             beam_target,
             show_bottom,
         })
@@ -1162,6 +1195,7 @@ impl EndCrystal {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::OptionalBlockPos(self.beam_target.clone()));
         metadata.push(EntityDataValue::Boolean(self.show_bottom.clone()));
         metadata
@@ -1193,15 +1227,17 @@ pub struct EnderDragon {
 
 impl EnderDragon {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_insentient = AbstractInsentient::read(metadata)?;
         let phase = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_insentient: AbstractInsentient::read(metadata)?,
+            abstract_insentient,
             phase,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_insentient.write());
         metadata.push(EntityDataValue::Int(self.phase.clone()));
         metadata
     }
@@ -1231,15 +1267,17 @@ pub struct EnderPearl {
 
 impl EnderPearl {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             item_stack,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
         metadata
     }
@@ -1271,11 +1309,12 @@ pub struct Enderman {
 
 impl Enderman {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let carry_state = metadata.pop_front()?.into_optional_block_state().ok()?;
         let creepy = metadata.pop_front()?.into_boolean().ok()?;
         let stared_at = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             carry_state,
             creepy,
             stared_at,
@@ -1284,6 +1323,7 @@ impl Enderman {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::OptionalBlockState(
             self.carry_state.clone(),
         ));
@@ -1318,13 +1358,13 @@ pub struct Endermite {
 
 impl Endermite {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
-        })
+        let abstract_monster = AbstractMonster::read(metadata)?;
+        Some(Self { abstract_monster })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata
     }
 }
@@ -1353,10 +1393,11 @@ pub struct Evoker {
 
 impl Evoker {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
         let spell_casting = metadata.pop_front()?.into_byte().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             is_celebrating,
             spell_casting,
         })
@@ -1364,6 +1405,7 @@ impl Evoker {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
         metadata.push(EntityDataValue::Byte(self.spell_casting.clone()));
         metadata
@@ -1394,13 +1436,13 @@ pub struct EvokerFangs {
 
 impl EvokerFangs {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
-        })
+        let abstract_entity = AbstractEntity::read(metadata)?;
+        Some(Self { abstract_entity })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata
     }
 }
@@ -1428,15 +1470,17 @@ pub struct ExperienceBottle {
 
 impl ExperienceBottle {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             item_stack,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
         metadata
     }
@@ -1465,13 +1509,13 @@ pub struct ExperienceOrb {
 
 impl ExperienceOrb {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
-        })
+        let abstract_entity = AbstractEntity::read(metadata)?;
+        Some(Self { abstract_entity })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata
     }
 }
@@ -1499,15 +1543,17 @@ pub struct EyeOfEnder {
 
 impl EyeOfEnder {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             item_stack,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
         metadata
     }
@@ -1537,15 +1583,17 @@ pub struct FallingBlock {
 
 impl FallingBlock {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let start_pos = metadata.pop_front()?.into_block_pos().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             start_pos,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::BlockPos(self.start_pos.clone()));
         metadata
     }
@@ -1575,15 +1623,17 @@ pub struct Fireball {
 
 impl Fireball {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             item_stack,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
         metadata
     }
@@ -1615,11 +1665,12 @@ pub struct FireworkRocket {
 
 impl FireworkRocket {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let fireworks_item = metadata.pop_front()?.into_item_stack().ok()?;
         let attached_to_target = metadata.pop_front()?.into_optional_unsigned_int().ok()?;
         let shot_at_angle = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             fireworks_item,
             attached_to_target,
             shot_at_angle,
@@ -1628,6 +1679,7 @@ impl FireworkRocket {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::ItemStack(self.fireworks_item.clone()));
         metadata.push(EntityDataValue::OptionalUnsignedInt(
             self.attached_to_target.clone(),
@@ -1664,10 +1716,11 @@ pub struct FishingBobber {
 
 impl FishingBobber {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let hooked_entity = metadata.pop_front()?.into_int().ok()?;
         let biting = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             hooked_entity,
             biting,
         })
@@ -1675,6 +1728,7 @@ impl FishingBobber {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::Int(self.hooked_entity.clone()));
         metadata.push(EntityDataValue::Boolean(self.biting.clone()));
         metadata
@@ -1714,6 +1768,7 @@ pub struct Fox {
 
 impl Fox {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let kind = metadata.pop_front()?.into_int().ok()?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let sitting = bitfield & 0x1 != 1;
@@ -1725,7 +1780,7 @@ impl Fox {
         let trusted_id_0 = metadata.pop_front()?.into_optional_uuid().ok()?;
         let trusted_id_1 = metadata.pop_front()?.into_optional_uuid().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             kind,
             sitting,
             faceplanted,
@@ -1740,6 +1795,7 @@ impl Fox {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         metadata.push(EntityDataValue::Int(self.kind.clone()));
         let mut bitfield = 0u8;
         if self.sitting {
@@ -1800,10 +1856,11 @@ pub struct Frog {
 
 impl Frog {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let variant = metadata.pop_front()?.into_frog_variant().ok()?;
         let tongue_target = metadata.pop_front()?.into_optional_unsigned_int().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             variant,
             tongue_target,
         })
@@ -1811,6 +1868,7 @@ impl Frog {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         metadata.push(EntityDataValue::FrogVariant(self.variant.clone()));
         metadata.push(EntityDataValue::OptionalUnsignedInt(
             self.tongue_target.clone(),
@@ -1844,15 +1902,17 @@ pub struct FurnaceMinecart {
 
 impl FurnaceMinecart {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_minecart = AbstractMinecart::read(metadata)?;
         let fuel = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_minecart: AbstractMinecart::read(metadata)?,
+            abstract_minecart,
             fuel,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_minecart.write());
         metadata.push(EntityDataValue::Boolean(self.fuel.clone()));
         metadata
     }
@@ -1882,15 +1942,17 @@ pub struct Ghast {
 
 impl Ghast {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_insentient = AbstractInsentient::read(metadata)?;
         let is_charging = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_insentient: AbstractInsentient::read(metadata)?,
+            abstract_insentient,
             is_charging,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_insentient.write());
         metadata.push(EntityDataValue::Boolean(self.is_charging.clone()));
         metadata
     }
@@ -1919,13 +1981,13 @@ pub struct Giant {
 
 impl Giant {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
-        })
+        let abstract_monster = AbstractMonster::read(metadata)?;
+        Some(Self { abstract_monster })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata
     }
 }
@@ -1952,13 +2014,13 @@ pub struct GlowItemFrame {
 
 impl GlowItemFrame {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            item_frame: ItemFrame::read(metadata)?,
-        })
+        let item_frame = ItemFrame::read(metadata)?;
+        Some(Self { item_frame })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.item_frame.write());
         metadata
     }
 }
@@ -1986,15 +2048,17 @@ pub struct GlowSquid {
 
 impl GlowSquid {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let squid = Squid::read(metadata)?;
         let dark_ticks_remaining = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            squid: Squid::read(metadata)?,
+            squid,
             dark_ticks_remaining,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.squid.write());
         metadata.push(EntityDataValue::Int(self.dark_ticks_remaining.clone()));
         metadata
     }
@@ -2026,11 +2090,12 @@ pub struct Goat {
 
 impl Goat {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let is_screaming_goat = metadata.pop_front()?.into_boolean().ok()?;
         let has_left_horn = metadata.pop_front()?.into_boolean().ok()?;
         let has_right_horn = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             is_screaming_goat,
             has_left_horn,
             has_right_horn,
@@ -2039,6 +2104,7 @@ impl Goat {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         metadata.push(EntityDataValue::Boolean(self.is_screaming_goat.clone()));
         metadata.push(EntityDataValue::Boolean(self.has_left_horn.clone()));
         metadata.push(EntityDataValue::Boolean(self.has_right_horn.clone()));
@@ -2073,10 +2139,11 @@ pub struct Guardian {
 
 impl Guardian {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let moving = metadata.pop_front()?.into_boolean().ok()?;
         let attack_target = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             moving,
             attack_target,
         })
@@ -2084,6 +2151,7 @@ impl Guardian {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Boolean(self.moving.clone()));
         metadata.push(EntityDataValue::Int(self.attack_target.clone()));
         metadata
@@ -2115,15 +2183,17 @@ pub struct Hoglin {
 
 impl Hoglin {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let immune_to_zombification = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             immune_to_zombification,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         metadata.push(EntityDataValue::Boolean(
             self.immune_to_zombification.clone(),
         ));
@@ -2154,13 +2224,13 @@ pub struct HopperMinecart {
 
 impl HopperMinecart {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_minecart: AbstractMinecart::read(metadata)?,
-        })
+        let abstract_minecart = AbstractMinecart::read(metadata)?;
+        Some(Self { abstract_minecart })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_minecart.write());
         metadata
     }
 }
@@ -2194,6 +2264,7 @@ pub struct Horse {
 
 impl Horse {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let tamed = bitfield & 0x2 != 1;
         let eating = bitfield & 0x10 != 1;
@@ -2203,7 +2274,7 @@ impl Horse {
         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         let type_variant = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             tamed,
             eating,
             standing,
@@ -2216,6 +2287,7 @@ impl Horse {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         let mut bitfield = 0u8;
         if self.tamed {
             bitfield &= 0x2;
@@ -2268,13 +2340,13 @@ pub struct Husk {
 
 impl Husk {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            zombie: Zombie::read(metadata)?,
-        })
+        let zombie = Zombie::read(metadata)?;
+        Some(Self { zombie })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.zombie.write());
         metadata
     }
 }
@@ -2303,10 +2375,11 @@ pub struct Illusioner {
 
 impl Illusioner {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
         let spell_casting = metadata.pop_front()?.into_byte().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             is_celebrating,
             spell_casting,
         })
@@ -2314,6 +2387,7 @@ impl Illusioner {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
         metadata.push(EntityDataValue::Byte(self.spell_casting.clone()));
         metadata
@@ -2345,16 +2419,18 @@ pub struct IronGolem {
 
 impl IronGolem {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_creature = AbstractCreature::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let player_created = bitfield & 0x1 != 1;
         Some(Self {
-            abstract_creature: AbstractCreature::read(metadata)?,
+            abstract_creature,
             player_created,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_creature.write());
         let mut bitfield = 0u8;
         if self.player_created {
             bitfield &= 0x1;
@@ -2388,15 +2464,17 @@ pub struct Item {
 
 impl Item {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let item = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             item,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::ItemStack(self.item.clone()));
         metadata
     }
@@ -2427,10 +2505,11 @@ pub struct ItemFrame {
 
 impl ItemFrame {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let item = metadata.pop_front()?.into_item_stack().ok()?;
         let rotation = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             item,
             rotation,
         })
@@ -2438,6 +2517,7 @@ impl ItemFrame {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::ItemStack(self.item.clone()));
         metadata.push(EntityDataValue::Int(self.rotation.clone()));
         metadata
@@ -2468,13 +2548,13 @@ pub struct LeashKnot {
 
 impl LeashKnot {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
-        })
+        let abstract_entity = AbstractEntity::read(metadata)?;
+        Some(Self { abstract_entity })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata
     }
 }
@@ -2501,13 +2581,13 @@ pub struct LightningBolt {
 
 impl LightningBolt {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
-        })
+        let abstract_entity = AbstractEntity::read(metadata)?;
+        Some(Self { abstract_entity })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata
     }
 }
@@ -2544,6 +2624,7 @@ pub struct Llama {
 
 impl Llama {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let tamed = bitfield & 0x2 != 1;
         let eating = bitfield & 0x10 != 1;
@@ -2556,7 +2637,7 @@ impl Llama {
         let swag = metadata.pop_front()?.into_int().ok()?;
         let variant = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             tamed,
             eating,
             standing,
@@ -2572,6 +2653,7 @@ impl Llama {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         let mut bitfield = 0u8;
         if self.tamed {
             bitfield &= 0x2;
@@ -2630,13 +2712,13 @@ pub struct LlamaSpit {
 
 impl LlamaSpit {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
-        })
+        let abstract_entity = AbstractEntity::read(metadata)?;
+        Some(Self { abstract_entity })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata
     }
 }
@@ -2663,13 +2745,13 @@ pub struct MagmaCube {
 
 impl MagmaCube {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            slime: Slime::read(metadata)?,
-        })
+        let slime = Slime::read(metadata)?;
+        Some(Self { slime })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.slime.write());
         metadata
     }
 }
@@ -2696,13 +2778,13 @@ pub struct Marker {
 
 impl Marker {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
-        })
+        let abstract_entity = AbstractEntity::read(metadata)?;
+        Some(Self { abstract_entity })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata
     }
 }
@@ -2729,13 +2811,13 @@ pub struct Minecart {
 
 impl Minecart {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_minecart: AbstractMinecart::read(metadata)?,
-        })
+        let abstract_minecart = AbstractMinecart::read(metadata)?;
+        Some(Self { abstract_minecart })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_minecart.write());
         metadata
     }
 }
@@ -2763,15 +2845,14 @@ pub struct Mooshroom {
 
 impl Mooshroom {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let cow = Cow::read(metadata)?;
         let kind = metadata.pop_front()?.into_string().ok()?;
-        Some(Self {
-            cow: Cow::read(metadata)?,
-            kind,
-        })
+        Some(Self { cow, kind })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.cow.write());
         metadata.push(EntityDataValue::String(self.kind.clone()));
         metadata
     }
@@ -2807,6 +2888,7 @@ pub struct Mule {
 
 impl Mule {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let tamed = bitfield & 0x2 != 1;
         let eating = bitfield & 0x10 != 1;
@@ -2816,7 +2898,7 @@ impl Mule {
         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         let chest = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             tamed,
             eating,
             standing,
@@ -2829,6 +2911,7 @@ impl Mule {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         let mut bitfield = 0u8;
         if self.tamed {
             bitfield &= 0x2;
@@ -2882,15 +2965,17 @@ pub struct Ocelot {
 
 impl Ocelot {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let trusting = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             trusting,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         metadata.push(EntityDataValue::Boolean(self.trusting.clone()));
         metadata
     }
@@ -2920,15 +3005,17 @@ pub struct Painting {
 
 impl Painting {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let painting_variant = metadata.pop_front()?.into_painting_variant().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             painting_variant,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::PaintingVariant(
             self.painting_variant.clone(),
         ));
@@ -2968,6 +3055,7 @@ pub struct Panda {
 
 impl Panda {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let unhappy_counter = metadata.pop_front()?.into_int().ok()?;
         let sneeze_counter = metadata.pop_front()?.into_int().ok()?;
         let eat_counter = metadata.pop_front()?.into_int().ok()?;
@@ -2979,7 +3067,7 @@ impl Panda {
         let hidden_gene = metadata.pop_front()?.into_byte().ok()?;
         let flags = metadata.pop_front()?.into_byte().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             unhappy_counter,
             sneeze_counter,
             eat_counter,
@@ -2994,6 +3082,7 @@ impl Panda {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         metadata.push(EntityDataValue::Int(self.unhappy_counter.clone()));
         metadata.push(EntityDataValue::Int(self.sneeze_counter.clone()));
         metadata.push(EntityDataValue::Int(self.eat_counter.clone()));
@@ -3049,15 +3138,17 @@ pub struct Parrot {
 
 impl Parrot {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_tameable = AbstractTameable::read(metadata)?;
         let variant = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_tameable: AbstractTameable::read(metadata)?,
+            abstract_tameable,
             variant,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_tameable.write());
         metadata.push(EntityDataValue::Int(self.variant.clone()));
         metadata
     }
@@ -3087,15 +3178,17 @@ pub struct Phantom {
 
 impl Phantom {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_insentient = AbstractInsentient::read(metadata)?;
         let size = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_insentient: AbstractInsentient::read(metadata)?,
+            abstract_insentient,
             size,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_insentient.write());
         metadata.push(EntityDataValue::Int(self.size.clone()));
         metadata
     }
@@ -3126,10 +3219,11 @@ pub struct Pig {
 
 impl Pig {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let saddle = metadata.pop_front()?.into_boolean().ok()?;
         let boost_time = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             saddle,
             boost_time,
         })
@@ -3137,6 +3231,7 @@ impl Pig {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         metadata.push(EntityDataValue::Boolean(self.saddle.clone()));
         metadata.push(EntityDataValue::Int(self.boost_time.clone()));
         metadata
@@ -3171,12 +3266,13 @@ pub struct Piglin {
 
 impl Piglin {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let immune_to_zombification = metadata.pop_front()?.into_boolean().ok()?;
         let baby = metadata.pop_front()?.into_boolean().ok()?;
         let is_charging_crossbow = metadata.pop_front()?.into_boolean().ok()?;
         let is_dancing = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             immune_to_zombification,
             baby,
             is_charging_crossbow,
@@ -3186,6 +3282,7 @@ impl Piglin {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Boolean(
             self.immune_to_zombification.clone(),
         ));
@@ -3223,15 +3320,17 @@ pub struct PiglinBrute {
 
 impl PiglinBrute {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let immune_to_zombification = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             immune_to_zombification,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Boolean(
             self.immune_to_zombification.clone(),
         ));
@@ -3264,10 +3363,11 @@ pub struct Pillager {
 
 impl Pillager {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
         let is_charging_crossbow = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             is_celebrating,
             is_charging_crossbow,
         })
@@ -3275,6 +3375,7 @@ impl Pillager {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
         metadata.push(EntityDataValue::Boolean(self.is_charging_crossbow.clone()));
         metadata
@@ -3311,6 +3412,7 @@ pub struct Player {
 
 impl Player {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_living = AbstractLiving::read(metadata)?;
         let player_absorption = metadata.pop_front()?.into_float().ok()?;
         let score = metadata.pop_front()?.into_int().ok()?;
         let player_mode_customisation = metadata.pop_front()?.into_byte().ok()?;
@@ -3318,7 +3420,7 @@ impl Player {
         let shoulder_left = metadata.pop_front()?.into_compound_tag().ok()?;
         let shoulder_right = metadata.pop_front()?.into_compound_tag().ok()?;
         Some(Self {
-            abstract_living: AbstractLiving::read(metadata)?,
+            abstract_living,
             player_absorption,
             score,
             player_mode_customisation,
@@ -3330,6 +3432,7 @@ impl Player {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_living.write());
         metadata.push(EntityDataValue::Float(self.player_absorption.clone()));
         metadata.push(EntityDataValue::Int(self.score.clone()));
         metadata.push(EntityDataValue::Byte(
@@ -3371,15 +3474,17 @@ pub struct PolarBear {
 
 impl PolarBear {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let standing = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             standing,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         metadata.push(EntityDataValue::Boolean(self.standing.clone()));
         metadata
     }
@@ -3409,15 +3514,17 @@ pub struct Potion {
 
 impl Potion {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             item_stack,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
         metadata
     }
@@ -3448,10 +3555,11 @@ pub struct Pufferfish {
 
 impl Pufferfish {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_creature = AbstractCreature::read(metadata)?;
         let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
         let puff_state = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_creature: AbstractCreature::read(metadata)?,
+            abstract_creature,
             from_bucket,
             puff_state,
         })
@@ -3459,6 +3567,7 @@ impl Pufferfish {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_creature.write());
         metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
         metadata.push(EntityDataValue::Int(self.puff_state.clone()));
         metadata
@@ -3490,15 +3599,17 @@ pub struct Rabbit {
 
 impl Rabbit {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let kind = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             kind,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         metadata.push(EntityDataValue::Int(self.kind.clone()));
         metadata
     }
@@ -3528,15 +3639,17 @@ pub struct Ravager {
 
 impl Ravager {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             is_celebrating,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
         metadata
     }
@@ -3566,15 +3679,17 @@ pub struct Salmon {
 
 impl Salmon {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_creature = AbstractCreature::read(metadata)?;
         let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_creature: AbstractCreature::read(metadata)?,
+            abstract_creature,
             from_bucket,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_creature.write());
         metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
         metadata
     }
@@ -3604,16 +3719,18 @@ pub struct Sheep {
 
 impl Sheep {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let sheared = bitfield & 0x10 != 1;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             sheared,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         let mut bitfield = 0u8;
         if self.sheared {
             bitfield &= 0x10;
@@ -3649,11 +3766,12 @@ pub struct Shulker {
 
 impl Shulker {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_creature = AbstractCreature::read(metadata)?;
         let attach_face = metadata.pop_front()?.into_direction().ok()?;
         let peek = metadata.pop_front()?.into_byte().ok()?;
         let color = metadata.pop_front()?.into_byte().ok()?;
         Some(Self {
-            abstract_creature: AbstractCreature::read(metadata)?,
+            abstract_creature,
             attach_face,
             peek,
             color,
@@ -3662,6 +3780,7 @@ impl Shulker {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_creature.write());
         metadata.push(EntityDataValue::Direction(self.attach_face.clone()));
         metadata.push(EntityDataValue::Byte(self.peek.clone()));
         metadata.push(EntityDataValue::Byte(self.color.clone()));
@@ -3694,13 +3813,13 @@ pub struct ShulkerBullet {
 
 impl ShulkerBullet {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
-        })
+        let abstract_entity = AbstractEntity::read(metadata)?;
+        Some(Self { abstract_entity })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata
     }
 }
@@ -3727,13 +3846,13 @@ pub struct Silverfish {
 
 impl Silverfish {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
-        })
+        let abstract_monster = AbstractMonster::read(metadata)?;
+        Some(Self { abstract_monster })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata
     }
 }
@@ -3761,15 +3880,17 @@ pub struct Skeleton {
 
 impl Skeleton {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let stray_conversion = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             stray_conversion,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Boolean(self.stray_conversion.clone()));
         metadata
     }
@@ -3804,6 +3925,7 @@ pub struct SkeletonHorse {
 
 impl SkeletonHorse {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let tamed = bitfield & 0x2 != 1;
         let eating = bitfield & 0x10 != 1;
@@ -3812,7 +3934,7 @@ impl SkeletonHorse {
         let saddled = bitfield & 0x4 != 1;
         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             tamed,
             eating,
             standing,
@@ -3824,6 +3946,7 @@ impl SkeletonHorse {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         let mut bitfield = 0u8;
         if self.tamed {
             bitfield &= 0x2;
@@ -3875,15 +3998,17 @@ pub struct Slime {
 
 impl Slime {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_insentient = AbstractInsentient::read(metadata)?;
         let size = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_insentient: AbstractInsentient::read(metadata)?,
+            abstract_insentient,
             size,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_insentient.write());
         metadata.push(EntityDataValue::Int(self.size.clone()));
         metadata
     }
@@ -3913,15 +4038,17 @@ pub struct SmallFireball {
 
 impl SmallFireball {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             item_stack,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
         metadata
     }
@@ -3951,16 +4078,18 @@ pub struct SnowGolem {
 
 impl SnowGolem {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_creature = AbstractCreature::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let has_pumpkin = bitfield & 0x10 != 1;
         Some(Self {
-            abstract_creature: AbstractCreature::read(metadata)?,
+            abstract_creature,
             has_pumpkin,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_creature.write());
         let mut bitfield = 0u8;
         if self.has_pumpkin {
             bitfield &= 0x10;
@@ -3994,15 +4123,17 @@ pub struct Snowball {
 
 impl Snowball {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             item_stack,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
         metadata
     }
@@ -4031,13 +4162,13 @@ pub struct SpawnerMinecart {
 
 impl SpawnerMinecart {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_minecart: AbstractMinecart::read(metadata)?,
-        })
+        let abstract_minecart = AbstractMinecart::read(metadata)?;
+        Some(Self { abstract_minecart })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_minecart.write());
         metadata
     }
 }
@@ -4068,13 +4199,14 @@ pub struct SpectralArrow {
 
 impl SpectralArrow {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let crit_arrow = bitfield & 0x1 != 1;
         let shot_from_crossbow = bitfield & 0x4 != 1;
         let no_physics = bitfield & 0x2 != 1;
         let pierce_level = metadata.pop_front()?.into_byte().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             crit_arrow,
             shot_from_crossbow,
             no_physics,
@@ -4084,6 +4216,7 @@ impl SpectralArrow {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         let mut bitfield = 0u8;
         if self.crit_arrow {
             bitfield &= 0x1;
@@ -4127,16 +4260,18 @@ pub struct Spider {
 
 impl Spider {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let climbing = bitfield & 0x1 != 1;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             climbing,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         let mut bitfield = 0u8;
         if self.climbing {
             bitfield &= 0x1;
@@ -4169,13 +4304,13 @@ pub struct Squid {
 
 impl Squid {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_creature: AbstractCreature::read(metadata)?,
-        })
+        let abstract_creature = AbstractCreature::read(metadata)?;
+        Some(Self { abstract_creature })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_creature.write());
         metadata
     }
 }
@@ -4202,13 +4337,13 @@ pub struct Stray {
 
 impl Stray {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
-        })
+        let abstract_monster = AbstractMonster::read(metadata)?;
+        Some(Self { abstract_monster })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata
     }
 }
@@ -4238,11 +4373,12 @@ pub struct Strider {
 
 impl Strider {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let boost_time = metadata.pop_front()?.into_int().ok()?;
         let suffocating = metadata.pop_front()?.into_boolean().ok()?;
         let saddle = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             boost_time,
             suffocating,
             saddle,
@@ -4251,6 +4387,7 @@ impl Strider {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         metadata.push(EntityDataValue::Int(self.boost_time.clone()));
         metadata.push(EntityDataValue::Boolean(self.suffocating.clone()));
         metadata.push(EntityDataValue::Boolean(self.saddle.clone()));
@@ -4284,15 +4421,17 @@ pub struct Tadpole {
 
 impl Tadpole {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_creature = AbstractCreature::read(metadata)?;
         let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_creature: AbstractCreature::read(metadata)?,
+            abstract_creature,
             from_bucket,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_creature.write());
         metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
         metadata
     }
@@ -4322,15 +4461,17 @@ pub struct Tnt {
 
 impl Tnt {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let fuse = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             fuse,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::Int(self.fuse.clone()));
         metadata
     }
@@ -4359,13 +4500,13 @@ pub struct TntMinecart {
 
 impl TntMinecart {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_minecart: AbstractMinecart::read(metadata)?,
-        })
+        let abstract_minecart = AbstractMinecart::read(metadata)?;
+        Some(Self { abstract_minecart })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_minecart.write());
         metadata
     }
 }
@@ -4392,13 +4533,13 @@ pub struct TraderLlama {
 
 impl TraderLlama {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            llama: Llama::read(metadata)?,
-        })
+        let llama = Llama::read(metadata)?;
+        Some(Self { llama })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.llama.write());
         metadata
     }
 }
@@ -4431,6 +4572,7 @@ pub struct Trident {
 
 impl Trident {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let crit_arrow = bitfield & 0x1 != 1;
         let shot_from_crossbow = bitfield & 0x4 != 1;
@@ -4439,7 +4581,7 @@ impl Trident {
         let loyalty = metadata.pop_front()?.into_byte().ok()?;
         let foil = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             crit_arrow,
             shot_from_crossbow,
             no_physics,
@@ -4451,6 +4593,7 @@ impl Trident {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         let mut bitfield = 0u8;
         if self.crit_arrow {
             bitfield &= 0x1;
@@ -4499,10 +4642,11 @@ pub struct TropicalFish {
 
 impl TropicalFish {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_creature = AbstractCreature::read(metadata)?;
         let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
         let type_variant = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_creature: AbstractCreature::read(metadata)?,
+            abstract_creature,
             from_bucket,
             type_variant,
         })
@@ -4510,6 +4654,7 @@ impl TropicalFish {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_creature.write());
         metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
         metadata.push(EntityDataValue::Int(self.type_variant.clone()));
         metadata
@@ -4546,6 +4691,7 @@ pub struct Turtle {
 
 impl Turtle {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let home_pos = metadata.pop_front()?.into_block_pos().ok()?;
         let has_egg = metadata.pop_front()?.into_boolean().ok()?;
         let laying_egg = metadata.pop_front()?.into_boolean().ok()?;
@@ -4553,7 +4699,7 @@ impl Turtle {
         let going_home = metadata.pop_front()?.into_boolean().ok()?;
         let travelling = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             home_pos,
             has_egg,
             laying_egg,
@@ -4565,6 +4711,7 @@ impl Turtle {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         metadata.push(EntityDataValue::BlockPos(self.home_pos.clone()));
         metadata.push(EntityDataValue::Boolean(self.has_egg.clone()));
         metadata.push(EntityDataValue::Boolean(self.laying_egg.clone()));
@@ -4604,15 +4751,17 @@ pub struct Vex {
 
 impl Vex {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let flags = metadata.pop_front()?.into_byte().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             flags,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Byte(self.flags.clone()));
         metadata
     }
@@ -4643,10 +4792,11 @@ pub struct Villager {
 
 impl Villager {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_ageable = AbstractAgeable::read(metadata)?;
         let unhappy_counter = metadata.pop_front()?.into_int().ok()?;
         let villager_data = metadata.pop_front()?.into_villager_data().ok()?;
         Some(Self {
-            abstract_ageable: AbstractAgeable::read(metadata)?,
+            abstract_ageable,
             unhappy_counter,
             villager_data,
         })
@@ -4654,6 +4804,7 @@ impl Villager {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_ageable.write());
         metadata.push(EntityDataValue::Int(self.unhappy_counter.clone()));
         metadata.push(EntityDataValue::VillagerData(self.villager_data.clone()));
         metadata
@@ -4685,15 +4836,17 @@ pub struct Vindicator {
 
 impl Vindicator {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             is_celebrating,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
         metadata
     }
@@ -4723,15 +4876,17 @@ pub struct WanderingTrader {
 
 impl WanderingTrader {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_ageable = AbstractAgeable::read(metadata)?;
         let unhappy_counter = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_ageable: AbstractAgeable::read(metadata)?,
+            abstract_ageable,
             unhappy_counter,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_ageable.write());
         metadata.push(EntityDataValue::Int(self.unhappy_counter.clone()));
         metadata
     }
@@ -4761,15 +4916,17 @@ pub struct Warden {
 
 impl Warden {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let client_anger_level = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             client_anger_level,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Int(self.client_anger_level.clone()));
         metadata
     }
@@ -4800,10 +4957,11 @@ pub struct Witch {
 
 impl Witch {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
         let using_item = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             is_celebrating,
             using_item,
         })
@@ -4811,6 +4969,7 @@ impl Witch {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
         metadata.push(EntityDataValue::Boolean(self.using_item.clone()));
         metadata
@@ -4845,12 +5004,13 @@ pub struct Wither {
 
 impl Wither {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let target_a = metadata.pop_front()?.into_int().ok()?;
         let target_b = metadata.pop_front()?.into_int().ok()?;
         let target_c = metadata.pop_front()?.into_int().ok()?;
         let inv = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             target_a,
             target_b,
             target_c,
@@ -4860,6 +5020,7 @@ impl Wither {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Int(self.target_a.clone()));
         metadata.push(EntityDataValue::Int(self.target_b.clone()));
         metadata.push(EntityDataValue::Int(self.target_c.clone()));
@@ -4894,13 +5055,13 @@ pub struct WitherSkeleton {
 
 impl WitherSkeleton {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
-        })
+        let abstract_monster = AbstractMonster::read(metadata)?;
+        Some(Self { abstract_monster })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata
     }
 }
@@ -4928,15 +5089,17 @@ pub struct WitherSkull {
 
 impl WitherSkull {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let dangerous = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             dangerous,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::Boolean(self.dangerous.clone()));
         metadata
     }
@@ -4968,11 +5131,12 @@ pub struct Wolf {
 
 impl Wolf {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_tameable = AbstractTameable::read(metadata)?;
         let interested = metadata.pop_front()?.into_boolean().ok()?;
         let collar_color = metadata.pop_front()?.into_int().ok()?;
         let remaining_anger_time = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
-            abstract_tameable: AbstractTameable::read(metadata)?,
+            abstract_tameable,
             interested,
             collar_color,
             remaining_anger_time,
@@ -4981,6 +5145,7 @@ impl Wolf {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_tameable.write());
         metadata.push(EntityDataValue::Boolean(self.interested.clone()));
         metadata.push(EntityDataValue::Int(self.collar_color.clone()));
         metadata.push(EntityDataValue::Int(self.remaining_anger_time.clone()));
@@ -5014,15 +5179,17 @@ pub struct Zoglin {
 
 impl Zoglin {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let baby = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             baby,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Boolean(self.baby.clone()));
         metadata
     }
@@ -5054,11 +5221,12 @@ pub struct Zombie {
 
 impl Zombie {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_monster = AbstractMonster::read(metadata)?;
         let baby = metadata.pop_front()?.into_boolean().ok()?;
         let special_type = metadata.pop_front()?.into_int().ok()?;
         let drowned_conversion = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_monster: AbstractMonster::read(metadata)?,
+            abstract_monster,
             baby,
             special_type,
             drowned_conversion,
@@ -5067,6 +5235,7 @@ impl Zombie {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_monster.write());
         metadata.push(EntityDataValue::Boolean(self.baby.clone()));
         metadata.push(EntityDataValue::Int(self.special_type.clone()));
         metadata.push(EntityDataValue::Boolean(self.drowned_conversion.clone()));
@@ -5105,6 +5274,7 @@ pub struct ZombieHorse {
 
 impl ZombieHorse {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let tamed = bitfield & 0x2 != 1;
         let eating = bitfield & 0x10 != 1;
@@ -5113,7 +5283,7 @@ impl ZombieHorse {
         let saddled = bitfield & 0x4 != 1;
         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             tamed,
             eating,
             standing,
@@ -5125,6 +5295,7 @@ impl ZombieHorse {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         let mut bitfield = 0u8;
         if self.tamed {
             bitfield &= 0x2;
@@ -5177,10 +5348,11 @@ pub struct ZombieVillager {
 
 impl ZombieVillager {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let zombie = Zombie::read(metadata)?;
         let converting = metadata.pop_front()?.into_boolean().ok()?;
         let villager_data = metadata.pop_front()?.into_villager_data().ok()?;
         Some(Self {
-            zombie: Zombie::read(metadata)?,
+            zombie,
             converting,
             villager_data,
         })
@@ -5188,6 +5360,7 @@ impl ZombieVillager {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.zombie.write());
         metadata.push(EntityDataValue::Boolean(self.converting.clone()));
         metadata.push(EntityDataValue::VillagerData(self.villager_data.clone()));
         metadata
@@ -5218,13 +5391,13 @@ pub struct ZombifiedPiglin {
 
 impl ZombifiedPiglin {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            zombie: Zombie::read(metadata)?,
-        })
+        let zombie = Zombie::read(metadata)?;
+        Some(Self { zombie })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.zombie.write());
         metadata
     }
 }
@@ -5252,15 +5425,17 @@ pub struct AbstractAgeable {
 
 impl AbstractAgeable {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_creature = AbstractCreature::read(metadata)?;
         let baby = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_creature: AbstractCreature::read(metadata)?,
+            abstract_creature,
             baby,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_creature.write());
         metadata.push(EntityDataValue::Boolean(self.baby.clone()));
         metadata
     }
@@ -5289,13 +5464,13 @@ pub struct AbstractAnimal {
 
 impl AbstractAnimal {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_ageable: AbstractAgeable::read(metadata)?,
-        })
+        let abstract_ageable = AbstractAgeable::read(metadata)?;
+        Some(Self { abstract_ageable })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_ageable.write());
         metadata
     }
 }
@@ -5322,13 +5497,15 @@ pub struct AbstractCreature {
 
 impl AbstractCreature {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_insentient = AbstractInsentient::read(metadata)?;
         Some(Self {
-            abstract_insentient: AbstractInsentient::read(metadata)?,
+            abstract_insentient,
         })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_insentient.write());
         metadata
     }
 }
@@ -5468,12 +5645,13 @@ pub struct AbstractInsentient {
 
 impl AbstractInsentient {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_living = AbstractLiving::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let no_ai = bitfield & 0x1 != 1;
         let left_handed = bitfield & 0x2 != 1;
         let aggressive = bitfield & 0x4 != 1;
         Some(Self {
-            abstract_living: AbstractLiving::read(metadata)?,
+            abstract_living,
             no_ai,
             left_handed,
             aggressive,
@@ -5482,6 +5660,7 @@ impl AbstractInsentient {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_living.write());
         let mut bitfield = 0u8;
         if self.no_ai {
             bitfield &= 0x1;
@@ -5530,6 +5709,7 @@ pub struct AbstractLiving {
 
 impl AbstractLiving {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let auto_spin_attack = bitfield & 0x4 != 1;
         let using_item = bitfield & 0x1 != 1;
@@ -5540,7 +5720,7 @@ impl AbstractLiving {
         let stinger_count = metadata.pop_front()?.into_int().ok()?;
         let sleeping_pos = metadata.pop_front()?.into_optional_block_pos().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             auto_spin_attack,
             using_item,
             health,
@@ -5554,6 +5734,7 @@ impl AbstractLiving {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         let mut bitfield = 0u8;
         if self.auto_spin_attack {
             bitfield &= 0x4;
@@ -5608,6 +5789,7 @@ pub struct AbstractMinecart {
 
 impl AbstractMinecart {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_entity = AbstractEntity::read(metadata)?;
         let hurt = metadata.pop_front()?.into_int().ok()?;
         let hurtdir = metadata.pop_front()?.into_int().ok()?;
         let damage = metadata.pop_front()?.into_float().ok()?;
@@ -5615,7 +5797,7 @@ impl AbstractMinecart {
         let display_offset = metadata.pop_front()?.into_int().ok()?;
         let custom_display = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
-            abstract_entity: AbstractEntity::read(metadata)?,
+            abstract_entity,
             hurt,
             hurtdir,
             damage,
@@ -5627,6 +5809,7 @@ impl AbstractMinecart {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_entity.write());
         metadata.push(EntityDataValue::Int(self.hurt.clone()));
         metadata.push(EntityDataValue::Int(self.hurtdir.clone()));
         metadata.push(EntityDataValue::Float(self.damage.clone()));
@@ -5665,13 +5848,13 @@ pub struct AbstractMonster {
 
 impl AbstractMonster {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        Some(Self {
-            abstract_creature: AbstractCreature::read(metadata)?,
-        })
+        let abstract_creature = AbstractCreature::read(metadata)?;
+        Some(Self { abstract_creature })
     }
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_creature.write());
         metadata
     }
 }
@@ -5701,12 +5884,13 @@ pub struct AbstractTameable {
 
 impl AbstractTameable {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
+        let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
         let tame = bitfield & 0x4 != 1;
         let in_sitting_pose = bitfield & 0x1 != 1;
         let owneruuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         Some(Self {
-            abstract_animal: AbstractAnimal::read(metadata)?,
+            abstract_animal,
             tame,
             in_sitting_pose,
             owneruuid,
@@ -5715,6 +5899,7 @@ impl AbstractTameable {
 
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
+        metadata.extend(self.abstract_animal.write());
         let mut bitfield = 0u8;
         if self.tame {
             bitfield &= 0x4;
@@ -5866,13 +6051,231 @@ pub enum EntityMetadata {
     ZombieHorse(ZombieHorse),
     ZombieVillager(ZombieVillager),
     ZombifiedPiglin(ZombifiedPiglin),
-    AbstractAgeable(AbstractAgeable),
-    AbstractAnimal(AbstractAnimal),
-    AbstractCreature(AbstractCreature),
-    AbstractEntity(AbstractEntity),
-    AbstractInsentient(AbstractInsentient),
-    AbstractLiving(AbstractLiving),
-    AbstractMinecart(AbstractMinecart),
-    AbstractMonster(AbstractMonster),
-    AbstractTameable(AbstractTameable),
+}
+
+impl From<azalea_registry::EntityType> for EntityMetadata {
+    fn from(value: azalea_registry::EntityType) -> Self {
+        match value {
+            azalea_registry::EntityType::Allay => EntityMetadata::Allay(Allay::default()),
+            azalea_registry::EntityType::AreaEffectCloud => {
+                EntityMetadata::AreaEffectCloud(AreaEffectCloud::default())
+            }
+            azalea_registry::EntityType::ArmorStand => {
+                EntityMetadata::ArmorStand(ArmorStand::default())
+            }
+            azalea_registry::EntityType::Arrow => EntityMetadata::Arrow(Arrow::default()),
+            azalea_registry::EntityType::Axolotl => EntityMetadata::Axolotl(Axolotl::default()),
+            azalea_registry::EntityType::Bat => EntityMetadata::Bat(Bat::default()),
+            azalea_registry::EntityType::Bee => EntityMetadata::Bee(Bee::default()),
+            azalea_registry::EntityType::Blaze => EntityMetadata::Blaze(Blaze::default()),
+            azalea_registry::EntityType::Boat => EntityMetadata::Boat(Boat::default()),
+            azalea_registry::EntityType::Cat => EntityMetadata::Cat(Cat::default()),
+            azalea_registry::EntityType::CaveSpider => {
+                EntityMetadata::CaveSpider(CaveSpider::default())
+            }
+            azalea_registry::EntityType::ChestBoat => {
+                EntityMetadata::ChestBoat(ChestBoat::default())
+            }
+            azalea_registry::EntityType::ChestMinecart => {
+                EntityMetadata::ChestMinecart(ChestMinecart::default())
+            }
+            azalea_registry::EntityType::Chicken => EntityMetadata::Chicken(Chicken::default()),
+            azalea_registry::EntityType::Cod => EntityMetadata::Cod(Cod::default()),
+            azalea_registry::EntityType::CommandBlockMinecart => {
+                EntityMetadata::CommandBlockMinecart(CommandBlockMinecart::default())
+            }
+            azalea_registry::EntityType::Cow => EntityMetadata::Cow(Cow::default()),
+            azalea_registry::EntityType::Creeper => EntityMetadata::Creeper(Creeper::default()),
+            azalea_registry::EntityType::Dolphin => EntityMetadata::Dolphin(Dolphin::default()),
+            azalea_registry::EntityType::Donkey => EntityMetadata::Donkey(Donkey::default()),
+            azalea_registry::EntityType::DragonFireball => {
+                EntityMetadata::DragonFireball(DragonFireball::default())
+            }
+            azalea_registry::EntityType::Drowned => EntityMetadata::Drowned(Drowned::default()),
+            azalea_registry::EntityType::Egg => EntityMetadata::Egg(Egg::default()),
+            azalea_registry::EntityType::ElderGuardian => {
+                EntityMetadata::ElderGuardian(ElderGuardian::default())
+            }
+            azalea_registry::EntityType::EndCrystal => {
+                EntityMetadata::EndCrystal(EndCrystal::default())
+            }
+            azalea_registry::EntityType::EnderDragon => {
+                EntityMetadata::EnderDragon(EnderDragon::default())
+            }
+            azalea_registry::EntityType::EnderPearl => {
+                EntityMetadata::EnderPearl(EnderPearl::default())
+            }
+            azalea_registry::EntityType::Enderman => EntityMetadata::Enderman(Enderman::default()),
+            azalea_registry::EntityType::Endermite => {
+                EntityMetadata::Endermite(Endermite::default())
+            }
+            azalea_registry::EntityType::Evoker => EntityMetadata::Evoker(Evoker::default()),
+            azalea_registry::EntityType::EvokerFangs => {
+                EntityMetadata::EvokerFangs(EvokerFangs::default())
+            }
+            azalea_registry::EntityType::ExperienceBottle => {
+                EntityMetadata::ExperienceBottle(ExperienceBottle::default())
+            }
+            azalea_registry::EntityType::ExperienceOrb => {
+                EntityMetadata::ExperienceOrb(ExperienceOrb::default())
+            }
+            azalea_registry::EntityType::EyeOfEnder => {
+                EntityMetadata::EyeOfEnder(EyeOfEnder::default())
+            }
+            azalea_registry::EntityType::FallingBlock => {
+                EntityMetadata::FallingBlock(FallingBlock::default())
+            }
+            azalea_registry::EntityType::Fireball => EntityMetadata::Fireball(Fireball::default()),
+            azalea_registry::EntityType::FireworkRocket => {
+                EntityMetadata::FireworkRocket(FireworkRocket::default())
+            }
+            azalea_registry::EntityType::FishingBobber => {
+                EntityMetadata::FishingBobber(FishingBobber::default())
+            }
+            azalea_registry::EntityType::Fox => EntityMetadata::Fox(Fox::default()),
+            azalea_registry::EntityType::Frog => EntityMetadata::Frog(Frog::default()),
+            azalea_registry::EntityType::FurnaceMinecart => {
+                EntityMetadata::FurnaceMinecart(FurnaceMinecart::default())
+            }
+            azalea_registry::EntityType::Ghast => EntityMetadata::Ghast(Ghast::default()),
+            azalea_registry::EntityType::Giant => EntityMetadata::Giant(Giant::default()),
+            azalea_registry::EntityType::GlowItemFrame => {
+                EntityMetadata::GlowItemFrame(GlowItemFrame::default())
+            }
+            azalea_registry::EntityType::GlowSquid => {
+                EntityMetadata::GlowSquid(GlowSquid::default())
+            }
+            azalea_registry::EntityType::Goat => EntityMetadata::Goat(Goat::default()),
+            azalea_registry::EntityType::Guardian => EntityMetadata::Guardian(Guardian::default()),
+            azalea_registry::EntityType::Hoglin => EntityMetadata::Hoglin(Hoglin::default()),
+            azalea_registry::EntityType::HopperMinecart => {
+                EntityMetadata::HopperMinecart(HopperMinecart::default())
+            }
+            azalea_registry::EntityType::Horse => EntityMetadata::Horse(Horse::default()),
+            azalea_registry::EntityType::Husk => EntityMetadata::Husk(Husk::default()),
+            azalea_registry::EntityType::Illusioner => {
+                EntityMetadata::Illusioner(Illusioner::default())
+            }
+            azalea_registry::EntityType::IronGolem => {
+                EntityMetadata::IronGolem(IronGolem::default())
+            }
+            azalea_registry::EntityType::Item => EntityMetadata::Item(Item::default()),
+            azalea_registry::EntityType::ItemFrame => {
+                EntityMetadata::ItemFrame(ItemFrame::default())
+            }
+            azalea_registry::EntityType::LeashKnot => {
+                EntityMetadata::LeashKnot(LeashKnot::default())
+            }
+            azalea_registry::EntityType::LightningBolt => {
+                EntityMetadata::LightningBolt(LightningBolt::default())
+            }
+            azalea_registry::EntityType::Llama => EntityMetadata::Llama(Llama::default()),
+            azalea_registry::EntityType::LlamaSpit => {
+                EntityMetadata::LlamaSpit(LlamaSpit::default())
+            }
+            azalea_registry::EntityType::MagmaCube => {
+                EntityMetadata::MagmaCube(MagmaCube::default())
+            }
+            azalea_registry::EntityType::Marker => EntityMetadata::Marker(Marker::default()),
+            azalea_registry::EntityType::Minecart => EntityMetadata::Minecart(Minecart::default()),
+            azalea_registry::EntityType::Mooshroom => {
+                EntityMetadata::Mooshroom(Mooshroom::default())
+            }
+            azalea_registry::EntityType::Mule => EntityMetadata::Mule(Mule::default()),
+            azalea_registry::EntityType::Ocelot => EntityMetadata::Ocelot(Ocelot::default()),
+            azalea_registry::EntityType::Painting => EntityMetadata::Painting(Painting::default()),
+            azalea_registry::EntityType::Panda => EntityMetadata::Panda(Panda::default()),
+            azalea_registry::EntityType::Parrot => EntityMetadata::Parrot(Parrot::default()),
+            azalea_registry::EntityType::Phantom => EntityMetadata::Phantom(Phantom::default()),
+            azalea_registry::EntityType::Pig => EntityMetadata::Pig(Pig::default()),
+            azalea_registry::EntityType::Piglin => EntityMetadata::Piglin(Piglin::default()),
+            azalea_registry::EntityType::PiglinBrute => {
+                EntityMetadata::PiglinBrute(PiglinBrute::default())
+            }
+            azalea_registry::EntityType::Pillager => EntityMetadata::Pillager(Pillager::default()),
+            azalea_registry::EntityType::Player => EntityMetadata::Player(Player::default()),
+            azalea_registry::EntityType::PolarBear => {
+                EntityMetadata::PolarBear(PolarBear::default())
+            }
+            azalea_registry::EntityType::Potion => EntityMetadata::Potion(Potion::default()),
+            azalea_registry::EntityType::Pufferfish => {
+                EntityMetadata::Pufferfish(Pufferfish::default())
+            }
+            azalea_registry::EntityType::Rabbit => EntityMetadata::Rabbit(Rabbit::default()),
+            azalea_registry::EntityType::Ravager => EntityMetadata::Ravager(Ravager::default()),
+            azalea_registry::EntityType::Salmon => EntityMetadata::Salmon(Salmon::default()),
+            azalea_registry::EntityType::Sheep => EntityMetadata::Sheep(Sheep::default()),
+            azalea_registry::EntityType::Shulker => EntityMetadata::Shulker(Shulker::default()),
+            azalea_registry::EntityType::ShulkerBullet => {
+                EntityMetadata::ShulkerBullet(ShulkerBullet::default())
+            }
+            azalea_registry::EntityType::Silverfish => {
+                EntityMetadata::Silverfish(Silverfish::default())
+            }
+            azalea_registry::EntityType::Skeleton => EntityMetadata::Skeleton(Skeleton::default()),
+            azalea_registry::EntityType::SkeletonHorse => {
+                EntityMetadata::SkeletonHorse(SkeletonHorse::default())
+            }
+            azalea_registry::EntityType::Slime => EntityMetadata::Slime(Slime::default()),
+            azalea_registry::EntityType::SmallFireball => {
+                EntityMetadata::SmallFireball(SmallFireball::default())
+            }
+            azalea_registry::EntityType::SnowGolem => {
+                EntityMetadata::SnowGolem(SnowGolem::default())
+            }
+            azalea_registry::EntityType::Snowball => EntityMetadata::Snowball(Snowball::default()),
+            azalea_registry::EntityType::SpawnerMinecart => {
+                EntityMetadata::SpawnerMinecart(SpawnerMinecart::default())
+            }
+            azalea_registry::EntityType::SpectralArrow => {
+                EntityMetadata::SpectralArrow(SpectralArrow::default())
+            }
+            azalea_registry::EntityType::Spider => EntityMetadata::Spider(Spider::default()),
+            azalea_registry::EntityType::Squid => EntityMetadata::Squid(Squid::default()),
+            azalea_registry::EntityType::Stray => EntityMetadata::Stray(Stray::default()),
+            azalea_registry::EntityType::Strider => EntityMetadata::Strider(Strider::default()),
+            azalea_registry::EntityType::Tadpole => EntityMetadata::Tadpole(Tadpole::default()),
+            azalea_registry::EntityType::Tnt => EntityMetadata::Tnt(Tnt::default()),
+            azalea_registry::EntityType::TntMinecart => {
+                EntityMetadata::TntMinecart(TntMinecart::default())
+            }
+            azalea_registry::EntityType::TraderLlama => {
+                EntityMetadata::TraderLlama(TraderLlama::default())
+            }
+            azalea_registry::EntityType::Trident => EntityMetadata::Trident(Trident::default()),
+            azalea_registry::EntityType::TropicalFish => {
+                EntityMetadata::TropicalFish(TropicalFish::default())
+            }
+            azalea_registry::EntityType::Turtle => EntityMetadata::Turtle(Turtle::default()),
+            azalea_registry::EntityType::Vex => EntityMetadata::Vex(Vex::default()),
+            azalea_registry::EntityType::Villager => EntityMetadata::Villager(Villager::default()),
+            azalea_registry::EntityType::Vindicator => {
+                EntityMetadata::Vindicator(Vindicator::default())
+            }
+            azalea_registry::EntityType::WanderingTrader => {
+                EntityMetadata::WanderingTrader(WanderingTrader::default())
+            }
+            azalea_registry::EntityType::Warden => EntityMetadata::Warden(Warden::default()),
+            azalea_registry::EntityType::Witch => EntityMetadata::Witch(Witch::default()),
+            azalea_registry::EntityType::Wither => EntityMetadata::Wither(Wither::default()),
+            azalea_registry::EntityType::WitherSkeleton => {
+                EntityMetadata::WitherSkeleton(WitherSkeleton::default())
+            }
+            azalea_registry::EntityType::WitherSkull => {
+                EntityMetadata::WitherSkull(WitherSkull::default())
+            }
+            azalea_registry::EntityType::Wolf => EntityMetadata::Wolf(Wolf::default()),
+            azalea_registry::EntityType::Zoglin => EntityMetadata::Zoglin(Zoglin::default()),
+            azalea_registry::EntityType::Zombie => EntityMetadata::Zombie(Zombie::default()),
+            azalea_registry::EntityType::ZombieHorse => {
+                EntityMetadata::ZombieHorse(ZombieHorse::default())
+            }
+            azalea_registry::EntityType::ZombieVillager => {
+                EntityMetadata::ZombieVillager(ZombieVillager::default())
+            }
+            azalea_registry::EntityType::ZombifiedPiglin => {
+                EntityMetadata::ZombifiedPiglin(ZombifiedPiglin::default())
+            }
+        }
+    }
 }

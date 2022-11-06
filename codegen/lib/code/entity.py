@@ -62,7 +62,8 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
             entity_parents[1].replace('~', ''))) if (len(entity_parents) >= 2) else None
         if parent_struct_name:
             parent_field_name = to_snake_case(parent_struct_name)
-        entity_structs.append(struct_name)
+        if not entity_parents[0].startswith('~'):
+            entity_structs.append(struct_name)
 
         reader_code = []
         writer_code = []
@@ -74,6 +75,10 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
         if parent_struct_name:
             assert parent_field_name
             code.append(f'pub {parent_field_name}: {parent_struct_name},')
+            reader_code.append(
+                f'let {parent_field_name} = {parent_struct_name}::read(metadata)?;')
+            writer_code.append(
+                f'metadata.extend(self.{parent_field_name}.write());')
         for index, name_or_bitfield in entity_metadata_names.items():
             if isinstance(name_or_bitfield, str):
                 # normal field (can be any type)
@@ -122,7 +127,7 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
         self_args = []
         if parent_struct_name:
             self_args.append(
-                f'{parent_field_name}: {parent_struct_name}::read(metadata)?')
+                f'{parent_field_name}')
         self_args.extend(field_names)
         code.append(f'Some(Self {{ {",".join(self_args)} }})')
         code.append('}')
@@ -228,6 +233,19 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
     code.append('pub enum EntityMetadata {')
     for struct_name in entity_structs:
         code.append(f'{struct_name}({struct_name}),')
+    code.append('}')
+    code.append('')
+
+    # impl From<azalea_registry::EntityType> for EntityMetadata {
+    code.append('impl From<azalea_registry::EntityType> for EntityMetadata {')
+    code.append('fn from(value: azalea_registry::EntityType) -> Self {')
+    code.append('match value {')
+    # azalea_registry::EntityType::Allay => EntityMetadata::Allay(Allay::default()),
+    for struct_name in entity_structs:
+        code.append(
+            f'azalea_registry::EntityType::{struct_name} => EntityMetadata::{struct_name}({struct_name}::default()),')
+    code.append('}')
+    code.append('}')
     code.append('}')
     code.append('')
 

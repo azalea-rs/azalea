@@ -1,7 +1,7 @@
 use azalea_buf::McBuf;
 use azalea_core::Vec3;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_world::entity::EntityData;
+use azalea_world::entity::{metadata, EntityData, EntityMetadata};
 use uuid::Uuid;
 
 /// This packet is sent by the server when a player comes into visible range, not when a player joins.
@@ -26,6 +26,7 @@ impl From<&ClientboundAddPlayerPacket> for EntityData {
                 y: p.y,
                 z: p.z,
             },
+            EntityMetadata::Player(metadata::Player::default()),
         )
     }
 }
