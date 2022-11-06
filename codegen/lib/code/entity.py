@@ -39,6 +39,7 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
     code.append('// This file is generated from codegen/lib/code/entity.py.')
     code.append("// Don't change it manually!")
     code.append('')
+    code.append('#![allow(clippy::clone_on_copy, clippy::derivable_impls)]')
     code.append('use super::{EntityDataValue, Rotations, VillagerData, Pose};')
     code.append('use azalea_block::BlockState;')
     code.append('use azalea_chat::Component;')
@@ -109,7 +110,7 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
 
                     field_names.append(name)
                     code.append(f'pub {name}: bool,')
-                    reader_code.append(f'let {name} = bitfield & {mask} != 1;')
+                    reader_code.append(f'let {name} = bitfield & {mask} != 0;')
                     writer_code.append(
                         f'if self.{name} {{ bitfield &= {mask}; }}')
                 writer_code.append(

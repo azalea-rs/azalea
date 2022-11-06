@@ -1,6 +1,7 @@
 // This file is generated from codegen/lib/code/entity.py.
 // Don't change it manually!
 
+#![allow(clippy::clone_on_copy, clippy::derivable_impls)]
 use super::{EntityDataValue, Pose, Rotations, VillagerData};
 use azalea_block::BlockState;
 use azalea_chat::Component;
@@ -127,10 +128,10 @@ impl ArmorStand {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_living = AbstractLiving::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let small = bitfield & 0x1 != 1;
-        let show_arms = bitfield & 0x4 != 1;
-        let no_base_plate = bitfield & 0x8 != 1;
-        let marker = bitfield & 0x10 != 1;
+        let small = bitfield & 0x1 != 0;
+        let show_arms = bitfield & 0x4 != 0;
+        let no_base_plate = bitfield & 0x8 != 0;
+        let marker = bitfield & 0x10 != 0;
         let head_pose = metadata.pop_front()?.into_rotations().ok()?;
         let body_pose = metadata.pop_front()?.into_rotations().ok()?;
         let left_arm_pose = metadata.pop_front()?.into_rotations().ok()?;
@@ -218,9 +219,9 @@ impl Arrow {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_entity = AbstractEntity::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let crit_arrow = bitfield & 0x1 != 1;
-        let shot_from_crossbow = bitfield & 0x4 != 1;
-        let no_physics = bitfield & 0x2 != 1;
+        let crit_arrow = bitfield & 0x1 != 0;
+        let shot_from_crossbow = bitfield & 0x4 != 0;
+        let no_physics = bitfield & 0x2 != 0;
         let pierce_level = metadata.pop_front()?.into_byte().ok()?;
         let effect_color = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
@@ -333,7 +334,7 @@ impl Bat {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_insentient = AbstractInsentient::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let resting = bitfield & 0x1 != 1;
+        let resting = bitfield & 0x1 != 0;
         Some(Self {
             abstract_insentient,
             resting,
@@ -381,9 +382,9 @@ impl Bee {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let has_nectar = bitfield & 0x8 != 1;
-        let has_stung = bitfield & 0x4 != 1;
-        let rolling = bitfield & 0x2 != 1;
+        let has_nectar = bitfield & 0x8 != 0;
+        let has_stung = bitfield & 0x4 != 0;
+        let rolling = bitfield & 0x2 != 0;
         let remaining_anger_time = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
             abstract_animal,
@@ -442,7 +443,7 @@ impl Blaze {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_monster = AbstractMonster::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let charged = bitfield & 0x1 != 1;
+        let charged = bitfield & 0x1 != 0;
         Some(Self {
             abstract_monster,
             charged,
@@ -968,11 +969,11 @@ impl Donkey {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tamed = bitfield & 0x2 != 1;
-        let eating = bitfield & 0x10 != 1;
-        let standing = bitfield & 0x20 != 1;
-        let bred = bitfield & 0x8 != 1;
-        let saddled = bitfield & 0x4 != 1;
+        let tamed = bitfield & 0x2 != 0;
+        let eating = bitfield & 0x10 != 0;
+        let standing = bitfield & 0x20 != 0;
+        let bred = bitfield & 0x8 != 0;
+        let saddled = bitfield & 0x4 != 0;
         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         let chest = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
@@ -1771,12 +1772,12 @@ impl Fox {
         let abstract_animal = AbstractAnimal::read(metadata)?;
         let kind = metadata.pop_front()?.into_int().ok()?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let sitting = bitfield & 0x1 != 1;
-        let faceplanted = bitfield & 0x40 != 1;
-        let sleeping = bitfield & 0x20 != 1;
-        let pouncing = bitfield & 0x10 != 1;
-        let crouching = bitfield & 0x4 != 1;
-        let interested = bitfield & 0x8 != 1;
+        let sitting = bitfield & 0x1 != 0;
+        let faceplanted = bitfield & 0x40 != 0;
+        let sleeping = bitfield & 0x20 != 0;
+        let pouncing = bitfield & 0x10 != 0;
+        let crouching = bitfield & 0x4 != 0;
+        let interested = bitfield & 0x8 != 0;
         let trusted_id_0 = metadata.pop_front()?.into_optional_uuid().ok()?;
         let trusted_id_1 = metadata.pop_front()?.into_optional_uuid().ok()?;
         Some(Self {
@@ -2266,11 +2267,11 @@ impl Horse {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tamed = bitfield & 0x2 != 1;
-        let eating = bitfield & 0x10 != 1;
-        let standing = bitfield & 0x20 != 1;
-        let bred = bitfield & 0x8 != 1;
-        let saddled = bitfield & 0x4 != 1;
+        let tamed = bitfield & 0x2 != 0;
+        let eating = bitfield & 0x10 != 0;
+        let standing = bitfield & 0x20 != 0;
+        let bred = bitfield & 0x8 != 0;
+        let saddled = bitfield & 0x4 != 0;
         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         let type_variant = metadata.pop_front()?.into_int().ok()?;
         Some(Self {
@@ -2421,7 +2422,7 @@ impl IronGolem {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_creature = AbstractCreature::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let player_created = bitfield & 0x1 != 1;
+        let player_created = bitfield & 0x1 != 0;
         Some(Self {
             abstract_creature,
             player_created,
@@ -2626,11 +2627,11 @@ impl Llama {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tamed = bitfield & 0x2 != 1;
-        let eating = bitfield & 0x10 != 1;
-        let standing = bitfield & 0x20 != 1;
-        let bred = bitfield & 0x8 != 1;
-        let saddled = bitfield & 0x4 != 1;
+        let tamed = bitfield & 0x2 != 0;
+        let eating = bitfield & 0x10 != 0;
+        let standing = bitfield & 0x20 != 0;
+        let bred = bitfield & 0x8 != 0;
+        let saddled = bitfield & 0x4 != 0;
         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         let chest = metadata.pop_front()?.into_boolean().ok()?;
         let strength = metadata.pop_front()?.into_int().ok()?;
@@ -2890,11 +2891,11 @@ impl Mule {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tamed = bitfield & 0x2 != 1;
-        let eating = bitfield & 0x10 != 1;
-        let standing = bitfield & 0x20 != 1;
-        let bred = bitfield & 0x8 != 1;
-        let saddled = bitfield & 0x4 != 1;
+        let tamed = bitfield & 0x2 != 0;
+        let eating = bitfield & 0x10 != 0;
+        let standing = bitfield & 0x20 != 0;
+        let bred = bitfield & 0x8 != 0;
+        let saddled = bitfield & 0x4 != 0;
         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         let chest = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
@@ -3060,10 +3061,10 @@ impl Panda {
         let sneeze_counter = metadata.pop_front()?.into_int().ok()?;
         let eat_counter = metadata.pop_front()?.into_int().ok()?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let sneezing = bitfield & 0x2 != 1;
-        let sitting = bitfield & 0x8 != 1;
-        let on_back = bitfield & 0x10 != 1;
-        let rolling = bitfield & 0x4 != 1;
+        let sneezing = bitfield & 0x2 != 0;
+        let sitting = bitfield & 0x8 != 0;
+        let on_back = bitfield & 0x10 != 0;
+        let rolling = bitfield & 0x4 != 0;
         let hidden_gene = metadata.pop_front()?.into_byte().ok()?;
         let flags = metadata.pop_front()?.into_byte().ok()?;
         Some(Self {
@@ -3721,7 +3722,7 @@ impl Sheep {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let sheared = bitfield & 0x10 != 1;
+        let sheared = bitfield & 0x10 != 0;
         Some(Self {
             abstract_animal,
             sheared,
@@ -3927,11 +3928,11 @@ impl SkeletonHorse {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tamed = bitfield & 0x2 != 1;
-        let eating = bitfield & 0x10 != 1;
-        let standing = bitfield & 0x20 != 1;
-        let bred = bitfield & 0x8 != 1;
-        let saddled = bitfield & 0x4 != 1;
+        let tamed = bitfield & 0x2 != 0;
+        let eating = bitfield & 0x10 != 0;
+        let standing = bitfield & 0x20 != 0;
+        let bred = bitfield & 0x8 != 0;
+        let saddled = bitfield & 0x4 != 0;
         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         Some(Self {
             abstract_animal,
@@ -4080,7 +4081,7 @@ impl SnowGolem {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_creature = AbstractCreature::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let has_pumpkin = bitfield & 0x10 != 1;
+        let has_pumpkin = bitfield & 0x10 != 0;
         Some(Self {
             abstract_creature,
             has_pumpkin,
@@ -4201,9 +4202,9 @@ impl SpectralArrow {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_entity = AbstractEntity::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let crit_arrow = bitfield & 0x1 != 1;
-        let shot_from_crossbow = bitfield & 0x4 != 1;
-        let no_physics = bitfield & 0x2 != 1;
+        let crit_arrow = bitfield & 0x1 != 0;
+        let shot_from_crossbow = bitfield & 0x4 != 0;
+        let no_physics = bitfield & 0x2 != 0;
         let pierce_level = metadata.pop_front()?.into_byte().ok()?;
         Some(Self {
             abstract_entity,
@@ -4262,7 +4263,7 @@ impl Spider {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_monster = AbstractMonster::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let climbing = bitfield & 0x1 != 1;
+        let climbing = bitfield & 0x1 != 0;
         Some(Self {
             abstract_monster,
             climbing,
@@ -4574,9 +4575,9 @@ impl Trident {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_entity = AbstractEntity::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let crit_arrow = bitfield & 0x1 != 1;
-        let shot_from_crossbow = bitfield & 0x4 != 1;
-        let no_physics = bitfield & 0x2 != 1;
+        let crit_arrow = bitfield & 0x1 != 0;
+        let shot_from_crossbow = bitfield & 0x4 != 0;
+        let no_physics = bitfield & 0x2 != 0;
         let pierce_level = metadata.pop_front()?.into_byte().ok()?;
         let loyalty = metadata.pop_front()?.into_byte().ok()?;
         let foil = metadata.pop_front()?.into_boolean().ok()?;
@@ -5276,11 +5277,11 @@ impl ZombieHorse {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tamed = bitfield & 0x2 != 1;
-        let eating = bitfield & 0x10 != 1;
-        let standing = bitfield & 0x20 != 1;
-        let bred = bitfield & 0x8 != 1;
-        let saddled = bitfield & 0x4 != 1;
+        let tamed = bitfield & 0x2 != 0;
+        let eating = bitfield & 0x10 != 0;
+        let standing = bitfield & 0x20 != 0;
+        let bred = bitfield & 0x8 != 0;
+        let saddled = bitfield & 0x4 != 0;
         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         Some(Self {
             abstract_animal,
@@ -5546,13 +5547,13 @@ pub struct AbstractEntity {
 impl AbstractEntity {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let on_fire = bitfield & 0x1 != 1;
-        let shift_key_down = bitfield & 0x2 != 1;
-        let sprinting = bitfield & 0x8 != 1;
-        let swimming = bitfield & 0x10 != 1;
-        let currently_glowing = bitfield & 0x40 != 1;
-        let invisible = bitfield & 0x20 != 1;
-        let fall_flying = bitfield & 0x80 != 1;
+        let on_fire = bitfield & 0x1 != 0;
+        let shift_key_down = bitfield & 0x2 != 0;
+        let sprinting = bitfield & 0x8 != 0;
+        let swimming = bitfield & 0x10 != 0;
+        let currently_glowing = bitfield & 0x40 != 0;
+        let invisible = bitfield & 0x20 != 0;
+        let fall_flying = bitfield & 0x80 != 0;
         let air_supply = metadata.pop_front()?.into_int().ok()?;
         let custom_name = metadata.pop_front()?.into_optional_component().ok()?;
         let custom_name_visible = metadata.pop_front()?.into_boolean().ok()?;
@@ -5647,9 +5648,9 @@ impl AbstractInsentient {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_living = AbstractLiving::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let no_ai = bitfield & 0x1 != 1;
-        let left_handed = bitfield & 0x2 != 1;
-        let aggressive = bitfield & 0x4 != 1;
+        let no_ai = bitfield & 0x1 != 0;
+        let left_handed = bitfield & 0x2 != 0;
+        let aggressive = bitfield & 0x4 != 0;
         Some(Self {
             abstract_living,
             no_ai,
@@ -5711,8 +5712,8 @@ impl AbstractLiving {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_entity = AbstractEntity::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let auto_spin_attack = bitfield & 0x4 != 1;
-        let using_item = bitfield & 0x1 != 1;
+        let auto_spin_attack = bitfield & 0x4 != 0;
+        let using_item = bitfield & 0x1 != 0;
         let health = metadata.pop_front()?.into_float().ok()?;
         let effect_color = metadata.pop_front()?.into_int().ok()?;
         let effect_ambience = metadata.pop_front()?.into_boolean().ok()?;
@@ -5886,8 +5887,8 @@ impl AbstractTameable {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_animal = AbstractAnimal::read(metadata)?;
         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tame = bitfield & 0x4 != 1;
-        let in_sitting_pose = bitfield & 0x1 != 1;
+        let tame = bitfield & 0x4 != 0;
+        let in_sitting_pose = bitfield & 0x1 != 0;
         let owneruuid = metadata.pop_front()?.into_optional_uuid().ok()?;
         Some(Self {
             abstract_animal,
