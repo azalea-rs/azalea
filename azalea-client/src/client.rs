@@ -28,7 +28,7 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{
-    entity::{EntityData, EntityMut, EntityRef},
+    entity::{metadata, EntityData, EntityMetadata, EntityMut, EntityRef},
     Dimension,
 };
 use log::{debug, error, warn};
@@ -399,7 +399,11 @@ impl Client {
                     // i'll make this an actual setting later
                     *dimension_lock = Dimension::new(16, height, min_y);
 
-                    let entity = EntityData::new(client.game_profile.uuid, Vec3::default());
+                    let entity = EntityData::new(
+                        client.game_profile.uuid,
+                        Vec3::default(),
+                        EntityMetadata::Player(metadata::Player::default()),
+                    );
                     dimension_lock.add_entity(p.player_id, entity);
 
                     let mut player_lock = client.player.lock();
@@ -579,8 +583,11 @@ impl Client {
                 let entity = EntityData::from(p);
                 client.dimension.lock().add_entity(p.id, entity);
             }
-            ClientboundGamePacket::SetEntityData(_p) => {
-                // debug!("Got set entity data packet {:?}", p);
+            ClientboundGamePacket::SetEntityData(p) => {
+                debug!("Got set entity data packet {:?}", p);
+                let mut dimension = client.dimension.lock();
+                let mut entity = dimension.entity_mut(p.id).expect("Entity doesn't exist");
+                entity.apply_metadata(&p.packed_items.0);
             }
             ClientboundGamePacket::UpdateAttributes(_p) => {
                 // debug!("Got update attributes packet {:?}", p);
