@@ -11,7 +11,8 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
     # TODO: auto generate this and use it for generating the EntityDataValue enum
     metadata_types = [
         {'name': 'Byte', 'type': 'u8'},
-        {'name': 'Int', 'type': 'i32'},
+        {'name': 'Int', 'type': 'i32', 'var': True},
+        {'name': 'Long', 'type': 'i64'},
         {'name': 'Float', 'type': 'f32'},
         {'name': 'String', 'type': 'String'},
         {'name': 'Component', 'type': 'Component'},
@@ -23,11 +24,11 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
         {'name': 'OptionalBlockPos', 'type': 'Option<BlockPos>'},
         {'name': 'Direction', 'type': 'Direction'},
         {'name': 'OptionalUuid', 'type': 'Option<Uuid>'},
-        {'name': 'OptionalBlockState', 'type': 'Option<BlockState>'},
+        {'name': 'BlockState', 'type': 'BlockState'},
         {'name': 'CompoundTag', 'type': 'azalea_nbt::Tag'},
         {'name': 'Particle', 'type': 'Particle'},
         {'name': 'VillagerData', 'type': 'VillagerData'},
-        {'name': 'OptionalUnsignedInt', 'type': 'Option<u32>'},
+        {'name': 'OptionalUnsignedInt', 'type': 'OptionalUnsignedInt'},
         {'name': 'Pose', 'type': 'Pose'},
         {'name': 'CatVariant', 'type': 'azalea_registry::CatVariant'},
         {'name': 'FrogVariant', 'type': 'azalea_registry::FrogVariant'},
@@ -40,7 +41,8 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
     code.append("// Don't change it manually!")
     code.append('')
     code.append('#![allow(clippy::clone_on_copy, clippy::derivable_impls)]')
-    code.append('use super::{EntityDataValue, Rotations, VillagerData, Pose};')
+    code.append(
+        'use super::{EntityDataValue, Rotations, VillagerData, OptionalUnsignedInt, Pose};')
     code.append('use azalea_block::BlockState;')
     code.append('use azalea_chat::Component;')
     code.append('use azalea_core::{BlockPos, Direction, Particle, Slot};')
@@ -185,6 +187,8 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
                         default = 'azalea_registry::PaintingVariant::Kebab'
                     elif type_name == 'FrogVariant':
                         default = 'azalea_registry::FrogVariant::Temperate'
+                    elif type_name == 'VillagerData':
+                        default = 'VillagerData { kind: azalea_registry::VillagerType::Plains, profession: azalea_registry::VillagerProfession::None, level: 0 }'
                     else:
                         default = 'Default::default()'
                 else:
@@ -200,11 +204,11 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
                     elif type_name == 'OptionalUuid':
                         default = f'Some(uuid::uuid!({default}))' if default != 'Empty' else 'None'
                     elif type_name == 'OptionalUnsignedInt':
-                        default = f'Some({default})' if default != 'Empty' else 'None'
+                        default = f'OptionalUnsignedInt(Some({default}))' if default != 'Empty' else 'OptionalUnsignedInt(None)'
                     elif type_name == 'ItemStack':
                         default = f'Slot::Present({default})' if default != 'Empty' else 'Slot::Empty'
-                    elif type_name == 'OptionalBlockState':
-                        default = f'Some({default})' if default != 'Empty' else 'None'
+                    elif type_name == 'BlockState':
+                        default = f'{default}' if default != 'Empty' else 'BlockState::Air'
                     elif type_name == 'OptionalComponent':
                         default = f'Some({default})' if default != 'Empty' else 'None'
                     elif type_name == 'CompoundTag':
