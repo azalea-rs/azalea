@@ -1,7 +1,7 @@
 use azalea_buf::McBuf;
 use azalea_core::Vec3;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_world::entity::EntityData;
+use azalea_world::entity::{EntityData, EntityMetadata};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
@@ -33,6 +33,8 @@ impl From<&ClientboundAddEntityPacket> for EntityData {
                 y: p.y,
                 z: p.z,
             },
+            // default metadata for the entity type
+            EntityMetadata::from(p.entity_type),
         )
     }
 }

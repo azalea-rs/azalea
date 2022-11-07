@@ -32,7 +32,7 @@ impl McBufReadable for ClientboundLevelParticlesPacket {
         let max_speed = f32::read_from(buf)?;
         let count = u32::read_from(buf)?;
 
-        let data = ParticleData::read_from_particle_id(buf, particle_id)?;
+        let data = ParticleData::read_from_id(buf, particle_id)?;
 
         Ok(Self {
             particle_id,

@@ -138,6 +138,12 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             impl azalea_buf::McBufReadable for #ident {
                 fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
                     let id = azalea_buf::McBufVarReadable::var_read_from(buf)?;
+                    Self::read_from_id(buf, id)
+                }
+            }
+
+            impl #ident {
+                pub fn read_from_id(buf: &mut std::io::Cursor<&[u8]>, id: u32) -> Result<Self, azalea_buf::BufReadError> {
                     match id {
                         #match_contents
                         // you'd THINK this throws an error, but mojang decided to make it default for some reason
@@ -210,6 +216,7 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             // remember whether it's a data variant so we can do an optimization later
             let mut is_data_enum = false;
             let mut match_arms = quote!();
+            let mut match_arms_without_id = quote!();
             let mut variant_discrim: u32 = 0;
             let mut first = true;
             for variant in variants {
@@ -260,6 +267,9 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                                 azalea_buf::McBufVarWritable::var_write_into(&#variant_discrim, buf)?;
                             }
                         });
+                        match_arms_without_id.extend(quote! {
+                            Self::#variant_name => {}
+                        });
                     }
                     syn::Fields::Unnamed(fields) => {
                         is_data_enum = true;
@@ -284,6 +294,11 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                                 #writers_code
                             }
                         });
+                        match_arms_without_id.extend(quote! {
+                            Self::#variant_name(data) => {
+                                azalea_buf::McBufWritable::write_into(data, buf)?;
+                            }
+                        });
                     }
                 }
             }
@@ -293,6 +308,14 @@ fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
                         fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
                             match self {
                                 #match_arms
+                            }
+                            Ok(())
+                        }
+                    }
+                    impl #ident {
+                        pub fn write_without_id(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                            match self {
+                                #match_arms_without_id
                             }
                             Ok(())
                         }

@@ -1,7 +1,7 @@
-from typing import Optional
-from lib.code.utils import burger_type_to_rust_type, write_packet_file
 from lib.utils import padded_hex, to_snake_case, to_camel_case, get_dir_location
+from lib.code.utils import burger_type_to_rust_type, write_packet_file
 from lib.mappings import Mappings
+from typing import Optional
 import os
 import re
 

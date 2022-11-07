@@ -3,8 +3,9 @@
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use std::io::{Cursor, Write};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum Slot {
+    #[default]
     Empty,
     Present(SlotData),
 }
