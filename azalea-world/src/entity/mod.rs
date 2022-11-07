@@ -1,7 +1,9 @@
+pub mod attributes;
 mod data;
 mod dimensions;
 pub mod metadata;
 
+use self::attributes::AttributeModifiers;
 pub use self::metadata::EntityMetadata;
 use crate::Dimension;
 use azalea_block::BlockState;
@@ -212,6 +214,8 @@ pub struct EntityData {
 
     /// Stores some extra data about the entity, including the entity type.
     pub metadata: EntityMetadata,
+
+    pub attribute_modifiers: AttributeModifiers,
 }
 
 impl EntityData {
@@ -247,6 +251,8 @@ impl EntityData {
             jumping: false,
 
             metadata,
+
+            attribute_modifiers: AttributeModifiers::default(),
         }
     }
 

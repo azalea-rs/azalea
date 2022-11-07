@@ -102,6 +102,7 @@ fn tick_execute_path(bot: &mut Client, path: &mut VecDeque<Node>) {
     // println!("going to {center:?} (at {pos:?})", pos = bot.entity().pos());
     bot.look_at(&center);
     bot.walk(WalkDirection::Forward);
+    bot.set_sprinting(true);
     // check if we should jump
     if target.pos.y > bot.entity().pos().y.floor() as i32 {
         bot.jump();
@@ -112,6 +113,7 @@ fn tick_execute_path(bot: &mut Client, path: &mut VecDeque<Node>) {
         path.pop_front();
         if path.is_empty() {
             bot.walk(WalkDirection::None);
+            bot.set_sprinting(false);
         }
         // tick again, maybe we already reached the next node!
         tick_execute_path(bot, path);
@@ -155,7 +157,7 @@ impl Node {
         );
         BlockPos::from(entity.pos()) == self.pos
             && match self.vertical_vel {
-                VerticalVel::NoneMidair => (entity.delta.y > -0.1 && entity.delta.y < 0.1),
+                VerticalVel::NoneMidair => entity.delta.y > -0.1 && entity.delta.y < 0.1,
                 VerticalVel::None => entity.on_ground,
                 VerticalVel::FallingLittle => entity.delta.y < -0.1,
             }

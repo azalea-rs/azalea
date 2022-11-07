@@ -218,7 +218,13 @@ impl Client {
         physics_state.move_direction = direction;
     }
 
-    /// Toggle whether we're jumping. This acts as if you held space in
+    /// Start sprinting in the given direction.
+    pub fn sprint(&mut self, direction: SprintDirection) {
+        let mut physics_state = self.physics_state.lock();
+        physics_state.move_direction = direction;
+    }
+
+    /// Set whether we're jumping. This acts as if you held space in
     /// vanilla. If you want to jump once, use the `jump` function.
     ///
     /// If you're making a realistic client, calling this function every tick is
@@ -257,4 +263,12 @@ pub enum WalkDirection {
     ForwardLeft,
     BackwardRight,
     BackwardLeft,
+}
+
+/// The directions that we can sprint in. It's a subset of [`WalkDirection`].
+#[derive(Clone, Copy, Debug)]
+pub enum SprintDirection {
+    Forward,
+    ForwardRight,
+    ForwardLeft,
 }
