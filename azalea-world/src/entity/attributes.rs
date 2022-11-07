@@ -11,17 +11,18 @@ pub struct AttributeModifiers {
 }
 
 #[derive(Clone, Debug, Default)]
-pub struct AttributeInstance<const BASE: f64> {
+pub struct AttributeInstance {
+    pub base: f64,
     pub modifiers: Vec<AttributeModifier>,
 }
 
-impl<const BASE: f64> AttributeInstance {
+impl AttributeInstance {
     pub fn calculate(&self) -> f64 {
-        let mut total = BASE;
+        let mut total = self.base;
         for modifier in self.modifiers {
             match modifier.operation {
                 AttributeModifierOperation::Addition => total += modifier.amount,
-                AttributeModifierOperation::MultiplyBase => total += BASE * modifier.amount,
+                AttributeModifierOperation::MultiplyBase => total += self.base * modifier.amount,
                 _ => {}
             }
             match modifier.operation {
