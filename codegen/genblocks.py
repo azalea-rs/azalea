@@ -9,7 +9,7 @@ import lib.utils
 
 version_id = lib.code.version.get_version_id()
 
-shape_datas = lib.extract.get_generator_mod_data(
+shape_datas = lib.extract.get_pixlyzer_data(
     version_id, 'blockCollisionShapes')
 
 mappings = lib.download.get_mappings_for_version(version_id)

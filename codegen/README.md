@@ -6,7 +6,7 @@ The directory name doesn't start with `azalea-` because it's not a Rust crate.
 
 - Python 3.8+
 - Java 17+
-- Gradle
+- Maven
 
 ## Usage
 
@@ -33,3 +33,14 @@ If a packet is incorrect, you'll want to find it in the Minecraft source. The na
 Finally, test by making a bot join a world. Specifically, you'll want to test the things that were updated in the version. Setting the RUST_LOG environment variable to `debug` or `trace` may help (trace shows the first few hundred bytes for every packet received so it's typically more useful, but it may log more than you want).
 
 If it all works, make a pull request. If the version you updated to is a snapshot, make it a draft PR (the main branch is for release versions).
+
+## Extracting new data
+
+At the time of writing, the following data generators are used:
+
+- [Vanilla data generator](https://wiki.vg/Data_Generators)
+- [Burger](https://github.com/Pokechu22/Burger)
+- [PixLyzer](https://gitlab.bixilon.de/bixilon/pixlyzer)
+
+Some things can be obtained from multiple generators. You should prefer them by the order above (the vanilla generator is the most reliable).
+
