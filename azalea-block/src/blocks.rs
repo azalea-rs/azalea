@@ -254,6 +254,24 @@ make_block_states! {
         },
         "short" => bool,
         "unstable" => bool,
+        "books_stored" => ChiseledBookshelfBooksStored {
+            _0,
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+            _6,
+        },
+        "last_interaction_book_slot" => ChiseledBookshelfLastInteractionBookSlot {
+            _0,
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+            _6,
+        },
         "age" => FireAge {
             _0,
             _1,
@@ -387,6 +405,7 @@ make_block_states! {
             NorthWest,
             NorthEast,
         },
+        "attached" => bool,
         "face" => Face {
             Floor,
             Wall,
@@ -505,7 +524,6 @@ make_block_states! {
             _1,
             _2,
         },
-        "attached" => bool,
         "disarmed" => bool,
         "conditional" => bool,
         "east" => EastWall {
@@ -1074,6 +1092,8 @@ make_block_states! {
         acacia_planks => BlockBehavior::default(), {},
         dark_oak_planks => BlockBehavior::default(), {},
         mangrove_planks => BlockBehavior::default(), {},
+        bamboo_planks => BlockBehavior::default(), {},
+        bamboo_mosaic => BlockBehavior::default(), {},
         oak_sapling => BlockBehavior::default(), {
             stage: OakSaplingStage::_0,
         },
@@ -1421,6 +1441,11 @@ make_block_states! {
             unstable: false,
         },
         bookshelf => BlockBehavior::default(), {},
+        chiseled_bookshelf => BlockBehavior::default(), {
+            books_stored: ChiseledBookshelfBooksStored::_0,
+            facing: FacingCardinal::North,
+            last_interaction_book_slot: ChiseledBookshelfLastInteractionBookSlot::_0,
+        },
         mossy_cobblestone => BlockBehavior::default(), {},
         obsidian => BlockBehavior::default(), {},
         torch => BlockBehavior::default(), {},
@@ -1497,6 +1522,10 @@ make_block_states! {
             rotation: _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15::_0,
             waterlogged: false,
         },
+        bamboo_sign => BlockBehavior::default(), {
+            rotation: _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15::_0,
+            waterlogged: false,
+        },
         oak_door => BlockBehavior::default(), {
             facing: FacingCardinal::North,
             half: Half::Lower,
@@ -1546,6 +1575,100 @@ make_block_states! {
             facing: FacingCardinal::North,
             waterlogged: false,
         },
+        bamboo_wall_sign => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            waterlogged: false,
+        },
+        oak_hanging_sign => BlockBehavior::default(), {
+            attached: false,
+            rotation: _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15::_0,
+            waterlogged: false,
+        },
+        spruce_hanging_sign => BlockBehavior::default(), {
+            attached: false,
+            rotation: _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15::_0,
+            waterlogged: false,
+        },
+        birch_hanging_sign => BlockBehavior::default(), {
+            attached: false,
+            rotation: _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15::_0,
+            waterlogged: false,
+        },
+        acacia_hanging_sign => BlockBehavior::default(), {
+            attached: false,
+            rotation: _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15::_0,
+            waterlogged: false,
+        },
+        jungle_hanging_sign => BlockBehavior::default(), {
+            attached: false,
+            rotation: _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15::_0,
+            waterlogged: false,
+        },
+        dark_oak_hanging_sign => BlockBehavior::default(), {
+            attached: false,
+            rotation: _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15::_0,
+            waterlogged: false,
+        },
+        crimson_hanging_sign => BlockBehavior::default(), {
+            attached: false,
+            rotation: _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15::_0,
+            waterlogged: false,
+        },
+        warped_hanging_sign => BlockBehavior::default(), {
+            attached: false,
+            rotation: _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15::_0,
+            waterlogged: false,
+        },
+        mangrove_hanging_sign => BlockBehavior::default(), {
+            attached: false,
+            rotation: _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15::_0,
+            waterlogged: false,
+        },
+        bamboo_hanging_sign => BlockBehavior::default(), {
+            attached: false,
+            rotation: _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15::_0,
+            waterlogged: false,
+        },
+        oak_wall_hanging_sign => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            waterlogged: false,
+        },
+        spruce_wall_hanging_sign => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            waterlogged: false,
+        },
+        birch_wall_hanging_sign => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            waterlogged: false,
+        },
+        acacia_wall_hanging_sign => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            waterlogged: false,
+        },
+        jungle_wall_hanging_sign => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            waterlogged: false,
+        },
+        dark_oak_wall_hanging_sign => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            waterlogged: false,
+        },
+        mangrove_wall_hanging_sign => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            waterlogged: false,
+        },
+        crimson_wall_hanging_sign => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            waterlogged: false,
+        },
+        warped_wall_hanging_sign => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            waterlogged: false,
+        },
+        bamboo_wall_hanging_sign => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            waterlogged: false,
+        },
         lever => BlockBehavior::default(), {
             face: Face::Wall,
             facing: FacingCardinal::North,
@@ -1580,6 +1703,9 @@ make_block_states! {
             powered: false,
         },
         mangrove_pressure_plate => BlockBehavior::default(), {
+            powered: false,
+        },
+        bamboo_pressure_plate => BlockBehavior::default(), {
             powered: false,
         },
         redstone_ore => BlockBehavior::default(), {
@@ -1714,6 +1840,13 @@ make_block_states! {
             waterlogged: false,
         },
         mangrove_trapdoor => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            half: TopBottom::Bottom,
+            open: false,
+            powered: false,
+            waterlogged: false,
+        },
+        bamboo_trapdoor => BlockBehavior::default(), {
             facing: FacingCardinal::North,
             half: TopBottom::Bottom,
             open: false,
@@ -2009,6 +2142,11 @@ make_block_states! {
             facing: FacingCardinal::North,
             powered: false,
         },
+        bamboo_button => BlockBehavior::default(), {
+            face: Face::Wall,
+            facing: FacingCardinal::North,
+            powered: false,
+        },
         skeleton_skull => BlockBehavior::default(), {
             rotation: _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15::_0,
         },
@@ -2246,6 +2384,18 @@ make_block_states! {
             shape: StairShape::Straight,
             waterlogged: false,
         },
+        bamboo_stairs => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            half: TopBottom::Bottom,
+            shape: StairShape::Straight,
+            waterlogged: false,
+        },
+        bamboo_mosaic_stairs => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            half: TopBottom::Bottom,
+            shape: StairShape::Straight,
+            waterlogged: false,
+        },
         slime_block => BlockBehavior::default(), {},
         barrier => BlockBehavior::default(), {},
         light => BlockBehavior::default(), {
@@ -2466,6 +2616,14 @@ make_block_states! {
             kind: Type::Bottom,
             waterlogged: false,
         },
+        bamboo_slab => BlockBehavior::default(), {
+            kind: Type::Bottom,
+            waterlogged: false,
+        },
+        bamboo_mosaic_slab => BlockBehavior::default(), {
+            kind: Type::Bottom,
+            waterlogged: false,
+        },
         stone_slab => BlockBehavior::default(), {
             kind: Type::Bottom,
             waterlogged: false,
@@ -2562,6 +2720,12 @@ make_block_states! {
             open: false,
             powered: false,
         },
+        bamboo_fence_gate => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            in_wall: false,
+            open: false,
+            powered: false,
+        },
         spruce_fence => BlockBehavior::default(), {
             east: false,
             north: false,
@@ -2604,6 +2768,13 @@ make_block_states! {
             waterlogged: false,
             west: false,
         },
+        bamboo_fence => BlockBehavior::default(), {
+            east: false,
+            north: false,
+            south: false,
+            waterlogged: false,
+            west: false,
+        },
         spruce_door => BlockBehavior::default(), {
             facing: FacingCardinal::North,
             half: Half::Lower,
@@ -2640,6 +2811,13 @@ make_block_states! {
             powered: false,
         },
         mangrove_door => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            half: Half::Lower,
+            hinge: Hinge::Left,
+            open: false,
+            powered: false,
+        },
+        bamboo_door => BlockBehavior::default(), {
             facing: FacingCardinal::North,
             half: Half::Lower,
             hinge: Hinge::Left,
