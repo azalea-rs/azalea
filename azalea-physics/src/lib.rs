@@ -167,7 +167,7 @@ fn handle_relative_friction_and_calculate_movement(
 fn get_friction_influenced_speed(entity: &EntityData, friction: f32) -> f32 {
     // TODO: have speed & flying_speed fields in entity
     if entity.on_ground {
-        let speed: f32 = 0.1;
+        let speed: f32 = entity.attributes.speed.calculate() as f32;
         speed * (0.216f32 / (friction * friction * friction))
     } else {
         // entity.flying_speed

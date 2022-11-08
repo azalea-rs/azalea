@@ -215,7 +215,8 @@ pub struct EntityData {
     /// Stores some extra data about the entity, including the entity type.
     pub metadata: EntityMetadata,
 
-    pub attribute_modifiers: AttributeModifiers,
+    /// The attributes and modifiers that the entity has (for example, speed).
+    pub attributes: AttributeModifiers,
 }
 
 impl EntityData {
@@ -252,7 +253,7 @@ impl EntityData {
 
             metadata,
 
-            attribute_modifiers: AttributeModifiers {
+            attributes: AttributeModifiers {
                 // TODO: do the correct defaults for everything, some entities have different defaults
                 speed: AttributeInstance::new(0.1),
             },

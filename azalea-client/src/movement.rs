@@ -238,13 +238,13 @@ impl Client {
         let mut player_entity = self.entity_mut();
         if sprinting {
             player_entity
-                .attribute_modifiers
+                .attributes
                 .speed
                 .insert(azalea_world::entity::attributes::sprinting_modifier())
                 .is_ok()
         } else {
             player_entity
-                .attribute_modifiers
+                .attributes
                 .speed
                 .remove(&azalea_world::entity::attributes::sprinting_modifier().uuid)
                 .is_none()
