@@ -7,8 +7,8 @@ COLLISION_BLOCKS_RS_DIR = get_dir_location(
     '../azalea-physics/src/collision/blocks.rs')
 
 
-def generate_block_shapes(blocks: dict, shapes: dict, block_states_report, block_datas_burger, mappings: Mappings):
-    blocks, shapes = simplify_shapes(blocks, shapes)
+def generate_block_shapes(blocks: dict, shapes: dict, aabbs: dict, block_states_report, block_datas_burger, mappings: Mappings):
+    blocks, shapes = simplify_shapes(blocks, shapes, aabbs)
 
     code = generate_block_shapes_code(
         blocks, shapes, block_states_report, block_datas_burger, mappings)
@@ -16,30 +16,39 @@ def generate_block_shapes(blocks: dict, shapes: dict, block_states_report, block
         f.write(code)
 
 
-def simplify_shapes(blocks: dict, shapes: dict):
+def simplify_shapes(blocks: dict, shapes: dict, aabbs: dict):
     shape_to_new_id = {}
     new_id_increment = 0
 
     new_shapes = {}
     old_id_to_new_id = {}
 
-    for shape_id, shape in sorted(shapes.items(), key=lambda shape: int(shape[0])):
-        # tuples are hashable
-        shape_as_tuple = tuple(map(tuple, shape))
-        if shape_as_tuple not in shape_to_new_id:
-            shape_to_new_id[shape_as_tuple] = new_id_increment
+    for shape_id, shape in enumerate(shapes):
+        # pixlyzer gives us shapes as an index or list of indexes into the
+        # aabbs list
+        # and aabbs look like { "from": number or [x, y, z], "to": (number or vec3) }
+        # convert them to [x1, y1, z1, x2, y2, z2]
+        shape = [shape] if isinstance(shape, int) else shape
+        shape = [aabbs[shape_aabb] for shape_aabb in shape_aabbs]
+        shape = tuple([(
+            part['from'] if isinstance(part['from'], list) else ((part['from'],)*3)
+            + part['to'] if isinstance(part['to'], list) else ((part['to'],)*3)
+        ) for part in shape])
+
+        if shape not in shape_to_new_id:
+            shape_to_new_id[shape] = new_id_increment
             old_id_to_new_id[shape_id] = new_id_increment
             new_shapes[new_id_increment] = shape
             new_id_increment += 1
         else:
-            old_id_to_new_id[shape_id] = shape_to_new_id[shape_as_tuple]
+            old_id_to_new_id[shape_id] = shape_to_new_id[shape]
 
     # now map the blocks to the new shape ids
-    for block_id, shape_ids in blocks.items():
+    for block_id, shape_ids in enumerate(blocks):
         if isinstance(shape_ids, int):
-            blocks[block_id] = old_id_to_new_id[str(shape_ids)]
+            blocks[block_id] = old_id_to_new_id[shape_ids]
         else:
-            blocks[block_id] = [old_id_to_new_id[str(shape_id)]
+            blocks[block_id] = [old_id_to_new_id[shape_id]
                                 for shape_id in shape_ids]
 
     return blocks, new_shapes
