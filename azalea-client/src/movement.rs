@@ -2,6 +2,7 @@ use crate::Client;
 use azalea_core::Vec3;
 use azalea_physics::collision::{MovableEntity, MoverType};
 use azalea_physics::HasPhysics;
+use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
     serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
@@ -28,23 +29,37 @@ impl From<MoveEntityError> for MovePlayerError {
 }
 
 impl Client {
-    /// This gets called every tick.
-    pub async fn send_position(&mut self) -> Result<(), MovePlayerError> {
+    /// This gets called automatically every tick.
+    pub(crate) async fn send_position(&mut self) -> Result<(), MovePlayerError> {
         let packet = {
-            let player_lock = self.player.write();
-            let mut physics_state = self.physics_state.lock();
-            let mut dimension_lock = self.dimension.write();
-
-            let mut player_entity = player_lock
-                .entity_mut(&mut dimension_lock)
-                .expect("Player must exist");
-            let player_pos = player_entity.pos();
-            let player_old_pos = player_entity.last_pos;
-
             // TODO: send sprinting and sneaking packets here if they changed
+            let is_sprinting = self.entity().metadata.sprinting;
+            if is_sprinting != self.physics_state.lock().was_sprinting {
+                let sprinting_action = if is_sprinting {
+                    azalea_protocol::packets::game::serverbound_player_command_packet::Action::StartSprinting
+                } else {
+                    azalea_protocol::packets::game::serverbound_player_command_packet::Action::StopSprinting
+                };
+                let player_entity_id = self.entity().id;
+                self.write_packet(
+                    ServerboundPlayerCommandPacket {
+                        id: player_entity_id,
+                        action: sprinting_action,
+                        data: 0,
+                    }
+                    .get(),
+                )
+                .await?;
+            }
 
             // TODO: the camera being able to be controlled by other entities isn't implemented yet
             // if !self.is_controlled_camera() { return };
+
+            let mut physics_state = self.physics_state.lock();
+
+            let player_entity = self.entity();
+            let player_pos = player_entity.pos();
+            let player_old_pos = player_entity.last_pos;
 
             let x_delta = player_pos.x - player_old_pos.x;
             let y_delta = player_pos.y - player_old_pos.y;
@@ -104,6 +119,8 @@ impl Client {
             } else {
                 None
             };
+
+            let mut player_entity = self.entity_mut();
 
             if sending_position {
                 player_entity.last_pos = *player_entity.pos();
@@ -212,7 +229,9 @@ impl Client {
         }
     }
 
-    /// Start walking in the given direction.
+    /// Start walking in the given direction. To sprint, use
+    /// [`Client::sprint`]. To stop walking, call walk with
+    /// `WalkDirection::None`.
     pub fn walk(&mut self, direction: WalkDirection) {
         {
             let mut physics_state = self.physics_state.lock();
@@ -222,13 +241,19 @@ impl Client {
         self.set_sprinting(false);
     }
 
-    /// Start sprinting in the given direction.
+    /// Start sprinting in the given direction. To stop moving, call
+    /// [`Client::walk(WalkDirection::None)`]
     pub fn sprint(&mut self, direction: SprintDirection) {
         {
             let mut physics_state = self.physics_state.lock();
             physics_state.move_direction = WalkDirection::from(direction);
         }
         self.set_sprinting(true);
+    }
+
+    // Whether we're currently sprinting.
+    pub fn sprinting(&self) -> bool {
+        self.entity().metadata.sprinting
     }
 
     /// Change whether we're sprinting by adding an attribute modifier to the
