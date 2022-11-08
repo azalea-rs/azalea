@@ -2,7 +2,7 @@ mod moves;
 mod mtdstarlite;
 
 use async_trait::async_trait;
-use azalea::{prelude::*, WalkDirection, SprintDirection};
+use azalea::{prelude::*, SprintDirection, WalkDirection};
 use azalea::{Client, Event};
 use azalea_core::BlockPos;
 use azalea_world::entity::EntityData;

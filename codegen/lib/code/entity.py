@@ -309,6 +309,28 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
     code.append('}')
     code.append('')
 
+    # impl Deref for EntityMetadata {
+    #     type Target = AbstractEntity;
+    #     fn deref(&self) -> &Self::Target {
+    #         match self {
+    #             EntityMetadata::Allay(entity) => entity,
+    #             _ => {}
+    #         }
+    #     }
+    # }
+    code.append('impl Deref for EntityMetadata {')
+    code.append('type Target = AbstractEntity;')
+    code.append('fn deref(&self) -> &Self::Target {')
+    code.append('match self {')
+    for struct_name in entity_structs:
+        code.append(
+            f'EntityMetadata::{struct_name}(entity) => entity,')
+    code.append('}')
+    code.append('}')
+    code.append('}')
+    code.append('')
+
+
     with open(METADATA_RS_DIR, 'w') as f:
         f.write('\n'.join(code))
 

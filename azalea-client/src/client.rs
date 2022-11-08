@@ -101,6 +101,7 @@ pub struct Client {
 pub struct PhysicsState {
     /// Minecraft only sends a movement packet either after 20 ticks or if the player moved enough. This is that tick counter.
     pub position_remainder: u32,
+    pub was_sprinting: bool,
 
     pub move_direction: WalkDirection,
     pub forward_impulse: f32,
