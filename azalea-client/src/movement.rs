@@ -214,14 +214,41 @@ impl Client {
 
     /// Start walking in the given direction.
     pub fn walk(&mut self, direction: WalkDirection) {
-        let mut physics_state = self.physics_state.lock();
-        physics_state.move_direction = direction;
+        {
+            let mut physics_state = self.physics_state.lock();
+            physics_state.move_direction = direction;
+        }
+
+        self.set_sprinting(false);
     }
 
     /// Start sprinting in the given direction.
     pub fn sprint(&mut self, direction: SprintDirection) {
-        let mut physics_state = self.physics_state.lock();
-        physics_state.move_direction = direction;
+        {
+            let mut physics_state = self.physics_state.lock();
+            physics_state.move_direction = WalkDirection::from(direction);
+        }
+        self.set_sprinting(true);
+    }
+
+    /// Change whether we're sprinting by adding an attribute modifier to the
+    /// player. You should use the [`walk`] and [`sprint`] methods instead.
+    /// Returns if the operation was successful.
+    fn set_sprinting(&mut self, sprinting: bool) -> bool {
+        let mut player_entity = self.entity_mut();
+        if sprinting {
+            player_entity
+                .attribute_modifiers
+                .speed
+                .insert(azalea_world::entity::attributes::sprinting_modifier())
+                .is_ok()
+        } else {
+            player_entity
+                .attribute_modifiers
+                .speed
+                .remove(&azalea_world::entity::attributes::sprinting_modifier().uuid)
+                .is_none()
+        }
     }
 
     /// Set whether we're jumping. This acts as if you held space in
@@ -231,7 +258,6 @@ impl Client {
     /// recommended.
     pub fn set_jumping(&mut self, jumping: bool) {
         let mut player_entity = self.entity_mut();
-
         player_entity.jumping = jumping;
     }
 
@@ -271,4 +297,14 @@ pub enum SprintDirection {
     Forward,
     ForwardRight,
     ForwardLeft,
+}
+
+impl From<SprintDirection> for WalkDirection {
+    fn from(d: SprintDirection) -> Self {
+        match d {
+            SprintDirection::Forward => WalkDirection::Forward,
+            SprintDirection::ForwardRight => WalkDirection::ForwardRight,
+            SprintDirection::ForwardLeft => WalkDirection::ForwardLeft,
+        }
+    }
 }

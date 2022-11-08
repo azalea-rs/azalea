@@ -1,25 +1,40 @@
 //! https://minecraft.fandom.com/wiki/Attribute
 
-use std::io::{Cursor, Write};
+use std::{
+    collections::HashMap,
+    io::{Cursor, Write},
+};
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+use thiserror::Error;
 use uuid::{uuid, Uuid};
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct AttributeModifiers {
     pub speed: AttributeInstance,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct AttributeInstance {
     pub base: f64,
-    pub modifiers: Vec<AttributeModifier>,
+    modifiers_by_uuid: HashMap<Uuid, AttributeModifier>,
 }
 
+#[derive(Clone, Debug, Error)]
+#[error("A modifier with this UUID is already present.")]
+pub struct AlreadyPresentError;
+
 impl AttributeInstance {
+    pub fn new(base: f64) -> Self {
+        Self {
+            base,
+            modifiers_by_uuid: HashMap::new(),
+        }
+    }
+
     pub fn calculate(&self) -> f64 {
         let mut total = self.base;
-        for modifier in self.modifiers {
+        for modifier in self.modifiers_by_uuid.values() {
             match modifier.operation {
                 AttributeModifierOperation::Addition => total += modifier.amount,
                 AttributeModifierOperation::MultiplyBase => total += self.base * modifier.amount,
@@ -31,6 +46,25 @@ impl AttributeInstance {
             }
         }
         total
+    }
+
+    /// Add a new modifier to this attribute.
+    pub fn insert(&mut self, modifier: AttributeModifier) -> Result<(), AlreadyPresentError> {
+        if self
+            .modifiers_by_uuid
+            .insert(modifier.uuid, modifier)
+            .is_some()
+        {
+            Err(AlreadyPresentError)
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Remove the modifier with the given UUID from this attribute, returning
+    /// the previous modifier is present.
+    pub fn remove(&mut self, uuid: &Uuid) -> Option<AttributeModifier> {
+        self.modifiers_by_uuid.remove(uuid)
     }
 }
 

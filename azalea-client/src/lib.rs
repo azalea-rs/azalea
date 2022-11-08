@@ -18,7 +18,7 @@ mod plugins;
 
 pub use account::Account;
 pub use client::{ChatPacket, Client, ClientInformation, Event, JoinError};
-pub use movement::WalkDirection;
+pub use movement::{SprintDirection, WalkDirection};
 pub use player::Player;
 pub use plugins::{Plugin, Plugins};
 

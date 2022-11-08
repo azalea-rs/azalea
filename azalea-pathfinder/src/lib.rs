@@ -2,7 +2,7 @@ mod moves;
 mod mtdstarlite;
 
 use async_trait::async_trait;
-use azalea::{prelude::*, WalkDirection};
+use azalea::{prelude::*, WalkDirection, SprintDirection};
 use azalea::{Client, Event};
 use azalea_core::BlockPos;
 use azalea_world::entity::EntityData;
@@ -101,8 +101,7 @@ fn tick_execute_path(bot: &mut Client, path: &mut VecDeque<Node>) {
     let center = target.pos.center();
     // println!("going to {center:?} (at {pos:?})", pos = bot.entity().pos());
     bot.look_at(&center);
-    bot.walk(WalkDirection::Forward);
-    bot.set_sprinting(true);
+    bot.sprint(SprintDirection::Forward);
     // check if we should jump
     if target.pos.y > bot.entity().pos().y.floor() as i32 {
         bot.jump();
@@ -113,7 +112,6 @@ fn tick_execute_path(bot: &mut Client, path: &mut VecDeque<Node>) {
         path.pop_front();
         if path.is_empty() {
             bot.walk(WalkDirection::None);
-            bot.set_sprinting(false);
         }
         // tick again, maybe we already reached the next node!
         tick_execute_path(bot, path);

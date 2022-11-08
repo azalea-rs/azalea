@@ -3,7 +3,7 @@ mod data;
 mod dimensions;
 pub mod metadata;
 
-use self::attributes::AttributeModifiers;
+use self::attributes::{AttributeInstance, AttributeModifiers};
 pub use self::metadata::EntityMetadata;
 use crate::Dimension;
 use azalea_block::BlockState;
@@ -252,7 +252,10 @@ impl EntityData {
 
             metadata,
 
-            attribute_modifiers: AttributeModifiers::default(),
+            attribute_modifiers: AttributeModifiers {
+                // TODO: do the correct defaults for everything, some entities have different defaults
+                speed: AttributeInstance::new(0.1),
+            },
         }
     }
 
