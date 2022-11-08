@@ -419,6 +419,10 @@ impl Client {
                 // send the client information that we have set
                 let client_information_packet: ClientInformation =
                     client.client_information.read().clone();
+                log::debug!(
+                    "Sending client information because login: {:?}",
+                    client_information_packet
+                );
                 client.write_packet(client_information_packet.get()).await?;
 
                 // brand
@@ -865,6 +869,10 @@ impl Client {
                 let client_information = self.client_information.read();
                 client_information.clone().get()
             };
+            log::debug!(
+                "Sending client information (already logged in): {:?}",
+                client_information_packet
+            );
             self.write_packet(client_information_packet).await?;
         }
 
