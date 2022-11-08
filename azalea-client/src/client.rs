@@ -584,8 +584,8 @@ impl Client {
                     .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data))
                     .unwrap();
             }
-            ClientboundGamePacket::LightUpdate(p) => {
-                debug!("Got light update packet {:?}", p);
+            ClientboundGamePacket::LightUpdate(_p) => {
+                // debug!("Got light update packet {:?}", p);
             }
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {:?}", p);
