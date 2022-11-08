@@ -51,8 +51,12 @@ impl BitSet {
             end_word_index = self.data.len() - 1;
         }
 
-        let first_word_mask = u64::MAX << from_index;
-        let last_word_mask = u64::MAX >> (64 - (to_index % 64));
+        let first_word_mask = u64::MAX.wrapping_shl(
+            from_index
+                .try_into()
+                .expect("from_index shouldn't be larger than u32"),
+        );
+        let last_word_mask = u64::MAX.wrapping_shr((64 - (to_index % 64)) as u32);
         if start_word_index == end_word_index {
             // Case 1: One word
             self.data[start_word_index] &= !(first_word_mask & last_word_mask);
@@ -135,5 +139,23 @@ mod tests {
         assert_eq!(bitset.index(64), false);
         assert_eq!(bitset.index(65), true);
         assert_eq!(bitset.index(66), true);
+    }
+
+    #[test]
+    fn test_clear_2() {
+        let mut bitset = BitSet::new(128);
+        bitset.set(64);
+        bitset.set(65);
+        bitset.set(66);
+        bitset.set(67);
+        bitset.set(68);
+
+        bitset.clear(65, 67);
+
+        assert_eq!(bitset.index(64), true);
+        assert_eq!(bitset.index(65), false);
+        assert_eq!(bitset.index(66), false);
+        assert_eq!(bitset.index(67), true);
+        assert_eq!(bitset.index(68), true);
     }
 }
