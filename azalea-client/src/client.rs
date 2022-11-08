@@ -31,7 +31,7 @@ use azalea_world::{
     entity::{metadata, EntityData, EntityMetadata, EntityMut, EntityRef},
     Dimension,
 };
-use log::{debug, error, warn};
+use log::{debug, error, info, warn};
 use parking_lot::{Mutex, RwLock};
 use std::{
     fmt::Debug,
@@ -309,6 +309,11 @@ impl Client {
                     }
                 },
                 Err(e) => {
+                    if let ReadPacketError::ConnectionClosed = e {
+                        info!("Connection closed");
+                        client.shutdown().await;
+                        return;
+                    }
                     if IGNORE_ERRORS {
                         warn!("{}", e);
                         match e {

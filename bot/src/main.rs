@@ -8,17 +8,20 @@ struct State {}
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
-    let account = Account::microsoft("example@example.com").await?;
+    // let account = Account::microsoft("example@example.com").await?;
+    let account = Account::offline("bot");
 
-    azalea::start(azalea::Options {
-        account,
-        address: "localhost",
-        state: State::default(),
-        plugins: vec![],
-        handle,
-    })
-    .await
-    .unwrap();
+    loop {
+        let e = azalea::start(azalea::Options {
+            account: account.clone(),
+            address: "localhost",
+            state: State::default(),
+            plugins: vec![],
+            handle,
+        })
+        .await;
+        println!("{:?}", e);
+    }
 
     Ok(())
 }
