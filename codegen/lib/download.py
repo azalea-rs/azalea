@@ -180,4 +180,4 @@ def clear_version_cache():
     os.system(
         f'cd {get_dir_location("downloads/Burger")} && git pull')
     os.system(
-        f'cd {get_dir_location("downloads/minecraft-data-generator-server")} && git pull')
+        f'cd {get_dir_location("downloads/pixlyzer")} && git pull')
