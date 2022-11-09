@@ -23,16 +23,20 @@ def simplify_shapes(blocks: dict, shapes: dict, aabbs: dict):
     new_shapes = {}
     old_id_to_new_id = {}
 
+    old_id_to_new_id[None] = 0
+    new_shapes[0] = ((0.0,) * 6,)
+    new_id_increment += 1
+
     for shape_id, shape in enumerate(shapes):
         # pixlyzer gives us shapes as an index or list of indexes into the
         # aabbs list
         # and aabbs look like { "from": number or [x, y, z], "to": (number or vec3) }
         # convert them to [x1, y1, z1, x2, y2, z2]
         shape = [shape] if isinstance(shape, int) else shape
-        shape = [aabbs[shape_aabb] for shape_aabb in shape_aabbs]
+        shape = [aabbs[shape_aabb] for shape_aabb in shape]
         shape = tuple([(
-            part['from'] if isinstance(part['from'], list) else ((part['from'],)*3)
-            + part['to'] if isinstance(part['to'], list) else ((part['to'],)*3)
+            (tuple(part['from']) if isinstance(part['from'], list) else ((part['from'],)*3))
+            + (tuple(part['to']) if isinstance(part['to'], list) else ((part['to'],)*3))
         ) for part in shape])
 
         if shape not in shape_to_new_id:
@@ -44,14 +48,14 @@ def simplify_shapes(blocks: dict, shapes: dict, aabbs: dict):
             old_id_to_new_id[shape_id] = shape_to_new_id[shape]
 
     # now map the blocks to the new shape ids
-    for block_id, shape_ids in enumerate(blocks):
-        if isinstance(shape_ids, int):
-            blocks[block_id] = old_id_to_new_id[shape_ids]
-        else:
-            blocks[block_id] = [old_id_to_new_id[shape_id]
-                                for shape_id in shape_ids]
+    new_blocks = {}
+    for block_id, block_data in blocks.items():
+        block_id = block_id.split(':')[-1]
+        block_shapes = [state.get('collision_shape') for state in block_data['states'].values()]
+        new_blocks[block_id] = [old_id_to_new_id[shape_id]
+                            for shape_id in block_shapes]
 
-    return blocks, new_shapes
+    return new_blocks, new_shapes
 
 
 def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, block_datas_burger, mappings: Mappings):
@@ -130,7 +134,7 @@ def generate_code_for_shape(shape_id: str, parts: list[list[float]]):
     code = ''
     code += f'static ref SHAPE{shape_id}: VoxelShape = '
     steps = []
-    if parts == []:
+    if parts == ():
         steps.append('collision::empty_shape()')
     else:
         steps.append(f'collision::box_shape({make_arguments(parts[0])})')
