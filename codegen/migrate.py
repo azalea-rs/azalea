@@ -111,11 +111,19 @@ old_ordered_blocks = lib.extract.get_ordered_blocks_burger(old_version_id)
 new_ordered_blocks = lib.extract.get_ordered_blocks_burger(new_version_id)
 if old_ordered_blocks != new_ordered_blocks:
     print('Blocks changed, updating...')
+
     block_states_burger = lib.extract.get_block_states_burger(new_version_id)
     block_states_report = lib.extract.get_block_states_report(new_version_id)
 
+    shape_datas = lib.extract.get_pixlyzer_data(
+        version_id, 'shapes')
+    pixlyzer_block_datas = lib.extract.get_pixlyzer_data(
+        version_id, 'blocks')
+
     lib.code.blocks.generate_blocks(
-        block_states_burger, block_states_report, old_ordered_blocks, new_mappings)
+        block_states_burger, block_states_report, new_ordered_blocks, new_mappings)
+    lib.code.shapes.generate_block_shapes(
+        pixlyzer_block_datas, shape_datas['shapes'], shape_datas['aabbs'], block_states_report, block_states_burger, new_mappings)
 
 print('Getting en_us.json...')
 language = lib.extract.get_en_us_lang(new_version_id)
