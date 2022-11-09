@@ -1,5 +1,6 @@
 from lib.code.packet import fix_state
 from lib.utils import PacketIdentifier, group_packets
+import lib.code.language
 import lib.code.version
 import lib.code.blocks
 import lib.code.packet
@@ -117,7 +118,7 @@ if old_ordered_blocks != new_ordered_blocks:
         block_states_burger, block_states_report, old_ordered_blocks, new_mappings)
 
 print('Getting en_us.json...')
-language = lib.extract.get_en_us_lang(version_id)
+language = lib.extract.get_en_us_lang(new_version_id)
 lib.code.language.write_language(language)
 
 
