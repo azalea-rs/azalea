@@ -24,7 +24,7 @@ def simplify_shapes(blocks: dict, shapes: dict, aabbs: dict):
     old_id_to_new_id = {}
 
     old_id_to_new_id[None] = 0
-    new_shapes[0] = ((0.0,) * 6,)
+    new_shapes[0] = ()
     new_id_increment += 1
 
     for shape_id, shape in enumerate(shapes):

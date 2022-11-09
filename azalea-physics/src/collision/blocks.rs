@@ -15,7 +15,7 @@ pub trait BlockWithShape {
 }
 
 lazy_static! {
-    static ref SHAPE0: VoxelShape = collision::box_shape(0., 0., 0., 0., 0., 0.);
+    static ref SHAPE0: VoxelShape = collision::empty_shape();
     static ref SHAPE1: VoxelShape = collision::box_shape(0., 0., 0., 1., 1., 1.);
     static ref SHAPE2: VoxelShape = collision::box_shape(0.125, 0., 0.125, 0.875, 0.75, 0.875);
     static ref SHAPE3: VoxelShape =
