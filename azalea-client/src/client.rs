@@ -595,8 +595,11 @@ impl Client {
             ClientboundGamePacket::SetEntityData(p) => {
                 debug!("Got set entity data packet {:?}", p);
                 let mut dimension = client.dimension.lock();
-                let mut entity = dimension.entity_mut(p.id).expect("Entity doesn't exist");
-                entity.apply_metadata(&p.packed_items.0);
+                if let Some(mut entity) = dimension.entity_mut(p.id) {
+                    entity.apply_metadata(&p.packed_items.0);
+                } else {
+                    warn!("Server sent an entity data packet for an entity id ({}) that we don't know about", p.id);
+                }
             }
             ClientboundGamePacket::UpdateAttributes(_p) => {
                 // debug!("Got update attributes packet {:?}", p);
