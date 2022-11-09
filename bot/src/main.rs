@@ -22,8 +22,6 @@ async fn main() -> anyhow::Result<()> {
         .await;
         println!("{:?}", e);
     }
-
-    Ok(())
 }
 
 async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {

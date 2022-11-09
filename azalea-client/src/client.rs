@@ -311,7 +311,9 @@ impl Client {
                 Err(e) => {
                     if let ReadPacketError::ConnectionClosed = e {
                         info!("Connection closed");
-                        client.shutdown().await;
+                        if let Err(e) = client.shutdown().await {
+                            error!("Error shutting down connection: {:?}", e);
+                        }
                         return;
                     }
                     if IGNORE_ERRORS {
