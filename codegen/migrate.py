@@ -116,9 +116,9 @@ if old_ordered_blocks != new_ordered_blocks:
     block_states_report = lib.extract.get_block_states_report(new_version_id)
 
     shape_datas = lib.extract.get_pixlyzer_data(
-        version_id, 'shapes')
+        new_version_id, 'shapes')
     pixlyzer_block_datas = lib.extract.get_pixlyzer_data(
-        version_id, 'blocks')
+        new_version_id, 'blocks')
 
     lib.code.blocks.generate_blocks(
         block_states_burger, block_states_report, new_ordered_blocks, new_mappings)
