@@ -583,8 +583,7 @@ impl Client {
                 client
                     .dimension
                     .lock()
-                    .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data))
-                    .unwrap();
+                    .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data));
             }
             ClientboundGamePacket::LightUpdate(_p) => {
                 // debug!("Got light update packet {:?}", p);
