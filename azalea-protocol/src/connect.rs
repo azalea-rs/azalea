@@ -11,7 +11,7 @@ use crate::write::write_packet;
 use azalea_auth::sessionserver::SessionServerError;
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use bytes::BytesMut;
-use log::info;
+use log::{info, error};
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::net::SocketAddr;
@@ -143,7 +143,9 @@ where
             // detect broken pipe
             if e.kind() == std::io::ErrorKind::BrokenPipe {
                 info!("Broken pipe, shutting down connection.");
-                self.shutdown();
+                if let Err(e) = self.shutdown().await {
+                    error!("Couldn't shut down: {}", e);
+                }
             }
             return Err(e);
         }

@@ -580,10 +580,12 @@ impl Client {
                 let pos = ChunkPos::new(p.x, p.z);
                 // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
                 // debug("chunk {:?}")
-                client
+                if let Err(e) = client
                     .dimension
                     .lock()
-                    .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data));
+                    .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data)) {
+                        error!("Couldn't set chunk data: {}", e);
+                    }
             }
             ClientboundGamePacket::LightUpdate(_p) => {
                 // debug!("Got light update packet {:?}", p);
