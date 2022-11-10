@@ -142,7 +142,7 @@ where
         {
             // detect broken pipe
             if e.kind() == std::io::ErrorKind::BrokenPipe {
-                info!("Broken pipe, shutting down connection.")
+                info!("Broken pipe, shutting down connection.");
                 self.shutdown();
             }
             return Err(e);
