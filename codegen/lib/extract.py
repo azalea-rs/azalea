@@ -117,11 +117,15 @@ def get_pixlyzer_data(version_id: str, category: str):
             f'cd {pixlyzer_dir}/wrapper && {determine_python_command()} PixLyzer.py --only-version={version_id} --dont-compile'
         )
 
+        source_dir = get_dir_location(f'{pixlyzer_dir}/wrapper/data/version/{version_id}')
+
+        if not os.path.exists(source_dir):
+            print('PixLyzer failed, no output!')
+            exit()
         if os.path.exists(target_dir):
             os.unlink(target_dir)
         os.rename(
-            get_dir_location(
-                f'{pixlyzer_dir}/wrapper/data/version/{version_id}'),
+            source_dir,
             target_dir
         )
 
