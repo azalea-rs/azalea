@@ -244,11 +244,9 @@ impl Client {
     /// Start sprinting in the given direction. To stop moving, call
     /// [`Client::walk(WalkDirection::None)`]
     pub fn sprint(&mut self, direction: SprintDirection) {
-        {
-            let mut physics_state = self.physics_state.lock();
-            physics_state.move_direction = WalkDirection::from(direction);
-        }
-        self.set_sprinting(true);
+        let mut physics_state = self.physics_state.lock();
+        physics_state.move_direction = WalkDirection::from(direction);
+        physics_state.trying_to_sprint = true;
     }
 
     // Whether we're currently sprinting.
