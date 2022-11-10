@@ -32,7 +32,6 @@ impl Client {
     /// This gets called automatically every tick.
     pub(crate) async fn send_position(&mut self) -> Result<(), MovePlayerError> {
         let packet = {
-            // TODO: send sprinting and sneaking packets here if they changed
             let is_sprinting = self.entity().metadata.sprinting;
             if is_sprinting != self.physics_state.lock().was_sprinting {
                 let sprinting_action = if is_sprinting {

@@ -115,17 +115,17 @@ impl HasPhysics for Entity<'_> {
             y: jump_power,
             z: old_delta_movement.z,
         };
-        // if self.sprinting {
-        //     let y_rot = self.y_rot * 0.017453292;
-        //     self.delta = self.delta
-        //         + Vec3 {
-        //             x: (-f32::sin(y_rot) * 0.2) as f64,
-        //             y: 0.,
-        //             z: (f32::cos(y_rot) * 0.2) as f64,
-        //         };
-        // }
+        if self.metadata.sprinting {
+            let y_rot = self.y_rot * 0.017453292;
+            self.delta = self.delta
+                + Vec3 {
+                    x: (-f32::sin(y_rot) * 0.2) as f64,
+                    y: 0.,
+                    z: (f32::cos(y_rot) * 0.2) as f64,
+                };
+        }
 
-        // self.has_impulse = true;
+        self.has_impulse = true;
     }
 }
 

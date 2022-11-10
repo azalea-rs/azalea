@@ -212,6 +212,8 @@ pub struct EntityData {
     /// (equivalent to the space key being held down in vanilla).
     pub jumping: bool,
 
+    pub has_impulse: bool,
+
     /// Stores some extra data about the entity, including the entity type.
     pub metadata: EntityMetadata,
 
@@ -248,6 +250,8 @@ impl EntityData {
             // TODO: have this be based on the entity type
             bounding_box: dimensions.make_bounding_box(&pos),
             dimensions,
+
+            has_impulse: false,
 
             jumping: false,
 
