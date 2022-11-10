@@ -88,7 +88,7 @@ impl BitSet {
             return from_index;
         }
 
-        let mut word = !self.data[u] & (u64::MAX << from_index);
+        let mut word = !self.data[u] & (u64::MAX.wrapping_shl(from_index));
 
         loop {
             if word != 0 {
