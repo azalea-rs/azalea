@@ -1162,6 +1162,9 @@ make_block_states! {
         muddy_mangrove_roots => BlockBehavior::default(), {
             axis: Axis::Y,
         },
+        bamboo_block => BlockBehavior::default(), {
+            axis: Axis::Y,
+        },
         stripped_spruce_log => BlockBehavior::default(), {
             axis: Axis::Y,
         },
@@ -1181,6 +1184,9 @@ make_block_states! {
             axis: Axis::Y,
         },
         stripped_mangrove_log => BlockBehavior::default(), {
+            axis: Axis::Y,
+        },
+        stripped_bamboo_block => BlockBehavior::default(), {
             axis: Axis::Y,
         },
         oak_wood => BlockBehavior::default(), {
