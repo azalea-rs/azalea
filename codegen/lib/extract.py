@@ -112,10 +112,22 @@ def get_pixlyzer_data(version_id: str, category: str):
             raise Exception(
                 'Fabric/Yarn hasn\'t been updated to this version yet.')
         
-        os.system(f'cd {pixlyzer_dir} && mvn clean -Dmaven.repo.local=. verify')
+        # for some reason pixlyzer doesn't work right unless the mvn clean
+        # instruction looks like that
+        # and pixlyzer.py doesn't do it right
+
+        # map jar + download dependencies
         run_python_command_and_download_deps(
-            f'cd {pixlyzer_dir}/wrapper && {determine_python_command()} PixLyzer.py --only-version={version_id} --dont-compile'
+            f'cd {pixlyzer_dir}/wrapper && {determine_python_command()} PixLyzer.py --only-version={version_id} --dont-compile --only-map'
         )
+        # compile
+        os.system(f'cd {pixlyzer_dir} && mvn clean -Dmaven.repo.local=. verify')
+        # run pixlyzer.py again lol
+        run_python_command_and_download_deps(
+            f'cd {pixlyzer_dir}/wrapper && {determine_python_command()} PixLyzer.py --only-version={version_id} --no-compile'
+        )
+
+
 
         source_dir = get_dir_location(f'{pixlyzer_dir}/wrapper/data/version/{version_id}')
 

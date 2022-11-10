@@ -4,6 +4,7 @@ import lib.code.language
 import lib.code.version
 import lib.code.blocks
 import lib.code.packet
+import lib.code.shapes
 import lib.code.utils
 import lib.download
 import lib.extract
