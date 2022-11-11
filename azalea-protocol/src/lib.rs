@@ -6,6 +6,8 @@
 //!
 //! [`azalea`]: https://crates.io/crates/azalea
 //! [`azalea_client`]: https://crates.io/crates/azalea-client
+//!
+//! See [`crate::connect::Connection`] for an example.
 
 // these two are necessary for thiserror backtraces
 #![feature(error_generic_member_access)]
@@ -55,15 +57,6 @@ impl<'a> TryFrom<&'a str> for ServerAddress {
         let port = u16::from_str(port).map_err(|_| "Invalid port specified")?;
         Ok(ServerAddress { host, port })
     }
-}
-
-#[cfg(feature = "connecting")]
-pub async fn connect(address: ServerAddress) -> Result<(), Box<dyn std::error::Error>> {
-    use log::debug;
-
-    let resolved_address = resolver::resolve_address(&address).await;
-    debug!("Resolved address: {:?}", resolved_address);
-    Ok(())
 }
 
 #[cfg(test)]

@@ -135,7 +135,9 @@ pub enum HandleError {
 impl Client {
     /// Connect to a Minecraft server.
     ///
-    /// To change the render distance and other settings, use [`Client::set_client_information`].
+    /// To change the render distance and other settings, use
+    /// [`Client::set_client_information`]. To watch for events like packets
+    /// sent by the server, use the `rx` variable this function returns.
     ///
     /// # Examples
     ///
@@ -145,7 +147,7 @@ impl Client {
     /// #[tokio::main]
     /// async fn main() -> Box<dyn std::error::Error> {
     ///     let account = Account::offline("bot");
-    ///     let client = Client::join(&account, "localhost").await?;
+    ///     let (client, rx) = Client::join(&account, "localhost").await?;
     ///     client.chat("Hello, world!").await?;
     ///     client.shutdown().await?;
     /// }
@@ -583,9 +585,10 @@ impl Client {
                 if let Err(e) = client
                     .dimension
                     .lock()
-                    .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data)) {
-                        error!("Couldn't set chunk data: {}", e);
-                    }
+                    .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data))
+                {
+                    error!("Couldn't set chunk data: {}", e);
+                }
             }
             ClientboundGamePacket::LightUpdate(_p) => {
                 // debug!("Got light update packet {:?}", p);

@@ -1,4 +1,4 @@
-//! Create connections that communicate with a remote server or client.
+//! Connect to remote servers/clients.
 
 use crate::packets::game::{ClientboundGamePacket, ServerboundGamePacket};
 use crate::packets::handshake::{ClientboundHandshakePacket, ServerboundHandshakePacket};
@@ -11,7 +11,7 @@ use crate::write::write_packet;
 use azalea_auth::sessionserver::SessionServerError;
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use bytes::BytesMut;
-use log::{info, error};
+use log::{error, info};
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::net::SocketAddr;
@@ -116,6 +116,7 @@ impl<R> ReadConnection<R>
 where
     R: ProtocolPacket + Debug,
 {
+    /// Read a packet from the stream.
     pub async fn read(&mut self) -> Result<R, ReadPacketError> {
         read_packet::<R, _>(
             &mut self.read_stream,
