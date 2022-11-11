@@ -1,4 +1,3 @@
-use azalea_block::Block;
 use azalea_core::BlockPos;
 use azalea_physics::collision::{self, BlockWithShape};
 use azalea_world::Dimension;

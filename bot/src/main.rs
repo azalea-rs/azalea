@@ -1,4 +1,4 @@
-use azalea::{prelude::*, BlockPos, WalkDirection};
+use azalea::{prelude::*, BlockPos};
 use azalea::{Account, Client, Event};
 use azalea_pathfinder::{BlockPosGoal, Trait};
 
@@ -24,7 +24,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
+async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
     match event {
         Event::Login => {
             // bot.chat("Hello world").await?;

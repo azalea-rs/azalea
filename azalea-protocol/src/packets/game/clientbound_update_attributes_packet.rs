@@ -1,5 +1,4 @@
 use azalea_buf::McBuf;
-use azalea_buf::McBufReadable;
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::entity::attributes::AttributeModifier;

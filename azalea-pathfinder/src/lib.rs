@@ -26,10 +26,12 @@ pub struct State {
 #[async_trait]
 impl azalea::Plugin for Plugin {
     async fn handle(self: Box<Self>, event: Event, mut bot: Client) {
-        let mut path = self.state.path.lock();
+        if let Event::Tick = event {
+            let mut path = self.state.path.lock();
 
-        if !path.is_empty() {
-            tick_execute_path(&mut bot, &mut path);
+            if !path.is_empty() {
+                tick_execute_path(&mut bot, &mut path);
+            }
         }
     }
 }
