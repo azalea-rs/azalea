@@ -176,19 +176,38 @@ impl Client {
     pub fn ai_step(&mut self) {
         self.tick_controls(None);
 
-        let mut dimension_lock = self.dimension.write();
-        let player_lock = self.player.write();
-        let mut player_entity = player_lock
-            .entity_mut(&mut dimension_lock)
-            .expect("Player must exist");
-
         // server ai step
         {
+            let mut player_entity = self.entity_mut();
+
             let physics_state = self.physics_state.lock();
             player_entity.xxa = physics_state.left_impulse;
             player_entity.zza = physics_state.forward_impulse;
         }
 
+        // TODO: food data and abilities
+        // let has_enough_food_to_sprint = self.food_data().food_level || self.abilities().may_fly;
+        let has_enough_food_to_sprint = true;
+
+        // TODO: double tapping w to sprint i think
+
+        let trying_to_sprint = self.physics_state.lock().trying_to_sprint;
+
+        if !self.sprinting()
+            && (
+                // !self.is_in_water()
+                // || self.is_underwater() &&
+                self.has_enough_impulse_to_start_sprinting()
+                    && has_enough_food_to_sprint
+                    // && !self.using_item()
+                    // && !self.has_effect(MobEffects.BLINDNESS)
+                    && trying_to_sprint
+            )
+        {
+            self.set_sprinting(true);
+        }
+
+        let mut player_entity = self.entity_mut();
         player_entity.ai_step();
     }
 
@@ -296,6 +315,16 @@ impl Client {
     pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
         let mut player_entity = self.entity_mut();
         player_entity.set_rotation(y_rot, x_rot);
+    }
+
+    // Whether the player is moving fast enough to be able to start sprinting.
+    fn has_enough_impulse_to_start_sprinting(&self) -> bool {
+        // if self.underwater() {
+        //     self.has_forward_impulse()
+        // } else {
+        let physics_state = self.physics_state.lock();
+        physics_state.forward_impulse > 0.8
+        // }
     }
 }
 
