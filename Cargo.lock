@@ -259,6 +259,7 @@ dependencies = [
  "byteorder",
  "criterion",
  "flate2",
+ "log",
  "num-derive",
  "num-traits",
 ]

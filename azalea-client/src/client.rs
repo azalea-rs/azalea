@@ -31,7 +31,7 @@ use azalea_world::{
     entity::{metadata, Entity, EntityData, EntityMetadata},
     Dimension,
 };
-use log::{debug, error, warn};
+use log::{debug, error, info, warn};
 use parking_lot::{Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::{
     fmt::Debug,
@@ -320,6 +320,13 @@ impl Client {
                     }
                 },
                 Err(e) => {
+                    if let ReadPacketError::ConnectionClosed = e {
+                        info!("Connection closed");
+                        if let Err(e) = client.shutdown().await {
+                            error!("Error shutting down connection: {:?}", e);
+                        }
+                        return;
+                    }
                     if IGNORE_ERRORS {
                         warn!("{}", e);
                         match e {
@@ -425,6 +432,10 @@ impl Client {
                 // send the client information that we have set
                 let client_information_packet: ClientInformation =
                     client.client_information.read().clone();
+                log::debug!(
+                    "Sending client information because login: {:?}",
+                    client_information_packet
+                );
                 client.write_packet(client_information_packet.get()).await?;
 
                 // brand
@@ -580,13 +591,16 @@ impl Client {
                 let pos = ChunkPos::new(p.x, p.z);
                 // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
                 // debug("chunk {:?}")
-                let mut dimension_lock = client.dimension.write();
-                dimension_lock
+                if let Err(e) = client
+                    .dimension
+                    .write()
                     .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data))
-                    .unwrap();
+                {
+                    error!("Couldn't set chunk data: {}", e);
+                }
             }
-            ClientboundGamePacket::LightUpdate(p) => {
-                debug!("Got light update packet {:?}", p);
+            ClientboundGamePacket::LightUpdate(_p) => {
+                // debug!("Got light update packet {:?}", p);
             }
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {:?}", p);
@@ -596,8 +610,11 @@ impl Client {
             ClientboundGamePacket::SetEntityData(p) => {
                 debug!("Got set entity data packet {:?}", p);
                 let mut dimension = client.dimension.write();
-                let mut entity = dimension.entity_mut(p.id).expect("Entity doesn't exist");
-                entity.apply_metadata(&p.packed_items.0);
+                if let Some(mut entity) = dimension.entity_mut(p.id) {
+                    entity.apply_metadata(&p.packed_items.0);
+                } else {
+                    warn!("Server sent an entity data packet for an entity id ({}) that we don't know about", p.id);
+                }
             }
             ClientboundGamePacket::UpdateAttributes(_p) => {
                 // debug!("Got update attributes packet {:?}", p);
@@ -882,6 +899,10 @@ impl Client {
                 let client_information = self.client_information.read();
                 client_information.clone().get()
             };
+            log::debug!(
+                "Sending client information (already logged in): {:?}",
+                client_information_packet
+            );
             self.write_packet(client_information_packet).await?;
         }
 
