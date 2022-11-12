@@ -23,18 +23,18 @@ use uuid::Uuid;
 
 /// The read half of a connection.
 pub struct ReadConnection<R: ProtocolPacket> {
-    read_stream: OwnedReadHalf,
-    buffer: BytesMut,
-    compression_threshold: Option<u32>,
-    dec_cipher: Option<Aes128CfbDec>,
+    pub read_stream: OwnedReadHalf,
+    pub buffer: BytesMut,
+    pub compression_threshold: Option<u32>,
+    pub dec_cipher: Option<Aes128CfbDec>,
     _reading: PhantomData<R>,
 }
 
 /// The write half of a connection.
 pub struct WriteConnection<W: ProtocolPacket> {
-    write_stream: OwnedWriteHalf,
-    compression_threshold: Option<u32>,
-    enc_cipher: Option<Aes128CfbEnc>,
+    pub write_stream: OwnedWriteHalf,
+    pub compression_threshold: Option<u32>,
+    pub enc_cipher: Option<Aes128CfbEnc>,
     _writing: PhantomData<W>,
 }
 
