@@ -12,6 +12,6 @@ anyhow = "1.0.65"
 azalea = {path = "../azalea"}
 azalea-pathfinder = {path = "../azalea-pathfinder"}
 env_logger = "0.9.1"
-parking_lot = {version = "0.12.1", features = ["deadlock_detection"]}
+parking_lot = {version = "^1.21.2", features = ["deadlock_detection"]}
 tokio = "1.19.2"
 uuid = "1.1.2"

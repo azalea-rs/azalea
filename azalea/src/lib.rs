@@ -10,11 +10,28 @@
 //! First, install Rust nightly with `rustup install nightly` and `rustup
 //! default nightly`.
 //!
-//! Then, add one of the following lines to your Cargo.toml.\
+//! Then, add one of the following lines to your Cargo.toml:
+//!
 //! Latest bleeding-edge version:
-//! `azalea = { git="https://github.com/mat-1/Cargo.toml" }`
+//! `azalea = { git="https://github.com/mat-1/Cargo.toml" }`\
 //! Latest "stable" release:
 //! `azalea = "0.3"`
+//!
+//! ## Optimization
+//!
+//! For faster compile times, make a `.cargo/config.toml` file in your project
+//! and copy
+//! [this file](https://github.com/mat-1/azalea/blob/main/.cargo/config.toml)
+//! into it.
+//!
+//! For faster performance in debug mode, add
+//! ```toml
+//! [profile.dev]
+//! opt-level = 1
+//! [profile.dev.package."*""]
+//! opt-level = 3
+//! ```
+//! to your Cargo.toml. You may have to install the LLD linker.
 //!
 //! # Examples
 //!
