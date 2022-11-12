@@ -88,7 +88,12 @@ impl Trait for azalea_client::Client {
         let p = pf.find_path();
         println!("path: {:?}", p);
 
-        let state = self.plugins.get::<Plugin>().unwrap().state.clone();
+        let state = self
+            .plugins
+            .get::<Plugin>()
+            .expect("Pathfinder plugin not installed!")
+            .state
+            .clone();
         // convert the Option<Vec<Node>> to a VecDeque<Node>
         *state.path.lock() = p.expect("no path").into_iter().collect();
     }

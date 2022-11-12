@@ -119,6 +119,7 @@ impl Client {
                 None
             };
 
+            drop(player_entity);
             let mut player_entity = self.entity_mut();
 
             if sending_position {
