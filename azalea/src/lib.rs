@@ -17,19 +17,21 @@
 //! Latest "stable" release:
 //! `azalea = "0.3"`
 //!
-//! # Optimization
+//! ## Optimization
 //!
-//! For faster compile times, make a .cargo/config.toml file in your project
+//! For faster compile times, make a `.cargo/config.toml` file in your project
 //! and copy
 //! [this file](https://github.com/mat-1/azalea/blob/main/.cargo/config.toml)
 //! into it.
 //!
 //! For faster performance in debug mode, add
 //! ```toml
-//! [profile.dev.package.*]
+//! [profile.dev]
+//! opt-level = 1
+//! [profile.dev.package."*""]
 //! opt-level = 3
 //! ```
-//! to your Cargo.toml.
+//! to your Cargo.toml. You may have to install the LLD linker.
 //!
 //! # Examples
 //!
