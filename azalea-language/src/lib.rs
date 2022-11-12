@@ -1,3 +1,5 @@
+//! Translate Minecraft strings from their id.
+
 use lazy_static::lazy_static;
 use std::io::Read;
 use std::path::Path;

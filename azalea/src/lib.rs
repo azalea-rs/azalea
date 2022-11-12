@@ -10,9 +10,10 @@
 //! First, install Rust nightly with `rustup install nightly` and `rustup
 //! default nightly`.
 //!
-//! Then, add one of the following lines to your Cargo.toml.\
+//! Then, add one of the following lines to your Cargo.toml:
+//! 
 //! Latest bleeding-edge version:
-//! `azalea = { git="https://github.com/mat-1/Cargo.toml" }`
+//! `azalea = { git="https://github.com/mat-1/Cargo.toml" }`\
 //! Latest "stable" release:
 //! `azalea = "0.3"`
 //!
