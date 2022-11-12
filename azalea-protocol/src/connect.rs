@@ -23,18 +23,18 @@ use uuid::Uuid;
 
 /// The read half of a connection.
 pub struct ReadConnection<R: ProtocolPacket> {
-    read_stream: OwnedReadHalf,
-    buffer: BytesMut,
-    compression_threshold: Option<u32>,
-    dec_cipher: Option<Aes128CfbDec>,
+    pub read_stream: OwnedReadHalf,
+    pub buffer: BytesMut,
+    pub compression_threshold: Option<u32>,
+    pub dec_cipher: Option<Aes128CfbDec>,
     _reading: PhantomData<R>,
 }
 
 /// The write half of a connection.
 pub struct WriteConnection<W: ProtocolPacket> {
-    write_stream: OwnedWriteHalf,
-    compression_threshold: Option<u32>,
-    enc_cipher: Option<Aes128CfbEnc>,
+    pub write_stream: OwnedWriteHalf,
+    pub compression_threshold: Option<u32>,
+    pub enc_cipher: Option<Aes128CfbEnc>,
     _writing: PhantomData<W>,
 }
 
@@ -45,26 +45,28 @@ pub struct WriteConnection<W: ProtocolPacket> {
 /// Join an offline-mode server and go through the handshake.
 /// ```rust,no_run
 /// #[tokio::main]
-/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     let resolved_address = resolver::resolve_address(address).await?;
+/// async fn main() -> anyhow::Result<()> {
+///     let resolved_address = resolver::resolve_address(&"localhost".try_into().unwrap()).await?;
 ///     let mut conn = Connection::new(&resolved_address).await?;
 ///
 ///     // handshake
 ///     conn.write(
 ///         ClientIntentionPacket {
-///         protocol_version: PROTOCOL_VERSION,
-///         hostname: address.host.to_string(),
-///         port: address.port,
-///         intention: ConnectionProtocol::Login,
-///     }.get());
-///
+///             protocol_version: PROTOCOL_VERSION,
+///             hostname: resolved_address.ip().to_string(),
+///             port: resolved_address.port(),
+///             intention: ConnectionProtocol::Login,
+///         }
+///         .get(),
+///     )
 ///     .await?;
+///
 ///     let mut conn = conn.login();
 ///
 ///     // login
 ///     conn.write(
 ///         ServerboundHelloPacket {
-///             username,
+///             username: "bot".to_string(),
 ///             public_key: None,
 ///             profile_id: None,
 ///         }
@@ -73,8 +75,8 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///     .await?;
 ///
 ///     let (conn, game_profile) = loop {
-///         let packet_result = conn.read().await?;
-///         Ok(packet) => match packet {
+///         let packet = conn.read().await?;
+///         match packet {
 ///             ClientboundLoginPacket::Hello(p) => {
 ///                 let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
 ///
@@ -96,16 +98,14 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///             }
 ///             ClientboundLoginPacket::LoginDisconnect(p) => {
 ///                 println!("login disconnect: {}", p.reason);
-///                 bail!(JoinError::Disconnected(p.reason));
+///                 bail!("{}", p.reason);
 ///             }
 ///             ClientboundLoginPacket::CustomQuery(p) => {}
-///         },
-///         Err(e) => {
-///             eprintln!("Error: {:?}", e);
-///             bail!("Error: {:?}", e);
 ///         }
-///     }
-/// };
+///     };
+///
+///     Ok(())
+/// }
 /// ```
 pub struct Connection<R: ProtocolPacket, W: ProtocolPacket> {
     pub reader: ReadConnection<R>,
