@@ -14,7 +14,7 @@ async-trait = "^0.1.57"
 azalea-client = {version = "0.3.0", path = "../azalea-client"}
 azalea-core = {version = "0.3.0", path = "../azalea-core"}
 azalea-protocol = {version = "0.3.0", path = "../azalea-protocol"}
-parking_lot = {version = "0.12.1", features = ["deadlock_detection"]}
+parking_lot = {version = "^0.12.1", features = ["deadlock_detection"]}
 thiserror = "^1.0.37"
 tokio = "^1.21.2"
 
