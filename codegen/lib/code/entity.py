@@ -44,7 +44,7 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
     code.append('use azalea_block::BlockState;')
     code.append('use azalea_chat::Component;')
     code.append('use azalea_core::{BlockPos, Direction, Particle, Slot};')
-    code.append('use std::{collections::VecDeque, ops::Deref};')
+    code.append('use std::{collections::VecDeque, ops::{Deref, DerefMut}};')
     code.append('use uuid::Uuid;')
     code.append('')
 
@@ -271,6 +271,10 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
             code.append(
                 f'fn deref(&self) -> &Self::Target {{ &self.{parent_field_name} }}')
             code.append('}')
+            code.append(f'impl DerefMut for {struct_name} {{')
+            code.append(
+                f'fn deref_mut(&mut self) -> &mut Self::Target {{ &mut self.{parent_field_name} }}')
+            code.append('}')
             code.append('')
 
     # make the EntityMetadata enum from entity_structs
@@ -328,8 +332,16 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
     code.append('}')
     code.append('}')
     code.append('}')
+    code.append('impl DerefMut for EntityMetadata {')
+    code.append('fn deref_mut(&mut self) -> &mut Self::Target {')
+    code.append('match self {')
+    for struct_name in entity_structs:
+        code.append(
+            f'EntityMetadata::{struct_name}(entity) => entity,')
+    code.append('}')
+    code.append('}')
+    code.append('}')
     code.append('')
-
 
     with open(METADATA_RS_DIR, 'w') as f:
         f.write('\n'.join(code))

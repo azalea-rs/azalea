@@ -6,7 +6,10 @@ use super::{EntityDataValue, Pose, Rotations, VillagerData};
 use azalea_block::BlockState;
 use azalea_chat::Component;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
-use std::{collections::VecDeque, ops::Deref};
+use std::{
+    collections::VecDeque,
+    ops::{Deref, DerefMut},
+};
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
@@ -62,6 +65,11 @@ impl Deref for Allay {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
         &self.abstract_creature
+    }
+}
+impl DerefMut for Allay {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_creature
     }
 }
 
@@ -130,6 +138,11 @@ impl Deref for AreaEffectCloud {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
         &self.abstract_entity
+    }
+}
+impl DerefMut for AreaEffectCloud {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
     }
 }
 
@@ -250,6 +263,11 @@ impl Deref for ArmorStand {
         &self.abstract_living
     }
 }
+impl DerefMut for ArmorStand {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_living
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Arrow {
@@ -336,6 +354,11 @@ impl Deref for Arrow {
         &self.abstract_entity
     }
 }
+impl DerefMut for Arrow {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Axolotl {
@@ -398,6 +421,11 @@ impl Deref for Axolotl {
         &self.abstract_animal
     }
 }
+impl DerefMut for Axolotl {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Bat {
@@ -454,6 +482,11 @@ impl Deref for Bat {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
         &self.abstract_insentient
+    }
+}
+impl DerefMut for Bat {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_insentient
     }
 }
 
@@ -536,6 +569,11 @@ impl Deref for Bee {
         &self.abstract_animal
     }
 }
+impl DerefMut for Bee {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Blaze {
@@ -592,6 +630,11 @@ impl Deref for Blaze {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for Blaze {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -680,6 +723,11 @@ impl Deref for Boat {
         &self.abstract_entity
     }
 }
+impl DerefMut for Boat {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Cat {
@@ -748,6 +796,11 @@ impl Deref for Cat {
         &self.abstract_tameable
     }
 }
+impl DerefMut for Cat {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_tameable
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct CaveSpider {
@@ -784,6 +837,11 @@ impl Deref for CaveSpider {
     type Target = Spider;
     fn deref(&self) -> &Self::Target {
         &self.spider
+    }
+}
+impl DerefMut for CaveSpider {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.spider
     }
 }
 
@@ -824,6 +882,11 @@ impl Deref for ChestBoat {
         &self.boat
     }
 }
+impl DerefMut for ChestBoat {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.boat
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ChestMinecart {
@@ -862,6 +925,11 @@ impl Deref for ChestMinecart {
         &self.abstract_minecart
     }
 }
+impl DerefMut for ChestMinecart {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_minecart
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Chicken {
@@ -898,6 +966,11 @@ impl Deref for Chicken {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
         &self.abstract_animal
+    }
+}
+impl DerefMut for Chicken {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
     }
 }
 
@@ -948,6 +1021,11 @@ impl Deref for Cod {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
         &self.abstract_creature
+    }
+}
+impl DerefMut for Cod {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_creature
     }
 }
 
@@ -1006,6 +1084,11 @@ impl Deref for CommandBlockMinecart {
         &self.abstract_minecart
     }
 }
+impl DerefMut for CommandBlockMinecart {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_minecart
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Cow {
@@ -1042,6 +1125,11 @@ impl Deref for Cow {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
         &self.abstract_animal
+    }
+}
+impl DerefMut for Cow {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
     }
 }
 
@@ -1106,6 +1194,11 @@ impl Deref for Creeper {
         &self.abstract_monster
     }
 }
+impl DerefMut for Creeper {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Dolphin {
@@ -1166,6 +1259,11 @@ impl Deref for Dolphin {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
         &self.abstract_creature
+    }
+}
+impl DerefMut for Dolphin {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_creature
     }
 }
 
@@ -1270,6 +1368,11 @@ impl Deref for Donkey {
         &self.abstract_animal
     }
 }
+impl DerefMut for Donkey {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct DragonFireball {
@@ -1308,6 +1411,11 @@ impl Deref for DragonFireball {
         &self.abstract_entity
     }
 }
+impl DerefMut for DragonFireball {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Drowned {
@@ -1344,6 +1452,11 @@ impl Deref for Drowned {
     type Target = Zombie;
     fn deref(&self) -> &Self::Target {
         &self.zombie
+    }
+}
+impl DerefMut for Drowned {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.zombie
     }
 }
 
@@ -1396,6 +1509,11 @@ impl Deref for Egg {
         &self.abstract_entity
     }
 }
+impl DerefMut for Egg {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ElderGuardian {
@@ -1432,6 +1550,11 @@ impl Deref for ElderGuardian {
     type Target = Guardian;
     fn deref(&self) -> &Self::Target {
         &self.guardian
+    }
+}
+impl DerefMut for ElderGuardian {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.guardian
     }
 }
 
@@ -1490,6 +1613,11 @@ impl Deref for EndCrystal {
         &self.abstract_entity
     }
 }
+impl DerefMut for EndCrystal {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct EnderDragon {
@@ -1540,6 +1668,11 @@ impl Deref for EnderDragon {
         &self.abstract_insentient
     }
 }
+impl DerefMut for EnderDragon {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_insentient
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct EnderPearl {
@@ -1588,6 +1721,11 @@ impl Deref for EnderPearl {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
         &self.abstract_entity
+    }
+}
+impl DerefMut for EnderPearl {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
     }
 }
 
@@ -1654,6 +1792,11 @@ impl Deref for Enderman {
         &self.abstract_monster
     }
 }
+impl DerefMut for Enderman {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Endermite {
@@ -1690,6 +1833,11 @@ impl Deref for Endermite {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for Endermite {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -1748,6 +1896,11 @@ impl Deref for Evoker {
         &self.abstract_monster
     }
 }
+impl DerefMut for Evoker {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct EvokerFangs {
@@ -1784,6 +1937,11 @@ impl Deref for EvokerFangs {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
         &self.abstract_entity
+    }
+}
+impl DerefMut for EvokerFangs {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
     }
 }
 
@@ -1836,6 +1994,11 @@ impl Deref for ExperienceBottle {
         &self.abstract_entity
     }
 }
+impl DerefMut for ExperienceBottle {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ExperienceOrb {
@@ -1872,6 +2035,11 @@ impl Deref for ExperienceOrb {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
         &self.abstract_entity
+    }
+}
+impl DerefMut for ExperienceOrb {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
     }
 }
 
@@ -1924,6 +2092,11 @@ impl Deref for EyeOfEnder {
         &self.abstract_entity
     }
 }
+impl DerefMut for EyeOfEnder {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct FallingBlock {
@@ -1974,6 +2147,11 @@ impl Deref for FallingBlock {
         &self.abstract_entity
     }
 }
+impl DerefMut for FallingBlock {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Fireball {
@@ -2022,6 +2200,11 @@ impl Deref for Fireball {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
         &self.abstract_entity
+    }
+}
+impl DerefMut for Fireball {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
     }
 }
 
@@ -2088,6 +2271,11 @@ impl Deref for FireworkRocket {
         &self.abstract_entity
     }
 }
+impl DerefMut for FireworkRocket {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct FishingBobber {
@@ -2142,6 +2330,11 @@ impl Deref for FishingBobber {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
         &self.abstract_entity
+    }
+}
+impl DerefMut for FishingBobber {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
     }
 }
 
@@ -2260,6 +2453,11 @@ impl Deref for Fox {
         &self.abstract_animal
     }
 }
+impl DerefMut for Fox {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Frog {
@@ -2318,6 +2516,11 @@ impl Deref for Frog {
         &self.abstract_animal
     }
 }
+impl DerefMut for Frog {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct FurnaceMinecart {
@@ -2366,6 +2569,11 @@ impl Deref for FurnaceMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
         &self.abstract_minecart
+    }
+}
+impl DerefMut for FurnaceMinecart {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_minecart
     }
 }
 
@@ -2418,6 +2626,11 @@ impl Deref for Ghast {
         &self.abstract_insentient
     }
 }
+impl DerefMut for Ghast {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_insentient
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Giant {
@@ -2456,6 +2669,11 @@ impl Deref for Giant {
         &self.abstract_monster
     }
 }
+impl DerefMut for Giant {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct GlowItemFrame {
@@ -2492,6 +2710,11 @@ impl Deref for GlowItemFrame {
     type Target = ItemFrame;
     fn deref(&self) -> &Self::Target {
         &self.item_frame
+    }
+}
+impl DerefMut for GlowItemFrame {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.item_frame
     }
 }
 
@@ -2542,6 +2765,11 @@ impl Deref for GlowSquid {
     type Target = Squid;
     fn deref(&self) -> &Self::Target {
         &self.squid
+    }
+}
+impl DerefMut for GlowSquid {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.squid
     }
 }
 
@@ -2606,6 +2834,11 @@ impl Deref for Goat {
         &self.abstract_animal
     }
 }
+impl DerefMut for Goat {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Guardian {
@@ -2662,6 +2895,11 @@ impl Deref for Guardian {
         &self.abstract_monster
     }
 }
+impl DerefMut for Guardian {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Hoglin {
@@ -2714,6 +2952,11 @@ impl Deref for Hoglin {
         &self.abstract_animal
     }
 }
+impl DerefMut for Hoglin {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct HopperMinecart {
@@ -2750,6 +2993,11 @@ impl Deref for HopperMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
         &self.abstract_minecart
+    }
+}
+impl DerefMut for HopperMinecart {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_minecart
     }
 }
 
@@ -2854,6 +3102,11 @@ impl Deref for Horse {
         &self.abstract_animal
     }
 }
+impl DerefMut for Horse {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Husk {
@@ -2890,6 +3143,11 @@ impl Deref for Husk {
     type Target = Zombie;
     fn deref(&self) -> &Self::Target {
         &self.zombie
+    }
+}
+impl DerefMut for Husk {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.zombie
     }
 }
 
@@ -2946,6 +3204,11 @@ impl Deref for Illusioner {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for Illusioner {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -3006,6 +3269,11 @@ impl Deref for IronGolem {
         &self.abstract_creature
     }
 }
+impl DerefMut for IronGolem {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_creature
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Item {
@@ -3054,6 +3322,11 @@ impl Deref for Item {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
         &self.abstract_entity
+    }
+}
+impl DerefMut for Item {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
     }
 }
 
@@ -3112,6 +3385,11 @@ impl Deref for ItemFrame {
         &self.abstract_entity
     }
 }
+impl DerefMut for ItemFrame {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct LeashKnot {
@@ -3150,6 +3428,11 @@ impl Deref for LeashKnot {
         &self.abstract_entity
     }
 }
+impl DerefMut for LeashKnot {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct LightningBolt {
@@ -3186,6 +3469,11 @@ impl Deref for LightningBolt {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
         &self.abstract_entity
+    }
+}
+impl DerefMut for LightningBolt {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
     }
 }
 
@@ -3308,6 +3596,11 @@ impl Deref for Llama {
         &self.abstract_animal
     }
 }
+impl DerefMut for Llama {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct LlamaSpit {
@@ -3344,6 +3637,11 @@ impl Deref for LlamaSpit {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
         &self.abstract_entity
+    }
+}
+impl DerefMut for LlamaSpit {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
     }
 }
 
@@ -3384,6 +3682,11 @@ impl Deref for MagmaCube {
         &self.slime
     }
 }
+impl DerefMut for MagmaCube {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.slime
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Marker {
@@ -3422,6 +3725,11 @@ impl Deref for Marker {
         &self.abstract_entity
     }
 }
+impl DerefMut for Marker {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Minecart {
@@ -3458,6 +3766,11 @@ impl Deref for Minecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
         &self.abstract_minecart
+    }
+}
+impl DerefMut for Minecart {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_minecart
     }
 }
 
@@ -3505,6 +3818,11 @@ impl Deref for Mooshroom {
     type Target = Cow;
     fn deref(&self) -> &Self::Target {
         &self.cow
+    }
+}
+impl DerefMut for Mooshroom {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.cow
     }
 }
 
@@ -3609,6 +3927,11 @@ impl Deref for Mule {
         &self.abstract_animal
     }
 }
+impl DerefMut for Mule {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Ocelot {
@@ -3657,6 +3980,11 @@ impl Deref for Ocelot {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
         &self.abstract_animal
+    }
+}
+impl DerefMut for Ocelot {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
     }
 }
 
@@ -3709,6 +4037,11 @@ impl Deref for Painting {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
         &self.abstract_entity
+    }
+}
+impl DerefMut for Painting {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
     }
 }
 
@@ -3823,6 +4156,11 @@ impl Deref for Panda {
         &self.abstract_animal
     }
 }
+impl DerefMut for Panda {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Parrot {
@@ -3873,6 +4211,11 @@ impl Deref for Parrot {
         &self.abstract_tameable
     }
 }
+impl DerefMut for Parrot {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_tameable
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Phantom {
@@ -3921,6 +4264,11 @@ impl Deref for Phantom {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
         &self.abstract_insentient
+    }
+}
+impl DerefMut for Phantom {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_insentient
     }
 }
 
@@ -3977,6 +4325,11 @@ impl Deref for Pig {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
         &self.abstract_animal
+    }
+}
+impl DerefMut for Pig {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
     }
 }
 
@@ -4049,6 +4402,11 @@ impl Deref for Piglin {
         &self.abstract_monster
     }
 }
+impl DerefMut for Piglin {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct PiglinBrute {
@@ -4099,6 +4457,11 @@ impl Deref for PiglinBrute {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for PiglinBrute {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -4155,6 +4518,11 @@ impl Deref for Pillager {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for Pillager {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -4239,6 +4607,11 @@ impl Deref for Player {
         &self.abstract_living
     }
 }
+impl DerefMut for Player {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_living
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct PolarBear {
@@ -4289,6 +4662,11 @@ impl Deref for PolarBear {
         &self.abstract_animal
     }
 }
+impl DerefMut for PolarBear {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Potion {
@@ -4337,6 +4715,11 @@ impl Deref for Potion {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
         &self.abstract_entity
+    }
+}
+impl DerefMut for Potion {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
     }
 }
 
@@ -4395,6 +4778,11 @@ impl Deref for Pufferfish {
         &self.abstract_creature
     }
 }
+impl DerefMut for Pufferfish {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_creature
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Rabbit {
@@ -4443,6 +4831,11 @@ impl Deref for Rabbit {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
         &self.abstract_animal
+    }
+}
+impl DerefMut for Rabbit {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
     }
 }
 
@@ -4495,6 +4888,11 @@ impl Deref for Ravager {
         &self.abstract_monster
     }
 }
+impl DerefMut for Ravager {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Salmon {
@@ -4543,6 +4941,11 @@ impl Deref for Salmon {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
         &self.abstract_creature
+    }
+}
+impl DerefMut for Salmon {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_creature
     }
 }
 
@@ -4601,6 +5004,11 @@ impl Deref for Sheep {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
         &self.abstract_animal
+    }
+}
+impl DerefMut for Sheep {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
     }
 }
 
@@ -4665,6 +5073,11 @@ impl Deref for Shulker {
         &self.abstract_creature
     }
 }
+impl DerefMut for Shulker {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_creature
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ShulkerBullet {
@@ -4703,6 +5116,11 @@ impl Deref for ShulkerBullet {
         &self.abstract_entity
     }
 }
+impl DerefMut for ShulkerBullet {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Silverfish {
@@ -4739,6 +5157,11 @@ impl Deref for Silverfish {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for Silverfish {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -4789,6 +5212,11 @@ impl Deref for Skeleton {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for Skeleton {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -4887,6 +5315,11 @@ impl Deref for SkeletonHorse {
         &self.abstract_animal
     }
 }
+impl DerefMut for SkeletonHorse {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Slime {
@@ -4937,6 +5370,11 @@ impl Deref for Slime {
         &self.abstract_insentient
     }
 }
+impl DerefMut for Slime {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_insentient
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct SmallFireball {
@@ -4985,6 +5423,11 @@ impl Deref for SmallFireball {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
         &self.abstract_entity
+    }
+}
+impl DerefMut for SmallFireball {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
     }
 }
 
@@ -5045,6 +5488,11 @@ impl Deref for SnowGolem {
         &self.abstract_creature
     }
 }
+impl DerefMut for SnowGolem {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_creature
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Snowball {
@@ -5095,6 +5543,11 @@ impl Deref for Snowball {
         &self.abstract_entity
     }
 }
+impl DerefMut for Snowball {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct SpawnerMinecart {
@@ -5131,6 +5584,11 @@ impl Deref for SpawnerMinecart {
     type Target = AbstractMinecart;
     fn deref(&self) -> &Self::Target {
         &self.abstract_minecart
+    }
+}
+impl DerefMut for SpawnerMinecart {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_minecart
     }
 }
 
@@ -5213,6 +5671,11 @@ impl Deref for SpectralArrow {
         &self.abstract_entity
     }
 }
+impl DerefMut for SpectralArrow {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Spider {
@@ -5271,6 +5734,11 @@ impl Deref for Spider {
         &self.abstract_monster
     }
 }
+impl DerefMut for Spider {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Squid {
@@ -5309,6 +5777,11 @@ impl Deref for Squid {
         &self.abstract_creature
     }
 }
+impl DerefMut for Squid {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_creature
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Stray {
@@ -5345,6 +5818,11 @@ impl Deref for Stray {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for Stray {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -5409,6 +5887,11 @@ impl Deref for Strider {
         &self.abstract_animal
     }
 }
+impl DerefMut for Strider {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Tadpole {
@@ -5457,6 +5940,11 @@ impl Deref for Tadpole {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
         &self.abstract_creature
+    }
+}
+impl DerefMut for Tadpole {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_creature
     }
 }
 
@@ -5509,6 +5997,11 @@ impl Deref for Tnt {
         &self.abstract_entity
     }
 }
+impl DerefMut for Tnt {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct TntMinecart {
@@ -5547,6 +6040,11 @@ impl Deref for TntMinecart {
         &self.abstract_minecart
     }
 }
+impl DerefMut for TntMinecart {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_minecart
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct TraderLlama {
@@ -5583,6 +6081,11 @@ impl Deref for TraderLlama {
     type Target = Llama;
     fn deref(&self) -> &Self::Target {
         &self.llama
+    }
+}
+impl DerefMut for TraderLlama {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.llama
     }
 }
 
@@ -5677,6 +6180,11 @@ impl Deref for Trident {
         &self.abstract_entity
     }
 }
+impl DerefMut for Trident {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct TropicalFish {
@@ -5731,6 +6239,11 @@ impl Deref for TropicalFish {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
         &self.abstract_creature
+    }
+}
+impl DerefMut for TropicalFish {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_creature
     }
 }
 
@@ -5813,6 +6326,11 @@ impl Deref for Turtle {
         &self.abstract_animal
     }
 }
+impl DerefMut for Turtle {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Vex {
@@ -5861,6 +6379,11 @@ impl Deref for Vex {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for Vex {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -5919,6 +6442,11 @@ impl Deref for Villager {
         &self.abstract_ageable
     }
 }
+impl DerefMut for Villager {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_ageable
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Vindicator {
@@ -5967,6 +6495,11 @@ impl Deref for Vindicator {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for Vindicator {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -6019,6 +6552,11 @@ impl Deref for WanderingTrader {
         &self.abstract_ageable
     }
 }
+impl DerefMut for WanderingTrader {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_ageable
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Warden {
@@ -6067,6 +6605,11 @@ impl Deref for Warden {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for Warden {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -6123,6 +6666,11 @@ impl Deref for Witch {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for Witch {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -6193,6 +6741,11 @@ impl Deref for Wither {
         &self.abstract_monster
     }
 }
+impl DerefMut for Wither {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct WitherSkeleton {
@@ -6229,6 +6782,11 @@ impl Deref for WitherSkeleton {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for WitherSkeleton {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -6279,6 +6837,11 @@ impl Deref for WitherSkull {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
         &self.abstract_entity
+    }
+}
+impl DerefMut for WitherSkull {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
     }
 }
 
@@ -6343,6 +6906,11 @@ impl Deref for Wolf {
         &self.abstract_tameable
     }
 }
+impl DerefMut for Wolf {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_tameable
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Zoglin {
@@ -6391,6 +6959,11 @@ impl Deref for Zoglin {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for Zoglin {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -6453,6 +7026,11 @@ impl Deref for Zombie {
     type Target = AbstractMonster;
     fn deref(&self) -> &Self::Target {
         &self.abstract_monster
+    }
+}
+impl DerefMut for Zombie {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_monster
     }
 }
 
@@ -6551,6 +7129,11 @@ impl Deref for ZombieHorse {
         &self.abstract_animal
     }
 }
+impl DerefMut for ZombieHorse {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ZombieVillager {
@@ -6607,6 +7190,11 @@ impl Deref for ZombieVillager {
         &self.zombie
     }
 }
+impl DerefMut for ZombieVillager {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.zombie
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ZombifiedPiglin {
@@ -6643,6 +7231,11 @@ impl Deref for ZombifiedPiglin {
     type Target = Zombie;
     fn deref(&self) -> &Self::Target {
         &self.zombie
+    }
+}
+impl DerefMut for ZombifiedPiglin {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.zombie
     }
 }
 
@@ -6695,6 +7288,11 @@ impl Deref for AbstractAgeable {
         &self.abstract_creature
     }
 }
+impl DerefMut for AbstractAgeable {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_creature
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct AbstractAnimal {
@@ -6731,6 +7329,11 @@ impl Deref for AbstractAnimal {
     type Target = AbstractAgeable;
     fn deref(&self) -> &Self::Target {
         &self.abstract_ageable
+    }
+}
+impl DerefMut for AbstractAnimal {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_ageable
     }
 }
 
@@ -6771,6 +7374,11 @@ impl Deref for AbstractCreature {
     type Target = AbstractInsentient;
     fn deref(&self) -> &Self::Target {
         &self.abstract_insentient
+    }
+}
+impl DerefMut for AbstractCreature {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_insentient
     }
 }
 
@@ -6982,6 +7590,11 @@ impl Deref for AbstractInsentient {
         &self.abstract_living
     }
 }
+impl DerefMut for AbstractInsentient {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_living
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct AbstractLiving {
@@ -7084,6 +7697,11 @@ impl Deref for AbstractLiving {
         &self.abstract_entity
     }
 }
+impl DerefMut for AbstractLiving {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct AbstractMinecart {
@@ -7164,6 +7782,11 @@ impl Deref for AbstractMinecart {
         &self.abstract_entity
     }
 }
+impl DerefMut for AbstractMinecart {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_entity
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct AbstractMonster {
@@ -7200,6 +7823,11 @@ impl Deref for AbstractMonster {
     type Target = AbstractCreature;
     fn deref(&self) -> &Self::Target {
         &self.abstract_creature
+    }
+}
+impl DerefMut for AbstractMonster {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_creature
     }
 }
 
@@ -7272,6 +7900,11 @@ impl Deref for AbstractTameable {
     type Target = AbstractAnimal;
     fn deref(&self) -> &Self::Target {
         &self.abstract_animal
+    }
+}
+impl DerefMut for AbstractTameable {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
     }
 }
 
@@ -7752,6 +8385,130 @@ impl EntityMetadata {
 impl Deref for EntityMetadata {
     type Target = AbstractEntity;
     fn deref(&self) -> &Self::Target {
+        match self {
+            EntityMetadata::Allay(entity) => entity,
+            EntityMetadata::AreaEffectCloud(entity) => entity,
+            EntityMetadata::ArmorStand(entity) => entity,
+            EntityMetadata::Arrow(entity) => entity,
+            EntityMetadata::Axolotl(entity) => entity,
+            EntityMetadata::Bat(entity) => entity,
+            EntityMetadata::Bee(entity) => entity,
+            EntityMetadata::Blaze(entity) => entity,
+            EntityMetadata::Boat(entity) => entity,
+            EntityMetadata::Cat(entity) => entity,
+            EntityMetadata::CaveSpider(entity) => entity,
+            EntityMetadata::ChestBoat(entity) => entity,
+            EntityMetadata::ChestMinecart(entity) => entity,
+            EntityMetadata::Chicken(entity) => entity,
+            EntityMetadata::Cod(entity) => entity,
+            EntityMetadata::CommandBlockMinecart(entity) => entity,
+            EntityMetadata::Cow(entity) => entity,
+            EntityMetadata::Creeper(entity) => entity,
+            EntityMetadata::Dolphin(entity) => entity,
+            EntityMetadata::Donkey(entity) => entity,
+            EntityMetadata::DragonFireball(entity) => entity,
+            EntityMetadata::Drowned(entity) => entity,
+            EntityMetadata::Egg(entity) => entity,
+            EntityMetadata::ElderGuardian(entity) => entity,
+            EntityMetadata::EndCrystal(entity) => entity,
+            EntityMetadata::EnderDragon(entity) => entity,
+            EntityMetadata::EnderPearl(entity) => entity,
+            EntityMetadata::Enderman(entity) => entity,
+            EntityMetadata::Endermite(entity) => entity,
+            EntityMetadata::Evoker(entity) => entity,
+            EntityMetadata::EvokerFangs(entity) => entity,
+            EntityMetadata::ExperienceBottle(entity) => entity,
+            EntityMetadata::ExperienceOrb(entity) => entity,
+            EntityMetadata::EyeOfEnder(entity) => entity,
+            EntityMetadata::FallingBlock(entity) => entity,
+            EntityMetadata::Fireball(entity) => entity,
+            EntityMetadata::FireworkRocket(entity) => entity,
+            EntityMetadata::FishingBobber(entity) => entity,
+            EntityMetadata::Fox(entity) => entity,
+            EntityMetadata::Frog(entity) => entity,
+            EntityMetadata::FurnaceMinecart(entity) => entity,
+            EntityMetadata::Ghast(entity) => entity,
+            EntityMetadata::Giant(entity) => entity,
+            EntityMetadata::GlowItemFrame(entity) => entity,
+            EntityMetadata::GlowSquid(entity) => entity,
+            EntityMetadata::Goat(entity) => entity,
+            EntityMetadata::Guardian(entity) => entity,
+            EntityMetadata::Hoglin(entity) => entity,
+            EntityMetadata::HopperMinecart(entity) => entity,
+            EntityMetadata::Horse(entity) => entity,
+            EntityMetadata::Husk(entity) => entity,
+            EntityMetadata::Illusioner(entity) => entity,
+            EntityMetadata::IronGolem(entity) => entity,
+            EntityMetadata::Item(entity) => entity,
+            EntityMetadata::ItemFrame(entity) => entity,
+            EntityMetadata::LeashKnot(entity) => entity,
+            EntityMetadata::LightningBolt(entity) => entity,
+            EntityMetadata::Llama(entity) => entity,
+            EntityMetadata::LlamaSpit(entity) => entity,
+            EntityMetadata::MagmaCube(entity) => entity,
+            EntityMetadata::Marker(entity) => entity,
+            EntityMetadata::Minecart(entity) => entity,
+            EntityMetadata::Mooshroom(entity) => entity,
+            EntityMetadata::Mule(entity) => entity,
+            EntityMetadata::Ocelot(entity) => entity,
+            EntityMetadata::Painting(entity) => entity,
+            EntityMetadata::Panda(entity) => entity,
+            EntityMetadata::Parrot(entity) => entity,
+            EntityMetadata::Phantom(entity) => entity,
+            EntityMetadata::Pig(entity) => entity,
+            EntityMetadata::Piglin(entity) => entity,
+            EntityMetadata::PiglinBrute(entity) => entity,
+            EntityMetadata::Pillager(entity) => entity,
+            EntityMetadata::Player(entity) => entity,
+            EntityMetadata::PolarBear(entity) => entity,
+            EntityMetadata::Potion(entity) => entity,
+            EntityMetadata::Pufferfish(entity) => entity,
+            EntityMetadata::Rabbit(entity) => entity,
+            EntityMetadata::Ravager(entity) => entity,
+            EntityMetadata::Salmon(entity) => entity,
+            EntityMetadata::Sheep(entity) => entity,
+            EntityMetadata::Shulker(entity) => entity,
+            EntityMetadata::ShulkerBullet(entity) => entity,
+            EntityMetadata::Silverfish(entity) => entity,
+            EntityMetadata::Skeleton(entity) => entity,
+            EntityMetadata::SkeletonHorse(entity) => entity,
+            EntityMetadata::Slime(entity) => entity,
+            EntityMetadata::SmallFireball(entity) => entity,
+            EntityMetadata::SnowGolem(entity) => entity,
+            EntityMetadata::Snowball(entity) => entity,
+            EntityMetadata::SpawnerMinecart(entity) => entity,
+            EntityMetadata::SpectralArrow(entity) => entity,
+            EntityMetadata::Spider(entity) => entity,
+            EntityMetadata::Squid(entity) => entity,
+            EntityMetadata::Stray(entity) => entity,
+            EntityMetadata::Strider(entity) => entity,
+            EntityMetadata::Tadpole(entity) => entity,
+            EntityMetadata::Tnt(entity) => entity,
+            EntityMetadata::TntMinecart(entity) => entity,
+            EntityMetadata::TraderLlama(entity) => entity,
+            EntityMetadata::Trident(entity) => entity,
+            EntityMetadata::TropicalFish(entity) => entity,
+            EntityMetadata::Turtle(entity) => entity,
+            EntityMetadata::Vex(entity) => entity,
+            EntityMetadata::Villager(entity) => entity,
+            EntityMetadata::Vindicator(entity) => entity,
+            EntityMetadata::WanderingTrader(entity) => entity,
+            EntityMetadata::Warden(entity) => entity,
+            EntityMetadata::Witch(entity) => entity,
+            EntityMetadata::Wither(entity) => entity,
+            EntityMetadata::WitherSkeleton(entity) => entity,
+            EntityMetadata::WitherSkull(entity) => entity,
+            EntityMetadata::Wolf(entity) => entity,
+            EntityMetadata::Zoglin(entity) => entity,
+            EntityMetadata::Zombie(entity) => entity,
+            EntityMetadata::ZombieHorse(entity) => entity,
+            EntityMetadata::ZombieVillager(entity) => entity,
+            EntityMetadata::ZombifiedPiglin(entity) => entity,
+        }
+    }
+}
+impl DerefMut for EntityMetadata {
+    fn deref_mut(&mut self) -> &mut Self::Target {
         match self {
             EntityMetadata::Allay(entity) => entity,
             EntityMetadata::AreaEffectCloud(entity) => entity,

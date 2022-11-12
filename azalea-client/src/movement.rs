@@ -32,25 +32,7 @@ impl Client {
     /// This gets called automatically every tick.
     pub(crate) async fn send_position(&mut self) -> Result<(), MovePlayerError> {
         let packet = {
-            let is_sprinting = self.entity().metadata.sprinting;
-            if is_sprinting != self.physics_state.lock().was_sprinting {
-                let sprinting_action = if is_sprinting {
-                    azalea_protocol::packets::game::serverbound_player_command_packet::Action::StartSprinting
-                } else {
-                    azalea_protocol::packets::game::serverbound_player_command_packet::Action::StopSprinting
-                };
-                let player_entity_id = self.entity().id;
-                self.write_packet(
-                    ServerboundPlayerCommandPacket {
-                        id: player_entity_id,
-                        action: sprinting_action,
-                        data: 0,
-                    }
-                    .get(),
-                )
-                .await?;
-            }
-
+            self.send_sprinting_if_needed().await?;
             // TODO: the camera being able to be controlled by other entities isn't implemented yet
             // if !self.is_controlled_camera() { return };
 
@@ -139,6 +121,31 @@ impl Client {
 
         if let Some(packet) = packet {
             self.write_packet(packet).await?;
+        }
+
+        Ok(())
+    }
+
+    async fn send_sprinting_if_needed(&mut self) -> Result<(), MovePlayerError> {
+        let is_sprinting = self.entity().metadata.sprinting;
+        let was_sprinting = self.physics_state.lock().was_sprinting;
+        if is_sprinting != was_sprinting {
+            let sprinting_action = if is_sprinting {
+                azalea_protocol::packets::game::serverbound_player_command_packet::Action::StartSprinting
+            } else {
+                azalea_protocol::packets::game::serverbound_player_command_packet::Action::StopSprinting
+            };
+            let player_entity_id = self.entity().id;
+            self.write_packet(
+                ServerboundPlayerCommandPacket {
+                    id: player_entity_id,
+                    action: sprinting_action,
+                    data: 0,
+                }
+                .get(),
+            )
+            .await?;
+            self.physics_state.lock().was_sprinting = is_sprinting;
         }
 
         Ok(())
@@ -278,6 +285,7 @@ impl Client {
     /// Returns if the operation was successful.
     fn set_sprinting(&mut self, sprinting: bool) -> bool {
         let mut player_entity = self.entity_mut();
+        player_entity.metadata.sprinting = sprinting;
         if sprinting {
             player_entity
                 .attributes
