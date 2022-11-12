@@ -121,6 +121,7 @@ dependencies = [
  "chrono",
  "env_logger",
  "log",
+ "num-bigint",
  "reqwest",
  "serde",
  "serde_json",
