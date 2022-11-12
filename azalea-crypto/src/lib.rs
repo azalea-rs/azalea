@@ -29,6 +29,7 @@ pub fn hex_digest(digest: &[u8]) -> String {
     // and libraries. It works by treating the sha1 output bytes as one large
     // integer in two's complement and then printing the integer in base 16,
     // placing a minus sign if the interpreted number is negative.
+
     num_bigint::BigInt::from_signed_bytes_be(digest).to_str_radix(16)
 }
 

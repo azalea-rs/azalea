@@ -1,16 +1,16 @@
 [package]
 edition = "2021"
 name = "bot"
-version = "0.2.0"
 publish = false
 release = false
+version = "0.2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 anyhow = "1.0.65"
-azalea = { path = "../azalea" }
+azalea = {path = "../azalea"}
 env_logger = "0.9.1"
-tokio = "1.19.2"
-uuid = "1.1.2"
 parking_lot = "^0.12.1"
+tokio = "^1.21.2"
+uuid = "1.1.2"
