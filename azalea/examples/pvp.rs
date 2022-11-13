@@ -15,8 +15,8 @@ async fn main() {
         swarm_state: State::default(),
         state: State::default(),
 
-        swarm_plugins: vec![Box::new(pathfinder::Plugin::default())],
-        plugins: vec![],
+        swarm_plugins: plugins![pathfinder::Plugin::default()],
+        plugins: plugins![],
 
         handle: Box::new(handle),
         swarm_handle: Box::new(swarm_handle),

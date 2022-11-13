@@ -1,108 +1,44 @@
+pub mod attributes;
 mod data;
 mod dimensions;
 pub mod metadata;
 
+use self::attributes::{AttributeInstance, AttributeModifiers};
 pub use self::metadata::EntityMetadata;
 use crate::Dimension;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, Vec3, AABB};
 pub use data::*;
 pub use dimensions::*;
+use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::ptr::NonNull;
 use uuid::Uuid;
 
+/// A reference to an entity in a dimension.
 #[derive(Debug)]
-pub struct EntityRef<'d> {
+pub struct Entity<'d, D = &'d mut Dimension> {
     /// The dimension this entity is in.
-    pub dimension: &'d Dimension,
+    pub dimension: D,
     /// The incrementing numerical id of the entity.
     pub id: u32,
-    pub data: &'d EntityData,
+    pub data: NonNull<EntityData>,
+    _marker: PhantomData<&'d ()>,
 }
 
-impl<'d> EntityRef<'d> {
-    pub fn new(dimension: &'d Dimension, id: u32, data: &'d EntityData) -> Self {
+impl<'d, D: Deref<Target = Dimension>> Entity<'d, D> {
+    pub fn new(dimension: D, id: u32, data: NonNull<EntityData>) -> Self {
         // TODO: have this be based on the entity type
         Self {
             dimension,
             id,
             data,
+            _marker: PhantomData,
         }
     }
 }
 
-impl<'d> EntityRef<'d> {
-    #[inline]
-    pub fn pos(&self) -> &Vec3 {
-        &self.pos
-    }
-
-    pub fn make_bounding_box(&self) -> AABB {
-        self.dimensions.make_bounding_box(self.pos())
-    }
-
-    /// Get the position of the block below the entity, but a little lower.
-    pub fn on_pos_legacy(&self) -> BlockPos {
-        self.on_pos(0.2)
-    }
-
-    // int x = Mth.floor(this.position.x);
-    // int y = Mth.floor(this.position.y - (double)var1);
-    // int z = Mth.floor(this.position.z);
-    // BlockPos var5 = new BlockPos(x, y, z);
-    // if (this.level.getBlockState(var5).isAir()) {
-    //    BlockPos var6 = var5.below();
-    //    BlockState var7 = this.level.getBlockState(var6);
-    //    if (var7.is(BlockTags.FENCES) || var7.is(BlockTags.WALLS) || var7.getBlock() instanceof FenceGateBlock) {
-    //       return var6;
-    //    }
-    // }
-    // return var5;
-    pub fn on_pos(&self, offset: f32) -> BlockPos {
-        let x = self.pos().x.floor() as i32;
-        let y = (self.pos().y - offset as f64).floor() as i32;
-        let z = self.pos().z.floor() as i32;
-        let pos = BlockPos { x, y, z };
-
-        // TODO: check if block below is a fence, wall, or fence gate
-        let block_pos = pos.below();
-        let block_state = self.dimension.get_block_state(&block_pos);
-        if block_state == Some(BlockState::Air) {
-            let block_pos_below = block_pos.below();
-            let block_state_below = self.dimension.get_block_state(&block_pos_below);
-            if let Some(_block_state_below) = block_state_below {
-                // if block_state_below.is_fence()
-                //     || block_state_below.is_wall()
-                //     || block_state_below.is_fence_gate()
-                // {
-                //     return block_pos_below;
-                // }
-            }
-        }
-
-        pos
-    }
-}
-
-#[derive(Debug)]
-pub struct EntityMut<'d> {
-    /// The dimension this entity is in.
-    pub dimension: &'d mut Dimension,
-    /// The incrementing numerical id of the entity.
-    pub id: u32,
-    pub data: NonNull<EntityData>,
-}
-
-impl<'d> EntityMut<'d> {
-    pub fn new(dimension: &'d mut Dimension, id: u32, data: NonNull<EntityData>) -> Self {
-        Self {
-            dimension,
-            id,
-            data,
-        }
-    }
-
+impl<'d, D: DerefMut<Target = Dimension>> Entity<'d, D> {
     /// Sets the position of the entity. This doesn't update the cache in
     /// azalea-world, and should only be used within azalea-world!
     ///
@@ -158,7 +94,7 @@ impl<'d> EntityMut<'d> {
     }
 }
 
-impl<'d> EntityMut<'d> {
+impl<'d, D: Deref<Target = Dimension>> Entity<'d, D> {
     #[inline]
     pub fn pos(&self) -> &Vec3 {
         &self.pos
@@ -192,10 +128,10 @@ impl<'d> EntityMut<'d> {
         let pos = BlockPos { x, y, z };
 
         // TODO: check if block below is a fence, wall, or fence gate
-        let block_pos = pos.below();
+        let block_pos = pos.down(1);
         let block_state = self.dimension.get_block_state(&block_pos);
         if block_state == Some(BlockState::Air) {
-            let block_pos_below = block_pos.below();
+            let block_pos_below = block_pos.down(1);
             let block_state_below = self.dimension.get_block_state(&block_pos_below);
             if let Some(_block_state_below) = block_state_below {
                 // if block_state_below.is_fence()
@@ -211,36 +147,33 @@ impl<'d> EntityMut<'d> {
     }
 }
 
-impl<'d> From<EntityMut<'d>> for EntityRef<'d> {
-    fn from(entity: EntityMut<'d>) -> EntityRef<'d> {
-        let data = unsafe { entity.data.as_ref() };
-        EntityRef {
-            dimension: entity.dimension,
-            id: entity.id,
-            data,
-        }
-    }
-}
+// impl<
+//         'd,
+//         D: DerefMut<Target = Dimension> + Deref<Target = Dimension>,
+//         D2: Deref<Target = Dimension>,
+//     > From<Entity<'d, D>> for Entity<'d, D2>
+// {
+//     fn from(entity: Entity<'d, D>) -> Entity<'d, D> {
+//         Entity {
+//             dimension: entity.dimension,
+//             id: entity.id,
+//             data: entity.data,
+//             _marker: PhantomData,
+//         }
+//     }
+// }
 
-impl Deref for EntityMut<'_> {
-    type Target = EntityData;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { self.data.as_ref() }
-    }
-}
-
-impl DerefMut for EntityMut<'_> {
+impl<D: DerefMut<Target = Dimension>> DerefMut for Entity<'_, D> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { self.data.as_mut() }
     }
 }
 
-impl Deref for EntityRef<'_> {
+impl<D: Deref<Target = Dimension>> Deref for Entity<'_, D> {
     type Target = EntityData;
 
     fn deref(&self) -> &Self::Target {
-        self.data
+        unsafe { self.data.as_ref() }
     }
 }
 
@@ -279,8 +212,13 @@ pub struct EntityData {
     /// (equivalent to the space key being held down in vanilla).
     pub jumping: bool,
 
+    pub has_impulse: bool,
+
     /// Stores some extra data about the entity, including the entity type.
     pub metadata: EntityMetadata,
+
+    /// The attributes and modifiers that the entity has (for example, speed).
+    pub attributes: AttributeModifiers,
 }
 
 impl EntityData {
@@ -313,19 +251,32 @@ impl EntityData {
             bounding_box: dimensions.make_bounding_box(&pos),
             dimensions,
 
+            has_impulse: false,
+
             jumping: false,
 
             metadata,
+
+            attributes: AttributeModifiers {
+                // TODO: do the correct defaults for everything, some entities have different defaults
+                speed: AttributeInstance::new(0.1),
+            },
         }
     }
 
+    /// Get the position of the entity in the dimension.
     #[inline]
     pub fn pos(&self) -> &Vec3 {
         &self.pos
     }
 
-    pub(crate) unsafe fn as_ptr(&mut self) -> NonNull<EntityData> {
+    pub unsafe fn as_ptr(&mut self) -> NonNull<EntityData> {
         NonNull::new_unchecked(self as *mut EntityData)
+    }
+
+    pub unsafe fn as_const_ptr(&self) -> NonNull<EntityData> {
+        // this is cursed
+        NonNull::new_unchecked(self as *const EntityData as *mut EntityData)
     }
 }
 
@@ -345,8 +296,8 @@ mod tests {
                 EntityMetadata::Player(metadata::Player::default()),
             ),
         );
-        let entity: EntityMut = dim.entity_mut(0).unwrap();
-        let entity_ref: EntityRef = entity.into();
+        let entity: Entity = dim.entity_mut(0).unwrap();
+        let entity_ref = Entity::from(entity);
         assert_eq!(entity_ref.uuid, uuid);
     }
 }

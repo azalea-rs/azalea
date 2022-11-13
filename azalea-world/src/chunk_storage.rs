@@ -6,12 +6,15 @@ use azalea_buf::BufReadError;
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::floor_mod;
 use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
+use log::debug;
+use log::trace;
+use parking_lot::Mutex;
 use std::fmt::Debug;
 use std::io::Cursor;
 use std::{
     io::Write,
     ops::{Index, IndexMut},
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
 
 const SECTION_HEIGHT: u32 = 16;
@@ -82,7 +85,7 @@ impl ChunkStorage {
     pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
         let chunk_pos = ChunkPos::from(pos);
         let chunk = self[&chunk_pos].as_ref()?;
-        let chunk = chunk.lock().unwrap();
+        let chunk = chunk.lock();
         chunk.get(&ChunkBlockPos::from(pos), self.min_y)
     }
 
@@ -92,7 +95,7 @@ impl ChunkStorage {
         }
         let chunk_pos = ChunkPos::from(pos);
         let chunk = self[&chunk_pos].as_ref()?;
-        let mut chunk = chunk.lock().unwrap();
+        let mut chunk = chunk.lock();
         Some(chunk.get_and_set(&ChunkBlockPos::from(pos), state, self.min_y))
     }
 
@@ -101,8 +104,9 @@ impl ChunkStorage {
         pos: &ChunkPos,
         data: &mut Cursor<&[u8]>,
     ) -> Result<(), BufReadError> {
+        debug!("Replacing chunk at {:?}", pos);
         if !self.in_range(pos) {
-            log::trace!(
+            trace!(
                 "Ignoring chunk since it's not in the view range: {}, {}",
                 pos.x,
                 pos.z
@@ -115,7 +119,7 @@ impl ChunkStorage {
             self.height,
         )?));
 
-        log::trace!("Loaded chunk {:?}", pos);
+        trace!("Loaded chunk {:?}", pos);
         self[pos] = Some(chunk);
 
         Ok(())
@@ -164,6 +168,10 @@ impl Chunk {
     }
 
     pub fn get(&self, pos: &ChunkBlockPos, min_y: i32) -> Option<BlockState> {
+        if pos.y < min_y {
+            // y position is out of bounds
+            return None;
+        }
         let section_index = self.section_index(pos.y, min_y) as usize;
         if section_index >= self.sections.len() {
             // y position is out of bounds

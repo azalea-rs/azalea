@@ -11,23 +11,23 @@ use azalea_buf::BufReadError;
 use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
 pub use bit_storage::BitStorage;
 pub use chunk_storage::{Chunk, ChunkStorage};
-use entity::{EntityData, EntityMut, EntityRef};
+use entity::{Entity, EntityData};
 pub use entity_storage::EntityStorage;
+use parking_lot::Mutex;
 use std::{
     io::Cursor,
     ops::{Index, IndexMut},
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
 use thiserror::Error;
 use uuid::Uuid;
 
 /// A dimension is a collection of chunks and entities.
 /// Minecraft calls these "Levels", Fabric calls them "Worlds", Minestom calls them "Instances".
-/// Yeah.
 #[derive(Debug, Default)]
 pub struct Dimension {
-    chunk_storage: ChunkStorage,
-    entity_storage: EntityStorage,
+    pub chunk_storage: ChunkStorage,
+    pub entity_storage: EntityStorage,
 }
 
 #[derive(Error, Debug)]
@@ -127,16 +127,16 @@ impl Dimension {
         self.entity_storage.get_mut_by_id(id)
     }
 
-    pub fn entity(&self, id: u32) -> Option<EntityRef> {
+    pub fn entity(&self, id: u32) -> Option<Entity<&Dimension>> {
         let entity_data = self.entity_storage.get_by_id(id)?;
-        Some(EntityRef::new(self, id, entity_data))
+        let entity_ptr = unsafe { entity_data.as_const_ptr() };
+        Some(Entity::new(self, id, entity_ptr))
     }
 
-    pub fn entity_mut(&mut self, id: u32) -> Option<EntityMut> {
+    pub fn entity_mut(&mut self, id: u32) -> Option<Entity<'_, &mut Dimension>> {
         let entity_data = self.entity_storage.get_mut_by_id(id)?;
-
         let entity_ptr = unsafe { entity_data.as_ptr() };
-        Some(EntityMut::new(self, id, entity_ptr))
+        Some(Entity::new(self, id, entity_ptr))
     }
 
     pub fn entity_by_uuid(&self, uuid: &Uuid) -> Option<&EntityData> {

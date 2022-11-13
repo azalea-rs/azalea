@@ -1,4 +1,4 @@
-use crate::{movement::MoveDirection, Account, Player};
+use crate::{movement::WalkDirection, plugins::Plugins, Account, Player};
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::Component;
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
@@ -27,11 +27,11 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{
-    entity::{metadata, EntityData, EntityMetadata, EntityMut, EntityRef},
+    entity::{metadata, Entity, EntityData, EntityMetadata},
     Dimension,
 };
 use log::{debug, error, info, warn};
-use parking_lot::{Mutex, RwLock};
+use parking_lot::{Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::{
     any,
     backtrace::Backtrace,
@@ -91,10 +91,14 @@ pub struct Client {
     game_profile: GameProfile,
     pub read_conn: Arc<tokio::sync::Mutex<ReadConnection<ClientboundGamePacket>>>,
     pub write_conn: Arc<tokio::sync::Mutex<WriteConnection<ServerboundGamePacket>>>,
-    pub player: Arc<Mutex<Player>>,
-    pub dimension: Arc<Mutex<Dimension>>,
+    pub player: Arc<RwLock<Player>>,
+    pub dimension: Arc<RwLock<Dimension>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
     pub client_information: Arc<RwLock<ClientInformation>>,
+    /// Plugins are a way for other crates to add custom functionality to the
+    /// client and keep state. If you're not making a plugin and you're using
+    /// the `azalea` crate. you can ignore this field.
+    pub plugins: Arc<Plugins>,
     tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
 }
 
@@ -102,8 +106,12 @@ pub struct Client {
 pub struct PhysicsState {
     /// Minecraft only sends a movement packet either after 20 ticks or if the player moved enough. This is that tick counter.
     pub position_remainder: u32,
+    pub was_sprinting: bool,
+    // Whether we're going to try to start sprinting this tick. Equivalent to
+    // holding down ctrl for a tick.
+    pub trying_to_sprint: bool,
 
-    pub move_direction: MoveDirection,
+    pub move_direction: WalkDirection,
     pub forward_impulse: f32,
     pub left_impulse: f32,
 }
@@ -258,11 +266,14 @@ impl Client {
             game_profile,
             read_conn,
             write_conn,
-            player: Arc::new(Mutex::new(Player::default())),
-            dimension: Arc::new(Mutex::new(Dimension::default())),
+            player: Arc::new(RwLock::new(Player::default())),
+            dimension: Arc::new(RwLock::new(Dimension::default())),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
-            tasks: Arc::new(Mutex::new(Vec::new())),
             client_information: Arc::new(RwLock::new(ClientInformation::default())),
+            // The plugins can be modified by the user by replacing the plugins
+            // field right after this. No Mutex so the user doesn't need to .lock().
+            plugins: Arc::new(Plugins::new()),
+            tasks: Arc::new(Mutex::new(Vec::new())),
         };
 
         tx.send(Event::Initialize).unwrap();
@@ -413,7 +424,7 @@ impl Client {
                         .as_int()
                         .expect("min_y tag is not an int");
 
-                    let mut dimension_lock = client.dimension.lock();
+                    let mut dimension_lock = client.dimension.write();
                     // the 16 here is our render distance
                     // i'll make this an actual setting later
                     *dimension_lock = Dimension::new(16, height, min_y);
@@ -425,7 +436,7 @@ impl Client {
                     );
                     dimension_lock.add_entity(p.player_id, entity);
 
-                    let mut player_lock = client.player.lock();
+                    let mut player_lock = client.player.write();
 
                     player_lock.set_entity_id(p.player_id);
                 }
@@ -492,11 +503,11 @@ impl Client {
 
                 let (new_pos, y_rot, x_rot) = {
                     let player_entity_id = {
-                        let player_lock = client.player.lock();
+                        let player_lock = client.player.write();
                         player_lock.entity_id
                     };
 
-                    let mut dimension_lock = client.dimension.lock();
+                    let mut dimension_lock = client.dimension.write();
 
                     let mut player_entity = dimension_lock
                         .entity_mut(player_entity_id)
@@ -584,7 +595,7 @@ impl Client {
                 debug!("Got chunk cache center packet {:?}", p);
                 client
                     .dimension
-                    .lock()
+                    .write()
                     .update_view_center(&ChunkPos::new(p.x, p.z));
             }
             ClientboundGamePacket::LevelChunkWithLight(p) => {
@@ -594,7 +605,7 @@ impl Client {
                 // debug("chunk {:?}")
                 if let Err(e) = client
                     .dimension
-                    .lock()
+                    .write()
                     .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data))
                 {
                     error!("Couldn't set chunk data: {}", e);
@@ -606,11 +617,11 @@ impl Client {
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {:?}", p);
                 let entity = EntityData::from(p);
-                client.dimension.lock().add_entity(p.id, entity);
+                client.dimension.write().add_entity(p.id, entity);
             }
             ClientboundGamePacket::SetEntityData(p) => {
                 debug!("Got set entity data packet {:?}", p);
-                let mut dimension = client.dimension.lock();
+                let mut dimension = client.dimension.write();
                 if let Some(mut entity) = dimension.entity_mut(p.id) {
                     entity.apply_metadata(&p.packed_items.0);
                 } else {
@@ -629,7 +640,7 @@ impl Client {
             ClientboundGamePacket::AddPlayer(p) => {
                 debug!("Got add player packet {:?}", p);
                 let entity = EntityData::from(p);
-                client.dimension.lock().add_entity(p.id, entity);
+                client.dimension.write().add_entity(p.id, entity);
             }
             ClientboundGamePacket::InitializeBorder(p) => {
                 debug!("Got initialize border packet {:?}", p);
@@ -650,7 +661,7 @@ impl Client {
                 debug!("Got set experience packet {:?}", p);
             }
             ClientboundGamePacket::TeleportEntity(p) => {
-                let mut dimension_lock = client.dimension.lock();
+                let mut dimension_lock = client.dimension.write();
 
                 dimension_lock
                     .set_entity_pos(
@@ -670,14 +681,14 @@ impl Client {
                 // debug!("Got rotate head packet {:?}", p);
             }
             ClientboundGamePacket::MoveEntityPos(p) => {
-                let mut dimension_lock = client.dimension.lock();
+                let mut dimension_lock = client.dimension.write();
 
                 dimension_lock
                     .move_entity_with_delta(p.entity_id, &p.delta)
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
             ClientboundGamePacket::MoveEntityPosRot(p) => {
-                let mut dimension_lock = client.dimension.lock();
+                let mut dimension_lock = client.dimension.write();
 
                 dimension_lock
                     .move_entity_with_delta(p.entity_id, &p.delta)
@@ -712,7 +723,7 @@ impl Client {
             }
             ClientboundGamePacket::BlockUpdate(p) => {
                 debug!("Got block update packet {:?}", p);
-                let mut dimension = client.dimension.lock();
+                let mut dimension = client.dimension.write();
                 dimension.set_block_state(&p.pos, p.block_state);
             }
             ClientboundGamePacket::Animate(p) => {
@@ -720,7 +731,7 @@ impl Client {
             }
             ClientboundGamePacket::SectionBlocksUpdate(p) => {
                 debug!("Got section blocks update packet {:?}", p);
-                let mut dimension = client.dimension.lock();
+                let mut dimension = client.dimension.write();
                 for state in &p.states {
                     dimension.set_block_state(&(p.section_pos + state.pos.clone()), state.state);
                 }
@@ -818,8 +829,8 @@ impl Client {
     async fn game_tick(client: &mut Client, tx: &UnboundedSender<Event>) {
         // return if there's no chunk at the player's position
         {
-            let dimension_lock = client.dimension.lock();
-            let player_lock = client.player.lock();
+            let dimension_lock = client.dimension.write();
+            let player_lock = client.player.write();
             let player_entity = player_lock.entity(&dimension_lock);
             let player_entity = if let Some(player_entity) = player_entity {
                 player_entity
@@ -845,30 +856,42 @@ impl Client {
     }
 
     /// Returns the entity associated to the player.
-    pub fn entity_mut<'d>(&self, dimension: &'d mut Dimension) -> EntityMut<'d> {
+    pub fn entity_mut(&self) -> Entity<RwLockWriteGuard<Dimension>> {
         let entity_id = {
-            let player_lock = self.player.lock();
+            let player_lock = self.player.write();
             player_lock.entity_id
         };
-        dimension
-            .entity_mut(entity_id)
-            .expect("Player entity should be in the given dimension")
+
+        let mut dimension = self.dimension.write();
+
+        let entity_data = dimension
+            .entity_storage
+            .get_mut_by_id(entity_id)
+            .expect("Player entity should exist");
+        let entity_ptr = unsafe { entity_data.as_ptr() };
+        Entity::new(dimension, entity_id, entity_ptr)
     }
     /// Returns the entity associated to the player.
-    pub fn entity<'d>(&self, dimension: &'d Dimension) -> EntityRef<'d> {
+    pub fn entity(&self) -> Entity<RwLockReadGuard<Dimension>> {
         let entity_id = {
-            let player_lock = self.player.lock();
+            let player_lock = self.player.read();
             player_lock.entity_id
         };
-        dimension
-            .entity(entity_id)
-            .expect("Player entity should be in the given dimension")
+
+        let dimension = self.dimension.read();
+
+        let entity_data = dimension
+            .entity_storage
+            .get_by_id(entity_id)
+            .expect("Player entity should be in the given dimension");
+        let entity_ptr = unsafe { entity_data.as_const_ptr() };
+        Entity::new(dimension, entity_id, entity_ptr)
     }
 
     /// Returns whether we have a received the login packet yet.
     pub fn logged_in(&self) -> bool {
-        let dimension = self.dimension.lock();
-        let player = self.player.lock();
+        let dimension = self.dimension.read();
+        let player = self.player.write();
         player.entity(&dimension).is_some()
     }
 

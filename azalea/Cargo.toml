@@ -11,9 +11,15 @@ version = "0.3.0"
 [dependencies]
 anyhow = "^1.0.65"
 async-trait = "^0.1.57"
+azalea-block = { version = "0.3.0", path = "../azalea-block" }
 azalea-client = {version = "0.3.0", path = "../azalea-client"}
+azalea-core = {version = "0.3.0", path = "../azalea-core"}
+azalea-physics = { version = "0.3.0", path = "../azalea-physics" }
 azalea-protocol = {version = "0.3.0", path = "../azalea-protocol"}
-parking_lot = "^0.12.1"
+azalea-world = { version = "0.3.0", path = "../azalea-world" }
+num-traits = "0.2.15"
+parking_lot = {version = "^0.12.1", features = ["deadlock_detection"]}
+priority-queue = "1.3.0"
 thiserror = "^1.0.37"
 tokio = "^1.21.2"
 
