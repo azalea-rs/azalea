@@ -1,9 +1,12 @@
 use azalea::pathfinder::BlockPosGoal;
-use azalea::{prelude::*, BlockPos};
+use azalea::{prelude::*, BlockPos, Swarm, SwarmEvent};
 use azalea::{Account, Client, Event};
 
 #[derive(Default, Clone)]
 struct State {}
+
+#[derive(Default, Clone)]
+struct SwarmState {}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -32,44 +35,55 @@ async fn main() -> anyhow::Result<()> {
                 }
             }
         });
-    } // only for #[cfg]
+    }
 
-    // let account = Account::microsoft("example@example.com").await?;
-    let account = Account::offline("bot");
+    let mut accounts = Vec::new();
+    let mut states = Vec::new();
+
+    for i in 0..5 {
+        accounts.push(Account::offline(&format!("bot{}", i)));
+        states.push(State::default());
+    }
 
     loop {
-        let e = azalea::start(azalea::Options {
-            account: account.clone(),
+        let e = azalea::start_swarm(azalea::SwarmOptions {
+            accounts: accounts.clone(),
             address: "localhost",
-            state: State::default(),
+
+            states: states.clone(),
+            swarm_state: SwarmState::default(),
+
             plugins: plugins![],
+            swarm_plugins: swarm_plugins![],
+
             handle,
+            swarm_handle,
         })
         .await;
         println!("{:?}", e);
     }
 }
 
-async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
+async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
     match event {
         Event::Login => {
-            // bot.chat("Hello world").await?;
+            bot.chat("Hello world").await?;
         }
         Event::Chat(m) => {
-            println!("{}", m.message().to_ansi(None));
-            if m.message().to_string() == "<py5> goto" {
-                let target_pos_vec3 = bot
-                    .dimension
-                    .read()
-                    .entity_by_uuid(&uuid::uuid!("6536bfed869548fd83a1ecd24cf2a0fd"))
-                    .unwrap()
-                    .pos()
-                    .clone();
-                let target_pos: BlockPos = (&target_pos_vec3).into();
-                // bot.look_at(&target_pos_vec3);
-                bot.goto(BlockPosGoal::from(target_pos));
-                // bot.walk(WalkDirection::Forward);
-            }
+            // println!("{}", m.message().to_ansi(None));
+            // if m.message().to_string() == "<py5> goto" {
+            //     let target_pos_vec3 = bot
+            //         .dimension
+            //         .read()
+            //         .entity_by_uuid(&uuid::uuid!("6536bfed869548fd83a1ecd24cf2a0fd"))
+            //         .unwrap()
+            //         .pos()
+            //         .clone();
+            //     let target_pos: BlockPos = (&target_pos_vec3).into();
+            //     // bot.look_at(&target_pos_vec3);
+            //     bot.goto(BlockPosGoal::from(target_pos));
+            //     // bot.walk(WalkDirection::Forward);
+            // }
         }
         Event::Initialize => {
             println!("initialized");
@@ -80,5 +94,13 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
         _ => {}
     }
 
+    Ok(())
+}
+
+async fn swarm_handle(
+    mut _swarm: Swarm,
+    _event: SwarmEvent,
+    _state: SwarmState,
+) -> anyhow::Result<()> {
     Ok(())
 }

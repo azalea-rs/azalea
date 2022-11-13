@@ -10,6 +10,7 @@ async fn main() {
 
     for i in 0..10 {
         accounts.push(Account::offline(&format!("bot{}", i)));
+        states.push(Arc::new(Mutex::new(State::default())));
     }
 
     azalea::start_swarm(azalea::SwarmOptions {

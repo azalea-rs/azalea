@@ -75,6 +75,9 @@
 //!
 //! [`azalea_client`]: https://crates.io/crates/azalea-client
 
+#![feature(trait_upcasting)]
+#![allow(incomplete_features)]
+
 mod bot;
 pub mod pathfinder;
 pub mod prelude;
@@ -87,22 +90,3 @@ pub use start::{start, Options};
 pub use swarm::*;
 
 pub type HandleFn<Fut, S> = fn(Client, Event, S) -> Fut;
-
-/// A helper macro that generates a [`Plugins`] struct from a list of objects
-/// that implement [`Plugin`].
-///
-/// ```rust,no_run
-/// plugins![azalea_pathfinder::Plugin::default()];
-/// ```
-#[macro_export]
-macro_rules! plugins {
-    ($($plugin:expr),*) => {
-        {
-            let mut plugins = azalea::Plugins::new();
-            $(
-                plugins.add($plugin);
-            )*
-            plugins
-        }
-    };
-}

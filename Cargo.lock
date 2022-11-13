@@ -121,6 +121,7 @@ dependencies = [
  "azalea-world",
  "env_logger",
  "futures",
+ "nohash-hasher",
  "num-traits",
  "parking_lot",
  "priority-queue",

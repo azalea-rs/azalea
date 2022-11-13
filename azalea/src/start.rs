@@ -4,6 +4,25 @@ use azalea_protocol::ServerAddress;
 use std::{future::Future, sync::Arc};
 use thiserror::Error;
 
+/// A helper macro that generates a [`Plugins`] struct from a list of objects
+/// that implement [`Plugin`].
+///
+/// ```rust,no_run
+/// plugins![azalea_pathfinder::Plugin::default()];
+/// ```
+#[macro_export]
+macro_rules! plugins {
+    ($($plugin:expr),*) => {
+        {
+            let mut plugins = azalea::Plugins::new();
+            $(
+                plugins.add($plugin);
+            )*
+            plugins
+        }
+    };
+}
+
 /// The options that are passed to [`azalea::start`].
 ///
 /// [`azalea::start`]: crate::start

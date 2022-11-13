@@ -1,4 +1,8 @@
+mod plugins;
+
+pub use self::plugins::*;
 use crate::{bot, HandleFn};
+use async_trait::async_trait;
 use azalea_client::{Account, Client, Event, JoinError, Plugin, Plugins};
 use azalea_protocol::{
     resolver::{self, ResolverError},
@@ -9,9 +13,28 @@ use futures::{
     FutureExt,
 };
 use parking_lot::Mutex;
-use std::{future::Future, sync::Arc};
+use std::{any::Any, future::Future, sync::Arc};
 use thiserror::Error;
 use tokio::sync::mpsc::UnboundedReceiver;
+
+/// A helper macro that generates a [`Plugins`] struct from a list of objects
+/// that implement [`Plugin`].
+///
+/// ```rust,no_run
+/// plugins![azalea_pathfinder::Plugin::default()];
+/// ```
+#[macro_export]
+macro_rules! swarm_plugins {
+    ($($plugin:expr),*) => {
+        {
+            let mut plugins = azalea::SwarmPlugins::new();
+            $(
+                plugins.add($plugin);
+            )*
+            plugins
+        }
+    };
+}
 
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
@@ -28,13 +51,16 @@ pub enum SwarmEvent {
     Login,
 }
 
+pub type SwarmHandleFn<Fut, S> = fn(Swarm, SwarmEvent, S) -> Fut;
+
 /// The options that are passed to [`azalea::start_swarm`].
 ///
 /// [`azalea::start`]: crate::start_swarm
-pub struct SwarmOptions<S, SS, A, Fut>
+pub struct SwarmOptions<S, SS, A, Fut, SwarmFut>
 where
     A: TryInto<ServerAddress>,
     Fut: Future<Output = Result<(), anyhow::Error>>,
+    SwarmFut: Future<Output = Result<(), anyhow::Error>>,
 {
     /// The address of the server that we're connecting to. This can be a
     /// `&str`, [`ServerAddress`], or anything that implements
@@ -45,13 +71,13 @@ where
     /// The accounts that are going to join the server.
     pub accounts: Vec<Account>,
     pub plugins: Plugins,
-    pub swarm_plugins: Plugins,
+    pub swarm_plugins: SwarmPlugins,
     /// The individual bot states. This must be the same length as `accounts`,
     /// since each bot gets one state.
     pub states: Vec<S>,
     pub swarm_state: SS,
     pub handle: HandleFn<Fut, S>,
-    pub swarm_handle: HandleFn<Fut, S>,
+    pub swarm_handle: SwarmHandleFn<SwarmFut, SS>,
 }
 
 #[derive(Error, Debug)]
@@ -70,8 +96,9 @@ pub async fn start_swarm<
     SS: Send + Sync + Clone + 'static,
     A: Send + TryInto<ServerAddress>,
     Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
+    SwarmFut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
 >(
-    options: SwarmOptions<S, SS, A, Fut>,
+    options: SwarmOptions<S, SS, A, Fut, SwarmFut>,
 ) -> Result<(), SwarmStartError> {
     assert_eq!(
         options.accounts.len(),
@@ -116,6 +143,21 @@ pub async fn start_swarm<
 
     let states = options.states;
     let swarm_state = options.swarm_state;
+    let mut internal_state = InternalSwarmState::default();
+
+    // Send an event to the swarm_handle function.
+    let cloned_swarm = swarm.clone();
+    let fire_swarm_event = move |event: SwarmEvent| {
+        let cloned_swarm_plugins = options.swarm_plugins.clone();
+        for plugin in cloned_swarm_plugins.into_iter() {
+            tokio::spawn(plugin.handle(event.clone(), cloned_swarm.clone()));
+        }
+        tokio::spawn((options.swarm_handle)(
+            cloned_swarm.clone(),
+            event,
+            swarm_state.clone(),
+        ));
+    };
 
     // bot events
     while let (Some(event), bot_index) = swarm.bot_recv().await {
@@ -132,6 +174,18 @@ pub async fn start_swarm<
             event.clone(),
             bot.clone(),
         ));
+
+        // swarm event handling
+        match &event {
+            Event::Login => {
+                internal_state.clients_joined += 1;
+                if internal_state.clients_joined == swarm.bots.lock().len() {
+                    fire_swarm_event(SwarmEvent::Login);
+                }
+            }
+            _ => {}
+        }
+
         tokio::spawn((options.handle)(bot, event, bot_state));
     }
 
@@ -150,4 +204,10 @@ impl Swarm {
         let (event, index, _remaining) = select_all(futures).await;
         (event, index)
     }
+}
+
+#[derive(Default)]
+struct InternalSwarmState {
+    /// The number of clients connected to the server
+    pub clients_joined: usize,
 }
