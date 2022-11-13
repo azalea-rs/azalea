@@ -15,7 +15,10 @@ use azalea_protocol::{
             serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
             ClientboundGamePacket, ServerboundGamePacket,
         },
-        handshake::client_intention_packet::ClientIntentionPacket,
+        handshake::{
+            client_intention_packet::ClientIntentionPacket, ClientboundHandshakePacket,
+            ServerboundHandshakePacket,
+        },
         login::{
             serverbound_custom_query_packet::ServerboundCustomQueryPacket,
             serverbound_hello_packet::ServerboundHelloPacket,
@@ -88,6 +91,8 @@ pub struct Client {
     pub write_conn: Arc<tokio::sync::Mutex<WriteConnection<ServerboundGamePacket>>>,
     pub player: Arc<RwLock<Player>>,
     pub dimension: Arc<RwLock<Dimension>>,
+    /// Whether there's multiple clients sharing the same dimension.
+    pub dimension_shared: Arc<RwLock<bool>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
     pub client_information: Arc<RwLock<ClientInformation>>,
     /// Plugins are a way for other crates to add custom functionality to the
@@ -141,6 +146,36 @@ pub enum HandleError {
 }
 
 impl Client {
+    /// Create a new client from the given game profile, conn in the game
+    /// state, and dimension. You should only use this if you want to change
+    /// these fields from the defaults, otherwise use `Client::join`.
+    pub fn new(
+        game_profile: GameProfile,
+        conn: Connection<ClientboundGamePacket, ServerboundGamePacket>,
+        dimension: Option<Arc<RwLock<Dimension>>>,
+    ) -> Self {
+        let (read_conn, write_conn) = conn.into_split();
+        let (read_conn, write_conn) = (
+            Arc::new(tokio::sync::Mutex::new(read_conn)),
+            Arc::new(tokio::sync::Mutex::new(write_conn)),
+        );
+
+        Self {
+            game_profile,
+            read_conn,
+            write_conn,
+            player: Arc::new(RwLock::new(Player::default())),
+            dimension_shared: Arc::new(RwLock::new(dimension.is_some())),
+            dimension: dimension.unwrap_or_else(|| Arc::new(RwLock::new(Dimension::default()))),
+            physics_state: Arc::new(Mutex::new(PhysicsState::default())),
+            client_information: Arc::new(
+                RwLock::new(ServerboundClientInformationPacket::default()),
+            ),
+            plugins: Arc::new(Plugins::new()),
+            tasks: Arc::new(Mutex::new(Vec::new())),
+        }
+    }
+
     /// Connect to a Minecraft server.
     ///
     /// To change the render distance and other settings, use
@@ -167,8 +202,35 @@ impl Client {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
         let resolved_address = resolver::resolve_address(&address).await?;
 
-        let mut conn = Connection::new(&resolved_address).await?;
+        let conn = Connection::new(&resolved_address).await?;
+        let (conn, game_profile) = Self::handshake(conn, account, address).await?;
 
+        let (tx, rx) = mpsc::unbounded_channel();
+
+        // we got the GameConnection, so the server is now connected :)
+        let client = Client::new(game_profile, conn, None);
+
+        tx.send(Event::Initialize).unwrap();
+
+        // just start up the game loop and we're ready!
+
+        client.start_tasks(tx);
+
+        Ok((client, rx))
+    }
+
+    /// Do a handshake with the server and get to the game state from the initial handshake state.
+    pub async fn handshake(
+        mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,
+        account: &Account,
+        address: ServerAddress,
+    ) -> Result<
+        (
+            Connection<ClientboundGamePacket, ServerboundGamePacket>,
+            GameProfile,
+        ),
+        JoinError,
+    > {
         // handshake
         conn.write(
             ClientIntentionPacket {
@@ -248,45 +310,7 @@ impl Client {
             }
         };
 
-        let (read_conn, write_conn) = conn.into_split();
-
-        let read_conn = Arc::new(tokio::sync::Mutex::new(read_conn));
-        let write_conn = Arc::new(tokio::sync::Mutex::new(write_conn));
-
-        let (tx, rx) = mpsc::unbounded_channel();
-
-        // we got the GameConnection, so the server is now connected :)
-        let client = Client {
-            game_profile,
-            read_conn,
-            write_conn,
-            player: Arc::new(RwLock::new(Player::default())),
-            dimension: Arc::new(RwLock::new(Dimension::default())),
-            physics_state: Arc::new(Mutex::new(PhysicsState::default())),
-            client_information: Arc::new(RwLock::new(ClientInformation::default())),
-            // The plugins can be modified by the user by replacing the plugins
-            // field right after this. No Mutex so the user doesn't need to .lock().
-            plugins: Arc::new(Plugins::new()),
-            tasks: Arc::new(Mutex::new(Vec::new())),
-        };
-
-        tx.send(Event::Initialize).unwrap();
-
-        // just start up the game loop and we're ready!
-
-        // if you get an error right here that means you're doing something with locks wrong
-        // read the error to see where the issue is
-        // you might be able to just drop the lock or put it in its own scope to fix
-        {
-            let mut tasks = client.tasks.lock();
-            tasks.push(tokio::spawn(Self::protocol_loop(
-                client.clone(),
-                tx.clone(),
-            )));
-            tasks.push(tokio::spawn(Self::game_tick_loop(client.clone(), tx)));
-        }
-
-        Ok((client, rx))
+        Ok((conn, game_profile))
     }
 
     /// Write a packet directly to the server.
@@ -305,6 +329,21 @@ impl Client {
         Ok(())
     }
 
+    /// Start the protocol and game tick loop.
+    #[doc(hidden)]
+    pub fn start_tasks(&self, tx: UnboundedSender<Event>) {
+        // if you get an error right here that means you're doing something with locks wrong
+        // read the error to see where the issue is
+        // you might be able to just drop the lock or put it in its own scope to fix
+
+        let mut tasks = self.tasks.lock();
+        tasks.push(tokio::spawn(Client::protocol_loop(
+            self.clone(),
+            tx.clone(),
+        )));
+        tasks.push(tokio::spawn(Client::game_tick_loop(self.clone(), tx)));
+    }
+
     async fn protocol_loop(client: Client, tx: UnboundedSender<Event>) {
         loop {
             let r = client.read_conn.lock().await.read().await;
@@ -313,9 +352,7 @@ impl Client {
                     Ok(_) => {}
                     Err(e) => {
                         error!("Error handling packet: {}", e);
-                        if IGNORE_ERRORS {
-                            continue;
-                        } else {
+                        if !IGNORE_ERRORS {
                             panic!("Error handling packet: {e}");
                         }
                     }
@@ -332,7 +369,7 @@ impl Client {
                         warn!("{}", e);
                         match e {
                             ReadPacketError::FrameSplitter { .. } => panic!("Error: {e:?}"),
-                            _ => continue,
+                            _ => {}
                         }
                     } else {
                         panic!("{}", e);
@@ -350,7 +387,7 @@ impl Client {
         tx.send(Event::Packet(Box::new(packet.clone()))).unwrap();
         match packet {
             ClientboundGamePacket::Login(p) => {
-                debug!("Got login packet {:?}", p);
+                debug!("Got login packet");
 
                 {
                     // // write p into login.txt
@@ -414,9 +451,31 @@ impl Client {
                         .expect("min_y tag is not an int");
 
                     let mut dimension_lock = client.dimension.write();
-                    // the 16 here is our render distance
-                    // i'll make this an actual setting later
-                    *dimension_lock = Dimension::new(16, height, min_y);
+
+                    if *client.dimension_shared.read() {
+                        // we can't clear the dimension if it's shared, so just
+                        // make sure the height and stuff is correct
+                        if dimension_lock.height() != height {
+                            error!(
+                                "Shared dimension height mismatch: {} != {}",
+                                dimension_lock.height(),
+                                height
+                            );
+                        }
+                        if dimension_lock.min_y() != min_y {
+                            error!(
+                                "Shared dimension min_y mismatch: {} != {}",
+                                dimension_lock.min_y(),
+                                min_y
+                            );
+                        }
+                    } else {
+                        *dimension_lock = Dimension::new(
+                            client.client_information.read().view_distance.into(),
+                            height,
+                            min_y,
+                        );
+                    }
 
                     let entity = EntityData::new(
                         client.game_profile.uuid,

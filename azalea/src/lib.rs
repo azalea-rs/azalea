@@ -76,6 +76,7 @@
 //! [`azalea_client`]: https://crates.io/crates/azalea-client
 
 #![feature(trait_upcasting)]
+#![feature(async_closure)]
 #![allow(incomplete_features)]
 
 mod bot;

@@ -3,19 +3,23 @@ mod plugins;
 pub use self::plugins::*;
 use crate::{bot, HandleFn};
 use async_trait::async_trait;
-use azalea_client::{Account, Client, Event, JoinError, Plugin, Plugins};
+use azalea_client::{
+    Account, Client, ClientInformation, Event, JoinError, PhysicsState, Player, Plugin, Plugins,
+};
 use azalea_protocol::{
+    connect::Connection,
     resolver::{self, ResolverError},
     ServerAddress,
 };
+use azalea_world::Dimension;
 use futures::{
     future::{select_all, try_join_all},
     FutureExt,
 };
-use parking_lot::Mutex;
+use parking_lot::{Mutex, RwLock};
 use std::{any::Any, future::Future, sync::Arc};
 use thiserror::Error;
-use tokio::sync::mpsc::UnboundedReceiver;
+use tokio::sync::mpsc::{self, UnboundedReceiver};
 
 /// A helper macro that generates a [`Plugins`] struct from a list of objects
 /// that implement [`Plugin`].
@@ -115,13 +119,28 @@ pub async fn start_swarm<
     // resolve the address
     let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
     let resolved_address = resolver::resolve_address(&address).await?;
+    let address_borrow = &address;
 
-    let bots = try_join_all(
-        options
-            .accounts
-            .iter()
-            .map(|account| Client::join(&account, resolved_address)),
-    )
+    let shared_dimension = Arc::new(RwLock::new(Dimension::default()));
+    let shared_dimension_borrow = &shared_dimension;
+
+    let bots: Vec<(Client, UnboundedReceiver<Event>)> = try_join_all(options.accounts.iter().map(
+        async move |account| -> Result<(Client, UnboundedReceiver<Event>), JoinError> {
+            let conn = Connection::new(&resolved_address).await?;
+            let (conn, game_profile) =
+                Client::handshake(conn, account, address_borrow.clone()).await?;
+
+            let (tx, rx) = mpsc::unbounded_channel();
+
+            let client = Client::new(game_profile, conn, Some(shared_dimension_borrow.clone()));
+
+            tx.send(Event::Initialize).unwrap();
+
+            client.start_tasks(tx);
+
+            Ok((client, rx))
+        },
+    ))
     .await?;
 
     // extract it into two different vecs
