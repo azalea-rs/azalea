@@ -58,6 +58,18 @@ impl<'a> TryFrom<&'a str> for ServerAddress {
     }
 }
 
+impl From<SocketAddr> for ServerAddress {
+    /// Convert an existing SocketAddr into a ServerAddress. This just converts
+    /// the ip to a string and passes along the port. The resolver will realize
+    /// it's already an IP address and not do any DNS requests.
+    fn from(addr: SocketAddr) -> Self {
+        ServerAddress {
+            host: addr.ip().to_string(),
+            port: addr.port(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;

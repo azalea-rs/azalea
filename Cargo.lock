@@ -120,6 +120,7 @@ dependencies = [
  "azalea-protocol",
  "azalea-world",
  "env_logger",
+ "futures",
  "num-traits",
  "parking_lot",
  "priority-queue",
