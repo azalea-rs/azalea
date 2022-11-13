@@ -1,7 +1,6 @@
 use azalea::pathfinder::BlockPosGoal;
 use azalea::{prelude::*, BlockPos};
 use azalea::{Account, Client, Event};
-use azalea_pathfinder::{BlockPosGoal, Trait};
 
 #[derive(Default, Clone)]
 struct State {}
