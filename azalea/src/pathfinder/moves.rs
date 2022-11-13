@@ -1,8 +1,7 @@
+use super::{Node, VerticalVel};
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_physics::collision::{self, BlockWithShape};
 use azalea_world::Dimension;
-
-use crate::{Node, VerticalVel};
 
 /// whether this block is passable
 fn is_block_passable(pos: &BlockPos, dim: &Dimension) -> bool {

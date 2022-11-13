@@ -1,6 +1,6 @@
+use azalea::pathfinder::BlockPosGoal;
 use azalea::{prelude::*, BlockPos};
 use azalea::{Account, Client, Event};
-use azalea_pathfinder::{BlockPosGoal, Trait};
 
 #[derive(Default, Clone)]
 struct State {}
@@ -42,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
             account: account.clone(),
             address: "localhost",
             state: State::default(),
-            plugins: plugins![azalea_pathfinder::Plugin::default()],
+            plugins: plugins![],
             handle,
         })
         .await;

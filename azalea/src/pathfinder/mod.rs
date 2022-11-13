@@ -1,9 +1,9 @@
 mod moves;
 mod mtdstarlite;
 
+use crate::{prelude::*, SprintDirection, WalkDirection};
+use crate::{Client, Event};
 use async_trait::async_trait;
-use azalea::{prelude::*, SprintDirection, WalkDirection};
-use azalea::{Client, Event};
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_world::entity::EntityData;
 use mtdstarlite::Edge;
@@ -24,7 +24,7 @@ pub struct State {
 }
 
 #[async_trait]
-impl azalea::Plugin for Plugin {
+impl crate::Plugin for Plugin {
     async fn handle(self: Box<Self>, event: Event, mut bot: Client) {
         if let Event::Tick = event {
             let mut path = self.state.path.lock();

@@ -113,11 +113,16 @@ version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "azalea-block",
  "azalea-client",
  "azalea-core",
+ "azalea-physics",
  "azalea-protocol",
+ "azalea-world",
  "env_logger",
+ "num-traits",
  "parking_lot",
+ "priority-queue",
  "thiserror",
  "tokio",
 ]
@@ -265,24 +270,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "azalea-pathfinder"
-version = "0.3.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "azalea",
- "azalea-block",
- "azalea-client",
- "azalea-core",
- "azalea-physics",
- "azalea-world",
- "num-traits",
- "parking_lot",
- "priority-queue",
- "tokio",
-]
-
-[[package]]
 name = "azalea-physics"
 version = "0.3.0"
 dependencies = [
@@ -412,7 +399,6 @@ version = "0.2.0"
 dependencies = [
  "anyhow",
  "azalea",
- "azalea-pathfinder",
  "env_logger",
  "parking_lot",
  "tokio",
