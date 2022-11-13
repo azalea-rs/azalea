@@ -115,12 +115,12 @@ impl Move for DiagonalMove {
             return f32::INFINITY;
         }
         if !is_passable(
-            &BlockPos::new(node.pos.x + self.0.x(), 0, node.pos.z + self.0.z()),
+            &BlockPos::new(node.pos.x + self.0.x(), node.pos.y, node.pos.z + self.0.z()),
             dim,
         ) && !is_passable(
             &BlockPos::new(
                 node.pos.x + self.0.right().x(),
-                0,
+                node.pos.y,
                 node.pos.z + self.0.right().z(),
             ),
             dim,
