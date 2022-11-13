@@ -13,7 +13,7 @@ azalea-buf-macros = {path = "./azalea-buf-macros", version = "^0.3.0" }
 byteorder = "^1.4.3"
 serde_json = {version = "^1.0", optional = true}
 thiserror = "^1.0.34"
-tokio = {version = "^1.19.2", features = ["io-util", "net", "macros"]}
+tokio = {version = "^1.21.2", features = ["io-util", "net", "macros"]}
 uuid = "^1.1.2"
 
 [features]

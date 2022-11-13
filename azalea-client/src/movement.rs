@@ -2,6 +2,7 @@ use crate::Client;
 use azalea_core::Vec3;
 use azalea_physics::collision::{MovableEntity, MoverType};
 use azalea_physics::HasPhysics;
+use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
     serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
@@ -28,23 +29,18 @@ impl From<MoveEntityError> for MovePlayerError {
 }
 
 impl Client {
-    /// This gets called every tick.
-    pub async fn send_position(&mut self) -> Result<(), MovePlayerError> {
+    /// This gets called automatically every tick.
+    pub(crate) async fn send_position(&mut self) -> Result<(), MovePlayerError> {
         let packet = {
-            let player_lock = self.player.write();
-            let mut physics_state = self.physics_state.lock();
-            let mut dimension_lock = self.dimension.write();
-
-            let mut player_entity = player_lock
-                .entity_mut(&mut dimension_lock)
-                .expect("Player must exist");
-            let player_pos = player_entity.pos();
-            let player_old_pos = player_entity.last_pos;
-
-            // TODO: send sprinting and sneaking packets here if they changed
-
+            self.send_sprinting_if_needed().await?;
             // TODO: the camera being able to be controlled by other entities isn't implemented yet
             // if !self.is_controlled_camera() { return };
+
+            let mut physics_state = self.physics_state.lock();
+
+            let player_entity = self.entity();
+            let player_pos = player_entity.pos();
+            let player_old_pos = player_entity.last_pos;
 
             let x_delta = player_pos.x - player_old_pos.x;
             let y_delta = player_pos.y - player_old_pos.y;
@@ -105,6 +101,9 @@ impl Client {
                 None
             };
 
+            drop(player_entity);
+            let mut player_entity = self.entity_mut();
+
             if sending_position {
                 player_entity.last_pos = *player_entity.pos();
                 physics_state.position_remainder = 0;
@@ -122,6 +121,31 @@ impl Client {
 
         if let Some(packet) = packet {
             self.write_packet(packet).await?;
+        }
+
+        Ok(())
+    }
+
+    async fn send_sprinting_if_needed(&mut self) -> Result<(), MovePlayerError> {
+        let is_sprinting = self.entity().metadata.sprinting;
+        let was_sprinting = self.physics_state.lock().was_sprinting;
+        if is_sprinting != was_sprinting {
+            let sprinting_action = if is_sprinting {
+                azalea_protocol::packets::game::serverbound_player_command_packet::Action::StartSprinting
+            } else {
+                azalea_protocol::packets::game::serverbound_player_command_packet::Action::StopSprinting
+            };
+            let player_entity_id = self.entity().id;
+            self.write_packet(
+                ServerboundPlayerCommandPacket {
+                    id: player_entity_id,
+                    action: sprinting_action,
+                    data: 0,
+                }
+                .get(),
+            )
+            .await?;
+            self.physics_state.lock().was_sprinting = is_sprinting;
         }
 
         Ok(())
@@ -160,19 +184,38 @@ impl Client {
     pub fn ai_step(&mut self) {
         self.tick_controls(None);
 
-        let mut dimension_lock = self.dimension.write();
-        let player_lock = self.player.write();
-        let mut player_entity = player_lock
-            .entity_mut(&mut dimension_lock)
-            .expect("Player must exist");
-
         // server ai step
         {
+            let mut player_entity = self.entity_mut();
+
             let physics_state = self.physics_state.lock();
             player_entity.xxa = physics_state.left_impulse;
             player_entity.zza = physics_state.forward_impulse;
         }
 
+        // TODO: food data and abilities
+        // let has_enough_food_to_sprint = self.food_data().food_level || self.abilities().may_fly;
+        let has_enough_food_to_sprint = true;
+
+        // TODO: double tapping w to sprint i think
+
+        let trying_to_sprint = self.physics_state.lock().trying_to_sprint;
+
+        if !self.sprinting()
+            && (
+                // !self.is_in_water()
+                // || self.is_underwater() &&
+                self.has_enough_impulse_to_start_sprinting()
+                    && has_enough_food_to_sprint
+                    // && !self.using_item()
+                    // && !self.has_effect(MobEffects.BLINDNESS)
+                    && trying_to_sprint
+            )
+        {
+            self.set_sprinting(true);
+        }
+
+        let mut player_entity = self.entity_mut();
         player_entity.ai_step();
     }
 
@@ -212,20 +255,59 @@ impl Client {
         }
     }
 
-    /// Start walking in the given direction.
+    /// Start walking in the given direction. To sprint, use
+    /// [`Client::sprint`]. To stop walking, call walk with
+    /// `WalkDirection::None`.
     pub fn walk(&mut self, direction: WalkDirection) {
-        let mut physics_state = self.physics_state.lock();
-        physics_state.move_direction = direction;
+        {
+            let mut physics_state = self.physics_state.lock();
+            physics_state.move_direction = direction;
+        }
+
+        self.set_sprinting(false);
     }
 
-    /// Toggle whether we're jumping. This acts as if you held space in
+    /// Start sprinting in the given direction. To stop moving, call
+    /// [`Client::walk(WalkDirection::None)`]
+    pub fn sprint(&mut self, direction: SprintDirection) {
+        let mut physics_state = self.physics_state.lock();
+        physics_state.move_direction = WalkDirection::from(direction);
+        physics_state.trying_to_sprint = true;
+    }
+
+    // Whether we're currently sprinting.
+    pub fn sprinting(&self) -> bool {
+        self.entity().metadata.sprinting
+    }
+
+    /// Change whether we're sprinting by adding an attribute modifier to the
+    /// player. You should use the [`walk`] and [`sprint`] methods instead.
+    /// Returns if the operation was successful.
+    fn set_sprinting(&mut self, sprinting: bool) -> bool {
+        let mut player_entity = self.entity_mut();
+        player_entity.metadata.sprinting = sprinting;
+        if sprinting {
+            player_entity
+                .attributes
+                .speed
+                .insert(azalea_world::entity::attributes::sprinting_modifier())
+                .is_ok()
+        } else {
+            player_entity
+                .attributes
+                .speed
+                .remove(&azalea_world::entity::attributes::sprinting_modifier().uuid)
+                .is_none()
+        }
+    }
+
+    /// Set whether we're jumping. This acts as if you held space in
     /// vanilla. If you want to jump once, use the `jump` function.
     ///
     /// If you're making a realistic client, calling this function every tick is
     /// recommended.
     pub fn set_jumping(&mut self, jumping: bool) {
         let mut player_entity = self.entity_mut();
-
         player_entity.jumping = jumping;
     }
 
@@ -243,6 +325,16 @@ impl Client {
         let mut player_entity = self.entity_mut();
         player_entity.set_rotation(y_rot, x_rot);
     }
+
+    // Whether the player is moving fast enough to be able to start sprinting.
+    fn has_enough_impulse_to_start_sprinting(&self) -> bool {
+        // if self.underwater() {
+        //     self.has_forward_impulse()
+        // } else {
+        let physics_state = self.physics_state.lock();
+        physics_state.forward_impulse > 0.8
+        // }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -257,4 +349,22 @@ pub enum WalkDirection {
     ForwardLeft,
     BackwardRight,
     BackwardLeft,
+}
+
+/// The directions that we can sprint in. It's a subset of [`WalkDirection`].
+#[derive(Clone, Copy, Debug)]
+pub enum SprintDirection {
+    Forward,
+    ForwardRight,
+    ForwardLeft,
+}
+
+impl From<SprintDirection> for WalkDirection {
+    fn from(d: SprintDirection) -> Self {
+        match d {
+            SprintDirection::Forward => WalkDirection::Forward,
+            SprintDirection::ForwardRight => WalkDirection::ForwardRight,
+            SprintDirection::ForwardLeft => WalkDirection::ForwardLeft,
+        }
+    }
 }

@@ -1,5 +1,5 @@
 use azalea::prelude::*;
-use azalea::Swarm;
+use azalea::{Account, Accounts, Client, Event, Swarm};
 use parking_lot::Mutex;
 use std::sync::Arc;
 

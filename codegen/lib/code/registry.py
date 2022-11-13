@@ -1,6 +1,6 @@
-from typing import Optional
 from lib.utils import to_snake_case, upper_first_letter, get_dir_location, to_camel_case
 from ..mappings import Mappings
+from typing import Optional
 import re
 
 REGISTRIES_DIR = get_dir_location('../azalea-registry/src/lib.rs')

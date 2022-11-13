@@ -28,10 +28,10 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{
-    entity::{Entity, EntityData},
+    entity::{metadata, Entity, EntityData, EntityMetadata},
     Dimension,
 };
-use log::{debug, error, warn};
+use log::{debug, error, info, warn};
 use parking_lot::{Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::{
     fmt::Debug,
@@ -101,6 +101,10 @@ pub struct Client {
 pub struct PhysicsState {
     /// Minecraft only sends a movement packet either after 20 ticks or if the player moved enough. This is that tick counter.
     pub position_remainder: u32,
+    pub was_sprinting: bool,
+    // Whether we're going to try to start sprinting this tick. Equivalent to
+    // holding down ctrl for a tick.
+    pub trying_to_sprint: bool,
 
     pub move_direction: WalkDirection,
     pub forward_impulse: f32,
@@ -139,7 +143,9 @@ pub enum HandleError {
 impl Client {
     /// Connect to a Minecraft server.
     ///
-    /// To change the render distance and other settings, use [`Client::set_client_information`].
+    /// To change the render distance and other settings, use
+    /// [`Client::set_client_information`]. To watch for events like packets
+    /// sent by the server, use the `rx` variable this function returns.
     ///
     /// # Examples
     ///
@@ -149,7 +155,7 @@ impl Client {
     /// #[tokio::main]
     /// async fn main() -> Box<dyn std::error::Error> {
     ///     let account = Account::offline("bot");
-    ///     let client = Client::join(&account, "localhost").await?;
+    ///     let (client, rx) = Client::join(&account, "localhost").await?;
     ///     client.chat("Hello, world!").await?;
     ///     client.shutdown().await?;
     /// }
@@ -315,6 +321,13 @@ impl Client {
                     }
                 },
                 Err(e) => {
+                    if let ReadPacketError::ConnectionClosed = e {
+                        info!("Connection closed");
+                        if let Err(e) = client.shutdown().await {
+                            error!("Error shutting down connection: {:?}", e);
+                        }
+                        return;
+                    }
                     if IGNORE_ERRORS {
                         warn!("{}", e);
                         match e {
@@ -405,7 +418,11 @@ impl Client {
                     // i'll make this an actual setting later
                     *dimension_lock = Dimension::new(16, height, min_y);
 
-                    let entity = EntityData::new(client.game_profile.uuid, Vec3::default());
+                    let entity = EntityData::new(
+                        client.game_profile.uuid,
+                        Vec3::default(),
+                        EntityMetadata::Player(metadata::Player::default()),
+                    );
                     dimension_lock.add_entity(p.player_id, entity);
 
                     let mut player_lock = client.player.write();
@@ -416,6 +433,10 @@ impl Client {
                 // send the client information that we have set
                 let client_information_packet: ClientInformation =
                     client.client_information.read().clone();
+                log::debug!(
+                    "Sending client information because login: {:?}",
+                    client_information_packet
+                );
                 client.write_packet(client_information_packet.get()).await?;
 
                 // brand
@@ -571,21 +592,30 @@ impl Client {
                 let pos = ChunkPos::new(p.x, p.z);
                 // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
                 // debug("chunk {:?}")
-                let mut dimension_lock = client.dimension.write();
-                dimension_lock
+                if let Err(e) = client
+                    .dimension
+                    .write()
                     .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data))
-                    .unwrap();
+                {
+                    error!("Couldn't set chunk data: {}", e);
+                }
             }
-            ClientboundGamePacket::LightUpdate(p) => {
-                debug!("Got light update packet {:?}", p);
+            ClientboundGamePacket::LightUpdate(_p) => {
+                // debug!("Got light update packet {:?}", p);
             }
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {:?}", p);
                 let entity = EntityData::from(p);
                 client.dimension.write().add_entity(p.id, entity);
             }
-            ClientboundGamePacket::SetEntityData(_p) => {
-                // debug!("Got set entity data packet {:?}", p);
+            ClientboundGamePacket::SetEntityData(p) => {
+                debug!("Got set entity data packet {:?}", p);
+                let mut dimension = client.dimension.write();
+                if let Some(mut entity) = dimension.entity_mut(p.id) {
+                    entity.apply_metadata(&p.packed_items.0);
+                } else {
+                    warn!("Server sent an entity data packet for an entity id ({}) that we don't know about", p.id);
+                }
             }
             ClientboundGamePacket::UpdateAttributes(_p) => {
                 // debug!("Got update attributes packet {:?}", p);
@@ -870,6 +900,10 @@ impl Client {
                 let client_information = self.client_information.read();
                 client_information.clone().get()
             };
+            log::debug!(
+                "Sending client information (already logged in): {:?}",
+                client_information_packet
+            );
             self.write_packet(client_information_packet).await?;
         }
 

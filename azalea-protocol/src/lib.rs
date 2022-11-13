@@ -6,6 +6,8 @@
 //!
 //! [`azalea`]: https://crates.io/crates/azalea
 //! [`azalea_client`]: https://crates.io/crates/azalea-client
+//!
+//! See [`crate::connect::Connection`] for an example.
 
 // these two are necessary for thiserror backtraces
 #![feature(error_generic_member_access)]
@@ -54,27 +56,6 @@ impl<'a> TryFrom<&'a str> for ServerAddress {
         let port = u16::from_str(port).map_err(|_| "Invalid port specified")?;
         Ok(ServerAddress { host, port })
     }
-}
-
-impl From<SocketAddr> for ServerAddress {
-    /// Convert an existing SocketAddr into a ServerAddress. This just converts
-    /// the ip to a string and passes along the port. The resolver will realize
-    /// it's already an IP address and not do any DNS requests.
-    fn from(addr: SocketAddr) -> Self {
-        ServerAddress {
-            host: addr.ip().to_string(),
-            port: addr.port(),
-        }
-    }
-}
-
-#[cfg(feature = "connecting")]
-pub async fn connect(address: ServerAddress) -> Result<(), Box<dyn std::error::Error>> {
-    use log::debug;
-
-    let resolved_address = resolver::resolve_address(&address).await;
-    debug!("Resolved address: {:?}", resolved_address);
-    Ok(())
 }
 
 #[cfg(test)]

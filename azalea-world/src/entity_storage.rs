@@ -151,6 +151,8 @@ impl Default for EntityStorage {
 
 #[cfg(test)]
 mod tests {
+    use crate::entity::{metadata, EntityMetadata};
+
     use super::*;
     use azalea_core::Vec3;
 
@@ -160,7 +162,14 @@ mod tests {
         assert!(storage.get_by_id(0).is_none());
 
         let uuid = Uuid::from_u128(100);
-        storage.insert(0, EntityData::new(uuid, Vec3::default()));
+        storage.insert(
+            0,
+            EntityData::new(
+                uuid,
+                Vec3::default(),
+                EntityMetadata::Player(metadata::Player::default()),
+            ),
+        );
         assert_eq!(storage.get_by_id(0).unwrap().uuid, uuid);
 
         storage.remove_by_id(0);

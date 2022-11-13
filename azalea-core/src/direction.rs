@@ -2,14 +2,24 @@ use azalea_buf::McBuf;
 
 use crate::floor_mod;
 
-#[derive(Clone, Copy, Debug, McBuf)]
+#[derive(Clone, Copy, Debug, McBuf, Default)]
 pub enum Direction {
+    #[default]
     Down = 0,
-    Up = 1,
-    North = 2,
-    South = 3,
-    West = 4,
-    East = 5,
+    Up,
+    North,
+    South,
+    West,
+    East,
+}
+
+// TODO: make azalea_block use this instead of FacingCardinal
+#[derive(Clone, Copy, Debug, McBuf)]
+pub enum CardinalDirection {
+    North,
+    South,
+    West,
+    East,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -24,6 +34,55 @@ pub enum AxisCycle {
     None = 0,
     Forward = 1,
     Backward = 2,
+}
+
+impl CardinalDirection {
+    #[inline]
+    pub fn x(self) -> i32 {
+        match self {
+            CardinalDirection::East => 1,
+            CardinalDirection::West => -1,
+            _ => 0,
+        }
+    }
+    #[inline]
+    pub fn z(self) -> i32 {
+        match self {
+            CardinalDirection::South => 1,
+            CardinalDirection::North => -1,
+            _ => 0,
+        }
+    }
+
+    pub fn iter() -> impl Iterator<Item = CardinalDirection> {
+        [
+            CardinalDirection::North,
+            CardinalDirection::South,
+            CardinalDirection::West,
+            CardinalDirection::East,
+        ]
+        .iter()
+        .copied()
+    }
+
+    #[inline]
+    pub fn right(self) -> CardinalDirection {
+        match self {
+            CardinalDirection::North => CardinalDirection::East,
+            CardinalDirection::South => CardinalDirection::West,
+            CardinalDirection::West => CardinalDirection::North,
+            CardinalDirection::East => CardinalDirection::South,
+        }
+    }
+    #[inline]
+    pub fn left(self) -> CardinalDirection {
+        match self {
+            CardinalDirection::North => CardinalDirection::West,
+            CardinalDirection::South => CardinalDirection::East,
+            CardinalDirection::West => CardinalDirection::South,
+            CardinalDirection::East => CardinalDirection::North,
+        }
+    }
 }
 
 impl Axis {

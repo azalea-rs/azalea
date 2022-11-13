@@ -11,6 +11,7 @@ pub use blocks::BlockWithShape;
 use dimension_collisions::CollisionGetter;
 pub use discrete_voxel_shape::*;
 pub use shape::*;
+use std::ops::DerefMut;
 
 pub enum MoverType {
     Own,
@@ -81,7 +82,7 @@ impl HasCollision for Dimension {
     }
 }
 
-impl MovableEntity for Entity<'_> {
+impl<D: DerefMut<Target = Dimension>> MovableEntity for Entity<'_, D> {
     /// Move an entity by a given delta, checking for collisions.
     fn move_colliding(
         &mut self,

@@ -1,4 +1,5 @@
-use azalea::{prelude::*, BlockPos, WalkDirection};
+use azalea::pathfinder::BlockPosGoal;
+use azalea::{prelude::*, BlockPos};
 use azalea::{Account, Client, Event};
 use azalea_pathfinder::{BlockPosGoal, Trait};
 
@@ -9,19 +10,45 @@ struct State {}
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
-    let account = Account::microsoft("example@example.com").await?;
+    {
+        // only for #[cfg]
+        use parking_lot::deadlock;
+        use std::thread;
+        use std::time::Duration;
 
-    azalea::start(azalea::Options {
-        account,
-        address: "localhost",
-        state: State::default(),
-        plugins: plugins![azalea_pathfinder::Plugin::default()],
-        handle,
-    })
-    .await
-    .unwrap();
+        // Create a background thread which checks for deadlocks every 10s
+        thread::spawn(move || loop {
+            thread::sleep(Duration::from_secs(10));
+            let deadlocks = deadlock::check_deadlock();
+            if deadlocks.is_empty() {
+                continue;
+            }
 
-    Ok(())
+            println!("{} deadlocks detected", deadlocks.len());
+            for (i, threads) in deadlocks.iter().enumerate() {
+                println!("Deadlock #{}", i);
+                for t in threads {
+                    println!("Thread Id {:#?}", t.thread_id());
+                    println!("{:#?}", t.backtrace());
+                }
+            }
+        });
+    } // only for #[cfg]
+
+    // let account = Account::microsoft("example@example.com").await?;
+    let account = Account::offline("bot");
+
+    loop {
+        let e = azalea::start(azalea::Options {
+            account: account.clone(),
+            address: "localhost",
+            state: State::default(),
+            plugins: plugins![],
+            handle,
+        })
+        .await;
+        println!("{:?}", e);
+    }
 }
 
 async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
@@ -40,8 +67,8 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     .pos()
                     .clone();
                 let target_pos: BlockPos = (&target_pos_vec3).into();
-                bot.look_at(&target_pos_vec3);
-                // bot.goto(BlockPosGoal::from(target_pos));
+                // bot.look_at(&target_pos_vec3);
+                bot.goto(BlockPosGoal::from(target_pos));
                 // bot.walk(WalkDirection::Forward);
             }
         }

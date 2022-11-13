@@ -1,3 +1,5 @@
+//! Resolve IPs from hostnames.
+
 use crate::ServerAddress;
 use async_recursion::async_recursion;
 use std::net::{IpAddr, SocketAddr};
