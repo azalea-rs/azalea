@@ -6,7 +6,6 @@
 //! [`azalea`]: https://docs.rs/azalea
 
 #![feature(provide_any)]
-
 #![allow(incomplete_features)]
 #![feature(trait_upcasting)]
 

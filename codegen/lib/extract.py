@@ -60,7 +60,9 @@ def determine_python_command():
     raise Exception(
         'Couldn\'t determine python command to use to run burger with!')
 
+
 def run_python_command_and_download_deps(command):
+    print('>', command)
     for _ in range(10):
         p = subprocess.Popen(
             [command],
@@ -71,7 +73,8 @@ def run_python_command_and_download_deps(command):
         stderr = b''
         while True:
             data = p.stderr.read()
-            if data == b'': break
+            if data == b'':
+                break
             print(data.decode(), end='', flush=True)
             stderr += data
 
@@ -83,6 +86,7 @@ def run_python_command_and_download_deps(command):
         print('Missing required lib:', missing_lib)
         os.system(
             f'{determine_python_command()} -m pip install {missing_lib}')
+    print('ok')
 
 
 def get_burger_data_for_version(version_id: str):
@@ -111,7 +115,7 @@ def get_pixlyzer_data(version_id: str, category: str):
         if not yarn_data:
             raise Exception(
                 'Fabric/Yarn hasn\'t been updated to this version yet.')
-        
+
         # for some reason pixlyzer doesn't work right unless the mvn clean
         # instruction looks like that
         # and pixlyzer.py doesn't do it right
@@ -121,15 +125,15 @@ def get_pixlyzer_data(version_id: str, category: str):
             f'cd {pixlyzer_dir}/wrapper && {determine_python_command()} PixLyzer.py --only-version={version_id} --dont-compile --only-map'
         )
         # compile
-        os.system(f'cd {pixlyzer_dir} && mvn clean -Dmaven.repo.local=. verify')
+        os.system(
+            f'cd {pixlyzer_dir} && mvn clean -Dmaven.repo.local=. verify')
         # run pixlyzer.py again lol
         run_python_command_and_download_deps(
             f'cd {pixlyzer_dir}/wrapper && {determine_python_command()} PixLyzer.py --only-version={version_id} --no-compile'
         )
 
-
-
-        source_dir = get_dir_location(f'{pixlyzer_dir}/wrapper/data/version/{version_id}')
+        source_dir = get_dir_location(
+            f'{pixlyzer_dir}/wrapper/data/version/{version_id}')
 
         if not os.path.exists(source_dir):
             print('PixLyzer failed, no output!')
@@ -210,11 +214,13 @@ def get_pixlyzer_data(version_id: str, category: str):
     with open(f'{target_dir}/{category}.json', 'r') as f:
         return json.load(f)
 
+
 def get_file_from_jar(version_id: str, file_dir: str):
     get_client_jar(version_id)
     with ZipFile(get_dir_location(f'downloads/client-{version_id}.jar')) as z:
         with z.open(file_dir) as f:
             return f.read()
+
 
 def get_en_us_lang(version_id: str):
     return json.loads(

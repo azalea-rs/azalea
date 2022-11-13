@@ -836,6 +836,11 @@ impl Deref for Camel {
         &self.abstract_animal
     }
 }
+impl DerefMut for Camel {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.abstract_animal
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Cat {
@@ -8512,6 +8517,7 @@ impl Deref for EntityMetadata {
             EntityMetadata::Bee(entity) => entity,
             EntityMetadata::Blaze(entity) => entity,
             EntityMetadata::Boat(entity) => entity,
+            EntityMetadata::Camel(entity) => entity,
             EntityMetadata::Cat(entity) => entity,
             EntityMetadata::CaveSpider(entity) => entity,
             EntityMetadata::ChestBoat(entity) => entity,
@@ -8636,6 +8642,7 @@ impl DerefMut for EntityMetadata {
             EntityMetadata::Bee(entity) => entity,
             EntityMetadata::Blaze(entity) => entity,
             EntityMetadata::Boat(entity) => entity,
+            EntityMetadata::Camel(entity) => entity,
             EntityMetadata::Cat(entity) => entity,
             EntityMetadata::CaveSpider(entity) => entity,
             EntityMetadata::ChestBoat(entity) => entity,
