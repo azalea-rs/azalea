@@ -1,3 +1,5 @@
+//! Write packets to a stream.
+
 use crate::{packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSED_LENGTH};
 use async_compression::tokio::bufread::ZlibEncoder;
 use azalea_buf::McBufVarWritable;
@@ -7,10 +9,11 @@ use std::fmt::Debug;
 use thiserror::Error;
 use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
-fn frame_prepender(data: &mut Vec<u8>) -> Result<Vec<u8>, std::io::Error> {
+/// Prepend the length of the packet to it.
+fn frame_prepender(mut data: Vec<u8>) -> Result<Vec<u8>, std::io::Error> {
     let mut buf = Vec::new();
     (data.len() as u32).var_write_into(&mut buf)?;
-    buf.append(data);
+    buf.append(&mut data);
     Ok(buf)
 }
 
@@ -84,7 +87,7 @@ where
     if let Some(threshold) = compression_threshold {
         buf = compression_encoder(&buf, threshold).await.unwrap();
     }
-    buf = frame_prepender(&mut buf).unwrap();
+    buf = frame_prepender(buf).unwrap();
     // if we were given a cipher, encrypt the packet
     if let Some(cipher) = cipher {
         azalea_crypto::encrypt_packet(cipher, &mut buf);

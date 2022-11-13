@@ -13,11 +13,11 @@ pub struct ClientboundLightUpdatePacket {
 
 #[derive(Clone, Debug, McBuf)]
 pub struct ClientboundLightUpdatePacketData {
-    trust_edges: bool,
-    sky_y_mask: BitSet,
-    block_y_mask: BitSet,
-    empty_sky_y_mask: BitSet,
-    empty_block_y_mask: BitSet,
-    sky_updates: Vec<Vec<u8>>,
-    block_updates: Vec<Vec<u8>>,
+    pub trust_edges: bool,
+    pub sky_y_mask: BitSet,
+    pub block_y_mask: BitSet,
+    pub empty_sky_y_mask: BitSet,
+    pub empty_block_y_mask: BitSet,
+    pub sky_updates: Vec<Vec<u8>>,
+    pub block_updates: Vec<Vec<u8>>,
 }

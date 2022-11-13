@@ -1,3 +1,5 @@
+//! Read packets from a stream.
+
 use crate::packets::ProtocolPacket;
 use azalea_buf::BufReadError;
 use azalea_buf::McBufVarReadable;
@@ -161,6 +163,8 @@ pub enum DecompressionError {
     AboveCompressionThreshold { size: u32, maximum: u32 },
 }
 
+/// Get the decompressed bytes from a packet. It must have been decrypted
+/// first.
 fn compression_decoder(
     stream: &mut Cursor<&[u8]>,
     compression_threshold: u32,
@@ -196,6 +200,12 @@ fn compression_decoder(
     Ok(decoded_buf)
 }
 
+/// Read a single packet from a stream.
+///
+/// The buffer is required because servers may send multiple packets in the
+/// same frame, so we need to store the packet data that's left to read.
+///
+/// The current protocol state must be passed as a generic.
 pub async fn read_packet<'a, P: ProtocolPacket + Debug, R>(
     stream: &'a mut R,
     buffer: &mut BytesMut,

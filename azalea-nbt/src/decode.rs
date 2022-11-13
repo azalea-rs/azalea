@@ -4,6 +4,7 @@ use ahash::AHashMap;
 use azalea_buf::{BufReadError, McBufReadable};
 use byteorder::{ReadBytesExt, BE};
 use flate2::read::{GzDecoder, ZlibDecoder};
+use log::warn;
 use std::io::Cursor;
 use std::io::{BufRead, Read};
 
@@ -23,7 +24,14 @@ fn read_string(stream: &mut Cursor<&[u8]>) -> Result<String, Error> {
     let length = stream.read_u16::<BE>()? as usize;
 
     let buf = read_bytes(stream, length)?;
-    Ok(std::str::from_utf8(buf)?.to_string())
+
+    Ok(if let Ok(string) = std::str::from_utf8(buf) {
+        string.to_string()
+    } else {
+        let lossy_string = String::from_utf8_lossy(buf).into_owned();
+        warn!("Error decoding utf8 (bytes: {buf:?}, lossy: \"{lossy_string})\"");
+        lossy_string
+    })
 }
 
 impl Tag {

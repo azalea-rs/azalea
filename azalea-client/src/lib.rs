@@ -1,5 +1,5 @@
-//! Significantly abstract [`azalea_protocol`] so it's actually usable for
-//! real clients. If you want to make bots, however, you should use the
+//! Significantly abstract [`azalea_protocol`] so it's actually useable for
+//! real clients. If you want to make bots, you should use the
 //! [`azalea`] crate instead.
 //!
 //! [`azalea_protocol`]: https://docs.rs/azalea-protocol
