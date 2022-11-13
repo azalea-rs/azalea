@@ -31,7 +31,7 @@ Look at the diff (`git diff`) and type-check the code (`cargo check`) to make su
 
 If a packet is incorrect, you'll want to find it in the Minecraft source. The name of the struct should be the same or similar as the class in the vanilla source. Now, you'll have to manually write the struct for the packet. If the packet existed in the version before and it's just being updated, you can compare against that to see what was updated. Note that if a packet is particularly complicated, you may have to implement McBufReadable and McBufWritable, but most of the time the `#[derive(McBuf)]` macro will be able to generate the impls correctly. Look at other existing packets as reference if you're confused.
 
-Finally, test by making a bot join a world. Specifically, you'll want to test the things that were updated in the version. Setting the RUST_LOG environment variable to `debug` or `trace` may help (trace shows the first few hundred bytes for every packet received so it's typically more useful, but it may log more than you want).
+Finally, test by making a bot join a world. Specifically, you'll want to test the things that were updated in the version. Setting the RUST_LOG environment variable to `debug` or `trace` may help you find the source of crashes (trace shows the first few hundred bytes for every packet received so it's typically more useful, but it may log more than you want).
 
 If it all works, make a pull request. If the version you updated to is a snapshot, make it a draft PR (the main branch is for release versions).
 
