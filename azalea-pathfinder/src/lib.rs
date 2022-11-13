@@ -54,14 +54,21 @@ impl Trait for azalea_client::Client {
             &moves::ForwardMove(CardinalDirection::East),
             &moves::ForwardMove(CardinalDirection::South),
             &moves::ForwardMove(CardinalDirection::West),
+            //
             &moves::AscendMove(CardinalDirection::North),
             &moves::AscendMove(CardinalDirection::East),
             &moves::AscendMove(CardinalDirection::South),
             &moves::AscendMove(CardinalDirection::West),
+            //
             &moves::DescendMove(CardinalDirection::North),
             &moves::DescendMove(CardinalDirection::East),
             &moves::DescendMove(CardinalDirection::South),
             &moves::DescendMove(CardinalDirection::West),
+            //
+            &moves::DiagonalMove(CardinalDirection::North),
+            &moves::DiagonalMove(CardinalDirection::East),
+            &moves::DiagonalMove(CardinalDirection::South),
+            &moves::DiagonalMove(CardinalDirection::West),
         ];
 
         let successors = |node: &Node| {

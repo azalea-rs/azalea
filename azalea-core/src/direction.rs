@@ -64,6 +64,25 @@ impl CardinalDirection {
         .iter()
         .copied()
     }
+
+    #[inline]
+    pub fn right(self) -> CardinalDirection {
+        match self {
+            CardinalDirection::North => CardinalDirection::East,
+            CardinalDirection::South => CardinalDirection::West,
+            CardinalDirection::West => CardinalDirection::North,
+            CardinalDirection::East => CardinalDirection::South,
+        }
+    }
+    #[inline]
+    pub fn left(self) -> CardinalDirection {
+        match self {
+            CardinalDirection::North => CardinalDirection::West,
+            CardinalDirection::South => CardinalDirection::East,
+            CardinalDirection::West => CardinalDirection::South,
+            CardinalDirection::East => CardinalDirection::North,
+        }
+    }
 }
 
 impl Axis {
