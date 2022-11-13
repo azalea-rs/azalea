@@ -1,5 +1,4 @@
 mod autoeat;
-
 use azalea::prelude::*;
 use azalea::{pathfinder, BlockPos, ItemKind, Vec3};
 
@@ -16,10 +15,7 @@ async fn main() {
         account,
         address: "localhost",
         state: State::default(),
-        plugins: vec![
-            Box::new(autoeat::Plugin::default()),
-            Box::new(pathfinder::Plugin::default()),
-        ],
+        plugins: plugins![autoeat::Plugin::default(), pathfinder::Plugin::default(),],
         handle,
     })
     .await

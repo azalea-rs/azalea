@@ -2,9 +2,14 @@
 
 pub mod collision;
 
+use std::ops::DerefMut;
+
 use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
-use azalea_world::entity::{EntityData, EntityMut};
+use azalea_world::{
+    entity::{Entity, EntityData},
+    Dimension,
+};
 use collision::{MovableEntity, MoverType};
 
 pub trait HasPhysics {
@@ -14,7 +19,7 @@ pub trait HasPhysics {
     fn jump_from_ground(&mut self);
 }
 
-impl HasPhysics for EntityMut<'_> {
+impl<D: DerefMut<Target = Dimension>> HasPhysics for Entity<'_, D> {
     /// Move the entity with the given acceleration while handling friction,
     /// gravity, collisions, and some other stuff.
     fn travel(&mut self, acceleration: &Vec3) {
@@ -115,17 +120,17 @@ impl HasPhysics for EntityMut<'_> {
             y: jump_power,
             z: old_delta_movement.z,
         };
-        // if self.sprinting {
-        //     let y_rot = self.y_rot * 0.017453292;
-        //     self.delta = self.delta
-        //         + Vec3 {
-        //             x: (-f32::sin(y_rot) * 0.2) as f64,
-        //             y: 0.,
-        //             z: (f32::cos(y_rot) * 0.2) as f64,
-        //         };
-        // }
+        if self.metadata.sprinting {
+            let y_rot = self.y_rot * 0.017453292;
+            self.delta = self.delta
+                + Vec3 {
+                    x: (-f32::sin(y_rot) * 0.2) as f64,
+                    y: 0.,
+                    z: (f32::cos(y_rot) * 0.2) as f64,
+                };
+        }
 
-        // self.has_impulse = true;
+        self.has_impulse = true;
     }
 }
 
@@ -138,17 +143,21 @@ fn get_block_pos_below_that_affects_movement(entity: &EntityData) -> BlockPos {
     )
 }
 
-fn handle_relative_friction_and_calculate_movement(
-    entity: &mut EntityMut,
+fn handle_relative_friction_and_calculate_movement<D: DerefMut<Target = Dimension>>(
+    entity: &mut Entity<D>,
     acceleration: &Vec3,
     block_friction: f32,
 ) -> Vec3 {
-    entity.move_relative(get_speed(&*entity, block_friction), acceleration);
+    entity.move_relative(
+        get_friction_influenced_speed(&*entity, block_friction),
+        acceleration,
+    );
     // entity.delta = entity.handle_on_climbable(entity.delta);
     entity
         .move_colliding(&MoverType::Own, &entity.delta.clone())
         .expect("Entity should exist.");
     // let delta_movement = entity.delta;
+    // ladders
     //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable() || entity.getFeetBlockState().is(Blocks.POWDER_SNOW) && PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {
     //      var3 = new Vec3(var3.x, 0.2D, var3.z);
     //   }
@@ -160,10 +169,10 @@ fn handle_relative_friction_and_calculate_movement(
 // private float getFrictionInfluencedSpeed(float friction) {
 //     return this.onGround ? this.getSpeed() * (0.21600002F / (friction * friction * friction)) : this.flyingSpeed;
 // }
-fn get_speed(entity: &EntityData, friction: f32) -> f32 {
+fn get_friction_influenced_speed(entity: &EntityData, friction: f32) -> f32 {
     // TODO: have speed & flying_speed fields in entity
     if entity.on_ground {
-        let speed: f32 = 0.7;
+        let speed: f32 = entity.attributes.speed.calculate() as f32;
         speed * (0.216f32 / (friction * friction * friction))
     } else {
         // entity.flying_speed
@@ -173,7 +182,7 @@ fn get_speed(entity: &EntityData, friction: f32) -> f32 {
 
 /// Returns the what the entity's jump should be multiplied by based on the
 /// block they're standing on.
-fn block_jump_factor(entity: &EntityMut) -> f32 {
+fn block_jump_factor<D: DerefMut<Target = Dimension>>(entity: &Entity<D>) -> f32 {
     let block_at_pos = entity.dimension.get_block_state(&entity.pos().into());
     let block_below = entity
         .dimension
@@ -201,11 +210,11 @@ fn block_jump_factor(entity: &EntityMut) -> f32 {
 // public double getJumpBoostPower() {
 //     return this.hasEffect(MobEffects.JUMP) ? (double)(0.1F * (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1)) : 0.0D;
 // }
-fn jump_power(entity: &EntityMut) -> f32 {
+fn jump_power<D: DerefMut<Target = Dimension>>(entity: &Entity<D>) -> f32 {
     0.42 * block_jump_factor(entity)
 }
 
-fn jump_boost_power(_entity: &EntityMut) -> f64 {
+fn jump_boost_power<D: DerefMut<Target = Dimension>>(_entity: &Entity<D>) -> f64 {
     // TODO: potion effects
     // if let Some(effects) = entity.effects() {
     //     if let Some(jump_effect) = effects.get(&Effect::Jump) {

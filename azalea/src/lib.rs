@@ -51,7 +51,7 @@
 //!         account,
 //!         address: "localhost",
 //!         state: State::default(),
-//!         plugins: vec![],
+//!         plugins: plugins![],
 //!         handle,
 //!     })
 //!     .await
@@ -76,38 +76,14 @@
 //! [`azalea_client`]: https://crates.io/crates/azalea-client
 
 mod bot;
+pub mod pathfinder;
 pub mod prelude;
 
-use async_trait::async_trait;
 pub use azalea_client::*;
+pub use azalea_core::{BlockPos, Vec3};
 use azalea_protocol::ServerAddress;
-use std::future::Future;
+use std::{future::Future, sync::Arc};
 use thiserror::Error;
-
-/// Plugins can keep their own personal state, listen to events, and add new functions to Client.
-#[async_trait]
-pub trait Plugin: Send + Sync + PluginClone + 'static {
-    async fn handle(self: Box<Self>, event: Event, bot: Client);
-}
-
-/// An internal trait that allows Plugin to be cloned.
-#[doc(hidden)]
-pub trait PluginClone {
-    fn clone_box(&self) -> Box<dyn Plugin>;
-}
-impl<T> PluginClone for T
-where
-    T: 'static + Plugin + Clone,
-{
-    fn clone_box(&self) -> Box<dyn Plugin> {
-        Box::new(self.clone())
-    }
-}
-impl Clone for Box<dyn Plugin> {
-    fn clone(&self) -> Self {
-        self.clone_box()
-    }
-}
 
 pub type HandleFn<Fut, S> = fn(Client, Event, S) -> Fut;
 
@@ -127,9 +103,14 @@ where
     pub address: A,
     /// The account that's going to join the server.
     pub account: Account,
-    /// A list of plugins that are going to be used. Plugins are external
-    /// crates that add extra functionality to Azalea.
-    pub plugins: Vec<Box<dyn Plugin>>,
+    /// The plugins that are going to be used. Plugins are external crates that
+    /// add extra functionality to Azalea. You should use the [`plugins`] macro
+    /// for this field.
+    ///
+    /// ```rust,no_run
+    /// plugins![azalea_pathfinder::Plugin::default()]
+    /// ```
+    pub plugins: Plugins,
     /// A struct that contains the data that you want your bot to remember
     /// across events.
     ///
@@ -177,7 +158,7 @@ pub enum Error {
 ///     account,
 ///     address: "localhost",
 ///     state: State::default(),
-///     plugins: vec![Box::new(autoeat::Plugin::default())],
+///     plugins: plugins![azalea_pathfinder::Plugin::default()],
 ///     handle,
 /// }).await;
 /// ```
@@ -193,24 +174,53 @@ pub async fn start<
         Err(_) => return Err(Error::InvalidAddress),
     };
 
-    let (bot, mut rx) = Client::join(&options.account, address).await?;
+    let (mut bot, mut rx) = Client::join(&options.account, address).await?;
+
+    let mut plugins = options.plugins;
+    plugins.add(bot::Plugin::default());
+    plugins.add(pathfinder::Plugin::default());
+    bot.plugins = Arc::new(plugins);
 
     let state = options.state;
-    let bot_plugin = bot::Plugin::default();
 
     while let Some(event) = rx.recv().await {
-        for plugin in &options.plugins {
-            let plugin = plugin.clone();
+        let cloned_plugins = (*bot.plugins).clone();
+        for plugin in cloned_plugins.into_iter() {
             tokio::spawn(plugin.handle(event.clone(), bot.clone()));
         }
 
         tokio::spawn(bot::Plugin::handle(
-            Box::new(bot_plugin.clone()),
+            Box::new(bot.plugins.get::<bot::Plugin>().unwrap().clone()),
             event.clone(),
             bot.clone(),
         ));
+        tokio::spawn(pathfinder::Plugin::handle(
+            Box::new(bot.plugins.get::<pathfinder::Plugin>().unwrap().clone()),
+            event.clone(),
+            bot.clone(),
+        ));
+
         tokio::spawn((options.handle)(bot.clone(), event.clone(), state.clone()));
     }
 
     Ok(())
+}
+
+/// A helper macro that generates a [`Plugins`] struct from a list of objects
+/// that implement [`Plugin`].
+///
+/// ```rust,no_run
+/// plugins![azalea_pathfinder::Plugin::default()];
+/// ```
+#[macro_export]
+macro_rules! plugins {
+    ($($plugin:expr),*) => {
+        {
+            let mut plugins = azalea::Plugins::new();
+            $(
+                plugins.add($plugin);
+            )*
+            plugins
+        }
+    };
 }

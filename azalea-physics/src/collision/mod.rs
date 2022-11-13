@@ -4,8 +4,10 @@ mod discrete_voxel_shape;
 mod mergers;
 mod shape;
 
-use azalea_core::{Axis, PositionXYZ, Vec3, AABB, EPSILON};
-use azalea_world::entity::{EntityData, EntityMut};
+use std::ops::DerefMut;
+
+use azalea_core::{Axis, Vec3, AABB, EPSILON};
+use azalea_world::entity::{Entity, EntityData};
 use azalea_world::{Dimension, MoveEntityError};
 pub use blocks::BlockWithShape;
 use dimension_collisions::CollisionGetter;
@@ -81,7 +83,7 @@ impl HasCollision for Dimension {
     }
 }
 
-impl MovableEntity for EntityMut<'_> {
+impl<D: DerefMut<Target = Dimension>> MovableEntity for Entity<'_, D> {
     /// Move an entity by a given delta, checking for collisions.
     fn move_colliding(
         &mut self,
@@ -158,6 +160,8 @@ impl MovableEntity for EntityMut<'_> {
 
         if vertical_collision {
             // blockBelow.updateEntityAfterFallOn(this.level, this);
+            // the default implementation of updateEntityAfterFallOn sets the y movement to 0
+            self.delta.y = 0.;
         }
 
         if on_ground {

@@ -3,7 +3,8 @@ use azalea_block::BlockState;
 use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType, EPSILON};
 use azalea_world::entity::EntityData;
 use azalea_world::{Chunk, Dimension};
-use std::sync::{Arc, Mutex};
+use parking_lot::Mutex;
+use std::sync::Arc;
 
 use super::Shapes;
 
@@ -92,10 +93,10 @@ impl<'a> Iterator for BlockCollisions<'a> {
                 Some(chunk) => chunk,
                 None => continue,
             };
-            let chunk_lock = chunk.lock().unwrap();
 
             let pos = item.pos;
-            let block_state: BlockState = chunk_lock
+            let block_state: BlockState = chunk
+                .lock()
                 .get(&(&pos).into(), self.dimension.min_y())
                 .unwrap_or(BlockState::Air);
 

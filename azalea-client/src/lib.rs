@@ -5,6 +5,9 @@
 //! [`azalea_protocol`]: https://crates.io/crates/azalea-protocol
 //! [`azalea`]: https://crates.io/crates/azalea
 
+#![allow(incomplete_features)]
+#![feature(trait_upcasting)]
+
 mod account;
 mod chat;
 mod client;
@@ -12,11 +15,13 @@ mod get_mc_dir;
 mod movement;
 pub mod ping;
 mod player;
+mod plugins;
 
 pub use account::Account;
 pub use client::{ChatPacket, Client, ClientInformation, Event, JoinError};
-pub use movement::MoveDirection;
+pub use movement::{SprintDirection, WalkDirection};
 pub use player::Player;
+pub use plugins::{Plugin, Plugins};
 
 #[cfg(test)]
 mod tests {

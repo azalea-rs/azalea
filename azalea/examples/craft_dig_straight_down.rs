@@ -17,7 +17,7 @@ async fn main() {
         account,
         address: "localhost",
         state: State::default(),
-        plugins: vec![],
+        plugins: plugins![],
         handle,
     })
     .await

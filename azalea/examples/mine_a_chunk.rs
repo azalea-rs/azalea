@@ -1,4 +1,4 @@
-use azalea::{pathfinder, Account, Accounts, Client, Event, Swarm};
+use azalea::{Account, Accounts, Client, Event, Swarm};
 use parking_lot::Mutex;
 use std::sync::Arc;
 
@@ -17,8 +17,8 @@ async fn main() {
         swarm_state: State::default(),
         state: State::default(),
 
-        swarm_plugins: vec![Arc::new(pathfinder::Plugin::default())],
-        plugins: vec![],
+        swarm_plugins: plugins![azalea_pathfinder::Plugin::default()],
+        plugins: plugins![],
 
         handle: Box::new(handle),
         swarm_handle: Box::new(swarm_handle),
