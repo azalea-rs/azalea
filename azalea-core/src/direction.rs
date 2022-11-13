@@ -13,6 +13,15 @@ pub enum Direction {
     East,
 }
 
+// TODO: make azalea_block use this instead of FacingCardinal
+#[derive(Clone, Copy, Debug, McBuf)]
+pub enum CardinalDirection {
+    North,
+    South,
+    West,
+    East,
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum Axis {
     X = 0,
@@ -25,6 +34,36 @@ pub enum AxisCycle {
     None = 0,
     Forward = 1,
     Backward = 2,
+}
+
+impl CardinalDirection {
+    #[inline]
+    pub fn x(self) -> i32 {
+        match self {
+            CardinalDirection::East => 1,
+            CardinalDirection::West => -1,
+            _ => 0,
+        }
+    }
+    #[inline]
+    pub fn z(self) -> i32 {
+        match self {
+            CardinalDirection::South => 1,
+            CardinalDirection::North => -1,
+            _ => 0,
+        }
+    }
+
+    pub fn iter() -> impl Iterator<Item = CardinalDirection> {
+        [
+            CardinalDirection::North,
+            CardinalDirection::South,
+            CardinalDirection::West,
+            CardinalDirection::East,
+        ]
+        .iter()
+        .copied()
+    }
 }
 
 impl Axis {

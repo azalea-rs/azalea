@@ -1,4 +1,4 @@
-use azalea_core::BlockPos;
+use azalea_core::{BlockPos, CardinalDirection};
 use azalea_physics::collision::{self, BlockWithShape};
 use azalea_world::Dimension;
 
@@ -28,8 +28,11 @@ fn is_standable(pos: &BlockPos, dim: &Dimension) -> bool {
     is_solid(&pos.down(1), dim) && is_passable(&pos, dim) && is_passable(&pos.up(1), dim)
 }
 
+const JUMP_COST: f32 = 0.5;
+const WALK_ONE_BLOCK_COST: f32 = 1.0;
+
 pub trait Move {
-    fn can_execute(&self, dim: &Dimension, node: &Node) -> bool;
+    fn cost(&self, dim: &Dimension, node: &Node) -> bool;
     /// Returns by how much the entity's position should be changed when this move is executed.
     fn offset(&self) -> BlockPos;
     fn next_node(&self, node: &Node) -> Node {
@@ -38,160 +41,60 @@ pub trait Move {
             vertical_vel: VerticalVel::None,
         }
     }
-    fn cost(&self) -> f32 {
-        1.0
+}
+
+pub struct ForwardMove(pub CardinalDirection);
+impl Move for ForwardMove {
+    fn cost(&self, dim: &Dimension, node: &Node) -> bool {
+        if is_standable(&(node.pos + self.offset()), dim) && node.vertical_vel == VerticalVel::None
+        {
+            WALK_ONE_BLOCK_COST
+        } else {
+            f32::INFINITY
+        }
+    }
+    fn offset(&self) -> BlockPos {
+        BlockPos::new(self.0.x(), 0, self.0.z())
     }
 }
 
-pub struct NorthMove;
-impl Move for NorthMove {
-    fn can_execute(&self, dim: &Dimension, node: &Node) -> bool {
-        is_standable(&(node.pos + self.offset()), dim)
-            && (node.vertical_vel == VerticalVel::None
-                || node.vertical_vel == VerticalVel::NoneMidair)
+pub struct AscendMove(pub CardinalDirection);
+impl Move for AscendMove {
+    fn cost(&self, dim: &Dimension, node: &Node) -> bool {
+        if node.vertical_vel == VerticalVel::None
+            && is_passable(&node.pos.up(2), dim)
+            && is_standable(&(node.pos + self.offset()), dim)
+        {
+            WALK_ONE_BLOCK_COST + JUMP_COST
+        } else {
+            f32::INFINITY
+        }
     }
     fn offset(&self) -> BlockPos {
-        BlockPos::new(0, 0, -1)
-    }
-}
-
-pub struct SouthMove;
-impl Move for SouthMove {
-    fn can_execute(&self, dim: &Dimension, node: &Node) -> bool {
-        is_standable(&(node.pos + self.offset()), dim)
-            && (node.vertical_vel == VerticalVel::None
-                || node.vertical_vel == VerticalVel::NoneMidair)
-    }
-    fn offset(&self) -> BlockPos {
-        BlockPos::new(0, 0, 1)
-    }
-}
-
-pub struct EastMove;
-impl Move for EastMove {
-    fn can_execute(&self, dim: &Dimension, node: &Node) -> bool {
-        is_standable(&(node.pos + self.offset()), dim)
-            && (node.vertical_vel == VerticalVel::None
-                || node.vertical_vel == VerticalVel::NoneMidair)
-    }
-    fn offset(&self) -> BlockPos {
-        BlockPos::new(1, 0, 0)
-    }
-}
-
-pub struct WestMove;
-impl Move for WestMove {
-    fn can_execute(&self, dim: &Dimension, node: &Node) -> bool {
-        is_standable(&(node.pos + self.offset()), dim)
-            && (node.vertical_vel == VerticalVel::None
-                || node.vertical_vel == VerticalVel::NoneMidair)
-    }
-    fn offset(&self) -> BlockPos {
-        BlockPos::new(-1, 0, 0)
-    }
-}
-
-pub struct JumpUpMove;
-impl Move for JumpUpMove {
-    fn can_execute(&self, dim: &Dimension, node: &Node) -> bool {
-        is_passable(&node.pos.up(2), dim) && node.vertical_vel == VerticalVel::None
-    }
-    fn offset(&self) -> BlockPos {
-        BlockPos::new(0, 1, 0)
+        BlockPos::new(self.0.x(), 1, self.0.z())
     }
     fn next_node(&self, node: &Node) -> Node {
         Node {
             pos: node.pos + self.offset(),
-            vertical_vel: VerticalVel::NoneMidair,
+            vertical_vel: VerticalVel::None,
         }
     }
 }
-pub struct FallNorthMove;
-impl Move for FallNorthMove {
-    fn can_execute(&self, dim: &Dimension, node: &Node) -> bool {
+pub struct DescendMove(pub CardinalDirection);
+impl Move for DescendMove {
+    fn cost(&self, dim: &Dimension, node: &Node) -> bool {
         // check whether 3 blocks vertically forward are passable
-        is_passable(&(node.pos + self.offset().down(1)), dim)
-            && is_passable(&(node.pos + self.offset()), dim)
-            && is_passable(&(node.pos + self.offset().up(1)), dim)
-            && node.vertical_vel == VerticalVel::None
-    }
-    fn offset(&self) -> BlockPos {
-        BlockPos::new(0, 0, -1)
-    }
-    fn next_node(&self, node: &Node) -> Node {
-        Node {
-            pos: node.pos + self.offset(),
-            vertical_vel: VerticalVel::NoneMidair,
+        if node.vertical_vel == VerticalVel::None
+            && is_standable(&(node.pos + self.offset()), dim)
+            && is_passable(&(node.pos + self.offset().up(2)), dim)
+        {
+            WALK_ONE_BLOCK_COST
+        } else {
+            f32::INFINITY
         }
     }
-}
-pub struct FallSouthMove;
-impl Move for FallSouthMove {
-    fn can_execute(&self, dim: &Dimension, node: &Node) -> bool {
-        // check whether 3 blocks vertically forward are passable
-        is_passable(&(node.pos + self.offset().down(1)), dim)
-            && is_passable(&(node.pos + self.offset()), dim)
-            && is_passable(&(node.pos + self.offset().up(1)), dim)
-            && node.vertical_vel == VerticalVel::None
-    }
     fn offset(&self) -> BlockPos {
-        BlockPos::new(0, 0, 1)
-    }
-    fn next_node(&self, node: &Node) -> Node {
-        Node {
-            pos: node.pos + self.offset(),
-            vertical_vel: VerticalVel::NoneMidair,
-        }
-    }
-}
-pub struct FallEastMove;
-impl Move for FallEastMove {
-    fn can_execute(&self, dim: &Dimension, node: &Node) -> bool {
-        // check whether 3 blocks vertically forward are passable
-        is_passable(&(node.pos + self.offset().down(1)), dim)
-            && is_passable(&(node.pos + self.offset()), dim)
-            && is_passable(&(node.pos + self.offset().up(1)), dim)
-            && node.vertical_vel == VerticalVel::None
-    }
-    fn offset(&self) -> BlockPos {
-        BlockPos::new(1, 0, 0)
-    }
-    fn next_node(&self, node: &Node) -> Node {
-        Node {
-            pos: node.pos + self.offset(),
-            vertical_vel: VerticalVel::NoneMidair,
-        }
-    }
-}
-pub struct FallWestMove;
-impl Move for FallWestMove {
-    fn can_execute(&self, dim: &Dimension, node: &Node) -> bool {
-        // check whether 3 blocks vertically forward are passable
-        is_passable(&(node.pos + self.offset().down(1)), dim)
-            && is_passable(&(node.pos + self.offset()), dim)
-            && is_passable(&(node.pos + self.offset().up(1)), dim)
-            && node.vertical_vel == VerticalVel::None
-    }
-    fn offset(&self) -> BlockPos {
-        BlockPos::new(-1, 0, 0)
-    }
-    fn next_node(&self, node: &Node) -> Node {
-        Node {
-            pos: node.pos + self.offset(),
-            vertical_vel: VerticalVel::NoneMidair,
-        }
-    }
-}
-
-pub struct LandMove;
-impl Move for LandMove {
-    fn can_execute(&self, dim: &Dimension, node: &Node) -> bool {
-        is_standable(&(node.pos + self.offset()), dim)
-            && (node.vertical_vel == VerticalVel::NoneMidair
-                || node.vertical_vel == VerticalVel::FallingLittle)
-    }
-    fn offset(&self) -> BlockPos {
-        BlockPos::new(0, -1, 0)
+        BlockPos::new(self.0.x(), -1, self.0.z())
     }
     fn next_node(&self, node: &Node) -> Node {
         Node {

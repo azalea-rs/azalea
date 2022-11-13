@@ -4,7 +4,7 @@ mod mtdstarlite;
 use async_trait::async_trait;
 use azalea::{prelude::*, SprintDirection, WalkDirection};
 use azalea::{Client, Event};
-use azalea_core::BlockPos;
+use azalea_core::{BlockPos, CardinalDirection};
 use azalea_world::entity::EntityData;
 use mtdstarlite::Edge;
 pub use mtdstarlite::MTDStarLite;
@@ -49,29 +49,29 @@ impl Trait for azalea_client::Client {
         let end = goal.goal_node();
         println!("start: {:?}, end: {:?}", start, end);
 
+        let possible_moves: Vec<&dyn moves::Move> = vec![
+            &moves::ForwardMove(CardinalDirection::North),
+            &moves::ForwardMove(CardinalDirection::East),
+            &moves::ForwardMove(CardinalDirection::South),
+            &moves::ForwardMove(CardinalDirection::West),
+            &moves::AscendMove(CardinalDirection::North),
+            &moves::AscendMove(CardinalDirection::East),
+            &moves::AscendMove(CardinalDirection::South),
+            &moves::AscendMove(CardinalDirection::West),
+            &moves::DescendMove(CardinalDirection::North),
+            &moves::DescendMove(CardinalDirection::East),
+            &moves::DescendMove(CardinalDirection::South),
+            &moves::DescendMove(CardinalDirection::West),
+        ];
+
         let successors = |node: &Node| {
             let mut edges = Vec::new();
-            let possible_moves: Vec<&dyn moves::Move> = vec![
-                &moves::NorthMove,
-                &moves::SouthMove,
-                &moves::EastMove,
-                &moves::WestMove,
-                &moves::JumpUpMove,
-                &moves::FallNorthMove,
-                &moves::FallSouthMove,
-                &moves::FallEastMove,
-                &moves::FallWestMove,
-                &moves::LandMove,
-            ];
+
             let dimension = self.dimension.read();
             for possible_move in possible_moves.iter() {
                 edges.push(Edge {
                     target: possible_move.next_node(&node),
-                    cost: if possible_move.can_execute(&dimension, node) {
-                        possible_move.cost()
-                    } else {
-                        f32::INFINITY
-                    },
+                    cost: possible_move.cost(&dimension, node),
                 });
             }
             edges
@@ -85,8 +85,12 @@ impl Trait for azalea_client::Client {
             successors,
             |n| goal.success(n),
         );
+
+        let start = std::time::Instant::now();
         let p = pf.find_path();
+        let end = std::time::Instant::now();
         println!("path: {:?}", p);
+        println!("time: {:?}", end - start);
 
         let state = self
             .plugins
