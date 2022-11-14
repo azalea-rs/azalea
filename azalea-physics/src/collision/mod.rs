@@ -1,8 +1,8 @@
 mod blocks;
-mod dimension_collisions;
 mod discrete_voxel_shape;
 mod mergers;
 mod shape;
+mod world_collisions;
 
 use std::ops::DerefMut;
 
@@ -10,9 +10,9 @@ use azalea_core::{Axis, Vec3, AABB, EPSILON};
 use azalea_world::entity::{Entity, EntityData};
 use azalea_world::{MoveEntityError, World};
 pub use blocks::BlockWithShape;
-use dimension_collisions::CollisionGetter;
 pub use discrete_voxel_shape::*;
 pub use shape::*;
+use world_collisions::CollisionGetter;
 
 pub enum MoverType {
     Own,
