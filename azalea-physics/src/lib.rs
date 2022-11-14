@@ -8,7 +8,7 @@ use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
 use azalea_world::{
     entity::{Entity, EntityData},
-    Dimension,
+    World,
 };
 use collision::{MovableEntity, MoverType};
 
@@ -19,7 +19,7 @@ pub trait HasPhysics {
     fn jump_from_ground(&mut self);
 }
 
-impl<D: DerefMut<Target = Dimension>> HasPhysics for Entity<'_, D> {
+impl<D: DerefMut<Target = World>> HasPhysics for Entity<'_, D> {
     /// Move the entity with the given acceleration while handling friction,
     /// gravity, collisions, and some other stuff.
     fn travel(&mut self, acceleration: &Vec3) {
@@ -40,7 +40,7 @@ impl<D: DerefMut<Target = Dimension>> HasPhysics for Entity<'_, D> {
         let block_pos_below = get_block_pos_below_that_affects_movement(self);
 
         let block_state_below = self
-            .dimension
+            .world
             .get_block_state(&block_pos_below)
             .unwrap_or(BlockState::Air);
         let block_below: Box<dyn Block> = block_state_below.into();
@@ -143,7 +143,7 @@ fn get_block_pos_below_that_affects_movement(entity: &EntityData) -> BlockPos {
     )
 }
 
-fn handle_relative_friction_and_calculate_movement<D: DerefMut<Target = Dimension>>(
+fn handle_relative_friction_and_calculate_movement<D: DerefMut<Target = World>>(
     entity: &mut Entity<D>,
     acceleration: &Vec3,
     block_friction: f32,
@@ -182,10 +182,10 @@ fn get_friction_influenced_speed(entity: &EntityData, friction: f32) -> f32 {
 
 /// Returns the what the entity's jump should be multiplied by based on the
 /// block they're standing on.
-fn block_jump_factor<D: DerefMut<Target = Dimension>>(entity: &Entity<D>) -> f32 {
-    let block_at_pos = entity.dimension.get_block_state(&entity.pos().into());
+fn block_jump_factor<D: DerefMut<Target = World>>(entity: &Entity<D>) -> f32 {
+    let block_at_pos = entity.world.get_block_state(&entity.pos().into());
     let block_below = entity
-        .dimension
+        .world
         .get_block_state(&get_block_pos_below_that_affects_movement(entity));
 
     let block_at_pos_jump_factor = if let Some(block) = block_at_pos {
@@ -210,11 +210,11 @@ fn block_jump_factor<D: DerefMut<Target = Dimension>>(entity: &Entity<D>) -> f32
 // public double getJumpBoostPower() {
 //     return this.hasEffect(MobEffects.JUMP) ? (double)(0.1F * (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1)) : 0.0D;
 // }
-fn jump_power<D: DerefMut<Target = Dimension>>(entity: &Entity<D>) -> f32 {
+fn jump_power<D: DerefMut<Target = World>>(entity: &Entity<D>) -> f32 {
     0.42 * block_jump_factor(entity)
 }
 
-fn jump_boost_power<D: DerefMut<Target = Dimension>>(_entity: &Entity<D>) -> f64 {
+fn jump_boost_power<D: DerefMut<Target = World>>(_entity: &Entity<D>) -> f64 {
     // TODO: potion effects
     // if let Some(effects) = entity.effects() {
     //     if let Some(jump_effect) = effects.get(&Effect::Jump) {
@@ -232,12 +232,12 @@ fn jump_boost_power<D: DerefMut<Target = Dimension>>(_entity: &Entity<D>) -> f64
 mod tests {
     use super::*;
     use azalea_core::ChunkPos;
-    use azalea_world::{Chunk, Dimension};
+    use azalea_world::{Chunk, World};
     use uuid::Uuid;
 
     #[test]
     fn test_gravity() {
-        let mut dim = Dimension::default();
+        let mut dim = World::default();
 
         dim.add_entity(
             0,
@@ -267,7 +267,7 @@ mod tests {
     }
     #[test]
     fn test_collision() {
-        let mut dim = Dimension::default();
+        let mut dim = World::default();
         dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
             .unwrap();
         dim.add_entity(
@@ -298,7 +298,7 @@ mod tests {
 
     #[test]
     fn test_slab_collision() {
-        let mut dim = Dimension::default();
+        let mut dim = World::default();
         dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
             .unwrap();
         dim.add_entity(
@@ -330,7 +330,7 @@ mod tests {
 
     #[test]
     fn test_top_slab_collision() {
-        let mut dim = Dimension::default();
+        let mut dim = World::default();
         dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
             .unwrap();
         dim.add_entity(
@@ -362,7 +362,7 @@ mod tests {
 
     #[test]
     fn test_weird_wall_collision() {
-        let mut dim = Dimension::default();
+        let mut dim = World::default();
         dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
             .unwrap();
         dim.add_entity(

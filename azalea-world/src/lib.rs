@@ -22,10 +22,9 @@ use std::{
 use thiserror::Error;
 use uuid::Uuid;
 
-/// A dimension is a collection of chunks and entities.
-/// Minecraft calls these "Levels", Fabric calls them "Worlds", Minestom calls them "Instances".
+/// A world is a collection of chunks and entities. They're called "levels" in Minecraft's source code.
 #[derive(Debug, Default)]
-pub struct Dimension {
+pub struct World {
     pub chunk_storage: ChunkStorage,
     pub entity_storage: EntityStorage,
 }
@@ -36,9 +35,9 @@ pub enum MoveEntityError {
     EntityDoesNotExist,
 }
 
-impl Dimension {
+impl World {
     pub fn new(chunk_radius: u32, height: u32, min_y: i32) -> Self {
-        Dimension {
+        World {
             chunk_storage: ChunkStorage::new(chunk_radius, height, min_y),
             entity_storage: EntityStorage::new(),
         }
@@ -127,13 +126,13 @@ impl Dimension {
         self.entity_storage.get_mut_by_id(id)
     }
 
-    pub fn entity(&self, id: u32) -> Option<Entity<&Dimension>> {
+    pub fn entity(&self, id: u32) -> Option<Entity<&World>> {
         let entity_data = self.entity_storage.get_by_id(id)?;
         let entity_ptr = unsafe { entity_data.as_const_ptr() };
         Some(Entity::new(self, id, entity_ptr))
     }
 
-    pub fn entity_mut(&mut self, id: u32) -> Option<Entity<'_, &mut Dimension>> {
+    pub fn entity_mut(&mut self, id: u32) -> Option<Entity<'_, &mut World>> {
         let entity_data = self.entity_storage.get_mut_by_id(id)?;
         let entity_ptr = unsafe { entity_data.as_ptr() };
         Some(Entity::new(self, id, entity_ptr))
@@ -157,14 +156,14 @@ impl Dimension {
     }
 }
 
-impl Index<&ChunkPos> for Dimension {
+impl Index<&ChunkPos> for World {
     type Output = Option<Arc<Mutex<Chunk>>>;
 
     fn index(&self, pos: &ChunkPos) -> &Self::Output {
         &self.chunk_storage[pos]
     }
 }
-impl IndexMut<&ChunkPos> for Dimension {
+impl IndexMut<&ChunkPos> for World {
     fn index_mut<'a>(&'a mut self, pos: &ChunkPos) -> &'a mut Self::Output {
         &mut self.chunk_storage[pos]
     }
