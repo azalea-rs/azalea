@@ -302,6 +302,7 @@ where
     R1: ProtocolPacket + Debug,
     W1: ProtocolPacket + Debug,
 {
+    /// Creates a `Connection` of a type from a `Connection` of another type. Useful for servers or custom packets.
     pub fn from<R2, W2>(connection: Connection<R1, W1>) -> Connection<R2, W2>
     where
         R2: ProtocolPacket + Debug,
@@ -324,6 +325,7 @@ where
         }
     }
 
+    /// Convert an existing `TcpStream` into a `Connection`. Useful for servers.
     pub fn wrap(stream: TcpStream) -> Connection<R1, W1> {
         let (read_stream, write_stream) = stream.into_split();
 
