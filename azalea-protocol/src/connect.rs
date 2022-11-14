@@ -302,7 +302,7 @@ where
     R1: ProtocolPacket + Debug,
     W1: ProtocolPacket + Debug,
 {
-    fn from<R2, W2>(connection: Connection<R1, W1>) -> Connection<R2, W2>
+    pub fn from<R2, W2>(connection: Connection<R1, W1>) -> Connection<R2, W2>
     where
         R2: ProtocolPacket + Debug,
         W2: ProtocolPacket + Debug,
@@ -319,6 +319,26 @@ where
                 compression_threshold: connection.writer.compression_threshold,
                 write_stream: connection.writer.write_stream,
                 enc_cipher: connection.writer.enc_cipher,
+                _writing: PhantomData,
+            },
+        }
+    }
+
+    pub fn wrap(stream: TcpStream) -> Connection<R1, W1> {
+        let (read_stream, write_stream) = stream.into_split();
+
+        Connection {
+            reader: ReadConnection {
+                read_stream,
+                buffer: BytesMut::new(),
+                compression_threshold: None,
+                dec_cipher: None,
+                _reading: PhantomData,
+            },
+            writer: WriteConnection {
+                write_stream,
+                compression_threshold: None,
+                enc_cipher: None,
                 _writing: PhantomData,
             },
         }
