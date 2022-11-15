@@ -7,19 +7,21 @@ use std::{
     hash::BuildHasherDefault,
 };
 
+type U64Hasher = BuildHasherDefault<NoHashHasher<u64>>;
+
 // kind of based on https://docs.rs/http/latest/src/http/extensions.rs.html
 /// A map of plugin ids to Plugin trait objects. The client stores this so we
 /// can keep the state for our plugins.
 ///
 /// If you're using azalea, you should generate this from the `plugins!` macro.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Plugins {
-    map: Option<HashMap<TypeId, Box<dyn Plugin>, BuildHasherDefault<NoHashHasher<u64>>>>,
+    map: Option<HashMap<TypeId, Box<dyn Plugin>, U64Hasher>>,
 }
 
 impl Plugins {
     pub fn new() -> Self {
-        Self { map: None }
+        Self::default()
     }
 
     pub fn add<T: Plugin>(&mut self, plugin: T) {
@@ -46,7 +48,7 @@ impl IntoIterator for Plugins {
 
     fn into_iter(self) -> Self::IntoIter {
         self.map
-            .map(|map| map.into_iter().map(|(_, v)| v).collect::<Vec<_>>())
+            .map(|map| map.into_values().collect::<Vec<_>>())
             .unwrap_or_default()
             .into_iter()
     }

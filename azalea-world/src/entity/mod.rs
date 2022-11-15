@@ -270,10 +270,19 @@ impl EntityData {
         &self.pos
     }
 
+    /// Convert this &mut self into a (mutable) pointer.
+    ///
+    /// # Safety
+    /// The entity MUST exist while this pointer exists.
     pub unsafe fn as_ptr(&mut self) -> NonNull<EntityData> {
         NonNull::new_unchecked(self as *mut EntityData)
     }
 
+    /// Convert this &self into a (mutable) pointer.
+    ///
+    /// # Safety
+    /// The entity MUST exist while this pointer exists. You also must not
+    /// modify the data inside the pointer.
     pub unsafe fn as_const_ptr(&self) -> NonNull<EntityData> {
         // this is cursed
         NonNull::new_unchecked(self as *const EntityData as *mut EntityData)
@@ -286,9 +295,9 @@ mod tests {
 
     #[test]
     fn from_mut_entity_to_ref_entity() {
-        let mut dim = World::default();
+        let mut world = World::default();
         let uuid = Uuid::from_u128(100);
-        dim.add_entity(
+        world.add_entity(
             0,
             EntityData::new(
                 uuid,
@@ -296,7 +305,7 @@ mod tests {
                 EntityMetadata::Player(metadata::Player::default()),
             ),
         );
-        let entity: Entity = dim.entity_mut(0).unwrap();
+        let entity: Entity = world.entity_mut(0).unwrap();
         let entity_ref = Entity::from(entity);
         assert_eq!(entity_ref.uuid, uuid);
     }

@@ -122,12 +122,11 @@ impl<D: DerefMut<Target = World>> HasPhysics for Entity<'_, D> {
         };
         if self.metadata.sprinting {
             let y_rot = self.y_rot * 0.017453292;
-            self.delta = self.delta
-                + Vec3 {
-                    x: (-f32::sin(y_rot) * 0.2) as f64,
-                    y: 0.,
-                    z: (f32::cos(y_rot) * 0.2) as f64,
-                };
+            self.delta += Vec3 {
+                x: (-f32::sin(y_rot) * 0.2) as f64,
+                y: 0.,
+                z: (f32::cos(y_rot) * 0.2) as f64,
+            };
         }
 
         self.has_impulse = true;
@@ -237,9 +236,9 @@ mod tests {
 
     #[test]
     fn test_gravity() {
-        let mut dim = World::default();
+        let mut world = World::default();
 
-        dim.add_entity(
+        world.add_entity(
             0,
             EntityData::new(
                 Uuid::from_u128(0),
@@ -250,7 +249,7 @@ mod tests {
                 },
             ),
         );
-        let mut entity = dim.entity_mut(0).unwrap();
+        let mut entity = world.entity_mut(0).unwrap();
         // y should start at 70
         assert_eq!(entity.pos().y, 70.);
         entity.ai_step();
@@ -267,10 +266,11 @@ mod tests {
     }
     #[test]
     fn test_collision() {
-        let mut dim = World::default();
-        dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
+        let mut world = World::default();
+        world
+            .set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
             .unwrap();
-        dim.add_entity(
+        world.add_entity(
             0,
             EntityData::new(
                 Uuid::from_u128(0),
@@ -281,12 +281,12 @@ mod tests {
                 },
             ),
         );
-        let block_state = dim.set_block_state(&BlockPos { x: 0, y: 69, z: 0 }, BlockState::Stone);
+        let block_state = world.set_block_state(&BlockPos { x: 0, y: 69, z: 0 }, BlockState::Stone);
         assert!(
             block_state.is_some(),
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
-        let mut entity = dim.entity_mut(0).unwrap();
+        let mut entity = world.entity_mut(0).unwrap();
         entity.ai_step();
         // delta will change, but it won't move until next tick
         assert_eq!(entity.pos().y, 70.);
@@ -298,10 +298,11 @@ mod tests {
 
     #[test]
     fn test_slab_collision() {
-        let mut dim = World::default();
-        dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
+        let mut world = World::default();
+        world
+            .set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
             .unwrap();
-        dim.add_entity(
+        world.add_entity(
             0,
             EntityData::new(
                 Uuid::from_u128(0),
@@ -312,7 +313,7 @@ mod tests {
                 },
             ),
         );
-        let block_state = dim.set_block_state(
+        let block_state = world.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
             BlockState::StoneSlab_BottomFalse,
         );
@@ -320,7 +321,7 @@ mod tests {
             block_state.is_some(),
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
-        let mut entity = dim.entity_mut(0).unwrap();
+        let mut entity = world.entity_mut(0).unwrap();
         // do a few steps so we fall on the slab
         for _ in 0..20 {
             entity.ai_step();
@@ -330,10 +331,11 @@ mod tests {
 
     #[test]
     fn test_top_slab_collision() {
-        let mut dim = World::default();
-        dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
+        let mut world = World::default();
+        world
+            .set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
             .unwrap();
-        dim.add_entity(
+        world.add_entity(
             0,
             EntityData::new(
                 Uuid::from_u128(0),
@@ -344,7 +346,7 @@ mod tests {
                 },
             ),
         );
-        let block_state = dim.set_block_state(
+        let block_state = world.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
             BlockState::StoneSlab_TopFalse,
         );
@@ -352,7 +354,7 @@ mod tests {
             block_state.is_some(),
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
-        let mut entity = dim.entity_mut(0).unwrap();
+        let mut entity = world.entity_mut(0).unwrap();
         // do a few steps so we fall on the slab
         for _ in 0..20 {
             entity.ai_step();
@@ -362,10 +364,11 @@ mod tests {
 
     #[test]
     fn test_weird_wall_collision() {
-        let mut dim = World::default();
-        dim.set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
+        let mut world = World::default();
+        world
+            .set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
             .unwrap();
-        dim.add_entity(
+        world.add_entity(
             0,
             EntityData::new(
                 Uuid::from_u128(0),
@@ -376,7 +379,7 @@ mod tests {
                 },
             ),
         );
-        let block_state = dim.set_block_state(
+        let block_state = world.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
             BlockState::CobblestoneWall_LowLowLowFalseFalseLow,
         );
@@ -384,7 +387,7 @@ mod tests {
             block_state.is_some(),
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
-        let mut entity = dim.entity_mut(0).unwrap();
+        let mut entity = world.entity_mut(0).unwrap();
         // do a few steps so we fall on the slab
         for _ in 0..20 {
             entity.ai_step();
