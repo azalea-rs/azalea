@@ -911,8 +911,8 @@ impl Client {
         Ok(())
     }
 
-    /// Get the player metadata for ourselves. You can use this to get your
-    /// health, xp score, and other useful information.
+    /// Get your player entity's metadata. You can use this to get your health,
+    /// xp score, and other useful information.
     pub fn metadata(&self) -> metadata::Player {
         self.entity().metadata.clone().into_player().unwrap()
     }
