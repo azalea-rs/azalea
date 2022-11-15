@@ -77,7 +77,7 @@ impl Trait for azalea_client::Client {
             let dimension = self.dimension.read();
             for possible_move in possible_moves.iter() {
                 edges.push(Edge {
-                    target: possible_move.next_node(&node),
+                    target: possible_move.next_node(node),
                     cost: possible_move.cost(&dimension, node),
                 });
             }

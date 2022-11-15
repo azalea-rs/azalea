@@ -270,10 +270,19 @@ impl EntityData {
         &self.pos
     }
 
+    /// Convert this &mut self into a (mutable) pointer.
+    ///
+    /// # Safety
+    /// The entity MUST exist while this pointer exists.
     pub unsafe fn as_ptr(&mut self) -> NonNull<EntityData> {
         NonNull::new_unchecked(self as *mut EntityData)
     }
 
+    /// Convert this &self into a (mutable) pointer.
+    ///
+    /// # Safety
+    /// The entity MUST exist while this pointer exists. You also must not
+    /// modify the data inside the pointer.
     pub unsafe fn as_const_ptr(&self) -> NonNull<EntityData> {
         // this is cursed
         NonNull::new_unchecked(self as *const EntityData as *mut EntityData)

@@ -29,7 +29,7 @@ fn is_passable(pos: &BlockPos, dim: &Dimension) -> bool {
 /// Whether we can stand in this position. Checks if the block below is solid,
 /// and that the two blocks above that are passable.
 fn is_standable(pos: &BlockPos, dim: &Dimension) -> bool {
-    is_block_solid(&pos.down(1), dim) && is_passable(&pos, dim)
+    is_block_solid(&pos.down(1), dim) && is_passable(pos, dim)
 }
 
 const JUMP_COST: f32 = 0.5;
