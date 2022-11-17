@@ -1,8 +1,11 @@
 use crate::packets::login::serverbound_hello_packet::ProfilePublicKeyData;
+use azalea_auth::game_profile::ProfilePropertyValue;
 use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_chat::Component;
+use azalea_core::GameType;
 use azalea_protocol_macros::ClientboundGamePacket;
+use std::collections::HashMap;
 use std::io::{Cursor, Write};
 use uuid::Uuid;
 
@@ -21,19 +24,11 @@ pub enum Action {
 }
 
 #[derive(Clone, Debug, McBuf)]
-pub struct PlayerProperty {
-    pub name: String,
-    pub value: String,
-    pub signature: Option<String>,
-}
-
-#[derive(Clone, Debug, McBuf)]
 pub struct AddPlayer {
     pub uuid: Uuid,
     pub name: String,
-    pub properties: Vec<PlayerProperty>,
-    #[var]
-    pub gamemode: u32,
+    pub properties: HashMap<String, ProfilePropertyValue>,
+    pub gamemode: GameType,
     #[var]
     pub ping: i32,
     pub display_name: Option<Component>,
@@ -43,8 +38,7 @@ pub struct AddPlayer {
 #[derive(Clone, Debug, McBuf)]
 pub struct UpdateGameMode {
     pub uuid: Uuid,
-    #[var]
-    pub gamemode: u32,
+    pub gamemode: GameType,
 }
 
 #[derive(Clone, Debug, McBuf)]
