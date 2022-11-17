@@ -1,13 +1,11 @@
+pub use crate::chat::ChatPacket;
 use crate::{movement::WalkDirection, plugins::Plugins, Account, Player};
 use azalea_auth::game_profile::GameProfile;
-use azalea_chat::Component;
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
         game::{
-            clientbound_player_chat_packet::ClientboundPlayerChatPacket,
-            clientbound_system_chat_packet::ClientboundSystemChatPacket,
             serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
             serverbound_client_information_packet::ServerboundClientInformationPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
@@ -61,23 +59,6 @@ pub enum Event {
     /// Happens 20 times per second, but only when the world is loaded.
     Tick,
     Packet(Box<ClientboundGamePacket>),
-}
-
-/// A chat packet, either a system message or a chat message.
-#[derive(Debug, Clone)]
-pub enum ChatPacket {
-    System(ClientboundSystemChatPacket),
-    Player(Box<ClientboundPlayerChatPacket>),
-}
-
-impl ChatPacket {
-    /// Get the message shown in chat for this packet.
-    pub fn message(&self) -> Component {
-        match self {
-            ChatPacket::System(p) => p.content.clone(),
-            ChatPacket::Player(p) => p.message(false),
-        }
-    }
 }
 
 /// A player that you control that is currently in a Minecraft server.
