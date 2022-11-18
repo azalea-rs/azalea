@@ -9,6 +9,8 @@ use azalea_protocol::packets::game::{
     serverbound_chat_command_packet::ServerboundChatCommandPacket,
     serverbound_chat_packet::ServerboundChatPacket,
 };
+use lazy_static::lazy_static;
+use regex::Regex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// A chat packet, either a system message or a chat message.
@@ -24,6 +26,36 @@ impl ChatPacket {
         match self {
             ChatPacket::System(p) => p.content.clone(),
             ChatPacket::Player(p) => p.message(false),
+        }
+    }
+
+    /// Determine the username of the sender and content of the message.
+    pub fn split_sender_and_content(&self) -> (Option<String>, String) {
+        match self {
+            ChatPacket::Player(p) => (
+                // If it's a player chat packet, then the sender and content
+                // are already split for us.
+                Some(p.chat_type.name.to_string()),
+                p.message.content(false).to_string(),
+            ),
+            ChatPacket::System(p) => {
+                let message = p.content.to_string();
+                // Overlay messages aren't in chat
+                if p.overlay {
+                    return (None, message);
+                }
+                // It's a system message, so we'll have to match the content
+                // with regex
+                lazy_static! {
+                    static ref ANGLE_BRACKETS_RE: Regex =
+                        Regex::new("^<([a-zA-Z_0-9]{1,16})> (.+)$").unwrap();
+                }
+                if let Some(m) = ANGLE_BRACKETS_RE.captures(&message) {
+                    return (Some(m[1].to_string()), m[2].to_string());
+                }
+
+                (None, message)
+            }
         }
     }
 }
