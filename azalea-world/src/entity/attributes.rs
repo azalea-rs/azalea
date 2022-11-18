@@ -40,9 +40,8 @@ impl AttributeInstance {
                 AttributeModifierOperation::MultiplyBase => total += self.base * modifier.amount,
                 _ => {}
             }
-            match modifier.operation {
-                AttributeModifierOperation::MultiplyTotal => total *= 1.0 + modifier.amount,
-                _ => {}
+            if let AttributeModifierOperation::MultiplyTotal = modifier.operation {
+                total *= 1.0 + modifier.amount
             }
         }
         total

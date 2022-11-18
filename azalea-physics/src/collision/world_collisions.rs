@@ -2,7 +2,7 @@ use crate::collision::{BlockWithShape, VoxelShape, AABB};
 use azalea_block::BlockState;
 use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType, EPSILON};
 use azalea_world::entity::EntityData;
-use azalea_world::{Chunk, Dimension};
+use azalea_world::{Chunk, World};
 use parking_lot::Mutex;
 use std::sync::Arc;
 
@@ -16,7 +16,7 @@ pub trait CollisionGetter {
     ) -> BlockCollisions<'a>;
 }
 
-impl CollisionGetter for Dimension {
+impl CollisionGetter for World {
     fn get_block_collisions<'a>(
         &'a self,
         entity: Option<&EntityData>,
@@ -27,7 +27,7 @@ impl CollisionGetter for Dimension {
 }
 
 pub struct BlockCollisions<'a> {
-    pub dimension: &'a Dimension,
+    pub world: &'a World,
     // context: CollisionContext,
     pub aabb: AABB,
     pub entity_shape: VoxelShape,
@@ -37,7 +37,7 @@ pub struct BlockCollisions<'a> {
 
 impl<'a> BlockCollisions<'a> {
     // TODO: the entity is stored in the context
-    pub fn new(dimension: &'a Dimension, _entity: Option<&EntityData>, aabb: AABB) -> Self {
+    pub fn new(world: &'a World, _entity: Option<&EntityData>, aabb: AABB) -> Self {
         let origin_x = (aabb.min_x - EPSILON) as i32 - 1;
         let origin_y = (aabb.min_y - EPSILON) as i32 - 1;
         let origin_z = (aabb.min_z - EPSILON) as i32 - 1;
@@ -49,7 +49,7 @@ impl<'a> BlockCollisions<'a> {
         let cursor = Cursor3d::new(origin_x, origin_y, origin_z, end_x, end_y, end_z);
 
         Self {
-            dimension,
+            world,
             aabb,
             entity_shape: VoxelShape::from(aabb),
             cursor,
@@ -75,7 +75,7 @@ impl<'a> BlockCollisions<'a> {
         //    return var7;
         // }
 
-        self.dimension[&chunk_pos].as_ref()
+        self.world[&chunk_pos].as_ref()
     }
 }
 
@@ -97,7 +97,7 @@ impl<'a> Iterator for BlockCollisions<'a> {
             let pos = item.pos;
             let block_state: BlockState = chunk
                 .lock()
-                .get(&(&pos).into(), self.dimension.min_y())
+                .get(&(&pos).into(), self.world.min_y())
                 .unwrap_or(BlockState::Air);
 
             // TODO: continue if self.only_suffocating_blocks and the block is not suffocating

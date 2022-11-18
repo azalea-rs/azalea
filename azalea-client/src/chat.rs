@@ -1,12 +1,32 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+//! Implementations of chat-related features.
 
+use crate::Client;
+use azalea_chat::Component;
 use azalea_crypto::MessageSignature;
 use azalea_protocol::packets::game::{
+    clientbound_player_chat_packet::ClientboundPlayerChatPacket,
+    clientbound_system_chat_packet::ClientboundSystemChatPacket,
     serverbound_chat_command_packet::ServerboundChatCommandPacket,
     serverbound_chat_packet::{LastSeenMessagesUpdate, ServerboundChatPacket},
 };
+use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::Client;
+/// A chat packet, either a system message or a chat message.
+#[derive(Debug, Clone)]
+pub enum ChatPacket {
+    System(ClientboundSystemChatPacket),
+    Player(Box<ClientboundPlayerChatPacket>),
+}
+
+impl ChatPacket {
+    /// Get the message shown in chat for this packet.
+    pub fn message(&self) -> Component {
+        match self {
+            ChatPacket::System(p) => p.content.clone(),
+            ChatPacket::Player(p) => p.message(),
+        }
+    }
+}
 
 impl Client {
     /// Sends chat message to the server. This only sends the chat packet and

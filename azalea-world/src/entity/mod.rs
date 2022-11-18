@@ -5,7 +5,7 @@ pub mod metadata;
 
 use self::attributes::{AttributeInstance, AttributeModifiers};
 pub use self::metadata::EntityMetadata;
-use crate::Dimension;
+use crate::World;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, Vec3, AABB};
 pub use data::*;
@@ -15,22 +15,22 @@ use std::ops::{Deref, DerefMut};
 use std::ptr::NonNull;
 use uuid::Uuid;
 
-/// A reference to an entity in a dimension.
+/// A reference to an entity in a world.
 #[derive(Debug)]
-pub struct Entity<'d, D = &'d mut Dimension> {
-    /// The dimension this entity is in.
-    pub dimension: D,
+pub struct Entity<'d, D = &'d mut World> {
+    /// The world this entity is in.
+    pub world: D,
     /// The incrementing numerical id of the entity.
     pub id: u32,
     pub data: NonNull<EntityData>,
     _marker: PhantomData<&'d ()>,
 }
 
-impl<'d, D: Deref<Target = Dimension>> Entity<'d, D> {
-    pub fn new(dimension: D, id: u32, data: NonNull<EntityData>) -> Self {
+impl<'d, D: Deref<Target = World>> Entity<'d, D> {
+    pub fn new(world: D, id: u32, data: NonNull<EntityData>) -> Self {
         // TODO: have this be based on the entity type
         Self {
-            dimension,
+            world,
             id,
             data,
             _marker: PhantomData,
@@ -38,12 +38,12 @@ impl<'d, D: Deref<Target = Dimension>> Entity<'d, D> {
     }
 }
 
-impl<'d, D: DerefMut<Target = Dimension>> Entity<'d, D> {
+impl<'d, D: DerefMut<Target = World>> Entity<'d, D> {
     /// Sets the position of the entity. This doesn't update the cache in
     /// azalea-world, and should only be used within azalea-world!
     ///
     /// # Safety
-    /// Cached position in the dimension must be updated.
+    /// Cached position in the world must be updated.
     pub unsafe fn move_unchecked(&mut self, new_pos: Vec3) {
         self.pos = new_pos;
         let bounding_box = self.make_bounding_box();
@@ -94,7 +94,7 @@ impl<'d, D: DerefMut<Target = Dimension>> Entity<'d, D> {
     }
 }
 
-impl<'d, D: Deref<Target = Dimension>> Entity<'d, D> {
+impl<'d, D: Deref<Target = World>> Entity<'d, D> {
     #[inline]
     pub fn pos(&self) -> &Vec3 {
         &self.pos
@@ -129,10 +129,10 @@ impl<'d, D: Deref<Target = Dimension>> Entity<'d, D> {
 
         // TODO: check if block below is a fence, wall, or fence gate
         let block_pos = pos.down(1);
-        let block_state = self.dimension.get_block_state(&block_pos);
+        let block_state = self.world.get_block_state(&block_pos);
         if block_state == Some(BlockState::Air) {
             let block_pos_below = block_pos.down(1);
-            let block_state_below = self.dimension.get_block_state(&block_pos_below);
+            let block_state_below = self.world.get_block_state(&block_pos_below);
             if let Some(_block_state_below) = block_state_below {
                 // if block_state_below.is_fence()
                 //     || block_state_below.is_wall()
@@ -149,13 +149,13 @@ impl<'d, D: Deref<Target = Dimension>> Entity<'d, D> {
 
 // impl<
 //         'd,
-//         D: DerefMut<Target = Dimension> + Deref<Target = Dimension>,
-//         D2: Deref<Target = Dimension>,
+//         D: DerefMut<Target = World> + Deref<Target = World>,
+//         D2: Deref<Target = World>,
 //     > From<Entity<'d, D>> for Entity<'d, D2>
 // {
 //     fn from(entity: Entity<'d, D>) -> Entity<'d, D> {
 //         Entity {
-//             dimension: entity.dimension,
+//             world: entity.world,
 //             id: entity.id,
 //             data: entity.data,
 //             _marker: PhantomData,
@@ -163,13 +163,13 @@ impl<'d, D: Deref<Target = Dimension>> Entity<'d, D> {
 //     }
 // }
 
-impl<D: DerefMut<Target = Dimension>> DerefMut for Entity<'_, D> {
+impl<D: DerefMut<Target = World>> DerefMut for Entity<'_, D> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { self.data.as_mut() }
     }
 }
 
-impl<D: Deref<Target = Dimension>> Deref for Entity<'_, D> {
+impl<D: Deref<Target = World>> Deref for Entity<'_, D> {
     type Target = EntityData;
 
     fn deref(&self) -> &Self::Target {
@@ -181,7 +181,7 @@ impl<D: Deref<Target = Dimension>> Deref for Entity<'_, D> {
 pub struct EntityData {
     pub uuid: Uuid,
     /// The position of the entity right now.
-    /// This can be changde with unsafe_move, but the correct way is with dimension.move_entity
+    /// This can be changde with unsafe_move, but the correct way is with world.move_entity
     pos: Vec3,
     /// The position of the entity last tick.
     pub last_pos: Vec3,
@@ -264,16 +264,25 @@ impl EntityData {
         }
     }
 
-    /// Get the position of the entity in the dimension.
+    /// Get the position of the entity in the world.
     #[inline]
     pub fn pos(&self) -> &Vec3 {
         &self.pos
     }
 
+    /// Convert this &mut self into a (mutable) pointer.
+    ///
+    /// # Safety
+    /// The entity MUST exist while this pointer exists.
     pub unsafe fn as_ptr(&mut self) -> NonNull<EntityData> {
         NonNull::new_unchecked(self as *mut EntityData)
     }
 
+    /// Convert this &self into a (mutable) pointer.
+    ///
+    /// # Safety
+    /// The entity MUST exist while this pointer exists. You also must not
+    /// modify the data inside the pointer.
     pub unsafe fn as_const_ptr(&self) -> NonNull<EntityData> {
         // this is cursed
         NonNull::new_unchecked(self as *const EntityData as *mut EntityData)
@@ -286,9 +295,9 @@ mod tests {
 
     #[test]
     fn from_mut_entity_to_ref_entity() {
-        let mut dim = Dimension::default();
+        let mut world = World::default();
         let uuid = Uuid::from_u128(100);
-        dim.add_entity(
+        world.add_entity(
             0,
             EntityData::new(
                 uuid,
@@ -296,7 +305,7 @@ mod tests {
                 EntityMetadata::Player(metadata::Player::default()),
             ),
         );
-        let entity: Entity = dim.entity_mut(0).unwrap();
+        let entity: Entity = world.entity_mut(0).unwrap();
         let entity_ref = Entity::from(entity);
         assert_eq!(entity_ref.uuid, uuid);
     }

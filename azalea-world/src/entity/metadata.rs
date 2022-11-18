@@ -6,6 +6,7 @@ use super::{EntityDataValue, OptionalUnsignedInt, Pose, Rotations, VillagerData}
 use azalea_block::BlockState;
 use azalea_chat::Component;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
+use enum_as_inner::EnumAsInner;
 use std::{
     collections::VecDeque,
     ops::{Deref, DerefMut},
@@ -8027,7 +8028,7 @@ impl DerefMut for AbstractTameable {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, EnumAsInner)]
 pub enum EntityMetadata {
     Allay(Allay),
     AreaEffectCloud(AreaEffectCloud),

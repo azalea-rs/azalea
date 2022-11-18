@@ -105,7 +105,7 @@ impl<
         for n in &known_nodes {
             *pf.state_mut(n) = NodeState::default();
         }
-        (*pf.state_mut(&start)).rhs = W::default();
+        pf.state_mut(&start).rhs = W::default();
         pf.open.push(start, pf.calculate_key(&start));
 
         pf

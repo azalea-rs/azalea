@@ -1,6 +1,6 @@
 use crate::palette::PalettedContainer;
 use crate::palette::PalettedContainerType;
-use crate::Dimension;
+use crate::World;
 use azalea_block::BlockState;
 use azalea_buf::BufReadError;
 use azalea_buf::{McBufReadable, McBufWritable};
@@ -143,7 +143,7 @@ impl IndexMut<&ChunkPos> for ChunkStorage {
 impl Chunk {
     pub fn read_with_dimension(
         buf: &mut Cursor<&[u8]>,
-        data: &Dimension,
+        data: &World,
     ) -> Result<Self, BufReadError> {
         Self::read_with_dimension_height(buf, data.height())
     }

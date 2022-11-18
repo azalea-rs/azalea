@@ -36,10 +36,7 @@ async fn swarm_handle(swarm: Swarm, event: Event, state: State) {
     match event {
         Event::Tick => {
             // choose an arbitrary player within render distance to target
-            if let Some(target) = swarm
-                .dimension
-                .find_one_entity(|e| e.id == "minecraft:player")
-            {
+            if let Some(target) = swarm.world.find_one_entity(|e| e.id == "minecraft:player") {
                 for bot in swarm {
                     bot.tick_goto_goal(pathfinder::Goals::Reach(target.bounding_box));
                     // if target.bounding_box.distance(bot.eyes) < bot.reach_distance() {

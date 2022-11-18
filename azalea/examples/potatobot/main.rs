@@ -49,7 +49,7 @@ async fn deposit(bot: &mut Client, state: State) -> anyhow::Result<()> {
 
     bot.goto(Vec3::new(0, 70, 0)).await?;
     let chest = bot
-        .open_container(&bot.dimension.block_at(BlockPos::new(0, 70, 0)))
+        .open_container(&bot.world.block_at(BlockPos::new(0, 70, 0)))
         .await
         .unwrap();
 

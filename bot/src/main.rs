@@ -58,13 +58,12 @@ async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> 
         Event::Chat(m) => {
             println!("{}", m.message().to_ansi(None));
             if m.message().to_string() == "<py5> goto" {
-                let target_pos_vec3 = bot
-                    .dimension
+                let target_pos_vec3 = *(bot
+                    .world
                     .read()
                     .entity_by_uuid(&uuid::uuid!("6536bfed869548fd83a1ecd24cf2a0fd"))
                     .unwrap()
-                    .pos()
-                    .clone();
+                    .pos());
                 let target_pos: BlockPos = (&target_pos_vec3).into();
                 // bot.look_at(&target_pos_vec3);
                 bot.goto(BlockPosGoal::from(target_pos));
