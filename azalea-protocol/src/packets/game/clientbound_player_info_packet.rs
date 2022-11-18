@@ -30,7 +30,7 @@ pub struct AddPlayer {
     pub properties: HashMap<String, ProfilePropertyValue>,
     pub gamemode: GameType,
     #[var]
-    pub ping: i32,
+    pub latency: i32,
     pub display_name: Option<Component>,
     pub profile_public_key: Option<ProfilePublicKeyData>,
 }
@@ -45,7 +45,7 @@ pub struct UpdateGameMode {
 pub struct UpdateLatency {
     pub uuid: Uuid,
     #[var]
-    pub ping: i32,
+    pub latency: i32,
 }
 
 #[derive(Clone, Debug, McBuf)]

@@ -1,7 +1,8 @@
 pub use crate::chat::ChatPacket;
 use crate::{movement::WalkDirection, plugins::Plugins, Account, PlayerInfo};
 use azalea_auth::game_profile::GameProfile;
-use azalea_core::{ChunkPos, ResourceLocation, Vec3};
+use azalea_chat::Component;
+use azalea_core::{ChunkPos, GameType, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
@@ -61,6 +62,34 @@ pub enum Event {
     /// Happens 20 times per second, but only when the world is loaded.
     Tick,
     Packet(Box<ClientboundGamePacket>),
+    /// Happens when a player is added, removed, or updated in the tab list.
+    UpdatePlayers(UpdatePlayersEvent),
+}
+
+/// Happens when a player is added, removed, or updated in the tab list.
+#[derive(Debug, Clone)]
+pub enum UpdatePlayersEvent {
+    /// A player with the given info was added to the tab list (usually means
+    /// they joined the server).
+    Add(PlayerInfo),
+    /// A player with the given UUID was removed from the tab list (usually
+    /// means they left the server)
+    Remove { uuid: Uuid },
+    /// The latency of the player with the given UUID was updated in the tab
+    /// list. Note that this can be spoofed by the player and may not represent
+    /// their actual latency.
+    Latency {
+        uuid: Uuid,
+        /// The time it took in milliseconds for this player to reply to the ping packet.
+        latency: i32,
+    },
+    /// The played switched to a different gamemode (i.e. survival, creative, spectator)
+    GameMode { uuid: Uuid, game_mode: GameType },
+    /// The name of the player with the given UUID in the tab list was changed or reset.
+    DisplayName {
+        uuid: Uuid,
+        display_name: Option<Component>,
+    },
 }
 
 /// A player that you control that is currently in a Minecraft server.
@@ -568,26 +597,31 @@ impl Client {
                 match &p.action {
                     Action::AddPlayer(players) => {
                         for player in players {
-                            players_lock.insert(
-                                player.uuid,
-                                PlayerInfo {
-                                    profile: GameProfile {
-                                        uuid: player.uuid,
-                                        name: player.name.clone(),
-                                        properties: player.properties.clone(),
-                                    },
+                            let player_info = PlayerInfo {
+                                profile: GameProfile {
                                     uuid: player.uuid,
-                                    gamemode: player.gamemode,
-                                    latency: player.ping,
-                                    display_name: player.display_name.clone(),
+                                    name: player.name.clone(),
+                                    properties: player.properties.clone(),
                                 },
-                            );
+                                uuid: player.uuid,
+                                gamemode: player.gamemode,
+                                latency: player.latency,
+                                display_name: player.display_name.clone(),
+                            };
+                            players_lock.insert(player.uuid, player_info.clone());
+                            tx.send(Event::UpdatePlayers(UpdatePlayersEvent::Add(player_info)))
+                                .unwrap();
                         }
                     }
                     Action::UpdateGameMode(players) => {
                         for player in players {
                             if let Some(p) = players_lock.get_mut(&player.uuid) {
                                 p.gamemode = player.gamemode;
+                                tx.send(Event::UpdatePlayers(UpdatePlayersEvent::GameMode {
+                                    uuid: player.uuid,
+                                    game_mode: player.gamemode,
+                                }))
+                                .unwrap();
                             } else {
                                 warn!(
                                     "Ignoring PlayerInfo (UpdateGameMode) for unknown player {}",
@@ -599,7 +633,12 @@ impl Client {
                     Action::UpdateLatency(players) => {
                         for player in players {
                             if let Some(p) = players_lock.get_mut(&player.uuid) {
-                                p.latency = player.ping;
+                                p.latency = player.latency;
+                                tx.send(Event::UpdatePlayers(UpdatePlayersEvent::Latency {
+                                    uuid: player.uuid,
+                                    latency: player.latency,
+                                }))
+                                .unwrap();
                             } else {
                                 warn!(
                                     "Ignoring PlayerInfo (UpdateLatency) for unknown player {}",
@@ -612,6 +651,11 @@ impl Client {
                         for player in players {
                             if let Some(p) = players_lock.get_mut(&player.uuid) {
                                 p.display_name = player.display_name.clone();
+                                tx.send(Event::UpdatePlayers(UpdatePlayersEvent::DisplayName {
+                                    uuid: player.uuid,
+                                    display_name: player.display_name.clone(),
+                                }))
+                                .unwrap();
                             } else {
                                 warn!(
                                     "Ignoring PlayerInfo (UpdateDisplayName) for unknown player {}",
@@ -622,7 +666,12 @@ impl Client {
                     }
                     Action::RemovePlayer(players) => {
                         for player in players {
-                            if players_lock.remove(&player.uuid).is_none() {
+                            if players_lock.remove(&player.uuid).is_some() {
+                                tx.send(Event::UpdatePlayers(UpdatePlayersEvent::Remove {
+                                    uuid: player.uuid,
+                                }))
+                                .unwrap();
+                            } else {
                                 warn!(
                                     "Ignoring PlayerInfo (RemovePlayer) for unknown player {}",
                                     player.uuid
