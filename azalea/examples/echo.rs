@@ -24,10 +24,12 @@ pub struct State {}
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     match event {
         Event::Chat(m) => {
-            if m.username == bot.username {
-                return Ok(()); // ignore our own messages
+            if let (Some(sender), content) = m.split_sender_and_content() {
+                if sender == bot.game_profile.name {
+                    return Ok(()); // ignore our own messages
+                }
+                bot.chat(&content).await?;
             };
-            bot.chat(m.content).await;
         }
         _ => {}
     }

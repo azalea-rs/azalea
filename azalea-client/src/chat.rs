@@ -29,7 +29,10 @@ impl ChatPacket {
         }
     }
 
-    /// Determine the username of the sender and content of the message.
+    /// Determine the username of the sender and content of the message. This
+    /// does not preserve formatting codes. If it's not a player-sent chat
+    /// message or the sender couldn't be determined, the username part will be
+    /// None.
     pub fn split_sender_and_content(&self) -> (Option<String>, String) {
         match self {
             ChatPacket::Player(p) => (
@@ -57,6 +60,20 @@ impl ChatPacket {
                 (None, message)
             }
         }
+    }
+
+    /// Get the username of the sender of the message. If it's not a
+    /// player-sent chat message or the sender couldn't be determined, this
+    /// will be None.
+    pub fn username(&self) -> Option<String> {
+        self.split_sender_and_content().0
+    }
+
+    /// Get the content part of the message as a string. This does not preserve
+    /// formatting codes. If it's not a player-sent chat message or the sender
+    /// couldn't be determined, this will contain the entire message.
+    pub fn content(&self) -> String {
+        self.split_sender_and_content().1
     }
 }
 
