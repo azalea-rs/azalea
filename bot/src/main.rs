@@ -73,7 +73,7 @@ async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> 
             // println!("{}", m.message().to_ansi(None));
             // if m.message().to_string() == "<py5> goto" {
             //     let target_pos_vec3 = bot
-            //         .dimension
+            //         .world
             //         .read()
             //         .entity_by_uuid(&uuid::uuid!("6536bfed869548fd83a1ecd24cf2a0fd"))
             //         .unwrap()

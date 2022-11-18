@@ -197,12 +197,12 @@ impl Add<ChunkSectionBlockPos> for ChunkSectionPos {
     }
 }
 
-/// A block pos with an attached dimension
+/// A block pos with an attached world
 #[derive(Debug, Clone)]
 pub struct GlobalPos {
     pub pos: BlockPos,
     // this is actually a ResourceKey in Minecraft, but i don't think it matters?
-    pub dimension: ResourceLocation,
+    pub world: ResourceLocation,
 }
 
 impl From<&BlockPos> for ChunkPos {
@@ -297,7 +297,7 @@ impl McBufReadable for BlockPos {
 impl McBufReadable for GlobalPos {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(GlobalPos {
-            dimension: ResourceLocation::read_from(buf)?,
+            world: ResourceLocation::read_from(buf)?,
             pos: BlockPos::read_from(buf)?,
         })
     }
@@ -326,7 +326,7 @@ impl McBufWritable for BlockPos {
 
 impl McBufWritable for GlobalPos {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        ResourceLocation::write_into(&self.dimension, buf)?;
+        ResourceLocation::write_into(&self.world, buf)?;
         BlockPos::write_into(&self.pos, buf)?;
 
         Ok(())

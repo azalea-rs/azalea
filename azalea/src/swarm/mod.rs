@@ -11,7 +11,7 @@ use azalea_protocol::{
     resolver::{self, ResolverError},
     ServerAddress,
 };
-use azalea_world::Dimension;
+use azalea_world::World;
 use futures::{
     future::{select_all, try_join_all},
     FutureExt,
@@ -121,8 +121,8 @@ pub async fn start_swarm<
     let resolved_address = resolver::resolve_address(&address).await?;
     let address_borrow = &address;
 
-    let shared_dimension = Arc::new(RwLock::new(Dimension::default()));
-    let shared_dimension_borrow = &shared_dimension;
+    let shared_world = Arc::new(RwLock::new(World::default()));
+    let shared_world_borrow = &shared_world;
 
     let bots: Vec<(Client, UnboundedReceiver<Event>)> = try_join_all(options.accounts.iter().map(
         async move |account| -> Result<(Client, UnboundedReceiver<Event>), JoinError> {
@@ -132,7 +132,7 @@ pub async fn start_swarm<
 
             let (tx, rx) = mpsc::unbounded_channel();
 
-            let client = Client::new(game_profile, conn, Some(shared_dimension_borrow.clone()));
+            let client = Client::new(game_profile, conn, Some(shared_world_borrow.clone()));
 
             tx.send(Event::Initialize).unwrap();
 

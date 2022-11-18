@@ -1,13 +1,11 @@
+pub use crate::chat::ChatPacket;
 use crate::{movement::WalkDirection, plugins::Plugins, Account, Player};
 use azalea_auth::game_profile::GameProfile;
-use azalea_chat::Component;
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
         game::{
-            clientbound_player_chat_packet::ClientboundPlayerChatPacket,
-            clientbound_system_chat_packet::ClientboundSystemChatPacket,
             serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
             serverbound_client_information_packet::ServerboundClientInformationPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
@@ -32,7 +30,7 @@ use azalea_protocol::{
 };
 use azalea_world::{
     entity::{metadata, Entity, EntityData, EntityMetadata},
-    Dimension,
+    World,
 };
 use log::{debug, error, info, warn};
 use parking_lot::{Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
@@ -66,23 +64,6 @@ pub enum Event {
     Packet(Box<ClientboundGamePacket>),
 }
 
-/// A chat packet, either a system message or a chat message.
-#[derive(Debug, Clone)]
-pub enum ChatPacket {
-    System(ClientboundSystemChatPacket),
-    Player(Box<ClientboundPlayerChatPacket>),
-}
-
-impl ChatPacket {
-    /// Get the message shown in chat for this packet.
-    pub fn message(&self) -> Component {
-        match self {
-            ChatPacket::System(p) => p.content.clone(),
-            ChatPacket::Player(p) => p.message(false),
-        }
-    }
-}
-
 /// A player that you control that is currently in a Minecraft server.
 #[derive(Clone)]
 pub struct Client {
@@ -90,9 +71,9 @@ pub struct Client {
     pub read_conn: Arc<tokio::sync::Mutex<ReadConnection<ClientboundGamePacket>>>,
     pub write_conn: Arc<tokio::sync::Mutex<WriteConnection<ServerboundGamePacket>>>,
     pub player: Arc<RwLock<Player>>,
-    pub dimension: Arc<RwLock<Dimension>>,
-    /// Whether there's multiple clients sharing the same dimension.
-    pub dimension_shared: Arc<RwLock<bool>>,
+    pub world: Arc<RwLock<World>>,
+    /// Whether there's multiple clients sharing the same world.
+    pub world_shared: Arc<RwLock<bool>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
     pub client_information: Arc<RwLock<ClientInformation>>,
     /// Plugins are a way for other crates to add custom functionality to the
@@ -146,13 +127,13 @@ pub enum HandleError {
 }
 
 impl Client {
-    /// Create a new client from the given game profile, conn in the game
-    /// state, and dimension. You should only use this if you want to change
-    /// these fields from the defaults, otherwise use `Client::join`.
+    /// Create a new client from the given GameProfile, Connection, and World.
+    /// You should only use this if you want to change these fields from the
+    /// defaults, otherwise use [`Client::join`].
     pub fn new(
         game_profile: GameProfile,
         conn: Connection<ClientboundGamePacket, ServerboundGamePacket>,
-        dimension: Option<Arc<RwLock<Dimension>>>,
+        world: Option<Arc<RwLock<World>>>,
     ) -> Self {
         let (read_conn, write_conn) = conn.into_split();
         let (read_conn, write_conn) = (
@@ -165,8 +146,8 @@ impl Client {
             read_conn,
             write_conn,
             player: Arc::new(RwLock::new(Player::default())),
-            dimension_shared: Arc::new(RwLock::new(dimension.is_some())),
-            dimension: dimension.unwrap_or_else(|| Arc::new(RwLock::new(Dimension::default()))),
+            world_shared: Arc::new(RwLock::new(world.is_some())),
+            world: world.unwrap_or_else(|| Arc::new(RwLock::new(World::default()))),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
             client_information: Arc::new(
                 RwLock::new(ServerboundClientInformationPacket::default()),
@@ -450,27 +431,27 @@ impl Client {
                         .as_int()
                         .expect("min_y tag is not an int");
 
-                    let mut dimension_lock = client.dimension.write();
+                    let mut world_lock = client.world.write();
 
-                    if *client.dimension_shared.read() {
+                    if *client.world_shared.read() {
                         // we can't clear the dimension if it's shared, so just
                         // make sure the height and stuff is correct
-                        if dimension_lock.height() != height {
+                        if world_lock.height() != height {
                             error!(
                                 "Shared dimension height mismatch: {} != {}",
-                                dimension_lock.height(),
+                                world_lock.height(),
                                 height
                             );
                         }
-                        if dimension_lock.min_y() != min_y {
+                        if world_lock.min_y() != min_y {
                             error!(
-                                "Shared dimension min_y mismatch: {} != {}",
-                                dimension_lock.min_y(),
+                                "Shared world min_y mismatch: {} != {}",
+                                world_lock.min_y(),
                                 min_y
                             );
                         }
                     } else {
-                        *dimension_lock = Dimension::new(
+                        *world_lock = World::new(
                             client.client_information.read().view_distance.into(),
                             height,
                             min_y,
@@ -482,7 +463,7 @@ impl Client {
                         Vec3::default(),
                         EntityMetadata::Player(metadata::Player::default()),
                     );
-                    dimension_lock.add_entity(p.player_id, entity);
+                    world_lock.add_entity(p.player_id, entity);
 
                     let mut player_lock = client.player.write();
 
@@ -555,9 +536,9 @@ impl Client {
                         player_lock.entity_id
                     };
 
-                    let mut dimension_lock = client.dimension.write();
+                    let mut world_lock = client.world.write();
 
-                    let mut player_entity = dimension_lock
+                    let mut player_entity = world_lock
                         .entity_mut(player_entity_id)
                         .expect("Player entity doesn't exist");
 
@@ -611,7 +592,7 @@ impl Client {
                         y: new_pos_y,
                         z: new_pos_z,
                     };
-                    dimension_lock
+                    world_lock
                         .set_entity_pos(player_entity_id, new_pos)
                         .expect("The player entity should always exist");
 
@@ -642,7 +623,7 @@ impl Client {
             ClientboundGamePacket::SetChunkCacheCenter(p) => {
                 debug!("Got chunk cache center packet {:?}", p);
                 client
-                    .dimension
+                    .world
                     .write()
                     .update_view_center(&ChunkPos::new(p.x, p.z));
             }
@@ -652,7 +633,7 @@ impl Client {
                 // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
                 // debug("chunk {:?}")
                 if let Err(e) = client
-                    .dimension
+                    .world
                     .write()
                     .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data))
                 {
@@ -665,12 +646,12 @@ impl Client {
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {:?}", p);
                 let entity = EntityData::from(p);
-                client.dimension.write().add_entity(p.id, entity);
+                client.world.write().add_entity(p.id, entity);
             }
             ClientboundGamePacket::SetEntityData(p) => {
                 debug!("Got set entity data packet {:?}", p);
-                let mut dimension = client.dimension.write();
-                if let Some(mut entity) = dimension.entity_mut(p.id) {
+                let mut world = client.world.write();
+                if let Some(mut entity) = world.entity_mut(p.id) {
                     entity.apply_metadata(&p.packed_items.0);
                 } else {
                     warn!("Server sent an entity data packet for an entity id ({}) that we don't know about", p.id);
@@ -688,7 +669,7 @@ impl Client {
             ClientboundGamePacket::AddPlayer(p) => {
                 debug!("Got add player packet {:?}", p);
                 let entity = EntityData::from(p);
-                client.dimension.write().add_entity(p.id, entity);
+                client.world.write().add_entity(p.id, entity);
             }
             ClientboundGamePacket::InitializeBorder(p) => {
                 debug!("Got initialize border packet {:?}", p);
@@ -709,9 +690,9 @@ impl Client {
                 debug!("Got set experience packet {:?}", p);
             }
             ClientboundGamePacket::TeleportEntity(p) => {
-                let mut dimension_lock = client.dimension.write();
+                let mut world_lock = client.world.write();
 
-                dimension_lock
+                world_lock
                     .set_entity_pos(
                         p.id,
                         Vec3 {
@@ -729,16 +710,16 @@ impl Client {
                 // debug!("Got rotate head packet {:?}", p);
             }
             ClientboundGamePacket::MoveEntityPos(p) => {
-                let mut dimension_lock = client.dimension.write();
+                let mut world_lock = client.world.write();
 
-                dimension_lock
+                world_lock
                     .move_entity_with_delta(p.entity_id, &p.delta)
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
             ClientboundGamePacket::MoveEntityPosRot(p) => {
-                let mut dimension_lock = client.dimension.write();
+                let mut world_lock = client.world.write();
 
-                dimension_lock
+                world_lock
                     .move_entity_with_delta(p.entity_id, &p.delta)
                     .map_err(|e| HandleError::Other(e.into()))?;
             }
@@ -771,17 +752,17 @@ impl Client {
             }
             ClientboundGamePacket::BlockUpdate(p) => {
                 debug!("Got block update packet {:?}", p);
-                let mut dimension = client.dimension.write();
-                dimension.set_block_state(&p.pos, p.block_state);
+                let mut world = client.world.write();
+                world.set_block_state(&p.pos, p.block_state);
             }
             ClientboundGamePacket::Animate(p) => {
                 debug!("Got animate packet {:?}", p);
             }
             ClientboundGamePacket::SectionBlocksUpdate(p) => {
                 debug!("Got section blocks update packet {:?}", p);
-                let mut dimension = client.dimension.write();
+                let mut world = client.world.write();
                 for state in &p.states {
-                    dimension.set_block_state(&(p.section_pos + state.pos.clone()), state.state);
+                    world.set_block_state(&(p.section_pos + state.pos.clone()), state.state);
                 }
             }
             ClientboundGamePacket::GameEvent(p) => {
@@ -877,16 +858,16 @@ impl Client {
     async fn game_tick(client: &mut Client, tx: &UnboundedSender<Event>) {
         // return if there's no chunk at the player's position
         {
-            let dimension_lock = client.dimension.write();
+            let world_lock = client.world.write();
             let player_lock = client.player.write();
-            let player_entity = player_lock.entity(&dimension_lock);
+            let player_entity = player_lock.entity(&world_lock);
             let player_entity = if let Some(player_entity) = player_entity {
                 player_entity
             } else {
                 return;
             };
             let player_chunk_pos: ChunkPos = player_entity.pos().into();
-            if dimension_lock[&player_chunk_pos].is_none() {
+            if world_lock[&player_chunk_pos].is_none() {
                 return;
             }
         }
@@ -904,43 +885,43 @@ impl Client {
     }
 
     /// Returns the entity associated to the player.
-    pub fn entity_mut(&self) -> Entity<RwLockWriteGuard<Dimension>> {
+    pub fn entity_mut(&self) -> Entity<RwLockWriteGuard<World>> {
         let entity_id = {
             let player_lock = self.player.write();
             player_lock.entity_id
         };
 
-        let mut dimension = self.dimension.write();
+        let mut world = self.world.write();
 
-        let entity_data = dimension
+        let entity_data = world
             .entity_storage
             .get_mut_by_id(entity_id)
             .expect("Player entity should exist");
         let entity_ptr = unsafe { entity_data.as_ptr() };
-        Entity::new(dimension, entity_id, entity_ptr)
+        Entity::new(world, entity_id, entity_ptr)
     }
     /// Returns the entity associated to the player.
-    pub fn entity(&self) -> Entity<RwLockReadGuard<Dimension>> {
+    pub fn entity(&self) -> Entity<RwLockReadGuard<World>> {
         let entity_id = {
             let player_lock = self.player.read();
             player_lock.entity_id
         };
 
-        let dimension = self.dimension.read();
+        let world = self.world.read();
 
-        let entity_data = dimension
+        let entity_data = world
             .entity_storage
             .get_by_id(entity_id)
-            .expect("Player entity should be in the given dimension");
+            .expect("Player entity should be in the given world");
         let entity_ptr = unsafe { entity_data.as_const_ptr() };
-        Entity::new(dimension, entity_id, entity_ptr)
+        Entity::new(world, entity_id, entity_ptr)
     }
 
     /// Returns whether we have a received the login packet yet.
     pub fn logged_in(&self) -> bool {
-        let dimension = self.dimension.read();
+        let world = self.world.read();
         let player = self.player.write();
-        player.entity(&dimension).is_some()
+        player.entity(&world).is_some()
     }
 
     /// Tell the server we changed our game options (i.e. render distance, main hand).
@@ -967,6 +948,12 @@ impl Client {
         }
 
         Ok(())
+    }
+
+    /// Get your player entity's metadata. You can use this to get your health,
+    /// xp score, and other useful information.
+    pub fn metadata(&self) -> metadata::Player {
+        self.entity().metadata.clone().into_player().unwrap()
     }
 }
 

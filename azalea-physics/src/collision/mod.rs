@@ -1,17 +1,17 @@
 mod blocks;
-mod dimension_collisions;
 mod discrete_voxel_shape;
 mod mergers;
 mod shape;
+mod world_collisions;
 
 use azalea_core::{Axis, Vec3, AABB, EPSILON};
 use azalea_world::entity::{Entity, EntityData};
-use azalea_world::{Dimension, MoveEntityError};
+use azalea_world::{MoveEntityError, World};
 pub use blocks::BlockWithShape;
-use dimension_collisions::CollisionGetter;
 pub use discrete_voxel_shape::*;
 pub use shape::*;
 use std::ops::DerefMut;
+use world_collisions::CollisionGetter;
 
 pub enum MoverType {
     Own,
@@ -33,7 +33,7 @@ pub trait MovableEntity {
     ) -> Result<(), MoveEntityError>;
 }
 
-impl HasCollision for Dimension {
+impl HasCollision for World {
     // private Vec3 collide(Vec3 var1) {
     //     AABB var2 = this.getBoundingBox();
     //     List var3 = this.level.getEntityCollisions(this, var2.expandTowards(var1));
@@ -62,7 +62,7 @@ impl HasCollision for Dimension {
     fn collide(&self, movement: &Vec3, entity: &EntityData) -> Vec3 {
         let entity_bounding_box = entity.bounding_box;
         // TODO: get_entity_collisions
-        // let entity_collisions = dimension.get_entity_collisions(self, entity_bounding_box.expand_towards(movement));
+        // let entity_collisions = world.get_entity_collisions(self, entity_bounding_box.expand_towards(movement));
         let entity_collisions = Vec::new();
         if movement.length_sqr() == 0.0 {
             *movement
@@ -82,7 +82,7 @@ impl HasCollision for Dimension {
     }
 }
 
-impl<D: DerefMut<Target = Dimension>> MovableEntity for Entity<'_, D> {
+impl<D: DerefMut<Target = World>> MovableEntity for Entity<'_, D> {
     /// Move an entity by a given delta, checking for collisions.
     fn move_colliding(
         &mut self,
@@ -110,7 +110,7 @@ impl<D: DerefMut<Target = Dimension>> MovableEntity for Entity<'_, D> {
 
         // movement = this.maybeBackOffFromEdge(movement, moverType);
 
-        let collide_result = { self.dimension.collide(movement, self) };
+        let collide_result = { self.world.collide(movement, self) };
 
         let move_distance = collide_result.length_sqr();
 
@@ -126,7 +126,7 @@ impl<D: DerefMut<Target = Dimension>> MovableEntity for Entity<'_, D> {
                 }
             };
 
-            self.dimension.set_entity_pos(self.id, new_pos)?;
+            self.world.set_entity_pos(self.id, new_pos)?;
         }
 
         let x_collision = movement.x != collide_result.x;
@@ -140,7 +140,7 @@ impl<D: DerefMut<Target = Dimension>> MovableEntity for Entity<'_, D> {
 
         let _block_pos_below = self.on_pos_legacy();
         // let _block_state_below = self
-        //     .dimension
+        //     .world
         //     .get_block_state(&block_pos_below)
         //     .expect("Couldn't get block state below");
 
@@ -197,7 +197,7 @@ fn collide_bounding_box(
     entity: Option<&EntityData>,
     movement: &Vec3,
     entity_bounding_box: &AABB,
-    dimension: &Dimension,
+    world: &World,
     entity_collisions: Vec<VoxelShape>,
 ) -> Vec3 {
     let mut collision_boxes: Vec<VoxelShape> = Vec::with_capacity(entity_collisions.len() + 1);
@@ -209,7 +209,7 @@ fn collide_bounding_box(
     // TODO: world border
 
     let block_collisions =
-        dimension.get_block_collisions(entity, entity_bounding_box.expand_towards(movement));
+        world.get_block_collisions(entity, entity_bounding_box.expand_towards(movement));
     let block_collisions = block_collisions.collect::<Vec<_>>();
     collision_boxes.extend(block_collisions);
     collide_with_shapes(movement, *entity_bounding_box, &collision_boxes)
