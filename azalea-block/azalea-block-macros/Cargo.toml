@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea-block-macros"
 repository = "https://github.com/mat-1/azalea/tree/main/azalea-block/azalea-block-macros"
-version = "0.3.0"
+version = "0.4.0"
 
 [lib]
 proc-macro = true

@@ -4,19 +4,19 @@ edition = "2021"
 license = "MIT"
 name = "azalea"
 repository = "https://github.com/mat-1/azalea/tree/main/azalea"
-version = "0.3.0"
+version = "0.4.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 anyhow = "^1.0.65"
 async-trait = "^0.1.57"
-azalea-block = { version = "0.3.0", path = "../azalea-block" }
-azalea-client = {version = "0.3.0", path = "../azalea-client"}
-azalea-core = {version = "0.3.0", path = "../azalea-core"}
-azalea-physics = { version = "0.3.0", path = "../azalea-physics" }
-azalea-protocol = {version = "0.3.0", path = "../azalea-protocol"}
-azalea-world = { version = "0.3.0", path = "../azalea-world" }
+azalea-block = { version = "0.4.0", path = "../azalea-block" }
+azalea-client = {version = "0.4.0", path = "../azalea-client"}
+azalea-core = {version = "0.4.0", path = "../azalea-core"}
+azalea-physics = { version = "0.4.0", path = "../azalea-physics" }
+azalea-protocol = {version = "0.4.0", path = "../azalea-protocol"}
+azalea-world = { version = "0.4.0", path = "../azalea-world" }
 log = "0.4.17"
 num-traits = "0.2.15"
 parking_lot = {version = "^0.12.1", features = ["deadlock_detection"]}
