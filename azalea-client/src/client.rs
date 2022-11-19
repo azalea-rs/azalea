@@ -95,7 +95,7 @@ pub enum UpdatePlayersEvent {
 /// A player that you control that is currently in a Minecraft server.
 #[derive(Clone)]
 pub struct Client {
-    profile: GameProfile,
+    pub profile: GameProfile,
     pub read_conn: Arc<tokio::sync::Mutex<ReadConnection<ClientboundGamePacket>>>,
     pub write_conn: Arc<tokio::sync::Mutex<WriteConnection<ServerboundGamePacket>>>,
     pub entity_id: Arc<RwLock<u32>>,

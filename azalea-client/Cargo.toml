@@ -19,9 +19,11 @@ azalea-crypto = {path = "../azalea-crypto", version = "0.3.0"}
 azalea-physics = {path = "../azalea-physics", version = "0.3.0"}
 azalea-protocol = {path = "../azalea-protocol", version = "0.3.0"}
 azalea-world = {path = "../azalea-world", version = "0.3.0"}
+lazy_static = "1.4.0"
 log = "0.4.17"
 nohash-hasher = "0.2.0"
 parking_lot = {version = "^0.12.1", features = ["deadlock_detection"]}
+regex = "1.7.0"
 thiserror = "^1.0.34"
 tokio = {version = "^1.21.2", features = ["sync"]}
 typemap_rev = "0.2.0"
