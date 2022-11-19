@@ -9,7 +9,6 @@ use azalea_protocol::packets::game::{
     serverbound_chat_command_packet::ServerboundChatCommandPacket,
     serverbound_chat_packet::ServerboundChatPacket,
 };
-use regex::Regex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// A chat packet, either a system message or a chat message.
@@ -17,6 +16,13 @@ use std::time::{SystemTime, UNIX_EPOCH};
 pub enum ChatPacket {
     System(ClientboundSystemChatPacket),
     Player(Box<ClientboundPlayerChatPacket>),
+}
+
+macro_rules! regex {
+    ($re:literal $(,)?) => {{
+        static RE: once_cell::sync::OnceCell<regex::Regex> = once_cell::sync::OnceCell::new();
+        RE.get_or_init(|| regex::Regex::new($re).unwrap())
+    }};
 }
 
 impl ChatPacket {
@@ -48,9 +54,7 @@ impl ChatPacket {
                 }
                 // It's a system message, so we'll have to match the content
                 // with regex
-                static ANGLE_BRACKETS_RE: Lazy<Regex> =
-                    Lazy::new(|| Regex::new("^<([a-zA-Z_0-9]{1,16})> (.+)$").unwrap());
-                if let Some(m) = ANGLE_BRACKETS_RE.captures(&message) {
+                if let Some(m) = regex!("^<([a-zA-Z_0-9]{1,16})> (.+)$").captures(&message) {
                     return (Some(m[1].to_string()), m[2].to_string());
                 }
 
