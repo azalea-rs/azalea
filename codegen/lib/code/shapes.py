@@ -49,14 +49,8 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, 
     # look at downloads/generator-mod-*/blockCollisionShapes.json for format of blocks and shapes
 
     generated_shape_code = ''
-    # we make several lazy_static! blocks so it doesn't complain about
-    # recursion and hopefully the compiler can paralleize it?
-    generated_shape_code += 'lazy_static! {'
-    for i, (shape_id, shape) in enumerate(sorted(shapes.items(), key=lambda shape: int(shape[0]))):
-        if i > 0 and i % 10 == 0:
-            generated_shape_code += '}\nlazy_static! {'
+    for (shape_id, shape) in sorted(shapes.items(), key=lambda shape: int(shape[0])):
         generated_shape_code += generate_code_for_shape(shape_id, shape)
-    generated_shape_code += '}'
 
     # BlockState::PurpurStairs_NorthTopStraightTrue => &SHAPE24,
     generated_match_inner_code = ''
@@ -97,7 +91,7 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, 
 use super::VoxelShape;
 use crate::collision::{{self, Shapes}};
 use azalea_block::*;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 pub trait BlockWithShape {{
     fn shape(&self) -> &'static VoxelShape;
@@ -119,7 +113,7 @@ def generate_code_for_shape(shape_id: str, parts: list[list[float]]):
     def make_arguments(part: list[float]):
         return ', '.join(map(lambda n: str(n).rstrip('0'), part))
     code = ''
-    code += f'static ref SHAPE{shape_id}: VoxelShape = '
+    code += f'static SHAPE{shape_id}: Lazy<VoxelShape> = Lazy::new(|| {{'
     steps = []
     if parts == []:
         steps.append('collision::empty_shape()')
@@ -136,5 +130,6 @@ def generate_code_for_shape(shape_id: str, parts: list[list[float]]):
         for step in steps[:-1]:
             code += f'    let s = {step};\n'
         code += f'    {steps[-1]}\n'
-        code += '};\n'
+        code += '}\n'
+    code += '});\n'
     return code

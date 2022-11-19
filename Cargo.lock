@@ -213,9 +213,9 @@ dependencies = [
  "azalea-physics",
  "azalea-protocol",
  "azalea-world",
- "lazy_static",
  "log",
  "nohash-hasher",
+ "once_cell",
  "parking_lot",
  "regex",
  "thiserror",
@@ -253,7 +253,7 @@ dependencies = [
 name = "azalea-language"
 version = "0.3.0"
 dependencies = [
- "lazy_static",
+ "once_cell",
  "serde",
  "serde_json",
 ]
@@ -279,7 +279,7 @@ dependencies = [
  "azalea-block",
  "azalea-core",
  "azalea-world",
- "lazy_static",
+ "once_cell",
  "parking_lot",
  "uuid",
 ]
