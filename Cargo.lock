@@ -194,7 +194,7 @@ version = "0.3.0"
 dependencies = [
  "azalea-buf",
  "azalea-language",
- "lazy_static",
+ "once_cell",
  "serde",
  "serde_json",
 ]

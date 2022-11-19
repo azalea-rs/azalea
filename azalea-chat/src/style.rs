@@ -1,6 +1,7 @@
 use std::{collections::HashMap, fmt};
 
 use azalea_buf::McBuf;
+use once_cell::sync::Lazy;
 use serde_json::Value;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -28,8 +29,8 @@ impl TextColor {
     }
 }
 
-lazy_static! {
-    static ref LEGACY_FORMAT_TO_COLOR: HashMap<&'static ChatFormatting, TextColor> = {
+static LEGACY_FORMAT_TO_COLOR: Lazy<HashMap<&'static ChatFormatting, TextColor>> =
+    Lazy::new(|| {
         let mut legacy_format_to_color = HashMap::new();
         for formatter in &ChatFormatting::FORMATTERS {
             if !formatter.is_format() && *formatter != ChatFormatting::Reset {
@@ -43,15 +44,14 @@ lazy_static! {
             }
         }
         legacy_format_to_color
-    };
-    static ref NAMED_COLORS: HashMap<String, TextColor> = {
-        let mut named_colors = HashMap::new();
-        for color in LEGACY_FORMAT_TO_COLOR.values() {
-            named_colors.insert(color.name.clone().unwrap(), color.clone());
-        }
-        named_colors
-    };
-}
+    });
+static NAMED_COLORS: Lazy<HashMap<String, TextColor>> = Lazy::new(|| {
+    let mut named_colors = HashMap::new();
+    for color in LEGACY_FORMAT_TO_COLOR.values() {
+        named_colors.insert(color.name.clone().unwrap(), color.clone());
+    }
+    named_colors
+});
 
 pub struct Ansi {}
 impl Ansi {
