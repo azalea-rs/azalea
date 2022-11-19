@@ -87,6 +87,7 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, 
 // modify it, change that file.
 
 #![allow(clippy::explicit_auto_deref)]
+#![allow(clippy::redundant_closure)]
 
 use super::VoxelShape;
 use crate::collision::{{self, Shapes}};

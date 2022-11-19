@@ -4,6 +4,7 @@
 // modify it, change that file.
 
 #![allow(clippy::explicit_auto_deref)]
+#![allow(clippy::redundant_closure)]
 
 use super::VoxelShape;
 use crate::collision::{self, Shapes};
