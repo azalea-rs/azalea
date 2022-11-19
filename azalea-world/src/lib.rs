@@ -142,6 +142,10 @@ impl World {
         self.entity_storage.get_by_uuid(uuid)
     }
 
+    pub fn entity_mut_by_uuid(&mut self, uuid: &Uuid) -> Option<&mut EntityData> {
+        self.entity_storage.get_mut_by_uuid(uuid)
+    }
+
     /// Get an iterator over all entities.
     #[inline]
     pub fn entities(&self) -> std::collections::hash_map::Values<'_, u32, EntityData> {

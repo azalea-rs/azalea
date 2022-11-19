@@ -4,14 +4,13 @@ mod mergers;
 mod shape;
 mod world_collisions;
 
-use std::ops::DerefMut;
-
 use azalea_core::{Axis, Vec3, AABB, EPSILON};
 use azalea_world::entity::{Entity, EntityData};
 use azalea_world::{MoveEntityError, World};
 pub use blocks::BlockWithShape;
 pub use discrete_voxel_shape::*;
 pub use shape::*;
+use std::ops::DerefMut;
 use world_collisions::CollisionGetter;
 
 pub enum MoverType {
