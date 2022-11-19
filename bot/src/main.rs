@@ -25,7 +25,7 @@ async fn main() -> anyhow::Result<()> {
 
             println!("{} deadlocks detected", deadlocks.len());
             for (i, threads) in deadlocks.iter().enumerate() {
-                println!("Deadlock #{}", i);
+                println!("Deadlock #{i}");
                 for t in threads {
                     println!("Thread Id {:#?}", t.thread_id());
                     println!("{:#?}", t.backtrace());
@@ -46,7 +46,7 @@ async fn main() -> anyhow::Result<()> {
             handle,
         })
         .await;
-        println!("{:?}", e);
+        println!("{e:?}");
     }
 }
 

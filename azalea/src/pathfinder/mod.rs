@@ -6,6 +6,7 @@ use crate::{Client, Event};
 use async_trait::async_trait;
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_world::entity::EntityData;
+use log::debug;
 use mtdstarlite::Edge;
 pub use mtdstarlite::MTDStarLite;
 use parking_lot::Mutex;
@@ -47,7 +48,7 @@ impl Trait for azalea_client::Client {
             vertical_vel: VerticalVel::None,
         };
         let end = goal.goal_node();
-        println!("start: {:?}, end: {:?}", start, end);
+        debug!("start: {start:?}, end: {end:?}");
 
         let possible_moves: Vec<&dyn moves::Move> = vec![
             &moves::ForwardMove(CardinalDirection::North),
@@ -96,8 +97,8 @@ impl Trait for azalea_client::Client {
         let start = std::time::Instant::now();
         let p = pf.find_path();
         let end = std::time::Instant::now();
-        println!("path: {:?}", p);
-        println!("time: {:?}", end - start);
+        debug!("path: {p:?}");
+        debug!("time: {:?}", end - start);
 
         let state = self
             .plugins
