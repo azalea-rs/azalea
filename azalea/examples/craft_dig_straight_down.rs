@@ -27,17 +27,17 @@ async fn main() {
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     match event {
         Event::Chat(m) => {
-            if m.username == bot.player.username {
+            if m.username() == Some(bot.game_profile.name) {
                 return Ok(());
             };
-            if m.content == "go" {
-                // make sure we only start once
-                let ctx_lock = ctx.lock().unwrap();
-                if ctx_lock.started {
-                    return;
-                };
-                ctx_lock.started = true;
-                drop(ctx_lock);
+            if m.content() == "go" {
+                {
+                    // make sure we only start once
+                    if *state.started.lock() {
+                        return Ok(());
+                    };
+                    *state.started.lock() = true;
+                }
 
                 bot.goto(pathfinder::Goals::NearXZ(5, azalea::BlockXZ(0, 0)))
                     .await;
