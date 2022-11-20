@@ -38,7 +38,7 @@ macro_rules! swarm_plugins {
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
 ///
-/// The `S` type parameter is the type of the state for individual clients.
+/// The `S` type parameter is the type of the state for individual bots.
 /// It's used to make the [`Swarm::add_account`] function work.
 #[derive(Clone)]
 pub struct Swarm<S> {
@@ -228,8 +228,8 @@ pub async fn start_swarm<
         // swarm event handling
         match &event {
             Event::Login => {
-                internal_state.clients_joined += 1;
-                if internal_state.clients_joined == swarm.bots.lock().len() {
+                internal_state.bots_joined += 1;
+                if internal_state.bots_joined == swarm.bots.lock().len() {
                     fire_swarm_event(SwarmEvent::Login);
                 }
             }
@@ -260,19 +260,18 @@ where
         let conn = Connection::new(&self.resolved_address).await?;
         let (conn, game_profile) = Client::handshake(conn, account, &self.address.clone()).await?;
 
-        // tx is moved to the client so it can send us events
-        // rx is used to receive events from the client
+        // tx is moved to the bot so it can send us events
+        // rx is used to receive events from the bot
         let (tx, mut rx) = mpsc::unbounded_channel();
-        let mut client = Client::new(game_profile, conn, Some(self.world_container.clone()));
+        let mut bot = Client::new(game_profile, conn, Some(self.world_container.clone()));
         tx.send(Event::Initialize).unwrap();
-        client.start_tasks(tx);
+        bot.start_tasks(tx);
 
-        client.plugins = Arc::new(self.plugins.clone());
+        bot.plugins = Arc::new(self.plugins.clone());
 
         let cloned_bots_tx = self.bots_tx.clone();
-        let cloned_client = client.clone();
+        let cloned_bot = bot.clone();
         let cloned_state = state.clone();
-        let cloned_plugins = (*client.plugins).clone();
         tokio::spawn(async move {
             while let Some(event) = rx.recv().await {
                 // we can't handle events here (since we can't copy the handler),
@@ -280,7 +279,7 @@ where
                 if let Err(e) = cloned_bots_tx.lock().send((
                     Some(event),
                     SwarmBotData {
-                        bot: cloned_client.clone(),
+                        bot: cloned_bot.clone(),
                         state: cloned_state.clone(),
                     },
                 )) {
@@ -290,19 +289,18 @@ where
         });
 
         self.bots.lock().push(SwarmBotData {
-            bot: client.clone(),
+            bot: bot.clone(),
             state: state.clone(),
         });
-        let uuid = client.player.read().uuid;
 
-        Ok(client)
+        Ok(bot)
     }
 }
 
 #[derive(Default)]
 struct InternalSwarmState {
-    /// The number of clients connected to the server
-    pub clients_joined: usize,
+    /// The number of bots connected to the server
+    pub bots_joined: usize,
 }
 
 impl From<ConnectionError> for SwarmStartError {
