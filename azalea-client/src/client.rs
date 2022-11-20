@@ -66,7 +66,7 @@ pub enum Event {
     /// Happens when a player is added, removed, or updated in the tab list.
     UpdatePlayers(UpdatePlayersEvent),
     // Happens when the bot is killed.
-    PlayerCombatKill(Box<ClientboundPlayerCombatKillPacket>),
+    Death(Box<ClientboundPlayerCombatKillPacket>),
 }
 
 /// Happens when a player is added, removed, or updated in the tab list.
@@ -877,8 +877,7 @@ impl Client {
             ClientboundGamePacket::PlayerCombatKill(p) => {
                 debug!("Got player kill packet {:?}", p);
                 if *client.entity_id.read() == p.player_id {
-                    tx.send(Event::PlayerCombatKill(Box::new(p.clone())))
-                        .unwrap();
+                    tx.send(Event::Death(Box::new(p.clone()))).unwrap();
                 }
             }
             ClientboundGamePacket::PlayerLookAt(_) => {}
