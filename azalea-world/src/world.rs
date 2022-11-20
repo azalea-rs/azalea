@@ -42,7 +42,7 @@ impl World {
 
     pub fn get_chunk(&self, pos: &ChunkPos) -> Option<Arc<Mutex<Chunk>>> {
         self.chunk_storage.get(pos)
-    }
+    }   
 
     pub fn set_chunk(&mut self, pos: &ChunkPos, chunk: Option<Chunk>) -> Result<(), BufReadError> {
         self.chunk_storage

@@ -332,7 +332,7 @@ impl Client {
             }
         };
 
-        Ok((conn, game_profile))
+        Ok((conn, profile))
     }
 
     /// Write a packet directly to the server.
