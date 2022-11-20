@@ -33,7 +33,7 @@ async fn main() -> anyhow::Result<()> {
 
             println!("{} deadlocks detected", deadlocks.len());
             for (i, threads) in deadlocks.iter().enumerate() {
-                println!("Deadlock #{}", i);
+                println!("Deadlock #{i}");
                 for t in threads {
                     println!("Thread Id {:#?}", t.thread_id());
                     println!("{:#?}", t.backtrace());
@@ -67,7 +67,7 @@ async fn main() -> anyhow::Result<()> {
             join_delay: Some(std::time::Duration::from_secs(5)),
         })
         .await;
-        println!("{:?}", e);
+        println!("{e:?}");
     }
 }
 

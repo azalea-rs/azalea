@@ -153,20 +153,20 @@ impl Client {
 
     // Set our current position to the provided Vec3, potentially clipping through blocks.
     pub async fn set_pos(&mut self, new_pos: Vec3) -> Result<(), MovePlayerError> {
-        let player_lock = self.player.write();
+        let player_entity_id = *self.entity_id.read();
         let mut world_lock = self.world.write();
 
-        world_lock.set_entity_pos(player_lock.entity_id, new_pos)?;
+        world_lock.set_entity_pos(player_entity_id, new_pos)?;
 
         Ok(())
     }
 
     pub async fn move_entity(&mut self, movement: &Vec3) -> Result<(), MovePlayerError> {
         let mut world_lock = self.world.write();
-        let player = self.player.write();
+        let player_entity_id = *self.entity_id.read();
 
-        let mut entity = player
-            .entity_mut(&mut world_lock)
+        let mut entity = world_lock
+            .entity_mut(player_entity_id)
             .ok_or(MovePlayerError::PlayerNotInWorld)?;
         log::trace!(
             "move entity bounding box: {} {:?}",

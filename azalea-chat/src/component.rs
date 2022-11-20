@@ -1,16 +1,15 @@
-use std::{
-    fmt::Display,
-    io::{Cursor, Write},
-};
-
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use serde::{de, Deserialize, Deserializer};
-
 use crate::{
     base_component::BaseComponent,
     style::{ChatFormatting, Style},
     text_component::TextComponent,
     translatable_component::{StringOrComponent, TranslatableComponent},
+};
+use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use once_cell::sync::Lazy;
+use serde::{de, Deserialize, Deserializer};
+use std::{
+    fmt::Display,
+    io::{Cursor, Write},
 };
 
 /// A chat component, basically anything you can see in chat.
@@ -20,12 +19,10 @@ pub enum Component {
     Translatable(TranslatableComponent),
 }
 
-lazy_static! {
-    pub static ref DEFAULT_STYLE: Style = Style {
-        color: Some(ChatFormatting::White.try_into().unwrap()),
-        ..Style::default()
-    };
-}
+pub static DEFAULT_STYLE: Lazy<Style> = Lazy::new(|| Style {
+    color: Some(ChatFormatting::White.try_into().unwrap()),
+    ..Style::default()
+});
 
 /// A chat component
 impl Component {
