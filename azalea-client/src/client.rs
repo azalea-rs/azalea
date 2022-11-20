@@ -191,7 +191,7 @@ impl Client {
         let resolved_address = resolver::resolve_address(&address).await?;
 
         let conn = Connection::new(&resolved_address).await?;
-        let (conn, game_profile) = Self::handshake(conn, account, address).await?;
+        let (conn, game_profile) = Self::handshake(conn, account, &address).await?;
 
         let (tx, rx) = mpsc::unbounded_channel();
 
@@ -211,7 +211,7 @@ impl Client {
     pub async fn handshake(
         mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,
         account: &Account,
-        address: ServerAddress,
+        address: &ServerAddress,
     ) -> Result<
         (
             Connection<ClientboundGamePacket, ServerboundGamePacket>,

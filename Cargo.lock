@@ -121,6 +121,7 @@ dependencies = [
  "azalea-world",
  "env_logger",
  "futures",
+ "log",
  "nohash-hasher",
  "num-traits",
  "parking_lot",
@@ -403,6 +404,7 @@ dependencies = [
  "azalea",
  "env_logger",
  "parking_lot",
+ "rand",
  "tokio",
  "uuid",
 ]

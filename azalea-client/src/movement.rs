@@ -321,6 +321,7 @@ impl Client {
     /// Sets your rotation. `y_rot` is yaw (looking to the side), `x_rot` is
     /// pitch (looking up and down). You can get these numbers from the vanilla
     /// f3 screen.
+    /// `y_rot` goes from -180 to 180, and `x_rot` goes from -90 to 90.
     pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
         let mut player_entity = self.entity_mut();
         player_entity.set_rotation(y_rot, x_rot);

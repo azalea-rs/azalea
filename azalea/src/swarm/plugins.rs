@@ -13,16 +13,16 @@ use std::{
 ///
 /// If you're using azalea, you should generate this from the `plugins!` macro.
 #[derive(Clone)]
-pub struct SwarmPlugins {
-    map: Option<HashMap<TypeId, Box<dyn SwarmPlugin>, BuildHasherDefault<NoHashHasher<u64>>>>,
+pub struct SwarmPlugins<S> {
+    map: Option<HashMap<TypeId, Box<dyn SwarmPlugin<S>>, BuildHasherDefault<NoHashHasher<u64>>>>,
 }
 
-impl SwarmPlugins {
+impl<S> SwarmPlugins<S> {
     pub fn new() -> Self {
         Self { map: None }
     }
 
-    pub fn add<T: SwarmPlugin>(&mut self, plugin: T) {
+    pub fn add<T: SwarmPlugin<S>>(&mut self, plugin: T) {
         if self.map.is_none() {
             self.map = Some(HashMap::with_hasher(BuildHasherDefault::default()));
         }
@@ -32,7 +32,7 @@ impl SwarmPlugins {
             .insert(TypeId::of::<T>(), Box::new(plugin));
     }
 
-    pub fn get<T: SwarmPlugin>(&self) -> Option<&T> {
+    pub fn get<T: SwarmPlugin<S>>(&self) -> Option<&T> {
         self.map
             .as_ref()
             .and_then(|map| map.get(&TypeId::of::<T>()))
@@ -40,8 +40,8 @@ impl SwarmPlugins {
     }
 }
 
-impl IntoIterator for SwarmPlugins {
-    type Item = Box<dyn SwarmPlugin>;
+impl<S> IntoIterator for SwarmPlugins<S> {
+    type Item = Box<dyn SwarmPlugin<S>>;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -54,24 +54,24 @@ impl IntoIterator for SwarmPlugins {
 
 /// Plugins can keep their own personal state, listen to events, and add new functions to Client.
 #[async_trait]
-pub trait SwarmPlugin: Send + Sync + SwarmPluginClone + Any + 'static {
-    async fn handle(self: Box<Self>, event: SwarmEvent, swarm: Swarm);
+pub trait SwarmPlugin<S>: Send + Sync + SwarmPluginClone<S> + Any + 'static {
+    async fn handle(self: Box<Self>, event: SwarmEvent, swarm: Swarm<S>);
 }
 
 /// An internal trait that allows Plugin to be cloned.
 #[doc(hidden)]
-pub trait SwarmPluginClone {
-    fn clone_box(&self) -> Box<dyn SwarmPlugin>;
+pub trait SwarmPluginClone<S> {
+    fn clone_box(&self) -> Box<dyn SwarmPlugin<S>>;
 }
-impl<T> SwarmPluginClone for T
+impl<T, S> SwarmPluginClone<S> for T
 where
-    T: 'static + SwarmPlugin + Clone,
+    T: 'static + SwarmPlugin<S> + Clone,
 {
-    fn clone_box(&self) -> Box<dyn SwarmPlugin> {
+    fn clone_box(&self) -> Box<dyn SwarmPlugin<S>> {
         Box::new(self.clone())
     }
 }
-impl Clone for Box<dyn SwarmPlugin> {
+impl<S> Clone for Box<dyn SwarmPlugin<S>> {
     fn clone(&self) -> Self {
         self.clone_box()
     }

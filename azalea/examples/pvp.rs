@@ -32,7 +32,7 @@ struct State {}
 struct SwarmState {}
 
 async fn handle(bot: Client, event: Event, state: State) {}
-async fn swarm_handle(swarm: Swarm, event: Event, state: State) {
+async fn swarm_handle<S>(swarm: Swarm<S>, event: Event, state: State) {
     match event {
         Event::Tick => {
             // choose an arbitrary player within render distance to target

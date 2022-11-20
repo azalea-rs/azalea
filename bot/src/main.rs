@@ -1,9 +1,14 @@
 use azalea::pathfinder::BlockPosGoal;
-use azalea::{prelude::*, BlockPos, Swarm, SwarmEvent};
+use azalea::{prelude::*, BlockPos, Swarm, SwarmEvent, WalkDirection};
 use azalea::{Account, Client, Event};
+use parking_lot::Mutex;
+use rand::Rng;
+use std::sync::Arc;
 
 #[derive(Default, Clone)]
-struct State {}
+struct State {
+    moving: Arc<Mutex<bool>>,
+}
 
 #[derive(Default, Clone)]
 struct SwarmState {}
@@ -48,7 +53,7 @@ async fn main() -> anyhow::Result<()> {
     loop {
         let e = azalea::start_swarm(azalea::SwarmOptions {
             accounts: accounts.clone(),
-            address: "localhost",
+            address: "92.222.245.59",
 
             states: states.clone(),
             swarm_state: SwarmState::default(),
@@ -58,13 +63,15 @@ async fn main() -> anyhow::Result<()> {
 
             handle,
             swarm_handle,
+
+            join_delay: Some(std::time::Duration::from_secs(5)),
         })
         .await;
         println!("{:?}", e);
     }
 }
 
-async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
+async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     match event {
         Event::Login => {
             bot.chat("Hello world").await?;
@@ -89,6 +96,25 @@ async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> 
             println!("initialized");
         }
         Event::Tick => {
+            // look in a random direction and walk for 1-3 seconds
+            {
+                let mut moving = state.moving.lock();
+                if *moving {
+                    return Ok(());
+                }
+                *moving = true;
+            }
+
+            let (rotation, duration) = {
+                let mut rng = rand::thread_rng();
+                (rng.gen_range(0.0..360.0), rng.gen_range(1..3))
+            };
+
+            bot.set_rotation(rotation, 0.);
+            bot.walk(WalkDirection::Forward);
+            tokio::time::sleep(tokio::time::Duration::from_secs(duration)).await;
+            bot.walk(WalkDirection::None);
+            *state.moving.lock() = false;
             // bot.jump();
         }
         _ => {}
@@ -97,8 +123,8 @@ async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> 
     Ok(())
 }
 
-async fn swarm_handle(
-    mut _swarm: Swarm,
+async fn swarm_handle<S>(
+    mut _swarm: Swarm<S>,
     _event: SwarmEvent,
     _state: SwarmState,
 ) -> anyhow::Result<()> {
