@@ -7,6 +7,7 @@ use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
         game::{
+            clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
             serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
             serverbound_client_information_packet::ServerboundClientInformationPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
@@ -64,6 +65,8 @@ pub enum Event {
     Packet(Box<ClientboundGamePacket>),
     /// Happens when a player is added, removed, or updated in the tab list.
     UpdatePlayers(UpdatePlayersEvent),
+    // Happens when the bot is killed.
+    PlayerCombatKill(Box<ClientboundPlayerCombatKillPacket>),
 }
 
 /// Happens when a player is added, removed, or updated in the tab list.
@@ -871,7 +874,13 @@ impl Client {
             ClientboundGamePacket::PlayerChatHeader(_) => {}
             ClientboundGamePacket::PlayerCombatEnd(_) => {}
             ClientboundGamePacket::PlayerCombatEnter(_) => {}
-            ClientboundGamePacket::PlayerCombatKill(_) => {}
+            ClientboundGamePacket::PlayerCombatKill(p) => {
+                debug!("Got player kill packet {:?}", p);
+                if *client.entity_id.read() == p.player_id {
+                    tx.send(Event::PlayerCombatKill(Box::new(p.clone())))
+                        .unwrap();
+                }
+            }
             ClientboundGamePacket::PlayerLookAt(_) => {}
             ClientboundGamePacket::RemoveMobEffect(_) => {}
             ClientboundGamePacket::ResourcePack(_) => {}
