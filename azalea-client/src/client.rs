@@ -30,7 +30,7 @@ use azalea_protocol::{
 };
 use azalea_world::{
     entity::{metadata, Entity, EntityData, EntityMetadata},
-    World,
+    WeakWorld, WeakWorldContainer, World,
 };
 use log::{debug, error, info, warn};
 use parking_lot::{Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
@@ -71,9 +71,13 @@ pub struct Client {
     pub read_conn: Arc<tokio::sync::Mutex<ReadConnection<ClientboundGamePacket>>>,
     pub write_conn: Arc<tokio::sync::Mutex<WriteConnection<ServerboundGamePacket>>>,
     pub player: Arc<RwLock<Player>>,
+    /// The world that this client has access to. This supports shared worlds.
     pub world: Arc<RwLock<World>>,
-    /// Whether there's multiple clients sharing the same world.
-    pub world_shared: Arc<RwLock<bool>>,
+    /// A container of world names to worlds. If we're not using a shared world
+    /// (i.e. not a swarm), then this will only contain data about the world
+    /// we're currently in.
+    world_container: Arc<RwLock<WeakWorldContainer>>,
+    pub world_name: Arc<RwLock<Option<ResourceLocation>>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
     pub client_information: Arc<RwLock<ClientInformation>>,
     /// Plugins are a way for other crates to add custom functionality to the
@@ -133,7 +137,7 @@ impl Client {
     pub fn new(
         game_profile: GameProfile,
         conn: Connection<ClientboundGamePacket, ServerboundGamePacket>,
-        world: Option<Arc<RwLock<World>>>,
+        world_container: Option<Arc<RwLock<WeakWorldContainer>>>,
     ) -> Self {
         let (read_conn, write_conn) = conn.into_split();
         let (read_conn, write_conn) = (
@@ -146,8 +150,11 @@ impl Client {
             read_conn,
             write_conn,
             player: Arc::new(RwLock::new(Player::default())),
-            world_shared: Arc::new(RwLock::new(world.is_some())),
-            world: world.unwrap_or_else(|| Arc::new(RwLock::new(World::default()))),
+            // the world will be set later
+            world: Arc::new(RwLock::new(World::default())),
+            world_container: world_container
+                .unwrap_or_else(|| Arc::new(RwLock::new(WeakWorldContainer::new()))),
+            world_name: Arc::new(RwLock::new(None)),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
             client_information: Arc::new(
                 RwLock::new(ServerboundClientInformationPacket::default()),
@@ -431,32 +438,19 @@ impl Client {
                         .as_int()
                         .expect("min_y tag is not an int");
 
+                    // add this world to the world_container (or don't if it's already there)
+                    let weak_world =
+                        client
+                            .world_container
+                            .write()
+                            .insert(p.dimension.clone(), height, min_y);
+                    // set the loaded_world to an empty world
+                    // (when we add chunks or entities those will be in the world_container)
                     let mut world_lock = client.world.write();
-
-                    if *client.world_shared.read() {
-                        // we can't clear the dimension if it's shared, so just
-                        // make sure the height and stuff is correct
-                        if world_lock.height() != height {
-                            error!(
-                                "Shared dimension height mismatch: {} != {}",
-                                world_lock.height(),
-                                height
-                            );
-                        }
-                        if world_lock.min_y() != min_y {
-                            error!(
-                                "Shared world min_y mismatch: {} != {}",
-                                world_lock.min_y(),
-                                min_y
-                            );
-                        }
-                    } else {
-                        *world_lock = World::new(
-                            client.client_information.read().view_distance.into(),
-                            height,
-                            min_y,
-                        );
-                    }
+                    *world_lock = World::new(
+                        client.client_information.read().view_distance.into(),
+                        weak_world,
+                    );
 
                     let entity = EntityData::new(
                         client.game_profile.uuid,
@@ -867,7 +861,7 @@ impl Client {
                 return;
             };
             let player_chunk_pos: ChunkPos = player_entity.pos().into();
-            if world_lock[&player_chunk_pos].is_none() {
+            if world_lock.get_chunk(&player_chunk_pos).is_none() {
                 return;
             }
         }
@@ -884,6 +878,25 @@ impl Client {
         // TODO: minecraft does ambient sounds here
     }
 
+    /// Get a [`WeakWorld`] from our world container. If it's a normal client,
+    /// then it'll be the same as the world the client has loaded. If the
+    /// client using a shared world, then the shared world will be a superset
+    /// of the client's world.
+    ///
+    /// # Panics
+    /// Panics if the client has not received the login packet yet. You can check this with [`Client::logged_in`].
+    pub fn world(&self) -> Arc<WeakWorld> {
+        let world_name = self.world_name.read();
+        let world_name = world_name
+            .as_ref()
+            .expect("Client has not received login packet yet");
+        if let Some(world) = self.world_container.read().get(world_name) {
+            world
+        } else {
+            unreachable!("The world name must be in the world container");
+        }
+    }
+
     /// Returns the entity associated to the player.
     pub fn entity_mut(&self) -> Entity<RwLockWriteGuard<World>> {
         let entity_id = {
@@ -895,7 +908,7 @@ impl Client {
 
         let entity_data = world
             .entity_storage
-            .get_mut_by_id(entity_id)
+            .get_by_id(entity_id)
             .expect("Player entity should exist");
         let entity_ptr = unsafe { entity_data.as_ptr() };
         Entity::new(world, entity_id, entity_ptr)
@@ -913,15 +926,14 @@ impl Client {
             .entity_storage
             .get_by_id(entity_id)
             .expect("Player entity should be in the given world");
-        let entity_ptr = unsafe { entity_data.as_const_ptr() };
+        let entity_ptr = unsafe { entity_data.as_ptr() };
         Entity::new(world, entity_id, entity_ptr)
     }
 
     /// Returns whether we have a received the login packet yet.
     pub fn logged_in(&self) -> bool {
-        let world = self.world.read();
-        let player = self.player.write();
-        player.entity(&world).is_some()
+        // the login packet tells us the world name
+        self.world_name.read().is_some()
     }
 
     /// Tell the server we changed our game options (i.e. render distance, main hand).

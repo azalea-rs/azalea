@@ -9,8 +9,11 @@ use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use log::debug;
 use log::trace;
 use parking_lot::Mutex;
+use parking_lot::RwLock;
+use std::collections::HashMap;
 use std::fmt::Debug;
 use std::io::Cursor;
+use std::sync::Weak;
 use std::{
     io::Write,
     ops::{Index, IndexMut},
@@ -19,14 +22,33 @@ use std::{
 
 const SECTION_HEIGHT: u32 = 16;
 
-pub struct ChunkStorage {
+/// An efficient storage for chunks for a client that has a limited render
+/// distance. This has support for using a shared [`WeakChunkStorage`]. You
+/// should not use this if you have infinite render distance (like a server), and instead of use a [`ChunkStorage`].
+pub struct LimitedChunkStorage {
+    /// Chunk storage that can be shared by clients.
+    shared: Arc<RwLock<WeakChunkStorage>>,
+
     pub view_center: ChunkPos,
     chunk_radius: u32,
     view_range: u32,
-    pub height: u32,
-    pub min_y: i32,
     // chunks is a list of size chunk_radius * chunk_radius
     chunks: Vec<Option<Arc<Mutex<Chunk>>>>,
+}
+
+/// A storage for chunks where they're only stored weakly, so if they're not
+/// actively being used somewhere else they'll be forgotten. This is used for
+/// shared worlds.
+pub struct WeakChunkStorage {
+    pub height: u32,
+    pub min_y: i32,
+    pub chunks: HashMap<ChunkPos, Weak<Mutex<Chunk>>>,
+}
+
+pub struct ChunkStorage {
+    pub height: u32,
+    pub min_y: i32,
+    pub chunks: HashMap<ChunkPos, Arc<Mutex<Chunk>>>,
 }
 
 #[derive(Debug)]
@@ -59,17 +81,23 @@ impl Default for Chunk {
     }
 }
 
-impl ChunkStorage {
-    pub fn new(chunk_radius: u32, height: u32, min_y: i32) -> Self {
+impl LimitedChunkStorage {
+    pub fn new(chunk_radius: u32, shared: Arc<RwLock<WeakChunkStorage>>) -> Self {
         let view_range = chunk_radius * 2 + 1;
-        ChunkStorage {
+        LimitedChunkStorage {
+            shared,
             view_center: ChunkPos::new(0, 0),
             chunk_radius,
             view_range,
-            height,
-            min_y,
             chunks: vec![None; (view_range * view_range) as usize],
         }
+    }
+
+    pub fn min_y(&self) -> i32 {
+        self.shared.read().min_y
+    }
+    pub fn height(&self) -> u32 {
+        self.shared.read().height
     }
 
     fn get_index(&self, chunk_pos: &ChunkPos) -> usize {
@@ -84,19 +112,19 @@ impl ChunkStorage {
 
     pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
         let chunk_pos = ChunkPos::from(pos);
-        let chunk = self[&chunk_pos].as_ref()?;
+        let chunk = self.get(&chunk_pos)?;
         let chunk = chunk.lock();
-        chunk.get(&ChunkBlockPos::from(pos), self.min_y)
+        chunk.get(&ChunkBlockPos::from(pos), self.min_y())
     }
 
     pub fn set_block_state(&self, pos: &BlockPos, state: BlockState) -> Option<BlockState> {
-        if pos.y < self.min_y || pos.y >= (self.min_y + self.height as i32) {
+        if pos.y < self.min_y() || pos.y >= (self.min_y() + self.height() as i32) {
             return None;
         }
         let chunk_pos = ChunkPos::from(pos);
-        let chunk = self[&chunk_pos].as_ref()?;
+        let chunk = self.get(&chunk_pos)?;
         let mut chunk = chunk.lock();
-        Some(chunk.get_and_set(&ChunkBlockPos::from(pos), state, self.min_y))
+        Some(chunk.get_and_set(&ChunkBlockPos::from(pos), state, self.min_y()))
     }
 
     pub fn replace_with_packet_data(
@@ -116,27 +144,69 @@ impl ChunkStorage {
 
         let chunk = Arc::new(Mutex::new(Chunk::read_with_dimension_height(
             data,
-            self.height,
+            self.height(),
         )?));
 
         trace!("Loaded chunk {:?}", pos);
-        self[pos] = Some(chunk);
+        self.set(pos, Some(chunk));
 
         Ok(())
     }
-}
 
-impl Index<&ChunkPos> for ChunkStorage {
-    type Output = Option<Arc<Mutex<Chunk>>>;
-
-    fn index(&self, pos: &ChunkPos) -> &Self::Output {
-        &self.chunks[self.get_index(pos)]
+    /// Get a [`Chunk`] within render distance, or `None` if it's not loaded.
+    /// Use [`LimitedChunkStorage::get`] to get a chunk from the shared storage.
+    ///
+    /// # Panics
+    /// If the chunk is not in the render distance.
+    pub fn limited_get(&self, pos: &ChunkPos) -> &Option<Arc<Mutex<Chunk>>> {
+        let index = self.get_index(pos);
+        &self.chunks[index]
     }
-}
-impl IndexMut<&ChunkPos> for ChunkStorage {
-    fn index_mut<'a>(&'a mut self, pos: &ChunkPos) -> &'a mut Self::Output {
+    /// Get a mutable reference to a [`Chunk`] within render distance, or
+    /// `None` if it's not loaded. Use [`LimitedChunkStorage::get`] to get
+    /// a chunk from the shared storage.
+    ///
+    /// # Panics
+    /// If the chunk is not in the render distance.
+    pub fn limited_get_mut(&mut self, pos: &ChunkPos) -> &mut Option<Arc<Mutex<Chunk>>> {
         let index = self.get_index(pos);
         &mut self.chunks[index]
+    }
+
+    /// Get a chunk,
+    pub fn get(&self, pos: &ChunkPos) -> Option<Arc<Mutex<Chunk>>> {
+        self.shared
+            .read()
+            .chunks
+            .get(pos)
+            .and_then(|chunk| chunk.upgrade())
+    }
+
+    /// Set a chunk in the shared storage and reference it from the limited
+    /// storage.
+    ///
+    /// # Panics
+    /// If the chunk is not in the render distance.
+    pub fn set(&mut self, pos: &ChunkPos, chunk: Option<Arc<Mutex<Chunk>>>) {
+        if let Some(chunk) = &chunk {
+            self.shared
+                .write()
+                .chunks
+                .insert(*pos, Arc::downgrade(chunk));
+        } else {
+            // don't remove it from the shared storage, since it'll be removed
+            // automatically if this was the last reference
+        }
+        *self.limited_get_mut(pos) = chunk;
+    }
+}
+impl WeakChunkStorage {
+    pub fn new(height: u32, min_y: i32) -> Self {
+        WeakChunkStorage {
+            height,
+            min_y,
+            chunks: HashMap::new(),
+        }
     }
 }
 
@@ -214,14 +284,14 @@ impl McBufWritable for Chunk {
     }
 }
 
-impl Debug for ChunkStorage {
+impl Debug for LimitedChunkStorage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ChunkStorage")
             .field("view_center", &self.view_center)
             .field("chunk_radius", &self.chunk_radius)
             .field("view_range", &self.view_range)
-            .field("height", &self.height)
-            .field("min_y", &self.min_y)
+            .field("height", &self.height())
+            .field("min_y", &self.min_y())
             // .field("chunks", &self.chunks)
             .field("chunks", &format_args!("{} items", self.chunks.len()))
             .finish()
@@ -292,9 +362,14 @@ impl Section {
     }
 }
 
-impl Default for ChunkStorage {
+impl Default for LimitedChunkStorage {
     fn default() -> Self {
-        Self::new(8, 384, -64)
+        Self::new(8, Arc::new(RwLock::new(WeakChunkStorage::default())))
+    }
+}
+impl Default for WeakChunkStorage {
+    fn default() -> Self {
+        Self::new(384, -64)
     }
 }
 
@@ -317,8 +392,11 @@ mod tests {
 
     #[test]
     fn test_out_of_bounds_y() {
-        let mut chunk_storage = ChunkStorage::default();
-        chunk_storage[&ChunkPos { x: 0, z: 0 }] = Some(Arc::new(Mutex::new(Chunk::default())));
+        let mut chunk_storage = LimitedChunkStorage::default();
+        chunk_storage.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Arc::new(Mutex::new(Chunk::default()))),
+        );
         assert!(chunk_storage
             .get_block_state(&BlockPos { x: 0, y: 319, z: 0 })
             .is_some());
