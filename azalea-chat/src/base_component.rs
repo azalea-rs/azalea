@@ -1,9 +1,12 @@
 use crate::{style::Style, Component};
+use serde::Serialize;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct BaseComponent {
     // implements mutablecomponent
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub siblings: Vec<Component>,
+    #[serde(flatten)]
     pub style: Style,
 }
 
