@@ -1,10 +1,11 @@
+use crate::{base_component::BaseComponent, style::ChatFormatting, Component};
+use serde::Serialize;
 use std::fmt::Display;
 
-use crate::{base_component::BaseComponent, style::ChatFormatting, Component};
-
 /// A component that contains text that's the same in all locales.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize)]
 pub struct TextComponent {
+    #[serde(flatten)]
     pub base: BaseComponent,
     pub text: String,
 }
