@@ -1,23 +1,23 @@
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufVarWritable, McBufWritable};
 use azalea_chat::Component;
 use azalea_protocol_macros::ClientboundStatusPacket;
-use serde::Deserialize;
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
+use serde_json::{value::Serializer, Value};
 use std::io::{Cursor, Write};
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Version {
-    pub name: Component,
+    pub name: String,
     pub protocol: i32,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SamplePlayer {
     pub id: String,
     pub name: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Players {
     pub max: i32,
     pub online: i32,
@@ -26,9 +26,10 @@ pub struct Players {
 }
 
 // the entire packet is just json, which is why it has deserialize
-#[derive(Clone, Debug, Deserialize, ClientboundStatusPacket)]
+#[derive(Clone, Debug, Serialize, Deserialize, ClientboundStatusPacket)]
 pub struct ClientboundStatusResponsePacket {
     pub description: Component,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub favicon: Option<String>,
     pub players: Players,
     pub version: Version,
@@ -44,7 +45,15 @@ impl McBufReadable for ClientboundStatusResponsePacket {
 }
 
 impl McBufWritable for ClientboundStatusResponsePacket {
-    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
-        todo!()
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        let status_string = ClientboundStatusResponsePacket::serialize(&self, Serializer)
+            .unwrap()
+            .to_string();
+        let status_bytes = status_string.as_bytes();
+        let varint_len = status_bytes.len() as u32;
+
+        varint_len.var_write_into(buf)?;
+        buf.write_all(&status_bytes)?;
+        Ok(())
     }
 }
