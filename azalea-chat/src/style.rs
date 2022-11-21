@@ -307,13 +307,6 @@ impl Serialize for Style {
         S: Serializer,
     {
         let mut state = serializer.serialize_struct("Style", 6)?;
-        if self.reset {
-            state.serialize_field("color", "white")?;
-            state.serialize_field("bold", &false)?;
-            state.serialize_field("italic", &false)?;
-            state.serialize_field("underlined", &false)?;
-            state.serialize_field("strikethrough", &false)?;
-        }
         if self.color.is_some() {
             state.serialize_field("color", &self.color)?;
         }
@@ -331,6 +324,23 @@ impl Serialize for Style {
         }
         if self.obfuscated.is_some() {
             state.serialize_field("obfuscated", &self.obfuscated)?;
+        }
+        if self.reset {
+            if self.color.is_none() {
+                state.serialize_field("color", "white")?;
+            }
+            if self.bold.is_none() {
+                state.serialize_field("bold", &false)?;
+            }
+            if self.underlined.is_none() {
+                state.serialize_field("underlined", &false)?;
+            }
+            if self.strikethrough.is_none() {
+                state.serialize_field("strikethrough", &false)?;
+            }
+            if self.obfuscated.is_none() {
+                state.serialize_field("obfuscated", &false)?;
+            }
         }
         state.end()
     }
