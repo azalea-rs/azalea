@@ -2,12 +2,28 @@ use std::{collections::HashMap, fmt};
 
 use azalea_buf::McBuf;
 use once_cell::sync::Lazy;
+use serde::{ser::SerializeStruct, Serialize, Serializer};
 use serde_json::Value;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct TextColor {
     pub value: u32,
     pub name: Option<String>,
+}
+
+impl Serialize for TextColor {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("TextColor", 1)?;
+        if self.name.is_some() {
+            state.serialize_field("color", &self.name)?;
+        } else {
+            state.serialize_field("color", &self.format())?;
+        }
+        state.end()
+    }
 }
 
 impl TextColor {
@@ -285,6 +301,42 @@ pub struct Style {
     pub obfuscated: Option<bool>,
     /// Whether it should reset the formatting before applying these styles
     pub reset: bool,
+}
+
+impl Serialize for Style {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("Style", 6)?;
+        if self.reset {
+            state.serialize_field("color", "white")?;
+            state.serialize_field("bold", &false)?;
+            state.serialize_field("italic", &false)?;
+            state.serialize_field("underlined", &false)?;
+            state.serialize_field("strikethrough", &false)?;
+            state.serialize_field("color", &false)?;
+        }
+        if self.color.is_some() {
+            state.serialize_field("color", &self.color)?;
+        }
+        if self.bold.is_some() {
+            state.serialize_field("bold", &self.bold)?;
+        }
+        if self.italic.is_some() {
+            state.serialize_field("italic", &self.italic)?;
+        }
+        if self.underlined.is_some() {
+            state.serialize_field("underlined", &self.underlined)?;
+        }
+        if self.strikethrough.is_some() {
+            state.serialize_field("strikethrough", &self.strikethrough)?;
+        }
+        if self.obfuscated.is_some() {
+            state.serialize_field("obfuscated", &self.obfuscated)?;
+        }
+        state.end()
+    }
 }
 
 impl Style {
