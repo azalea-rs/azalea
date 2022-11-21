@@ -6,14 +6,15 @@ use crate::{
 };
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use once_cell::sync::Lazy;
-use serde::{de, Deserialize, Deserializer};
+use serde::{de, Deserialize, Deserializer, Serialize};
 use std::{
     fmt::Display,
     io::{Cursor, Write},
 };
 
 /// A chat component, basically anything you can see in chat.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(untagged)]
 pub enum Component {
     Text(TextComponent),
     Translatable(TranslatableComponent),
@@ -261,11 +262,10 @@ impl McBufReadable for Component {
 }
 
 impl McBufWritable for Component {
-    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
-        // let json = serde_json::to_string(self).unwrap();
-        // json.write_into(_buf);
-        // Ok(())
-        todo!()
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        let json = serde_json::to_string(self).unwrap();
+        json.write_into(buf)?;
+        Ok(())
     }
 }
 
