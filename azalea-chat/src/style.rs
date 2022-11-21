@@ -16,13 +16,11 @@ impl Serialize for TextColor {
     where
         S: Serializer,
     {
-        let mut state = serializer.serialize_struct("TextColor", 1)?;
         if self.name.is_some() {
-            state.serialize_field("color", &self.name)?;
+            return serializer.serialize_str(self.name.as_ref().unwrap());
         } else {
-            state.serialize_field("color", &self.format())?;
+            return serializer.serialize_str(&self.format());
         }
-        state.end()
     }
 }
 
@@ -315,7 +313,6 @@ impl Serialize for Style {
             state.serialize_field("italic", &false)?;
             state.serialize_field("underlined", &false)?;
             state.serialize_field("strikethrough", &false)?;
-            state.serialize_field("color", &false)?;
         }
         if self.color.is_some() {
             state.serialize_field("color", &self.color)?;
