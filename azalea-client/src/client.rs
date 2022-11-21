@@ -313,7 +313,7 @@ impl Client {
     }
 
     /// Disconnect from the server, ending all tasks.
-    pub async fn shutdown(self) -> Result<(), std::io::Error> {
+    pub async fn shutdown(&self) -> Result<(), std::io::Error> {
         if let Err(e) = self.write_conn.lock().await.shutdown().await {
             warn!(
                 "Error shutting down connection, but it might be fine: {}",
