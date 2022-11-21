@@ -1,13 +1,75 @@
 use crate::{base_component::BaseComponent, style::ChatFormatting, Component};
-use serde::Serialize;
+use serde::{
+    ser::{SerializeSeq, SerializeStruct},
+    Serialize, Serializer,
+};
 use std::fmt::Display;
 
 /// A component that contains text that's the same in all locales.
-#[derive(Clone, Debug, Default, Serialize)]
+#[derive(Clone, Debug, Default)]
 pub struct TextComponent {
-    #[serde(flatten)]
     pub base: BaseComponent,
     pub text: String,
+}
+
+impl Serialize for TextComponent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        if self.base.siblings.len() == 0 {
+            let mut state = serializer.serialize_struct("TextComponent", 8)?;
+
+            state.serialize_field("text", &self.text)?;
+
+            if self.base.style.color.is_some() {
+                state.serialize_field("color", &self.base.style.color)?;
+            }
+            if self.base.style.bold.is_some() {
+                state.serialize_field("bold", &self.base.style.bold)?;
+            }
+            if self.base.style.italic.is_some() {
+                state.serialize_field("italic", &self.base.style.italic)?;
+            }
+            if self.base.style.underlined.is_some() {
+                state.serialize_field("underlined", &self.base.style.underlined)?;
+            }
+            if self.base.style.strikethrough.is_some() {
+                state.serialize_field("strikethrough", &self.base.style.strikethrough)?;
+            }
+            if self.base.style.obfuscated.is_some() {
+                state.serialize_field("obfuscated", &self.base.style.obfuscated)?;
+            }
+            if self.base.style.reset {
+                if self.base.style.color.is_none() {
+                    state.serialize_field("color", "white")?;
+                }
+                if self.base.style.bold.is_none() {
+                    state.serialize_field("bold", &false)?;
+                }
+                if self.base.style.italic.is_none() {
+                    state.serialize_field("italic", &false)?;
+                }
+                if self.base.style.underlined.is_none() {
+                    state.serialize_field("underlined", &false)?;
+                }
+                if self.base.style.obfuscated.is_none() {
+                    state.serialize_field("strikethrough", &false)?;
+                }
+            }
+
+            return state.end();
+        } else {
+            let mut state = serializer.serialize_seq(Some(self.base.siblings.len() + 1))?;
+
+            // Most formatters show an empty string in the first slot of the list
+            state.serialize_element("")?;
+            for sibling in &self.base.siblings {
+                state.serialize_element(&sibling)?;
+            }
+            return state.end();
+        }
+    }
 }
 
 const LEGACY_FORMATTING_CODE_SYMBOL: char = '§';
