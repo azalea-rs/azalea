@@ -4,6 +4,7 @@ use azalea::{Account, Client, Event};
 use parking_lot::Mutex;
 use rand::Rng;
 use std::sync::Arc;
+use std::time::Duration;
 
 #[derive(Default, Clone)]
 struct State {
@@ -45,7 +46,7 @@ async fn main() -> anyhow::Result<()> {
     let mut accounts = Vec::new();
     let mut states = Vec::new();
 
-    for i in 0..5 {
+    for i in 0..10 {
         accounts.push(Account::offline(&format!("bot{}", i)));
         states.push(State::default());
     }
@@ -53,7 +54,7 @@ async fn main() -> anyhow::Result<()> {
     loop {
         let e = azalea::start_swarm(azalea::SwarmOptions {
             accounts: accounts.clone(),
-            address: "92.222.245.59",
+            address: "localhost",
 
             states: states.clone(),
             swarm_state: SwarmState::default(),
@@ -64,7 +65,7 @@ async fn main() -> anyhow::Result<()> {
             handle,
             swarm_handle,
 
-            join_delay: Some(std::time::Duration::from_secs(5)),
+            join_delay: None,
         })
         .await;
         println!("{e:?}");
@@ -77,6 +78,11 @@ async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<(
             bot.chat("Hello world").await?;
         }
         Event::Chat(m) => {
+            if m.content() == bot.profile.name {
+                bot.chat("Bye").await?;
+                tokio::time::sleep(Duration::from_millis(50)).await;
+                bot.disconnect().await?;
+            }
             // println!("{}", m.message().to_ansi(None));
             // if m.message().to_string() == "<py5> goto" {
             //     let target_pos_vec3 = bot
@@ -105,17 +111,21 @@ async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<(
                 *moving = true;
             }
 
-            let (rotation, duration) = {
-                let mut rng = rand::thread_rng();
-                (rng.gen_range(0.0..360.0), rng.gen_range(1..3))
-            };
+            let rotation = rand::thread_rng().gen_range(0.0..360.0);
+            let duration = rand::thread_rng().gen_range(1..3);
+            let jumping = rand::thread_rng().gen_bool(0.5);
 
             bot.set_rotation(rotation, 0.);
             bot.walk(WalkDirection::Forward);
+            if jumping {
+                bot.set_jumping(true);
+            }
             tokio::time::sleep(tokio::time::Duration::from_secs(duration)).await;
             bot.walk(WalkDirection::None);
+            if jumping {
+                bot.set_jumping(false);
+            }
             *state.moving.lock() = false;
-            // bot.jump();
         }
         _ => {}
     }
@@ -123,10 +133,18 @@ async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<(
     Ok(())
 }
 
-async fn swarm_handle<S>(
-    mut _swarm: Swarm<S>,
-    _event: SwarmEvent,
+async fn swarm_handle(
+    mut swarm: Swarm<State>,
+    event: SwarmEvent,
     _state: SwarmState,
 ) -> anyhow::Result<()> {
+    match &event {
+        SwarmEvent::Disconnect(account) => {
+            println!("bot got kicked! {}", account.username);
+            tokio::time::sleep(Duration::from_secs(5)).await;
+            swarm.add(account, State::default()).await?;
+        }
+        _ => {}
+    }
     Ok(())
 }

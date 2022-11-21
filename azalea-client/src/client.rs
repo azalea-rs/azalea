@@ -342,7 +342,7 @@ impl Client {
     }
 
     /// Disconnect from the server, ending all tasks.
-    pub async fn shutdown(self) -> Result<(), std::io::Error> {
+    pub async fn disconnect(self) -> Result<(), std::io::Error> {
         self.write_conn.lock().await.shutdown().await?;
         let tasks = self.tasks.lock();
         for task in tasks.iter() {
@@ -382,10 +382,10 @@ impl Client {
                 Err(e) => {
                     if let ReadPacketError::ConnectionClosed = e {
                         info!("Connection closed");
-                        if let Err(e) = client.shutdown().await {
+                        if let Err(e) = client.disconnect().await {
                             error!("Error shutting down connection: {:?}", e);
                         }
-                        return;
+                        break;
                     }
                     if IGNORE_ERRORS {
                         warn!("{}", e);

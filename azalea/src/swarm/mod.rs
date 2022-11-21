@@ -15,6 +15,7 @@ use parking_lot::{Mutex, RwLock};
 use std::{future::Future, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
+use uuid::Uuid;
 
 /// A helper macro that generates a [`Plugins`] struct from a list of objects
 /// that implement [`Plugin`].
@@ -39,10 +40,10 @@ macro_rules! swarm_plugins {
 /// being able to control bots at an individual level when desired.
 ///
 /// The `S` type parameter is the type of the state for individual bots.
-/// It's used to make the [`Swarm::add_account`] function work.
+/// It's used to make the [`Swarm::add`] function work.
 #[derive(Clone)]
 pub struct Swarm<S> {
-    bots: Arc<Mutex<Vec<SwarmBotData<S>>>>,
+    bot_datas: Arc<Mutex<Vec<(Client, S)>>>,
 
     resolved_address: SocketAddr,
     address: ServerAddress,
@@ -52,15 +53,10 @@ pub struct Swarm<S> {
 
     /// A single receiver that combines all the receivers of all the bots.
     /// (bot index, event)
-    bots_rx: Arc<Mutex<UnboundedReceiver<(Option<Event>, SwarmBotData<S>)>>>,
-    bots_tx: Arc<Mutex<UnboundedSender<(Option<Event>, SwarmBotData<S>)>>>,
-}
+    bots_rx: Arc<Mutex<UnboundedReceiver<(Option<Event>, (Client, S))>>>,
+    bots_tx: UnboundedSender<(Option<Event>, (Client, S))>,
 
-/// The data stored for each bot in the swarm.
-#[derive(Clone)]
-pub struct SwarmBotData<S> {
-    pub bot: Client,
-    pub state: S,
+    swarm_tx: UnboundedSender<SwarmEvent>,
 }
 
 /// An event about something that doesn't have to do with a single bot.
@@ -68,6 +64,11 @@ pub struct SwarmBotData<S> {
 pub enum SwarmEvent {
     /// All the bots in the swarm have successfully joined the server.
     Login,
+    /// A bot got disconnected from the server.
+    ///
+    /// You can implement an auto-reconnect by calling [`Swarm::add`]
+    /// with the account from this event.
+    Disconnect(Account),
 }
 
 pub type SwarmHandleFn<Fut, S, SS> = fn(Swarm<S>, SwarmEvent, SS) -> Fut;
@@ -147,9 +148,10 @@ pub async fn start_swarm<
     plugins.add(bot::Plugin::default());
 
     let (bots_tx, mut bots_rx) = mpsc::unbounded_channel();
+    let (swarm_tx, mut swarm_rx) = mpsc::unbounded_channel();
 
     let mut swarm = Swarm {
-        bots: Arc::new(Mutex::new(Vec::new())),
+        bot_datas: Arc::new(Mutex::new(Vec::new())),
 
         resolved_address,
         address,
@@ -157,7 +159,9 @@ pub async fn start_swarm<
         plugins,
 
         bots_rx: Arc::new(Mutex::new(bots_rx)),
-        bots_tx: Arc::new(Mutex::new(bots_tx)),
+        bots_tx: bots_tx,
+
+        swarm_tx: swarm_tx.clone(),
     };
 
     let mut swarm_clone = swarm.clone();
@@ -167,13 +171,9 @@ pub async fn start_swarm<
             for (account, state) in options.accounts.iter().zip(options.states) {
                 // exponential backoff
                 let mut disconnects = 0;
-                while let Err(e) = swarm_clone.add_account(account, state.clone()).await {
-                    disconnects += 1;
-                    let delay = (Duration::from_secs(5) * 2u32.pow(disconnects))
-                        .min(Duration::from_secs(120));
-                    error!("Error joining account: {e}. Waiting {delay:?} and trying again.");
-                    tokio::time::sleep(delay).await;
-                }
+                swarm_clone
+                    .add_with_exponential_backoff(account, state.clone())
+                    .await;
                 tokio::time::sleep(join_delay).await;
             }
         } else {
@@ -182,17 +182,10 @@ pub async fn start_swarm<
                 async move |(account, state)| -> Result<(), JoinError> {
                     // exponential backoff
                     let mut disconnects = 0;
-                    while let Err(e) = swarm_borrow
+                    swarm_borrow
                         .clone()
-                        .add_account(account, state.clone())
-                        .await
-                    {
-                        disconnects += 1;
-                        let delay = (Duration::from_secs(5) * 2u32.pow(disconnects))
-                            .min(Duration::from_secs(120));
-                        error!("Error joining account: {e}. Waiting {delay:?} and trying again.");
-                        tokio::time::sleep(delay).await;
-                    }
+                        .add_with_exponential_backoff(account, state.clone())
+                        .await;
                     Ok(())
                 },
             ))
@@ -203,22 +196,24 @@ pub async fn start_swarm<
     let swarm_state = options.swarm_state;
     let mut internal_state = InternalSwarmState::default();
 
-    // Send an event to the swarm_handle function.
-    let cloned_swarm = swarm.clone();
-    let fire_swarm_event = move |event: SwarmEvent| {
-        let cloned_swarm_plugins = options.swarm_plugins.clone();
-        for plugin in cloned_swarm_plugins.into_iter() {
-            tokio::spawn(plugin.handle(event.clone(), cloned_swarm.clone()));
+    // Watch swarm_rx and send those events to the plugins and swarm_handle.
+    let swarm_clone = swarm.clone();
+    tokio::spawn(async move {
+        while let Some(event) = swarm_rx.recv().await {
+            let cloned_swarm_plugins = options.swarm_plugins.clone();
+            for plugin in cloned_swarm_plugins.into_iter() {
+                tokio::spawn(plugin.handle(event.clone(), swarm_clone.clone()));
+            }
+            tokio::spawn((options.swarm_handle)(
+                swarm_clone.clone(),
+                event,
+                swarm_state.clone(),
+            ));
         }
-        tokio::spawn((options.swarm_handle)(
-            cloned_swarm.clone(),
-            event,
-            swarm_state.clone(),
-        ));
-    };
+    });
 
     // bot events
-    while let (Some(event), SwarmBotData { bot, state, .. }) = swarm.bot_recv().await {
+    while let (Some(event), (bot, state)) = swarm.bot_recv().await {
         // bot event handling
         let cloned_plugins = (*bot.plugins).clone();
         for plugin in cloned_plugins.into_iter() {
@@ -229,8 +224,8 @@ pub async fn start_swarm<
         match &event {
             Event::Login => {
                 internal_state.bots_joined += 1;
-                if internal_state.bots_joined == swarm.bots.lock().len() {
-                    fire_swarm_event(SwarmEvent::Login);
+                if internal_state.bots_joined == swarm.bot_datas.lock().len() {
+                    swarm_tx.send(SwarmEvent::Login).unwrap();
                 }
             }
             _ => {}
@@ -248,15 +243,15 @@ impl<S> Swarm<S>
 where
     S: Send + Sync + Clone + 'static,
 {
-    /// Wait for any bot to get an event. We return the event and SwarmBotData
-    async fn bot_recv(&mut self) -> (Option<Event>, SwarmBotData<S>) {
+    /// Wait for any bot to get an event. We return the event and (Client, State)
+    async fn bot_recv(&mut self) -> (Option<Event>, (Client, S)) {
         let mut bots_rx = self.bots_rx.lock();
         let (event, bot) = bots_rx.recv().await.unwrap();
         (event, bot)
     }
 
-    /// Add a new account as part of the swarm.
-    pub async fn add_account(&mut self, account: &Account, state: S) -> Result<Client, JoinError> {
+    /// Add a new account to the swarm. You can remove it later by calling [`Client::disconnect`].
+    pub async fn add(&mut self, account: &Account, state: S) -> Result<Client, JoinError> {
         let conn = Connection::new(&self.resolved_address).await?;
         let (conn, game_profile) = Client::handshake(conn, account, &self.address.clone()).await?;
 
@@ -272,28 +267,54 @@ where
         let cloned_bots_tx = self.bots_tx.clone();
         let cloned_bot = bot.clone();
         let cloned_state = state.clone();
+        let owned_account = account.clone();
+        let bot_datas = self.bot_datas.clone();
+        let swarm_tx = self.swarm_tx.clone();
         tokio::spawn(async move {
             while let Some(event) = rx.recv().await {
                 // we can't handle events here (since we can't copy the handler),
                 // they're handled above in start_swarm
-                if let Err(e) = cloned_bots_tx.lock().send((
-                    Some(event),
-                    SwarmBotData {
-                        bot: cloned_bot.clone(),
-                        state: cloned_state.clone(),
-                    },
-                )) {
+                if let Err(e) =
+                    cloned_bots_tx.send((Some(event), (cloned_bot.clone(), cloned_state.clone())))
+                {
                     error!("Error sending event to swarm: {e}");
                 }
             }
+            // the bot disconnected, so we remove it from the swarm
+            let mut bot_datas = bot_datas.lock();
+            let index = bot_datas
+                .iter()
+                .position(|(b, _)| b.profile.uuid == cloned_bot.profile.uuid)
+                .expect("bot disconnected but not found in   swarm");
+            bot_datas.remove(index);
+
+            swarm_tx
+                .send(SwarmEvent::Disconnect(owned_account))
+                .unwrap();
         });
 
-        self.bots.lock().push(SwarmBotData {
-            bot: bot.clone(),
-            state: state.clone(),
-        });
+        self.bot_datas.lock().push((bot.clone(), state.clone()));
 
         Ok(bot)
+    }
+
+    /// Add a new account to the swarm, retrying if it couldn't join. This will
+    /// run forever until the bot joins or the task is aborted.
+    pub async fn add_with_exponential_backoff(&mut self, account: &Account, state: S) -> Client {
+        let mut disconnects = 0;
+        loop {
+            match self.add(account, state.clone()).await {
+                Ok(bot) => return bot,
+                Err(e) => {
+                    disconnects += 1;
+                    let delay = (Duration::from_secs(5) * 2u32.pow(disconnects))
+                        .min(Duration::from_secs(120));
+                    let username = account.username.clone();
+                    error!("Error joining {username}: {e}. Waiting {delay:?} and trying again.");
+                    tokio::time::sleep(delay).await;
+                }
+            }
+        }
     }
 }
 
