@@ -347,7 +347,7 @@ impl Client {
     }
 
     /// Disconnect from the server, ending all tasks.
-    pub async fn shutdown(&self) -> Result<(), std::io::Error> {
+    pub async fn disconnect(&self) -> Result<(), std::io::Error> {
         if let Err(e) = self.write_conn.lock().await.shutdown().await {
             warn!(
                 "Error shutting down connection, but it might be fine: {}",
@@ -552,7 +552,7 @@ impl Client {
             }
             ClientboundGamePacket::Disconnect(p) => {
                 debug!("Got disconnect packet {:?}", p);
-                client.shutdown().await?;
+                client.disconnect().await?;
             }
             ClientboundGamePacket::UpdateRecipes(_p) => {
                 debug!("Got update recipes packet");
