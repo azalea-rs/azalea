@@ -274,7 +274,7 @@ impl TryFrom<ChatFormatting> for TextColor {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Style {
     // these are options instead of just bools because None is different than false in this case
     pub color: Option<TextColor>,

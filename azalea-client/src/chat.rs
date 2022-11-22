@@ -12,7 +12,7 @@ use azalea_protocol::packets::game::{
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// A chat packet, either a system message or a chat message.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ChatPacket {
     System(ClientboundSystemChatPacket),
     Player(Box<ClientboundPlayerChatPacket>),

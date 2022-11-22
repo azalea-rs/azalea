@@ -13,7 +13,7 @@ use std::{
 };
 
 /// A chat component, basically anything you can see in chat.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Component {
     Text(TextComponent),
     Translatable(TranslatableComponent),

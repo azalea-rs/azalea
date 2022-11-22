@@ -17,7 +17,26 @@ pub struct SwarmPlugins<S> {
     map: Option<HashMap<TypeId, Box<dyn SwarmPlugin<S>>, BuildHasherDefault<NoHashHasher<u64>>>>,
 }
 
-impl<S> SwarmPlugins<S> {
+#[derive(Clone)]
+pub struct SwarmPluginStates<S> {
+    map: Option<
+        HashMap<TypeId, Box<dyn SwarmPluginState<S>>, BuildHasherDefault<NoHashHasher<u64>>>,
+    >,
+}
+
+impl<S> SwarmPluginStates<S> {
+    pub fn get<T: SwarmPluginState<S>>(&self) -> Option<&T> {
+        self.map
+            .as_ref()
+            .and_then(|map| map.get(&TypeId::of::<T>()))
+            .and_then(|boxed| (boxed.as_ref() as &dyn Any).downcast_ref::<T>())
+    }
+}
+
+impl<S> SwarmPlugins<S>
+where
+    S: 'static,
+{
     pub fn new() -> Self {
         Self { map: None }
     }
@@ -32,16 +51,20 @@ impl<S> SwarmPlugins<S> {
             .insert(TypeId::of::<T>(), Box::new(plugin));
     }
 
-    pub fn get<T: SwarmPlugin<S>>(&self) -> Option<&T> {
-        self.map
-            .as_ref()
-            .and_then(|map| map.get(&TypeId::of::<T>()))
-            .and_then(|boxed| (boxed.as_ref() as &dyn Any).downcast_ref::<T>())
+    pub fn build(self) -> SwarmPluginStates<S> {
+        if self.map.is_none() {
+            return SwarmPluginStates { map: None };
+        }
+        let mut map = HashMap::with_hasher(BuildHasherDefault::default());
+        for (id, plugin) in self.map.unwrap().into_iter() {
+            map.insert(id, plugin.build());
+        }
+        SwarmPluginStates { map: Some(map) }
     }
 }
 
-impl<S> IntoIterator for SwarmPlugins<S> {
-    type Item = Box<dyn SwarmPlugin<S>>;
+impl<S> IntoIterator for SwarmPluginStates<S> {
+    type Item = Box<dyn SwarmPluginState<S>>;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -54,11 +77,35 @@ impl<S> IntoIterator for SwarmPlugins<S> {
 
 /// Plugins can keep their own personal state, listen to events, and add new functions to Client.
 #[async_trait]
-pub trait SwarmPlugin<S>: Send + Sync + SwarmPluginClone<S> + Any + 'static {
+pub trait SwarmPluginState<S>: Send + Sync + SwarmPluginStateClone<S> + Any + 'static {
     async fn handle(self: Box<Self>, event: SwarmEvent, swarm: Swarm<S>);
 }
 
-/// An internal trait that allows Plugin to be cloned.
+#[async_trait]
+pub trait SwarmPlugin<S>: Send + Sync + SwarmPluginClone<S> + Any + 'static {
+    fn build(&self) -> Box<dyn SwarmPluginState<S>>;
+}
+
+/// An internal trait that allows SwarmPluginState to be cloned.
+#[doc(hidden)]
+pub trait SwarmPluginStateClone<S> {
+    fn clone_box(&self) -> Box<dyn SwarmPluginState<S>>;
+}
+impl<T, S> SwarmPluginStateClone<S> for T
+where
+    T: 'static + SwarmPluginState<S> + Clone,
+{
+    fn clone_box(&self) -> Box<dyn SwarmPluginState<S>> {
+        Box::new(self.clone())
+    }
+}
+impl<S> Clone for Box<dyn SwarmPluginState<S>> {
+    fn clone(&self) -> Self {
+        self.clone_box()
+    }
+}
+
+/// An internal trait that allows SwarmPlugin to be cloned.
 #[doc(hidden)]
 pub trait SwarmPluginClone<S> {
     fn clone_box(&self) -> Box<dyn SwarmPlugin<S>>;

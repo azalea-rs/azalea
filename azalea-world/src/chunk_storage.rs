@@ -168,9 +168,13 @@ impl LimitedChunkStorage {
     ///
     /// # Panics
     /// If the chunk is not in the render distance.
-    pub fn limited_get_mut(&mut self, pos: &ChunkPos) -> &mut Option<Arc<Mutex<Chunk>>> {
+    pub fn limited_get_mut(&mut self, pos: &ChunkPos) -> Option<&mut Option<Arc<Mutex<Chunk>>>> {
         let index = self.get_index(pos);
-        &mut self.chunks[index]
+        if index >= self.chunks.len() {
+            None
+        } else {
+            Some(&mut self.chunks[index])
+        }
     }
 
     /// Get a chunk,
@@ -197,7 +201,9 @@ impl LimitedChunkStorage {
             // don't remove it from the shared storage, since it'll be removed
             // automatically if this was the last reference
         }
-        *self.limited_get_mut(pos) = chunk;
+        if let Some(chunk_mut) = self.limited_get_mut(pos) {
+            *chunk_mut = chunk;
+        }
     }
 }
 impl WeakChunkStorage {

@@ -21,7 +21,7 @@ pub use account::Account;
 pub use client::{ChatPacket, Client, ClientInformation, Event, JoinError, PhysicsState};
 pub use movement::{SprintDirection, WalkDirection};
 pub use player::PlayerInfo;
-pub use plugins::{Plugin, Plugins};
+pub use plugins::{Plugin, PluginState, PluginStates, Plugins};
 
 #[cfg(test)]
 mod tests {

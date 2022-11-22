@@ -114,6 +114,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "azalea-block",
+ "azalea-chat",
  "azalea-client",
  "azalea-core",
  "azalea-physics",

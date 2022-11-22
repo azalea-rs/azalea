@@ -1,8 +1,10 @@
+mod chat;
 mod plugins;
 
 pub use self::plugins::*;
 use crate::{bot, HandleFn};
-use azalea_client::{Account, Client, Event, JoinError, Plugins};
+use azalea_chat::Component;
+use azalea_client::{Account, ChatPacket, Client, Event, JoinError, Plugin, PluginStates, Plugins};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
     resolver::{self, ResolverError},
@@ -12,10 +14,9 @@ use azalea_world::WeakWorldContainer;
 use futures::future::join_all;
 use log::error;
 use parking_lot::{Mutex, RwLock};
-use std::{future::Future, net::SocketAddr, sync::Arc, time::Duration};
+use std::{collections::VecDeque, future::Future, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
-use uuid::Uuid;
 
 /// A helper macro that generates a [`Plugins`] struct from a list of objects
 /// that implement [`Plugin`].
@@ -64,11 +65,16 @@ pub struct Swarm<S> {
 pub enum SwarmEvent {
     /// All the bots in the swarm have successfully joined the server.
     Login,
+    /// The swarm was created. This is only fired once, and it's guaranteed to
+    /// be the first event to fire.
+    Init,
     /// A bot got disconnected from the server.
     ///
     /// You can implement an auto-reconnect by calling [`Swarm::add`]
     /// with the account from this event.
     Disconnect(Account),
+    /// At least one bot received a chat message.
+    Chat(ChatPacket),
 }
 
 pub type SwarmHandleFn<Fut, S, SS> = fn(Swarm<S>, SwarmEvent, SS) -> Fut;
@@ -145,9 +151,15 @@ pub async fn start_swarm<
     let world_container = Arc::new(RwLock::new(WeakWorldContainer::default()));
 
     let mut plugins = options.plugins;
-    plugins.add(bot::Plugin::default());
+    let swarm_plugins = options.swarm_plugins;
 
-    let (bots_tx, mut bots_rx) = mpsc::unbounded_channel();
+    // DEFAULT CLIENT PLUGINS
+    plugins.add(bot::Plugin);
+    plugins.add(crate::pathfinder::Plugin);
+    // DEFAULT SWARM PLUGINS
+
+    // we can't modify the swarm plugins after this
+    let (bots_tx, bots_rx) = mpsc::unbounded_channel();
     let (swarm_tx, mut swarm_rx) = mpsc::unbounded_channel();
 
     let mut swarm = Swarm {
@@ -164,13 +176,22 @@ pub async fn start_swarm<
         swarm_tx: swarm_tx.clone(),
     };
 
+    {
+        // the chat plugin is hacky and needs the swarm to be passed like this
+        let (chat_swarm_state, chat_tx) = chat::SwarmState::new(swarm.clone());
+        swarm.plugins.add(chat::Plugin {
+            swarm_state: chat_swarm_state,
+            tx: chat_tx,
+        });
+    }
+
+    let swarm_plugins = swarm_plugins.build();
+
     let mut swarm_clone = swarm.clone();
     let join_task = tokio::spawn(async move {
         if let Some(join_delay) = options.join_delay {
             // if there's a join delay, then join one by one
             for (account, state) in options.accounts.iter().zip(options.states) {
-                // exponential backoff
-                let mut disconnects = 0;
                 swarm_clone
                     .add_with_exponential_backoff(account, state.clone())
                     .await;
@@ -180,8 +201,6 @@ pub async fn start_swarm<
             let swarm_borrow = &swarm_clone;
             join_all(options.accounts.iter().zip(options.states).map(
                 async move |(account, state)| -> Result<(), JoinError> {
-                    // exponential backoff
-                    let mut disconnects = 0;
                     swarm_borrow
                         .clone()
                         .add_with_exponential_backoff(account, state.clone())
@@ -198,10 +217,10 @@ pub async fn start_swarm<
 
     // Watch swarm_rx and send those events to the plugins and swarm_handle.
     let swarm_clone = swarm.clone();
+    let swarm_plugins_clone = swarm_plugins.clone();
     tokio::spawn(async move {
         while let Some(event) = swarm_rx.recv().await {
-            let cloned_swarm_plugins = options.swarm_plugins.clone();
-            for plugin in cloned_swarm_plugins.into_iter() {
+            for plugin in swarm_plugins_clone.clone().into_iter() {
                 tokio::spawn(plugin.handle(event.clone(), swarm_clone.clone()));
             }
             tokio::spawn((options.swarm_handle)(
@@ -262,7 +281,7 @@ where
         tx.send(Event::Initialize).unwrap();
         bot.start_tasks(tx);
 
-        bot.plugins = Arc::new(self.plugins.clone());
+        bot.plugins = Arc::new(self.plugins.clone().build());
 
         let cloned_bots_tx = self.bots_tx.clone();
         let cloned_bot = bot.clone();
@@ -270,6 +289,8 @@ where
         let owned_account = account.clone();
         let bot_datas = self.bot_datas.clone();
         let swarm_tx = self.swarm_tx.clone();
+        // send the init event immediately so it's the first thing we get
+        swarm_tx.send(SwarmEvent::Init).unwrap();
         tokio::spawn(async move {
             while let Some(event) = rx.recv().await {
                 // we can't handle events here (since we can't copy the handler),

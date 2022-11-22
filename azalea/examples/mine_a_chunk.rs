@@ -20,11 +20,13 @@ async fn main() {
         swarm_state: State::default(),
         states,
 
-        swarm_plugins: plugins![azalea_pathfinder::Plugin::default()],
+        swarm_plugins: plugins![],
         plugins: plugins![],
 
         handle,
         swarm_handle,
+
+        join_delay: None,
     })
     .await
     .unwrap();

@@ -10,13 +10,27 @@ use std::{
 type U64Hasher = BuildHasherDefault<NoHashHasher<u64>>;
 
 // kind of based on https://docs.rs/http/latest/src/http/extensions.rs.html
-/// A map of plugin ids to Plugin trait objects. The client stores this so we
-/// can keep the state for our plugins.
+#[derive(Clone, Default)]
+pub struct PluginStates {
+    map: Option<HashMap<TypeId, Box<dyn PluginState>, U64Hasher>>,
+}
+
+/// A map of plugin ids to PluginBuilder objects. This can then be built into a
+/// [`Plugins`] object as much as you want.
 ///
 /// If you're using azalea, you should generate this from the `plugins!` macro.
 #[derive(Clone, Default)]
 pub struct Plugins {
     map: Option<HashMap<TypeId, Box<dyn Plugin>, U64Hasher>>,
+}
+
+impl PluginStates {
+    pub fn get<T: PluginState>(&self) -> Option<&T> {
+        self.map
+            .as_ref()
+            .and_then(|map| map.get(&TypeId::of::<T>()))
+            .and_then(|boxed| (boxed.as_ref() as &dyn Any).downcast_ref::<T>())
+    }
 }
 
 impl Plugins {
@@ -34,16 +48,17 @@ impl Plugins {
             .insert(TypeId::of::<T>(), Box::new(plugin));
     }
 
-    pub fn get<T: Plugin>(&self) -> Option<&T> {
-        self.map
-            .as_ref()
-            .and_then(|map| map.get(&TypeId::of::<T>()))
-            .and_then(|boxed| (boxed.as_ref() as &dyn Any).downcast_ref::<T>())
+    pub fn build(self) -> PluginStates {
+        let mut map = HashMap::with_hasher(BuildHasherDefault::default());
+        for (id, plugin) in self.map.unwrap().into_iter() {
+            map.insert(id, plugin.build());
+        }
+        PluginStates { map: Some(map) }
     }
 }
 
-impl IntoIterator for Plugins {
-    type Item = Box<dyn Plugin>;
+impl IntoIterator for PluginStates {
+    type Item = Box<dyn PluginState>;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -56,16 +71,39 @@ impl IntoIterator for Plugins {
 
 /// Plugins can keep their own personal state, listen to events, and add new functions to Client.
 #[async_trait]
-pub trait Plugin: Send + Sync + PluginClone + Any + 'static {
+pub trait PluginState: Send + Sync + PluginClone + Any + 'static {
     async fn handle(self: Box<Self>, event: Event, bot: Client);
+}
+
+/// Plugins can keep their own personal state, listen to events, and add new functions to Client.
+pub trait Plugin: Send + Sync + PluginBuilderClone + Any + 'static {
+    fn build(&self) -> Box<dyn PluginState>;
 }
 
 /// An internal trait that allows Plugin to be cloned.
 #[doc(hidden)]
 pub trait PluginClone {
-    fn clone_box(&self) -> Box<dyn Plugin>;
+    fn clone_box(&self) -> Box<dyn PluginState>;
 }
 impl<T> PluginClone for T
+where
+    T: 'static + PluginState + Clone,
+{
+    fn clone_box(&self) -> Box<dyn PluginState> {
+        Box::new(self.clone())
+    }
+}
+impl Clone for Box<dyn PluginState> {
+    fn clone(&self) -> Self {
+        self.clone_box()
+    }
+}
+
+#[doc(hidden)]
+pub trait PluginBuilderClone {
+    fn clone_box(&self) -> Box<dyn Plugin>;
+}
+impl<T> PluginBuilderClone for T
 where
     T: 'static + Plugin + Clone,
 {

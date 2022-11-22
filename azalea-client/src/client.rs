@@ -1,5 +1,5 @@
 pub use crate::chat::ChatPacket;
-use crate::{movement::WalkDirection, plugins::Plugins, Account, PlayerInfo};
+use crate::{movement::WalkDirection, plugins::PluginStates, Account, PlayerInfo};
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::Component;
 use azalea_core::{ChunkPos, GameType, ResourceLocation, Vec3};
@@ -114,7 +114,7 @@ pub struct Client {
     /// Plugins are a way for other crates to add custom functionality to the
     /// client and keep state. If you're not making a plugin and you're using
     /// the `azalea` crate. you can ignore this field.
-    pub plugins: Arc<Plugins>,
+    pub plugins: Arc<PluginStates>,
     /// A map of player uuids to their information in the tab list
     pub players: Arc<RwLock<HashMap<Uuid, PlayerInfo>>>,
     tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
@@ -192,7 +192,7 @@ impl Client {
             client_information: Arc::new(RwLock::new(ClientInformation::default())),
             // The plugins can be modified by the user by replacing the plugins
             // field right after this. No Mutex so the user doesn't need to .lock().
-            plugins: Arc::new(Plugins::new()),
+            plugins: Arc::new(PluginStates::default()),
             players: Arc::new(RwLock::new(HashMap::new())),
             tasks: Arc::new(Mutex::new(Vec::new())),
         }
@@ -541,7 +541,7 @@ impl Client {
                 debug!("Got update tags packet");
             }
             ClientboundGamePacket::Disconnect(p) => {
-                debug!("Got disconnect packet {:?}", p);
+                println!("Got disconnect packet {:?}", p);
             }
             ClientboundGamePacket::UpdateRecipes(_p) => {
                 debug!("Got update recipes packet");

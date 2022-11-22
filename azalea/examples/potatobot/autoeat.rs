@@ -14,7 +14,7 @@ pub struct Plugin {
 pub struct State {}
 
 #[async_trait]
-impl azalea::Plugin for Plugin {
+impl azalea::PluginState for Plugin {
     async fn handle(self: Box<Self>, event: Event, bot: Client) {
         match event {
             Event::UpdateHunger => {

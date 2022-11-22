@@ -1,5 +1,5 @@
 use crate::{bot, pathfinder, HandleFn};
-use azalea_client::{Account, Client, Plugin, Plugins};
+use azalea_client::{Account, Client, Plugin, PluginState, PluginStates, Plugins};
 use azalea_protocol::ServerAddress;
 use std::{future::Future, sync::Arc};
 use thiserror::Error;
@@ -113,9 +113,11 @@ pub async fn start<
     let (mut bot, mut rx) = Client::join(&options.account, address).await?;
 
     let mut plugins = options.plugins;
-    plugins.add(bot::Plugin::default());
-    plugins.add(pathfinder::Plugin::default());
-    bot.plugins = Arc::new(plugins);
+    // DEFAULT PLUGINS
+    plugins.add(bot::Plugin);
+    plugins.add(pathfinder::Plugin);
+
+    bot.plugins = Arc::new(plugins.build());
 
     let state = options.state;
 
@@ -124,17 +126,6 @@ pub async fn start<
         for plugin in cloned_plugins.into_iter() {
             tokio::spawn(plugin.handle(event.clone(), bot.clone()));
         }
-
-        tokio::spawn(bot::Plugin::handle(
-            Box::new(bot.plugins.get::<bot::Plugin>().unwrap().clone()),
-            event.clone(),
-            bot.clone(),
-        ));
-        tokio::spawn(pathfinder::Plugin::handle(
-            Box::new(bot.plugins.get::<pathfinder::Plugin>().unwrap().clone()),
-            event.clone(),
-            bot.clone(),
-        ));
 
         tokio::spawn((options.handle)(bot.clone(), event.clone(), state.clone()));
     }

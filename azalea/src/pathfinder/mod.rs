@@ -13,9 +13,12 @@ use parking_lot::Mutex;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
-#[derive(Default, Clone)]
-pub struct Plugin {
-    pub state: State,
+#[derive(Clone, Default)]
+pub struct Plugin;
+impl crate::Plugin for Plugin {
+    fn build(&self) -> Box<dyn crate::PluginState> {
+        Box::new(State::default())
+    }
 }
 
 #[derive(Default, Clone)]
@@ -25,10 +28,10 @@ pub struct State {
 }
 
 #[async_trait]
-impl crate::Plugin for Plugin {
+impl crate::PluginState for State {
     async fn handle(self: Box<Self>, event: Event, mut bot: Client) {
         if let Event::Tick = event {
-            let mut path = self.state.path.lock();
+            let mut path = self.path.lock();
 
             if !path.is_empty() {
                 tick_execute_path(&mut bot, &mut path);
@@ -102,9 +105,8 @@ impl Trait for azalea_client::Client {
 
         let state = self
             .plugins
-            .get::<Plugin>()
+            .get::<State>()
             .expect("Pathfinder plugin not installed!")
-            .state
             .clone();
         // convert the Option<Vec<Node>> to a VecDeque<Node>
         *state.path.lock() = p.expect("no path").into_iter().collect();
