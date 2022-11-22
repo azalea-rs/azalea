@@ -15,10 +15,12 @@ pub struct PluginStates {
     map: Option<HashMap<TypeId, Box<dyn PluginState>, U64Hasher>>,
 }
 
-/// A map of plugin ids to PluginBuilder objects. This can then be built into a
-/// [`Plugins`] object as much as you want.
+/// A map of PluginState TypeIds to AnyPlugin objects. This can then be built
+/// into a [`PluginStates`] object to get a fresh new state based on this
+/// plugin.
 ///
-/// If you're using azalea, you should generate this from the `plugins!` macro.
+/// If you're using the azalea crate, you should generate this from the
+/// `plugins!` macro.
 #[derive(Clone, Default)]
 pub struct Plugins {
     map: Option<HashMap<TypeId, Box<dyn AnyPlugin>, U64Hasher>>,
@@ -69,7 +71,8 @@ impl IntoIterator for PluginStates {
     }
 }
 
-/// Plugins can keep their own personal state, listen to events, and add new functions to Client.
+/// A PluginState keeps the current state of the plugin for a client. All the
+/// fields must be atomic. Unique `PluginState`s are built from [`Plugin`]s.
 #[async_trait]
 pub trait PluginState: Send + Sync + PluginStateClone + Any + 'static {
     async fn handle(self: Box<Self>, event: Event, bot: Client);
@@ -82,8 +85,9 @@ pub trait Plugin: Send + Sync + Any + 'static {
     fn build(&self) -> Box<dyn PluginState>;
 }
 
-// AnyPlugin is basically a Plugin but without the State associated type
-// it has to exist so we can have a Vec<>
+/// AnyPlugin is basically a Plugin but without the State associated type
+/// it has to exist so we can do a hashmap with Box<dyn AnyPlugin>
+#[doc(hidden)]
 pub trait AnyPlugin: Send + Sync + Any + AnyPluginClone + 'static {
     fn build(&self) -> Box<dyn PluginState>;
 }
@@ -94,7 +98,7 @@ impl<A, B: Plugin<State = A> + Clone> AnyPlugin for B {
     }
 }
 
-/// An internal trait that allows Plugin to be cloned.
+/// An internal trait that allows PluginState to be cloned.
 #[doc(hidden)]
 pub trait PluginStateClone {
     fn clone_box(&self) -> Box<dyn PluginState>;
@@ -113,7 +117,7 @@ impl Clone for Box<dyn PluginState> {
     }
 }
 
-
+/// An internal trait that allows AnyPlugin to be cloned.
 #[doc(hidden)]
 pub trait AnyPluginClone {
     fn clone_box(&self) -> Box<dyn AnyPlugin>;
