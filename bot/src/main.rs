@@ -148,7 +148,7 @@ async fn swarm_handle(
             swarm.add(account, State::default()).await?;
         }
         SwarmEvent::Chat(m) => {
-            println!(">>> swarm chat message: {}", m.message().to_ansi(None));
+            println!("swarm chat message: {}", m.message().to_ansi(None));
         }
         _ => {}
     }
