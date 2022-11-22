@@ -399,9 +399,8 @@ impl Client {
                     }
                     if IGNORE_ERRORS {
                         warn!("{}", e);
-                        match e {
-                            ReadPacketError::FrameSplitter { .. } => panic!("Error: {e:?}"),
-                            _ => {}
+                        if let ReadPacketError::FrameSplitter { .. } = e {
+                            panic!("Error: {e:?}");
                         }
                     } else {
                         panic!("{}", e);
@@ -1052,7 +1051,7 @@ impl Client {
     pub fn entity_mut(&self) -> Entity<RwLockWriteGuard<World>> {
         let entity_id = *self.entity_id.read();
 
-        let mut world = self.world.write();
+        let world = self.world.write();
 
         let entity_data = world
             .entity_storage

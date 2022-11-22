@@ -14,17 +14,14 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::io::Cursor;
 use std::sync::Weak;
-use std::{
-    io::Write,
-    ops::{Index, IndexMut},
-    sync::Arc,
-};
+use std::{io::Write, sync::Arc};
 
 const SECTION_HEIGHT: u32 = 16;
 
-/// An efficient storage for chunks for a client that has a limited render
-/// distance. This has support for using a shared [`WeakChunkStorage`]. You
-/// should not use this if you have infinite render distance (like a server), and instead of use a [`ChunkStorage`].
+/// An efficient storage of chunks for a client that has a limited render
+/// distance. This has support for using a shared [`WeakChunkStorage`]. If you
+/// have an infinite render distance (like a server), you should use
+/// [`ChunkStorage`] instead.
 pub struct LimitedChunkStorage {
     /// Chunk storage that can be shared by clients.
     shared: Arc<RwLock<WeakChunkStorage>>,
@@ -45,17 +42,23 @@ pub struct WeakChunkStorage {
     pub chunks: HashMap<ChunkPos, Weak<Mutex<Chunk>>>,
 }
 
+/// A storage of potentially infinite chunks in a world. Chunks are stored as
+/// an Arc<Mutex> so they can be shared across threads.
 pub struct ChunkStorage {
     pub height: u32,
     pub min_y: i32,
     pub chunks: HashMap<ChunkPos, Arc<Mutex<Chunk>>>,
 }
 
+/// A single chunk in a world (16*?*16 blocks). This only contains the blocks and biomes. You
+/// can derive the height of the chunk from the number of sections, but you
+/// need a [`ChunkStorage`] to get the minimum Y coordinate.
 #[derive(Debug)]
 pub struct Chunk {
     pub sections: Vec<Section>,
 }
 
+/// A section of a chunk, i.e. a 16*16*16 block area.
 #[derive(Clone, Debug)]
 pub struct Section {
     pub block_count: u16,

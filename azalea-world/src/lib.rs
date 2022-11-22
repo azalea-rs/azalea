@@ -9,7 +9,7 @@ mod palette;
 mod world;
 
 pub use bit_storage::BitStorage;
-pub use chunk_storage::{Chunk, LimitedChunkStorage, WeakChunkStorage};
+pub use chunk_storage::{Chunk, ChunkStorage, LimitedChunkStorage, WeakChunkStorage};
 pub use container::*;
 pub use entity_storage::{EntityStorage, WeakEntityStorage};
 use thiserror::Error;

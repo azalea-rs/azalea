@@ -2,10 +2,9 @@ use crate::entity::EntityData;
 use azalea_core::ChunkPos;
 use log::warn;
 use nohash_hasher::{IntMap, IntSet};
-use parking_lot::{MappedRwLockReadGuard, RwLock, RwLockReadGuard};
+use parking_lot::RwLock;
 use std::{
     collections::HashMap,
-    iter::FilterMap,
     sync::{Arc, Weak},
 };
 use uuid::Uuid;
@@ -16,6 +15,7 @@ use uuid::Uuid;
 pub struct EntityStorage {
     pub shared: Arc<RwLock<WeakEntityStorage>>,
 
+    /// Strong references to the entities we have loaded.
     _data_by_id: IntMap<u32, Arc<EntityData>>,
 }
 
@@ -31,7 +31,7 @@ pub struct WeakEntityStorage {
 impl EntityStorage {
     pub fn new(shared: Arc<RwLock<WeakEntityStorage>>) -> Self {
         Self {
-            shared: shared,
+            shared,
             _data_by_id: IntMap::default(),
         }
     }
@@ -141,7 +141,7 @@ impl EntityStorage {
                 .read()
                 .data_by_id
                 .get(id)
-                .and_then(|e| e.upgrade().clone())
+                .and_then(|e| e.upgrade())
         })
     }
 
@@ -188,7 +188,7 @@ impl EntityStorage {
     where
         F: FnMut(&Arc<EntityData>) -> bool,
     {
-        for entity in self.shared.read().entities().into_iter() {
+        for entity in self.shared.read().entities() {
             if let Some(entity) = entity.upgrade() {
                 if f(&entity) {
                     return Some(entity);
@@ -228,7 +228,7 @@ impl WeakEntityStorage {
     /// Remove an entity from the storage if it has no strong references left.
     /// Returns whether the entity was removed.
     pub fn remove_entity_if_unused(&mut self, id: u32, uuid: Uuid, chunk: ChunkPos) -> bool {
-        if let Some(_) = self.data_by_id.get(&id).and_then(|e| e.upgrade()) {
+        if self.data_by_id.get(&id).and_then(|e| e.upgrade()).is_some() {
             // if we could get the entity, that means there are still strong
             // references to it
             false

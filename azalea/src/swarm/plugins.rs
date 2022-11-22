@@ -1,4 +1,4 @@
-use crate::{Client, Event, Swarm, SwarmEvent};
+use crate::{Swarm, SwarmEvent};
 use async_trait::async_trait;
 use nohash_hasher::NoHashHasher;
 use std::{
@@ -7,21 +7,21 @@ use std::{
     hash::BuildHasherDefault,
 };
 
+type U64Hasher = BuildHasherDefault<NoHashHasher<u64>>;
+
 // kind of based on https://docs.rs/http/latest/src/http/extensions.rs.html
 /// A map of plugin ids to Plugin trait objects. The client stores this so we
 /// can keep the state for our plugins.
 ///
 /// If you're using azalea, you should generate this from the `plugins!` macro.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct SwarmPlugins<S> {
-    map: Option<HashMap<TypeId, Box<dyn SwarmPlugin<S>>, BuildHasherDefault<NoHashHasher<u64>>>>,
+    map: Option<HashMap<TypeId, Box<dyn SwarmPlugin<S>>, U64Hasher>>,
 }
 
 #[derive(Clone)]
 pub struct SwarmPluginStates<S> {
-    map: Option<
-        HashMap<TypeId, Box<dyn SwarmPluginState<S>>, BuildHasherDefault<NoHashHasher<u64>>>,
-    >,
+    map: Option<HashMap<TypeId, Box<dyn SwarmPluginState<S>>, U64Hasher>>,
 }
 
 impl<S> SwarmPluginStates<S> {
@@ -69,7 +69,7 @@ impl<S> IntoIterator for SwarmPluginStates<S> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.map
-            .map(|map| map.into_iter().map(|(_, v)| v).collect::<Vec<_>>())
+            .map(|map| map.into_values().collect::<Vec<_>>())
             .unwrap_or_default()
             .into_iter()
     }

@@ -54,14 +54,13 @@ pub struct SwarmState {
 
 #[async_trait]
 impl crate::PluginState for State {
-    async fn handle(self: Box<Self>, event: Event, bot: Client) {
+    async fn handle(self: Box<Self>, event: Event, _bot: Client) {
         // we're allowed to access Plugin::swarm_state since it's shared for every bot
         if let Event::Chat(m) = event {
             // When a bot receives a chat messages, it looks into the queue to find the
             // earliest instance of the message content that's after the bot's chat index.
             // If it finds it, then its personal index is simply updated. Otherwise, fire
             // the event and add to the queue.
-
 
             let mut chat_queue = self.swarm_state.chat_queue.lock();
             let chat_min_index = self.swarm_state.chat_min_index.lock();
@@ -103,11 +102,10 @@ impl SwarmState {
             chat_queue: Arc::new(Mutex::new(VecDeque::new())),
             chat_min_index: Arc::new(Mutex::new(0)),
             rx: Arc::new(tokio::sync::Mutex::new(rx)),
-
         };
-        tokio::spawn(swarm_state.clone().start(swarm.clone()));
+        tokio::spawn(swarm_state.clone().start(swarm));
 
-        (swarm_state.clone(), tx)
+        (swarm_state, tx)
     }
     async fn start<S>(self, swarm: Swarm<S>)
     where

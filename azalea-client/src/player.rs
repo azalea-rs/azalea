@@ -1,9 +1,6 @@
-use std::sync::Arc;
-
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::Component;
 use azalea_core::GameType;
-use azalea_world::entity::EntityData;
 use azalea_world::World;
 use uuid::Uuid;
 

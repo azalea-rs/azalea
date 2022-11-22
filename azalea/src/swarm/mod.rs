@@ -3,8 +3,7 @@ mod plugins;
 
 pub use self::plugins::*;
 use crate::{bot, HandleFn};
-use azalea_chat::Component;
-use azalea_client::{Account, ChatPacket, Client, Event, JoinError, Plugin, PluginStates, Plugins};
+use azalea_client::{Account, ChatPacket, Client, Event, JoinError, Plugins};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
     resolver::{self, ResolverError},
@@ -14,9 +13,9 @@ use azalea_world::WeakWorldContainer;
 use futures::future::join_all;
 use log::error;
 use parking_lot::{Mutex, RwLock};
-use std::{collections::VecDeque, future::Future, net::SocketAddr, sync::Arc, time::Duration};
+use std::{future::Future, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
-use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
+use tokio::sync::mpsc::{self,  UnboundedSender};
 
 /// A helper macro that generates a [`Plugins`] struct from a list of objects
 /// that implement [`Plugin`].
@@ -52,11 +51,7 @@ pub struct Swarm<S> {
     /// Plugins that are set for new bots
     plugins: Plugins,
 
-    /// A single receiver that combines all the receivers of all the bots.
-    /// (bot index, event)
-    bots_rx: Arc<Mutex<UnboundedReceiver<(Option<Event>, (Client, S))>>>,
     bots_tx: UnboundedSender<(Option<Event>, (Client, S))>,
-
     swarm_tx: UnboundedSender<SwarmEvent>,
 }
 
@@ -139,13 +134,12 @@ pub async fn start_swarm<
     );
 
     // convert the TryInto<ServerAddress> into a ServerAddress
-    let address = match options.address.try_into() {
+    let address: ServerAddress = match options.address.try_into() {
         Ok(address) => address,
         Err(_) => return Err(SwarmStartError::InvalidAddress),
     };
 
     // resolve the address
-    let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
     let resolved_address = resolver::resolve_address(&address).await?;
 
     let world_container = Arc::new(RwLock::new(WeakWorldContainer::default()));
@@ -159,7 +153,7 @@ pub async fn start_swarm<
     // DEFAULT SWARM PLUGINS
 
     // we can't modify the swarm plugins after this
-    let (bots_tx, bots_rx) = mpsc::unbounded_channel();
+    let (bots_tx, mut bots_rx) = mpsc::unbounded_channel();
     let (swarm_tx, mut swarm_rx) = mpsc::unbounded_channel();
 
     let mut swarm = Swarm {
@@ -170,8 +164,7 @@ pub async fn start_swarm<
         world_container,
         plugins,
 
-        bots_rx: Arc::new(Mutex::new(bots_rx)),
-        bots_tx: bots_tx,
+        bots_tx,
 
         swarm_tx: swarm_tx.clone(),
     };
@@ -232,7 +225,7 @@ pub async fn start_swarm<
     });
 
     // bot events
-    while let (Some(event), (bot, state)) = swarm.bot_recv().await {
+    while let Some((Some(event), (bot, state))) = bots_rx.recv().await {
         // bot event handling
         let cloned_plugins = (*bot.plugins).clone();
         for plugin in cloned_plugins.into_iter() {
@@ -240,6 +233,8 @@ pub async fn start_swarm<
         }
 
         // swarm event handling
+        // remove this #[allow] when more checks are added
+        #[allow(clippy::single_match)]
         match &event {
             Event::Login => {
                 internal_state.bots_joined += 1;
@@ -253,7 +248,7 @@ pub async fn start_swarm<
         tokio::spawn((options.handle)(bot, event, state));
     }
 
-    let _ = join_task.abort();
+    join_task.abort();
 
     Ok(())
 }
@@ -262,13 +257,6 @@ impl<S> Swarm<S>
 where
     S: Send + Sync + Clone + 'static,
 {
-    /// Wait for any bot to get an event. We return the event and (Client, State)
-    async fn bot_recv(&mut self) -> (Option<Event>, (Client, S)) {
-        let mut bots_rx = self.bots_rx.lock();
-        let (event, bot) = bots_rx.recv().await.unwrap();
-        (event, bot)
-    }
-
     /// Add a new account to the swarm. You can remove it later by calling [`Client::disconnect`].
     pub async fn add(&mut self, account: &Account, state: S) -> Result<Client, JoinError> {
         let conn = Connection::new(&self.resolved_address).await?;

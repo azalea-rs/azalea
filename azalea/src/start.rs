@@ -1,5 +1,5 @@
 use crate::{bot, pathfinder, HandleFn};
-use azalea_client::{Account, Client, Plugin, PluginState, PluginStates, Plugins};
+use azalea_client::{Account, Client, Plugins};
 use azalea_protocol::ServerAddress;
 use std::{future::Future, sync::Arc};
 use thiserror::Error;
