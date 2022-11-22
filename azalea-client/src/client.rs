@@ -65,7 +65,7 @@ pub enum Event {
     Packet(Box<ClientboundGamePacket>),
     /// Happens when a player is added, removed, or updated in the tab list.
     UpdatePlayers(UpdatePlayersEvent),
-    // Emits when the player is dead.
+    /// Emits when the player dies.
     Death(Option<Box<ClientboundPlayerCombatKillPacket>>),
 }
 
