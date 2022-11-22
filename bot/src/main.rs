@@ -65,7 +65,8 @@ async fn main() -> anyhow::Result<()> {
             handle,
             swarm_handle,
 
-            join_delay: Some(Duration::from_millis(100)),
+            // join_delay: Some(Duration::from_millis(100)),
+            join_delay: None,
         })
         .await;
         println!("{e:?}");
@@ -147,7 +148,7 @@ async fn swarm_handle(
             swarm.add(account, State::default()).await?;
         }
         SwarmEvent::Chat(m) => {
-            // println!("swarm chat message: {}", m.message().to_ansi(None));
+            println!(">>> swarm chat message: {}", m.message().to_ansi(None));
         }
         _ => {}
     }

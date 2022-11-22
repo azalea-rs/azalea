@@ -82,7 +82,7 @@ pub trait PluginState: Send + Sync + PluginStateClone + Any + 'static {
 pub trait Plugin: Send + Sync + Any + 'static {
     type State: PluginState;
 
-    fn build(&self) -> Box<dyn PluginState>;
+    fn build(&self) -> Self::State;
 }
 
 /// AnyPlugin is basically a Plugin but without the State associated type
@@ -92,9 +92,9 @@ pub trait AnyPlugin: Send + Sync + Any + AnyPluginClone + 'static {
     fn build(&self) -> Box<dyn PluginState>;
 }
 
-impl<A, B: Plugin<State = A> + Clone> AnyPlugin for B {
+impl<S: PluginState, B: Plugin<State = S> + Clone> AnyPlugin for B {
     fn build(&self) -> Box<dyn PluginState> {
-        self.build()
+        Box::new(self.build())
     }
 }
 

@@ -29,12 +29,12 @@ pub struct Plugin {
 impl crate::Plugin for Plugin {
     type State = State;
 
-    fn build(&self) -> Box<dyn crate::PluginState> {
-        Box::new(State {
+    fn build(&self) -> State {
+        State {
             farthest_chat_index: Arc::new(Mutex::new(0)),
             swarm_state: self.swarm_state.clone(),
             tx: self.tx.clone(),
-        })
+        }
     }
 }
 
@@ -57,7 +57,7 @@ impl crate::PluginState for State {
     async fn handle(self: Box<Self>, event: Event, _bot: Client) {
         // we're allowed to access Plugin::swarm_state since it's shared for every bot
         if let Event::Chat(m) = event {
-            // println!("bot got a message: {}", m.message().to_ansi(None));
+            println!("bot got a message: {}", m.message().to_ansi(None));
             // When a bot receives a chat messages, it looks into the queue to find the
             // earliest instance of the message content that's after the bot's chat index.
             // If it finds it, then its personal index is simply updated. Otherwise, fire
@@ -68,7 +68,7 @@ impl crate::PluginState for State {
             let mut farthest_chat_index = self.farthest_chat_index.lock();
 
             let actual_vec_index = *farthest_chat_index - *chat_min_index;
-            // println!("actual_vec_index: {}", actual_vec_index);
+            println!("actual_vec_index: {}", actual_vec_index);
             // go through the queue and find the first message that's after the bot's index
             let mut found = false;
             for (i, msg) in chat_queue.iter().enumerate().skip(actual_vec_index) {
@@ -82,11 +82,12 @@ impl crate::PluginState for State {
 
             if !found {
                 // didn't find the message, so fire the swarm event and add to the queue
-                // println!("new message, firing event");
+                println!("new message, firing event");
                 self.tx
                     .send(m.clone())
                     .expect("failed to send chat message to swarm");
                 chat_queue.push_back(m);
+                *farthest_chat_index = chat_queue.len() - 1 + *chat_min_index;
             }
         }
     }
@@ -115,7 +116,7 @@ impl SwarmState {
         // it should never be locked unless we reused the same plugin for two swarms (bad)
         let mut rx = self.rx.lock().await;
         while let Some(m) = rx.recv().await {
-            // println!("received event, firing to swarm");
+            println!("received event, firing to swarm");
             swarm.swarm_tx.send(SwarmEvent::Chat(m)).unwrap();
 
             // To make sure the queue doesn't grow too large, we keep a `chat_min_index`

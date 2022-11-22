@@ -9,8 +9,8 @@ pub struct Plugin;
 impl crate::Plugin for Plugin {
     type State = State;
 
-    fn build(&self) -> Box<dyn crate::PluginState> {
-        Box::new(State::default())
+    fn build(&self) -> State {
+        State::default()
     }
 }
 
