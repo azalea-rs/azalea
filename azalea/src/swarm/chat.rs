@@ -27,6 +27,8 @@ pub struct Plugin {
 }
 
 impl crate::Plugin for Plugin {
+    type State = State;
+
     fn build(&self) -> Box<dyn crate::PluginState> {
         Box::new(State {
             farthest_chat_index: Arc::new(Mutex::new(0)),

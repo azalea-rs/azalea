@@ -21,7 +21,7 @@ pub struct PluginStates {
 /// If you're using azalea, you should generate this from the `plugins!` macro.
 #[derive(Clone, Default)]
 pub struct Plugins {
-    map: Option<HashMap<TypeId, Box<dyn Plugin>, U64Hasher>>,
+    map: Option<HashMap<TypeId, Box<dyn AnyPlugin>, U64Hasher>>,
 }
 
 impl PluginStates {
@@ -38,14 +38,14 @@ impl Plugins {
         Self::default()
     }
 
-    pub fn add<T: Plugin>(&mut self, plugin: T) {
+    pub fn add<T: Plugin + Clone>(&mut self, plugin: T) {
         if self.map.is_none() {
             self.map = Some(HashMap::with_hasher(BuildHasherDefault::default()));
         }
         self.map
             .as_mut()
             .unwrap()
-            .insert(TypeId::of::<T>(), Box::new(plugin));
+            .insert(TypeId::of::<T::State>(), Box::new(plugin));
     }
 
     pub fn build(self) -> PluginStates {
@@ -71,21 +71,35 @@ impl IntoIterator for PluginStates {
 
 /// Plugins can keep their own personal state, listen to events, and add new functions to Client.
 #[async_trait]
-pub trait PluginState: Send + Sync + PluginClone + Any + 'static {
+pub trait PluginState: Send + Sync + PluginStateClone + Any + 'static {
     async fn handle(self: Box<Self>, event: Event, bot: Client);
 }
 
 /// Plugins can keep their own personal state, listen to events, and add new functions to Client.
-pub trait Plugin: Send + Sync + PluginBuilderClone + Any + 'static {
+pub trait Plugin: Send + Sync + Any + 'static {
+    type State: PluginState;
+
     fn build(&self) -> Box<dyn PluginState>;
+}
+
+// AnyPlugin is basically a Plugin but without the State associated type
+// it has to exist so we can have a Vec<>
+pub trait AnyPlugin: Send + Sync + Any + AnyPluginClone + 'static {
+    fn build(&self) -> Box<dyn PluginState>;
+}
+
+impl<A, B: Plugin<State = A> + Clone> AnyPlugin for B {
+    fn build(&self) -> Box<dyn PluginState> {
+        self.build()
+    }
 }
 
 /// An internal trait that allows Plugin to be cloned.
 #[doc(hidden)]
-pub trait PluginClone {
+pub trait PluginStateClone {
     fn clone_box(&self) -> Box<dyn PluginState>;
 }
-impl<T> PluginClone for T
+impl<T> PluginStateClone for T
 where
     T: 'static + PluginState + Clone,
 {
@@ -99,19 +113,20 @@ impl Clone for Box<dyn PluginState> {
     }
 }
 
+
 #[doc(hidden)]
-pub trait PluginBuilderClone {
-    fn clone_box(&self) -> Box<dyn Plugin>;
+pub trait AnyPluginClone {
+    fn clone_box(&self) -> Box<dyn AnyPlugin>;
 }
-impl<T> PluginBuilderClone for T
+impl<T> AnyPluginClone for T
 where
     T: 'static + Plugin + Clone,
 {
-    fn clone_box(&self) -> Box<dyn Plugin> {
+    fn clone_box(&self) -> Box<dyn AnyPlugin> {
         Box::new(self.clone())
     }
 }
-impl Clone for Box<dyn Plugin> {
+impl Clone for Box<dyn AnyPlugin> {
     fn clone(&self) -> Self {
         self.clone_box()
     }

@@ -7,6 +7,8 @@ use std::{f64::consts::PI, sync::Arc};
 #[derive(Clone, Default)]
 pub struct Plugin;
 impl crate::Plugin for Plugin {
+    type State = State;
+
     fn build(&self) -> Box<dyn crate::PluginState> {
         Box::new(State::default())
     }
