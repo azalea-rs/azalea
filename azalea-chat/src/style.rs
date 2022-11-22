@@ -297,7 +297,7 @@ pub struct Style {
     pub underlined: Option<bool>,
     pub strikethrough: Option<bool>,
     pub obfuscated: Option<bool>,
-    /// Whether it should reset the formatting before applying these styles
+    // whether formatting should be reset before applying these styles
     pub reset: bool,
 }
 
@@ -331,6 +331,9 @@ impl Serialize for Style {
             }
             if self.bold.is_none() {
                 state.serialize_field("bold", &false)?;
+            }
+            if self.italic.is_none() {
+                state.serialize_field("italic", &false)?;
             }
             if self.underlined.is_none() {
                 state.serialize_field("underlined", &false)?;
