@@ -7,6 +7,7 @@ use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
         game::{
+            clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
             serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
             serverbound_client_information_packet::ServerboundClientInformationPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
@@ -67,6 +68,8 @@ pub enum Event {
     Packet(Box<ClientboundGamePacket>),
     /// Happens when a player is added, removed, or updated in the tab list.
     UpdatePlayers(UpdatePlayersEvent),
+    /// Emits when the player dies.
+    Death(Option<Box<ClientboundPlayerCombatKillPacket>>),
 }
 
 /// Happens when a player is added, removed, or updated in the tab list.
@@ -111,6 +114,7 @@ pub struct Client {
     pub world_name: Arc<RwLock<Option<ResourceLocation>>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
     pub client_information: Arc<RwLock<ClientInformation>>,
+    pub dead: Arc<Mutex<bool>>,
     /// Plugins are a way for other crates to add custom functionality to the
     /// client and keep state. If you're not making a plugin and you're using
     /// the `azalea` crate. you can ignore this field.
@@ -190,6 +194,7 @@ impl Client {
             world_name: Arc::new(RwLock::new(None)),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
             client_information: Arc::new(RwLock::new(ClientInformation::default())),
+            dead: Arc::new(Mutex::new(false)),
             // The plugins can be modified by the user by replacing the plugins
             // field right after this. No Mutex so the user doesn't need to .lock().
             plugins: Arc::new(PluginStates::default()),
@@ -342,8 +347,13 @@ impl Client {
     }
 
     /// Disconnect from the server, ending all tasks.
-    pub async fn disconnect(self) -> Result<(), std::io::Error> {
-        self.write_conn.lock().await.shutdown().await?;
+    pub async fn shutdown(&self) -> Result<(), std::io::Error> {
+        if let Err(e) = self.write_conn.lock().await.shutdown().await {
+            warn!(
+                "Error shutting down connection, but it might be fine: {}",
+                e
+            );
+        }
         let tasks = self.tasks.lock();
         for task in tasks.iter() {
             task.abort();
@@ -541,7 +551,8 @@ impl Client {
                 debug!("Got update tags packet");
             }
             ClientboundGamePacket::Disconnect(p) => {
-                println!("Got disconnect packet {:?}", p);
+                debug!("Got disconnect packet {:?}", p);
+                client.shutdown().await?;
             }
             ClientboundGamePacket::UpdateRecipes(_p) => {
                 debug!("Got update recipes packet");
@@ -798,6 +809,13 @@ impl Client {
             }
             ClientboundGamePacket::SetHealth(p) => {
                 debug!("Got set health packet {:?}", p);
+                if p.health == 0.0 {
+                    let mut dead_lock = client.dead.lock();
+                    if !*dead_lock {
+                        *dead_lock = true;
+                        tx.send(Event::Death(None)).unwrap();
+                    }
+                }
             }
             ClientboundGamePacket::SetExperience(p) => {
                 debug!("Got set experience packet {:?}", p);
@@ -922,11 +940,25 @@ impl Client {
             ClientboundGamePacket::PlayerChatHeader(_) => {}
             ClientboundGamePacket::PlayerCombatEnd(_) => {}
             ClientboundGamePacket::PlayerCombatEnter(_) => {}
-            ClientboundGamePacket::PlayerCombatKill(_) => {}
+            ClientboundGamePacket::PlayerCombatKill(p) => {
+                debug!("Got player kill packet {:?}", p);
+                if *client.entity_id.read() == p.player_id {
+                    let mut dead_lock = client.dead.lock();
+                    if !*dead_lock {
+                        *dead_lock = true;
+                        tx.send(Event::Death(Some(Box::new(p.clone())))).unwrap();
+                    }
+                }
+            }
             ClientboundGamePacket::PlayerLookAt(_) => {}
             ClientboundGamePacket::RemoveMobEffect(_) => {}
             ClientboundGamePacket::ResourcePack(_) => {}
-            ClientboundGamePacket::Respawn(_) => {}
+            ClientboundGamePacket::Respawn(p) => {
+                debug!("Got respawn packet {:?}", p);
+                // Sets clients dead state to false.
+                let mut dead_lock = client.dead.lock();
+                *dead_lock = false;
+            }
             ClientboundGamePacket::SelectAdvancementsTab(_) => {}
             ClientboundGamePacket::SetActionBarText(_) => {}
             ClientboundGamePacket::SetBorderCenter(_) => {}
