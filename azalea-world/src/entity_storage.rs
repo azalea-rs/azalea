@@ -6,63 +6,101 @@ use parking_lot::RwLock;
 use std::{
     collections::HashMap,
     sync::{Arc, Weak},
+    time::{Duration, Instant},
 };
 use uuid::Uuid;
 
-/// Store a map of entities by ID. To get an iterator over all entities, use `storage.shared.read().entities`
-/// [`WeakEntityStorage::entities`]
+// How entity updates are processed (to avoid issues with shared worlds)
+// - each bot contains a map of { entity id: updates received }
+// - the shared world also contains a canonical "true" updates received for each entity
+// - when a client loads an entity, its "updates received" is set to the same as the global "updates received"
+// - when the shared world sees an entity for the first time, the "updates received" is set to 1.
+// - clients can force the shared "updates received" to 0 to make it so certain entities (i.e. other bots in our swarm) don't get confused and updated by other bots
+// - when a client gets an update to an entity, we check if our "updates received" is the same as the shared world's "updates received":
+//      if it is, then process the update and increment the client's and shared world's "updates received"
+//      if not, then we simply increment our local "updates received" and do nothing else
+
+/// Store a map of entities by ID. To get an iterator over all entities, use
+/// `storage.shared.read().entities` [`WeakEntityStorage::entities`].
+///
+/// This is meant to be used with shared worlds.
 #[derive(Debug, Default)]
-pub struct EntityStorage {
+pub struct PartialEntityStorage {
     pub shared: Arc<RwLock<WeakEntityStorage>>,
 
+    /// The entity id of the player that owns this struct.
+    pub owner_entity_id: u32,
+    pub updates_received: IntMap<u32, u32>,
     /// Strong references to the entities we have loaded.
-    _data_by_id: IntMap<u32, Arc<EntityData>>,
+    data_by_id: IntMap<u32, Arc<EntityData>>,
 }
 
 /// Weakly store entities in a world. If the entities aren't being referenced
-/// by anything else (like an [`EntityStorage`]), they'll be forgotten.
+/// by anything else (like an [`PartialEntityStorage`]), they'll be forgotten.
 #[derive(Debug, Default)]
 pub struct WeakEntityStorage {
     data_by_id: IntMap<u32, Weak<EntityData>>,
+    /// An index of all the entity ids we know are in a chunk
     ids_by_chunk: HashMap<ChunkPos, IntSet<u32>>,
+    /// An index of entity ids by their UUIDs
     id_by_uuid: HashMap<Uuid, u32>,
+
+    pub updates_received: IntMap<u32, u32>,
 }
 
-impl EntityStorage {
-    pub fn new(shared: Arc<RwLock<WeakEntityStorage>>) -> Self {
+impl PartialEntityStorage {
+    pub fn new(shared: Arc<RwLock<WeakEntityStorage>>, owner_entity_id: u32) -> Self {
+        shared.write().updates_received.insert(owner_entity_id, 0);
         Self {
             shared,
-            _data_by_id: IntMap::default(),
+            owner_entity_id,
+            updates_received: IntMap::default(),
+            data_by_id: IntMap::default(),
         }
     }
 
     /// Add an entity to the storage.
     #[inline]
     pub fn insert(&mut self, id: u32, entity: EntityData) {
-        self.shared
-            .write()
+        // if the entity is already in the shared world, we don't need to do anything
+        if self.shared.read().data_by_id.contains_key(&id) {
+            return;
+        }
+
+        // add the entity to the "indexes"
+        let mut shared = self.shared.write();
+        shared
             .ids_by_chunk
             .entry(ChunkPos::from(entity.pos()))
             .or_default()
             .insert(id);
-        self.shared.write().id_by_uuid.insert(entity.uuid, id);
+        shared.id_by_uuid.insert(entity.uuid, id);
 
+        // now store the actual entity data
         let entity = Arc::new(entity);
-
-        self.shared
-            .write()
-            .data_by_id
-            .insert(id, Arc::downgrade(&entity));
-        self._data_by_id.insert(id, entity);
+        shared.data_by_id.insert(id, Arc::downgrade(&entity));
+        self.data_by_id.insert(id, entity);
+        // set our updates_received to the shared updates_received, unless it's
+        // not there in which case set both to 1
+        if let Some(&shared_updates_received) = shared.updates_received.get(&id) {
+            // 0 means we're never tracking updates for this entity
+            if shared_updates_received != 0 || id == self.owner_entity_id {
+                self.updates_received.insert(id, 1);
+            }
+        } else {
+            shared.updates_received.insert(id, 1);
+            self.updates_received.insert(id, 1);
+        }
     }
 
     /// Remove an entity from this storage by its id. It will only be removed
     /// from the shared storage if there are no other references to it.
     #[inline]
     pub fn remove_by_id(&mut self, id: u32) {
-        if let Some(entity) = self._data_by_id.remove(&id) {
+        if let Some(entity) = self.data_by_id.remove(&id) {
             let chunk = ChunkPos::from(entity.pos());
             let uuid = entity.uuid;
+            self.updates_received.remove(&id);
             drop(entity);
             // maybe remove it from the storage
             self.shared.write().remove_entity_if_unused(id, uuid, chunk);
@@ -76,7 +114,7 @@ impl EntityStorage {
     /// [`WeakEntityStorage::contains_id`].
     #[inline]
     pub fn limited_contains_id(&self, id: &u32) -> bool {
-        self._data_by_id.contains_key(id)
+        self.data_by_id.contains_key(id)
     }
 
     /// Whether the entity with the given id is in the shared storage (i.e.
@@ -91,14 +129,36 @@ impl EntityStorage {
     /// Get a reference to an entity by its id, if it's being loaded by this storage.
     #[inline]
     pub fn limited_get_by_id(&self, id: u32) -> Option<&Arc<EntityData>> {
-        self._data_by_id.get(&id)
+        self.data_by_id.get(&id)
     }
 
     /// Get a mutable reference to an entity by its id, if it's being loaded by
     /// this storage.
     #[inline]
     pub fn limited_get_mut_by_id(&mut self, id: u32) -> Option<&mut Arc<EntityData>> {
-        self._data_by_id.get_mut(&id)
+        self.data_by_id.get_mut(&id)
+    }
+
+    /// Returns whether we're allowed to update this entity (to prevent two clients in
+    /// a shared world updating it twice), and acknowleges that we WILL update
+    /// it if it's true. Don't call this unless you actually got an entity
+    /// update that all other clients within render distance will get too.
+    pub fn maybe_update(&mut self, id: u32) -> bool {
+        let this_client_updates_received = self.updates_received.get(&id).copied();
+        let shared_updates_received = self.shared.read().updates_received.get(&id).copied();
+
+        let can_update = this_client_updates_received == shared_updates_received;
+        if can_update {
+            let new_updates_received = this_client_updates_received.unwrap_or(0) + 1;
+            self.updates_received.insert(id, new_updates_received);
+            self.shared
+                .write()
+                .updates_received
+                .insert(id, new_updates_received);
+            true
+        } else {
+            false
+        }
     }
 
     /// Get an entity in the shared storage by its id, if it exists.
@@ -119,7 +179,7 @@ impl EntityStorage {
             .read()
             .id_by_uuid
             .get(uuid)
-            .and_then(|id| self._data_by_id.get(id))
+            .and_then(|id| self.data_by_id.get(id))
     }
 
     /// Get a mutable reference to an entity by its UUID, if it's being loaded
@@ -130,7 +190,7 @@ impl EntityStorage {
             .read()
             .id_by_uuid
             .get(uuid)
-            .and_then(|id| self._data_by_id.get_mut(id))
+            .and_then(|id| self.data_by_id.get_mut(id))
     }
 
     /// Get an entity in the shared storage by its UUID, if it exists.
@@ -150,7 +210,7 @@ impl EntityStorage {
     pub fn clear_chunk(&mut self, chunk: &ChunkPos) {
         if let Some(entities) = self.shared.read().ids_by_chunk.get(chunk) {
             for id in entities.iter() {
-                if let Some(entity) = self._data_by_id.remove(id) {
+                if let Some(entity) = self.data_by_id.remove(id) {
                     let uuid = entity.uuid;
                     drop(entity);
                     // maybe remove it from the storage
@@ -222,6 +282,7 @@ impl WeakEntityStorage {
             data_by_id: IntMap::default(),
             ids_by_chunk: HashMap::default(),
             id_by_uuid: HashMap::default(),
+            updates_received: IntMap::default(),
         }
     }
 
@@ -239,6 +300,12 @@ impl WeakEntityStorage {
             if self.id_by_uuid.remove(&uuid).is_none() {
                 warn!(
                     "Tried to remove entity with id {id} from uuid {uuid:?} but it was not found."
+                );
+            }
+            if self.updates_received.remove(&id).is_none() {
+                // if this happens it means we weren't tracking the updates_received for the client (bad)
+                warn!(
+                    "Tried to remove entity with id {id} from updates_received but it was not found."
                 );
             }
             true
@@ -290,7 +357,7 @@ mod tests {
 
     #[test]
     fn test_store_entity() {
-        let mut storage = EntityStorage::default();
+        let mut storage = PartialEntityStorage::default();
         assert!(storage.get_by_id(0).is_none());
 
         let uuid = Uuid::from_u128(100);

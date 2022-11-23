@@ -22,7 +22,7 @@ const SECTION_HEIGHT: u32 = 16;
 /// distance. This has support for using a shared [`WeakChunkStorage`]. If you
 /// have an infinite render distance (like a server), you should use
 /// [`ChunkStorage`] instead.
-pub struct LimitedChunkStorage {
+pub struct PartialChunkStorage {
     /// Chunk storage that can be shared by clients.
     shared: Arc<RwLock<WeakChunkStorage>>,
 
@@ -84,10 +84,10 @@ impl Default for Chunk {
     }
 }
 
-impl LimitedChunkStorage {
+impl PartialChunkStorage {
     pub fn new(chunk_radius: u32, shared: Arc<RwLock<WeakChunkStorage>>) -> Self {
         let view_range = chunk_radius * 2 + 1;
-        LimitedChunkStorage {
+        PartialChunkStorage {
             shared,
             view_center: ChunkPos::new(0, 0),
             chunk_radius,
@@ -157,7 +157,7 @@ impl LimitedChunkStorage {
     }
 
     /// Get a [`Chunk`] within render distance, or `None` if it's not loaded.
-    /// Use [`LimitedChunkStorage::get`] to get a chunk from the shared storage.
+    /// Use [`PartialChunkStorage::get`] to get a chunk from the shared storage.
     ///
     /// # Panics
     /// If the chunk is not in the render distance.
@@ -166,7 +166,7 @@ impl LimitedChunkStorage {
         &self.chunks[index]
     }
     /// Get a mutable reference to a [`Chunk`] within render distance, or
-    /// `None` if it's not loaded. Use [`LimitedChunkStorage::get`] to get
+    /// `None` if it's not loaded. Use [`PartialChunkStorage::get`] to get
     /// a chunk from the shared storage.
     ///
     /// # Panics
@@ -293,7 +293,7 @@ impl McBufWritable for Chunk {
     }
 }
 
-impl Debug for LimitedChunkStorage {
+impl Debug for PartialChunkStorage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ChunkStorage")
             .field("view_center", &self.view_center)
@@ -371,7 +371,7 @@ impl Section {
     }
 }
 
-impl Default for LimitedChunkStorage {
+impl Default for PartialChunkStorage {
     fn default() -> Self {
         Self::new(8, Arc::new(RwLock::new(WeakChunkStorage::default())))
     }
@@ -401,7 +401,7 @@ mod tests {
 
     #[test]
     fn test_out_of_bounds_y() {
-        let mut chunk_storage = LimitedChunkStorage::default();
+        let mut chunk_storage = PartialChunkStorage::default();
         chunk_storage.set(
             &ChunkPos { x: 0, z: 0 },
             Some(Arc::new(Mutex::new(Chunk::default()))),

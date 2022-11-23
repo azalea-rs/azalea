@@ -7,6 +7,8 @@
 
 #![allow(incomplete_features)]
 #![feature(trait_upcasting)]
+#![feature(error_generic_member_access)]
+#![feature(provide_any)]
 
 mod account;
 mod chat;

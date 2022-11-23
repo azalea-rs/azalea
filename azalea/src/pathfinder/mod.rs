@@ -80,7 +80,7 @@ impl Trait for azalea_client::Client {
         let successors = |node: &Node| {
             let mut edges = Vec::new();
 
-            let world = self.world.read();
+            let world = self.world.lock();
             for possible_move in possible_moves.iter() {
                 edges.push(Edge {
                     target: possible_move.next_node(node),
@@ -131,7 +131,7 @@ fn tick_execute_path(bot: &mut Client, path: &mut VecDeque<Node>) {
     }
 
     if target.is_reached(&bot.entity()) {
-        println!("ok target {target:?} reached");
+        // println!("ok target {target:?} reached");
         path.pop_front();
         if path.is_empty() {
             bot.walk(WalkDirection::None);
@@ -169,13 +169,13 @@ impl Node {
     /// Returns whether the entity is at the node and should start going to the
     /// next node.
     pub fn is_reached(&self, entity: &EntityData) -> bool {
-        println!(
-            "entity.delta.y: {} {:?}=={:?}, self.vertical_vel={:?}",
-            entity.delta.y,
-            BlockPos::from(entity.pos()),
-            self.pos,
-            self.vertical_vel
-        );
+        // println!(
+        //     "entity.delta.y: {} {:?}=={:?}, self.vertical_vel={:?}",
+        //     entity.delta.y,
+        //     BlockPos::from(entity.pos()),
+        //     self.pos,
+        //     self.vertical_vel
+        // );
         BlockPos::from(entity.pos()) == self.pos
             && match self.vertical_vel {
                 VerticalVel::NoneMidair => entity.delta.y > -0.1 && entity.delta.y < 0.1,

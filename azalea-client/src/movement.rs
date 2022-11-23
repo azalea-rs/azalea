@@ -1,3 +1,5 @@
+use std::backtrace::Backtrace;
+
 use crate::Client;
 use azalea_core::Vec3;
 use azalea_physics::collision::{MovableEntity, MoverType};
@@ -15,7 +17,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum MovePlayerError {
     #[error("Player is not in world")]
-    PlayerNotInWorld,
+    PlayerNotInWorld(Backtrace),
     #[error("{0}")]
     Io(#[from] std::io::Error),
 }
@@ -23,7 +25,9 @@ pub enum MovePlayerError {
 impl From<MoveEntityError> for MovePlayerError {
     fn from(err: MoveEntityError) -> Self {
         match err {
-            MoveEntityError::EntityDoesNotExist => MovePlayerError::PlayerNotInWorld,
+            MoveEntityError::EntityDoesNotExist(backtrace) => {
+                MovePlayerError::PlayerNotInWorld(backtrace)
+            }
         }
     }
 }
@@ -152,9 +156,9 @@ impl Client {
     }
 
     // Set our current position to the provided Vec3, potentially clipping through blocks.
-    pub async fn set_pos(&mut self, new_pos: Vec3) -> Result<(), MovePlayerError> {
+    pub async fn set_position(&mut self, new_pos: Vec3) -> Result<(), MovePlayerError> {
         let player_entity_id = *self.entity_id.read();
-        let mut world_lock = self.world.write();
+        let mut world_lock = self.world.lock();
 
         world_lock.set_entity_pos(player_entity_id, new_pos)?;
 
@@ -162,12 +166,12 @@ impl Client {
     }
 
     pub async fn move_entity(&mut self, movement: &Vec3) -> Result<(), MovePlayerError> {
-        let mut world_lock = self.world.write();
+        let mut world_lock = self.world.lock();
         let player_entity_id = *self.entity_id.read();
 
         let mut entity = world_lock
             .entity_mut(player_entity_id)
-            .ok_or(MovePlayerError::PlayerNotInWorld)?;
+            .ok_or(MovePlayerError::PlayerNotInWorld(Backtrace::capture()))?;
         log::trace!(
             "move entity bounding box: {} {:?}",
             entity.id,

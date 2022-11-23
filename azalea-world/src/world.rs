@@ -1,13 +1,18 @@
 use crate::{
     entity::{Entity, EntityData},
-    Chunk, EntityStorage, LimitedChunkStorage, MoveEntityError, WeakChunkStorage,
+    Chunk, MoveEntityError, PartialChunkStorage, PartialEntityStorage, WeakChunkStorage,
     WeakEntityStorage,
 };
 use azalea_block::BlockState;
 use azalea_buf::BufReadError;
 use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
+use log::warn;
 use parking_lot::{Mutex, RwLock};
-use std::fmt::Debug;
+use std::{
+    backtrace::Backtrace,
+    fmt::Debug,
+    time::{Duration, Instant},
+};
 use std::{fmt::Formatter, io::Cursor, sync::Arc};
 use uuid::Uuid;
 
@@ -18,8 +23,8 @@ pub struct World {
     // dropped, we don't need to do anything with it
     _shared: Arc<WeakWorld>,
 
-    pub chunk_storage: LimitedChunkStorage,
-    pub entity_storage: EntityStorage,
+    pub chunk_storage: PartialChunkStorage,
+    pub entity_storage: PartialEntityStorage,
 }
 
 /// A world where the chunks are stored as weak pointers. This is used for shared worlds.
@@ -30,11 +35,14 @@ pub struct WeakWorld {
 }
 
 impl World {
-    pub fn new(chunk_radius: u32, shared: Arc<WeakWorld>) -> Self {
+    pub fn new(chunk_radius: u32, shared: Arc<WeakWorld>, owner_entity_id: u32) -> Self {
         World {
             _shared: shared.clone(),
-            chunk_storage: LimitedChunkStorage::new(chunk_radius, shared.chunk_storage.clone()),
-            entity_storage: EntityStorage::new(shared.entity_storage.clone()),
+            chunk_storage: PartialChunkStorage::new(chunk_radius, shared.chunk_storage.clone()),
+            entity_storage: PartialEntityStorage::new(
+                shared.entity_storage.clone(),
+                owner_entity_id,
+            ),
         }
     }
 
@@ -69,18 +77,30 @@ impl World {
     }
 
     pub fn set_entity_pos(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), MoveEntityError> {
-        let mut entity = self
-            .entity_mut(entity_id)
-            .ok_or(MoveEntityError::EntityDoesNotExist)?;
+        let a_start = Instant::now();
+        let mut entity = self.entity_mut(entity_id).ok_or_else(|| {
+            warn!("!!! a_elapsed: {:?}", a_start.elapsed());
+            MoveEntityError::EntityDoesNotExist(Backtrace::capture())
+        })?;
+        let a_elapsed = a_start.elapsed();
 
+        let b_start = Instant::now();
         let old_chunk = ChunkPos::from(entity.pos());
         let new_chunk = ChunkPos::from(&new_pos);
         // this is fine because we update the chunk below
         unsafe { entity.move_unchecked(new_pos) };
+        let b_elapsed = b_start.elapsed();
+        let c_start = Instant::now();
         if old_chunk != new_chunk {
             self.entity_storage
                 .update_entity_chunk(entity_id, &old_chunk, &new_chunk);
         }
+        let c_elapsed = c_start.elapsed();
+
+        warn!(
+            "!!! a_elapsed: {:?}, b_elapsed: {:?}, c_elapsed: {:?}",
+            a_elapsed, b_elapsed, c_elapsed
+        );
         Ok(())
     }
 
@@ -89,9 +109,15 @@ impl World {
         entity_id: u32,
         delta: &PositionDelta8,
     ) -> Result<(), MoveEntityError> {
+        let owner_entity_id = self.entity_storage.owner_entity_id;
         let mut entity = self
             .entity_mut(entity_id)
-            .ok_or(MoveEntityError::EntityDoesNotExist)?;
+            .ok_or_else(|| MoveEntityError::EntityDoesNotExist(Backtrace::capture()))?;
+        if entity_id == owner_entity_id {
+            println!("moving entity {} (self)", entity_id);
+        } else {
+            println!("moving entity {}", entity_id);
+        }
         let new_pos = entity.pos().with_delta(delta);
 
         let old_chunk = ChunkPos::from(entity.pos());
@@ -128,7 +154,13 @@ impl World {
         Some(Entity::new(self, id, entity_ptr))
     }
 
+    /// Returns a mutable reference to the entity with the given ID.
     pub fn entity_mut(&mut self, id: u32) -> Option<Entity<'_, &mut World>> {
+        // no entity for you (we're processing this entity somewhere else)
+        if id != self.entity_storage.owner_entity_id && !self.entity_storage.maybe_update(id) {
+            return None;
+        }
+
         let entity_data = self.entity_storage.get_by_id(id)?;
         let entity_ptr = unsafe { entity_data.as_ptr() };
         Some(Entity::new(self, id, entity_ptr))

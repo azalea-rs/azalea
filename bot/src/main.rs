@@ -1,5 +1,5 @@
 use azalea::pathfinder::BlockPosGoal;
-use azalea::{prelude::*, BlockPos, Swarm, SwarmEvent};
+use azalea::{prelude::*, BlockPos, Swarm, SwarmEvent, WalkDirection};
 use azalea::{Account, Client, Event};
 use azalea_protocol::packets::game::serverbound_client_command_packet::ServerboundClientCommandPacket;
 use std::time::Duration;
@@ -69,7 +69,7 @@ async fn main() -> anyhow::Result<()> {
     }
 }
 
-async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
+async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
     match event {
         Event::Login => {
             bot.chat("Hello world").await?;
@@ -80,17 +80,28 @@ async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> 
                 tokio::time::sleep(Duration::from_millis(50)).await;
                 bot.disconnect().await?;
             }
-            if m.message().to_string() == "<py5> goto" {
-                let entity = bot
-                    .world
-                    .read()
-                    .entity_by_uuid(&uuid::uuid!("6536bfed-8695-48fd-83a1-ecd24cf2a0fd"));
-                println!("entity: {:?}", entity);
-                if let Some(entity) = entity {
+            let entity = bot
+                .world
+                .lock()
+                .entity_by_uuid(&uuid::uuid!("6536bfed-8695-48fd-83a1-ecd24cf2a0fd"));
+            if let Some(entity) = entity {
+                if m.content() == "goto" {
                     let target_pos_vec3 = entity.pos();
                     let target_pos: BlockPos = target_pos_vec3.into();
                     println!("target_pos: {:?}", target_pos);
                     bot.goto(BlockPosGoal::from(target_pos));
+                } else if m.content() == "look" {
+                    let target_pos_vec3 = entity.pos();
+                    let target_pos: BlockPos = target_pos_vec3.into();
+                    println!("target_pos: {:?}", target_pos);
+                    bot.look_at(&target_pos.center());
+                } else if m.content() == "jump" {
+                    bot.set_jumping(true);
+                } else if m.content() == "walk" {
+                    bot.walk(WalkDirection::Forward);
+                } else if m.content() == "stop" {
+                    bot.set_jumping(false);
+                    bot.walk(WalkDirection::None);
                 }
             }
         }
@@ -122,7 +133,6 @@ async fn swarm_handle(
         SwarmEvent::Chat(m) => {
             println!("swarm chat message: {}", m.message().to_ansi(None));
             if m.message().to_string() == "<py5> world" {
-                let worlds = swarm.worlds.read();
                 for (name, world) in &swarm.worlds.read().worlds {
                     println!("world name: {}", name);
                     if let Some(w) = world.upgrade() {
