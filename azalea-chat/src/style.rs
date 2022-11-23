@@ -306,44 +306,46 @@ impl Serialize for Style {
     where
         S: Serializer,
     {
-        let mut state = serializer.serialize_struct("Style", 6)?;
+        let len = if self.reset {
+            6
+        } else {
+            0 + if self.color.is_some() { 1 } else { 0 }
+                + if self.bold.is_some() { 1 } else { 0 }
+                + if self.italic.is_some() { 1 } else { 0 }
+                + if self.underlined.is_some() { 1 } else { 0 }
+                + if self.strikethrough.is_some() { 1 } else { 0 }
+                + if self.obfuscated.is_some() { 1 } else { 0 }
+        };
+        let mut state = serializer.serialize_struct("Style", len)?;
         if self.color.is_some() {
             state.serialize_field("color", &self.color)?;
+        } else if self.reset {
+            state.serialize_field("color", "white")?;
         }
         if self.bold.is_some() {
             state.serialize_field("bold", &self.bold)?;
+        } else if self.reset {
+            state.serialize_field("bold", &false)?;
         }
         if self.italic.is_some() {
             state.serialize_field("italic", &self.italic)?;
+        } else if self.reset {
+            state.serialize_field("italic", &false)?;
         }
         if self.underlined.is_some() {
             state.serialize_field("underlined", &self.underlined)?;
+        } else if self.reset {
+            state.serialize_field("underlined", &false)?;
         }
         if self.strikethrough.is_some() {
             state.serialize_field("strikethrough", &self.strikethrough)?;
+        } else if self.reset {
+            state.serialize_field("strikethrough", &false)?;
         }
         if self.obfuscated.is_some() {
             state.serialize_field("obfuscated", &self.obfuscated)?;
-        }
-        if self.reset {
-            if self.color.is_none() {
-                state.serialize_field("color", "white")?;
-            }
-            if self.bold.is_none() {
-                state.serialize_field("bold", &false)?;
-            }
-            if self.italic.is_none() {
-                state.serialize_field("italic", &false)?;
-            }
-            if self.underlined.is_none() {
-                state.serialize_field("underlined", &false)?;
-            }
-            if self.strikethrough.is_none() {
-                state.serialize_field("strikethrough", &false)?;
-            }
-            if self.obfuscated.is_none() {
-                state.serialize_field("obfuscated", &false)?;
-            }
+        } else if self.reset {
+            state.serialize_field("obfuscated", &false)?;
         }
         state.end()
     }
