@@ -77,31 +77,17 @@ impl World {
     }
 
     pub fn set_entity_pos(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), MoveEntityError> {
-        info!("b");
-        let a_start = Instant::now();
-        let mut entity = self.entity_mut(entity_id).ok_or_else(|| {
-            warn!("!!! a_elapsed: {:?}", a_start.elapsed());
-            MoveEntityError::EntityDoesNotExist(Backtrace::capture())
-        })?;
-        let a_elapsed = a_start.elapsed();
-
-        let b_start = Instant::now();
+        let mut entity = self
+            .entity_mut(entity_id)
+            .ok_or_else(|| MoveEntityError::EntityDoesNotExist(Backtrace::capture()))?;
         let old_chunk = ChunkPos::from(entity.pos());
         let new_chunk = ChunkPos::from(&new_pos);
         // this is fine because we update the chunk below
         unsafe { entity.move_unchecked(new_pos) };
-        let b_elapsed = b_start.elapsed();
-        let c_start = Instant::now();
         if old_chunk != new_chunk {
             self.entity_storage
                 .update_entity_chunk(entity_id, &old_chunk, &new_chunk);
         }
-        let c_elapsed = c_start.elapsed();
-
-        warn!(
-            "!!! a_elapsed: {:?}, b_elapsed: {:?}, c_elapsed: {:?}",
-            a_elapsed, b_elapsed, c_elapsed
-        );
         Ok(())
     }
 
@@ -110,15 +96,9 @@ impl World {
         entity_id: u32,
         delta: &PositionDelta8,
     ) -> Result<(), MoveEntityError> {
-        let owner_entity_id = self.entity_storage.owner_entity_id;
         let mut entity = self
             .entity_mut(entity_id)
             .ok_or_else(|| MoveEntityError::EntityDoesNotExist(Backtrace::capture()))?;
-        if entity_id == owner_entity_id {
-            println!("moving entity {} (self)", entity_id);
-        } else {
-            println!("moving entity {}", entity_id);
-        }
         let new_pos = entity.pos().with_delta(delta);
 
         let old_chunk = ChunkPos::from(entity.pos());

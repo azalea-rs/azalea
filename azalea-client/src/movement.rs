@@ -12,6 +12,7 @@ use azalea_protocol::packets::game::{
     serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
 };
 use azalea_world::MoveEntityError;
+use log::info;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -35,7 +36,6 @@ impl From<MoveEntityError> for MovePlayerError {
 impl Client {
     /// This gets called automatically every tick.
     pub(crate) async fn send_position(&mut self) -> Result<(), MovePlayerError> {
-        info!("{} send position", self.profile.name);
         let packet = {
             self.send_sprinting_if_needed().await?;
             // TODO: the camera being able to be controlled by other entities isn't implemented yet

@@ -843,11 +843,7 @@ impl Client {
                 debug!("Got set experience packet {:?}", p);
             }
             ClientboundGamePacket::TeleportEntity(p) => {
-                let a_start = Instant::now();
                 let mut world_lock = client.world.write();
-                let a_elapsed = a_start.elapsed();
-                let b_start = Instant::now();
-                info!("a");
                 let _ = world_lock.set_entity_pos(
                     p.id,
                     Vec3 {
@@ -856,14 +852,6 @@ impl Client {
                         z: p.z,
                     },
                 );
-                let b_elapsed = b_start.elapsed();
-
-                if a_start.elapsed() > Duration::from_millis(1) {
-                    warn!(
-                        "Set entity pos took too long: {:?} {:?}",
-                        a_elapsed, b_elapsed
-                    );
-                }
             }
             ClientboundGamePacket::UpdateAdvancements(p) => {
                 debug!("Got update advancements packet {:?}", p);
@@ -1022,34 +1010,18 @@ impl Client {
         game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
         loop {
             game_tick_interval.tick().await;
-            let start = Instant::now();
             Self::game_tick(&mut client, &tx).await;
-            let elapsed = start.elapsed();
-            if elapsed > time::Duration::from_millis(50) {
-                warn!("Game tick took too long: {:?}", elapsed);
-            }
         }
     }
 
     /// Runs every 50 milliseconds.
     async fn game_tick(client: &mut Client, tx: &UnboundedSender<Event>) {
         // return if there's no chunk at the player's position
-        let game_tick_start = Instant::now();
 
         {
-            let a_start = Instant::now();
             let world_lock = client.world.read();
-            let a_elapsed = a_start.elapsed();
-
-            let b_start = Instant::now();
             let player_entity_id = *client.entity_id.read();
-            let b_elapsed = b_start.elapsed();
-
-            let c_start = Instant::now();
             let player_entity = world_lock.entity(player_entity_id);
-            let c_elapsed = c_start.elapsed();
-
-            let d_start = Instant::now();
             let Some(player_entity) = player_entity else {
                 return;
             };
@@ -1057,40 +1029,16 @@ impl Client {
             if world_lock.get_chunk(&player_chunk_pos).is_none() {
                 return;
             }
-            let d_elapsed = d_start.elapsed();
-
-            if a_start.elapsed() > time::Duration::from_millis(20) {
-                warn!("a_elapsed: {:?}", a_elapsed);
-                warn!("b_elapsed: {:?}", b_elapsed);
-                warn!("c_elapsed: {:?}", c_elapsed);
-                warn!("d_elapsed: {:?}", d_elapsed);
-            }
         }
-        let check_chunk_elapsed = game_tick_start.elapsed();
 
         tx.send(Event::Tick).unwrap();
 
         // TODO: if we're a passenger, send the required packets
 
-        let send_position_start = Instant::now();
         if let Err(e) = client.send_position().await {
             warn!("Error sending position: {:?}", e);
         }
-        let send_position_elapsed = send_position_start.elapsed();
-        let ai_step_start = Instant::now();
         client.ai_step();
-        let ai_step_elapsed = ai_step_start.elapsed();
-
-        let game_tick_elapsed = game_tick_start.elapsed();
-        if game_tick_elapsed > time::Duration::from_millis(50) {
-            warn!(
-                "(internal) game tick took too long: {:?}",
-                game_tick_elapsed
-            );
-            warn!("check_chunk_elapsed: {:?}", check_chunk_elapsed);
-            warn!("send_position_elapsed: {:?}", send_position_elapsed);
-            warn!("ai_step_elapsed: {:?}", ai_step_elapsed);
-        }
 
         // TODO: minecraft does ambient sounds here
     }

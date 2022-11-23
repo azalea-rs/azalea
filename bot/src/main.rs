@@ -42,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
     let mut accounts = Vec::new();
     let mut states = Vec::new();
 
-    for i in 0..5 {
+    for i in 0..1 {
         accounts.push(Account::offline(&format!("bot{}", i)));
         states.push(State::default());
     }
@@ -82,13 +82,12 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
             }
             let entity = bot
                 .world
-                .lock()
+                .read()
                 .entity_by_uuid(&uuid::uuid!("6536bfed-8695-48fd-83a1-ecd24cf2a0fd"));
             if let Some(entity) = entity {
                 if m.content() == "goto" {
                     let target_pos_vec3 = entity.pos();
                     let target_pos: BlockPos = target_pos_vec3.into();
-                    println!("target_pos: {:?}", target_pos);
                     bot.goto(BlockPosGoal::from(target_pos));
                 } else if m.content() == "look" {
                     let target_pos_vec3 = entity.pos();
@@ -102,6 +101,8 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                 } else if m.content() == "stop" {
                     bot.set_jumping(false);
                     bot.walk(WalkDirection::None);
+                } else if m.content() == "lag" {
+                    std::thread::sleep(Duration::from_millis(100));
                 }
             }
         }
