@@ -35,6 +35,7 @@ impl From<MoveEntityError> for MovePlayerError {
 impl Client {
     /// This gets called automatically every tick.
     pub(crate) async fn send_position(&mut self) -> Result<(), MovePlayerError> {
+        info!("{} send position", self.profile.name);
         let packet = {
             self.send_sprinting_if_needed().await?;
             // TODO: the camera being able to be controlled by other entities isn't implemented yet
@@ -158,7 +159,7 @@ impl Client {
     // Set our current position to the provided Vec3, potentially clipping through blocks.
     pub async fn set_position(&mut self, new_pos: Vec3) -> Result<(), MovePlayerError> {
         let player_entity_id = *self.entity_id.read();
-        let mut world_lock = self.world.lock();
+        let mut world_lock = self.world.write();
 
         world_lock.set_entity_pos(player_entity_id, new_pos)?;
 
@@ -166,7 +167,7 @@ impl Client {
     }
 
     pub async fn move_entity(&mut self, movement: &Vec3) -> Result<(), MovePlayerError> {
-        let mut world_lock = self.world.lock();
+        let mut world_lock = self.world.write();
         let player_entity_id = *self.entity_id.read();
 
         let mut entity = world_lock

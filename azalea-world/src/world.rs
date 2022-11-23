@@ -6,7 +6,7 @@ use crate::{
 use azalea_block::BlockState;
 use azalea_buf::BufReadError;
 use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
-use log::warn;
+use log::{info, warn};
 use parking_lot::{Mutex, RwLock};
 use std::{
     backtrace::Backtrace,
@@ -77,6 +77,7 @@ impl World {
     }
 
     pub fn set_entity_pos(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), MoveEntityError> {
+        info!("b");
         let a_start = Instant::now();
         let mut entity = self.entity_mut(entity_id).ok_or_else(|| {
             warn!("!!! a_elapsed: {:?}", a_start.elapsed());

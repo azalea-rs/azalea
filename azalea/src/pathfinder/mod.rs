@@ -80,7 +80,7 @@ impl Trait for azalea_client::Client {
         let successors = |node: &Node| {
             let mut edges = Vec::new();
 
-            let world = self.world.lock();
+            let world = self.world.read();
             for possible_move in possible_moves.iter() {
                 edges.push(Edge {
                     target: possible_move.next_node(node),

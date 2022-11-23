@@ -35,7 +35,7 @@ use azalea_world::{
     WeakWorld, WeakWorldContainer, World,
 };
 use log::{debug, error, info, trace, warn};
-use parking_lot::{Mutex, MutexGuard, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use parking_lot::{Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::time::Duration;
 use std::{
     collections::HashMap,
@@ -108,7 +108,7 @@ pub struct Client {
     pub write_conn: Arc<tokio::sync::Mutex<WriteConnection<ServerboundGamePacket>>>,
     pub entity_id: Arc<RwLock<u32>>,
     /// The world that this client has access to. This supports shared worlds.
-    pub world: Arc<Mutex<World>>,
+    pub world: Arc<RwLock<World>>,
     /// A container of world names to worlds. If we're not using a shared world
     /// (i.e. not a swarm), then this will only contain data about the world
     /// we're currently in.
@@ -190,7 +190,7 @@ impl Client {
             write_conn,
             // default our id to 0, it'll be set later
             entity_id: Arc::new(RwLock::new(0)),
-            world: Arc::new(Mutex::new(World::default())),
+            world: Arc::new(RwLock::new(World::default())),
             world_container: world_container
                 .unwrap_or_else(|| Arc::new(RwLock::new(WeakWorldContainer::new()))),
             world_name: Arc::new(RwLock::new(None)),
@@ -491,7 +491,7 @@ impl Client {
                             .insert(p.dimension.clone(), height, min_y);
                     // set the loaded_world to an empty world
                     // (when we add chunks or entities those will be in the world_container)
-                    let mut world_lock = client.world.lock();
+                    let mut world_lock = client.world.write();
                     *world_lock = World::new(
                         client.client_information.read().view_distance.into(),
                         weak_world,
@@ -573,7 +573,7 @@ impl Client {
                 let (new_pos, y_rot, x_rot) = {
                     let player_entity_id = *client.entity_id.read();
 
-                    let mut world_lock = client.world.lock();
+                    let mut world_lock = client.world.write();
 
                     let mut player_entity = world_lock.entity_mut(player_entity_id).unwrap();
 
@@ -749,7 +749,7 @@ impl Client {
                 debug!("Got chunk cache center packet {:?}", p);
                 client
                     .world
-                    .lock()
+                    .write()
                     .update_view_center(&ChunkPos::new(p.x, p.z));
             }
             ClientboundGamePacket::LevelChunkWithLight(p) => {
@@ -761,10 +761,10 @@ impl Client {
                 // parse it again. This is only used when we have a shared
                 // world, since we check that the chunk isn't currently owned
                 // by this client.
-                let shared_has_chunk = client.world.lock().get_chunk(&pos).is_some();
+                let shared_has_chunk = client.world.read().get_chunk(&pos).is_some();
                 let this_client_has_chunk = client
                     .world
-                    .lock()
+                    .read()
                     .chunk_storage
                     .limited_get(&pos)
                     .is_some();
@@ -780,7 +780,7 @@ impl Client {
                 // debug("chunk {:?}")
                 if let Err(e) = client
                     .world
-                    .lock()
+                    .write()
                     .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data))
                 {
                     error!("Couldn't set chunk data: {}", e);
@@ -792,11 +792,11 @@ impl Client {
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {:?}", p);
                 let entity = EntityData::from(p);
-                client.world.lock().add_entity(p.id, entity);
+                client.world.write().add_entity(p.id, entity);
             }
             ClientboundGamePacket::SetEntityData(p) => {
                 debug!("Got set entity data packet {:?}", p);
-                let mut world = client.world.lock();
+                let mut world = client.world.write();
                 if let Some(mut entity) = world.entity_mut(p.id) {
                     entity.apply_metadata(&p.packed_items.0);
                 } else {
@@ -815,7 +815,7 @@ impl Client {
             ClientboundGamePacket::AddPlayer(p) => {
                 debug!("Got add player packet {:?}", p);
                 let entity = EntityData::from(p);
-                client.world.lock().add_entity(p.id, entity);
+                client.world.write().add_entity(p.id, entity);
             }
             ClientboundGamePacket::InitializeBorder(p) => {
                 debug!("Got initialize border packet {:?}", p);
@@ -844,9 +844,10 @@ impl Client {
             }
             ClientboundGamePacket::TeleportEntity(p) => {
                 let a_start = Instant::now();
-                let mut world_lock = client.world.lock();
+                let mut world_lock = client.world.write();
                 let a_elapsed = a_start.elapsed();
                 let b_start = Instant::now();
+                info!("a");
                 let _ = world_lock.set_entity_pos(
                     p.id,
                     Vec3 {
@@ -871,12 +872,12 @@ impl Client {
                 // debug!("Got rotate head packet {:?}", p);
             }
             ClientboundGamePacket::MoveEntityPos(p) => {
-                let mut world_lock = client.world.lock();
+                let mut world_lock = client.world.write();
 
                 let _ = world_lock.move_entity_with_delta(p.entity_id, &p.delta);
             }
             ClientboundGamePacket::MoveEntityPosRot(p) => {
-                let mut world_lock = client.world.lock();
+                let mut world_lock = client.world.write();
 
                 let _ = world_lock.move_entity_with_delta(p.entity_id, &p.delta);
             }
@@ -909,7 +910,7 @@ impl Client {
             }
             ClientboundGamePacket::BlockUpdate(p) => {
                 debug!("Got block update packet {:?}", p);
-                let mut world = client.world.lock();
+                let mut world = client.world.write();
                 world.set_block_state(&p.pos, p.block_state);
             }
             ClientboundGamePacket::Animate(p) => {
@@ -917,7 +918,7 @@ impl Client {
             }
             ClientboundGamePacket::SectionBlocksUpdate(p) => {
                 debug!("Got section blocks update packet {:?}", p);
-                let mut world = client.world.lock();
+                let mut world = client.world.write();
                 for state in &p.states {
                     world.set_block_state(&(p.section_pos + state.pos.clone()), state.state);
                 }
@@ -1037,7 +1038,7 @@ impl Client {
 
         {
             let a_start = Instant::now();
-            let world_lock = client.world.lock();
+            let world_lock = client.world.read();
             let a_elapsed = a_start.elapsed();
 
             let b_start = Instant::now();
@@ -1114,10 +1115,10 @@ impl Client {
     }
 
     /// Returns the entity associated to the player.
-    pub fn entity_mut(&self) -> Entity<MutexGuard<World>> {
+    pub fn entity_mut(&self) -> Entity<RwLockWriteGuard<World>> {
         let entity_id = *self.entity_id.read();
 
-        let world = self.world.lock();
+        let world = self.world.write();
 
         let entity_data = world
             .entity_storage
@@ -1127,9 +1128,9 @@ impl Client {
         Entity::new(world, entity_id, entity_ptr)
     }
     /// Returns the entity associated to the player.
-    pub fn entity(&self) -> Entity<MutexGuard<World>> {
+    pub fn entity(&self) -> Entity<RwLockReadGuard<World>> {
         let entity_id = *self.entity_id.read();
-        let world = self.world.lock();
+        let world = self.world.read();
 
         let entity_data = world
             .entity_storage
