@@ -1,6 +1,7 @@
 use azalea::pathfinder::BlockPosGoal;
 use azalea::{prelude::*, BlockPos, Swarm, SwarmEvent};
 use azalea::{Account, Client, Event};
+use azalea_protocol::packets::game::serverbound_client_command_packet::ServerboundClientCommandPacket;
 use std::time::Duration;
 
 #[derive(Default, Clone)]
@@ -96,6 +97,11 @@ async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> 
         Event::Initialize => {
             println!("initialized");
         }
+        Event::Death(_) => {
+            bot.write_packet(ServerboundClientCommandPacket {
+                action: azalea_protocol::packets::game::serverbound_client_command_packet::Action::PerformRespawn,
+            }.get()).await?;
+        }
         _ => {}
     }
 
@@ -115,6 +121,19 @@ async fn swarm_handle(
         }
         SwarmEvent::Chat(m) => {
             println!("swarm chat message: {}", m.message().to_ansi(None));
+            if m.message().to_string() == "<py5> world" {
+                let worlds = swarm.worlds.read();
+                for (name, world) in &swarm.worlds.read().worlds {
+                    println!("world name: {}", name);
+                    if let Some(w) = world.upgrade() {
+                        for chunk_pos in w.chunk_storage.read().chunks.values() {
+                            println!("chunk: {:?}", chunk_pos);
+                        }
+                    } else {
+                        println!("nvm world is gone");
+                    }
+                }
+            }
         }
         _ => {}
     }

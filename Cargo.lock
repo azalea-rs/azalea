@@ -406,6 +406,7 @@ version = "0.2.0"
 dependencies = [
  "anyhow",
  "azalea",
+ "azalea-protocol",
  "env_logger",
  "parking_lot",
  "rand",

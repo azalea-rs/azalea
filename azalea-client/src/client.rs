@@ -34,7 +34,7 @@ use azalea_world::{
     entity::{metadata, Entity, EntityData, EntityMetadata},
     WeakWorld, WeakWorldContainer, World,
 };
-use log::{debug, error, info, warn};
+use log::{debug, error, info, trace, warn};
 use parking_lot::{Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::{
     collections::HashMap,
@@ -751,8 +751,29 @@ impl Client {
                     .update_view_center(&ChunkPos::new(p.x, p.z));
             }
             ClientboundGamePacket::LevelChunkWithLight(p) => {
-                debug!("Got chunk with light packet {} {}", p.x, p.z);
+                // warn!("Got chunk with light packet {} {}", p.x, p.z);
                 let pos = ChunkPos::new(p.x, p.z);
+
+                // OPTIMIZATION: if we already know about the chunk from the
+                // shared world (and not ourselves), then we don't need to
+                // parse it again. This is only used when we have a shared
+                // world, since we check that the chunk isn't currently owned
+                // by this client.
+                let shared_has_chunk = client.world.read().get_chunk(&pos).is_some();
+                let this_client_has_chunk = client
+                    .world
+                    .read()
+                    .chunk_storage
+                    .limited_get(&pos)
+                    .is_some();
+                if shared_has_chunk && !this_client_has_chunk {
+                    trace!(
+                        "Skipping parsing chunk {:?} because we already know about it",
+                        pos
+                    );
+                    return Ok(());
+                }
+
                 // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
                 // debug("chunk {:?}")
                 if let Err(e) = client

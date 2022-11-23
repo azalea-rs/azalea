@@ -1,4 +1,4 @@
-use crate::WeakWorld;
+use crate::{WeakWorld, World};
 use azalea_core::ResourceLocation;
 use log::error;
 use std::{

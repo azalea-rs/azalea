@@ -15,7 +15,7 @@ use log::error;
 use parking_lot::{Mutex, RwLock};
 use std::{future::Future, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
-use tokio::sync::mpsc::{self,  UnboundedSender};
+use tokio::sync::mpsc::{self, UnboundedSender};
 
 /// A helper macro that generates a [`Plugins`] struct from a list of objects
 /// that implement [`Plugin`].
@@ -47,7 +47,7 @@ pub struct Swarm<S> {
 
     resolved_address: SocketAddr,
     address: ServerAddress,
-    world_container: Arc<RwLock<WeakWorldContainer>>,
+    pub worlds: Arc<RwLock<WeakWorldContainer>>,
     /// Plugins that are set for new bots
     plugins: Plugins,
 
@@ -161,7 +161,7 @@ pub async fn start_swarm<
 
         resolved_address,
         address,
-        world_container,
+        worlds: world_container,
         plugins,
 
         bots_tx,
@@ -265,7 +265,7 @@ where
         // tx is moved to the bot so it can send us events
         // rx is used to receive events from the bot
         let (tx, mut rx) = mpsc::unbounded_channel();
-        let mut bot = Client::new(game_profile, conn, Some(self.world_container.clone()));
+        let mut bot = Client::new(game_profile, conn, Some(self.worlds.clone()));
         tx.send(Event::Initialize).unwrap();
         bot.start_tasks(tx);
 

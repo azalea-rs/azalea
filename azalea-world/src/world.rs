@@ -7,12 +7,17 @@ use azalea_block::BlockState;
 use azalea_buf::BufReadError;
 use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
 use parking_lot::{Mutex, RwLock};
-use std::{io::Cursor, sync::Arc};
+use std::fmt::Debug;
+use std::{fmt::Formatter, io::Cursor, sync::Arc};
 use uuid::Uuid;
 
 /// A world is a collection of chunks and entities. They're called "levels" in Minecraft's source code.
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct World {
+    // we just need to keep a strong reference to `shared` so it doesn't get
+    // dropped, we don't need to do anything with it
+    _shared: Arc<WeakWorld>,
+
     pub chunk_storage: LimitedChunkStorage,
     pub entity_storage: EntityStorage,
 }
@@ -27,6 +32,7 @@ pub struct WeakWorld {
 impl World {
     pub fn new(chunk_radius: u32, shared: Arc<WeakWorld>) -> Self {
         World {
+            _shared: shared.clone(),
             chunk_storage: LimitedChunkStorage::new(chunk_radius, shared.chunk_storage.clone()),
             entity_storage: EntityStorage::new(shared.entity_storage.clone()),
         }
@@ -154,5 +160,14 @@ impl WeakWorld {
 
     pub fn min_y(&self) -> i32 {
         self.chunk_storage.read().min_y
+    }
+}
+
+impl Debug for World {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("World")
+            .field("chunk_storage", &self.chunk_storage)
+            .field("entity_storage", &self.entity_storage)
+            .finish()
     }
 }
