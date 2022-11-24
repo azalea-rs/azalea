@@ -103,7 +103,6 @@ for packet in added_or_changed_packets:
 
 lib.code.version.set_protocol_version(
     new_burger_data[0]['version']['protocol'])
-lib.code.version.set_version_id(new_version_id)
 
 print('Updated protocol!')
 
@@ -129,6 +128,9 @@ if old_ordered_blocks != new_ordered_blocks:
 print('Getting en_us.json...')
 language = lib.extract.get_en_us_lang(new_version_id)
 lib.code.language.write_language(language)
+
+print('Finishing touches, setting version in README and formatting code...')
+lib.code.version.set_version_id(new_version_id)
 
 
 lib.code.utils.fmt()

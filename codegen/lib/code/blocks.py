@@ -174,22 +174,45 @@ def get_property_struct_name(property: Optional[dict], block_data_burger: dict, 
         return 'TopBottom'
     if property_variants == ['north_south', 'east_west', 'ascending_east', 'ascending_west', 'ascending_north', 'ascending_south']:
         return 'RailShape'
+    if property_variants == ['north_south', 'east_west', 'ascending_east', 'ascending_west', 'ascending_north', 'ascending_south', 'south_east', 'south_west', 'north_west', 'north_east']:
+        return 'BendableRailShape'
     if property_variants == ['straight', 'inner_left', 'inner_right', 'outer_left', 'outer_right']:
         return 'StairShape'
     if property_variants == ['normal', 'sticky']:
         return 'PistonType'
+    if property_variants == ['none', 'low', 'tall']:
+        return 'WallShape'
     if property_variants == ['x', 'z']:
         return 'AxisXZ'
+    if property_variants == ['x', 'y', 'z']:
+        return 'AxisXYZ'
     if property_variants == ['single', 'left', 'right']:
         return 'ChestType'
     if property_variants == ['compare', 'subtract']:
         return 'ComparatorType'
+    if property_variants == ['head', 'foot']:
+        return 'BedPart'
+    if property_variants == ['upper', 'lower']:
+        return 'DoorHalf'
+    if property_variants == ['left', 'right']:
+        return 'LeftRight'
+    if 'harp' in property_variants and 'didgeridoo' in property_variants:
+        return 'Sound'
 
     if property is None:
         return ''.join(map(to_camel_case, property_variants))
 
-    property_name = mappings.get_field(
-        property['declared_in'], property['field_name'])
+    for class_name in [block_data_burger['class']] + block_data_burger['super']:
+        property_name = mappings.get_field(
+            class_name, property['field_name'])
+        if property_name:
+            break
+    if property_name is None:
+        if 'declared_in' in property:
+            property_name = mappings.get_field(
+                property['declared_in'], property['field_name'])
+    if property_name is None:
+        property_name = property['name']
     assert property_name
     property_name = to_camel_case(property_name.lower())
     if property['type'] == 'int':

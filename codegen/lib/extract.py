@@ -233,8 +233,8 @@ def get_pixlyzer_data(version_id: str, category: str):
             target_dir
         )
 
-        with open(f'{target_dir}/{category}.min.json', 'r') as f:
-            return json.load(f)
+    with open(f'{target_dir}/{category}.min.json', 'r') as f:
+        return json.load(f)
 
 
 def get_file_from_jar(version_id: str, file_dir: str):
