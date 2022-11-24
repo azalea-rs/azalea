@@ -6,7 +6,7 @@ use crate::{Client, Event};
 use async_trait::async_trait;
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_world::entity::EntityData;
-use log::{debug, info};
+use log::{debug, };
 use mtdstarlite::Edge;
 pub use mtdstarlite::MTDStarLite;
 use parking_lot::Mutex;

@@ -15,7 +15,6 @@ async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
     {
-        // only for #[cfg]
         use parking_lot::deadlock;
         use std::thread;
         use std::time::Duration;
@@ -42,7 +41,7 @@ async fn main() -> anyhow::Result<()> {
     let mut accounts = Vec::new();
     let mut states = Vec::new();
 
-    for i in 0..1 {
+    for i in 0..5 {
         accounts.push(Account::offline(&format!("bot{}", i)));
         states.push(State::default());
     }

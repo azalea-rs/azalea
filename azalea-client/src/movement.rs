@@ -12,7 +12,6 @@ use azalea_protocol::packets::game::{
     serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
 };
 use azalea_world::MoveEntityError;
-use log::info;
 use thiserror::Error;
 
 #[derive(Error, Debug)]

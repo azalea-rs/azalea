@@ -6,13 +6,8 @@ use crate::{
 use azalea_block::BlockState;
 use azalea_buf::BufReadError;
 use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
-use log::{info, warn};
 use parking_lot::{Mutex, RwLock};
-use std::{
-    backtrace::Backtrace,
-    fmt::Debug,
-    time::{Duration, Instant},
-};
+use std::{backtrace::Backtrace, fmt::Debug};
 use std::{fmt::Formatter, io::Cursor, sync::Arc};
 use uuid::Uuid;
 

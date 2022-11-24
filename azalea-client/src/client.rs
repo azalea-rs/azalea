@@ -36,17 +36,15 @@ use azalea_world::{
 };
 use log::{debug, error, info, trace, warn};
 use parking_lot::{Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
-use std::time::Duration;
 use std::{
     collections::HashMap,
     fmt::Debug,
     io::{self, Cursor},
     sync::Arc,
-    time::Instant,
 };
 use thiserror::Error;
 use tokio::{
-    sync::mpsc::{self, Receiver, Sender, UnboundedReceiver, UnboundedSender},
+    sync::mpsc::{self, Receiver, Sender},
     task::JoinHandle,
     time::{self},
 };
@@ -244,7 +242,9 @@ impl Client {
         // we got the GameConnection, so the server is now connected :)
         let client = Client::new(game_profile, conn, None);
 
-        tx.send(Event::Initialize).await;
+        tx.send(Event::Initialize)
+            .await
+            .expect("Failed to send event");
 
         // just start up the game loop and we're ready!
 
@@ -422,7 +422,7 @@ impl Client {
         client: &Client,
         tx: &Sender<Event>,
     ) -> Result<(), HandleError> {
-        tx.send(Event::Packet(Box::new(packet.clone()))).await;
+        tx.send(Event::Packet(Box::new(packet.clone()))).await?;
         match packet {
             ClientboundGamePacket::Login(p) => {
                 debug!("Got login packet");
@@ -535,7 +535,7 @@ impl Client {
                     )
                     .await?;
 
-                tx.send(Event::Login).await;
+                tx.send(Event::Login).await?;
             }
             ClientboundGamePacket::SetChunkCacheRadius(p) => {
                 debug!("Got set chunk cache radius packet {:?}", p);
@@ -686,7 +686,7 @@ impl Client {
                         }
                         Action::UpdateGameMode(players) => {
                             for player in players {
-                                if let Some(p) = client.players.write().get_mut(&player.uuid) {
+                                if let Some(p) = players_lock.get_mut(&player.uuid) {
                                     p.gamemode = player.gamemode;
                                     events.push(Event::UpdatePlayers(
                                         UpdatePlayersEvent::GameMode {
@@ -755,7 +755,7 @@ impl Client {
                     }
                 }
                 for event in events {
-                    tx.send(event).await;
+                    tx.send(event).await?;
                 }
             }
             ClientboundGamePacket::SetChunkCacheCenter(p) => {
@@ -834,7 +834,7 @@ impl Client {
                 debug!("Got initialize border packet {:?}", p);
             }
             ClientboundGamePacket::SetTime(p) => {
-                // debug!("Got set time packet {:?}", p);
+                debug!("Got set time packet {:?}", p);
             }
             ClientboundGamePacket::SetDefaultSpawnPosition(p) => {
                 debug!("Got set default spawn position packet {:?}", p);
@@ -898,13 +898,13 @@ impl Client {
             ClientboundGamePacket::PlayerChat(p) => {
                 debug!("Got player chat packet {:?}", p);
                 tx.send(Event::Chat(ChatPacket::Player(Box::new(p.clone()))))
-                    .await;
+                    .await?;
             }
             ClientboundGamePacket::SystemChat(p) => {
                 debug!("Got system chat packet {:?}", p);
-                tx.send(Event::Chat(ChatPacket::System(p.clone()))).await;
+                tx.send(Event::Chat(ChatPacket::System(p.clone()))).await?;
             }
-            ClientboundGamePacket::Sound(p) => {
+            ClientboundGamePacket::Sound(_p) => {
                 // debug!("Got sound packet {:?}", p);
             }
             ClientboundGamePacket::LevelEvent(p) => {
@@ -976,7 +976,7 @@ impl Client {
                     // because of https://github.com/rust-lang/rust/issues/57478
                     if !*client.dead.lock() {
                         *client.dead.lock() = true;
-                        tx.send(Event::Death(Some(Box::new(p.clone())))).await;
+                        tx.send(Event::Death(Some(Box::new(p.clone())))).await?;
                     }
                 }
             }
@@ -1046,7 +1046,9 @@ impl Client {
             }
         }
 
-        tx.send(Event::Tick).await;
+        tx.send(Event::Tick)
+            .await
+            .expect("Sending tick event should never fail");
 
         // TODO: if we're a passenger, send the required packets
 
