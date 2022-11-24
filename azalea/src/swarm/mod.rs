@@ -264,9 +264,9 @@ where
 
         // tx is moved to the bot so it can send us events
         // rx is used to receive events from the bot
-        let (tx, mut rx) = mpsc::unbounded_channel();
+        let (tx, mut rx) = mpsc::channel(1);
         let mut bot = Client::new(game_profile, conn, Some(self.worlds.clone()));
-        tx.send(Event::Initialize).unwrap();
+        tx.send(Event::Initialize).await;
         bot.start_tasks(tx);
 
         bot.plugins = Arc::new(self.plugins.clone().build());

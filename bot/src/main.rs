@@ -102,7 +102,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     bot.set_jumping(false);
                     bot.walk(WalkDirection::None);
                 } else if m.content() == "lag" {
-                    std::thread::sleep(Duration::from_millis(100));
+                    std::thread::sleep(Duration::from_millis(1000));
                 }
             }
         }

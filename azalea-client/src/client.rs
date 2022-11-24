@@ -46,7 +46,7 @@ use std::{
 };
 use thiserror::Error;
 use tokio::{
-    sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
+    sync::mpsc::{self, Receiver, Sender, UnboundedReceiver, UnboundedSender},
     task::JoinHandle,
     time::{self},
 };
@@ -163,10 +163,12 @@ pub enum JoinError {
 pub enum HandleError {
     #[error("{0}")]
     Poison(String),
-    #[error("{0}")]
+    #[error(transparent)]
     Io(#[from] io::Error),
     #[error(transparent)]
     Other(#[from] anyhow::Error),
+    #[error("{0}")]
+    Send(#[from] mpsc::error::SendError<Event>),
 }
 
 impl Client {
@@ -227,19 +229,22 @@ impl Client {
     pub async fn join(
         account: &Account,
         address: impl TryInto<ServerAddress>,
-    ) -> Result<(Self, UnboundedReceiver<Event>), JoinError> {
+    ) -> Result<(Self, Receiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
         let resolved_address = resolver::resolve_address(&address).await?;
 
         let conn = Connection::new(&resolved_address).await?;
         let (conn, game_profile) = Self::handshake(conn, account, &address).await?;
 
-        let (tx, rx) = mpsc::unbounded_channel();
+        // The buffer has to be 1 to avoid a bug where if it lags events are
+        // received a bit later instead of the instant they were fired.
+        // That bug especially causes issues with the pathfinder.
+        let (tx, rx) = mpsc::channel(1);
 
         // we got the GameConnection, so the server is now connected :)
         let client = Client::new(game_profile, conn, None);
 
-        tx.send(Event::Initialize).unwrap();
+        tx.send(Event::Initialize).await;
 
         // just start up the game loop and we're ready!
 
@@ -365,7 +370,7 @@ impl Client {
 
     /// Start the protocol and game tick loop.
     #[doc(hidden)]
-    pub fn start_tasks(&self, tx: UnboundedSender<Event>) {
+    pub fn start_tasks(&self, tx: Sender<Event>) {
         // if you get an error right here that means you're doing something with locks wrong
         // read the error to see where the issue is
         // you might be able to just drop the lock or put it in its own scope to fix
@@ -378,7 +383,7 @@ impl Client {
         tasks.push(tokio::spawn(Client::game_tick_loop(self.clone(), tx)));
     }
 
-    async fn protocol_loop(client: Client, tx: UnboundedSender<Event>) {
+    async fn protocol_loop(client: Client, tx: Sender<Event>) {
         loop {
             let r = client.read_conn.lock().await.read().await;
             match r {
@@ -415,9 +420,9 @@ impl Client {
     async fn handle(
         packet: &ClientboundGamePacket,
         client: &Client,
-        tx: &UnboundedSender<Event>,
+        tx: &Sender<Event>,
     ) -> Result<(), HandleError> {
-        tx.send(Event::Packet(Box::new(packet.clone()))).unwrap();
+        tx.send(Event::Packet(Box::new(packet.clone()))).await;
         match packet {
             ClientboundGamePacket::Login(p) => {
                 debug!("Got login packet");
@@ -530,7 +535,7 @@ impl Client {
                     )
                     .await?;
 
-                tx.send(Event::Login).unwrap();
+                tx.send(Event::Login).await;
             }
             ClientboundGamePacket::SetChunkCacheRadius(p) => {
                 debug!("Got set chunk cache radius packet {:?}", p);
@@ -656,94 +661,102 @@ impl Client {
                 use azalea_protocol::packets::game::clientbound_player_info_packet::Action;
 
                 debug!("Got player info packet {:?}", p);
-                let mut players_lock = client.players.write();
-                match &p.action {
-                    Action::AddPlayer(players) => {
-                        for player in players {
-                            let player_info = PlayerInfo {
-                                profile: GameProfile {
+                let mut events = Vec::new();
+                {
+                    let mut players_lock = client.players.write();
+                    match &p.action {
+                        Action::AddPlayer(players) => {
+                            for player in players {
+                                let player_info = PlayerInfo {
+                                    profile: GameProfile {
+                                        uuid: player.uuid,
+                                        name: player.name.clone(),
+                                        properties: player.properties.clone(),
+                                    },
                                     uuid: player.uuid,
-                                    name: player.name.clone(),
-                                    properties: player.properties.clone(),
-                                },
-                                uuid: player.uuid,
-                                gamemode: player.gamemode,
-                                latency: player.latency,
-                                display_name: player.display_name.clone(),
-                            };
-                            players_lock.insert(player.uuid, player_info.clone());
-                            tx.send(Event::UpdatePlayers(UpdatePlayersEvent::Add(player_info)))
-                                .unwrap();
+                                    gamemode: player.gamemode,
+                                    latency: player.latency,
+                                    display_name: player.display_name.clone(),
+                                };
+                                players_lock.insert(player.uuid, player_info.clone());
+                                events.push(Event::UpdatePlayers(UpdatePlayersEvent::Add(
+                                    player_info,
+                                )));
+                            }
                         }
-                    }
-                    Action::UpdateGameMode(players) => {
-                        for player in players {
-                            if let Some(p) = players_lock.get_mut(&player.uuid) {
-                                p.gamemode = player.gamemode;
-                                tx.send(Event::UpdatePlayers(UpdatePlayersEvent::GameMode {
-                                    uuid: player.uuid,
-                                    game_mode: player.gamemode,
-                                }))
-                                .unwrap();
-                            } else {
-                                warn!(
+                        Action::UpdateGameMode(players) => {
+                            for player in players {
+                                if let Some(p) = client.players.write().get_mut(&player.uuid) {
+                                    p.gamemode = player.gamemode;
+                                    events.push(Event::UpdatePlayers(
+                                        UpdatePlayersEvent::GameMode {
+                                            uuid: player.uuid,
+                                            game_mode: player.gamemode,
+                                        },
+                                    ));
+                                } else {
+                                    warn!(
                                     "Ignoring PlayerInfo (UpdateGameMode) for unknown player {}",
                                     player.uuid
                                 );
+                                }
                             }
                         }
-                    }
-                    Action::UpdateLatency(players) => {
-                        for player in players {
-                            if let Some(p) = players_lock.get_mut(&player.uuid) {
-                                p.latency = player.latency;
-                                tx.send(Event::UpdatePlayers(UpdatePlayersEvent::Latency {
-                                    uuid: player.uuid,
-                                    latency: player.latency,
-                                }))
-                                .unwrap();
-                            } else {
-                                warn!(
-                                    "Ignoring PlayerInfo (UpdateLatency) for unknown player {}",
-                                    player.uuid
-                                );
+                        Action::UpdateLatency(players) => {
+                            for player in players {
+                                if let Some(p) = players_lock.get_mut(&player.uuid) {
+                                    p.latency = player.latency;
+                                    events.push(Event::UpdatePlayers(
+                                        UpdatePlayersEvent::Latency {
+                                            uuid: player.uuid,
+                                            latency: player.latency,
+                                        },
+                                    ));
+                                } else {
+                                    warn!(
+                                        "Ignoring PlayerInfo (UpdateLatency) for unknown player {}",
+                                        player.uuid
+                                    );
+                                }
                             }
                         }
-                    }
-                    Action::UpdateDisplayName(players) => {
-                        for player in players {
-                            if let Some(p) = players_lock.get_mut(&player.uuid) {
-                                p.display_name = player.display_name.clone();
-                                tx.send(Event::UpdatePlayers(UpdatePlayersEvent::DisplayName {
-                                    uuid: player.uuid,
-                                    display_name: player.display_name.clone(),
-                                }))
-                                .unwrap();
-                            } else {
-                                warn!(
+                        Action::UpdateDisplayName(players) => {
+                            for player in players {
+                                if let Some(p) = players_lock.get_mut(&player.uuid) {
+                                    p.display_name = player.display_name.clone();
+                                    events.push(Event::UpdatePlayers(
+                                        UpdatePlayersEvent::DisplayName {
+                                            uuid: player.uuid,
+                                            display_name: player.display_name.clone(),
+                                        },
+                                    ));
+                                } else {
+                                    warn!(
                                     "Ignoring PlayerInfo (UpdateDisplayName) for unknown player {}",
                                     player.uuid
                                 );
+                                }
                             }
                         }
-                    }
-                    Action::RemovePlayer(players) => {
-                        for player in players {
-                            if players_lock.remove(&player.uuid).is_some() {
-                                tx.send(Event::UpdatePlayers(UpdatePlayersEvent::Remove {
-                                    uuid: player.uuid,
-                                }))
-                                .unwrap();
-                            } else {
-                                warn!(
-                                    "Ignoring PlayerInfo (RemovePlayer) for unknown player {}",
-                                    player.uuid
-                                );
+                        Action::RemovePlayer(players) => {
+                            for player in players {
+                                if players_lock.remove(&player.uuid).is_some() {
+                                    events.push(Event::UpdatePlayers(UpdatePlayersEvent::Remove {
+                                        uuid: player.uuid,
+                                    }));
+                                } else {
+                                    warn!(
+                                        "Ignoring PlayerInfo (RemovePlayer) for unknown player {}",
+                                        player.uuid
+                                    );
+                                }
                             }
                         }
                     }
                 }
-                // TODO
+                for event in events {
+                    tx.send(event).await;
+                }
             }
             ClientboundGamePacket::SetChunkCacheCenter(p) => {
                 debug!("Got chunk cache center packet {:?}", p);
@@ -832,10 +845,11 @@ impl Client {
             ClientboundGamePacket::SetHealth(p) => {
                 debug!("Got set health packet {:?}", p);
                 if p.health == 0.0 {
-                    let mut dead_lock = client.dead.lock();
-                    if !*dead_lock {
-                        *dead_lock = true;
-                        tx.send(Event::Death(None)).unwrap();
+                    // we can't define a variable here with client.dead.lock()
+                    // because of https://github.com/rust-lang/rust/issues/57478
+                    if !*client.dead.lock() {
+                        *client.dead.lock() = true;
+                        tx.send(Event::Death(None)).await?;
                     }
                 }
             }
@@ -884,11 +898,11 @@ impl Client {
             ClientboundGamePacket::PlayerChat(p) => {
                 debug!("Got player chat packet {:?}", p);
                 tx.send(Event::Chat(ChatPacket::Player(Box::new(p.clone()))))
-                    .unwrap();
+                    .await;
             }
             ClientboundGamePacket::SystemChat(p) => {
                 debug!("Got system chat packet {:?}", p);
-                tx.send(Event::Chat(ChatPacket::System(p.clone()))).unwrap();
+                tx.send(Event::Chat(ChatPacket::System(p.clone()))).await;
             }
             ClientboundGamePacket::Sound(p) => {
                 // debug!("Got sound packet {:?}", p);
@@ -958,10 +972,11 @@ impl Client {
             ClientboundGamePacket::PlayerCombatKill(p) => {
                 debug!("Got player kill packet {:?}", p);
                 if *client.entity_id.read() == p.player_id {
-                    let mut dead_lock = client.dead.lock();
-                    if !*dead_lock {
-                        *dead_lock = true;
-                        tx.send(Event::Death(Some(Box::new(p.clone())))).unwrap();
+                    // we can't define a variable here with client.dead.lock()
+                    // because of https://github.com/rust-lang/rust/issues/57478
+                    if !*client.dead.lock() {
+                        *client.dead.lock() = true;
+                        tx.send(Event::Death(Some(Box::new(p.clone())))).await;
                     }
                 }
             }
@@ -1004,7 +1019,7 @@ impl Client {
     }
 
     /// Runs game_tick every 50 milliseconds.
-    async fn game_tick_loop(mut client: Client, tx: UnboundedSender<Event>) {
+    async fn game_tick_loop(mut client: Client, tx: Sender<Event>) {
         let mut game_tick_interval = time::interval(time::Duration::from_millis(50));
         // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
         game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
@@ -1015,7 +1030,7 @@ impl Client {
     }
 
     /// Runs every 50 milliseconds.
-    async fn game_tick(client: &mut Client, tx: &UnboundedSender<Event>) {
+    async fn game_tick(client: &mut Client, tx: &Sender<Event>) {
         // return if there's no chunk at the player's position
 
         {
@@ -1031,7 +1046,7 @@ impl Client {
             }
         }
 
-        tx.send(Event::Tick).unwrap();
+        tx.send(Event::Tick).await;
 
         // TODO: if we're a passenger, send the required packets
 
