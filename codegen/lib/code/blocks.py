@@ -20,7 +20,6 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
     new_make_block_states_macro_code = []
     new_make_block_states_macro_code.append('make_block_states! {')
 
-
     # Find properties
     properties = {}
 
@@ -84,7 +83,6 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
         new_make_block_states_macro_code.append(
             f'        "{property_name}" => {property_shape_code},')
 
-
     new_make_block_states_macro_code.append('    },')
 
     # Block codegen
@@ -100,7 +98,6 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
         for state in block_data_report['states']:
             if state.get('default'):
                 default_property_variants = state.get('properties', {})
-
 
         properties_code = '{'
         for property_name in list(block_data_report.get('properties', {}).keys()):
@@ -163,6 +160,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
     with open(BLOCKS_RS_DIR, 'w') as f:
         f.write('\n'.join(new_code))
 
+
 def get_property_struct_name(property: Optional[dict], block_data_burger: dict, property_variants: list[str], mappings: Mappings) -> str:
     # these are hardcoded because otherwise they cause conflicts
     # some names inspired by https://github.com/feather-rs/feather/blob/main/feather/blocks/src/generated/table.rs
@@ -174,28 +172,16 @@ def get_property_struct_name(property: Optional[dict], block_data_burger: dict, 
         return 'TopBottom'
     if property_variants == ['north_south', 'east_west', 'ascending_east', 'ascending_west', 'ascending_north', 'ascending_south']:
         return 'RailShape'
-    if property_variants == ['north_south', 'east_west', 'ascending_east', 'ascending_west', 'ascending_north', 'ascending_south', 'south_east', 'south_west', 'north_west', 'north_east']:
-        return 'BendableRailShape'
     if property_variants == ['straight', 'inner_left', 'inner_right', 'outer_left', 'outer_right']:
         return 'StairShape'
     if property_variants == ['normal', 'sticky']:
         return 'PistonType'
-    if property_variants == ['none', 'low', 'tall']:
-        return 'WallShape'
     if property_variants == ['x', 'z']:
         return 'AxisXZ'
-    if property_variants == ['x', 'y', 'z']:
-        return 'AxisXYZ'
     if property_variants == ['single', 'left', 'right']:
         return 'ChestType'
     if property_variants == ['compare', 'subtract']:
         return 'ComparatorType'
-    if property_variants == ['head', 'foot']:
-        return 'BedPart'
-    if property_variants == ['upper', 'lower']:
-        return 'DoorHalf'
-    if property_variants == ['left', 'right']:
-        return 'LeftRight'
     if 'harp' in property_variants and 'didgeridoo' in property_variants:
         return 'Sound'
 
