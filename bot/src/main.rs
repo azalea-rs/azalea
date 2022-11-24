@@ -1,4 +1,5 @@
 use azalea::pathfinder::BlockPosGoal;
+use azalea::ClientInformation;
 use azalea::{prelude::*, BlockPos, Swarm, SwarmEvent, WalkDirection};
 use azalea::{Account, Client, Event};
 use azalea_protocol::packets::game::serverbound_client_command_packet::ServerboundClientCommandPacket;
@@ -41,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
     let mut accounts = Vec::new();
     let mut states = Vec::new();
 
-    for i in 0..5 {
+    for i in 0..10 {
         accounts.push(Account::offline(&format!("bot{}", i)));
         states.push(State::default());
     }
@@ -60,8 +61,8 @@ async fn main() -> anyhow::Result<()> {
             handle,
             swarm_handle,
 
-            // join_delay: Some(Duration::from_millis(100)),
-            join_delay: None,
+            join_delay: Some(Duration::from_millis(1000)),
+            // join_delay: None,
         })
         .await;
         println!("{e:?}");
@@ -70,6 +71,13 @@ async fn main() -> anyhow::Result<()> {
 
 async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
     match event {
+        Event::Init => {
+            bot.set_client_information(ClientInformation {
+                view_distance: 2,
+                ..Default::default()
+            })
+            .await?;
+        }
         Event::Login => {
             bot.chat("Hello world").await?;
         }
@@ -104,9 +112,6 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     std::thread::sleep(Duration::from_millis(1000));
                 }
             }
-        }
-        Event::Initialize => {
-            println!("initialized");
         }
         Event::Death(_) => {
             bot.write_packet(ServerboundClientCommandPacket {

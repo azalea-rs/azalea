@@ -60,7 +60,7 @@ pub enum Event {
     /// it's actually spawned. This can be useful for setting the client
     /// information with `Client::set_client_information`, so the packet
     /// doesn't have to be sent twice.
-    Initialize,
+    Init,
     Login,
     Chat(ChatPacket),
     /// Happens 20 times per second, but only when the world is loaded.
@@ -242,9 +242,7 @@ impl Client {
         // we got the GameConnection, so the server is now connected :)
         let client = Client::new(game_profile, conn, None);
 
-        tx.send(Event::Initialize)
-            .await
-            .expect("Failed to send event");
+        tx.send(Event::Init).await.expect("Failed to send event");
 
         // just start up the game loop and we're ready!
 
