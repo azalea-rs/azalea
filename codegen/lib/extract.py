@@ -65,7 +65,7 @@ def run_python_command_and_download_deps(command):
     print('>', command)
     for _ in range(10):
         p = subprocess.Popen(
-            command.split(' '),
+            command,
             stderr=subprocess.PIPE,
             shell=True
         )
@@ -81,7 +81,11 @@ def run_python_command_and_download_deps(command):
         regex_match = re.search(
             r'ModuleNotFoundError: No module named \'(\w+?)\'', stderr.decode())
         if not regex_match:
-            p.wait()
+            out, err = p.communicate()
+            if out:
+                print(out)
+            if err:
+                print(err)
             break
         missing_lib = regex_match.group(1)
         print('Missing required lib:', missing_lib)
@@ -95,8 +99,9 @@ def get_burger_data_for_version(version_id: str):
         get_burger()
         get_client_jar(version_id)
 
+        print('\033[92mRunning Burger...\033[m')
         run_python_command_and_download_deps(
-            f'cd {get_dir_location("downloads/Burger")} && {determine_python_command()} munch.py ../client-{version_id}.jar --output ../burger-{version_id}.json --verbose'
+            f'cd {get_dir_location("downloads/Burger")} && {determine_python_command()} munch.py {get_dir_location("downloads")}/client-{version_id}.jar --output {get_dir_location("downloads")}/burger-{version_id}.json'
         )
     with open(get_dir_location(f'downloads/burger-{version_id}.json'), 'r') as f:
         return json.load(f)
