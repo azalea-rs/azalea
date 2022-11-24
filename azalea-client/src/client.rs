@@ -766,7 +766,7 @@ impl Client {
                     .update_view_center(&ChunkPos::new(p.x, p.z));
             }
             ClientboundGamePacket::LevelChunkWithLight(p) => {
-                // warn!("Got chunk with light packet {} {}", p.x, p.z);
+                // debug!("Got chunk with light packet {} {}", p.x, p.z);
                 let pos = ChunkPos::new(p.x, p.z);
 
                 // OPTIMIZATION: if we already know about the chunk from the

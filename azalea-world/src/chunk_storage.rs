@@ -4,10 +4,10 @@ use crate::World;
 use azalea_block::BlockState;
 use azalea_buf::BufReadError;
 use azalea_buf::{McBufReadable, McBufWritable};
-use azalea_core::floor_mod;
 use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use log::debug;
 use log::trace;
+use log::warn;
 use parking_lot::Mutex;
 use parking_lot::RwLock;
 use std::collections::HashMap;
@@ -104,8 +104,8 @@ impl PartialChunkStorage {
     }
 
     fn get_index(&self, chunk_pos: &ChunkPos) -> usize {
-        (floor_mod(chunk_pos.x, self.view_range) * self.view_range
-            + floor_mod(chunk_pos.z, self.view_range)) as usize
+        (i32::rem_euclid(chunk_pos.x, self.view_range as i32) * (self.view_range as i32)
+            + i32::rem_euclid(chunk_pos.z, self.view_range as i32)) as usize
     }
 
     pub fn in_range(&self, chunk_pos: &ChunkPos) -> bool {
@@ -158,19 +158,25 @@ impl PartialChunkStorage {
 
     /// Get a [`Chunk`] within render distance, or `None` if it's not loaded.
     /// Use [`PartialChunkStorage::get`] to get a chunk from the shared storage.
-    ///
-    /// # Panics
-    /// If the chunk is not in the render distance.
-    pub fn limited_get(&self, pos: &ChunkPos) -> &Option<Arc<Mutex<Chunk>>> {
+    pub fn limited_get(&self, pos: &ChunkPos) -> Option<&Arc<Mutex<Chunk>>> {
         let index = self.get_index(pos);
-        &self.chunks[index]
+        if index >= self.chunks.len() {
+            warn!(
+                "Chunk at {:?} is not in the render distance (center: {:?}, {} chunks, {} >= {})",
+                pos,
+                self.view_center,
+                self.chunk_radius,
+                index,
+                self.chunks.len()
+            );
+            None
+        } else {
+            self.chunks[index].as_ref()
+        }
     }
     /// Get a mutable reference to a [`Chunk`] within render distance, or
     /// `None` if it's not loaded. Use [`PartialChunkStorage::get`] to get
     /// a chunk from the shared storage.
-    ///
-    /// # Panics
-    /// If the chunk is not in the render distance.
     pub fn limited_get_mut(&mut self, pos: &ChunkPos) -> Option<&mut Option<Arc<Mutex<Chunk>>>> {
         let index = self.get_index(pos);
         if index >= self.chunks.len() {
