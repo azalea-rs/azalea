@@ -4,19 +4,19 @@ use std::io::{Cursor, Write};
 #[derive(Hash, Copy, Clone, Debug, Default)]
 pub enum GameType {
     #[default]
-    SURVIVAL,
-    CREATIVE,
-    ADVENTURE,
-    SPECTATOR,
+    Survival,
+    Creative,
+    Adventure,
+    Spectator,
 }
 
 impl GameType {
     pub fn to_id(&self) -> u8 {
         match self {
-            GameType::SURVIVAL => 0,
-            GameType::CREATIVE => 1,
-            GameType::ADVENTURE => 2,
-            GameType::SPECTATOR => 3,
+            GameType::Survival => 0,
+            GameType::Creative => 1,
+            GameType::Adventure => 2,
+            GameType::Spectator => 3,
         }
     }
 
@@ -30,10 +30,10 @@ impl GameType {
 
     pub fn from_id(id: u8) -> Option<GameType> {
         Some(match id {
-            0 => GameType::SURVIVAL,
-            1 => GameType::CREATIVE,
-            2 => GameType::ADVENTURE,
-            3 => GameType::SPECTATOR,
+            0 => GameType::Survival,
+            1 => GameType::Creative,
+            2 => GameType::Adventure,
+            3 => GameType::Spectator,
             _ => return None,
         })
     }
@@ -51,29 +51,29 @@ impl GameType {
     pub fn short_name(&self) -> &'static str {
         // TODO: these should be translated TranslatableComponent("selectWorld.gameMode." + string2)
         match self {
-            GameType::SURVIVAL => "Survival",
-            GameType::CREATIVE => "Creative",
-            GameType::ADVENTURE => "Adventure",
-            GameType::SPECTATOR => "Spectator",
+            GameType::Survival => "Survival",
+            GameType::Creative => "Creative",
+            GameType::Adventure => "Adventure",
+            GameType::Spectator => "Spectator",
         }
     }
 
     pub fn long_name(&self) -> &'static str {
         // TODO: These should be translated TranslatableComponent("gameMode." + string2);
         match self {
-            GameType::SURVIVAL => "Survival Mode",
-            GameType::CREATIVE => "Creative Mode",
-            GameType::ADVENTURE => "Adventure Mode",
-            GameType::SPECTATOR => "Spectator Mode",
+            GameType::Survival => "Survival Mode",
+            GameType::Creative => "Creative Mode",
+            GameType::Adventure => "Adventure Mode",
+            GameType::Spectator => "Spectator Mode",
         }
     }
 
     pub fn from_name(name: &str) -> GameType {
         match name {
-            "survival" => GameType::SURVIVAL,
-            "creative" => GameType::CREATIVE,
-            "adventure" => GameType::ADVENTURE,
-            "spectator" => GameType::SPECTATOR,
+            "survival" => GameType::Survival,
+            "creative" => GameType::Creative,
+            "adventure" => GameType::Adventure,
+            "spectator" => GameType::Spectator,
             _ => panic!("Unknown game type name: {name}"),
         }
     }

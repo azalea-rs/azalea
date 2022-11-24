@@ -18,6 +18,13 @@ pub enum ChatPacket {
     Player(Box<ClientboundPlayerChatPacket>),
 }
 
+macro_rules! regex {
+    ($re:literal $(,)?) => {{
+        static RE: once_cell::sync::OnceCell<regex::Regex> = once_cell::sync::OnceCell::new();
+        RE.get_or_init(|| regex::Regex::new($re).unwrap())
+    }};
+}
+
 impl ChatPacket {
     /// Get the message shown in chat for this packet.
     pub fn message(&self) -> Component {
@@ -25,6 +32,49 @@ impl ChatPacket {
             ChatPacket::System(p) => p.content.clone(),
             ChatPacket::Player(p) => p.message(),
         }
+    }
+
+    /// Determine the username of the sender and content of the message. This
+    /// does not preserve formatting codes. If it's not a player-sent chat
+    /// message or the sender couldn't be determined, the username part will be
+    /// None.
+    pub fn split_sender_and_content(&self) -> (Option<String>, String) {
+        match self {
+            ChatPacket::Player(p) => (
+                // If it's a player chat packet, then the sender and content
+                // are already split for us.
+                Some(p.chat_type.name.to_string()),
+                p.message.content(false).to_string(),
+            ),
+            ChatPacket::System(p) => {
+                let message = p.content.to_string();
+                // Overlay messages aren't in chat
+                if p.overlay {
+                    return (None, message);
+                }
+                // It's a system message, so we'll have to match the content
+                // with regex
+                if let Some(m) = regex!("^<([a-zA-Z_0-9]{1,16})> (.+)$").captures(&message) {
+                    return (Some(m[1].to_string()), m[2].to_string());
+                }
+
+                (None, message)
+            }
+        }
+    }
+
+    /// Get the username of the sender of the message. If it's not a
+    /// player-sent chat message or the sender couldn't be determined, this
+    /// will be None.
+    pub fn username(&self) -> Option<String> {
+        self.split_sender_and_content().0
+    }
+
+    /// Get the content part of the message as a string. This does not preserve
+    /// formatting codes. If it's not a player-sent chat message or the sender
+    /// couldn't be determined, this will contain the entire message.
+    pub fn content(&self) -> String {
+        self.split_sender_and_content().1
     }
 }
 

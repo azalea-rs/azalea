@@ -4,12 +4,12 @@ edition = "2021"
 license = "MIT"
 name = "azalea-block"
 repository = "https://github.com/mat-1/azalea/tree/main/azalea-block"
-version = "0.3.0"
+version = "0.4.0"
 
 [lib]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-block-macros = {path = "./azalea-block-macros", version = "^0.3.0" }
-azalea-buf = {path = "../azalea-buf", version = "^0.3.0" }
+azalea-block-macros = {path = "./azalea-block-macros", version = "^0.4.0" }
+azalea-buf = {path = "../azalea-buf", version = "^0.4.0" }

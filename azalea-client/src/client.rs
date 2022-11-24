@@ -1,11 +1,13 @@
 pub use crate::chat::ChatPacket;
-use crate::{movement::WalkDirection, plugins::Plugins, Account, Player};
+use crate::{movement::WalkDirection, plugins::Plugins, Account, PlayerInfo};
 use azalea_auth::game_profile::GameProfile;
-use azalea_core::{ChunkPos, ResourceLocation, Vec3};
+use azalea_chat::Component;
+use azalea_core::{ChunkPos, GameType, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
         game::{
+            clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
             serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
             serverbound_client_information_packet::ServerboundClientInformationPacket,
             serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
@@ -33,6 +35,7 @@ use parking_lot::{Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::{
     any,
     backtrace::Backtrace,
+    collections::HashMap,
     fmt::Debug,
     io::{self, Cursor},
     sync::Arc,
@@ -43,6 +46,7 @@ use tokio::{
     task::JoinHandle,
     time::{self},
 };
+use uuid::Uuid;
 
 pub type ClientInformation = ServerboundClientInformationPacket;
 
@@ -64,22 +68,55 @@ pub enum Event {
     /// Happens 20 times per second, but only when the world is loaded.
     Tick,
     Packet(Box<ClientboundGamePacket>),
+    /// Happens when a player is added, removed, or updated in the tab list.
+    UpdatePlayers(UpdatePlayersEvent),
+    /// Emits when the player dies.
+    Death(Option<Box<ClientboundPlayerCombatKillPacket>>),
+}
+
+/// Happens when a player is added, removed, or updated in the tab list.
+#[derive(Debug, Clone)]
+pub enum UpdatePlayersEvent {
+    /// A player with the given info was added to the tab list (usually means
+    /// they joined the server).
+    Add(PlayerInfo),
+    /// A player with the given UUID was removed from the tab list (usually
+    /// means they left the server)
+    Remove { uuid: Uuid },
+    /// The latency of the player with the given UUID was updated in the tab
+    /// list. Note that this can be spoofed by the player and may not represent
+    /// their actual latency.
+    Latency {
+        uuid: Uuid,
+        /// The time it took in milliseconds for this player to reply to the ping packet.
+        latency: i32,
+    },
+    /// The played switched to a different gamemode (i.e. survival, creative, spectator)
+    GameMode { uuid: Uuid, game_mode: GameType },
+    /// The name of the player with the given UUID in the tab list was changed or reset.
+    DisplayName {
+        uuid: Uuid,
+        display_name: Option<Component>,
+    },
 }
 
 /// A player that you control that is currently in a Minecraft server.
 #[derive(Clone)]
 pub struct Client {
-    game_profile: GameProfile,
+    pub profile: GameProfile,
     pub read_conn: Arc<tokio::sync::Mutex<ReadConnection<ClientboundGamePacket>>>,
     pub write_conn: Arc<tokio::sync::Mutex<WriteConnection<ServerboundGamePacket>>>,
-    pub player: Arc<RwLock<Player>>,
+    pub entity_id: Arc<RwLock<u32>>,
     pub world: Arc<RwLock<World>>,
     pub physics_state: Arc<Mutex<PhysicsState>>,
     pub client_information: Arc<RwLock<ClientInformation>>,
+    pub dead: Arc<Mutex<bool>>,
     /// Plugins are a way for other crates to add custom functionality to the
     /// client and keep state. If you're not making a plugin and you're using
     /// the `azalea` crate. you can ignore this field.
     pub plugins: Arc<Plugins>,
+    /// A map of player uuids to their information in the tab list
+    pub players: Arc<RwLock<HashMap<Uuid, PlayerInfo>>>,
     tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
 }
 
@@ -180,7 +217,7 @@ impl Client {
         )
         .await?;
 
-        let (conn, game_profile) = loop {
+        let (conn, profile) = loop {
             let packet = conn.read().await?;
             match packet {
                 ClientboundLoginPacket::Hello(p) => {
@@ -244,16 +281,19 @@ impl Client {
 
         // we got the GameConnection, so the server is now connected :)
         let client = Client {
-            game_profile,
+            profile,
             read_conn,
             write_conn,
-            player: Arc::new(RwLock::new(Player::default())),
+            // default our id to 0, it'll be set later
+            entity_id: Arc::new(RwLock::new(0)),
             world: Arc::new(RwLock::new(World::default())),
             physics_state: Arc::new(Mutex::new(PhysicsState::default())),
             client_information: Arc::new(RwLock::new(ClientInformation::default())),
+            dead: Arc::new(Mutex::new(false)),
             // The plugins can be modified by the user by replacing the plugins
             // field right after this. No Mutex so the user doesn't need to .lock().
             plugins: Arc::new(Plugins::new()),
+            players: Arc::new(RwLock::new(HashMap::new())),
             tasks: Arc::new(Mutex::new(Vec::new())),
         };
 
@@ -283,8 +323,13 @@ impl Client {
     }
 
     /// Disconnect from the server, ending all tasks.
-    pub async fn shutdown(self) -> Result<(), std::io::Error> {
-        self.write_conn.lock().await.shutdown().await?;
+    pub async fn shutdown(&self) -> Result<(), std::io::Error> {
+        if let Err(e) = self.write_conn.lock().await.shutdown().await {
+            warn!(
+                "Error shutting down connection, but it might be fine: {}",
+                e
+            );
+        }
         let tasks = self.tasks.lock();
         for task in tasks.iter() {
             task.abort();
@@ -411,15 +456,13 @@ impl Client {
                     *world_lock = World::new(16, height, min_y);
 
                     let entity = EntityData::new(
-                        client.game_profile.uuid,
+                        client.profile.uuid,
                         Vec3::default(),
                         EntityMetadata::Player(metadata::Player::default()),
                     );
                     world_lock.add_entity(p.player_id, entity);
 
-                    let mut player_lock = client.player.write();
-
-                    player_lock.set_entity_id(p.player_id);
+                    *client.entity_id.write() = p.player_id;
                 }
 
                 // send the client information that we have set
@@ -468,6 +511,7 @@ impl Client {
             }
             ClientboundGamePacket::Disconnect(p) => {
                 debug!("Got disconnect packet {:?}", p);
+                client.shutdown().await?;
             }
             ClientboundGamePacket::UpdateRecipes(_p) => {
                 debug!("Got update recipes packet");
@@ -483,10 +527,7 @@ impl Client {
                 debug!("Got player position packet {:?}", p);
 
                 let (new_pos, y_rot, x_rot) = {
-                    let player_entity_id = {
-                        let player_lock = client.player.write();
-                        player_lock.entity_id
-                    };
+                    let player_entity_id = *client.entity_id.read();
 
                     let mut world_lock = client.world.write();
 
@@ -570,7 +611,97 @@ impl Client {
                     .await?;
             }
             ClientboundGamePacket::PlayerInfoUpdate(p) => {
+                use azalea_protocol::packets::game::clientbound_player_info_update_packet::Action;
+
                 debug!("Got player info packet {:?}", p);
+                let mut players_lock = client.players.write();
+                match &p.action {
+                    Action::AddPlayer(players) => {
+                        for player in players {
+                            let player_info = PlayerInfo {
+                                profile: GameProfile {
+                                    uuid: player.uuid,
+                                    name: player.name.clone(),
+                                    properties: player.properties.clone(),
+                                },
+                                uuid: player.uuid,
+                                gamemode: player.gamemode,
+                                latency: player.latency,
+                                display_name: player.display_name.clone(),
+                            };
+                            players_lock.insert(player.uuid, player_info.clone());
+                            tx.send(Event::UpdatePlayers(UpdatePlayersEvent::Add(player_info)))
+                                .unwrap();
+                        }
+                    }
+                    Action::UpdateGameMode(players) => {
+                        for player in players {
+                            if let Some(p) = players_lock.get_mut(&player.uuid) {
+                                p.gamemode = player.gamemode;
+                                tx.send(Event::UpdatePlayers(UpdatePlayersEvent::GameMode {
+                                    uuid: player.uuid,
+                                    game_mode: player.gamemode,
+                                }))
+                                .unwrap();
+                            } else {
+                                warn!(
+                                    "Ignoring PlayerInfo (UpdateGameMode) for unknown player {}",
+                                    player.uuid
+                                );
+                            }
+                        }
+                    }
+                    Action::UpdateLatency(players) => {
+                        for player in players {
+                            if let Some(p) = players_lock.get_mut(&player.uuid) {
+                                p.latency = player.latency;
+                                tx.send(Event::UpdatePlayers(UpdatePlayersEvent::Latency {
+                                    uuid: player.uuid,
+                                    latency: player.latency,
+                                }))
+                                .unwrap();
+                            } else {
+                                warn!(
+                                    "Ignoring PlayerInfo (UpdateLatency) for unknown player {}",
+                                    player.uuid
+                                );
+                            }
+                        }
+                    }
+                    Action::UpdateDisplayName(players) => {
+                        for player in players {
+                            if let Some(p) = players_lock.get_mut(&player.uuid) {
+                                p.display_name = player.display_name.clone();
+                                tx.send(Event::UpdatePlayers(UpdatePlayersEvent::DisplayName {
+                                    uuid: player.uuid,
+                                    display_name: player.display_name.clone(),
+                                }))
+                                .unwrap();
+                            } else {
+                                warn!(
+                                    "Ignoring PlayerInfo (UpdateDisplayName) for unknown player {}",
+                                    player.uuid
+                                );
+                            }
+                        }
+                    }
+                    Action::RemovePlayer(players) => {
+                        for player in players {
+                            if players_lock.remove(&player.uuid).is_some() {
+                                tx.send(Event::UpdatePlayers(UpdatePlayersEvent::Remove {
+                                    uuid: player.uuid,
+                                }))
+                                .unwrap();
+                            } else {
+                                warn!(
+                                    "Ignoring PlayerInfo (RemovePlayer) for unknown player {}",
+                                    player.uuid
+                                );
+                            }
+                        }
+                    }
+                }
+                // TODO
             }
             ClientboundGamePacket::SetChunkCacheCenter(p) => {
                 debug!("Got chunk cache center packet {:?}", p);
@@ -637,6 +768,13 @@ impl Client {
             }
             ClientboundGamePacket::SetHealth(p) => {
                 debug!("Got set health packet {:?}", p);
+                if p.health == 0.0 {
+                    let mut dead_lock = client.dead.lock();
+                    if !*dead_lock {
+                        *dead_lock = true;
+                        tx.send(Event::Death(None)).unwrap();
+                    }
+                }
             }
             ClientboundGamePacket::SetExperience(p) => {
                 debug!("Got set experience packet {:?}", p);
@@ -759,11 +897,25 @@ impl Client {
             ClientboundGamePacket::PlaceGhostRecipe(_) => {}
             ClientboundGamePacket::PlayerCombatEnd(_) => {}
             ClientboundGamePacket::PlayerCombatEnter(_) => {}
-            ClientboundGamePacket::PlayerCombatKill(_) => {}
+            ClientboundGamePacket::PlayerCombatKill(p) => {
+                debug!("Got player kill packet {:?}", p);
+                if *client.entity_id.read() == p.player_id {
+                    let mut dead_lock = client.dead.lock();
+                    if !*dead_lock {
+                        *dead_lock = true;
+                        tx.send(Event::Death(Some(Box::new(p.clone())))).unwrap();
+                    }
+                }
+            }
             ClientboundGamePacket::PlayerLookAt(_) => {}
             ClientboundGamePacket::RemoveMobEffect(_) => {}
             ClientboundGamePacket::ResourcePack(_) => {}
-            ClientboundGamePacket::Respawn(_) => {}
+            ClientboundGamePacket::Respawn(p) => {
+                debug!("Got respawn packet {:?}", p);
+                // Sets clients dead state to false.
+                let mut dead_lock = client.dead.lock();
+                *dead_lock = false;
+            }
             ClientboundGamePacket::SelectAdvancementsTab(_) => {}
             ClientboundGamePacket::SetActionBarText(_) => {}
             ClientboundGamePacket::SetBorderCenter(_) => {}
@@ -811,8 +963,8 @@ impl Client {
         // return if there's no chunk at the player's position
         {
             let world_lock = client.world.write();
-            let player_lock = client.player.write();
-            let player_entity = player_lock.entity(&world_lock);
+            let player_entity_id = *client.entity_id.read();
+            let player_entity = world_lock.entity(player_entity_id);
             let player_entity = if let Some(player_entity) = player_entity {
                 player_entity
             } else {
@@ -838,10 +990,7 @@ impl Client {
 
     /// Returns the entity associated to the player.
     pub fn entity_mut(&self) -> Entity<RwLockWriteGuard<World>> {
-        let entity_id = {
-            let player_lock = self.player.write();
-            player_lock.entity_id
-        };
+        let entity_id = *self.entity_id.read();
 
         let mut world = self.world.write();
 
@@ -854,10 +1003,7 @@ impl Client {
     }
     /// Returns the entity associated to the player.
     pub fn entity(&self) -> Entity<RwLockReadGuard<World>> {
-        let entity_id = {
-            let player_lock = self.player.read();
-            player_lock.entity_id
-        };
+        let entity_id = *self.entity_id.read();
 
         let world = self.world.read();
 
@@ -872,8 +1018,8 @@ impl Client {
     /// Returns whether we have a received the login packet yet.
     pub fn logged_in(&self) -> bool {
         let world = self.world.read();
-        let player = self.player.write();
-        player.entity(&world).is_some()
+        let entity_id = *self.entity_id.read();
+        world.entity(entity_id).is_some()
     }
 
     /// Tell the server we changed our game options (i.e. render distance, main hand).
