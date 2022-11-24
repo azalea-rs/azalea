@@ -117,11 +117,6 @@ def get_pixlyzer_data(version_id: str, category: str):
     if not os.path.exists(get_dir_location(target_dir)):
         pixlyzer_dir = get_pixlyzer()
 
-        yarn_data = get_yarn_data(version_id)
-        if not yarn_data:
-            raise Exception(
-                'Fabric/Yarn hasn\'t been updated to this version yet.')
-
         # for some reason pixlyzer doesn't work right unless the mvn clean
         # instruction looks like that
         # and pixlyzer.py doesn't do it right
