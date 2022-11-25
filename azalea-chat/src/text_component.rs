@@ -1,9 +1,5 @@
 use crate::{base_component::BaseComponent, style::ChatFormatting, Component};
-use serde::{
-    ser::{SerializeMap, SerializeSeq},
-    Serialize, Serializer,
-    __private::ser::FlatMapSerializer,
-};
+use serde::{ser::SerializeMap, Serialize, Serializer, __private::ser::FlatMapSerializer};
 use std::fmt::Display;
 
 /// A component that contains text that's the same in all locales.
@@ -18,20 +14,13 @@ impl Serialize for TextComponent {
     where
         S: Serializer,
     {
-        if self.base.siblings.len() == 0 {
-            let mut state = serializer.serialize_map(None)?;
-            Serialize::serialize(&self.base, FlatMapSerializer(&mut state))?;
-            state.serialize_entry("text", &self.text)?;
-            return state.end();
-        } else {
-            let mut state = serializer.serialize_seq(Some(self.base.siblings.len() + 1))?;
-            // Most formatters show an empty string in the first slot of the list
-            state.serialize_element("")?;
-            for sibling in &self.base.siblings {
-                state.serialize_element(&sibling)?;
-            }
-            return state.end();
+        let mut state = serializer.serialize_map(None)?;
+        state.serialize_entry("text", &self.text)?;
+        Serialize::serialize(&self.base, FlatMapSerializer(&mut state))?;
+        if self.base.siblings.len() > 0 {
+            state.serialize_entry("extra", &self.base.siblings)?;
         }
+        state.end()
     }
 }
 
