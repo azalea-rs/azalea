@@ -17,7 +17,7 @@ impl Serialize for TextColor {
         S: Serializer,
     {
         if self.name.is_some() {
-            return serializer.serialize_str(self.name.as_ref().unwrap());
+            return serializer.serialize_str(&self.name.as_ref().unwrap().to_ascii_lowercase());
         } else {
             return serializer.serialize_str(&self.format());
         }
