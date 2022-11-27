@@ -12,6 +12,7 @@ pub struct ServerboundContainerClickPacket {
     pub button_num: u8,
     pub click_type: ClickType,
     pub changed_slots: HashMap<u16, Slot>,
+    pub carried_item: Slot,
 }
 
 #[derive(McBuf, Clone, Copy, Debug)]
