@@ -4,14 +4,14 @@ use crate::{
     base_component::BaseComponent, style::Style, text_component::TextComponent, Component,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum StringOrComponent {
     String(String),
     Component(Component),
 }
 
 /// A message whose content depends on the client's language.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TranslatableComponent {
     pub base: BaseComponent,
     pub key: String,

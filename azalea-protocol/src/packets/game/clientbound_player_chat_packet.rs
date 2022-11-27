@@ -8,7 +8,7 @@ use azalea_crypto::{MessageSignature, SignedMessageHeader};
 use azalea_protocol_macros::ClientboundGamePacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket, PartialEq)]
 pub struct ClientboundPlayerChatPacket {
     pub message: PlayerChatMessage,
     pub chat_type: ChatTypeBound,
@@ -25,14 +25,14 @@ pub enum ChatType {
     EmoteCommand = 6,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, McBuf, PartialEq)]
 pub struct ChatTypeBound {
     pub chat_type: ChatType,
     pub name: Component,
     pub target_name: Option<Component>,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, McBuf, PartialEq)]
 pub struct PlayerChatMessage {
     pub signed_header: SignedMessageHeader,
     pub header_signature: MessageSignature,
@@ -41,7 +41,7 @@ pub struct PlayerChatMessage {
     pub filter_mask: FilterMask,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct SignedMessageBody {
     pub content: ChatMessageContent,
     pub timestamp: u64,
@@ -117,7 +117,7 @@ impl ChatType {
     }
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, McBuf, PartialEq)]
 pub struct LastSeenMessagesEntry {
     pub profile_id: Uuid,
     pub last_signature: MessageSignature,
@@ -129,14 +129,14 @@ pub struct LastSeenMessagesUpdate {
     pub last_received: Option<LastSeenMessagesEntry>,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, McBuf, PartialEq)]
 pub struct ChatMessageContent {
     pub plain: String,
     /// Only sent if the decorated message is different than the plain.
     pub decorated: Option<Component>,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, McBuf, PartialEq)]
 pub enum FilterMask {
     PassThrough,
     FullyFiltered,

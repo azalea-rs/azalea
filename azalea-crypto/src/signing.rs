@@ -7,12 +7,12 @@ pub struct SaltSignaturePair {
     pub signature: Vec<u8>,
 }
 
-#[derive(Clone, Debug, Default, McBuf)]
+#[derive(Clone, Debug, Default, McBuf, PartialEq)]
 pub struct MessageSignature {
     pub bytes: Vec<u8>,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, McBuf, PartialEq)]
 pub struct SignedMessageHeader {
     pub previous_signature: Option<MessageSignature>,
     pub sender: Uuid,

@@ -1,7 +1,5 @@
 use azalea_buf::McBuf;
 
-use crate::floor_mod;
-
 #[derive(Clone, Copy, Debug, McBuf, Default)]
 pub enum Direction {
     #[default]
@@ -116,7 +114,7 @@ impl AxisCycle {
         }
     }
     pub fn between(axis0: Axis, axis1: Axis) -> Self {
-        Self::from_ordinal(floor_mod(axis1 as i32 - axis0 as i32, 3))
+        Self::from_ordinal(i32::rem_euclid(axis1 as i32 - axis0 as i32, 3) as u32)
     }
     pub fn inverse(self) -> Self {
         match self {
@@ -128,8 +126,8 @@ impl AxisCycle {
     pub fn cycle(self, axis: Axis) -> Axis {
         match self {
             Self::None => axis,
-            Self::Forward => Axis::from_ordinal(floor_mod(axis as i32 + 1, 3)),
-            Self::Backward => Axis::from_ordinal(floor_mod(axis as i32 - 1, 3)),
+            Self::Forward => Axis::from_ordinal(i32::rem_euclid(axis as i32 + 1, 3) as u32),
+            Self::Backward => Axis::from_ordinal(i32::rem_euclid(axis as i32 - 1, 3) as u32),
         }
     }
     pub fn cycle_xyz(self, x: i32, y: i32, z: i32, axis: Axis) -> i32 {
