@@ -119,7 +119,7 @@ impl PartialEntityStorage {
     /// Whether the entity with the given id is in the shared storage (i.e.
     /// it's possible we don't see the entity but something else in the shared
     /// storage does). To check whether the entity is being loaded by this
-    /// storage, use [`EntityStorage::limited_contains_id`].
+    /// storage, use [`PartialEntityStorage::limited_contains_id`].
     #[inline]
     pub fn contains_id(&self, id: &u32) -> bool {
         self.shared.read().data_by_id.contains_key(id)
@@ -344,6 +344,12 @@ impl WeakEntityStorage {
     /// ```
     pub fn entities(&self) -> std::collections::hash_map::Values<'_, u32, Weak<EntityData>> {
         self.data_by_id.values()
+    }
+
+    /// Whether the entity with the given id is in the shared storage.
+    #[inline]
+    pub fn contains_id(&self, id: &u32) -> bool {
+        self.data_by_id.contains_key(id)
     }
 }
 

@@ -126,8 +126,6 @@ impl Client {
 
     /// Send a message in chat.
     ///
-    /// # Examples
-    ///
     /// ```rust,no_run
     /// # use azalea::prelude::*;
     /// # use parking_lot::Mutex;

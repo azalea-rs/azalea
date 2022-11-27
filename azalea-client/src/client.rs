@@ -351,7 +351,7 @@ impl Client {
         Ok(())
     }
 
-    /// Disconnect from the server, ending all tasks.
+    /// Disconnect this client from the server, ending all tasks.
     pub async fn disconnect(&self) -> Result<(), std::io::Error> {
         if let Err(e) = self.write_conn.lock().await.shutdown().await {
             warn!(
@@ -1111,6 +1111,14 @@ impl Client {
 
     /// Tell the server we changed our game options (i.e. render distance, main hand).
     /// If this is not set before the login packet, the default will be sent.
+    ///
+    /// ```rust,no_run
+    /// bot.set_client_information(ClientInformation {
+    ///     view_distance: 2,
+    ///     ..Default::default()
+    /// })
+    /// .await?;
+    /// ```
     pub async fn set_client_information(
         &self,
         client_information: ServerboundClientInformationPacket,

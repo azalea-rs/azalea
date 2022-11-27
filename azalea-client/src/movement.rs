@@ -262,6 +262,10 @@ impl Client {
     /// Start walking in the given direction. To sprint, use
     /// [`Client::sprint`]. To stop walking, call walk with
     /// `WalkDirection::None`.
+    ///
+    /// ```rust,no_run
+    /// bot.walk(WalkDirection::Forward);
+    /// ```
     pub fn walk(&mut self, direction: WalkDirection) {
         {
             let mut physics_state = self.physics_state.lock();

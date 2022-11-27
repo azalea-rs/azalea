@@ -1,3 +1,4 @@
+/// Swarms are a way to conveniently control many bots.
 mod chat;
 mod plugins;
 
@@ -17,11 +18,11 @@ use std::{future::Future, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::sync::mpsc::{self, UnboundedSender};
 
-/// A helper macro that generates a [`Plugins`] struct from a list of objects
-/// that implement [`Plugin`].
+/// A helper macro that generates a [`SwarmPlugins`] struct from a list of objects
+/// that implement [`SwarmPlugin`].
 ///
 /// ```rust,no_run
-/// plugins![azalea_pathfinder::Plugin::default()];
+/// swarm_plugins![azalea_pathfinder::Plugin];
 /// ```
 #[macro_export]
 macro_rules! swarm_plugins {
@@ -41,6 +42,74 @@ macro_rules! swarm_plugins {
 ///
 /// The `S` type parameter is the type of the state for individual bots.
 /// It's used to make the [`Swarm::add`] function work.
+///
+///
+/// ```rust,no_run
+/// use azalea::{prelude::*, Swarm, SwarmEvent};
+/// use azalea::{Account, Client, Event};
+/// use std::time::Duration;
+///
+/// #[derive(Default, Clone)]
+/// struct State {}
+///
+/// #[derive(Default, Clone)]
+/// struct SwarmState {}
+///
+/// #[tokio::main]
+/// async fn main() -> anyhow::Result<()> {
+///     let mut accounts = Vec::new();
+///     let mut states = Vec::new();
+///
+///     for i in 0..10 {
+///         accounts.push(Account::offline(&format!("bot{}", i)));
+///         states.push(State::default());
+///     }
+///
+///     loop {
+///         let e = azalea::start_swarm(azalea::SwarmOptions {
+///             accounts: accounts.clone(),
+///             address: "localhost",
+///
+///             states: states.clone(),
+///             swarm_state: SwarmState::default(),
+///
+///             plugins: plugins![],
+///             swarm_plugins: swarm_plugins![],
+///
+///             handle,
+///             swarm_handle,
+///
+///             join_delay: Some(Duration::from_millis(1000)),
+///         })
+///         .await;
+///         println!("{e:?}");
+///     }
+/// }
+///
+/// async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
+///     match &event {
+///         _ => {}
+///     }
+///     Ok(())
+/// }
+///
+/// async fn swarm_handle(
+///     mut swarm: Swarm<State>,
+///     event: SwarmEvent,
+///     _state: SwarmState,
+/// ) -> anyhow::Result<()> {
+///     match &event {
+///         SwarmEvent::Disconnect(account) => {
+///             tokio::time::sleep(Duration::from_secs(5)).await;
+///             swarm.add(account, State::default()).await?;
+///         }
+///         SwarmEvent::Chat(m) => {
+///             println!("{}", m.message().to_ansi(None));
+///         }
+///         _ => {}
+///     }
+///     Ok(())
+/// }
 #[derive(Clone)]
 pub struct Swarm<S> {
     bot_datas: Arc<Mutex<Vec<(Client, S)>>>,
@@ -76,7 +145,7 @@ pub type SwarmHandleFn<Fut, S, SS> = fn(Swarm<S>, SwarmEvent, SS) -> Fut;
 
 /// The options that are passed to [`azalea::start_swarm`].
 ///
-/// [`azalea::start`]: crate::start_swarm
+/// [`azalea::start_swarm`]: crate::start_swarm()
 pub struct SwarmOptions<S, SS, A, Fut, SwarmFut>
 where
     A: TryInto<ServerAddress>,
@@ -309,6 +378,9 @@ where
 
     /// Add a new account to the swarm, retrying if it couldn't join. This will
     /// run forever until the bot joins or the task is aborted.
+    ///
+    /// Exponential backoff means if it fails joining it will initially wait 10
+    /// seconds, then 20, then 40, up to 2 minutes.
     pub async fn add_with_exponential_backoff(&mut self, account: &Account, state: S) -> Client {
         let mut disconnects = 0;
         loop {
@@ -334,6 +406,13 @@ where
     type Item = (Client, S);
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
+    /// Iterate over the bots and their states in this swarm.
+    ///
+    /// ```rust,no_run
+    /// for (bot, state) in swarm {
+    ///     // ...
+    /// }
+    /// ```
     fn into_iter(self) -> Self::IntoIter {
         self.bot_datas.lock().clone().into_iter()
     }

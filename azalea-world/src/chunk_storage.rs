@@ -43,7 +43,7 @@ pub struct WeakChunkStorage {
 }
 
 /// A storage of potentially infinite chunks in a world. Chunks are stored as
-/// an Arc<Mutex> so they can be shared across threads.
+/// an `Arc<Mutex>` so they can be shared across threads.
 pub struct ChunkStorage {
     pub height: u32,
     pub min_y: i32,

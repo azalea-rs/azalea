@@ -8,8 +8,10 @@ use thiserror::Error;
 /// that implement [`Plugin`].
 ///
 /// ```rust,no_run
-/// plugins![azalea_pathfinder::Plugin::default()];
+/// plugins![azalea_pathfinder::Plugin];
 /// ```
+///
+/// [`Plugin`]: crate::Plugin
 #[macro_export]
 macro_rules! plugins {
     ($($plugin:expr),*) => {
@@ -25,7 +27,7 @@ macro_rules! plugins {
 
 /// The options that are passed to [`azalea::start`].
 ///
-/// [`azalea::start`]: crate::start
+/// [`azalea::start`]: crate::start()
 pub struct Options<S, A, Fut>
 where
     A: TryInto<ServerAddress>,
@@ -44,7 +46,7 @@ where
     /// for this field.
     ///
     /// ```rust,no_run
-    /// plugins![azalea_pathfinder::Plugin::default()]
+    /// plugins![azalea_pathfinder::Plugin]
     /// ```
     pub plugins: Plugins,
     /// A struct that contains the data that you want your bot to remember
@@ -94,7 +96,7 @@ pub enum StartError {
 ///     account,
 ///     address: "localhost",
 ///     state: State::default(),
-///     plugins: plugins![azalea_pathfinder::Plugin::default()],
+///     plugins: plugins![azalea_pathfinder::Plugin],
 ///     handle,
 /// }).await;
 /// ```
