@@ -159,31 +159,27 @@ impl PartialChunkStorage {
     /// Get a [`Chunk`] within render distance, or `None` if it's not loaded.
     /// Use [`PartialChunkStorage::get`] to get a chunk from the shared storage.
     pub fn limited_get(&self, pos: &ChunkPos) -> Option<&Arc<Mutex<Chunk>>> {
-        let index = self.get_index(pos);
-        if index >= self.chunks.len() {
+        if !self.in_range(pos) {
             warn!(
-                "Chunk at {:?} is not in the render distance (center: {:?}, {} chunks, {} >= {})",
-                pos,
-                self.view_center,
-                self.chunk_radius,
-                index,
-                self.chunks.len()
+                "Chunk at {:?} is not in the render distance (center: {:?}, {} chunks)",
+                pos, self.view_center, self.chunk_radius,
             );
-            None
-        } else {
-            self.chunks[index].as_ref()
+            return None;
         }
+
+        let index = self.get_index(pos);
+        self.chunks[index].as_ref()
     }
     /// Get a mutable reference to a [`Chunk`] within render distance, or
     /// `None` if it's not loaded. Use [`PartialChunkStorage::get`] to get
     /// a chunk from the shared storage.
     pub fn limited_get_mut(&mut self, pos: &ChunkPos) -> Option<&mut Option<Arc<Mutex<Chunk>>>> {
-        let index = self.get_index(pos);
-        if index >= self.chunks.len() {
-            None
-        } else {
-            Some(&mut self.chunks[index])
+        if !self.in_range(pos) {
+            return None;
         }
+
+        let index = self.get_index(pos);
+        Some(&mut self.chunks[index])
     }
 
     /// Get a chunk,

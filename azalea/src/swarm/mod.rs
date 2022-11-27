@@ -327,6 +327,18 @@ where
     }
 }
 
+impl<S> IntoIterator for Swarm<S>
+where
+    S: Send + Sync + Clone + 'static,
+{
+    type Item = (Client, S);
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.bot_datas.lock().clone().into_iter()
+    }
+}
+
 #[derive(Default)]
 struct InternalSwarmState {
     /// The number of bots connected to the server
