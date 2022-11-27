@@ -1,5 +1,5 @@
-use azalea::prelude::*;
-use azalea::{Account, Accounts, Client, Event, Swarm};
+use azalea::{prelude::*, SwarmEvent};
+use azalea::{Account, Client, Event, Swarm};
 use parking_lot::Mutex;
 use std::sync::Arc;
 
@@ -42,9 +42,13 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn swarm_handle<S>(swarm: Swarm<S>, event: Event, state: SwarmState) -> anyhow::Result<()> {
-    match event {
-        Event::Login => {
+async fn swarm_handle(
+    swarm: Swarm<State>,
+    event: SwarmEvent,
+    state: SwarmState,
+) -> anyhow::Result<()> {
+    match &event {
+        SwarmEvent::Login => {
             swarm.goto(azalea::BlockPos::new(0, 70, 0)).await;
             // or bots.goto_goal(pathfinder::Goals::Goto(azalea::BlockPos(0, 70, 0))).await;
 
