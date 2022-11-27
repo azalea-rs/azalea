@@ -1,7 +1,5 @@
 use azalea::{prelude::*, SwarmEvent};
 use azalea::{Account, Client, Event, Swarm};
-use parking_lot::Mutex;
-use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
@@ -10,14 +8,14 @@ async fn main() {
 
     for i in 0..10 {
         accounts.push(Account::offline(&format!("bot{}", i)));
-        states.push(Arc::new(Mutex::new(State::default())));
+        states.push(State::default());
     }
 
     azalea::start_swarm(azalea::SwarmOptions {
         accounts,
         address: "localhost",
 
-        swarm_state: State::default(),
+        swarm_state: SwarmState::default(),
         states,
 
         swarm_plugins: plugins![],

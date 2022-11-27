@@ -15,7 +15,7 @@
 //! Latest bleeding-edge version:
 //! `azalea = { git="https://github.com/mat-1/Cargo.toml" }`\
 //! Latest "stable" release:
-//! `azalea = "0.3"`
+//! `azalea = "0.6"`
 //!
 //! ## Optimization
 //!
@@ -28,7 +28,7 @@
 //! ```toml
 //! [profile.dev]
 //! opt-level = 1
-//! [profile.dev.package."*""]
+//! [profile.dev.package."*"]
 //! opt-level = 3
 //! ```
 //! to your Cargo.toml. You may have to install the LLD linker.

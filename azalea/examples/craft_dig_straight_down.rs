@@ -27,7 +27,7 @@ async fn main() {
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     match event {
         Event::Chat(m) => {
-            if m.username() == Some(bot.game_profile.name) {
+            if m.username() == Some(bot.profile.name) {
                 return Ok(());
             };
             if m.content() == "go" {
@@ -42,7 +42,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                 bot.goto(pathfinder::Goals::NearXZ(5, azalea::BlockXZ(0, 0)))
                     .await;
                 let chest = bot
-                    .open_container(&bot.world.find_one_block(|b| b.id == "minecraft:chest"))
+                    .open_container(&bot.world().find_one_block(|b| b.id == "minecraft:chest"))
                     .await
                     .unwrap();
                 bot.take_amount(&chest, 5, |i| i.id == "#minecraft:planks")
@@ -65,7 +65,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 
                 bot.hold(&pickaxe);
                 loop {
-                    if let Err(e) = bot.dig(bot.entity.feet_pos().down(1)).await {
+                    if let Err(e) = bot.dig(bot.entity().feet_pos().down(1)).await {
                         println!("{:?}", e);
                         break;
                     }
