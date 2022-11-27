@@ -263,8 +263,17 @@ impl Client {
     /// [`Client::sprint`]. To stop walking, call walk with
     /// `WalkDirection::None`.
     ///
+    /// # Examples
+    ///
+    /// Walk for 1 second
     /// ```rust,no_run
+    /// # use azalea_client::{Client, WalkDirection};
+    /// # use std::time::Duration;
+    /// # async fn example(mut bot: Client) {
     /// bot.walk(WalkDirection::Forward);
+    /// tokio::time::sleep(Duration::from_secs(1)).await;
+    /// bot.walk(WalkDirection::None);
+    /// # }
     /// ```
     pub fn walk(&mut self, direction: WalkDirection) {
         {
@@ -277,6 +286,19 @@ impl Client {
 
     /// Start sprinting in the given direction. To stop moving, call
     /// [`Client::walk(WalkDirection::None)`]
+    ///
+    /// # Examples
+    ///
+    /// Sprint for 1 second
+    /// ```rust,no_run
+    /// # use azalea_client::{Client, WalkDirection, SprintDirection};
+    /// # use std::time::Duration;
+    /// # async fn example(mut bot: Client) {
+    /// bot.sprint(SprintDirection::Forward);
+    /// tokio::time::sleep(Duration::from_secs(1)).await;
+    /// bot.walk(WalkDirection::None);
+    /// # }
+    /// ```
     pub fn sprint(&mut self, direction: SprintDirection) {
         let mut physics_state = self.physics_state.lock();
         physics_state.move_direction = WalkDirection::from(direction);

@@ -214,14 +214,15 @@ impl Client {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use azalea_client::Client;
+    /// use azalea_client::{Client, Account};
     ///
     /// #[tokio::main]
-    /// async fn main() -> Box<dyn std::error::Error> {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let account = Account::offline("bot");
     ///     let (client, rx) = Client::join(&account, "localhost").await?;
     ///     client.chat("Hello, world!").await?;
-    ///     client.shutdown().await?;
+    ///     client.disconnect().await?;
+    ///     Ok(())
     /// }
     /// ```
     pub async fn join(
@@ -1113,11 +1114,15 @@ impl Client {
     /// If this is not set before the login packet, the default will be sent.
     ///
     /// ```rust,no_run
+    /// # use azalea_client::{Client, ClientInformation};
+    /// # async fn example(bot: Client) -> Result<(), Box<dyn std::error::Error>> {
     /// bot.set_client_information(ClientInformation {
     ///     view_distance: 2,
     ///     ..Default::default()
     /// })
     /// .await?;
+    /// # Ok(())
+    /// # }
     /// ```
     pub async fn set_client_information(
         &self,

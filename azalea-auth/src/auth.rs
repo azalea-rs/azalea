@@ -209,6 +209,7 @@ pub struct GameOwnershipItem {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ProfileResponse {
+    // todo: make the id a uuid
     pub id: String,
     pub name: String,
     pub skins: Vec<serde_json::Value>,
@@ -463,7 +464,7 @@ pub enum GetProfileError {
     Http(#[from] reqwest::Error),
 }
 
-async fn get_profile(
+pub async fn get_profile(
     client: &reqwest::Client,
     minecraft_access_token: &str,
 ) -> Result<ProfileResponse, GetProfileError> {

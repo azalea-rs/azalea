@@ -127,25 +127,8 @@ impl Client {
     /// Send a message in chat.
     ///
     /// ```rust,no_run
-    /// # use azalea::prelude::*;
-    /// # use parking_lot::Mutex;
-    /// # use std::sync::Arc;
-    /// # #[tokio::main]
-    /// # async fn main() {
-    /// #     let account = Account::offline("bot");
-    /// #     azalea::start(azalea::Options {
-    /// #         account,
-    /// #         address: "localhost",
-    /// #         state: State::default(),
-    /// #         plugins: plugins![],
-    /// #         handle,
-    /// #     })
-    /// #     .await
-    /// #     .unwrap();
-    /// # }
-    /// # #[derive(Default, Clone)]
-    /// # pub struct State {}
-    /// # async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    /// # use azalea_client::{Client, Event};
+    /// # async fn handle(bot: Client, event: Event) -> anyhow::Result<()> {
     /// bot.chat("Hello, world!").await.unwrap();
     /// # Ok(())
     /// # }
