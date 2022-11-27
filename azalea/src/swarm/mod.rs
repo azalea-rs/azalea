@@ -40,10 +40,102 @@ macro_rules! swarm_plugins {
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
 ///
+/// Swarms are created from the [`azalea::start_swarm`] function.
+///
 /// The `S` type parameter is the type of the state for individual bots.
 /// It's used to make the [`Swarm::add`] function work.
 ///
+/// [`azalea::start_swarm`]: fn.start_swarm.html
+#[derive(Clone)]
+pub struct Swarm<S> {
+    bot_datas: Arc<Mutex<Vec<(Client, S)>>>,
+
+    resolved_address: SocketAddr,
+    address: ServerAddress,
+    pub worlds: Arc<RwLock<WeakWorldContainer>>,
+    /// Plugins that are set for new bots
+    plugins: Plugins,
+
+    bots_tx: UnboundedSender<(Option<Event>, (Client, S))>,
+    swarm_tx: UnboundedSender<SwarmEvent>,
+}
+
+/// An event about something that doesn't have to do with a single bot.
+#[derive(Clone, Debug)]
+pub enum SwarmEvent {
+    /// All the bots in the swarm have successfully joined the server.
+    Login,
+    /// The swarm was created. This is only fired once, and it's guaranteed to
+    /// be the first event to fire.
+    Init,
+    /// A bot got disconnected from the server.
+    ///
+    /// You can implement an auto-reconnect by calling [`Swarm::add`]
+    /// with the account from this event.
+    Disconnect(Account),
+    /// At least one bot received a chat message.
+    Chat(ChatPacket),
+}
+
+pub type SwarmHandleFn<Fut, S, SS> = fn(Swarm<S>, SwarmEvent, SS) -> Fut;
+
+/// The options that are passed to [`azalea::start_swarm`].
 ///
+/// [`azalea::start_swarm`]: crate::start_swarm()
+pub struct SwarmOptions<S, SS, A, Fut, SwarmFut>
+where
+    A: TryInto<ServerAddress>,
+    Fut: Future<Output = Result<(), anyhow::Error>>,
+    SwarmFut: Future<Output = Result<(), anyhow::Error>>,
+{
+    /// The address of the server that we're connecting to. This can be a
+    /// `&str`, [`ServerAddress`], or anything that implements
+    /// `TryInto<ServerAddress>`.
+    ///
+    /// [`ServerAddress`]: azalea_protocol::ServerAddress
+    pub address: A,
+    /// The accounts that are going to join the server.
+    pub accounts: Vec<Account>,
+    /// The plugins that are going to be used for all the bots.
+    ///
+    /// You can usually leave this as `plugins![]`.
+    pub plugins: Plugins,
+    /// The plugins that are going to be used for the swarm.
+    ///
+    /// You can usually leave this as `swarm_plugins![]`.
+    pub swarm_plugins: SwarmPlugins<S>,
+    /// The individual bot states. This must be the same length as `accounts`,
+    /// since each bot gets one state.
+    pub states: Vec<S>,
+    /// The state for the overall swarm.
+    pub swarm_state: SS,
+    /// The function that's called every time a bot receives an [`Event`].
+    pub handle: HandleFn<Fut, S>,
+    /// The function that's called every time the swarm receives a [`SwarmEvent`].
+    pub swarm_handle: SwarmHandleFn<SwarmFut, S, SS>,
+
+    /// How long we should wait between each bot joining the server. Set to
+    /// None to have every bot connect at the same time. None is different than
+    /// a duration of 0, since if a duration is present the bots will wait for
+    /// the previous one to be ready.
+    pub join_delay: Option<std::time::Duration>,
+}
+
+#[derive(Error, Debug)]
+pub enum SwarmStartError {
+    #[error("Invalid address")]
+    InvalidAddress,
+    #[error(transparent)]
+    ResolveAddress(#[from] ResolverError),
+    #[error("Join error: {0}")]
+    Join(#[from] azalea_client::JoinError),
+}
+
+/// Make a bot [`Swarm`].
+///
+/// [`Swarm`]: struct.Swarm.html
+///
+/// # Examples
 /// ```rust,no_run
 /// use azalea::{prelude::*, Swarm, SwarmEvent};
 /// use azalea::{Account, Client, Event};
@@ -100,6 +192,7 @@ macro_rules! swarm_plugins {
 /// ) -> anyhow::Result<()> {
 ///     match &event {
 ///         SwarmEvent::Disconnect(account) => {
+///             // automatically reconnect after 5 seconds
 ///             tokio::time::sleep(Duration::from_secs(5)).await;
 ///             swarm.add(account, State::default()).await?;
 ///         }
@@ -110,83 +203,6 @@ macro_rules! swarm_plugins {
 ///     }
 ///     Ok(())
 /// }
-#[derive(Clone)]
-pub struct Swarm<S> {
-    bot_datas: Arc<Mutex<Vec<(Client, S)>>>,
-
-    resolved_address: SocketAddr,
-    address: ServerAddress,
-    pub worlds: Arc<RwLock<WeakWorldContainer>>,
-    /// Plugins that are set for new bots
-    plugins: Plugins,
-
-    bots_tx: UnboundedSender<(Option<Event>, (Client, S))>,
-    swarm_tx: UnboundedSender<SwarmEvent>,
-}
-
-/// An event about something that doesn't have to do with a single bot.
-#[derive(Clone, Debug)]
-pub enum SwarmEvent {
-    /// All the bots in the swarm have successfully joined the server.
-    Login,
-    /// The swarm was created. This is only fired once, and it's guaranteed to
-    /// be the first event to fire.
-    Init,
-    /// A bot got disconnected from the server.
-    ///
-    /// You can implement an auto-reconnect by calling [`Swarm::add`]
-    /// with the account from this event.
-    Disconnect(Account),
-    /// At least one bot received a chat message.
-    Chat(ChatPacket),
-}
-
-pub type SwarmHandleFn<Fut, S, SS> = fn(Swarm<S>, SwarmEvent, SS) -> Fut;
-
-/// The options that are passed to [`azalea::start_swarm`].
-///
-/// [`azalea::start_swarm`]: crate::start_swarm()
-pub struct SwarmOptions<S, SS, A, Fut, SwarmFut>
-where
-    A: TryInto<ServerAddress>,
-    Fut: Future<Output = Result<(), anyhow::Error>>,
-    SwarmFut: Future<Output = Result<(), anyhow::Error>>,
-{
-    /// The address of the server that we're connecting to. This can be a
-    /// `&str`, [`ServerAddress`], or anything that implements
-    /// `TryInto<ServerAddress>`.
-    ///
-    /// [`ServerAddress`]: azalea_protocol::ServerAddress
-    pub address: A,
-    /// The accounts that are going to join the server.
-    pub accounts: Vec<Account>,
-    pub plugins: Plugins,
-    pub swarm_plugins: SwarmPlugins<S>,
-    /// The individual bot states. This must be the same length as `accounts`,
-    /// since each bot gets one state.
-    pub states: Vec<S>,
-    pub swarm_state: SS,
-    pub handle: HandleFn<Fut, S>,
-    pub swarm_handle: SwarmHandleFn<SwarmFut, S, SS>,
-
-    /// How long we should wait between each bot joining the server. Set to
-    /// None to have every bot connect at the same time. None is different than
-    /// a duration of 0, since if a duration is present the bots will wait for
-    /// the previous one to be ready.
-    pub join_delay: Option<std::time::Duration>,
-}
-
-#[derive(Error, Debug)]
-pub enum SwarmStartError {
-    #[error("Invalid address")]
-    InvalidAddress,
-    #[error(transparent)]
-    ResolveAddress(#[from] ResolverError),
-    #[error("Join error: {0}")]
-    Join(#[from] azalea_client::JoinError),
-}
-
-/// Make a bot swarm.
 pub async fn start_swarm<
     S: Send + Sync + Clone + 'static,
     SS: Send + Sync + Clone + 'static,

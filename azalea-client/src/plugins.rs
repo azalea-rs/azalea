@@ -36,10 +36,12 @@ impl PluginStates {
 }
 
 impl Plugins {
+    /// Create a new empty set of plugins.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Add a new plugin to this set.
     pub fn add<T: Plugin + Clone>(&mut self, plugin: T) {
         if self.map.is_none() {
             self.map = Some(HashMap::with_hasher(BuildHasherDefault::default()));
@@ -50,6 +52,9 @@ impl Plugins {
             .insert(TypeId::of::<T::State>(), Box::new(plugin));
     }
 
+    /// Build our plugin states from this set of plugins. Note that if you're
+    /// using `azalea` you'll probably never need to use this as it's called
+    /// for you.
     pub fn build(self) -> PluginStates {
         let mut map = HashMap::with_hasher(BuildHasherDefault::default());
         for (id, plugin) in self.map.unwrap().into_iter() {
@@ -63,6 +68,7 @@ impl IntoIterator for PluginStates {
     type Item = Box<dyn PluginState>;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
+    /// Iterate over the plugin states.
     fn into_iter(self) -> Self::IntoIter {
         self.map
             .map(|map| map.into_values().collect::<Vec<_>>())
@@ -71,14 +77,15 @@ impl IntoIterator for PluginStates {
     }
 }
 
-/// A PluginState keeps the current state of the plugin for a client. All the
+/// A `PluginState` keeps the current state of a plugin for a client. All the
 /// fields must be atomic. Unique `PluginState`s are built from [`Plugin`]s.
 #[async_trait]
 pub trait PluginState: Send + Sync + PluginStateClone + Any + 'static {
     async fn handle(self: Box<Self>, event: Event, bot: Client);
 }
 
-/// Plugins can keep their own personal state, listen to events, and add new functions to Client.
+/// Plugins can keep their own personal state, listen to [`Event`]s, and add
+/// new functions to [`Client`].
 pub trait Plugin: Send + Sync + Any + 'static {
     type State: PluginState;
 

@@ -6,8 +6,8 @@ use std::{
     sync::{Arc, Weak},
 };
 
-/// A container of Worlds. Worlds are stored as a Weak pointer here, so if no
-/// clients are using a world it will be forgotten.
+/// A container of [`WeakWorld`]s. Worlds are stored as a Weak pointer here, so
+/// if no clients are using a world it will be forgotten.
 #[derive(Default)]
 pub struct WeakWorldContainer {
     pub worlds: HashMap<ResourceLocation, Weak<WeakWorld>>,
