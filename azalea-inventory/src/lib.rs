@@ -1,25 +1,54 @@
+use std::sync::Arc;
+
 use azalea_core::Slot;
 
-/// This inventory has a normal "grid" inventory you can put items in.
-pub trait HasMainInventory {
-    /// Get the width of the main inventory.
-    fn width(&self) -> usize;
-    /// Get the height of the main inventory.
-    fn height(&self) -> usize;
-    /// Get the slot at the given x and y position in the main inventory.
-    fn slot(&self, x: usize, y: usize) -> Option<&Slot>;
-}
+// the player inventory part is always the last 36 slots (except in the Player
+// menu), so we don't have to explicitly specify it
 
-/// A basic representation of a Minecraft inventory.
-struct Inventory<const SIZE: usize> {
-    /// Every slot in the inventory. This will always include the player's
-    /// inventory, so you probably don't want this.
-    slots: [Slot; SIZE],
-}
+// if "inventory" is present, then the `player` inventory part doesn't get
+// implicitly added
 
-pub struct Generic9x1 {
-    inventory: Inventory<9>,
+declare_menus!({
+    Player {
+        craft_result: 1,
+        craft: 4,
+        armor: 4,
+        inventory: 36,
+        offhand: 1,
+    },
+    Generic9x1 {
+        contents: 9,
+    },
+    Generic9x2 {
+        contents: 18,
+    },
+    Generic9x3 {
+        contents: 27,
+    },
+    Chest {
+        block: 27,
+    }
+});
+
+pub enum Menu {
+    Player {
+        craft_result: Slot,
+        craft: [Slot; 4],
+        armor: [Slot; 4],
+        inventory: [Slot; 36],
+        offhand: Slot,
+    },
+    Generic9x1 {
+        contents: Slots<9>,
+        player: Arc<[Slot; 36]>,
+    },
+    Generic9x2 {
+        contents: Slots<18>,
+        player: Arc<[Slot; 36]>,
+    },
+    Generic9x3 {
+        contents: [Slot; 36],
+        player: Arc<[Slot; 36]>,
+    },
 }
-pub struct Generic9x2 {
-    inventory: Inventory<18>,
-}
+impl Menu {}
