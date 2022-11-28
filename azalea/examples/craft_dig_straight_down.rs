@@ -45,7 +45,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                     .open_container(&bot.world().find_one_block(|b| b.id == "minecraft:chest"))
                     .await
                     .unwrap();
-                bot.take_amount(&chest, 5, |i| i.id == "#minecraft:planks")
+                bot.take_amount_from_container(&chest, 5, |i| i.id == "#minecraft:planks")
                     .await;
                 chest.close().await;
 
