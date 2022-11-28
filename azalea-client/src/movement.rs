@@ -1,3 +1,5 @@
+use std::backtrace::Backtrace;
+
 use crate::Client;
 use azalea_core::Vec3;
 use azalea_physics::collision::{MovableEntity, MoverType};
@@ -15,7 +17,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum MovePlayerError {
     #[error("Player is not in world")]
-    PlayerNotInWorld,
+    PlayerNotInWorld(Backtrace),
     #[error("{0}")]
     Io(#[from] std::io::Error),
 }
@@ -23,7 +25,9 @@ pub enum MovePlayerError {
 impl From<MoveEntityError> for MovePlayerError {
     fn from(err: MoveEntityError) -> Self {
         match err {
-            MoveEntityError::EntityDoesNotExist => MovePlayerError::PlayerNotInWorld,
+            MoveEntityError::EntityDoesNotExist(backtrace) => {
+                MovePlayerError::PlayerNotInWorld(backtrace)
+            }
         }
     }
 }
@@ -152,7 +156,7 @@ impl Client {
     }
 
     // Set our current position to the provided Vec3, potentially clipping through blocks.
-    pub async fn set_pos(&mut self, new_pos: Vec3) -> Result<(), MovePlayerError> {
+    pub async fn set_position(&mut self, new_pos: Vec3) -> Result<(), MovePlayerError> {
         let player_entity_id = *self.entity_id.read();
         let mut world_lock = self.world.write();
 
@@ -167,7 +171,7 @@ impl Client {
 
         let mut entity = world_lock
             .entity_mut(player_entity_id)
-            .ok_or(MovePlayerError::PlayerNotInWorld)?;
+            .ok_or(MovePlayerError::PlayerNotInWorld(Backtrace::capture()))?;
         log::trace!(
             "move entity bounding box: {} {:?}",
             entity.id,
@@ -258,6 +262,19 @@ impl Client {
     /// Start walking in the given direction. To sprint, use
     /// [`Client::sprint`]. To stop walking, call walk with
     /// `WalkDirection::None`.
+    ///
+    /// # Examples
+    ///
+    /// Walk for 1 second
+    /// ```rust,no_run
+    /// # use azalea_client::{Client, WalkDirection};
+    /// # use std::time::Duration;
+    /// # async fn example(mut bot: Client) {
+    /// bot.walk(WalkDirection::Forward);
+    /// tokio::time::sleep(Duration::from_secs(1)).await;
+    /// bot.walk(WalkDirection::None);
+    /// # }
+    /// ```
     pub fn walk(&mut self, direction: WalkDirection) {
         {
             let mut physics_state = self.physics_state.lock();
@@ -269,6 +286,19 @@ impl Client {
 
     /// Start sprinting in the given direction. To stop moving, call
     /// [`Client::walk(WalkDirection::None)`]
+    ///
+    /// # Examples
+    ///
+    /// Sprint for 1 second
+    /// ```rust,no_run
+    /// # use azalea_client::{Client, WalkDirection, SprintDirection};
+    /// # use std::time::Duration;
+    /// # async fn example(mut bot: Client) {
+    /// bot.sprint(SprintDirection::Forward);
+    /// tokio::time::sleep(Duration::from_secs(1)).await;
+    /// bot.walk(WalkDirection::None);
+    /// # }
+    /// ```
     pub fn sprint(&mut self, direction: SprintDirection) {
         let mut physics_state = self.physics_state.lock();
         physics_state.move_direction = WalkDirection::from(direction);
@@ -321,6 +351,7 @@ impl Client {
     /// Sets your rotation. `y_rot` is yaw (looking to the side), `x_rot` is
     /// pitch (looking up and down). You can get these numbers from the vanilla
     /// f3 screen.
+    /// `y_rot` goes from -180 to 180, and `x_rot` goes from -90 to 90.
     pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
         let mut player_entity = self.entity_mut();
         player_entity.set_rotation(y_rot, x_rot);

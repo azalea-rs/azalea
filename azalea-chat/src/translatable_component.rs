@@ -5,7 +5,7 @@ use crate::{
 };
 use serde::{ser::SerializeMap, Serialize, Serializer, __private::ser::FlatMapSerializer};
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum StringOrComponent {
     String(String),
@@ -13,7 +13,7 @@ pub enum StringOrComponent {
 }
 
 /// A message whose content depends on the client's language.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TranslatableComponent {
     pub base: BaseComponent,
     pub key: String,

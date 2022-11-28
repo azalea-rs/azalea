@@ -1,7 +1,7 @@
 use crate::{style::Style, Component};
 use serde::Serialize;
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct BaseComponent {
     // implements mutablecomponent
     #[serde(skip_serializing_if = "Vec::is_empty")]

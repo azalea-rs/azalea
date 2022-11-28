@@ -44,8 +44,22 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///
 /// Join an offline-mode server and go through the handshake.
 /// ```rust,no_run
+/// use azalea_protocol::{
+///     resolver,
+///     connect::Connection,
+///     packets::{
+///         ConnectionProtocol, PROTOCOL_VERSION,
+///         login::{
+///             ClientboundLoginPacket,
+///             serverbound_hello_packet::ServerboundHelloPacket,
+///             serverbound_key_packet::{ServerboundKeyPacket, NonceOrSaltSignature}
+///         },
+///         handshake::client_intention_packet::ClientIntentionPacket
+///     }
+/// };
+///
 /// #[tokio::main]
-/// async fn main() -> anyhow::Result<()> {
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let resolved_address = resolver::resolve_address(&"localhost".try_into().unwrap()).await?;
 ///     let mut conn = Connection::new(&resolved_address).await?;
 ///
@@ -97,8 +111,8 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///                 break (conn.game(), p.game_profile);
 ///             }
 ///             ClientboundLoginPacket::LoginDisconnect(p) => {
-///                 println!("login disconnect: {}", p.reason);
-///                 bail!("{}", p.reason);
+///                 eprintln!("login disconnect: {}", p.reason);
+///                 return Err("login disconnect".into());
 ///             }
 ///             ClientboundLoginPacket::CustomQuery(p) => {}
 ///         }
@@ -258,24 +272,51 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// let token = azalea_auth::auth(azalea_auth::AuthOpts {
-    ///    ..Default::default()
-    /// })
-    /// .await;
-    /// let player_data = azalea_auth::get_profile(token).await;
+    /// use azalea_auth::AuthResult;
+    /// use azalea_protocol::connect::Connection;
+    /// use azalea_protocol::packets::login::{
+    ///     ClientboundLoginPacket,
+    ///     serverbound_key_packet::{ServerboundKeyPacket, NonceOrSaltSignature}
+    /// };
+    /// use uuid::Uuid;
+    /// # use azalea_protocol::ServerAddress;
     ///
-    /// let mut connection = azalea::Connection::new(&server_address).await?;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let AuthResult { access_token, profile } = azalea_auth::auth(
+    ///     "example@example.com",
+    ///     azalea_auth::AuthOpts::default()
+    /// ).await.expect("Couldn't authenticate");
+    /// #
+    /// # let address = ServerAddress::try_from("example@example.com").unwrap();
+    /// # let resolved_address = azalea_protocol::resolver::resolve_address(&address).await?;
+    ///
+    /// let mut conn = Connection::new(&resolved_address).await?;
     ///
     /// // transition to the login state, in a real program we would have done a handshake first
-    /// connection.login();
+    /// let mut conn = conn.login();
     ///
-    /// match connection.read().await? {
-    ///    ClientboundLoginPacket::Hello(p) => {
-    ///       // tell Mojang we're joining the server
-    ///       connection.authenticate(&token, player_data.uuid, p).await?;
-    ///   }
-    ///  _ => {}
+    /// match conn.read().await? {
+    ///     ClientboundLoginPacket::Hello(p) => {
+    ///         // tell Mojang we're joining the server & enable encryption
+    ///         let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
+    ///         conn.authenticate(
+    ///             &access_token,
+    ///             &Uuid::parse_str(&profile.id).expect("Invalid UUID"),
+    ///             e.secret_key,
+    ///             p
+    ///         ).await?;
+    ///         conn.write(
+    ///             ServerboundKeyPacket {
+    ///                 nonce_or_salt_signature: NonceOrSaltSignature::Nonce(e.encrypted_nonce),
+    ///                 key_bytes: e.encrypted_public_key,
+    ///             }.get()
+    ///         ).await?;
+    ///         conn.set_encryption_key(e.secret_key);
+    ///     }
+    ///     _ => {}
     /// }
+    /// # Ok(())
+    /// # }
     /// ```
     pub async fn authenticate(
         &self,

@@ -1,4 +1,4 @@
-//! https://minecraft.fandom.com/wiki/Attribute
+//! <https://minecraft.fandom.com/wiki/Attribute>
 
 use std::{
     collections::HashMap,

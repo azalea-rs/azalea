@@ -3,7 +3,7 @@ use serde::{ser::SerializeMap, Serialize, Serializer, __private::ser::FlatMapSer
 use std::fmt::Display;
 
 /// A component that contains text that's the same in all locales.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct TextComponent {
     pub base: BaseComponent,
     pub text: String,
