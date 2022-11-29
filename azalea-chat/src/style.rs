@@ -17,9 +17,9 @@ impl Serialize for TextColor {
         S: Serializer,
     {
         if self.name.is_some() {
-            return serializer.serialize_str(&self.name.as_ref().unwrap().to_ascii_lowercase());
+            serializer.serialize_str(&self.name.as_ref().unwrap().to_ascii_lowercase())
         } else {
-            return serializer.serialize_str(&self.format());
+            serializer.serialize_str(&self.format())
         }
     }
 }
@@ -309,12 +309,12 @@ impl Serialize for Style {
         let len = if self.reset {
             6
         } else {
-            0 + if self.color.is_some() { 1 } else { 0 }
-                + if self.bold.is_some() { 1 } else { 0 }
-                + if self.italic.is_some() { 1 } else { 0 }
-                + if self.underlined.is_some() { 1 } else { 0 }
-                + if self.strikethrough.is_some() { 1 } else { 0 }
-                + if self.obfuscated.is_some() { 1 } else { 0 }
+            usize::from(self.color.is_some())
+                + usize::from(self.bold.is_some())
+                + usize::from(self.italic.is_some())
+                + usize::from(self.underlined.is_some())
+                + usize::from(self.strikethrough.is_some())
+                + usize::from(self.obfuscated.is_some())
         };
         let mut state = serializer.serialize_struct("Style", len)?;
         if self.color.is_some() {

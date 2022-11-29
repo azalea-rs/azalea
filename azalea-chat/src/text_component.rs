@@ -17,7 +17,7 @@ impl Serialize for TextComponent {
         let mut state = serializer.serialize_map(None)?;
         state.serialize_entry("text", &self.text)?;
         Serialize::serialize(&self.base, FlatMapSerializer(&mut state))?;
-        if self.base.siblings.len() > 0 {
+        if !self.base.siblings.is_empty() {
             state.serialize_entry("extra", &self.base.siblings)?;
         }
         state.end()

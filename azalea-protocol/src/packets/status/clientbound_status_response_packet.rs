@@ -54,7 +54,7 @@ impl McBufReadable for ClientboundStatusResponsePacket {
 
 impl McBufWritable for ClientboundStatusResponsePacket {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let status_string = ClientboundStatusResponsePacket::serialize(&self, Serializer)
+        let status_string = ClientboundStatusResponsePacket::serialize(self, Serializer)
             .unwrap()
             .to_string();
         status_string.write_into(buf)?;
