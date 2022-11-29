@@ -29,6 +29,7 @@ pub struct Players {
 #[derive(Clone, Debug, Serialize, Deserialize, ClientboundStatusPacket)]
 pub struct ClientboundStatusResponsePacket {
     pub description: Component,
+    #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub favicon: Option<String>,
     pub players: Players,
