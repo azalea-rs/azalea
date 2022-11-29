@@ -1,4 +1,4 @@
-use azalea_buf::{BufReadError, McBufReadable, McBufVarWritable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_chat::Component;
 use azalea_protocol_macros::ClientboundStatusPacket;
 use serde::{Deserialize, Serialize};
@@ -57,11 +57,7 @@ impl McBufWritable for ClientboundStatusResponsePacket {
         let status_string = ClientboundStatusResponsePacket::serialize(&self, Serializer)
             .unwrap()
             .to_string();
-        let status_bytes = status_string.as_bytes();
-        let varint_len = status_bytes.len() as u32;
-
-        varint_len.var_write_into(buf)?;
-        buf.write_all(&status_bytes)?;
+        status_string.write_into(buf)?;
         Ok(())
     }
 }
