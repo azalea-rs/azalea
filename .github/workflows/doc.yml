@@ -28,7 +28,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-      - run: cargo doc --all
+      - run: cargo doc --workspace --no-deps
       - uses: "finnp/create-file-action@master"
         env:
           FILE_NAME: "./target/doc/index.html"
