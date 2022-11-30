@@ -32,7 +32,7 @@ jobs:
       - uses: "finnp/create-file-action@master"
         env:
           FILE_NAME: "./target/doc/index.html"
-          FILE_DATA: '<!DOCTYPE html><html><head><meta http-equiv="refresh"content="0;url='./azalea'"/></head></html>' #Redirect to default page
+          FILE_DATA: '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=''./azalea''"/></head></html>' # Redirect to default page
     
       - name: Setup Pages
         uses: actions/configure-pages@v2
