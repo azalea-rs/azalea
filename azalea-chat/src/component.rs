@@ -13,7 +13,7 @@ use std::{
 };
 
 /// A chat component, basically anything you can see in chat.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Component {
     Text(TextComponent),
     Translatable(TranslatableComponent),
@@ -63,13 +63,14 @@ impl Component {
     ///
     /// ```rust
     /// use azalea_chat::Component;
+    /// use serde::de::Deserialize;
     ///
     /// let component = Component::deserialize(&serde_json::json!({
     ///    "text": "Hello, world!",
     ///    "color": "red",
     /// })).unwrap();
     ///
-    /// println!("{}", component.to_ansi());
+    /// println!("{}", component.to_ansi(None));
     /// ```
     pub fn to_ansi(&self, default_style: Option<&Style>) -> String {
         // default the default_style to white if it's not set

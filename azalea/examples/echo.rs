@@ -21,11 +21,11 @@ async fn main() {
 #[derive(Default, Clone)]
 pub struct State {}
 
-async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
     match event {
         Event::Chat(m) => {
             if let (Some(sender), content) = m.split_sender_and_content() {
-                if sender == bot.game_profile.name {
+                if sender == bot.profile.name {
                     return Ok(()); // ignore our own messages
                 }
                 bot.chat(&content).await?;

@@ -1,27 +1,30 @@
-use azalea::{Account, Accounts, Client, Event, Swarm};
-use parking_lot::Mutex;
-use std::sync::Arc;
+use azalea::{prelude::*, SwarmEvent};
+use azalea::{Account, Client, Event, Swarm};
 
 #[tokio::main]
 async fn main() {
-    let accounts = Accounts::new();
+    let mut accounts = Vec::new();
+    let mut states = Vec::new();
 
     for i in 0..10 {
-        accounts.add(Account::offline(&format!("bot{}", i)));
+        accounts.push(Account::offline(&format!("bot{}", i)));
+        states.push(State::default());
     }
 
     azalea::start_swarm(azalea::SwarmOptions {
         accounts,
         address: "localhost",
 
-        swarm_state: State::default(),
-        state: State::default(),
+        swarm_state: SwarmState::default(),
+        states,
 
-        swarm_plugins: plugins![azalea_pathfinder::Plugin::default()],
+        swarm_plugins: plugins![],
         plugins: plugins![],
 
-        handle: Box::new(handle),
-        swarm_handle: Box::new(swarm_handle),
+        handle,
+        swarm_handle,
+
+        join_delay: None,
     })
     .await
     .unwrap();
@@ -37,9 +40,13 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn swarm_handle(swarm: Swarm, event: Event, state: SwarmState) -> anyhow::Result<()> {
-    match event {
-        Event::Login => {
+async fn swarm_handle(
+    swarm: Swarm<State>,
+    event: SwarmEvent,
+    state: SwarmState,
+) -> anyhow::Result<()> {
+    match &event {
+        SwarmEvent::Login => {
             swarm.goto(azalea::BlockPos::new(0, 70, 0)).await;
             // or bots.goto_goal(pathfinder::Goals::Goto(azalea::BlockPos(0, 70, 0))).await;
 

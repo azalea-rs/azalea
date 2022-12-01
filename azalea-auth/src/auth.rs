@@ -76,7 +76,7 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
         let mut msa = if let Some(account) = cached_account {
             account.msa
         } else {
-            interactive_get_ms_auth_token(&client).await?
+            interactive_get_ms_auth_token(&client, email).await?
         };
         if msa.is_expired() {
             log::trace!("refreshing Microsoft auth token");
@@ -209,6 +209,7 @@ pub struct GameOwnershipItem {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ProfileResponse {
+    // todo: make the id a uuid
     pub id: String,
     pub name: String,
     pub skins: Vec<serde_json::Value>,
@@ -229,6 +230,7 @@ pub enum GetMicrosoftAuthTokenError {
 /// Asks the user to go to a webpage and log in with Microsoft.
 async fn interactive_get_ms_auth_token(
     client: &reqwest::Client,
+    email: &str,
 ) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
     let res = client
         .post("https://login.live.com/oauth20_connect.srf")
@@ -243,8 +245,8 @@ async fn interactive_get_ms_auth_token(
         .await?;
     log::trace!("Device code response: {:?}", res);
     println!(
-        "Go to \x1b[1m{}\x1b[m and enter the code \x1b[1m{}\x1b[m",
-        res.verification_uri, res.user_code
+        "Go to \x1b[1m{}\x1b[m and enter the code \x1b[1m{}\x1b[m for \x1b[1m{}\x1b[m",
+        res.verification_uri, res.user_code, email
     );
 
     let login_expires_at = Instant::now() + std::time::Duration::from_secs(res.expires_in);
@@ -463,7 +465,7 @@ pub enum GetProfileError {
     Http(#[from] reqwest::Error),
 }
 
-async fn get_profile(
+pub async fn get_profile(
     client: &reqwest::Client,
     minecraft_access_token: &str,
 ) -> Result<ProfileResponse, GetProfileError> {

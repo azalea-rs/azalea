@@ -57,7 +57,7 @@ impl<'a> BlockCollisions<'a> {
         }
     }
 
-    fn get_chunk(&self, block_x: i32, block_z: i32) -> Option<&Arc<Mutex<Chunk>>> {
+    fn get_chunk(&self, block_x: i32, block_z: i32) -> Option<Arc<Mutex<Chunk>>> {
         let chunk_x = ChunkSectionPos::block_to_section_coord(block_x);
         let chunk_z = ChunkSectionPos::block_to_section_coord(block_z);
         let chunk_pos = ChunkPos::new(chunk_x, chunk_z);
@@ -75,7 +75,7 @@ impl<'a> BlockCollisions<'a> {
         //    return var7;
         // }
 
-        self.world[&chunk_pos].as_ref()
+        self.world.get_chunk(&chunk_pos)
     }
 }
 

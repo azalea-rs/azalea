@@ -8,6 +8,8 @@
 #![feature(provide_any)]
 #![allow(incomplete_features)]
 #![feature(trait_upcasting)]
+#![feature(error_generic_member_access)]
+#![feature(provide_any)]
 
 mod account;
 mod chat;
@@ -19,10 +21,10 @@ mod player;
 mod plugins;
 
 pub use account::Account;
-pub use client::{ChatPacket, Client, ClientInformation, Event, JoinError};
+pub use client::{ChatPacket, Client, ClientInformation, Event, JoinError, PhysicsState};
 pub use movement::{SprintDirection, WalkDirection};
 pub use player::PlayerInfo;
-pub use plugins::{Plugin, Plugins};
+pub use plugins::{Plugin, PluginState, PluginStates, Plugins};
 
 #[cfg(test)]
 mod tests {

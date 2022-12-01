@@ -11,7 +11,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Cursor, Write};
 use uuid::Uuid;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket, PartialEq)]
 pub struct ClientboundPlayerChatPacket {
     pub sender: Uuid,
     #[var]
@@ -61,7 +61,7 @@ pub enum ChatType {
     EmoteCommand = 6,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ChatTypeBound {
     pub chat_type: ChatType,
     pub name: Component,
@@ -69,6 +69,7 @@ pub struct ChatTypeBound {
 }
 
 // must be in Client
+#[derive(Clone, Debug, PartialEq)]
 pub struct MessageSignatureCache {
     pub entries: Vec<Option<MessageSignature>>,
 }

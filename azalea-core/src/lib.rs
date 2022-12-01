@@ -39,16 +39,6 @@ pub use aabb::*;
 mod block_hit_result;
 pub use block_hit_result::*;
 
-// java moment
-// TODO: add tests and optimize/simplify this
-pub fn floor_mod(x: i32, y: u32) -> u32 {
-    if x < 0 {
-        y - ((-x) as u32 % y)
-    } else {
-        x as u32 % y
-    }
-}
-
 // TODO: make this generic
 pub fn binary_search(mut min: i32, max: i32, predicate: &dyn Fn(i32) -> bool) -> i32 {
     let mut diff = max - min;

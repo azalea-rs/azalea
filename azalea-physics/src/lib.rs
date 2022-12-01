@@ -231,7 +231,10 @@ fn jump_boost_power<D: DerefMut<Target = World>>(_entity: &Entity<D>) -> f64 {
 mod tests {
     use super::*;
     use azalea_core::ChunkPos;
-    use azalea_world::{Chunk, World};
+    use azalea_world::{
+        entity::{metadata, EntityMetadata},
+        Chunk, World,
+    };
     use uuid::Uuid;
 
     #[test]
@@ -247,6 +250,7 @@ mod tests {
                     y: 70.,
                     z: 0.,
                 },
+                EntityMetadata::Player(metadata::Player::default()),
             ),
         );
         let mut entity = world.entity_mut(0).unwrap();
@@ -279,6 +283,7 @@ mod tests {
                     y: 70.,
                     z: 0.5,
                 },
+                EntityMetadata::Player(metadata::Player::default()),
             ),
         );
         let block_state = world.set_block_state(&BlockPos { x: 0, y: 69, z: 0 }, BlockState::Stone);
@@ -311,6 +316,7 @@ mod tests {
                     y: 71.,
                     z: 0.5,
                 },
+                EntityMetadata::Player(metadata::Player::default()),
             ),
         );
         let block_state = world.set_block_state(
@@ -344,6 +350,7 @@ mod tests {
                     y: 71.,
                     z: 0.5,
                 },
+                EntityMetadata::Player(metadata::Player::default()),
             ),
         );
         let block_state = world.set_block_state(
@@ -377,6 +384,7 @@ mod tests {
                     y: 73.,
                     z: 0.5,
                 },
+                EntityMetadata::Player(metadata::Player::default()),
             ),
         );
         let block_state = world.set_block_state(

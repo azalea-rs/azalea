@@ -15,7 +15,7 @@ async fn main() {
         account,
         address: "localhost",
         state: State::default(),
-        plugins: plugins![autoeat::Plugin::default(), pathfinder::Plugin::default(),],
+        plugins: plugins![autoeat::Plugin, pathfinder::Plugin],
         handle,
     })
     .await

@@ -12,7 +12,7 @@ use azalea_protocol::packets::game::{
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// A chat packet, either a system message or a chat message.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ChatPacket {
     System(ClientboundSystemChatPacket),
     Player(Box<ClientboundPlayerChatPacket>),
@@ -124,28 +124,9 @@ impl Client {
 
     /// Send a message in chat.
     ///
-    /// # Examples
-    ///
     /// ```rust,no_run
-    /// # use azalea::prelude::*;
-    /// # use parking_lot::Mutex;
-    /// # use std::sync::Arc;
-    /// # #[tokio::main]
-    /// # async fn main() {
-    /// #     let account = Account::offline("bot");
-    /// #     azalea::start(azalea::Options {
-    /// #         account,
-    /// #         address: "localhost",
-    /// #         state: State::default(),
-    /// #         plugins: plugins![],
-    /// #         handle,
-    /// #     })
-    /// #     .await
-    /// #     .unwrap();
-    /// # }
-    /// # #[derive(Default, Clone)]
-    /// # pub struct State {}
-    /// # async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    /// # use azalea_client::{Client, Event};
+    /// # async fn handle(bot: Client, event: Event) -> anyhow::Result<()> {
     /// bot.chat("Hello, world!").await.unwrap();
     /// # Ok(())
     /// # }

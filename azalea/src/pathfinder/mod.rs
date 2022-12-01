@@ -13,9 +13,14 @@ use parking_lot::Mutex;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
-#[derive(Default, Clone)]
-pub struct Plugin {
-    pub state: State,
+#[derive(Clone, Default)]
+pub struct Plugin;
+impl crate::Plugin for Plugin {
+    type State = State;
+
+    fn build(&self) -> State {
+        State::default()
+    }
 }
 
 #[derive(Default, Clone)]
@@ -25,10 +30,10 @@ pub struct State {
 }
 
 #[async_trait]
-impl crate::Plugin for Plugin {
+impl crate::PluginState for State {
     async fn handle(self: Box<Self>, event: Event, mut bot: Client) {
         if let Event::Tick = event {
-            let mut path = self.state.path.lock();
+            let mut path = self.path.lock();
 
             if !path.is_empty() {
                 tick_execute_path(&mut bot, &mut path);
@@ -102,9 +107,8 @@ impl Trait for azalea_client::Client {
 
         let state = self
             .plugins
-            .get::<Plugin>()
+            .get::<State>()
             .expect("Pathfinder plugin not installed!")
-            .state
             .clone();
         // convert the Option<Vec<Node>> to a VecDeque<Node>
         *state.path.lock() = p.expect("no path").into_iter().collect();
@@ -127,7 +131,7 @@ fn tick_execute_path(bot: &mut Client, path: &mut VecDeque<Node>) {
     }
 
     if target.is_reached(&bot.entity()) {
-        println!("ok target {target:?} reached");
+        // println!("ok target {target:?} reached");
         path.pop_front();
         if path.is_empty() {
             bot.walk(WalkDirection::None);
@@ -165,13 +169,13 @@ impl Node {
     /// Returns whether the entity is at the node and should start going to the
     /// next node.
     pub fn is_reached(&self, entity: &EntityData) -> bool {
-        println!(
-            "entity.delta.y: {} {:?}=={:?}, self.vertical_vel={:?}",
-            entity.delta.y,
-            BlockPos::from(entity.pos()),
-            self.pos,
-            self.vertical_vel
-        );
+        // println!(
+        //     "entity.delta.y: {} {:?}=={:?}, self.vertical_vel={:?}",
+        //     entity.delta.y,
+        //     BlockPos::from(entity.pos()),
+        //     self.pos,
+        //     self.vertical_vel
+        // );
         BlockPos::from(entity.pos()) == self.pos
             && match self.vertical_vel {
                 VerticalVel::NoneMidair => entity.delta.y > -0.1 && entity.delta.y < 0.1,
