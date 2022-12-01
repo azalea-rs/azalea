@@ -688,58 +688,20 @@ impl Client {
                             );
                         }
                     }
-                    //     match &p.action {
-                    //         Action::UpdateLatency(players) => {
-                    //             for player in players {
-                    //                 if let Some(p) = players_lock.get_mut(&player.uuid) {
-                    //                     p.latency = player.latency;
-                    //                     events.push(Event::UpdatePlayers(
-                    //                         UpdatePlayersEvent::Latency {
-                    //                             uuid: player.uuid,
-                    //                             latency: player.latency,
-                    //                         },
-                    //                     ));
-                    //                 } else {
-                    //                     warn!(
-                    //                         "Ignoring PlayerInfo (UpdateLatency) for unknown player {}",
-                    //                         player.uuid
-                    //                     );
-                    //                 }
-                    //             }
-                    //         }
-                    //         Action::UpdateDisplayName(players) => {
-                    //             for player in players {
-                    //                 if let Some(p) = players_lock.get_mut(&player.uuid) {
-                    //                     p.display_name = player.display_name.clone();
-                    //                     events.push(Event::UpdatePlayers(
-                    //                         UpdatePlayersEvent::DisplayName {
-                    //                             uuid: player.uuid,
-                    //                             display_name: player.display_name.clone(),
-                    //                         },
-                    //                     ));
-                    //                 } else {
-                    //                     warn!(
-                    //                     "Ignoring PlayerInfo (UpdateDisplayName) for unknown player {}",
-                    //                     player.uuid
-                    //                 );
-                    //                 }
-                    //             }
-                    //         }
-                    //         Action::RemovePlayer(players) => {
-                    //             for player in players {
-                    //                 if players_lock.remove(&player.uuid).is_some() {
-                    //                     events.push(Event::UpdatePlayers(UpdatePlayersEvent::Remove {
-                    //                         uuid: player.uuid,
-                    //                     }));
-                    //                 } else {
-                    //                     warn!(
-                    //                         "Ignoring PlayerInfo (RemovePlayer) for unknown player {}",
-                    //                         player.uuid
-                    //                     );
-                    //                 }
-                    //             }
-                    //         }
-                    //     }
+                }
+                for event in events {
+                    tx.send(event).await?;
+                }
+            }
+            ClientboundGamePacket::PlayerInfoRemove(p) => {
+                let mut events = Vec::new();
+                {
+                    let mut players_lock = client.players.write();
+                    for uuid in &p.profile_ids {
+                        if let Some(info) = players_lock.remove(uuid) {
+                            events.push(Event::RemovePlayer(info));
+                        }
+                    }
                 }
                 for event in events {
                     tx.send(event).await?;
@@ -997,7 +959,6 @@ impl Client {
             ClientboundGamePacket::TagQuery(_) => {}
             ClientboundGamePacket::TakeItemEntity(_) => {}
             ClientboundGamePacket::DisguisedChat(_) => {}
-            ClientboundGamePacket::PlayerInfoRemove(_) => {}
             ClientboundGamePacket::UpdateEnabledFeatures(_) => {}
             ClientboundGamePacket::ContainerClose(_) => {}
         }
