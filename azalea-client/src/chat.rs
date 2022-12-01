@@ -2,7 +2,6 @@
 
 use crate::Client;
 use azalea_chat::Component;
-use azalea_crypto::MessageSignature;
 use azalea_protocol::packets::game::{
     clientbound_player_chat_packet::ClientboundPlayerChatPacket,
     clientbound_system_chat_packet::ClientboundSystemChatPacket,
@@ -44,7 +43,7 @@ impl ChatPacket {
                 // If it's a player chat packet, then the sender and content
                 // are already split for us.
                 Some(p.chat_type.name.to_string()),
-                p.message.content(false).to_string(),
+                p.body.content.clone(),
             ),
             ChatPacket::System(p) => {
                 let message = p.content.to_string();

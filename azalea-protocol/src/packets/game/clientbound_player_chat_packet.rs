@@ -23,7 +23,7 @@ pub struct ClientboundPlayerChatPacket {
     pub chat_type: ChatTypeBound,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct PackedSignedMessageBody {
     pub content: String,
     pub timestamp: u64,
@@ -31,19 +31,19 @@ pub struct PackedSignedMessageBody {
     pub last_seen: PackedLastSeenMessages,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct PackedLastSeenMessages {
     pub entries: Vec<PackedMessageSignature>,
 }
 
 /// Messages can be deleted by either their signature or message id.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum PackedMessageSignature {
     Signature(MessageSignature),
     Id(u32),
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub enum FilterMask {
     PassThrough,
     FullyFiltered,
@@ -61,7 +61,7 @@ pub enum ChatType {
     EmoteCommand = 6,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, McBuf, PartialEq)]
 pub struct ChatTypeBound {
     pub chat_type: ChatType,
     pub name: Component,

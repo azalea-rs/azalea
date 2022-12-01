@@ -67,40 +67,22 @@ pub enum Event {
     Init,
     /// The client is now in the world. Fired when we receive a login packet.
     Login,
+    /// A chat message was sent in the game chat.
     Chat(ChatPacket),
     /// Happens 20 times per second, but only when the world is loaded.
     Tick,
     Packet(Box<ClientboundGamePacket>),
-    /// Happens when a player is added, removed, or updated in the tab list.
-    UpdatePlayers(UpdatePlayersEvent),
-    /// Emits when the player dies.
+    /// A player joined the game (or more specifically, was added to the tab
+    /// list).
+    AddPlayer(PlayerInfo),
+    /// A player left the game (or maybe is still in the game and was just
+    /// removed from the tab list).
+    RemovePlayer(PlayerInfo),
+    /// A player was updated in the tab list (gamemode, display
+    /// name, or latency changed).
+    UpdatePlayer(PlayerInfo),
+    /// The client player died in-game.
     Death(Option<Box<ClientboundPlayerCombatKillPacket>>),
-}
-
-/// Happens when a player is added, removed, or updated in the tab list.
-#[derive(Debug, Clone)]
-pub enum UpdatePlayersEvent {
-    /// A player with the given info was added to the tab list (usually means
-    /// they joined the server).
-    Add(PlayerInfo),
-    /// A player with the given UUID was removed from the tab list (usually
-    /// means they left the server)
-    Remove { uuid: Uuid },
-    /// The latency of the player with the given UUID was updated in the tab
-    /// list. Note that this can be spoofed by the player and may not represent
-    /// their actual latency.
-    Latency {
-        uuid: Uuid,
-        /// The time it took in milliseconds for this player to reply to the ping packet.
-        latency: i32,
-    },
-    /// The played switched to a different gamemode (i.e. survival, creative, spectator)
-    GameMode { uuid: Uuid, game_mode: GameType },
-    /// The name of the player with the given UUID in the tab list was changed or reset.
-    DisplayName {
-        uuid: Uuid,
-        display_name: Option<Component>,
-    },
 }
 
 /// A player that you control that is currently in a Minecraft server.
@@ -668,101 +650,96 @@ impl Client {
                     .await?;
             }
             ClientboundGamePacket::PlayerInfoUpdate(p) => {
-                use azalea_protocol::packets::game::clientbound_player_info_update_packet::Action;
-
                 debug!("Got player info packet {:?}", p);
                 let mut events = Vec::new();
                 {
                     let mut players_lock = client.players.write();
-                    match &p.action {
-                        Action::AddPlayer(players) => {
-                            for player in players {
-                                let player_info = PlayerInfo {
-                                    profile: GameProfile {
-                                        uuid: player.uuid,
-                                        name: player.name.clone(),
-                                        properties: player.properties.clone(),
-                                    },
-                                    uuid: player.uuid,
-                                    gamemode: player.gamemode,
-                                    latency: player.latency,
-                                    display_name: player.display_name.clone(),
-                                };
-                                players_lock.insert(player.uuid, player_info.clone());
-                                events.push(Event::UpdatePlayers(UpdatePlayersEvent::Add(
-                                    player_info,
-                                )));
-                            }
+                    for updated_info in &p.entries {
+                        // add the new player maybe
+                        if p.actions.add_player {
+                            let player_info = PlayerInfo {
+                                profile: updated_info.profile.clone(),
+                                uuid: updated_info.profile.uuid,
+                                gamemode: updated_info.game_mode,
+                                latency: updated_info.latency,
+                                display_name: updated_info.display_name.clone(),
+                            };
+                            players_lock.insert(updated_info.profile.uuid, player_info.clone());
+                            events.push(Event::AddPlayer(player_info));
                         }
-                        Action::UpdateGameMode(players) => {
-                            for player in players {
-                                if let Some(p) = players_lock.get_mut(&player.uuid) {
-                                    p.gamemode = player.gamemode;
-                                    events.push(Event::UpdatePlayers(
-                                        UpdatePlayersEvent::GameMode {
-                                            uuid: player.uuid,
-                                            game_mode: player.gamemode,
-                                        },
-                                    ));
-                                } else {
-                                    warn!(
-                                    "Ignoring PlayerInfo (UpdateGameMode) for unknown player {}",
-                                    player.uuid
-                                );
-                                }
+                        // `else if` because the block for add_player above
+                        // already sets all the fields
+                        else if let Some(info) = players_lock.get_mut(&updated_info.profile.uuid)
+                        {
+                            if p.actions.update_game_mode {
+                                info.gamemode = updated_info.game_mode;
                             }
-                        }
-                        Action::UpdateLatency(players) => {
-                            for player in players {
-                                if let Some(p) = players_lock.get_mut(&player.uuid) {
-                                    p.latency = player.latency;
-                                    events.push(Event::UpdatePlayers(
-                                        UpdatePlayersEvent::Latency {
-                                            uuid: player.uuid,
-                                            latency: player.latency,
-                                        },
-                                    ));
-                                } else {
-                                    warn!(
-                                        "Ignoring PlayerInfo (UpdateLatency) for unknown player {}",
-                                        player.uuid
-                                    );
-                                }
+                            if p.actions.update_latency {
+                                info.latency = updated_info.latency;
                             }
-                        }
-                        Action::UpdateDisplayName(players) => {
-                            for player in players {
-                                if let Some(p) = players_lock.get_mut(&player.uuid) {
-                                    p.display_name = player.display_name.clone();
-                                    events.push(Event::UpdatePlayers(
-                                        UpdatePlayersEvent::DisplayName {
-                                            uuid: player.uuid,
-                                            display_name: player.display_name.clone(),
-                                        },
-                                    ));
-                                } else {
-                                    warn!(
-                                    "Ignoring PlayerInfo (UpdateDisplayName) for unknown player {}",
-                                    player.uuid
-                                );
-                                }
+                            if p.actions.update_display_name {
+                                info.display_name = updated_info.display_name.clone();
                             }
-                        }
-                        Action::RemovePlayer(players) => {
-                            for player in players {
-                                if players_lock.remove(&player.uuid).is_some() {
-                                    events.push(Event::UpdatePlayers(UpdatePlayersEvent::Remove {
-                                        uuid: player.uuid,
-                                    }));
-                                } else {
-                                    warn!(
-                                        "Ignoring PlayerInfo (RemovePlayer) for unknown player {}",
-                                        player.uuid
-                                    );
-                                }
-                            }
+                            events.push(Event::UpdatePlayer(info.clone()));
+                        } else {
+                            warn!(
+                                "Ignoring PlayerInfoUpdate for unknown player {}",
+                                updated_info.profile.uuid
+                            );
                         }
                     }
+                    //     match &p.action {
+                    //         Action::UpdateLatency(players) => {
+                    //             for player in players {
+                    //                 if let Some(p) = players_lock.get_mut(&player.uuid) {
+                    //                     p.latency = player.latency;
+                    //                     events.push(Event::UpdatePlayers(
+                    //                         UpdatePlayersEvent::Latency {
+                    //                             uuid: player.uuid,
+                    //                             latency: player.latency,
+                    //                         },
+                    //                     ));
+                    //                 } else {
+                    //                     warn!(
+                    //                         "Ignoring PlayerInfo (UpdateLatency) for unknown player {}",
+                    //                         player.uuid
+                    //                     );
+                    //                 }
+                    //             }
+                    //         }
+                    //         Action::UpdateDisplayName(players) => {
+                    //             for player in players {
+                    //                 if let Some(p) = players_lock.get_mut(&player.uuid) {
+                    //                     p.display_name = player.display_name.clone();
+                    //                     events.push(Event::UpdatePlayers(
+                    //                         UpdatePlayersEvent::DisplayName {
+                    //                             uuid: player.uuid,
+                    //                             display_name: player.display_name.clone(),
+                    //                         },
+                    //                     ));
+                    //                 } else {
+                    //                     warn!(
+                    //                     "Ignoring PlayerInfo (UpdateDisplayName) for unknown player {}",
+                    //                     player.uuid
+                    //                 );
+                    //                 }
+                    //             }
+                    //         }
+                    //         Action::RemovePlayer(players) => {
+                    //             for player in players {
+                    //                 if players_lock.remove(&player.uuid).is_some() {
+                    //                     events.push(Event::UpdatePlayers(UpdatePlayersEvent::Remove {
+                    //                         uuid: player.uuid,
+                    //                     }));
+                    //                 } else {
+                    //                     warn!(
+                    //                         "Ignoring PlayerInfo (RemovePlayer) for unknown player {}",
+                    //                         player.uuid
+                    //                     );
+                    //                 }
+                    //             }
+                    //         }
+                    //     }
                 }
                 for event in events {
                     tx.send(event).await?;

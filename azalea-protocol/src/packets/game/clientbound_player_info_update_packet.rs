@@ -21,7 +21,6 @@ pub struct ClientboundPlayerInfoUpdatePacket {
 
 #[derive(Clone, Debug, Default)]
 pub struct PlayerInfoEntry {
-    pub profile_id: Uuid,
     pub profile: GameProfile,
     pub listed: bool,
     pub latency: i32,
@@ -66,7 +65,7 @@ impl McBufReadable for ClientboundPlayerInfoUpdatePacket {
         for _ in 0..entry_count {
             let profile_id = Uuid::read_from(buf)?;
             let mut entry = PlayerInfoEntry::default();
-            entry.profile_id = profile_id;
+            entry.profile.uuid = profile_id;
 
             if actions.add_player {
                 let action = AddPlayerAction::read_from(buf)?;
@@ -107,7 +106,7 @@ impl McBufWritable for ClientboundPlayerInfoUpdatePacket {
 
         (self.entries.len() as u32).var_write_into(buf)?;
         for entry in &self.entries {
-            entry.profile_id.write_into(buf)?;
+            entry.profile.uuid.write_into(buf)?;
 
             if self.actions.add_player {
                 AddPlayerAction {
