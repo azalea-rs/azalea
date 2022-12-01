@@ -42,7 +42,6 @@ impl Parse for Menu {
             .into_iter()
             .collect();
 
-        input.parse::<Token![,]>()?;
         Ok(Self { name, fields })
     }
 }
@@ -60,14 +59,10 @@ pub struct DeclareMenus {
 }
 impl Parse for DeclareMenus {
     fn parse(input: ParseStream) -> Result<Self> {
-        let content;
-        braced!(content in input);
-        let menus = content
+        let menus = input
             .parse_terminated::<Menu, Token![,]>(Menu::parse)?
             .into_iter()
             .collect();
-
-        input.parse::<Token![,]>()?;
         Ok(Self { menus })
     }
 }

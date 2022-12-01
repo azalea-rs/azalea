@@ -10,13 +10,13 @@ use syn::{self, parse_macro_input, Ident};
 
 #[proc_macro]
 pub fn declare_menus(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeclareMenus);
+    let mut input = parse_macro_input!(input as DeclareMenus);
 
     // implicitly add a `player` field at the end unless an `inventory` field
     // is present
     for menu in &mut input.menus {
         let mut inventory_field_missing = true;
-        for field in menu.fields {
+        for field in &menu.fields {
             if matches!(field.name.to_string().as_str(), "inventory" | "player") {
                 inventory_field_missing = false;
             }
@@ -29,8 +29,8 @@ pub fn declare_menus(input: TokenStream) -> TokenStream {
         }
     }
 
-    let menu_enum = menu_enum::generate(input);
-    let menu_impl = menu_impl::generate(input);
+    let menu_enum = menu_enum::generate(&input);
+    let menu_impl = menu_impl::generate(&input);
 
     quote! {
         #menu_enum

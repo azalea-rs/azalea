@@ -13,7 +13,7 @@ use azalea_inventory_macros::declare_menus;
 // Generate an `enum Menu` and `impl Menu`.
 // if the `inventory` field is present, then the `player` field doesn't get
 // implicitly added
-declare_menus!({
+declare_menus! {
     Player {
         craft_result: 1,
         craft: 4,
@@ -32,30 +32,5 @@ declare_menus!({
     },
     Chest {
         block: 27,
-    }
-});
-
-impl Menu {
-    /// Get a mutable reference to the [`Slot`] at the given protocol index. If
-    /// you're trying to get an item in a menu normally, you should just
-    /// `match` it and index the `[Slot]` you get
-    pub fn slot_mut(&self, i: usize) -> Option<&Slot> {
-        Some(match self {
-            Menu::Player {
-                craft_result,
-                craft,
-                armor,
-                inventory,
-                offhand,
-            } => {
-                match i {
-                    0 => craft_result,
-                    1..=4 => craft,
-                    5..=8 => armor,
-                    // ...
-                    _ => return None,
-                }
-            } // ...
-        })
     }
 }

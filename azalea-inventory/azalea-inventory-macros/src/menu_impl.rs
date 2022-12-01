@@ -2,9 +2,9 @@ use crate::parse_macro::{DeclareMenus, Menu};
 use proc_macro2::TokenStream;
 use quote::quote;
 
-pub fn generate(input: DeclareMenus) -> TokenStream {
+pub fn generate(input: &DeclareMenus) -> TokenStream {
     let mut match_variants = quote! {};
-    for menu in input.menus {
+    for menu in &input.menus {
         match_variants.extend(generate_match_variant_for_menu(menu));
     }
 
@@ -37,17 +37,38 @@ pub fn generate(input: DeclareMenus) -> TokenStream {
 ///         _ => return None,
 ///     }
 /// } // ...
-pub fn generate_match_variant_for_menu(menu: Menu) -> TokenStream {
-    let menu_name = menu.name;
-    let menu_field_names = menu.fields.into_iter().map(|f| f.name);
+pub fn generate_match_variant_for_menu(menu: &Menu) -> TokenStream {
+    let menu_name = &menu.name;
+    let mut menu_field_names = quote! {};
+    for field in &menu.fields {
+        let field_name = &field.name;
+        menu_field_names.extend(quote! { #field_name, })
+    }
+
+    let mut match_arms = quote! {};
+    let mut i = 0;
+    for field in &menu.fields {
+        let field_name = &field.name;
+        let start = i;
+        i += field.length;
+        let end = i - 1;
+        match_arms.extend(if start == end {
+            quote! { #start => #field_name, }
+        } else if start == 0 {
+            quote! { #start..=#end => &#field_name[i], }
+        } else {
+            quote! { #start..=#end => &#field_name[i - #start], }
+        });
+    }
 
     quote! {
         Menu::#menu_name {
-            #(#menu_field_names),*
+            #menu_field_names
         } => {
             match i {
+                #match_arms
                 _ => return None,
             }
-        }
+        },
     }
 }
