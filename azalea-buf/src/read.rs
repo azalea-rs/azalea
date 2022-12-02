@@ -88,8 +88,6 @@ fn read_utf_with_len(buf: &mut Cursor<&[u8]>, max_length: u32) -> Result<String,
         return Err(BufReadError::StringLengthTooLong { length, max_length });
     }
 
-    println!("read string: {:?}", string);
-
     Ok(string)
 }
 
@@ -181,7 +179,6 @@ impl McBufReadable for UnsizedByteArray {
 impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
     default fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = u32::var_read_from(buf)? as usize;
-        println!("length: {}", length);
         // we don't set the capacity here so we can't get exploited into
         // allocating a bunch
         let mut contents = vec![];

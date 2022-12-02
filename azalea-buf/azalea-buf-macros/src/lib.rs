@@ -20,12 +20,10 @@ fn read_named_fields(
                 syn::Type::Path(_) | syn::Type::Array(_) => {
                     if f.attrs.iter().any(|a| a.path.is_ident("var")) {
                         quote! {
-                            println!("Reading field {}", stringify!(#field_name));
                             let #field_name = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                         }
                     } else {
                         quote! {
-                            println!("Reading field {}", stringify!(#field_name));
                             let #field_name = azalea_buf::McBufReadable::read_from(buf)?;
                         }
                     }
@@ -56,7 +54,6 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             quote! {
             impl azalea_buf::McBufReadable for #ident {
                 fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-                    println!("Reading struct {}", stringify!(#ident));
                     #(#read_fields)*
                     Ok(#ident {
                         #(#read_field_names: #read_field_names),*
@@ -140,7 +137,6 @@ fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenSt
             quote! {
             impl azalea_buf::McBufReadable for #ident {
                 fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-                    println!("Reading enum {}", stringify!(#ident));
                     let id = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                     Self::read_from_id(buf, id)
                 }

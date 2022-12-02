@@ -10,26 +10,9 @@ pub struct SaltSignaturePair {
     pub signature: Vec<u8>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct MessageSignature {
     pub bytes: [u8; 256],
-}
-impl McBufReadable for MessageSignature {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let mut bytes = [0; 256];
-        println!(
-            "remaining bytes: {:?}",
-            &buf.get_ref()[buf.position() as usize..]
-        );
-        std::io::Read::read_exact(buf, &mut bytes)?;
-        Ok(MessageSignature { bytes })
-    }
-}
-impl McBufWritable for MessageSignature {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_all(&self.bytes)?;
-        Ok(())
-    }
 }
 
 #[derive(Clone, Debug, McBuf, PartialEq)]

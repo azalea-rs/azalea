@@ -16,7 +16,7 @@ pub struct ClientboundPlayerChatPacket {
     pub sender: Uuid,
     #[var]
     pub index: u32,
-    pub signature: Option<PackedMessageSignature>,
+    pub signature: Option<MessageSignature>,
     pub body: PackedSignedMessageBody,
     pub unsigned_content: Option<Component>,
     pub filter_mask: FilterMask,
@@ -25,6 +25,8 @@ pub struct ClientboundPlayerChatPacket {
 
 #[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct PackedSignedMessageBody {
+    // the error is here, for some reason it skipped a byte earlier and here
+    // it's reading `0` when it should be `11`
     pub content: String,
     pub timestamp: u64,
     pub salt: u64,
@@ -145,10 +147,8 @@ impl ChatType {
 impl McBufReadable for PackedMessageSignature {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = u32::var_read_from(buf)?;
-        println!("packed message signature id: {}", id);
         if id == 0 {
             let full_signature = MessageSignature::read_from(buf)?;
-            println!("packed message signature: {:?}", full_signature);
 
             Ok(PackedMessageSignature::Signature(full_signature))
         } else {
@@ -179,17 +179,17 @@ mod tests {
     // you can remove or update this test if it breaks because mojang changed the structure of the packet again
     #[test]
     fn test_player_chat_packet() {
-        let data: [u8; 296] = [
-            49, 47, 247, 69, 164, 160, 108, 63, 217, 178, 34, 4, 161, 47, 115, 192, 126, 0, 0, 11,
-            72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 0, 0, 1, 132, 209, 9, 72, 139, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 242, 1, 123, 34, 105, 110, 115, 101, 114, 116, 105,
-            111, 110, 34, 58, 34, 98, 111, 116, 48, 34, 44, 34, 99, 108, 105, 99, 107, 69, 118,
-            101, 110, 116, 34, 58, 123, 34, 97, 99, 116, 105, 111, 110, 34, 58, 34, 115, 117, 103,
-            103, 101, 115, 116, 95, 99, 111, 109, 109, 97, 110, 100, 34, 44, 34, 118, 97, 108, 117,
-            101, 34, 58, 34, 47, 116, 101, 108, 108, 32, 98, 111, 116, 48, 32, 34, 125, 44, 34,
-            104, 111, 118, 101, 114, 69, 118, 101, 110, 116, 34, 58, 123, 34, 97, 99, 116, 105,
-            111, 110, 34, 58, 34, 115, 104, 111, 119, 95, 101, 110, 116, 105, 116, 121, 34, 44, 34,
-            99, 111, 110, 116, 101, 110, 116, 115, 34, 58, 123, 34, 116, 121, 112, 101, 34, 58, 34,
+        let data: [u8; 295] = [
+            47, 247, 69, 164, 160, 108, 63, 217, 178, 34, 4, 161, 47, 115, 192, 126, 0, 0, 11, 72,
+            101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 0, 0, 1, 132, 209, 9, 72, 139, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 242, 1, 123, 34, 105, 110, 115, 101, 114, 116, 105, 111,
+            110, 34, 58, 34, 98, 111, 116, 48, 34, 44, 34, 99, 108, 105, 99, 107, 69, 118, 101,
+            110, 116, 34, 58, 123, 34, 97, 99, 116, 105, 111, 110, 34, 58, 34, 115, 117, 103, 103,
+            101, 115, 116, 95, 99, 111, 109, 109, 97, 110, 100, 34, 44, 34, 118, 97, 108, 117, 101,
+            34, 58, 34, 47, 116, 101, 108, 108, 32, 98, 111, 116, 48, 32, 34, 125, 44, 34, 104,
+            111, 118, 101, 114, 69, 118, 101, 110, 116, 34, 58, 123, 34, 97, 99, 116, 105, 111,
+            110, 34, 58, 34, 115, 104, 111, 119, 95, 101, 110, 116, 105, 116, 121, 34, 44, 34, 99,
+            111, 110, 116, 101, 110, 116, 115, 34, 58, 123, 34, 116, 121, 112, 101, 34, 58, 34,
             109, 105, 110, 101, 99, 114, 97, 102, 116, 58, 112, 108, 97, 121, 101, 114, 34, 44, 34,
             105, 100, 34, 58, 34, 50, 102, 102, 55, 52, 53, 97, 52, 45, 97, 48, 54, 99, 45, 51,
             102, 100, 57, 45, 98, 50, 50, 50, 45, 48, 52, 97, 49, 50, 102, 55, 51, 99, 48, 55, 101,
