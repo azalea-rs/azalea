@@ -1,4 +1,7 @@
-use azalea_buf::McBuf;
+use azalea_buf::{
+    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
+};
+use std::io::{Cursor, Write};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, McBuf)]
@@ -7,9 +10,9 @@ pub struct SaltSignaturePair {
     pub signature: Vec<u8>,
 }
 
-#[derive(Clone, Debug, Default, McBuf, PartialEq)]
+#[derive(Clone, Debug, McBuf, PartialEq)]
 pub struct MessageSignature {
-    pub bytes: Vec<u8>,
+    pub bytes: [u8; 256],
 }
 
 #[derive(Clone, Debug, McBuf, PartialEq)]

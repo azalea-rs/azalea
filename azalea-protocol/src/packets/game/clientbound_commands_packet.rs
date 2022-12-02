@@ -74,15 +74,15 @@ pub enum BrigadierString {
     GreedyPhrase = 2,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, McBuf)]
 pub enum BrigadierParser {
     Bool,
-    Double(BrigadierNumber<f64>),
     Float(BrigadierNumber<f32>),
+    Double(BrigadierNumber<f64>),
     Integer(BrigadierNumber<i32>),
     Long(BrigadierNumber<i64>),
     String(BrigadierString),
-    Entity { single: bool, players_only: bool },
+    Entity(EntityParser),
     GameProfile,
     BlockPos,
     ColumnPos,
@@ -95,110 +95,62 @@ pub enum BrigadierParser {
     Color,
     Component,
     Message,
-    Nbt,
+    NbtCompoundTag,
+    NbtTag,
     NbtPath,
     Objective,
-    ObjectiveCriteira,
+    ObjectiveCriteria,
     Operation,
     Particle,
-    Rotation,
     Angle,
+    Rotation,
     ScoreboardSlot,
     ScoreHolder { allows_multiple: bool },
     Swizzle,
     Team,
     ItemSlot,
     ResourceLocation,
-    MobEffect,
     Function,
     EntityAnchor,
     IntRange,
     FloatRange,
-    ItemEnchantment,
-    EntitySummon,
     Dimension,
-    Uuid,
-    NbtTag,
-    NbtCompoundTag,
+    GameMode,
     Time,
     ResourceOrTag { registry_key: ResourceLocation },
+    ResourceOrTagKey { registry_key: ResourceLocation },
     Resource { registry_key: ResourceLocation },
+    ResourceKey { registry_key: ResourceLocation },
     TemplateMirror,
     TemplateRotation,
+    Uuid,
 }
 
-impl McBufReadable for BrigadierParser {
+#[derive(Debug, Clone)]
+pub struct EntityParser {
+    pub single: bool,
+    pub players_only: bool,
+}
+impl McBufReadable for EntityParser {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let parser_type = u32::var_read_from(buf)?;
-
-        match parser_type {
-            0 => Ok(BrigadierParser::Bool),
-            1 => Ok(BrigadierParser::Float(BrigadierNumber::read_from(buf)?)),
-            2 => Ok(BrigadierParser::Double(BrigadierNumber::read_from(buf)?)),
-            3 => Ok(BrigadierParser::Integer(BrigadierNumber::read_from(buf)?)),
-            4 => Ok(BrigadierParser::Long(BrigadierNumber::read_from(buf)?)),
-            5 => Ok(BrigadierParser::String(BrigadierString::read_from(buf)?)),
-            6 => {
-                let flags = u8::read_from(buf)?;
-                Ok(BrigadierParser::Entity {
-                    single: flags & 0x01 != 0,
-                    players_only: flags & 0x02 != 0,
-                })
-            }
-            7 => Ok(BrigadierParser::GameProfile),
-            8 => Ok(BrigadierParser::BlockPos),
-            9 => Ok(BrigadierParser::ColumnPos),
-            10 => Ok(BrigadierParser::Vec3),
-            11 => Ok(BrigadierParser::Vec2),
-            12 => Ok(BrigadierParser::BlockState),
-            13 => Ok(BrigadierParser::BlockPredicate),
-            14 => Ok(BrigadierParser::ItemStack),
-            15 => Ok(BrigadierParser::ItemPredicate),
-            16 => Ok(BrigadierParser::Color),
-            17 => Ok(BrigadierParser::Component),
-            18 => Ok(BrigadierParser::Message),
-            19 => Ok(BrigadierParser::NbtCompoundTag),
-            20 => Ok(BrigadierParser::NbtTag),
-            21 => Ok(BrigadierParser::NbtPath),
-            22 => Ok(BrigadierParser::Objective),
-            23 => Ok(BrigadierParser::ObjectiveCriteira),
-            24 => Ok(BrigadierParser::Operation),
-            25 => Ok(BrigadierParser::Particle),
-            26 => Ok(BrigadierParser::Angle),
-            27 => Ok(BrigadierParser::Rotation),
-            28 => Ok(BrigadierParser::ScoreboardSlot),
-            29 => {
-                let flags = u8::read_from(buf)?;
-                Ok(BrigadierParser::ScoreHolder {
-                    allows_multiple: flags & 0x01 != 0,
-                })
-            }
-            30 => Ok(BrigadierParser::Swizzle),
-            31 => Ok(BrigadierParser::Team),
-            32 => Ok(BrigadierParser::ItemSlot),
-            33 => Ok(BrigadierParser::ResourceLocation),
-            34 => Ok(BrigadierParser::MobEffect),
-            35 => Ok(BrigadierParser::Function),
-            36 => Ok(BrigadierParser::EntityAnchor),
-            37 => Ok(BrigadierParser::IntRange),
-            38 => Ok(BrigadierParser::FloatRange),
-            39 => Ok(BrigadierParser::ItemEnchantment),
-            40 => Ok(BrigadierParser::EntitySummon),
-            41 => Ok(BrigadierParser::Dimension),
-            42 => Ok(BrigadierParser::Time),
-            43 => Ok(BrigadierParser::ResourceOrTag {
-                registry_key: ResourceLocation::read_from(buf)?,
-            }),
-            44 => Ok(BrigadierParser::Resource {
-                registry_key: ResourceLocation::read_from(buf)?,
-            }),
-            45 => Ok(BrigadierParser::TemplateMirror),
-            46 => Ok(BrigadierParser::TemplateRotation),
-            47 => Ok(BrigadierParser::Uuid),
-            _ => Err(BufReadError::UnexpectedEnumVariant {
-                id: parser_type as i32,
-            }),
+        let flags = u8::read_from(buf)?;
+        Ok(EntityParser {
+            single: flags & 0x01 != 0,
+            players_only: flags & 0x02 != 0,
+        })
+    }
+}
+impl McBufWritable for EntityParser {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        let mut flags: u8 = 0;
+        if self.single {
+            flags |= 0x01;
         }
+        if self.players_only {
+            flags |= 0x02;
+        }
+        flags.write_into(buf)?;
+        Ok(())
     }
 }
 
@@ -233,7 +185,7 @@ impl McBufReadable for BrigadierNodeStub {
             } else {
                 None
             };
-            return Ok(BrigadierNodeStub {
+            let node = BrigadierNodeStub {
                 is_executable,
                 children,
                 redirect_node,
@@ -242,10 +194,11 @@ impl McBufReadable for BrigadierNodeStub {
                     parser,
                     suggestions_type,
                 },
-            });
+            };
+            return Ok(node);
         }
         // literal node
-        if node_type == 1 {
+        else if node_type == 1 {
             let name = String::read_from(buf)?;
             return Ok(BrigadierNodeStub {
                 is_executable,

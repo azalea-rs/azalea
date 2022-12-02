@@ -35,8 +35,10 @@ def simplify_shapes(blocks: dict, shapes: dict, aabbs: dict):
         shape = [shape] if isinstance(shape, int) else shape
         shape = [aabbs[shape_aabb] for shape_aabb in shape]
         shape = tuple([(
-            (tuple(part['from']) if isinstance(part['from'], list) else ((part['from'],)*3))
-            + (tuple(part['to']) if isinstance(part['to'], list) else ((part['to'],)*3))
+            (tuple(part['from']) if isinstance(
+                part['from'], list) else ((part['from'],)*3))
+            + (tuple(part['to']) if isinstance(part['to'], list)
+               else ((part['to'],)*3))
         ) for part in shape])
 
         if shape not in shape_to_new_id:
@@ -45,15 +47,17 @@ def simplify_shapes(blocks: dict, shapes: dict, aabbs: dict):
             new_shapes[new_id_increment] = shape
             new_id_increment += 1
         else:
+            print('hmmm')
             old_id_to_new_id[shape_id] = shape_to_new_id[shape]
 
     # now map the blocks to the new shape ids
     new_blocks = {}
     for block_id, block_data in blocks.items():
         block_id = block_id.split(':')[-1]
-        block_shapes = [state.get('collision_shape') for state in block_data['states'].values()]
+        block_shapes = [state.get('collision_shape')
+                        for state in block_data['states'].values()]
         new_blocks[block_id] = [old_id_to_new_id[shape_id]
-                            for shape_id in block_shapes]
+                                for shape_id in block_shapes]
 
     return new_blocks, new_shapes
 

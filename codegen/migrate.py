@@ -129,6 +129,10 @@ print('Getting en_us.json...')
 language = lib.extract.get_en_us_lang(new_version_id)
 lib.code.language.write_language(language)
 
+print('Generating registries...')
+registries = lib.extract.get_registries_report(version_id)
+lib.code.registry.generate_registries(registries)
+
 print('Finishing touches, setting version in README and formatting code...')
 lib.code.version.set_version_id(new_version_id)
 
