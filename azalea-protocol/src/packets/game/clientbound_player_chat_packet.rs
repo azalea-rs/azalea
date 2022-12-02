@@ -16,7 +16,7 @@ pub struct ClientboundPlayerChatPacket {
     pub sender: Uuid,
     #[var]
     pub index: u32,
-    pub signature: PackedMessageSignature,
+    pub signature: Option<PackedMessageSignature>,
     pub body: PackedSignedMessageBody,
     pub unsigned_content: Option<Component>,
     pub filter_mask: FilterMask,
@@ -145,8 +145,11 @@ impl ChatType {
 impl McBufReadable for PackedMessageSignature {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = u32::var_read_from(buf)?;
+        println!("packed message signature id: {}", id);
         if id == 0 {
             let full_signature = MessageSignature::read_from(buf)?;
+            println!("packed message signature: {:?}", full_signature);
+
             Ok(PackedMessageSignature::Signature(full_signature))
         } else {
             Ok(PackedMessageSignature::Id(id - 1))
@@ -171,7 +174,9 @@ impl McBufWritable for PackedMessageSignature {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::backtrace::Backtrace;
 
+    // you can remove or update this test if it breaks because mojang changed the structure of the packet again
     #[test]
     fn test_player_chat_packet() {
         let data: [u8; 296] = [
@@ -193,6 +198,12 @@ mod tests {
             48, 34, 125, 0,
         ];
         // just make sure it doesn't panic
-        let _ = ClientboundPlayerChatPacket::read_from(&mut Cursor::new(&data)).unwrap();
+        if let Err(e) = ClientboundPlayerChatPacket::read_from(&mut Cursor::new(&data)) {
+            let default_backtrace = Backtrace::capture();
+            let backtrace = std::any::request_ref::<Backtrace>(&e).unwrap_or(&default_backtrace);
+            eprintln!("{e}\n{backtrace}");
+
+            panic!("failed to read player chat packet");
+        }
     }
 }

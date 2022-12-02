@@ -20,10 +20,12 @@ fn read_named_fields(
                 syn::Type::Path(_) | syn::Type::Array(_) => {
                     if f.attrs.iter().any(|a| a.path.is_ident("var")) {
                         quote! {
+                            println!("Reading field {}", stringify!(#field_name));
                             let #field_name = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                         }
                     } else {
                         quote! {
+                            println!("Reading field {}", stringify!(#field_name));
                             let #field_name = azalea_buf::McBufReadable::read_from(buf)?;
                         }
                     }
