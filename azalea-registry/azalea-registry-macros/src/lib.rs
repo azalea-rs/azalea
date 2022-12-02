@@ -67,7 +67,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
         });
     }
     generated.extend(quote! {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, azalea_buf::McBuf)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         #[repr(u32)]
         pub enum #name {
             #enum_items
@@ -94,6 +94,9 @@ pub fn registry(input: TokenStream) -> TokenStream {
             pub fn is_valid_id(id: u32) -> bool {
                 id <= #max_id
             }
+        }
+        impl azalea_buf::McBufReadable for #name {
+            
         }
     });
 

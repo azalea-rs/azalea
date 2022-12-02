@@ -1,6 +1,7 @@
-use super::clientbound_sound_packet::SoundSource;
 use azalea_buf::McBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
+
+use super::clientbound_sound_packet::SoundSource;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSoundEntityPacket {
