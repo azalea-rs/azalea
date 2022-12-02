@@ -1,4 +1,39 @@
+use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_registry_macros::registry;
+use std::io::{Cursor, Write};
+
+pub trait Registry
+where
+    Self: Sized,
+{
+    fn from_u32(value: u32) -> Option<Self>;
+    fn to_u32(&self) -> u32;
+}
+
+/// A registry that might not be present. This is transmitted as a single
+/// varint in the protocol.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct OptionalRegistry<T: Registry>(Option<T>);
+
+impl<T: Registry> McBufReadable for OptionalRegistry<T> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(OptionalRegistry(match u32::read_from(buf)? {
+            0 => None,
+            value => Some(
+                T::from_u32(value - 1)
+                    .ok_or(BufReadError::UnexpectedEnumVariant { id: value as i32 })?,
+            ),
+        }))
+    }
+}
+impl<T: Registry> McBufWritable for OptionalRegistry<T> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        match &self.0 {
+            None => 0u32.write_into(buf),
+            Some(value) => (value.to_u32() + 1).write_into(buf),
+        }
+    }
+}
 
 registry!(Activity, {
     Core => "minecraft:core",

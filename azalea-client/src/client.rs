@@ -901,7 +901,6 @@ impl Client {
             ClientboundGamePacket::ContainerSetSlot(_) => {}
             ClientboundGamePacket::Cooldown(_) => {}
             ClientboundGamePacket::CustomChatCompletions(_) => {}
-            ClientboundGamePacket::CustomSound(_) => {}
             ClientboundGamePacket::DeleteChat(_) => {}
             ClientboundGamePacket::Explode(_) => {}
             ClientboundGamePacket::ForgetLevelChunk(_) => {}
