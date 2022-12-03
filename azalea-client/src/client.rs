@@ -65,11 +65,11 @@ pub enum Event {
     Chat(ChatPacket),
     /// Happens 20 times per second, but only when the world is loaded.
     Tick,
-    Packet(Box<ClientboundGamePacket>),
+    Packet(Arc<ClientboundGamePacket>),
     /// Happens when a player is added, removed, or updated in the tab list.
     UpdatePlayers(UpdatePlayersEvent),
     /// Emits when the player dies.
-    Death(Option<Box<ClientboundPlayerCombatKillPacket>>),
+    Death(Option<Arc<ClientboundPlayerCombatKillPacket>>),
 }
 
 /// Happens when a player is added, removed, or updated in the tab list.
@@ -421,8 +421,9 @@ impl Client {
         client: &Client,
         tx: &Sender<Event>,
     ) -> Result<(), HandleError> {
-        tx.send(Event::Packet(Box::new(packet.clone()))).await?;
-        match packet {
+        let packet = Arc::new(packet.clone());
+        tx.send(Event::Packet(packet.clone())).await?;
+        match &*packet {
             ClientboundGamePacket::Login(p) => {
                 debug!("Got login packet");
 
@@ -896,12 +897,13 @@ impl Client {
             }
             ClientboundGamePacket::PlayerChat(p) => {
                 debug!("Got player chat packet {:?}", p);
-                tx.send(Event::Chat(ChatPacket::Player(Box::new(p.clone()))))
+                tx.send(Event::Chat(ChatPacket::Player(Arc::new(p.clone()))))
                     .await?;
             }
             ClientboundGamePacket::SystemChat(p) => {
                 debug!("Got system chat packet {:?}", p);
-                tx.send(Event::Chat(ChatPacket::System(p.clone()))).await?;
+                tx.send(Event::Chat(ChatPacket::System(Arc::new(p.clone()))))
+                    .await?;
             }
             ClientboundGamePacket::Sound(_p) => {
                 // debug!("Got sound packet {:?}", p);
@@ -975,7 +977,7 @@ impl Client {
                     // because of https://github.com/rust-lang/rust/issues/57478
                     if !*client.dead.lock() {
                         *client.dead.lock() = true;
-                        tx.send(Event::Death(Some(Box::new(p.clone())))).await?;
+                        tx.send(Event::Death(Some(Arc::new(p.clone())))).await?;
                     }
                 }
             }
