@@ -17,7 +17,6 @@ def generate_block_shapes(blocks: dict, shapes: dict, aabbs: dict, block_states_
 
 
 def simplify_shapes(blocks: dict, shapes: dict, aabbs: dict):
-    shape_to_new_id = {}
     new_id_increment = 0
 
     new_shapes = {}
@@ -27,7 +26,17 @@ def simplify_shapes(blocks: dict, shapes: dict, aabbs: dict):
     new_shapes[0] = ()
     new_id_increment += 1
 
+    used_shape_ids = set()
+    # determine the used shape ids
+    for block_id, block_data in blocks.items():
+        block_id = block_id.split(':')[-1]
+        block_shapes = [state.get('collision_shape')
+                        for state in block_data['states'].values()]
+        for s in block_shapes:
+            used_shape_ids.add(s)
+
     for shape_id, shape in enumerate(shapes):
+        if shape_id not in used_shape_ids: continue
         # pixlyzer gives us shapes as an index or list of indexes into the
         # aabbs list
         # and aabbs look like { "from": number or [x, y, z], "to": (number or vec3) }
@@ -41,14 +50,9 @@ def simplify_shapes(blocks: dict, shapes: dict, aabbs: dict):
                else ((part['to'],)*3))
         ) for part in shape])
 
-        if shape not in shape_to_new_id:
-            shape_to_new_id[shape] = new_id_increment
-            old_id_to_new_id[shape_id] = new_id_increment
-            new_shapes[new_id_increment] = shape
-            new_id_increment += 1
-        else:
-            print('hmmm')
-            old_id_to_new_id[shape_id] = shape_to_new_id[shape]
+        old_id_to_new_id[shape_id] = new_id_increment
+        new_shapes[new_id_increment] = shape
+        new_id_increment += 1
 
     # now map the blocks to the new shape ids
     new_blocks = {}
