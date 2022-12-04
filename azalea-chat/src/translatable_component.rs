@@ -3,8 +3,10 @@ use std::fmt::{self, Display, Formatter};
 use crate::{
     base_component::BaseComponent, style::Style, text_component::TextComponent, Component,
 };
+use serde::{ser::SerializeMap, Serialize, Serializer, __private::ser::FlatMapSerializer};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum StringOrComponent {
     String(String),
     Component(Component),
@@ -16,6 +18,19 @@ pub struct TranslatableComponent {
     pub base: BaseComponent,
     pub key: String,
     pub args: Vec<StringOrComponent>,
+}
+
+impl Serialize for TranslatableComponent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_map(None)?;
+        state.serialize_entry("translate", &self.key)?;
+        Serialize::serialize(&self.base, FlatMapSerializer(&mut state))?;
+        state.serialize_entry("with", &self.args)?;
+        state.end()
+    }
 }
 
 impl TranslatableComponent {

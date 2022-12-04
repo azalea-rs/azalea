@@ -2,12 +2,26 @@ use std::{collections::HashMap, fmt};
 
 use azalea_buf::McBuf;
 use once_cell::sync::Lazy;
+use serde::{ser::SerializeStruct, Serialize, Serializer};
 use serde_json::Value;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct TextColor {
     pub value: u32,
     pub name: Option<String>,
+}
+
+impl Serialize for TextColor {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        if self.name.is_some() {
+            serializer.serialize_str(&self.name.as_ref().unwrap().to_ascii_lowercase())
+        } else {
+            serializer.serialize_str(&self.format())
+        }
+    }
 }
 
 impl TextColor {
@@ -276,15 +290,65 @@ impl TryFrom<ChatFormatting> for TextColor {
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Style {
-    // these are options instead of just bools because None is different than false in this case
+    // These are options instead of just bools because None is different than false in this case
     pub color: Option<TextColor>,
     pub bold: Option<bool>,
     pub italic: Option<bool>,
     pub underlined: Option<bool>,
     pub strikethrough: Option<bool>,
     pub obfuscated: Option<bool>,
-    /// Whether it should reset the formatting before applying these styles
+    /// Whether formatting should be reset before applying these styles
     pub reset: bool,
+}
+
+impl Serialize for Style {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let len = if self.reset {
+            6
+        } else {
+            usize::from(self.color.is_some())
+                + usize::from(self.bold.is_some())
+                + usize::from(self.italic.is_some())
+                + usize::from(self.underlined.is_some())
+                + usize::from(self.strikethrough.is_some())
+                + usize::from(self.obfuscated.is_some())
+        };
+        let mut state = serializer.serialize_struct("Style", len)?;
+        if let Some(color) = &self.color {
+            state.serialize_field("color", color)?;
+        } else if self.reset {
+            state.serialize_field("color", "white")?;
+        }
+        if let Some(bold) = &self.bold {
+            state.serialize_field("bold", bold)?;
+        } else if self.reset {
+            state.serialize_field("bold", &false)?;
+        }
+        if let Some(italic) = &self.italic {
+            state.serialize_field("italic", italic)?;
+        } else if self.reset {
+            state.serialize_field("italic", &false)?;
+        }
+        if let Some(underlined) = &self.underlined {
+            state.serialize_field("underlined", underlined)?;
+        } else if self.reset {
+            state.serialize_field("underlined", &false)?;
+        }
+        if let Some(strikethrough) = &self.strikethrough {
+            state.serialize_field("strikethrough", strikethrough)?;
+        } else if self.reset {
+            state.serialize_field("strikethrough", &false)?;
+        }
+        if let Some(obfuscated) = &self.obfuscated {
+            state.serialize_field("obfuscated", obfuscated)?;
+        } else if self.reset {
+            state.serialize_field("obfuscated", &false)?;
+        }
+        state.end()
+    }
 }
 
 impl Style {

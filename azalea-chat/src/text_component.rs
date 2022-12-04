@@ -1,12 +1,27 @@
-use std::fmt::Display;
-
 use crate::{base_component::BaseComponent, style::ChatFormatting, Component};
+use serde::{ser::SerializeMap, Serialize, Serializer, __private::ser::FlatMapSerializer};
+use std::fmt::Display;
 
 /// A component that contains text that's the same in all locales.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct TextComponent {
     pub base: BaseComponent,
     pub text: String,
+}
+
+impl Serialize for TextComponent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_map(None)?;
+        state.serialize_entry("text", &self.text)?;
+        Serialize::serialize(&self.base, FlatMapSerializer(&mut state))?;
+        if !self.base.siblings.is_empty() {
+            state.serialize_entry("extra", &self.base.siblings)?;
+        }
+        state.end()
+    }
 }
 
 const LEGACY_FORMATTING_CODE_SYMBOL: char = '§';
