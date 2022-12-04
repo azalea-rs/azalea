@@ -37,11 +37,11 @@ pub struct ClientboundStatusResponsePacket {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "previewsChat")]
-    pub previewschat: Option<bool>,
+    pub previews_chat: Option<bool>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "enforcesSecureChat")]
-    pub enforcessecurechat: Option<bool>,
+    pub enforces_secure_chat: Option<bool>,
 }
 
 impl McBufReadable for ClientboundStatusResponsePacket {

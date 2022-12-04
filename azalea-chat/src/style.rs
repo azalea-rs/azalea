@@ -290,14 +290,14 @@ impl TryFrom<ChatFormatting> for TextColor {
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Style {
-    // these are options instead of just bools because None is different than false in this case
+    // These are options instead of just bools because None is different than false in this case
     pub color: Option<TextColor>,
     pub bold: Option<bool>,
     pub italic: Option<bool>,
     pub underlined: Option<bool>,
     pub strikethrough: Option<bool>,
     pub obfuscated: Option<bool>,
-    // whether formatting should be reset before applying these styles
+    /// Whether formatting should be reset before applying these styles
     pub reset: bool,
 }
 
@@ -317,33 +317,33 @@ impl Serialize for Style {
                 + usize::from(self.obfuscated.is_some())
         };
         let mut state = serializer.serialize_struct("Style", len)?;
-        if self.color.is_some() {
-            state.serialize_field("color", &self.color)?;
+        if let Some(color) = &self.color {
+            state.serialize_field("color", color)?;
         } else if self.reset {
             state.serialize_field("color", "white")?;
         }
-        if self.bold.is_some() {
-            state.serialize_field("bold", &self.bold)?;
+        if let Some(bold) = &self.bold {
+            state.serialize_field("bold", bold)?;
         } else if self.reset {
             state.serialize_field("bold", &false)?;
         }
-        if self.italic.is_some() {
-            state.serialize_field("italic", &self.italic)?;
+        if let Some(italic) = &self.italic {
+            state.serialize_field("italic", italic)?;
         } else if self.reset {
             state.serialize_field("italic", &false)?;
         }
-        if self.underlined.is_some() {
-            state.serialize_field("underlined", &self.underlined)?;
+        if let Some(underlined) = &self.underlined {
+            state.serialize_field("underlined", underlined)?;
         } else if self.reset {
             state.serialize_field("underlined", &false)?;
         }
-        if self.strikethrough.is_some() {
-            state.serialize_field("strikethrough", &self.strikethrough)?;
+        if let Some(strikethrough) = &self.strikethrough {
+            state.serialize_field("strikethrough", strikethrough)?;
         } else if self.reset {
             state.serialize_field("strikethrough", &false)?;
         }
-        if self.obfuscated.is_some() {
-            state.serialize_field("obfuscated", &self.obfuscated)?;
+        if let Some(obfuscated) = &self.obfuscated {
+            state.serialize_field("obfuscated", obfuscated)?;
         } else if self.reset {
             state.serialize_field("obfuscated", &false)?;
         }
