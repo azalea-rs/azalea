@@ -18,7 +18,7 @@ This project was heavily inspired by [PrismarineJS](https://github.com/Prismarin
 
 ## Matrix/Discord
 
-If you'd like to chat about Azalea, you can join the Matrix space at [#azaleamc:matrix.org](https://matrix.to/#/#azaleamc:matrix.org) or the Discord server at [discord.gg/FaRey6ytmC](https://discord.gg/FaRey6ytmC).
+If you'd like to chat about Azalea, you can join the Matrix space at [#azalea:matdoes.dev](https://matrix.to/#/#azalea:matdoes.dev) or the Discord server at [discord.gg/FaRey6ytmC](https://discord.gg/FaRey6ytmC).
 
 ## Why
 
