@@ -8,13 +8,16 @@ use azalea_protocol::packets::game::{
     serverbound_chat_command_packet::ServerboundChatCommandPacket,
     serverbound_chat_packet::{LastSeenMessagesUpdate, ServerboundChatPacket},
 };
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    sync::Arc,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 /// A chat packet, either a system message or a chat message.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ChatPacket {
-    System(ClientboundSystemChatPacket),
-    Player(Box<ClientboundPlayerChatPacket>),
+    System(Arc<ClientboundSystemChatPacket>),
+    Player(Arc<ClientboundPlayerChatPacket>),
 }
 
 macro_rules! regex {

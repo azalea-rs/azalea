@@ -1,12 +1,27 @@
-use std::fmt::Display;
-
 use crate::{base_component::BaseComponent, style::ChatFormatting, Component};
+use serde::{ser::SerializeMap, Serialize, Serializer, __private::ser::FlatMapSerializer};
+use std::fmt::Display;
 
 /// A component that contains text that's the same in all locales.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct TextComponent {
     pub base: BaseComponent,
     pub text: String,
+}
+
+impl Serialize for TextComponent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_map(None)?;
+        state.serialize_entry("text", &self.text)?;
+        Serialize::serialize(&self.base, FlatMapSerializer(&mut state))?;
+        if !self.base.siblings.is_empty() {
+            state.serialize_entry("extra", &self.base.siblings)?;
+        }
+        state.end()
+    }
 }
 
 const LEGACY_FORMATTING_CODE_SYMBOL: char = '§';
@@ -112,7 +127,7 @@ mod tests {
             TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_string())
                 .get();
         assert_eq!(
-            component.to_ansi(None),
+            component.to_ansi(),
             format!(
                 "{GREEN}Hypixel Network  {RED}[1.8-1.18]\n{BOLD}{AQUA}HAPPY HOLIDAYS{RESET}",
                 GREEN = Ansi::rgb(ChatFormatting::Green.color().unwrap()),
@@ -128,7 +143,7 @@ mod tests {
     fn test_legacy_color_code_to_component() {
         let component = TextComponent::new("§lHello §r§1w§2o§3r§4l§5d".to_string()).get();
         assert_eq!(
-            component.to_ansi(None),
+            component.to_ansi(),
             format!(
                 "{BOLD}Hello {RESET}{DARK_BLUE}w{DARK_GREEN}o{DARK_AQUA}r{DARK_RED}l{DARK_PURPLE}d{RESET}",
                 BOLD = Ansi::BOLD,

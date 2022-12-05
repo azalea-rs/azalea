@@ -1,7 +1,4 @@
-use azalea_buf::{
-    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
-};
-use std::io::{Cursor, Write};
+use azalea_buf::McBuf;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, McBuf)]

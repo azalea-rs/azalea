@@ -7,14 +7,15 @@ use crate::{
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use log::debug;
 use once_cell::sync::Lazy;
-use serde::{de, Deserialize, Deserializer};
+use serde::{de, Deserialize, Deserializer, Serialize};
 use std::{
     fmt::Display,
     io::{Cursor, Write},
 };
 
 /// A chat component, basically anything you can see in chat.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum Component {
     Text(TextComponent),
     Translatable(TranslatableComponent),
@@ -60,6 +61,9 @@ impl Component {
     /// [ANSI string](https://en.wikipedia.org/wiki/ANSI_escape_code), so you
     /// can print it to your terminal and get styling.
     ///
+    /// This is technically a shortcut for [`Component::to_ansi_custom_style`] with a
+    /// default [`Style`] colored white.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -71,12 +75,19 @@ impl Component {
     ///    "color": "red",
     /// })).unwrap();
     ///
-    /// println!("{}", component.to_ansi(None));
+    /// println!("{}", component.to_ansi());
     /// ```
-    pub fn to_ansi(&self, default_style: Option<&Style>) -> String {
+    pub fn to_ansi(&self) -> String {
         // default the default_style to white if it's not set
-        let default_style: &Style = default_style.unwrap_or(&DEFAULT_STYLE);
+        self.to_ansi_custom_style(&DEFAULT_STYLE)
+    }
 
+    /// Convert this component into an
+    /// [ANSI string](https://en.wikipedia.org/wiki/ANSI_escape_code).
+    ///
+    /// This is the same as [`Component::to_ansi`], but you can specify a
+    /// default [`Style`] to use.
+    pub fn to_ansi_custom_style(&self, default_style: &Style) -> String {
         // this contains the final string will all the ansi escape codes
         let mut built_string = String::new();
         // this style will update as we visit components
@@ -264,11 +275,10 @@ impl McBufReadable for Component {
 }
 
 impl McBufWritable for Component {
-    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
-        // let json = serde_json::to_string(self).unwrap();
-        // json.write_into(_buf);
-        // Ok(())
-        todo!()
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        let json = serde_json::to_string(self).unwrap();
+        json.write_into(buf)?;
+        Ok(())
     }
 }
 

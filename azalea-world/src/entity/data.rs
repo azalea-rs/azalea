@@ -4,7 +4,6 @@ use azalea_buf::{McBuf, McBufReadable, McBufWritable};
 use azalea_chat::Component;
 use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot};
 use enum_as_inner::EnumAsInner;
-use log::warn;
 use nohash_hasher::IntSet;
 use std::io::{Cursor, Write};
 use uuid::Uuid;

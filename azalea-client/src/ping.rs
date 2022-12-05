@@ -40,7 +40,7 @@ pub enum PingError {
 /// #[tokio::main]
 /// async fn main() {
 ///     let response = ping::ping_server("play.hypixel.net").await.unwrap();
-///     println!("{}", response.description.to_ansi(None));
+///     println!("{}", response.description.to_ansi());
 /// }
 /// ```
 pub async fn ping_server(

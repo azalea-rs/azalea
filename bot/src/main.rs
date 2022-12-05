@@ -136,7 +136,7 @@ async fn swarm_handle(
             swarm.add(account, State::default()).await?;
         }
         SwarmEvent::Chat(m) => {
-            println!("swarm chat message: {}", m.message().to_ansi(None));
+            println!("swarm chat message: {}", m.message().to_ansi());
             if m.message().to_string() == "<py5> world" {
                 for (name, world) in &swarm.worlds.read().worlds {
                     println!("world name: {}", name);

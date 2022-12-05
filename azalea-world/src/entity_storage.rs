@@ -327,14 +327,19 @@ impl WeakEntityStorage {
     /// # Examples
     ///
     /// ```rust
-    /// let mut storage = EntityStorage::new();
-    ///     storage.insert(
+    /// # use std::sync::Arc;
+    /// # use azalea_world::{PartialEntityStorage, entity::{EntityData, EntityMetadata, metadata}};
+    /// # use azalea_core::Vec3;
+    /// # use uuid::Uuid;
+    /// #
+    /// let mut storage = PartialEntityStorage::default();
+    /// storage.insert(
     ///     0,
-    ///     Arc::new(EntityData::new(
-    ///         uuid,
+    ///     EntityData::new(
+    ///         Uuid::nil(),
     ///         Vec3::default(),
-    ///     EntityMetadata::Player(metadata::Player::default()),
-    /// )),
+    ///         EntityMetadata::Player(metadata::Player::default()),
+    ///     ),
     /// );
     /// for entity in storage.shared.read().entities() {
     ///     if let Some(entity) = entity.upgrade() {
