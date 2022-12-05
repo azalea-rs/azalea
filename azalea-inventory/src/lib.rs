@@ -31,66 +31,89 @@ declare_menus! {
         contents: 27,
     },
     Generic9x4 {
-        todo!()
+        contents: 36,
     },
     Generic9x5 {
-        todo!()
+        contents: 45,
     },
     Generic9x6 {
-        todo!()
+        contents: 54,
     },
     Generic3x3 {
-        todo!()
+        contents: 9,
     },
     Anvil {
-        todo!()
+        first: 1,
+        second: 1,
+        result: 1,
     },
     Beacon {
-        todo!()
+        payment: 1,
     },
     BlastFurnace {
-        todo!()
+        ingredient: 1,
+        fuel: 1,
+        result: 1,
     },
     BrewingStand {
-        todo!()
+        bottles: 3,
+        ingredient: 1,
+        fuel: 1,
     },
     Crafting {
-        todo!()
+        result: 1,
+        grid: 9,
     },
     Enchantment {
-        todo!()
+        item: 1,
+        lapis: 1,
     },
     Furnace {
-        todo!()
+        ingredient: 1,
+        fuel: 1,
+        result: 1,
     },
     Grindstone {
-        todo!()
+        input: 1,
+        additional: 1,
+        result: 1,
     },
     Hopper {
-        todo!()
+        contents: 5,
     },
     Lectern {
-        todo!()
+        book: 1,
     },
     Loom {
-        todo!()
+        banner: 1,
+        dye: 1,
+        pattern: 1,
+        result: 1,
     },
     Merchant {
-        todo!()
+        payments: 2,
+        result: 1,
     },
     ShulkerBox {
-        todo!()
+        contents: 27,
     },
     Smithing {
-        todo!()
+        input: 1,
+        additional: 1,
+        result: 1,
     },
     Smoker {
-        todo!()
+        ingredient: 1,
+        fuel: 1,
+        result: 1,
     },
     CartographyTable {
-        todo!()
+        map: 1,
+        additional: 1,
+        result: 1,
     },
     Stonecutter {
-        todo!()
+        input: 1,
+        result: 1,
     },
 }
