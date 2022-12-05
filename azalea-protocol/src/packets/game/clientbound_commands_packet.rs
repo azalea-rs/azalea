@@ -29,10 +29,10 @@ pub struct BrigadierNumber<T> {
     pub max: Option<T>,
 }
 impl<T> BrigadierNumber<T> {
-    pub fn new(min: T, max: T) -> BrigadierNumber<T> {
+    pub fn new(min: Option<T>, max: Option<T>) -> BrigadierNumber<T> {
         BrigadierNumber {
-            min: Some(min),
-            max: Some(max),
+            min,
+            max,
         }
     }
 }
