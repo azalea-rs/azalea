@@ -135,7 +135,7 @@ pub enum JoinError {
     #[error("{0}")]
     Connection(#[from] ConnectionError),
     #[error("{0}")]
-    ReadPacket(#[from] azalea_protocol::read::ReadPacketError),
+    ReadPacket(#[from] Box<azalea_protocol::read::ReadPacketError>),
     #[error("{0}")]
     Io(#[from] io::Error),
     #[error("{0}")]
@@ -382,6 +382,7 @@ impl Client {
                     }
                 },
                 Err(e) => {
+                    let e = *e;
                     if let ReadPacketError::ConnectionClosed = e {
                         info!("Connection closed");
                         if let Err(e) = client.disconnect().await {
@@ -666,11 +667,10 @@ impl Client {
                             };
                             players_lock.insert(updated_info.profile.uuid, player_info.clone());
                             events.push(Event::AddPlayer(player_info));
-                        }
-                        // `else if` because the block for add_player above
-                        // already sets all the fields
-                        else if let Some(info) = players_lock.get_mut(&updated_info.profile.uuid)
+                        } else if let Some(info) = players_lock.get_mut(&updated_info.profile.uuid)
                         {
+                            // `else if` because the block for add_player above
+                            // already sets all the fields
                             if p.actions.update_game_mode {
                                 info.gamemode = updated_info.game_mode;
                             }

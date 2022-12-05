@@ -224,7 +224,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
                     source: e,
                     packet_id: #id,
-                    backtrace: std::backtrace::Backtrace::capture(),
+                    backtrace: Box::new(std::backtrace::Backtrace::capture()),
                     packet_name: #name_litstr.to_string(),
                 })?;
                 #[cfg(debug_assertions)]
@@ -232,7 +232,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                     let mut leftover = Vec::new();
                     let _ = std::io::Read::read_to_end(buf, &mut leftover);
                     if !leftover.is_empty() {
-                        return Err(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover });
+                        return Err(Box::new(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover }));
                     }
                 }
                 data
@@ -257,7 +257,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
                     source: e,
                     packet_id: #id,
-                    backtrace: std::backtrace::Backtrace::capture(),
+                    backtrace: Box::new(std::backtrace::Backtrace::capture()),
                     packet_name: #name_litstr.to_string(),
                 })?;
                 #[cfg(debug_assertions)]
@@ -265,8 +265,14 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                     let mut leftover = Vec::new();
                     let _ = std::io::Read::read_to_end(buf, &mut leftover);
                     if !leftover.is_empty() {
-                        return Err(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover });
-
+                        return Err(
+                            Box::new(
+                                crate::read::ReadPacketError::LeftoverData {
+                                    packet_name: #name_litstr.to_string(),
+                                    data: leftover
+                                }
+                            )
+                        );
                     }
                 }
                 data
@@ -327,13 +333,13 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             fn read(
                 id: u32,
                 buf: &mut std::io::Cursor<&[u8]>,
-            ) -> Result<#serverbound_state_name, crate::read::ReadPacketError>
+            ) -> Result<#serverbound_state_name, Box<crate::read::ReadPacketError>>
             where
                 Self: Sized,
             {
                 Ok(match id {
                     #serverbound_read_match_contents
-                    _ => return Err(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id }),
+                    _ => return Err(Box::new(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id })),
                 })
             }
         }
@@ -358,13 +364,13 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             fn read(
                 id: u32,
                 buf: &mut std::io::Cursor<&[u8]>,
-            ) -> Result<#clientbound_state_name, crate::read::ReadPacketError>
+            ) -> Result<#clientbound_state_name, Box<crate::read::ReadPacketError>>
             where
                 Self: Sized,
             {
                 Ok(match id {
                     #clientbound_read_match_contents
-                    _ => return Err(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id }),
+                    _ => return Err(Box::new(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id })),
                 })
             }
         }

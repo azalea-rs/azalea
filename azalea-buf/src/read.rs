@@ -22,14 +22,14 @@ pub enum BufReadError {
     #[error("{source}")]
     Io {
         #[from]
+        #[backtrace]
         source: std::io::Error,
-        backtrace: Backtrace,
     },
     #[error("Invalid UTF-8: {bytes:?} (lossy: {lossy:?})")]
     InvalidUtf8 {
         bytes: Vec<u8>,
         lossy: String,
-        backtrace: Backtrace,
+        // backtrace: Backtrace,
     },
     #[error("Unexpected enum variant {id}")]
     UnexpectedEnumVariant { id: i32 },
@@ -47,8 +47,8 @@ pub enum BufReadError {
     #[error("{source}")]
     Deserialization {
         #[from]
+        #[backtrace]
         source: serde_json::Error,
-        backtrace: Backtrace,
     },
 }
 
@@ -81,7 +81,7 @@ fn read_utf_with_len(buf: &mut Cursor<&[u8]>, max_length: u32) -> Result<String,
         .map_err(|_| BufReadError::InvalidUtf8 {
             bytes: buffer.to_vec(),
             lossy: String::from_utf8_lossy(buffer).to_string(),
-            backtrace: Backtrace::capture(),
+            // backtrace: Backtrace::capture(),
         })?
         .to_string();
     if string.len() > length as usize {

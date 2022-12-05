@@ -166,8 +166,8 @@ where
 {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut data = [0; N.div_ceil(8)];
-        for i in 0..N.div_ceil(8) {
-            data[i] = u8::read_from(buf)?;
+        for item in data.iter_mut().take(N.div_ceil(8)) {
+            *item = u8::read_from(buf)?;
         }
         Ok(FixedBitSet { data })
     }

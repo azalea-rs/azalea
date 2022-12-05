@@ -41,7 +41,7 @@ pub struct PackedLastSeenMessages {
 /// Messages can be deleted by either their signature or message id.
 #[derive(Clone, Debug, PartialEq)]
 pub enum PackedMessageSignature {
-    Signature(MessageSignature),
+    Signature(Box<MessageSignature>),
     Id(u32),
 }
 
@@ -150,7 +150,7 @@ impl McBufReadable for PackedMessageSignature {
         if id == 0 {
             let full_signature = MessageSignature::read_from(buf)?;
 
-            Ok(PackedMessageSignature::Signature(full_signature))
+            Ok(PackedMessageSignature::Signature(Box::new(full_signature)))
         } else {
             Ok(PackedMessageSignature::Id(id - 1))
         }
