@@ -1,6 +1,8 @@
 use super::Suggestion;
 use crate::context::StringRange;
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use std::collections::HashSet;
+use std::io::{Cursor, Write};
 
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
 pub struct Suggestions {
@@ -45,5 +47,32 @@ impl Suggestions {
             range,
             suggestions: sorted,
         }
+    }
+}
+
+impl McBufReadable for Suggestions {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        buf.set_position(buf.position() + 1);
+        let start = u32::var_read_from(buf)? as usize;
+        let length = u32::var_read_from(buf)? as usize;
+        let range = StringRange::between(start, start + length);
+
+        let mut suggestions: Vec<Suggestion> = Vec::new();
+        for _ in 0..length {
+            suggestions.push(Suggestion::read_from(buf)?);
+        }
+        suggestions.sort_by(|a, b| a.text.cmp(&b.text));
+
+        Ok(Suggestions { range, suggestions })
+    }
+}
+
+impl McBufWritable for Suggestions {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        buf.write_all(&[0])?;
+        let start = self.range.start() as u32;
+        start.var_write_into(buf)?;
+        self.suggestions.write_into(buf)?;
+        Ok(())
     }
 }

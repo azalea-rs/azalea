@@ -1,6 +1,9 @@
 mod suggestions;
 
 use crate::{context::StringRange, message::Message};
+use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use azalea_chat::Component;
+use std::io::{Cursor, Write};
 pub use suggestions::*;
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
@@ -44,5 +47,39 @@ impl Suggestion {
             text: result,
             tooltip: self.tooltip.clone(),
         }
+    }
+}
+
+impl McBufReadable for Suggestion {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let text = String::read_from(buf)?;
+        let range = StringRange::between(0, text.len());
+        if bool::read_from(buf)? {
+            let tooltip = Component::read_from(buf)?.to_string();
+            Ok(Suggestion {
+                range,
+                text,
+                tooltip: Some(tooltip.into()),
+            })
+        } else {
+            Ok(Suggestion {
+                range,
+                text,
+                tooltip: None,
+            })
+        }
+    }
+}
+
+impl McBufWritable for Suggestion {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.text.write_into(buf)?;
+        if let Some(tooltip) = &self.tooltip {
+            bool::write_into(&true, buf)?;
+            tooltip.string().write_into(buf)?;
+        } else {
+            bool::write_into(&false, buf)?;
+        }
+        Ok(())
     }
 }

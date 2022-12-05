@@ -1,10 +1,5 @@
-// use azalea_brigadier::context::StringRange;
-use azalea_buf::{
-    // BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
-    BufReadError,
-    McBufReadable,
-    McBufWritable,
-};
+use azalea_brigadier::suggestion::Suggestions;
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Cursor, Write};
 
@@ -12,21 +7,21 @@ use std::io::{Cursor, Write};
 pub struct ClientboundCommandSuggestionsPacket {
     #[var]
     pub id: u32,
-    // pub suggestions: Suggestions,
+    pub suggestions: Suggestions,
 }
 
 impl McBufReadable for ClientboundCommandSuggestionsPacket {
-    fn read_from(_buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        // let id = u32::var_read_from(buf)?;
-        // let start = u32::var_read_from(buf)? as usize;
-        // let length = u32::var_read_from(buf)? as usize;
-        // let stringrange = StringRange::between(start, start + length);
-        todo!("Suggestions aren't implemented in azalea-brigadier yet")
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let id = u32::var_read_from(buf)?;
+        let suggestions = Suggestions::read_from(buf)?;
+        Ok(ClientboundCommandSuggestionsPacket { id, suggestions })
     }
 }
 
 impl McBufWritable for ClientboundCommandSuggestionsPacket {
-    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
-        todo!()
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.id.var_write_into(buf)?;
+        self.suggestions.write_into(buf)?;
+        Ok(())
     }
 }
