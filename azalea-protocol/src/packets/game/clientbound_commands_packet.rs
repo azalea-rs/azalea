@@ -278,7 +278,7 @@ impl McBufWritable for BrigadierNodeStub {
                 if self.is_executable {
                     flags |= 0x04;
                 }
-                if let Some(_) = self.redirect_node {
+                if self.redirect_node.is_some() {
                     flags |= 0x08;
                 }
                 flags.var_write_into(buf)?;
@@ -294,7 +294,7 @@ impl McBufWritable for BrigadierNodeStub {
                 if self.is_executable {
                     flags |= 0x04;
                 }
-                if let Some(_) = self.redirect_node {
+                if self.redirect_node.is_some() {
                     flags |= 0x08;
                 }
                 flags.var_write_into(buf)?;
@@ -316,10 +316,10 @@ impl McBufWritable for BrigadierNodeStub {
                 if self.is_executable {
                     flags |= 0x04;
                 }
-                if let Some(_) = self.redirect_node {
+                if self.redirect_node.is_some() {
                     flags |= 0x08;
                 }
-                if let Some(_) = suggestions_type {
+                if suggestions_type.is_some() {
                     flags |= 0x10;
                 }
                 flags.var_write_into(buf)?;
@@ -439,9 +439,9 @@ impl McBufWritable for BrigadierNodeStub {
                     BrigadierParser::ScoreHolder { allows_multiple } => {
                         u32::var_write_into(&29, buf)?;
                         if *allows_multiple {
-                            buf.write(&[0x01])?;
+                            buf.write_all(&[0x01])?;
                         } else {
-                            buf.write(&[0x00])?;
+                            buf.write_all(&[0x00])?;
                         }
                     }
                     BrigadierParser::Swizzle => {
