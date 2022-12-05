@@ -60,6 +60,9 @@ impl Component {
     /// [ANSI string](https://en.wikipedia.org/wiki/ANSI_escape_code), so you
     /// can print it to your terminal and get styling.
     ///
+    /// This is technically a shortcut for [`Component::to_ansi_custom_style`] with a
+    /// default [`Style`] colored white.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -71,12 +74,19 @@ impl Component {
     ///    "color": "red",
     /// })).unwrap();
     ///
-    /// println!("{}", component.to_ansi(None));
+    /// println!("{}", component.to_ansi());
     /// ```
-    pub fn to_ansi(&self, default_style: Option<&Style>) -> String {
+    pub fn to_ansi(&self) -> String {
         // default the default_style to white if it's not set
-        let default_style: &Style = default_style.unwrap_or(&DEFAULT_STYLE);
+        self.to_ansi_custom_style(&DEFAULT_STYLE)
+    }
 
+    /// Convert this component into an
+    /// [ANSI string](https://en.wikipedia.org/wiki/ANSI_escape_code).
+    ///
+    /// This is the same as [`Component::to_ansi`], but you can specify a
+    /// default [`Style`] to use.
+    pub fn to_ansi_custom_style(&self, default_style: &Style) -> String {
         // this contains the final string will all the ansi escape codes
         let mut built_string = String::new();
         // this style will update as we visit components
