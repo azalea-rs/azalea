@@ -1,6 +1,7 @@
 from lib.code.packet import fix_state
 from lib.utils import PacketIdentifier, group_packets
 import lib.code.language
+import lib.code.registry
 import lib.code.version
 import lib.code.blocks
 import lib.code.packet
@@ -130,7 +131,7 @@ language = lib.extract.get_en_us_lang(new_version_id)
 lib.code.language.write_language(language)
 
 print('Generating registries...')
-registries = lib.extract.get_registries_report(version_id)
+registries = lib.extract.get_registries_report(new_version_id)
 lib.code.registry.generate_registries(registries)
 
 print('Finishing touches, setting version in README and formatting code...')
