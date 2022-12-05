@@ -1,3 +1,4 @@
+import lib.code.inventory
 import lib.code.registry
 import lib.code.version
 import lib.code.packet
@@ -10,6 +11,7 @@ version_id = lib.code.version.get_version_id()
 registries = lib.extract.get_registries_report(version_id)
 
 lib.code.registry.generate_registries(registries)
+lib.code.inventory.update_menus(registries['minecraft:menu']['entries'])
 
 lib.code.utils.fmt()
 

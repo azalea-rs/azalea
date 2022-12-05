@@ -30,7 +30,67 @@ declare_menus! {
     Generic9x3 {
         contents: 27,
     },
-    Chest {
-        block: 27,
-    }
+    Generic9x4 {
+        todo!()
+    },
+    Generic9x5 {
+        todo!()
+    },
+    Generic9x6 {
+        todo!()
+    },
+    Generic3x3 {
+        todo!()
+    },
+    Anvil {
+        todo!()
+    },
+    Beacon {
+        todo!()
+    },
+    BlastFurnace {
+        todo!()
+    },
+    BrewingStand {
+        todo!()
+    },
+    Crafting {
+        todo!()
+    },
+    Enchantment {
+        todo!()
+    },
+    Furnace {
+        todo!()
+    },
+    Grindstone {
+        todo!()
+    },
+    Hopper {
+        todo!()
+    },
+    Lectern {
+        todo!()
+    },
+    Loom {
+        todo!()
+    },
+    Merchant {
+        todo!()
+    },
+    ShulkerBox {
+        todo!()
+    },
+    Smithing {
+        todo!()
+    },
+    Smoker {
+        todo!()
+    },
+    CartographyTable {
+        todo!()
+    },
+    Stonecutter {
+        todo!()
+    },
 }
