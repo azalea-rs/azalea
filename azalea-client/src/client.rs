@@ -1,6 +1,6 @@
 pub use crate::chat::ChatPacket;
 use crate::{movement::WalkDirection, plugins::PluginStates, Account, PlayerInfo};
-use azalea_auth::game_profile::GameProfile;
+use azalea_auth::{game_profile::GameProfile, sessionserver::SessionServerError};
 use azalea_chat::Component;
 use azalea_core::{ChunkPos, GameType, ResourceLocation, Vec3};
 use azalea_protocol::{
@@ -155,6 +155,8 @@ pub enum JoinError {
     SessionServer(#[from] azalea_auth::sessionserver::SessionServerError),
     #[error("The given address could not be parsed into a ServerAddress")]
     InvalidAddress,
+    #[error("Couldn't refresh access token: {0}")]
+    Auth(#[from] azalea_auth::AuthError),
 }
 
 #[derive(Error, Debug)]
@@ -252,7 +254,11 @@ impl Client {
         Ok((client, rx))
     }
 
-    /// Do a handshake with the server and get to the game state from the initial handshake state.
+    /// Do a handshake with the server and get to the game state from the
+    /// initial handshake state.
+    ///
+    /// This will also automatically refresh the account's access token if
+    /// it's expired.
     pub async fn handshake(
         mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,
         account: &Account,
@@ -296,15 +302,26 @@ impl Client {
                     let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
 
                     if let Some(access_token) = &account.access_token {
-                        conn.authenticate(
-                            access_token,
-                            &account
-                                .uuid
-                                .expect("Uuid must be present if access token is present."),
-                            e.secret_key,
-                            p,
-                        )
-                        .await?;
+                        let access_token = access_token.lock().clone();
+                        if let Err(e) = conn
+                            .authenticate(
+                                &access_token,
+                                &account
+                                    .uuid
+                                    .expect("Uuid must be present if access token is present."),
+                                e.secret_key,
+                                p,
+                            )
+                            .await
+                        {
+                            if let SessionServerError::InvalidSession = e {
+                                // uh oh, we got an invalid session and have
+                                // to reauthenticate now
+                                account.refresh().await?;
+                            } else {
+                                return Err(e.into());
+                            }
+                        };
                     }
 
                     conn.write(
