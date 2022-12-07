@@ -1,7 +1,7 @@
 use azalea_buf::BufReadError;
 use azalea_buf::McBuf;
 use azalea_buf::McBufVarReadable;
-use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{McBufReadable, McBufVarWritable, McBufWritable};
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
 use log::warn;
@@ -25,8 +25,13 @@ pub struct BrigadierNodeStub {
 
 #[derive(Debug, Clone)]
 pub struct BrigadierNumber<T> {
-    min: Option<T>,
-    max: Option<T>,
+    pub min: Option<T>,
+    pub max: Option<T>,
+}
+impl<T> BrigadierNumber<T> {
+    pub fn new(min: Option<T>, max: Option<T>) -> BrigadierNumber<T> {
+        BrigadierNumber { min, max }
+    }
 }
 impl<T: McBufReadable> McBufReadable for BrigadierNumber<T> {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
@@ -119,7 +124,6 @@ pub enum BrigadierParser {
     Dimension,
     Uuid,
     NbtTag,
-    NbtCompoundTag,
     Time,
     ResourceOrTag { registry_key: ResourceLocation },
     Resource { registry_key: ResourceLocation },
@@ -157,7 +161,7 @@ impl McBufReadable for BrigadierParser {
             16 => Ok(BrigadierParser::Color),
             17 => Ok(BrigadierParser::Component),
             18 => Ok(BrigadierParser::Message),
-            19 => Ok(BrigadierParser::NbtCompoundTag),
+            19 => Ok(BrigadierParser::Nbt),
             20 => Ok(BrigadierParser::NbtTag),
             21 => Ok(BrigadierParser::NbtPath),
             22 => Ok(BrigadierParser::Objective),
@@ -199,6 +203,181 @@ impl McBufReadable for BrigadierParser {
                 id: parser_type as i32,
             }),
         }
+    }
+}
+
+impl McBufWritable for BrigadierParser {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        match &self {
+            BrigadierParser::Bool => {
+                u32::var_write_into(&0, buf)?;
+            }
+            BrigadierParser::Float(f) => {
+                u32::var_write_into(&1, buf)?;
+                f.write_into(buf)?;
+            }
+            BrigadierParser::Double(d) => {
+                u32::var_write_into(&2, buf)?;
+                d.write_into(buf)?;
+            }
+            BrigadierParser::Integer(i) => {
+                u32::var_write_into(&3, buf)?;
+                i.write_into(buf)?;
+            }
+            BrigadierParser::Long(l) => {
+                u32::var_write_into(&4, buf)?;
+                l.write_into(buf)?;
+            }
+            BrigadierParser::String(s) => {
+                u32::var_write_into(&5, buf)?;
+                s.write_into(buf)?;
+            }
+            BrigadierParser::Entity {
+                single,
+                players_only,
+            } => {
+                u32::var_write_into(&6, buf)?;
+                let mut bitmask: u8 = 0x00;
+                if *single {
+                    bitmask |= 0x01;
+                }
+                if *players_only {
+                    bitmask |= 0x02;
+                }
+                bitmask.write_into(buf)?;
+            }
+            BrigadierParser::GameProfile => {
+                u32::var_write_into(&7, buf)?;
+            }
+            BrigadierParser::BlockPos => {
+                u32::var_write_into(&8, buf)?;
+            }
+            BrigadierParser::ColumnPos => {
+                u32::var_write_into(&9, buf)?;
+            }
+            BrigadierParser::Vec3 => {
+                u32::var_write_into(&10, buf)?;
+            }
+            BrigadierParser::Vec2 => {
+                u32::var_write_into(&11, buf)?;
+            }
+            BrigadierParser::BlockState => {
+                u32::var_write_into(&12, buf)?;
+            }
+            BrigadierParser::BlockPredicate => {
+                u32::var_write_into(&13, buf)?;
+            }
+            BrigadierParser::ItemStack => {
+                u32::var_write_into(&14, buf)?;
+            }
+            BrigadierParser::ItemPredicate => {
+                u32::var_write_into(&15, buf)?;
+            }
+            BrigadierParser::Color => {
+                u32::var_write_into(&16, buf)?;
+            }
+            BrigadierParser::Component => {
+                u32::var_write_into(&17, buf)?;
+            }
+            BrigadierParser::Message => {
+                u32::var_write_into(&18, buf)?;
+            }
+            BrigadierParser::Nbt => {
+                u32::var_write_into(&19, buf)?;
+            }
+            BrigadierParser::NbtTag => {
+                u32::var_write_into(&20, buf)?;
+            }
+            BrigadierParser::NbtPath => {
+                u32::var_write_into(&21, buf)?;
+            }
+            BrigadierParser::Objective => {
+                u32::var_write_into(&22, buf)?;
+            }
+            BrigadierParser::ObjectiveCriteira => {
+                u32::var_write_into(&23, buf)?;
+            }
+            BrigadierParser::Operation => {
+                u32::var_write_into(&24, buf)?;
+            }
+            BrigadierParser::Particle => {
+                u32::var_write_into(&25, buf)?;
+            }
+            BrigadierParser::Angle => {
+                u32::var_write_into(&26, buf)?;
+            }
+            BrigadierParser::Rotation => {
+                u32::var_write_into(&27, buf)?;
+            }
+            BrigadierParser::ScoreboardSlot => {
+                u32::var_write_into(&28, buf)?;
+            }
+            BrigadierParser::ScoreHolder { allows_multiple } => {
+                u32::var_write_into(&29, buf)?;
+                if *allows_multiple {
+                    buf.write_all(&[0x01])?;
+                } else {
+                    buf.write_all(&[0x00])?;
+                }
+            }
+            BrigadierParser::Swizzle => {
+                u32::var_write_into(&30, buf)?;
+            }
+            BrigadierParser::Team => {
+                u32::var_write_into(&31, buf)?;
+            }
+            BrigadierParser::ItemSlot => {
+                u32::var_write_into(&32, buf)?;
+            }
+            BrigadierParser::ResourceLocation => {
+                u32::var_write_into(&33, buf)?;
+            }
+            BrigadierParser::MobEffect => {
+                u32::var_write_into(&34, buf)?;
+            }
+            BrigadierParser::Function => {
+                u32::var_write_into(&35, buf)?;
+            }
+            BrigadierParser::EntityAnchor => {
+                u32::var_write_into(&36, buf)?;
+            }
+            BrigadierParser::IntRange => {
+                u32::var_write_into(&37, buf)?;
+            }
+            BrigadierParser::FloatRange => {
+                u32::var_write_into(&38, buf)?;
+            }
+            BrigadierParser::ItemEnchantment => {
+                u32::var_write_into(&39, buf)?;
+            }
+            BrigadierParser::EntitySummon => {
+                u32::var_write_into(&40, buf)?;
+            }
+            BrigadierParser::Dimension => {
+                u32::var_write_into(&41, buf)?;
+            }
+            BrigadierParser::Time => {
+                u32::var_write_into(&42, buf)?;
+            }
+            BrigadierParser::ResourceOrTag { registry_key } => {
+                u32::var_write_into(&43, buf)?;
+                registry_key.write_into(buf)?;
+            }
+            BrigadierParser::Resource { registry_key } => {
+                u32::var_write_into(&44, buf)?;
+                registry_key.write_into(buf)?;
+            }
+            BrigadierParser::TemplateMirror => {
+                u32::var_write_into(&45, buf)?;
+            }
+            BrigadierParser::TemplateRotation => {
+                u32::var_write_into(&46, buf)?;
+            }
+            BrigadierParser::Uuid => {
+                u32::var_write_into(&47, buf)?;
+            }
+        }
+        Ok(())
     }
 }
 
@@ -264,8 +443,74 @@ impl McBufReadable for BrigadierNodeStub {
 }
 
 impl McBufWritable for BrigadierNodeStub {
-    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
-        todo!()
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        match &self.node_type {
+            NodeType::Root => {
+                let mut flags = 0x00;
+                if self.is_executable {
+                    flags |= 0x04;
+                }
+                if self.redirect_node.is_some() {
+                    flags |= 0x08;
+                }
+                flags.var_write_into(buf)?;
+
+                self.children.var_write_into(buf)?;
+
+                if let Some(redirect) = self.redirect_node {
+                    redirect.var_write_into(buf)?;
+                }
+            }
+            NodeType::Literal { name } => {
+                let mut flags = 0x01;
+                if self.is_executable {
+                    flags |= 0x04;
+                }
+                if self.redirect_node.is_some() {
+                    flags |= 0x08;
+                }
+                flags.var_write_into(buf)?;
+
+                self.children.var_write_into(buf)?;
+
+                if let Some(redirect) = self.redirect_node {
+                    redirect.var_write_into(buf)?;
+                }
+
+                name.write_into(buf)?;
+            }
+            NodeType::Argument {
+                name,
+                parser,
+                suggestions_type,
+            } => {
+                let mut flags = 0x02;
+                if self.is_executable {
+                    flags |= 0x04;
+                }
+                if self.redirect_node.is_some() {
+                    flags |= 0x08;
+                }
+                if suggestions_type.is_some() {
+                    flags |= 0x10;
+                }
+                flags.var_write_into(buf)?;
+
+                self.children.var_write_into(buf)?;
+
+                if let Some(redirect) = self.redirect_node {
+                    redirect.var_write_into(buf)?;
+                }
+
+                name.write_into(buf)?;
+                parser.write_into(buf)?;
+
+                if let Some(suggestion) = suggestions_type {
+                    suggestion.write_into(buf)?;
+                }
+            }
+        }
+        Ok(())
     }
 }
 

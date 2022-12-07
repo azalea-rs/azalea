@@ -1,32 +1,36 @@
-// use azalea_brigadier::context::StringRange;
-use azalea_buf::{
-    // BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
-    BufReadError,
-    McBufReadable,
-    McBufWritable,
-};
+use azalea_brigadier::suggestion::Suggestions;
+use azalea_buf::McBuf;
+use azalea_chat::Component;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Cursor, Write};
 
-#[derive(Clone, Debug, ClientboundGamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundCommandSuggestionsPacket {
     #[var]
     pub id: u32,
-    // pub suggestions: Suggestions,
+    pub suggestions: Suggestions<Component>,
 }
 
-impl McBufReadable for ClientboundCommandSuggestionsPacket {
-    fn read_from(_buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        // let id = u32::var_read_from(buf)?;
-        // let start = u32::var_read_from(buf)? as usize;
-        // let length = u32::var_read_from(buf)? as usize;
-        // let stringrange = StringRange::between(start, start + length);
-        todo!("Suggestions aren't implemented in azalea-brigadier yet")
-    }
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use azalea_brigadier::{context::StringRange, suggestion::Suggestion};
+    use azalea_buf::{McBufReadable, McBufWritable};
+    use std::io::Cursor;
 
-impl McBufWritable for ClientboundCommandSuggestionsPacket {
-    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
-        todo!()
+    #[test]
+    fn test_suggestions() {
+        let suggestions = Suggestions {
+            range: StringRange::new(0, 5),
+            suggestions: vec![Suggestion {
+                text: "foo".to_string(),
+                range: StringRange::new(1, 4),
+                tooltip: Some(Component::from("bar".to_string())),
+            }],
+        };
+        let mut buf = Vec::new();
+        suggestions.write_into(&mut buf).unwrap();
+        let mut cursor = Cursor::new(&buf[..]);
+        let suggestions = Suggestions::read_from(&mut cursor).unwrap();
+        assert_eq!(suggestions, suggestions);
     }
 }
