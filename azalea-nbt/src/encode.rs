@@ -193,6 +193,10 @@ impl Tag {
                 write_compound(writer, value, false)?;
                 Ok(())
             }
+            Tag::End => {
+                u8::write_into(&0, writer)?;
+                Ok(())
+            }
             _ => Err(Error::InvalidTag),
         }
     }

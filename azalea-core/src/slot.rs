@@ -1,6 +1,7 @@
 // TODO: have an azalea-inventory or azalea-container crate and put this there
 
-use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_nbt::Tag;
 use std::io::{Cursor, Write};
 
 #[derive(Debug, Clone, Default)]
@@ -10,12 +11,31 @@ pub enum Slot {
     Present(SlotData),
 }
 
-#[derive(Debug, Clone, McBuf)]
+#[derive(Debug, Clone)]
 pub struct SlotData {
-    #[var]
     pub id: i32,
     pub count: u8,
-    pub nbt: azalea_nbt::Tag,
+    pub nbt: Tag,
+}
+
+impl McBufReadable for SlotData {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(SlotData {
+            id: i32::var_read_from(buf)?,
+            count: u8::read_from(buf)?,
+            nbt: Tag::read_from(buf)?,
+        })
+    }
+}
+
+impl McBufWritable for SlotData {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        bool::write_into(&true, buf)?;
+        self.id.var_write_into(buf)?;
+        self.count.write_into(buf)?;
+        self.nbt.write_into(buf)?;
+        Ok(())
+    }
 }
 
 impl McBufReadable for Slot {
@@ -32,7 +52,7 @@ impl McBufReadable for Slot {
 impl McBufWritable for Slot {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
-            Slot::Empty => 0u8.write_into(buf)?,
+            Slot::Empty => bool::write_into(&false, buf)?,
             Slot::Present(i) => i.write_into(buf)?,
         }
 
