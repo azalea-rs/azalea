@@ -1,17 +1,21 @@
 use super::Suggestion;
 use crate::context::StringRange;
+#[cfg(feature = "azalea-buf")]
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
-use std::collections::HashSet;
+#[cfg(feature = "azalea-buf")]
+use azalea_chat::Component;
+#[cfg(feature = "azalea-buf")]
 use std::io::{Cursor, Write};
+use std::{collections::HashSet, hash::Hash};
 
-#[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
-pub struct Suggestions {
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub struct Suggestions<M = String> {
     pub range: StringRange,
-    pub suggestions: Vec<Suggestion>,
+    pub suggestions: Vec<Suggestion<M>>,
 }
 
-impl Suggestions {
-    pub fn merge(command: &str, input: &[Suggestions]) -> Self {
+impl<M: Clone + Eq + Hash> Suggestions<M> {
+    pub fn merge(command: &str, input: &[Suggestions<M>]) -> Self {
         if input.is_empty() {
             return Suggestions::default();
         } else if input.len() == 1 {
@@ -26,7 +30,7 @@ impl Suggestions {
         Suggestions::create(command, &texts)
     }
 
-    pub fn create(command: &str, suggestions: &HashSet<Suggestion>) -> Self {
+    pub fn create(command: &str, suggestions: &HashSet<Suggestion<M>>) -> Self {
         if suggestions.is_empty() {
             return Suggestions::default();
         };
@@ -41,7 +45,7 @@ impl Suggestions {
         for suggestion in suggestions {
             texts.insert(suggestion.expand(command, &range));
         }
-        let mut sorted: Vec<Suggestion> = texts.into_iter().collect();
+        let mut sorted = texts.into_iter().collect::<Vec<_>>();
         sorted.sort_by(|a, b| a.text.cmp(&b.text));
         Suggestions {
             range,
@@ -50,28 +54,36 @@ impl Suggestions {
     }
 }
 
-impl McBufReadable for Suggestions {
+// this can't be derived because that'd require the generic to have `Default`
+// too even if it's not actually necessary
+impl<M> Default for Suggestions<M> {
+    fn default() -> Self {
+        Self {
+            range: StringRange::default(),
+            suggestions: Vec::new(),
+        }
+    }
+}
+
+#[cfg(feature = "azalea-buf")]
+impl McBufReadable for Suggestions<Component> {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        buf.set_position(buf.position() + 1);
         let start = u32::var_read_from(buf)? as usize;
         let length = u32::var_read_from(buf)? as usize;
         let range = StringRange::between(start, start + length);
 
-        let mut suggestions: Vec<Suggestion> = Vec::new();
-        for _ in 0..length {
-            suggestions.push(Suggestion::read_from(buf)?);
-        }
+        let mut suggestions = Vec::<Suggestion<Component>>::read_from(buf)?;
         suggestions.sort_by(|a, b| a.text.cmp(&b.text));
 
         Ok(Suggestions { range, suggestions })
     }
 }
 
-impl McBufWritable for Suggestions {
+#[cfg(feature = "azalea-buf")]
+impl McBufWritable for Suggestions<Component> {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        buf.write_all(&[0])?;
-        let start = self.range.start() as u32;
-        start.var_write_into(buf)?;
+        (self.range.start() as u32).var_write_into(buf)?;
+        (self.range.length() as u32).var_write_into(buf)?;
         self.suggestions.write_into(buf)?;
         Ok(())
     }

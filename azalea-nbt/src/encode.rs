@@ -194,7 +194,7 @@ impl Tag {
                 Ok(())
             }
             Tag::End => {
-                u8::write_into(&0, writer)?;
+                0u8.write_into(writer)?;
                 Ok(())
             }
             _ => Err(Error::InvalidTag),
