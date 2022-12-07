@@ -1,7 +1,9 @@
 use super::Suggestion;
 use crate::context::StringRange;
 #[cfg(feature = "azalea-buf")]
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_buf::{
+    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
+};
 #[cfg(feature = "azalea-buf")]
 use azalea_chat::Component;
 #[cfg(feature = "azalea-buf")]
@@ -68,11 +70,26 @@ impl<M> Default for Suggestions<M> {
 #[cfg(feature = "azalea-buf")]
 impl McBufReadable for Suggestions<Component> {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        #[derive(McBuf)]
+        struct StandaloneSuggestion {
+            pub text: String,
+            pub tooltip: Option<Component>,
+        }
+
         let start = u32::var_read_from(buf)? as usize;
         let length = u32::var_read_from(buf)? as usize;
         let range = StringRange::between(start, start + length);
 
-        let mut suggestions = Vec::<Suggestion<Component>>::read_from(buf)?;
+        // the range of a Suggestion depends on the Suggestions containing it,
+        // so we can't just `impl McBufReadable for Suggestion`
+        let mut suggestions = Vec::<StandaloneSuggestion>::read_from(buf)?
+            .into_iter()
+            .map(|s| Suggestion {
+                text: s.text,
+                tooltip: s.tooltip,
+                range: range.clone(),
+            })
+            .collect::<Vec<_>>();
         suggestions.sort_by(|a, b| a.text.cmp(&b.text));
 
         Ok(Suggestions { range, suggestions })

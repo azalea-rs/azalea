@@ -2,11 +2,11 @@ mod suggestions;
 
 use crate::context::StringRange;
 #[cfg(feature = "azalea-buf")]
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use azalea_buf::McBufWritable;
 #[cfg(feature = "azalea-buf")]
 use azalea_chat::Component;
 #[cfg(feature = "azalea-buf")]
-use std::io::{Cursor, Write};
+use std::io::Write;
 pub use suggestions::*;
 
 /// A suggestion given to the user for what they might want to type next.
@@ -54,20 +54,6 @@ impl<M: Clone> Suggestion<M> {
             text: result,
             tooltip: self.tooltip.clone(),
         }
-    }
-}
-
-#[cfg(feature = "azalea-buf")]
-impl McBufReadable for Suggestion<Component> {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let text = String::read_from(buf)?;
-        let range = StringRange::between(0, text.len());
-        let tooltip = Option::<Component>::read_from(buf)?;
-        Ok(Suggestion {
-            text,
-            range,
-            tooltip,
-        })
     }
 }
 
