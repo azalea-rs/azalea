@@ -140,8 +140,150 @@ pub struct Ingredient {
 }
 
 impl McBufWritable for Recipe {
-    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
-        todo!()
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        match &self.data {
+            RecipeData::CraftingShapeless(recipe) => {
+                ResourceLocation::new("minecraft:crafting_shapeless")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
+            }
+            RecipeData::CraftingShaped(recipe) => {
+                ResourceLocation::new("minecraft:crafting_shaped")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialArmorDye => {
+                ResourceLocation::new("minecraft:crafting_special_armordye")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialBookCloning => {
+                ResourceLocation::new("minecraft:crafting_special_bookcloning")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialMapCloning => {
+                ResourceLocation::new("minecraft:crafting_special_mapcloning")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialMapExtending => {
+                ResourceLocation::new("minecraft:crafting_special_mapextending")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialFireworkRocket => {
+                ResourceLocation::new("minecraft:crafting_special_firework_rocket")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialFireworkStar => {
+                ResourceLocation::new("minecraft:crafting_special_firework_star")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialFireworkStarFade => {
+                ResourceLocation::new("minecraft:crafting_special_firework_star_fade")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialRepairItem => {
+                ResourceLocation::new("minecraft:crafting_special_repairitem")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialTippedArrow => {
+                ResourceLocation::new("minecraft:crafting_special_tippedarrow")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialBannerDuplicate => {
+                ResourceLocation::new("minecraft:crafting_special_bannerduplicate")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialBannerAddPattern => {
+                ResourceLocation::new("minecraft:crafting_special_banneraddpattern")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialShieldDecoration => {
+                ResourceLocation::new("minecraft:crafting_special_shielddecoration")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialShulkerBoxColoring => {
+                ResourceLocation::new("minecraft:crafting_special_shulkerboxcoloring")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialSuspiciousStew => {
+                ResourceLocation::new("minecraft:crafting_special_suspiciousstew")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::Smelting(recipe) => {
+                ResourceLocation::new("minecraft:smelting")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
+            }
+            RecipeData::Blasting(recipe) => {
+                ResourceLocation::new("minecraft:blasting")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
+            }
+            RecipeData::Smoking(recipe) => {
+                ResourceLocation::new("minecraft:smoking")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
+            }
+            RecipeData::CampfireCooking(recipe) => {
+                ResourceLocation::new("minecraft:campfire_cooking")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
+            }
+            RecipeData::Stonecutting(recipe) => {
+                ResourceLocation::new("minecraft:stonecutting")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
+            }
+            RecipeData::Smithing(recipe) => {
+                ResourceLocation::new("minecraft:smithing")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
+            }
+        };
+        Ok(())
     }
 }
 

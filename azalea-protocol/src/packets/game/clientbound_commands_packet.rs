@@ -1,7 +1,7 @@
 use azalea_buf::BufReadError;
 use azalea_buf::McBuf;
 use azalea_buf::McBufVarReadable;
-use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{McBufReadable, McBufVarWritable, McBufWritable};
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
 use log::warn;
@@ -25,8 +25,13 @@ pub struct BrigadierNodeStub {
 
 #[derive(Debug, Clone)]
 pub struct BrigadierNumber<T> {
-    min: Option<T>,
-    max: Option<T>,
+    pub min: Option<T>,
+    pub max: Option<T>,
+}
+impl<T> BrigadierNumber<T> {
+    pub fn new(min: Option<T>, max: Option<T>) -> BrigadierNumber<T> {
+        BrigadierNumber { min, max }
+    }
 }
 impl<T: McBufReadable> McBufReadable for BrigadierNumber<T> {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
@@ -217,8 +222,74 @@ impl McBufReadable for BrigadierNodeStub {
 }
 
 impl McBufWritable for BrigadierNodeStub {
-    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
-        todo!()
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        match &self.node_type {
+            NodeType::Root => {
+                let mut flags = 0x00;
+                if self.is_executable {
+                    flags |= 0x04;
+                }
+                if self.redirect_node.is_some() {
+                    flags |= 0x08;
+                }
+                flags.var_write_into(buf)?;
+
+                self.children.var_write_into(buf)?;
+
+                if let Some(redirect) = self.redirect_node {
+                    redirect.var_write_into(buf)?;
+                }
+            }
+            NodeType::Literal { name } => {
+                let mut flags = 0x01;
+                if self.is_executable {
+                    flags |= 0x04;
+                }
+                if self.redirect_node.is_some() {
+                    flags |= 0x08;
+                }
+                flags.var_write_into(buf)?;
+
+                self.children.var_write_into(buf)?;
+
+                if let Some(redirect) = self.redirect_node {
+                    redirect.var_write_into(buf)?;
+                }
+
+                name.write_into(buf)?;
+            }
+            NodeType::Argument {
+                name,
+                parser,
+                suggestions_type,
+            } => {
+                let mut flags = 0x02;
+                if self.is_executable {
+                    flags |= 0x04;
+                }
+                if self.redirect_node.is_some() {
+                    flags |= 0x08;
+                }
+                if suggestions_type.is_some() {
+                    flags |= 0x10;
+                }
+                flags.var_write_into(buf)?;
+
+                self.children.var_write_into(buf)?;
+
+                if let Some(redirect) = self.redirect_node {
+                    redirect.var_write_into(buf)?;
+                }
+
+                name.write_into(buf)?;
+                parser.write_into(buf)?;
+
+                if let Some(suggestion) = suggestions_type {
+                    suggestion.write_into(buf)?;
+                }
+            }
+        }
+        Ok(())
     }
 }
 

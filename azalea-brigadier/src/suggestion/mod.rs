@@ -1,16 +1,26 @@
 mod suggestions;
 
-use crate::{context::StringRange, message::Message};
+use crate::context::StringRange;
+#[cfg(feature = "azalea-buf")]
+use azalea_buf::McBufWritable;
+#[cfg(feature = "azalea-buf")]
+use azalea_chat::Component;
+#[cfg(feature = "azalea-buf")]
+use std::io::Write;
 pub use suggestions::*;
 
+/// A suggestion given to the user for what they might want to type next.
+///
+/// The `M` generic is the type of the tooltip, so for example a `String` or
+/// just `()` if you don't care about it.
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
-pub struct Suggestion {
-    pub range: StringRange,
+pub struct Suggestion<M = String> {
     pub text: String,
-    pub tooltip: Option<Message>,
+    pub range: StringRange,
+    pub tooltip: Option<M>,
 }
 
-impl Suggestion {
+impl<M: Clone> Suggestion<M> {
     pub fn apply(&self, input: &str) -> String {
         if self.range.start() == 0 && self.range.end() == input.len() {
             return input.to_string();
@@ -27,7 +37,7 @@ impl Suggestion {
         result
     }
 
-    pub fn expand(&self, command: &str, range: &StringRange) -> Suggestion {
+    pub fn expand(&self, command: &str, range: &StringRange) -> Suggestion<M> {
         if range == &self.range {
             return self.clone();
         }
@@ -44,5 +54,14 @@ impl Suggestion {
             text: result,
             tooltip: self.tooltip.clone(),
         }
+    }
+}
+
+#[cfg(feature = "azalea-buf")]
+impl McBufWritable for Suggestion<Component> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.text.write_into(buf)?;
+        self.tooltip.write_into(buf)?;
+        Ok(())
     }
 }

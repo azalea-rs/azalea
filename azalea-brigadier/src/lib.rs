@@ -3,7 +3,6 @@ pub mod builder;
 pub mod command_dispatcher;
 pub mod context;
 pub mod exceptions;
-pub mod message;
 pub mod modifier;
 pub mod parse_results;
 pub mod string_reader;

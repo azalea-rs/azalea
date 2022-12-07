@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::{message::Message, string_reader::StringReader};
+use crate::string_reader::StringReader;
 
 use super::command_syntax_exception::CommandSyntaxException;
 
@@ -148,12 +148,12 @@ impl fmt::Debug for BuiltInExceptions {
 
 impl BuiltInExceptions {
     pub fn create(self) -> CommandSyntaxException {
-        let message = Message::from(format!("{self:?}"));
+        let message = format!("{self:?}");
         CommandSyntaxException::create(self, message)
     }
 
     pub fn create_with_context(self, reader: &StringReader) -> CommandSyntaxException {
-        let message = Message::from(format!("{self:?}"));
+        let message = format!("{self:?}");
         CommandSyntaxException::new(self, message, reader.string(), reader.cursor())
     }
 }
