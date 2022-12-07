@@ -258,17 +258,6 @@ where
     Ok(packet)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_sizes() {
-        println!("size: {}", std::mem::size_of::<Backtrace>());
-        panic!();
-    }
-}
-
 // #[cfg(test)]
 // mod tests {
 //     use super::*;
