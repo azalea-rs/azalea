@@ -108,9 +108,9 @@ pub struct SimpleRecipe {
     pub category: CraftingBookCategory,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, McBuf)]
 pub enum RecipeData {
-    CraftingShapeless(ShapelessRecipe),
+    CraftingShapeless(ShapelessRecipe) = "minecraft:crafting_shapeless",
     CraftingShaped(ShapedRecipe),
     CraftingSpecialArmorDye(SimpleRecipe),
     CraftingSpecialBookCloning(SimpleRecipe),
