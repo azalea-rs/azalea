@@ -302,7 +302,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///             &access_token,
     ///             &Uuid::parse_str(&profile.id).expect("Invalid UUID"),
     ///             e.secret_key,
-    ///             p
+    ///             &p
     ///         ).await?;
     ///         conn.write(
     ///             ServerboundKeyPacket {
