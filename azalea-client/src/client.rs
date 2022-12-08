@@ -1,6 +1,6 @@
 pub use crate::chat::ChatPacket;
 use crate::{movement::WalkDirection, plugins::PluginStates, Account, PlayerInfo};
-use azalea_auth::game_profile::GameProfile;
+use azalea_auth::{game_profile::GameProfile, sessionserver::SessionServerError};
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
@@ -142,6 +142,8 @@ pub enum JoinError {
     SessionServer(#[from] azalea_auth::sessionserver::SessionServerError),
     #[error("The given address could not be parsed into a ServerAddress")]
     InvalidAddress,
+    #[error("Couldn't refresh access token: {0}")]
+    Auth(#[from] azalea_auth::AuthError),
 }
 
 #[derive(Error, Debug)]
@@ -239,7 +241,11 @@ impl Client {
         Ok((client, rx))
     }
 
-    /// Do a handshake with the server and get to the game state from the initial handshake state.
+    /// Do a handshake with the server and get to the game state from the
+    /// initial handshake state.
+    ///
+    /// This will also automatically refresh the account's access token if
+    /// it's expired.
     pub async fn handshake(
         mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,
         account: &Account,
@@ -282,15 +288,36 @@ impl Client {
                     let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
 
                     if let Some(access_token) = &account.access_token {
-                        conn.authenticate(
-                            access_token,
-                            &account
-                                .uuid
-                                .expect("Uuid must be present if access token is present."),
-                            e.secret_key,
-                            p,
-                        )
-                        .await?;
+                        // keep track of the number of times we tried
+                        // authenticating so we can give up after too many
+                        let mut attempts: usize = 1;
+
+                        while let Err(e) = {
+                            let access_token = access_token.lock().clone();
+                            conn.authenticate(
+                                &access_token,
+                                &account
+                                    .uuid
+                                    .expect("Uuid must be present if access token is present."),
+                                e.secret_key,
+                                &p,
+                            )
+                            .await
+                        } {
+                            if attempts >= 2 {
+                                // if this is the second attempt and we failed
+                                // both times, give up
+                                return Err(e.into());
+                            }
+                            if let SessionServerError::InvalidSession = e {
+                                // uh oh, we got an invalid session and have
+                                // to reauthenticate now
+                                account.refresh().await?;
+                            } else {
+                                return Err(e.into());
+                            }
+                            attempts += 1;
+                        }
                     }
 
                     conn.write(

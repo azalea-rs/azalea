@@ -322,7 +322,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         access_token: &str,
         uuid: &Uuid,
         private_key: [u8; 16],
-        packet: ClientboundHelloPacket,
+        packet: &ClientboundHelloPacket,
     ) -> Result<(), SessionServerError> {
         azalea_auth::sessionserver::join(
             access_token,

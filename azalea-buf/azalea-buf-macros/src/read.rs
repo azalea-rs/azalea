@@ -1,10 +1,5 @@
-use proc_macro::TokenStream;
-use proc_macro2::Span;
 use quote::{quote, ToTokens};
-use syn::{
-    self, parse_macro_input, punctuated::Punctuated, token::Comma, Data, DeriveInput, Field,
-    FieldsNamed, Ident,
-};
+use syn::{self, punctuated::Punctuated, token::Comma, Data, Field, FieldsNamed, Ident};
 
 fn read_named_fields(
     named: &Punctuated<Field, Comma>,
