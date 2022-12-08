@@ -302,18 +302,27 @@ impl Client {
                     let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
 
                     if let Some(access_token) = &account.access_token {
-                        let access_token = access_token.lock().clone();
-                        if let Err(e) = conn
-                            .authenticate(
+                        // keep track of the number of times we tried
+                        // authenticating so we can give up after too many
+                        let mut attempts: usize = 1;
+
+                        while let Err(e) = {
+                            let access_token = access_token.lock().clone();
+                            conn.authenticate(
                                 &access_token,
                                 &account
                                     .uuid
                                     .expect("Uuid must be present if access token is present."),
                                 e.secret_key,
-                                p,
+                                &p,
                             )
                             .await
-                        {
+                        } {
+                            if attempts >= 2 {
+                                // if this is the second attempt and we failed
+                                // both times, give up
+                                return Err(e.into());
+                            }
                             if let SessionServerError::InvalidSession = e {
                                 // uh oh, we got an invalid session and have
                                 // to reauthenticate now
@@ -321,13 +330,14 @@ impl Client {
                             } else {
                                 return Err(e.into());
                             }
-                        };
+                            attempts += 1;
+                        }
                     }
 
                     conn.write(
                         ServerboundKeyPacket {
-                            nonce_or_salt_signature: NonceOrSaltSignature::Nonce(e.encrypted_nonce),
                             key_bytes: e.encrypted_public_key,
+                            nonce_or_salt_signature: NonceOrSaltSignature::Nonce(e.encrypted_nonce),
                         }
                         .get(),
                     )
