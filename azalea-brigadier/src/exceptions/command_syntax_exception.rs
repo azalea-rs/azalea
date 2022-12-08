@@ -1,5 +1,4 @@
 use super::builtin_exceptions::BuiltInExceptions;
-use crate::message::Message;
 use std::{
     cmp,
     fmt::{self, Write},
@@ -8,7 +7,7 @@ use std::{
 #[derive(Clone, PartialEq)]
 pub struct CommandSyntaxException {
     pub type_: BuiltInExceptions,
-    message: Message,
+    message: String,
     input: Option<String>,
     cursor: Option<usize>,
 }
@@ -16,7 +15,7 @@ pub struct CommandSyntaxException {
 const CONTEXT_AMOUNT: usize = 10;
 
 impl CommandSyntaxException {
-    pub fn new(type_: BuiltInExceptions, message: Message, input: &str, cursor: usize) -> Self {
+    pub fn new(type_: BuiltInExceptions, message: String, input: &str, cursor: usize) -> Self {
         Self {
             type_,
             message,
@@ -25,7 +24,7 @@ impl CommandSyntaxException {
         }
     }
 
-    pub fn create(type_: BuiltInExceptions, message: Message) -> Self {
+    pub fn create(type_: BuiltInExceptions, message: String) -> Self {
         Self {
             type_,
             message,
@@ -35,7 +34,7 @@ impl CommandSyntaxException {
     }
 
     pub fn message(&self) -> String {
-        let mut message = self.message.string();
+        let mut message = self.message.clone();
         let context = self.context();
         if let Some(context) = context {
             write!(
@@ -49,7 +48,7 @@ impl CommandSyntaxException {
         message
     }
 
-    pub fn raw_message(&self) -> &Message {
+    pub fn raw_message(&self) -> &String {
         &self.message
     }
 
