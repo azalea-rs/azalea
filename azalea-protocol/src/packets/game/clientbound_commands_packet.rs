@@ -79,15 +79,15 @@ pub enum BrigadierString {
     GreedyPhrase = 2,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, McBuf)]
 pub enum BrigadierParser {
     Bool,
-    Double(BrigadierNumber<f64>),
     Float(BrigadierNumber<f32>),
+    Double(BrigadierNumber<f64>),
     Integer(BrigadierNumber<i32>),
     Long(BrigadierNumber<i64>),
     String(BrigadierString),
-    Entity { single: bool, players_only: bool },
+    Entity(EntityParser),
     GameProfile,
     BlockPos,
     ColumnPos,
@@ -100,283 +100,61 @@ pub enum BrigadierParser {
     Color,
     Component,
     Message,
-    Nbt,
+    NbtCompoundTag,
+    NbtTag,
     NbtPath,
     Objective,
-    ObjectiveCriteira,
+    ObjectiveCriteria,
     Operation,
     Particle,
-    Rotation,
     Angle,
+    Rotation,
     ScoreboardSlot,
     ScoreHolder { allows_multiple: bool },
     Swizzle,
     Team,
     ItemSlot,
     ResourceLocation,
-    MobEffect,
     Function,
     EntityAnchor,
     IntRange,
     FloatRange,
-    ItemEnchantment,
-    EntitySummon,
     Dimension,
-    Uuid,
-    NbtTag,
+    GameMode,
     Time,
     ResourceOrTag { registry_key: ResourceLocation },
+    ResourceOrTagKey { registry_key: ResourceLocation },
     Resource { registry_key: ResourceLocation },
+    ResourceKey { registry_key: ResourceLocation },
     TemplateMirror,
     TemplateRotation,
+    Uuid,
 }
 
-impl McBufReadable for BrigadierParser {
+#[derive(Debug, Clone)]
+pub struct EntityParser {
+    pub single: bool,
+    pub players_only: bool,
+}
+impl McBufReadable for EntityParser {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let parser_type = u32::var_read_from(buf)?;
-
-        match parser_type {
-            0 => Ok(BrigadierParser::Bool),
-            1 => Ok(BrigadierParser::Float(BrigadierNumber::read_from(buf)?)),
-            2 => Ok(BrigadierParser::Double(BrigadierNumber::read_from(buf)?)),
-            3 => Ok(BrigadierParser::Integer(BrigadierNumber::read_from(buf)?)),
-            4 => Ok(BrigadierParser::Long(BrigadierNumber::read_from(buf)?)),
-            5 => Ok(BrigadierParser::String(BrigadierString::read_from(buf)?)),
-            6 => {
-                let flags = u8::read_from(buf)?;
-                Ok(BrigadierParser::Entity {
-                    single: flags & 0x01 != 0,
-                    players_only: flags & 0x02 != 0,
-                })
-            }
-            7 => Ok(BrigadierParser::GameProfile),
-            8 => Ok(BrigadierParser::BlockPos),
-            9 => Ok(BrigadierParser::ColumnPos),
-            10 => Ok(BrigadierParser::Vec3),
-            11 => Ok(BrigadierParser::Vec2),
-            12 => Ok(BrigadierParser::BlockState),
-            13 => Ok(BrigadierParser::BlockPredicate),
-            14 => Ok(BrigadierParser::ItemStack),
-            15 => Ok(BrigadierParser::ItemPredicate),
-            16 => Ok(BrigadierParser::Color),
-            17 => Ok(BrigadierParser::Component),
-            18 => Ok(BrigadierParser::Message),
-            19 => Ok(BrigadierParser::Nbt),
-            20 => Ok(BrigadierParser::NbtTag),
-            21 => Ok(BrigadierParser::NbtPath),
-            22 => Ok(BrigadierParser::Objective),
-            23 => Ok(BrigadierParser::ObjectiveCriteira),
-            24 => Ok(BrigadierParser::Operation),
-            25 => Ok(BrigadierParser::Particle),
-            26 => Ok(BrigadierParser::Angle),
-            27 => Ok(BrigadierParser::Rotation),
-            28 => Ok(BrigadierParser::ScoreboardSlot),
-            29 => {
-                let flags = u8::read_from(buf)?;
-                Ok(BrigadierParser::ScoreHolder {
-                    allows_multiple: flags & 0x01 != 0,
-                })
-            }
-            30 => Ok(BrigadierParser::Swizzle),
-            31 => Ok(BrigadierParser::Team),
-            32 => Ok(BrigadierParser::ItemSlot),
-            33 => Ok(BrigadierParser::ResourceLocation),
-            34 => Ok(BrigadierParser::MobEffect),
-            35 => Ok(BrigadierParser::Function),
-            36 => Ok(BrigadierParser::EntityAnchor),
-            37 => Ok(BrigadierParser::IntRange),
-            38 => Ok(BrigadierParser::FloatRange),
-            39 => Ok(BrigadierParser::ItemEnchantment),
-            40 => Ok(BrigadierParser::EntitySummon),
-            41 => Ok(BrigadierParser::Dimension),
-            42 => Ok(BrigadierParser::Time),
-            43 => Ok(BrigadierParser::ResourceOrTag {
-                registry_key: ResourceLocation::read_from(buf)?,
-            }),
-            44 => Ok(BrigadierParser::Resource {
-                registry_key: ResourceLocation::read_from(buf)?,
-            }),
-            45 => Ok(BrigadierParser::TemplateMirror),
-            46 => Ok(BrigadierParser::TemplateRotation),
-            47 => Ok(BrigadierParser::Uuid),
-            _ => Err(BufReadError::UnexpectedEnumVariant {
-                id: parser_type as i32,
-            }),
-        }
+        let flags = u8::read_from(buf)?;
+        Ok(EntityParser {
+            single: flags & 0x01 != 0,
+            players_only: flags & 0x02 != 0,
+        })
     }
 }
-
-impl McBufWritable for BrigadierParser {
+impl McBufWritable for EntityParser {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        match &self {
-            BrigadierParser::Bool => {
-                u32::var_write_into(&0, buf)?;
-            }
-            BrigadierParser::Float(f) => {
-                u32::var_write_into(&1, buf)?;
-                f.write_into(buf)?;
-            }
-            BrigadierParser::Double(d) => {
-                u32::var_write_into(&2, buf)?;
-                d.write_into(buf)?;
-            }
-            BrigadierParser::Integer(i) => {
-                u32::var_write_into(&3, buf)?;
-                i.write_into(buf)?;
-            }
-            BrigadierParser::Long(l) => {
-                u32::var_write_into(&4, buf)?;
-                l.write_into(buf)?;
-            }
-            BrigadierParser::String(s) => {
-                u32::var_write_into(&5, buf)?;
-                s.write_into(buf)?;
-            }
-            BrigadierParser::Entity {
-                single,
-                players_only,
-            } => {
-                u32::var_write_into(&6, buf)?;
-                let mut bitmask: u8 = 0x00;
-                if *single {
-                    bitmask |= 0x01;
-                }
-                if *players_only {
-                    bitmask |= 0x02;
-                }
-                bitmask.write_into(buf)?;
-            }
-            BrigadierParser::GameProfile => {
-                u32::var_write_into(&7, buf)?;
-            }
-            BrigadierParser::BlockPos => {
-                u32::var_write_into(&8, buf)?;
-            }
-            BrigadierParser::ColumnPos => {
-                u32::var_write_into(&9, buf)?;
-            }
-            BrigadierParser::Vec3 => {
-                u32::var_write_into(&10, buf)?;
-            }
-            BrigadierParser::Vec2 => {
-                u32::var_write_into(&11, buf)?;
-            }
-            BrigadierParser::BlockState => {
-                u32::var_write_into(&12, buf)?;
-            }
-            BrigadierParser::BlockPredicate => {
-                u32::var_write_into(&13, buf)?;
-            }
-            BrigadierParser::ItemStack => {
-                u32::var_write_into(&14, buf)?;
-            }
-            BrigadierParser::ItemPredicate => {
-                u32::var_write_into(&15, buf)?;
-            }
-            BrigadierParser::Color => {
-                u32::var_write_into(&16, buf)?;
-            }
-            BrigadierParser::Component => {
-                u32::var_write_into(&17, buf)?;
-            }
-            BrigadierParser::Message => {
-                u32::var_write_into(&18, buf)?;
-            }
-            BrigadierParser::Nbt => {
-                u32::var_write_into(&19, buf)?;
-            }
-            BrigadierParser::NbtTag => {
-                u32::var_write_into(&20, buf)?;
-            }
-            BrigadierParser::NbtPath => {
-                u32::var_write_into(&21, buf)?;
-            }
-            BrigadierParser::Objective => {
-                u32::var_write_into(&22, buf)?;
-            }
-            BrigadierParser::ObjectiveCriteira => {
-                u32::var_write_into(&23, buf)?;
-            }
-            BrigadierParser::Operation => {
-                u32::var_write_into(&24, buf)?;
-            }
-            BrigadierParser::Particle => {
-                u32::var_write_into(&25, buf)?;
-            }
-            BrigadierParser::Angle => {
-                u32::var_write_into(&26, buf)?;
-            }
-            BrigadierParser::Rotation => {
-                u32::var_write_into(&27, buf)?;
-            }
-            BrigadierParser::ScoreboardSlot => {
-                u32::var_write_into(&28, buf)?;
-            }
-            BrigadierParser::ScoreHolder { allows_multiple } => {
-                u32::var_write_into(&29, buf)?;
-                if *allows_multiple {
-                    buf.write_all(&[0x01])?;
-                } else {
-                    buf.write_all(&[0x00])?;
-                }
-            }
-            BrigadierParser::Swizzle => {
-                u32::var_write_into(&30, buf)?;
-            }
-            BrigadierParser::Team => {
-                u32::var_write_into(&31, buf)?;
-            }
-            BrigadierParser::ItemSlot => {
-                u32::var_write_into(&32, buf)?;
-            }
-            BrigadierParser::ResourceLocation => {
-                u32::var_write_into(&33, buf)?;
-            }
-            BrigadierParser::MobEffect => {
-                u32::var_write_into(&34, buf)?;
-            }
-            BrigadierParser::Function => {
-                u32::var_write_into(&35, buf)?;
-            }
-            BrigadierParser::EntityAnchor => {
-                u32::var_write_into(&36, buf)?;
-            }
-            BrigadierParser::IntRange => {
-                u32::var_write_into(&37, buf)?;
-            }
-            BrigadierParser::FloatRange => {
-                u32::var_write_into(&38, buf)?;
-            }
-            BrigadierParser::ItemEnchantment => {
-                u32::var_write_into(&39, buf)?;
-            }
-            BrigadierParser::EntitySummon => {
-                u32::var_write_into(&40, buf)?;
-            }
-            BrigadierParser::Dimension => {
-                u32::var_write_into(&41, buf)?;
-            }
-            BrigadierParser::Time => {
-                u32::var_write_into(&42, buf)?;
-            }
-            BrigadierParser::ResourceOrTag { registry_key } => {
-                u32::var_write_into(&43, buf)?;
-                registry_key.write_into(buf)?;
-            }
-            BrigadierParser::Resource { registry_key } => {
-                u32::var_write_into(&44, buf)?;
-                registry_key.write_into(buf)?;
-            }
-            BrigadierParser::TemplateMirror => {
-                u32::var_write_into(&45, buf)?;
-            }
-            BrigadierParser::TemplateRotation => {
-                u32::var_write_into(&46, buf)?;
-            }
-            BrigadierParser::Uuid => {
-                u32::var_write_into(&47, buf)?;
-            }
+        let mut flags: u8 = 0;
+        if self.single {
+            flags |= 0x01;
         }
+        if self.players_only {
+            flags |= 0x02;
+        }
+        flags.write_into(buf)?;
         Ok(())
     }
 }
@@ -412,7 +190,7 @@ impl McBufReadable for BrigadierNodeStub {
             } else {
                 None
             };
-            return Ok(BrigadierNodeStub {
+            let node = BrigadierNodeStub {
                 is_executable,
                 children,
                 redirect_node,
@@ -421,10 +199,11 @@ impl McBufReadable for BrigadierNodeStub {
                     parser,
                     suggestions_type,
                 },
-            });
+            };
+            return Ok(node);
         }
         // literal node
-        if node_type == 1 {
+        else if node_type == 1 {
             let name = String::read_from(buf)?;
             return Ok(BrigadierNodeStub {
                 is_executable,

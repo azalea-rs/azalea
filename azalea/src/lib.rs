@@ -73,7 +73,7 @@
 //! }
 //! ```
 //!
-//! [`azalea_client`]: https://crates.io/crates/azalea-client
+//! [`azalea_client`]: https://docs.rs/azalea-client
 
 #![feature(trait_upcasting)]
 #![feature(async_closure)]

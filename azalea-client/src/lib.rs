@@ -2,13 +2,13 @@
 //! real clients. If you want to make bots, you should use the
 //! [`azalea`] crate instead.
 //!
-//! [`azalea_protocol`]: https://crates.io/crates/azalea-protocol
-//! [`azalea`]: https://crates.io/crates/azalea
+//! [`azalea_protocol`]: https://docs.rs/azalea-protocol
+//! [`azalea`]: https://docs.rs/azalea
 
+#![feature(provide_any)]
 #![allow(incomplete_features)]
 #![feature(trait_upcasting)]
 #![feature(error_generic_member_access)]
-#![feature(provide_any)]
 
 mod account;
 mod chat;

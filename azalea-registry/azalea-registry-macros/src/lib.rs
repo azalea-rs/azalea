@@ -95,6 +95,18 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 id <= #max_id
             }
         }
+        impl Registry for #name {
+            fn from_u32(value: u32) -> Option<Self> {
+                if Self::is_valid_id(value) {
+                    Some(unsafe { Self::from_u32_unchecked(value) })
+                } else {
+                    None
+                }
+            }
+            fn to_u32(&self) -> u32 {
+                *self as u32
+            }
+        }
     });
 
     let doc_0 = format!("Safely transmutes a u32 to a {name}.");
@@ -105,8 +117,8 @@ pub fn registry(input: TokenStream) -> TokenStream {
 
             #[doc = #doc_0]
             fn try_from(id: u32) -> Result<Self, Self::Error> {
-                if Self::is_valid_id(id) {
-                    Ok(unsafe { Self::from_u32_unchecked(id) })
+                if let Some(value) = Self::from_u32(id) {
+                    Ok(value)
                 } else {
                     Err(())
                 }
