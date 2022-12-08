@@ -108,6 +108,9 @@ pub struct Client {
     /// A map of player uuids to their information in the tab list
     pub players: Arc<RwLock<HashMap<Uuid, PlayerInfo>>>,
     tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
+
+    pub inventory_menu: Arc<Mutex<azalea_inventory::Player>>,
+    pub container_menu: Arc<Mutex<Option<azalea_inventory::Menu>>>,
 }
 
 #[derive(Default)]
@@ -191,6 +194,11 @@ impl Client {
             plugins: Arc::new(PluginStates::default()),
             players: Arc::new(RwLock::new(HashMap::new())),
             tasks: Arc::new(Mutex::new(Vec::new())),
+
+            // empty by default
+            inventory_menu: Arc::new(Mutex::new(azalea_inventory::Player::default())),
+            // we don't have any container open when we spawn
+            container_menu: Arc::new(Mutex::new(None)),
         }
     }
 

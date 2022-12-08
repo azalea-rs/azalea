@@ -1,5 +1,25 @@
+use std::ops::Deref;
+
 use azalea_core::Slot;
 use azalea_inventory_macros::declare_menus;
+
+// TODO: remove this here and in azalea-inventory-macros when rust makes
+// Default be implemented for all array sizes (since right now it's only up to
+// 32)
+#[derive(Debug, Clone)]
+pub struct SlotList<const N: usize>([Slot; N]);
+impl<const N: usize> Deref for SlotList<N> {
+    type Target = [Slot; N];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl<const N: usize> Default for SlotList<N> {
+    fn default() -> Self {
+        SlotList([(); N].map(|_| Slot::Empty))
+    }
+}
 
 // the player inventory part is always the last 36 slots (except in the Player
 // menu), so we don't have to explicitly specify it
@@ -10,9 +30,8 @@ use azalea_inventory_macros::declare_menus;
 //     pub inventory: Arc<[Slot; 36]>
 // }
 
-// Generate an `enum Menu` and `impl Menu`.
-// if the `inventory` field is present, then the `player` field doesn't get
-// implicitly added
+// Generate a `struct Player`, `enum Menu`, and `impl Menu`.
+// a "player" field gets implicitly added with the player inventory
 declare_menus! {
     Player {
         craft_result: 1,

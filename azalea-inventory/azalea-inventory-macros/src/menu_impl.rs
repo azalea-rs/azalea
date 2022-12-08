@@ -61,10 +61,13 @@ pub fn generate_match_variant_for_menu(menu: &Menu) -> TokenStream {
         });
     }
 
+    let matcher = if menu.name.to_string() == "Player" {
+        quote! { (Player { #menu_field_names }) }
+    } else {
+        quote! { { #menu_field_names } }
+    };
     quote! {
-        Menu::#menu_name {
-            #menu_field_names
-        } => {
+        Menu::#menu_name #matcher => {
             match i {
                 #match_arms
                 _ => return None,
