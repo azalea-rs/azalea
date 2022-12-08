@@ -1,8 +1,7 @@
 pub use crate::chat::ChatPacket;
 use crate::{movement::WalkDirection, plugins::PluginStates, Account, PlayerInfo};
 use azalea_auth::{game_profile::GameProfile, sessionserver::SessionServerError};
-use azalea_chat::Component;
-use azalea_core::{ChunkPos, GameType, ResourceLocation, Vec3};
+use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
