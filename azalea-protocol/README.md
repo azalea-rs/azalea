@@ -24,4 +24,3 @@ Adding new packets is usually pretty easy, but you'll want to have Minecraft's d
 You can manually implement reading and writing functionality for a packet by implementing McBufReadable and McBufWritable, but you can also have this automatically generated for a struct or enum by deriving McBuf.
 
 Look at other packets as an example.
-

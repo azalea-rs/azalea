@@ -76,8 +76,7 @@ mod tests {
 
     use crate::{
         packets::login::{
-            serverbound_hello_packet::{ProfilePublicKeyData, ServerboundHelloPacket},
-            ServerboundLoginPacket,
+            serverbound_hello_packet::ServerboundHelloPacket, ServerboundLoginPacket,
         },
         read::read_packet,
         write::write_packet,
@@ -88,13 +87,8 @@ mod tests {
     #[tokio::test]
     async fn test_hello_packet() {
         let packet = ServerboundHelloPacket {
-            username: "test".to_string(),
-            public_key: Some(ProfilePublicKeyData {
-                expires_at: 0,
-                key: b"idontthinkthisreallymattersijustwantittobelongforthetest".to_vec(),
-                key_signature: b"idontthinkthisreallymattersijustwantittobelongforthetest".to_vec(),
-            }),
-            profile_id: Some(Uuid::from_u128(0)),
+            name: "test".to_string(),
+            profile_id: Some(Uuid::nil()),
         }
         .get();
         let mut stream = Vec::new();
@@ -117,13 +111,8 @@ mod tests {
     #[tokio::test]
     async fn test_double_hello_packet() {
         let packet = ServerboundHelloPacket {
-            username: "test".to_string(),
-            public_key: Some(ProfilePublicKeyData {
-                expires_at: 0,
-                key: b"idontthinkthisreallymattersijustwantittobelongforthetest".to_vec(),
-                key_signature: b"idontthinkthisreallymattersijustwantittobelongforthetest".to_vec(),
-            }),
-            profile_id: Some(Uuid::from_u128(0)),
+            name: "test".to_string(),
+            profile_id: Some(Uuid::nil()),
         }
         .get();
         let mut stream = Vec::new();
