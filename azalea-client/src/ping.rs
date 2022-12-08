@@ -23,7 +23,7 @@ pub enum PingError {
     #[error("{0}")]
     Connection(#[from] ConnectionError),
     #[error("{0}")]
-    ReadPacket(#[from] azalea_protocol::read::ReadPacketError),
+    ReadPacket(#[from] Box<azalea_protocol::read::ReadPacketError>),
     #[error("{0}")]
     WritePacket(#[from] io::Error),
     #[error("The given address could not be parsed into a ServerAddress")]
@@ -40,7 +40,7 @@ pub enum PingError {
 /// #[tokio::main]
 /// async fn main() {
 ///     let response = ping::ping_server("play.hypixel.net").await.unwrap();
-///     println!("{}", response.description.to_ansi(None));
+///     println!("{}", response.description.to_ansi());
 /// }
 /// ```
 pub async fn ping_server(

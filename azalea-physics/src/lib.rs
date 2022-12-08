@@ -244,7 +244,7 @@ mod tests {
         world.add_entity(
             0,
             EntityData::new(
-                Uuid::from_u128(0),
+                Uuid::nil(),
                 Vec3 {
                     x: 0.,
                     y: 70.,
@@ -277,7 +277,7 @@ mod tests {
         world.add_entity(
             0,
             EntityData::new(
-                Uuid::from_u128(0),
+                Uuid::nil(),
                 Vec3 {
                     x: 0.5,
                     y: 70.,
@@ -310,7 +310,7 @@ mod tests {
         world.add_entity(
             0,
             EntityData::new(
-                Uuid::from_u128(0),
+                Uuid::nil(),
                 Vec3 {
                     x: 0.5,
                     y: 71.,
@@ -344,7 +344,7 @@ mod tests {
         world.add_entity(
             0,
             EntityData::new(
-                Uuid::from_u128(0),
+                Uuid::nil(),
                 Vec3 {
                     x: 0.5,
                     y: 71.,
@@ -378,7 +378,7 @@ mod tests {
         world.add_entity(
             0,
             EntityData::new(
-                Uuid::from_u128(0),
+                Uuid::nil(),
                 Vec3 {
                     x: 0.5,
                     y: 73.,

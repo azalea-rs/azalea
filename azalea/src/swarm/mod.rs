@@ -197,7 +197,7 @@ pub enum SwarmStartError {
 ///             swarm.add(account, State::default()).await?;
 ///         }
 ///         SwarmEvent::Chat(m) => {
-///             println!("{}", m.message().to_ansi(None));
+///             println!("{}", m.message().to_ansi());
 ///         }
 ///         _ => {}
 ///     }

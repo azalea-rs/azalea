@@ -127,7 +127,7 @@ mod tests {
             TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_string())
                 .get();
         assert_eq!(
-            component.to_ansi(None),
+            component.to_ansi(),
             format!(
                 "{GREEN}Hypixel Network  {RED}[1.8-1.18]\n{BOLD}{AQUA}HAPPY HOLIDAYS{RESET}",
                 GREEN = Ansi::rgb(ChatFormatting::Green.color().unwrap()),
@@ -143,7 +143,7 @@ mod tests {
     fn test_legacy_color_code_to_component() {
         let component = TextComponent::new("§lHello §r§1w§2o§3r§4l§5d".to_string()).get();
         assert_eq!(
-            component.to_ansi(None),
+            component.to_ansi(),
             format!(
                 "{BOLD}Hello {RESET}{DARK_BLUE}w{DARK_GREEN}o{DARK_AQUA}r{DARK_RED}l{DARK_PURPLE}d{RESET}",
                 BOLD = Ansi::BOLD,

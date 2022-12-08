@@ -64,7 +64,7 @@
 //! async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 //!     match event {
 //!         Event::Chat(m) => {
-//!             println!(m.message().to_ansi(None));
+//!             println!(m.message().to_ansi());
 //!         }
 //!         _ => {}
 //!     }
@@ -73,7 +73,7 @@
 //! }
 //! ```
 //!
-//! [`azalea_client`]: https://crates.io/crates/azalea-client
+//! [`azalea_client`]: https://docs.rs/azalea-client
 
 #![feature(trait_upcasting)]
 #![feature(async_closure)]

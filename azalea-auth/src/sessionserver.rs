@@ -13,6 +13,10 @@ pub enum SessionServerError {
     MultiplayerDisabled,
     #[error("This account has been banned from multiplayer")]
     Banned,
+    #[error("The authentication servers are currently not reachable")]
+    AuthServersUnreachable,
+    #[error("Invalid or expired session")]
+    InvalidSession,
     #[error("Unknown sessionserver error: {0}")]
     Unknown(String),
     #[error("Unexpected response from sessionserver (status code {status_code}): {body}")]
@@ -64,6 +68,10 @@ pub async fn join(
             match forbidden.error.as_str() {
                 "InsufficientPrivilegesException" => Err(SessionServerError::MultiplayerDisabled),
                 "UserBannedException" => Err(SessionServerError::Banned),
+                "AuthenticationUnavailableException" => {
+                    Err(SessionServerError::AuthServersUnreachable)
+                }
+                "InvalidCredentialsException" => Err(SessionServerError::InvalidSession),
                 _ => Err(SessionServerError::Unknown(forbidden.error)),
             }
         }

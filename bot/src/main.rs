@@ -42,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
     let mut accounts = Vec::new();
     let mut states = Vec::new();
 
-    for i in 0..7 {
+    for i in 0..1 {
         accounts.push(Account::offline(&format!("bot{}", i)));
         states.push(State::default());
     }
@@ -136,7 +136,7 @@ async fn swarm_handle(
             swarm.add(account, State::default()).await?;
         }
         SwarmEvent::Chat(m) => {
-            println!("swarm chat message: {}", m.message().to_ansi(None));
+            println!("swarm chat message: {}", m.message().to_ansi());
             if m.message().to_string() == "<py5> world" {
                 for (name, world) in &swarm.worlds.read().worlds {
                     println!("world name: {}", name);
