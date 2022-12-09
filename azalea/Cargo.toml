@@ -14,7 +14,7 @@ pre-release-replacements = [
 [dependencies]
 anyhow = "^1.0.65"
 async-trait = "0.1.58"
-azalea-block = { version = "0.4.0", path = "../azalea-block" }
+azalea-block = { version = "0.5.0", path = "../azalea-block" }
 azalea-chat = { version = "0.4.0", path = "../azalea-chat" }
 azalea-client = { version = "0.4.0", path = "../azalea-client" }
 azalea-core = { version = "0.4.0", path = "../azalea-core" }
