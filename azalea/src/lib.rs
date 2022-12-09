@@ -15,7 +15,7 @@
 //! Latest bleeding-edge version:
 //! `azalea = { git="https://github.com/mat-1/Cargo.toml" }`\
 //! Latest "stable" release:
-//! `azalea = "0.4"`
+//! `azalea = "0.5.0"`
 //!
 //! ## Optimization
 //!
