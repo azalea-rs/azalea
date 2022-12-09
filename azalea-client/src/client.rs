@@ -2,6 +2,7 @@ pub use crate::chat::ChatPacket;
 use crate::{movement::WalkDirection, plugins::PluginStates, Account, PlayerInfo};
 use azalea_auth::{game_profile::GameProfile, sessionserver::SessionServerError};
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
+use azalea_inventory::Menu;
 use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
     packets::{
@@ -825,6 +826,18 @@ impl Client {
             }
             ClientboundGamePacket::ContainerSetContent(p) => {
                 debug!("Got container set content packet {:?}", p);
+                // container id 0 is always the player's inventory
+                if p.container_id == 0 {
+                    let inventory = client.inventory_menu.lock();
+                    for (i, slot) in p
+                        .items
+                        .iter()
+                        .enumerate()
+                        .take(Menu::Player(inventory.clone()).len())
+                    {
+                        // inventory.
+                    }
+                }
             }
             ClientboundGamePacket::SetHealth(p) => {
                 debug!("Got set health packet {:?}", p);

@@ -3,9 +3,11 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 pub fn generate(input: &DeclareMenus) -> TokenStream {
-    let mut match_variants = quote! {};
+    let mut slot_mut_match_variants = quote! {};
+    let mut len_match_variants = quote! {};
     for menu in &input.menus {
-        match_variants.extend(generate_match_variant_for_menu(menu));
+        slot_mut_match_variants.extend(generate_match_variant_for_slot_mut(menu));
+        len_match_variants.extend(generate_match_variant_for_len(menu));
     }
 
     quote! {
@@ -13,10 +15,16 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             /// Get a mutable reference to the [`Slot`] at the given protocol index. If
             /// you're trying to get an item in a menu normally, you should just
             /// `match` it and index the `[Slot]` you get
-            pub fn slot_mut(&self, i: usize) -> Option<&Slot> {
+            pub fn slot_mut(&mut self, i: usize) -> Option<&Slot> {
                 Some(match self {
-                    #match_variants
+                    #slot_mut_match_variants
                 })
+            }
+
+            pub fn len(&self) -> usize {
+                match self {
+                    #len_match_variants
+                }
             }
         }
     }
@@ -37,14 +45,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
 ///         _ => return None,
 ///     }
 /// } // ...
-pub fn generate_match_variant_for_menu(menu: &Menu) -> TokenStream {
-    let menu_name = &menu.name;
-    let mut menu_field_names = quote! {};
-    for field in &menu.fields {
-        let field_name = &field.name;
-        menu_field_names.extend(quote! { #field_name, })
-    }
-
+pub fn generate_match_variant_for_slot_mut(menu: &Menu) -> TokenStream {
     let mut match_arms = quote! {};
     let mut i = 0;
     for field in &menu.fields {
@@ -55,10 +56,39 @@ pub fn generate_match_variant_for_menu(menu: &Menu) -> TokenStream {
         match_arms.extend(if start == end {
             quote! { #start => #field_name, }
         } else if start == 0 {
-            quote! { #start..=#end => &#field_name[i], }
+            quote! { #start..=#end => &mut #field_name[i], }
         } else {
-            quote! { #start..=#end => &#field_name[i - #start], }
+            quote! { #start..=#end => &mut #field_name[i - #start], }
         });
+    }
+
+    generate_matcher(
+        menu,
+        &quote! {
+            match i {
+                #match_arms
+                _ => return None
+            }
+        },
+    )
+}
+
+pub fn generate_match_variant_for_len(menu: &Menu) -> TokenStream {
+    let length = menu.fields.iter().map(|f| f.length).sum::<usize>();
+    generate_matcher(
+        menu,
+        &quote! {
+            #length
+        },
+    )
+}
+
+fn generate_matcher(menu: &Menu, match_arms: &TokenStream) -> TokenStream {
+    let menu_name = &menu.name;
+    let mut menu_field_names = quote! {};
+    for field in &menu.fields {
+        let field_name = &field.name;
+        menu_field_names.extend(quote! { #field_name, })
     }
 
     let matcher = if menu.name.to_string() == "Player" {
@@ -68,10 +98,7 @@ pub fn generate_match_variant_for_menu(menu: &Menu) -> TokenStream {
     };
     quote! {
         Menu::#menu_name #matcher => {
-            match i {
-                #match_arms
-                _ => return None,
-            }
+            #match_arms
         },
     }
 }

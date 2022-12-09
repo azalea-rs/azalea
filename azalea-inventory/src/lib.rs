@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 
 use azalea_core::Slot;
 use azalea_inventory_macros::declare_menus;
@@ -10,9 +10,13 @@ use azalea_inventory_macros::declare_menus;
 pub struct SlotList<const N: usize>([Slot; N]);
 impl<const N: usize> Deref for SlotList<N> {
     type Target = [Slot; N];
-
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+impl<const N: usize> DerefMut for SlotList<N> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 impl<const N: usize> Default for SlotList<N> {
