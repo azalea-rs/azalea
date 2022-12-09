@@ -9,7 +9,7 @@ repository = "https://github.com/mat-1/azalea/tree/main/azalea-core"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-buf = {path = "../azalea-buf", version = "^0.4.0" }
+azalea-buf = {path = "../azalea-buf", version = "^0.5.0" }
 azalea-chat = {path = "../azalea-chat", version = "^0.4.0" }
 azalea-nbt = {path = "../azalea-nbt", version = "^0.4.0" }
 uuid = "^1.1.2"
