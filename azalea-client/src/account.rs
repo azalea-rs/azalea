@@ -104,7 +104,8 @@ impl Account {
             AuthOpts::Microsoft { email } => {
                 let new_account = Account::microsoft(email).await?;
                 let access_token = self
-                    .access_token.as_ref()
+                    .access_token
+                    .as_ref()
                     .expect("Access token should always be set for Microsoft accounts");
                 let new_access_token = new_account
                     .access_token

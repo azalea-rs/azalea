@@ -111,7 +111,8 @@ impl SwarmState {
     where
         S: Send + Sync + Clone + 'static,
     {
-        // it should never be locked unless we reused the same plugin for two swarms (bad)
+        // it should never be locked unless we reused the same plugin for two swarms
+        // (bad)
         let mut rx = self.rx.lock().await;
         while let Some(m) = rx.recv().await {
             swarm.swarm_tx.send(SwarmEvent::Chat(m)).unwrap();

@@ -260,7 +260,8 @@ impl<S> CommandDispatcher<S> {
                     // consumer.on_command_complete(context, true, value);
                     successful_forks += 1;
 
-                    // TODO: allow context_command to error and handle those errors
+                    // TODO: allow context_command to error and handle those
+                    // errors
                 }
             }
 

@@ -77,7 +77,8 @@ impl BitSet {
         }
     }
 
-    /// Returns the maximum potential items in the BitSet. This will be divisible by 64.
+    /// Returns the maximum potential items in the BitSet. This will be
+    /// divisible by 64.
     fn len(&self) -> usize {
         self.data.len() * 64
     }

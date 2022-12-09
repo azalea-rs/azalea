@@ -15,7 +15,8 @@ pub struct ServerboundSetJigsawBlockPacket {
     pub target: ResourceLocation,
     pub pool: ResourceLocation,
     pub final_state: String,
-    pub joint: String, // TODO: Does JigsawBlockEntity$JointType::getSerializedName, may not be implemented
+    pub joint: String, /* TODO: Does JigsawBlockEntity$JointType::getSerializedName, may not be
+                        * implemented */
 }
 
 pub enum JointType {

@@ -45,7 +45,8 @@ pub fn encrypt(public_key: &[u8], nonce: &[u8]) -> Result<EncryptResult, String>
     // generate a random 16-byte shared secret, to be used with the AES/CFB8
     // stream cipher.
     let secret_key = generate_secret_key();
-    // let hash = hex_digest(&digest_data(server_id.as_bytes(), public_key, &secret_key));
+    // let hash = hex_digest(&digest_data(server_id.as_bytes(), public_key,
+    // &secret_key));
 
     // this.keybytes = Crypt.encryptUsingKey(publicKey, secretKey.getEncoded());
     // this.nonce = Crypt.encryptUsingKey(publicKey, arrby);

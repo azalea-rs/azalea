@@ -435,7 +435,8 @@ impl Style {
         if !before.underlined.unwrap_or(false) && after.underlined.unwrap_or(false) {
             ansi_codes.push_str(Ansi::UNDERLINED);
         }
-        // if strikethrough used to be false/default and now it's true, set strikethrough
+        // if strikethrough used to be false/default and now it's true, set
+        // strikethrough
         if !before.strikethrough.unwrap_or(false) && after.strikethrough.unwrap_or(false) {
             ansi_codes.push_str(Ansi::STRIKETHROUGH);
         }

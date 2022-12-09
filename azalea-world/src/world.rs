@@ -11,7 +11,8 @@ use std::{backtrace::Backtrace, fmt::Debug};
 use std::{fmt::Formatter, io::Cursor, sync::Arc};
 use uuid::Uuid;
 
-/// A world is a collection of chunks and entities. They're called "levels" in Minecraft's source code.
+/// A world is a collection of chunks and entities. They're called "levels" in
+/// Minecraft's source code.
 #[derive(Default)]
 pub struct World {
     // we just need to keep a strong reference to `shared` so it doesn't get
@@ -22,7 +23,8 @@ pub struct World {
     pub entity_storage: PartialEntityStorage,
 }
 
-/// A world where the chunks are stored as weak pointers. This is used for shared worlds.
+/// A world where the chunks are stored as weak pointers. This is used for
+/// shared worlds.
 #[derive(Default)]
 pub struct WeakWorld {
     pub chunk_storage: Arc<RwLock<WeakChunkStorage>>,

@@ -20,7 +20,8 @@ pub struct MTDStarLite<
     PredecessorsFn: Fn(&N) -> Vec<Edge<N, W>>,
     SuccessFn: Fn(&N) -> bool,
 > {
-    /// Returns a rough estimate of how close we are to the goal. Lower = closer.
+    /// Returns a rough estimate of how close we are to the goal. Lower =
+    /// closer.
     pub heuristic: HeuristicFn,
     /// Returns the nodes that can be reached from the given node.
     pub successors: SuccessorsFn,
@@ -29,7 +30,8 @@ pub struct MTDStarLite<
     /// can be the same as `successors`.
     pub predecessors: PredecessorsFn,
     /// Returns true if the given node is at the goal.
-    /// A simple implementation is to check if the given node is equal to the goal.
+    /// A simple implementation is to check if the given node is equal to the
+    /// goal.
     pub success: SuccessFn,
 
     start: N,
@@ -43,7 +45,8 @@ pub struct MTDStarLite<
     node_states: HashMap<N, NodeState<N, W>>,
     updated_edge_costs: Vec<ChangedEdge<N, W>>,
 
-    /// This only exists so it can be referenced by `state()` when there's no state.
+    /// This only exists so it can be referenced by `state()` when there's no
+    /// state.
     default_state: NodeState<N, W>,
 }
 

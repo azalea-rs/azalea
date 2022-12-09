@@ -38,7 +38,8 @@ const WALK_ONE_BLOCK_COST: f32 = 1.0;
 
 pub trait Move {
     fn cost(&self, world: &World, node: &Node) -> f32;
-    /// Returns by how much the entity's position should be changed when this move is executed.
+    /// Returns by how much the entity's position should be changed when this
+    /// move is executed.
     fn offset(&self) -> BlockPos;
     fn next_node(&self, node: &Node) -> Node {
         Node {

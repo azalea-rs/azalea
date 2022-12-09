@@ -324,7 +324,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
         let mut properties_with_name: Vec<PropertyWithNameAndDefault> =
             Vec::with_capacity(block.properties_and_defaults.len());
-        // Used to determine the index of the property so we can optionally add a number to it
+        // Used to determine the index of the property so we can optionally add a number
+        // to it
         let mut previous_names: Vec<String> = Vec::new();
         for property in &block.properties_and_defaults {
             let index: Option<usize> = if block
@@ -343,10 +344,12 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             } else {
                 None
             };
+            // ```ignore
             // let mut property_name = property_struct_names_to_names
             //     .get(&property.property_type.to_string())
             //     .unwrap_or_else(|| panic!("Property '{}' is bad", property.property_type))
             //     .clone();
+            // ```
             let mut property_name = property_struct_names_to_names
                 .get(&property.name.to_string())
                 .cloned()
