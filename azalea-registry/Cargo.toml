@@ -3,7 +3,7 @@ description = "Use Minecraft's registries."
 edition = "2021"
 license = "MIT"
 name = "azalea-registry"
-version = "0.4.0"
+version = "0.5.0"
 repository = "https://github.com/mat-1/azalea/tree/main/azalea-registry"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
