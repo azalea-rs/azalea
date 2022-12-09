@@ -161,7 +161,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-block-macros"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "proc-macro2",
  "quote",
