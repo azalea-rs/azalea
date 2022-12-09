@@ -1,4 +1,5 @@
-//! Take wool from a chest and put one random piece of wool in every inventory slot
+//! Take wool from a chest and put one random piece of wool in every inventory
+//! slot
 
 use azalea::prelude::*;
 use parking_lot::Mutex;
