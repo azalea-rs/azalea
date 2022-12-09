@@ -869,6 +869,8 @@ impl Client {
                     );
                 }
             }
+            ClientboundGamePacket::ContainerSetData(_) => {}
+            ClientboundGamePacket::ContainerSetSlot(_) => {}
             ClientboundGamePacket::SetHealth(p) => {
                 debug!("Got set health packet {:?}", p);
                 if p.health == 0.0 {
@@ -976,8 +978,7 @@ impl Client {
             ClientboundGamePacket::BlockEvent(_) => {}
             ClientboundGamePacket::BossEvent(_) => {}
             ClientboundGamePacket::CommandSuggestions(_) => {}
-            ClientboundGamePacket::ContainerSetData(_) => {}
-            ClientboundGamePacket::ContainerSetSlot(_) => {}
+
             ClientboundGamePacket::Cooldown(_) => {}
             ClientboundGamePacket::CustomChatCompletions(_) => {}
             ClientboundGamePacket::DeleteChat(_) => {}
