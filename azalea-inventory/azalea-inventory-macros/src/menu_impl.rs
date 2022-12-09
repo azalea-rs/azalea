@@ -15,7 +15,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             /// Get a mutable reference to the [`Slot`] at the given protocol index. If
             /// you're trying to get an item in a menu normally, you should just
             /// `match` it and index the `[Slot]` you get
-            pub fn slot_mut(&mut self, i: usize) -> Option<&Slot> {
+            pub fn slot_mut(&mut self, i: usize) -> Option<&mut Slot> {
                 Some(match self {
                     #slot_mut_match_variants
                 })
@@ -70,6 +70,7 @@ pub fn generate_match_variant_for_slot_mut(menu: &Menu) -> TokenStream {
                 _ => return None
             }
         },
+        true,
     )
 }
 
@@ -80,16 +81,22 @@ pub fn generate_match_variant_for_len(menu: &Menu) -> TokenStream {
         &quote! {
             #length
         },
+        false,
     )
 }
 
-fn generate_matcher(menu: &Menu, match_arms: &TokenStream) -> TokenStream {
+fn generate_matcher(menu: &Menu, match_arms: &TokenStream, needs_fields: bool) -> TokenStream {
     let menu_name = &menu.name;
-    let mut menu_field_names = quote! {};
-    for field in &menu.fields {
-        let field_name = &field.name;
-        menu_field_names.extend(quote! { #field_name, })
-    }
+    let menu_field_names = if needs_fields {
+        let mut menu_field_names = quote! {};
+        for field in &menu.fields {
+            let field_name = &field.name;
+            menu_field_names.extend(quote! { #field_name, })
+        }
+        menu_field_names
+    } else {
+        quote! { .. }
+    };
 
     let matcher = if menu.name.to_string() == "Player" {
         quote! { (Player { #menu_field_names }) }

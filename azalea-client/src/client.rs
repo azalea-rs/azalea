@@ -110,8 +110,9 @@ pub struct Client {
     pub players: Arc<RwLock<HashMap<Uuid, PlayerInfo>>>,
     tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
 
-    pub inventory_menu: Arc<Mutex<azalea_inventory::Player>>,
-    pub container_menu: Arc<Mutex<Option<azalea_inventory::Menu>>>,
+    // The player's inventory. This is guaranteed to be a Menu::Player.
+    pub inventory_menu: Arc<Mutex<Menu>>,
+    pub container_menu: Arc<Mutex<Option<Menu>>>,
 }
 
 #[derive(Default)]
@@ -197,7 +198,9 @@ impl Client {
             tasks: Arc::new(Mutex::new(Vec::new())),
 
             // empty by default
-            inventory_menu: Arc::new(Mutex::new(azalea_inventory::Player::default())),
+            inventory_menu: Arc::new(Mutex::new(
+                Menu::Player(azalea_inventory::Player::default()),
+            )),
             // we don't have any container open when we spawn
             container_menu: Arc::new(Mutex::new(None)),
         }
@@ -828,14 +831,11 @@ impl Client {
                 debug!("Got container set content packet {:?}", p);
                 // container id 0 is always the player's inventory
                 if p.container_id == 0 {
-                    let inventory = client.inventory_menu.lock();
-                    for (i, slot) in p
-                        .items
-                        .iter()
-                        .enumerate()
-                        .take(Menu::Player(inventory.clone()).len())
-                    {
-                        // inventory.
+                    let mut inventory = client.inventory_menu.lock();
+                    for (i, slot) in p.items.iter().enumerate().take(inventory.len()) {
+                        if let Some(slot_ref) = inventory.slot_mut(i) {
+                            *slot_ref = slot.clone();
+                        }
                     }
                 }
             }
