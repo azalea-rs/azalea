@@ -41,6 +41,7 @@ use std::{
     collections::HashMap,
     fmt::Debug,
     io::{self, Cursor},
+    ops::DerefMut,
     sync::Arc,
 };
 use thiserror::Error;
@@ -113,6 +114,10 @@ pub struct Client {
     // The player's inventory. This is guaranteed to be a Menu::Player.
     pub inventory_menu: Arc<Mutex<Menu>>,
     pub container_menu: Arc<Mutex<Option<Menu>>>,
+    /// The ID of the container that's currently open. Its value is not
+    /// guaranteed to be any specific, and may change every time you open a
+    /// container.
+    pub container_id: Arc<Mutex<u8>>,
 }
 
 #[derive(Default)]
@@ -203,6 +208,7 @@ impl Client {
             )),
             // we don't have any container open when we spawn
             container_menu: Arc::new(Mutex::new(None)),
+            container_id: Arc::new(Mutex::new(0)),
         }
     }
 
@@ -830,13 +836,35 @@ impl Client {
             ClientboundGamePacket::ContainerSetContent(p) => {
                 debug!("Got container set content packet {:?}", p);
                 // container id 0 is always the player's inventory
+
                 if p.container_id == 0 {
+                    // this is just so it has the same type as the `else` block
                     let mut inventory = client.inventory_menu.lock();
-                    for (i, slot) in p.items.iter().enumerate().take(inventory.len()) {
-                        if let Some(slot_ref) = inventory.slot_mut(i) {
-                            *slot_ref = slot.clone();
+                    for (i, slot) in p.items.iter().enumerate() {
+                        if let Some(slot_mut) = inventory.slot_mut(i) {
+                            *slot_mut = slot.clone();
                         }
                     }
+                } else if *client.container_id.lock() == p.container_id {
+                    let mut inventory = client.container_menu.lock();
+                    if let Some(inventory) = inventory.deref_mut().as_mut() {
+                        for (i, slot) in p.items.iter().enumerate() {
+                            if let Some(slot_mut) = inventory.slot_mut(i) {
+                                *slot_mut = slot.clone();
+                            }
+                        }
+                    } else {
+                        warn!(
+                            "ContainerSetPacket was received with id {} but no container was open",
+                            p.container_id
+                        );
+                        return Ok(());
+                    };
+                } else {
+                    warn!(
+                        "ContainerSetPacket was received with id {} but the current container id is {}",
+                        p.container_id, client.container_id.lock()
+                    );
                 }
             }
             ClientboundGamePacket::SetHealth(p) => {
