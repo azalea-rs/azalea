@@ -6,5 +6,5 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-core = { version = "0.4.0", path = "../azalea-core" }
+azalea-core = { version = "0.5.0", path = "../azalea-core" }
 azalea-inventory-macros = { version = "0.1.0", path = "./azalea-inventory-macros" }

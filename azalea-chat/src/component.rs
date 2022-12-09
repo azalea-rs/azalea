@@ -61,8 +61,8 @@ impl Component {
     /// [ANSI string](https://en.wikipedia.org/wiki/ANSI_escape_code), so you
     /// can print it to your terminal and get styling.
     ///
-    /// This is technically a shortcut for [`Component::to_ansi_custom_style`] with a
-    /// default [`Style`] colored white.
+    /// This is technically a shortcut for [`Component::to_ansi_custom_style`]
+    /// with a default [`Style`] colored white.
     ///
     /// # Examples
     ///
@@ -166,8 +166,9 @@ impl<'de> Deserialize<'de> for Component {
                         .ok_or_else(|| de::Error::custom("\"with\" must be an array"))?;
                     let mut with_array = Vec::with_capacity(with.len());
                     for item in with {
-                        // if it's a string component with no styling and no siblings, just add a string to with_array
-                        // otherwise add the component to the array
+                        // if it's a string component with no styling and no siblings, just add a
+                        // string to with_array otherwise add the component
+                        // to the array
                         let c = Component::deserialize(item).map_err(de::Error::custom)?;
                         if let Component::Text(text_component) = c {
                             if text_component.base.siblings.is_empty()
@@ -253,7 +254,8 @@ impl<'de> Deserialize<'de> for Component {
             ));
         }
         let json_array = json.as_array().unwrap();
-        // the first item in the array is the one that we're gonna return, the others are siblings
+        // the first item in the array is the one that we're gonna return, the others
+        // are siblings
         let mut component = Component::deserialize(&json_array[0]).map_err(de::Error::custom)?;
         for i in 1..json_array.len() {
             component.append(

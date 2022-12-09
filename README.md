@@ -16,6 +16,10 @@ A collection of Rust crates for making Minecraft bots, clients, and tools.
 I named this Azalea because it sounds like a cool word and this is a cool library.
 This project was heavily inspired by [PrismarineJS](https://github.com/PrismarineJS).
 
+## Docs
+
+The "stable" documentation is available at [docs.rs/azalea](https://docs.rs/azalea) and the unstable docs are at [azalea.matdoes.dev](https://azalea.matdoes.dev)
+
 ## Matrix/Discord
 
 If you'd like to chat about Azalea, you can join the Matrix space at [#azalea:matdoes.dev](https://matrix.to/#/#azalea:matdoes.dev) or the Discord server at [discord.gg/FaRey6ytmC](https://discord.gg/FaRey6ytmC).

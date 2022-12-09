@@ -4,24 +4,24 @@ edition = "2021"
 license = "MIT"
 name = "azalea-protocol"
 repository = "https://github.com/mat-1/azalea/tree/main/azalea-protocol"
-version = "0.4.0"
+version = "0.5.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 async-compression = {version = "^0.3.8", features = ["tokio", "zlib"], optional = true}
 async-recursion = "1.0.0"
-azalea-auth = {path = "../azalea-auth", version = "^0.4.0"}
-azalea-block = {path = "../azalea-block", default-features = false, version = "^0.4.0"}
-azalea-brigadier = {path = "../azalea-brigadier", version = "^0.4.0", features = ["azalea-buf"]}
-azalea-buf = {path = "../azalea-buf", version = "^0.4.0"}
-azalea-chat = {path = "../azalea-chat", version = "^0.4.0"}
-azalea-core = {path = "../azalea-core", optional = true, version = "^0.4.0"}
-azalea-crypto = {path = "../azalea-crypto", version = "^0.4.0"}
-azalea-nbt = {path = "../azalea-nbt", version = "^0.4.0"}
-azalea-protocol-macros = {path = "./azalea-protocol-macros", version = "^0.4.0"}
-azalea-registry = {path = "../azalea-registry", version = "^0.4.0"}
-azalea-world = {path = "../azalea-world", version = "^0.4.0"}
+azalea-auth = {path = "../azalea-auth", version = "^0.5.0" }
+azalea-block = {path = "../azalea-block", default-features = false, version = "^0.5.0" }
+azalea-brigadier = {path = "../azalea-brigadier", version = "^0.5.0", features = ["azalea-buf"]}
+azalea-buf = {path = "../azalea-buf", version = "^0.5.0" }
+azalea-chat = {path = "../azalea-chat", version = "^0.5.0" }
+azalea-core = {path = "../azalea-core", optional = true, version = "^0.5.0" }
+azalea-crypto = {path = "../azalea-crypto", version = "^0.5.0" }
+azalea-nbt = {path = "../azalea-nbt", version = "^0.5.0" }
+azalea-protocol-macros = {path = "./azalea-protocol-macros", version = "^0.5.0" }
+azalea-registry = {path = "../azalea-registry", version = "^0.5.0" }
+azalea-world = {path = "../azalea-world", version = "^0.5.0" }
 byteorder = "^1.4.3"
 bytes = "^1.1.0"
 flate2 = "1.0.23"

@@ -83,7 +83,8 @@ impl PalettedContainer {
             .get_and_set(self.get_index(x, y, z), paletted_value as u64) as u32
     }
 
-    /// Sets the id at the given index and return the previous id. You probably want `.set` instead.
+    /// Sets the id at the given index and return the previous id. You probably
+    /// want `.set` instead.
     pub fn set_at_index(&mut self, index: usize, value: u32) {
         let paletted_value = self.id_for(value);
         self.storage.set(index, paletted_value as u64)
@@ -110,7 +111,8 @@ impl PalettedContainer {
         // sanity check
         debug_assert_eq!(storage.size(), self.container_type.size());
 
-        // let palette = new_palette_type.as_empty_palette(1usize << (bits_per_entry as usize));
+        // let palette = new_palette_type.as_empty_palette(1usize << (bits_per_entry as
+        // usize));
         let palette = new_palette_type.as_empty_palette();
         PalettedContainer {
             bits_per_entry,
@@ -197,7 +199,8 @@ pub enum PaletteType {
 pub enum Palette {
     /// ID of the corresponding entry in its global palette
     SingleValue(u32),
-    // in vanilla this keeps a `size` field that might be less than the length, but i'm not sure it's actually needed?
+    // in vanilla this keeps a `size` field that might be less than the length, but i'm not sure
+    // it's actually needed?
     Linear(Vec<u32>),
     Hashmap(Vec<u32>),
     Global,

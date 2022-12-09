@@ -37,8 +37,8 @@ impl Client {
     pub(crate) async fn send_position(&mut self) -> Result<(), MovePlayerError> {
         let packet = {
             self.send_sprinting_if_needed().await?;
-            // TODO: the camera being able to be controlled by other entities isn't implemented yet
-            // if !self.is_controlled_camera() { return };
+            // TODO: the camera being able to be controlled by other entities isn't
+            // implemented yet if !self.is_controlled_camera() { return };
 
             let mut physics_state = self.physics_state.lock();
 
@@ -54,7 +54,8 @@ impl Client {
 
             physics_state.position_remainder += 1;
 
-            // boolean sendingPosition = Mth.lengthSquared(xDelta, yDelta, zDelta) > Mth.square(2.0E-4D) || this.positionReminder >= 20;
+            // boolean sendingPosition = Mth.lengthSquared(xDelta, yDelta, zDelta) >
+            // Mth.square(2.0E-4D) || this.positionReminder >= 20;
             let sending_position = ((x_delta.powi(2) + y_delta.powi(2) + z_delta.powi(2))
                 > 2.0e-4f64.powi(2))
                 || physics_state.position_remainder >= 20;
@@ -155,7 +156,8 @@ impl Client {
         Ok(())
     }
 
-    // Set our current position to the provided Vec3, potentially clipping through blocks.
+    // Set our current position to the provided Vec3, potentially clipping through
+    // blocks.
     pub async fn set_position(&mut self, new_pos: Vec3) -> Result<(), MovePlayerError> {
         let player_entity_id = *self.entity_id.read();
         let mut world_lock = self.world.write();
@@ -198,7 +200,8 @@ impl Client {
         }
 
         // TODO: food data and abilities
-        // let has_enough_food_to_sprint = self.food_data().food_level || self.abilities().may_fly;
+        // let has_enough_food_to_sprint = self.food_data().food_level ||
+        // self.abilities().may_fly;
         let has_enough_food_to_sprint = true;
 
         // TODO: double tapping w to sprint i think
@@ -223,7 +226,8 @@ impl Client {
         player_entity.ai_step();
     }
 
-    /// Update the impulse from self.move_direction. The multipler is used for sneaking.
+    /// Update the impulse from self.move_direction. The multipler is used for
+    /// sneaking.
     pub(crate) fn tick_controls(&mut self, multiplier: Option<f32>) {
         let mut physics_state = self.physics_state.lock();
 

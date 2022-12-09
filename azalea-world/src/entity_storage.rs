@@ -11,13 +11,20 @@ use uuid::Uuid;
 
 // How entity updates are processed (to avoid issues with shared worlds)
 // - each bot contains a map of { entity id: updates received }
-// - the shared world also contains a canonical "true" updates received for each entity
-// - when a client loads an entity, its "updates received" is set to the same as the global "updates received"
-// - when the shared world sees an entity for the first time, the "updates received" is set to 1.
-// - clients can force the shared "updates received" to 0 to make it so certain entities (i.e. other bots in our swarm) don't get confused and updated by other bots
-// - when a client gets an update to an entity, we check if our "updates received" is the same as the shared world's "updates received":
-//      if it is, then process the update and increment the client's and shared world's "updates received"
-//      if not, then we simply increment our local "updates received" and do nothing else
+// - the shared world also contains a canonical "true" updates received for each
+//   entity
+// - when a client loads an entity, its "updates received" is set to the same as
+//   the global "updates received"
+// - when the shared world sees an entity for the first time, the "updates
+//   received" is set to 1.
+// - clients can force the shared "updates received" to 0 to make it so certain
+//   entities (i.e. other bots in our swarm) don't get confused and updated by
+//   other bots
+// - when a client gets an update to an entity, we check if our "updates
+//   received" is the same as the shared world's "updates received": if it is,
+//   then process the update and increment the client's and shared world's
+//   "updates received" if not, then we simply increment our local "updates
+//   received" and do nothing else
 
 /// Store a map of entities by ID. To get an iterator over all entities, use
 /// `storage.shared.read().entities` [`WeakEntityStorage::entities`].
@@ -125,7 +132,8 @@ impl PartialEntityStorage {
         self.shared.read().data_by_id.contains_key(id)
     }
 
-    /// Get a reference to an entity by its id, if it's being loaded by this storage.
+    /// Get a reference to an entity by its id, if it's being loaded by this
+    /// storage.
     #[inline]
     pub fn limited_get_by_id(&self, id: u32) -> Option<&Arc<EntityData>> {
         self.data_by_id.get(&id)
@@ -138,10 +146,11 @@ impl PartialEntityStorage {
         self.data_by_id.get_mut(&id)
     }
 
-    /// Returns whether we're allowed to update this entity (to prevent two clients in
-    /// a shared world updating it twice), and acknowleges that we WILL update
-    /// it if it's true. Don't call this unless you actually got an entity
-    /// update that all other clients within render distance will get too.
+    /// Returns whether we're allowed to update this entity (to prevent two
+    /// clients in a shared world updating it twice), and acknowleges that
+    /// we WILL update it if it's true. Don't call this unless you actually
+    /// got an entity update that all other clients within render distance
+    /// will get too.
     pub fn maybe_update(&mut self, id: u32) -> bool {
         let this_client_updates_received = self.updates_received.get(&id).copied();
         let shared_updates_received = self.shared.read().updates_received.get(&id).copied();
@@ -302,7 +311,8 @@ impl WeakEntityStorage {
                 );
             }
             if self.updates_received.remove(&id).is_none() {
-                // if this happens it means we weren't tracking the updates_received for the client (bad)
+                // if this happens it means we weren't tracking the updates_received for the
+                // client (bad)
                 warn!(
                     "Tried to remove entity with id {id} from updates_received but it was not found."
                 );

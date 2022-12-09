@@ -7,7 +7,8 @@ use crate::read::ReadPacketError;
 use azalea_buf::{BufReadError, McBufVarReadable, McBufVarWritable, McBufWritable};
 use std::io::{Cursor, Write};
 
-// TODO: rename the packet files to just like clientbound_add_entity instead of clientbound_add_entity_packet
+// TODO: rename the packet files to just like clientbound_add_entity instead of
+// clientbound_add_entity_packet
 
 pub const PROTOCOL_VERSION: u32 = 761;
 

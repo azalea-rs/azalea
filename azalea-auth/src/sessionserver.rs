@@ -1,5 +1,4 @@
 //! Tell Mojang you're joining a multiplayer server.
-//!
 use serde::Deserialize;
 use serde_json::json;
 use thiserror::Error;

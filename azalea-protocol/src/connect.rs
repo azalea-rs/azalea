@@ -226,12 +226,14 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
         })
     }
 
-    /// Change our state from handshake to login. This is the state that is used for logging in.
+    /// Change our state from handshake to login. This is the state that is used
+    /// for logging in.
     pub fn login(self) -> Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         Connection::from(self)
     }
 
-    /// Change our state from handshake to status. This is the state that is used for pinging the server.
+    /// Change our state from handshake to status. This is the state that is
+    /// used for pinging the server.
     pub fn status(self) -> Connection<ClientboundStatusPacket, ServerboundStatusPacket> {
         Connection::from(self)
     }
@@ -252,14 +254,16 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         }
     }
 
-    /// Set the encryption key that is used to encrypt and decrypt packets. It's the same for both reading and writing.
+    /// Set the encryption key that is used to encrypt and decrypt packets. It's
+    /// the same for both reading and writing.
     pub fn set_encryption_key(&mut self, key: [u8; 16]) {
         let (enc_cipher, dec_cipher) = azalea_crypto::create_cipher(&key);
         self.reader.dec_cipher = Some(dec_cipher);
         self.writer.enc_cipher = Some(enc_cipher);
     }
 
-    /// Change our state from login to game. This is the state that's used when you're actually in the game.
+    /// Change our state from login to game. This is the state that's used when
+    /// you're actually in the game.
     pub fn game(self) -> Connection<ClientboundGamePacket, ServerboundGamePacket> {
         Connection::from(self)
     }
@@ -342,7 +346,8 @@ where
     R1: ProtocolPacket + Debug,
     W1: ProtocolPacket + Debug,
 {
-    /// Creates a `Connection` of a type from a `Connection` of another type. Useful for servers or custom packets.
+    /// Creates a `Connection` of a type from a `Connection` of another type.
+    /// Useful for servers or custom packets.
     pub fn from<R2, W2>(connection: Connection<R1, W1>) -> Connection<R2, W2>
     where
         R2: ProtocolPacket + Debug,

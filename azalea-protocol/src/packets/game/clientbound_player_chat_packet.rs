@@ -83,8 +83,8 @@ pub struct MessageSignatureCache {
 // }
 
 // impl PackedSignedMessageBody {
-//     pub fn unpack(&self, unpacker: impl Fn(u32) -> Option<SignedMessageBody>) {}
-// }
+//     pub fn unpack(&self, unpacker: impl Fn(u32) -> Option<SignedMessageBody>)
+// {} }
 
 impl ClientboundPlayerChatPacket {
     /// Returns the content of the message. If you want to get the Component
@@ -176,7 +176,8 @@ mod tests {
     use super::*;
     use std::backtrace::Backtrace;
 
-    // you can remove or update this test if it breaks because mojang changed the structure of the packet again
+    // you can remove or update this test if it breaks because mojang changed the
+    // structure of the packet again
     #[test]
     fn test_player_chat_packet() {
         let data: [u8; 295] = [

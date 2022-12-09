@@ -15,7 +15,7 @@
 //! Latest bleeding-edge version:
 //! `azalea = { git="https://github.com/mat-1/Cargo.toml" }`\
 //! Latest "stable" release:
-//! `azalea = "0.6"`
+//! `azalea = "0.5.0"`
 //!
 //! ## Optimization
 //!
@@ -64,7 +64,7 @@
 //! async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 //!     match event {
 //!         Event::Chat(m) => {
-//!             println!(m.message().to_ansi());
+//!             println!("{}", m.message().to_ansi());
 //!         }
 //!         _ => {}
 //!     }
