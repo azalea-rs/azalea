@@ -53,7 +53,8 @@ impl<'d, D: DerefMut<Target = World>> Entity<'d, D> {
     pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
         self.y_rot = y_rot % 360.0;
         self.x_rot = x_rot.clamp(-90.0, 90.0) % 360.0;
-        // TODO: minecraft also sets yRotO and xRotO to xRot and yRot ... but idk what they're used for so
+        // TODO: minecraft also sets yRotO and xRotO to xRot and yRot ... but
+        // idk what they're used for so
     }
 
     pub fn move_relative(&mut self, speed: f32, acceleration: &Vec3) {
@@ -116,8 +117,8 @@ impl<'d, D: Deref<Target = World>> Entity<'d, D> {
     // if (this.level.getBlockState(var5).isAir()) {
     //    BlockPos var6 = var5.below();
     //    BlockState var7 = this.level.getBlockState(var6);
-    //    if (var7.is(BlockTags.FENCES) || var7.is(BlockTags.WALLS) || var7.getBlock() instanceof FenceGateBlock) {
-    //       return var6;
+    //    if (var7.is(BlockTags.FENCES) || var7.is(BlockTags.WALLS) ||
+    // var7.getBlock() instanceof FenceGateBlock) {       return var6;
     //    }
     // }
     // return var5;
@@ -181,7 +182,8 @@ impl<D: Deref<Target = World>> Deref for Entity<'_, D> {
 pub struct EntityData {
     pub uuid: Uuid,
     /// The position of the entity right now.
-    /// This can be changde with unsafe_move, but the correct way is with world.move_entity
+    /// This can be changde with unsafe_move, but the correct way is with
+    /// world.move_entity
     pos: Vec3,
     /// The position of the entity last tick.
     pub last_pos: Vec3,
@@ -205,7 +207,8 @@ pub struct EntityData {
 
     /// The width and height of the entity.
     pub dimensions: EntityDimensions,
-    /// The bounding box of the entity. This is more than just width and height, unlike dimensions.
+    /// The bounding box of the entity. This is more than just width and height,
+    /// unlike dimensions.
     pub bounding_box: AABB,
 
     /// Whether the entity will try to jump every tick
@@ -258,7 +261,8 @@ impl EntityData {
             metadata,
 
             attributes: AttributeModifiers {
-                // TODO: do the correct defaults for everything, some entities have different defaults
+                // TODO: do the correct defaults for everything, some entities have different
+                // defaults
                 speed: AttributeInstance::new(0.1),
             },
         }

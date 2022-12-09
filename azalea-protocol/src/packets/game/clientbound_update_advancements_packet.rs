@@ -133,9 +133,9 @@ pub struct CriterionProgress {
 //                     parent_id: None,
 //                     display: Some(DisplayInfo {
 //                         title: Component::from("title".to_string()),
-//                         description: Component::from("description".to_string()),
-//                         icon: Slot::Empty,
-//                         frame: FrameType::Task,
+//                         description:
+// Component::from("description".to_string()),                         icon:
+// Slot::Empty,                         frame: FrameType::Task,
 //                         show_toast: true,
 //                         hidden: false,
 //                         background: None,
@@ -164,7 +164,7 @@ pub struct CriterionProgress {
 //             .collect(),
 //         };
 //         packet.write_into(&mut buf).unwrap();
-//         let packet = ClientboundUpdateAdvancementsPacket::read_from(&mut buf).unwrap();
-//         assert_eq!(packet.reset, true);
+//         let packet = ClientboundUpdateAdvancementsPacket::read_from(&mut
+// buf).unwrap();         assert_eq!(packet.reset, true);
 //     }
 // }

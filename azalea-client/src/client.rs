@@ -112,7 +112,8 @@ pub struct Client {
 
 #[derive(Default)]
 pub struct PhysicsState {
-    /// Minecraft only sends a movement packet either after 20 ticks or if the player moved enough. This is that tick counter.
+    /// Minecraft only sends a movement packet either after 20 ticks or if the
+    /// player moved enough. This is that tick counter.
     pub position_remainder: u32,
     pub was_sprinting: bool,
     // Whether we're going to try to start sprinting this tick. Equivalent to
@@ -383,8 +384,8 @@ impl Client {
     /// Start the protocol and game tick loop.
     #[doc(hidden)]
     pub fn start_tasks(&self, tx: Sender<Event>) {
-        // if you get an error right here that means you're doing something with locks wrong
-        // read the error to see where the issue is
+        // if you get an error right here that means you're doing something with locks
+        // wrong read the error to see where the issue is
         // you might be able to just drop the lock or put it in its own scope to fix
 
         let mut tasks = self.tasks.lock();
@@ -789,7 +790,8 @@ impl Client {
                 if let Some(mut entity) = world.entity_mut(p.id) {
                     entity.apply_metadata(&p.packed_items.0);
                 } else {
-                    // warn!("Server sent an entity data packet for an entity id ({}) that we don't know about", p.id);
+                    // warn!("Server sent an entity data packet for an entity id
+                    // ({}) that we don't know about", p.id);
                 }
             }
             ClientboundGamePacket::UpdateAttributes(_p) => {
@@ -1041,7 +1043,8 @@ impl Client {
     /// of the client's world.
     ///
     /// # Panics
-    /// Panics if the client has not received the login packet yet. You can check this with [`Client::logged_in`].
+    /// Panics if the client has not received the login packet yet. You can
+    /// check this with [`Client::logged_in`].
     pub fn world(&self) -> Arc<WeakWorld> {
         let world_name = self.world_name.read();
         let world_name = world_name
@@ -1086,8 +1089,9 @@ impl Client {
         self.world_name.read().is_some()
     }
 
-    /// Tell the server we changed our game options (i.e. render distance, main hand).
-    /// If this is not set before the login packet, the default will be sent.
+    /// Tell the server we changed our game options (i.e. render distance, main
+    /// hand). If this is not set before the login packet, the default will
+    /// be sent.
     ///
     /// ```rust,no_run
     /// # use azalea_client::{Client, ClientInformation};

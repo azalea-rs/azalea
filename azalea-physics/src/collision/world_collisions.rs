@@ -69,8 +69,8 @@ impl<'a> BlockCollisions<'a> {
         // if (this.cachedBlockGetter != null && this.cachedBlockGetterPos == var5) {
         //    return this.cachedBlockGetter;
         // } else {
-        //    BlockGetter var7 = this.collisionGetter.getChunkForCollisions(chunkX, chunkZ);
-        //    this.cachedBlockGetter = var7;
+        //    BlockGetter var7 = this.collisionGetter.getChunkForCollisions(chunkX,
+        // chunkZ);    this.cachedBlockGetter = var7;
         //    this.cachedBlockGetterPos = chunkPosLong;
         //    return var7;
         // }
@@ -100,7 +100,8 @@ impl<'a> Iterator for BlockCollisions<'a> {
                 .get(&(&pos).into(), self.world.min_y())
                 .unwrap_or(BlockState::Air);
 
-            // TODO: continue if self.only_suffocating_blocks and the block is not suffocating
+            // TODO: continue if self.only_suffocating_blocks and the block is not
+            // suffocating
 
             let block_shape = block_state.shape();
 

@@ -86,8 +86,8 @@ pub enum StartError {
     Join(#[from] azalea_client::JoinError),
 }
 
-/// Join a server and start handling events. This function will run forever until
-/// it gets disconnected from the server.
+/// Join a server and start handling events. This function will run forever
+/// until it gets disconnected from the server.
 ///
 /// # Examples
 ///

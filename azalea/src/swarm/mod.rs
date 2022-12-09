@@ -18,8 +18,8 @@ use std::{future::Future, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::sync::mpsc::{self, UnboundedSender};
 
-/// A helper macro that generates a [`SwarmPlugins`] struct from a list of objects
-/// that implement [`SwarmPlugin`].
+/// A helper macro that generates a [`SwarmPlugins`] struct from a list of
+/// objects that implement [`SwarmPlugin`].
 ///
 /// ```rust,no_run
 /// swarm_plugins![azalea_pathfinder::Plugin];
@@ -111,7 +111,8 @@ where
     pub swarm_state: SS,
     /// The function that's called every time a bot receives an [`Event`].
     pub handle: HandleFn<Fut, S>,
-    /// The function that's called every time the swarm receives a [`SwarmEvent`].
+    /// The function that's called every time the swarm receives a
+    /// [`SwarmEvent`].
     pub swarm_handle: SwarmHandleFn<SwarmFut, S, SS>,
 
     /// How long we should wait between each bot joining the server. Set to
@@ -342,7 +343,8 @@ impl<S> Swarm<S>
 where
     S: Send + Sync + Clone + 'static,
 {
-    /// Add a new account to the swarm. You can remove it later by calling [`Client::disconnect`].
+    /// Add a new account to the swarm. You can remove it later by calling
+    /// [`Client::disconnect`].
     pub async fn add(&mut self, account: &Account, state: S) -> Result<Client, JoinError> {
         let conn = Connection::new(&self.resolved_address).await?;
         let (conn, game_profile) = Client::handshake(conn, account, &self.address.clone()).await?;

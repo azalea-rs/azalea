@@ -27,13 +27,16 @@ impl Serialize for TextComponent {
 const LEGACY_FORMATTING_CODE_SYMBOL: char = '§';
 
 /// Convert a legacy color code string into a Component
-/// Technically in Minecraft this is done when displaying the text, but AFAIK it's the same as just doing it in TextComponent
+/// Technically in Minecraft this is done when displaying the text, but AFAIK
+/// it's the same as just doing it in TextComponent
 pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextComponent {
     let mut components: Vec<TextComponent> = Vec::with_capacity(1);
-    // iterate over legacy_color_code, if it starts with LEGACY_COLOR_CODE_SYMBOL then read the next character and get the style from that
-    // otherwise, add the character to the text
+    // iterate over legacy_color_code, if it starts with LEGACY_COLOR_CODE_SYMBOL
+    // then read the next character and get the style from that otherwise, add
+    // the character to the text
 
-    // we don't use a normal for loop since we need to be able to skip after reading the formatter code symbol
+    // we don't use a normal for loop since we need to be able to skip after reading
+    // the formatter code symbol
     let mut i = 0;
     while i < legacy_color_code.chars().count() {
         if legacy_color_code.chars().nth(i).unwrap() == LEGACY_FORMATTING_CODE_SYMBOL {
@@ -72,7 +75,8 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
         return TextComponent::new("".to_string());
     }
 
-    // create the final component by using the first one as the base, and then adding the rest as siblings
+    // create the final component by using the first one as the base, and then
+    // adding the rest as siblings
     let mut final_component = components.remove(0);
     for component in components {
         final_component.base.siblings.push(component.get());

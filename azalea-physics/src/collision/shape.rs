@@ -143,11 +143,17 @@ impl Shapes {
         if b.is_empty() {
             return if op_true_false { a } else { empty_shape() };
         }
-        // IndexMerger var5 = createIndexMerger(1, a.getCoords(Direction.Axis.X), b.getCoords(Direction.Axis.X), var3, var4);
-        // IndexMerger var6 = createIndexMerger(var5.size() - 1, a.getCoords(Direction.Axis.Y), b.getCoords(Direction.Axis.Y), var3, var4);
-        // IndexMerger var7 = createIndexMerger((var5.size() - 1) * (var6.size() - 1), a.getCoords(Direction.Axis.Z), b.getCoords(Direction.Axis.Z), var3, var4);
-        // BitSetDiscreteVoxelShape var8 = BitSetDiscreteVoxelShape.join(a.shape, b.shape, var5, var6, var7, op);
-        // return (VoxelShape)(var5 instanceof DiscreteCubeMerger && var6 instanceof DiscreteCubeMerger && var7 instanceof DiscreteCubeMerger ? new CubeVoxelShape(var8) : new ArrayVoxelShape(var8, var5.getList(), var6.getList(), var7.getList()));
+        // IndexMerger var5 = createIndexMerger(1, a.getCoords(Direction.Axis.X),
+        // b.getCoords(Direction.Axis.X), var3, var4); IndexMerger var6 =
+        // createIndexMerger(var5.size() - 1, a.getCoords(Direction.Axis.Y),
+        // b.getCoords(Direction.Axis.Y), var3, var4); IndexMerger var7 =
+        // createIndexMerger((var5.size() - 1) * (var6.size() - 1),
+        // a.getCoords(Direction.Axis.Z), b.getCoords(Direction.Axis.Z), var3, var4);
+        // BitSetDiscreteVoxelShape var8 = BitSetDiscreteVoxelShape.join(a.shape,
+        // b.shape, var5, var6, var7, op); return (VoxelShape)(var5 instanceof
+        // DiscreteCubeMerger && var6 instanceof DiscreteCubeMerger && var7 instanceof
+        // DiscreteCubeMerger ? new CubeVoxelShape(var8) : new ArrayVoxelShape(var8,
+        // var5.getList(), var6.getList(), var7.getList()));
         let var5 = Self::create_index_merger(
             1,
             a.get_coords(Axis::X),
@@ -266,8 +272,8 @@ impl Shapes {
     ) -> IndexMerger {
         let var5 = var1.len() - 1;
         let var6 = var2.len() - 1;
-        // if (&var1 as &dyn Any).is::<CubePointRange>() && (&var2 as &dyn Any).is::<CubePointRange>()
-        // {
+        // if (&var1 as &dyn Any).is::<CubePointRange>() && (&var2 as &dyn
+        // Any).is::<CubePointRange>() {
         // return new DiscreteCubeMerger(var0, var5, var6, var3, var4);
         // let var7: i64 = lcm(var5 as u32, var6 as u32).try_into().unwrap();
         // //    if ((long)var0 * var7 <= 256L) {
@@ -305,8 +311,8 @@ pub enum VoxelShape {
 impl VoxelShape {
     // public double min(Direction.Axis var1) {
     //     int var2 = this.shape.firstFull(var1);
-    //     return var2 >= this.shape.getSize(var1) ? 1.0D / 0.0 : this.get(var1, var2);
-    // }
+    //     return var2 >= this.shape.getSize(var1) ? 1.0D / 0.0 : this.get(var1,
+    // var2); }
     // public double max(Direction.Axis var1) {
     //     int var2 = this.shape.lastFull(var1);
     //     return var2 <= 0 ? -1.0D / 0.0 : this.get(var1, var2);
@@ -467,8 +473,8 @@ impl VoxelShape {
     // public VoxelShape optimize() {
     //     VoxelShape[] var1 = new VoxelShape[]{Shapes.empty()};
     //     this.forAllBoxes((var1x, var3, var5, var7, var9, var11) -> {
-    //         var1[0] = Shapes.joinUnoptimized(var1[0], Shapes.box(var1x, var3, var5, var7, var9, var11), BooleanOp.OR);
-    //     });
+    //         var1[0] = Shapes.joinUnoptimized(var1[0], Shapes.box(var1x, var3,
+    // var5, var7, var9, var11), BooleanOp.OR);     });
     //     return var1[0];
     // }
     fn optimize(&self) -> VoxelShape {
@@ -497,8 +503,9 @@ impl VoxelShape {
     //     DoubleList var3 = this.getCoords(Direction.Axis.Y);
     //     DoubleList var4 = this.getCoords(Direction.Axis.Z);
     //     this.shape.forAllBoxes((var4x, var5, var6, var7, var8, var9) -> {
-    //     var1.consume(var2.getDouble(var4x), var3.getDouble(var5), var4.getDouble(var6), var2.getDouble(var7), var3.getDouble(var8), var4.getDouble(var9));
-    //     }, true);
+    //     var1.consume(var2.getDouble(var4x), var3.getDouble(var5),
+    // var4.getDouble(var6), var2.getDouble(var7), var3.getDouble(var8),
+    // var4.getDouble(var9));     }, true);
     // }
     pub fn for_all_boxes(&self, mut consumer: impl FnMut(f64, f64, f64, f64, f64, f64))
     where

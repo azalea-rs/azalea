@@ -18,8 +18,8 @@ use std::{collections::HashMap, fs::File};
 //         let mut file = File::open("en_us.json").unwrap();
 //         let mut contents = String::new();
 //         file.read_to_string(&mut contents).unwrap();
-//         let en_us: HashMap<String, String> = serde_json::from_str(&contents).unwrap();
-//         Language { storage: en_us }
+//         let en_us: HashMap<String, String> =
+// serde_json::from_str(&contents).unwrap();         Language { storage: en_us }
 //     }
 
 //     pub fn get(&self, key: &str) -> Option<&str> {

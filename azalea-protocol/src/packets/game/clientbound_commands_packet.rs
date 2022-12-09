@@ -73,7 +73,8 @@ impl<T: McBufWritable> McBufWritable for BrigadierNumber<T> {
 pub enum BrigadierString {
     /// Reads a single word
     SingleWord = 0,
-    // If it starts with a ", keeps reading until another " (allowing escaping with \). Otherwise behaves the same as SINGLE_WORD
+    // If it starts with a ", keeps reading until another " (allowing escaping with \). Otherwise
+    // behaves the same as SINGLE_WORD
     QuotablePhrase = 1,
     // Reads the rest of the content after the cursor. Quotes will not be removed.
     GreedyPhrase = 2,

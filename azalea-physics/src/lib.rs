@@ -61,8 +61,8 @@ impl<D: DerefMut<Target = World>> HasPhysics for Entity<'_, D> {
         // if (this.shouldDiscardFriction()) {
         //     this.setDeltaMovement(movement.x, yMovement, movement.z);
         // } else {
-        //     this.setDeltaMovement(movement.x * (double)inertia, yMovement * 0.9800000190734863D, movement.z * (double)inertia);
-        // }
+        //     this.setDeltaMovement(movement.x * (double)inertia, yMovement *
+        // 0.9800000190734863D, movement.z * (double)inertia); }
 
         // if should_discard_friction(self) {
         if false {
@@ -79,7 +79,8 @@ impl<D: DerefMut<Target = World>> HasPhysics for Entity<'_, D> {
     /// applies air resistance, calls self.travel(), and some other random
     /// stuff.
     fn ai_step(&mut self) {
-        // vanilla does movement interpolation here, doesn't really matter much for a bot though
+        // vanilla does movement interpolation here, doesn't really matter much for a
+        // bot though
 
         if self.delta.x.abs() < 0.003 {
             self.delta.x = 0.;
@@ -157,17 +158,18 @@ fn handle_relative_friction_and_calculate_movement<D: DerefMut<Target = World>>(
         .expect("Entity should exist.");
     // let delta_movement = entity.delta;
     // ladders
-    //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable() || entity.getFeetBlockState().is(Blocks.POWDER_SNOW) && PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {
-    //      var3 = new Vec3(var3.x, 0.2D, var3.z);
-    //   }
+    //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable()
+    // || entity.getFeetBlockState().is(Blocks.POWDER_SNOW) &&
+    // PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {      var3 = new
+    // Vec3(var3.x, 0.2D, var3.z);   }
     // TODO: powdered snow
 
     entity.delta
 }
 
 // private float getFrictionInfluencedSpeed(float friction) {
-//     return this.onGround ? this.getSpeed() * (0.21600002F / (friction * friction * friction)) : this.flyingSpeed;
-// }
+//     return this.onGround ? this.getSpeed() * (0.21600002F / (friction *
+// friction * friction)) : this.flyingSpeed; }
 fn get_friction_influenced_speed(entity: &EntityData, friction: f32) -> f32 {
     // TODO: have speed & flying_speed fields in entity
     if entity.on_ground {
@@ -207,8 +209,8 @@ fn block_jump_factor<D: DerefMut<Target = World>>(entity: &Entity<D>) -> f32 {
 //     return 0.42F * this.getBlockJumpFactor();
 // }
 // public double getJumpBoostPower() {
-//     return this.hasEffect(MobEffects.JUMP) ? (double)(0.1F * (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1)) : 0.0D;
-// }
+//     return this.hasEffect(MobEffects.JUMP) ? (double)(0.1F *
+// (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1)) : 0.0D; }
 fn jump_power<D: DerefMut<Target = World>>(entity: &Entity<D>) -> f32 {
     0.42 * block_jump_factor(entity)
 }

@@ -92,7 +92,8 @@ fn read_utf_with_len(buf: &mut Cursor<&[u8]>, max_length: u32) -> Result<String,
 }
 
 // fast varints modified from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
-/// Read a single varint from the reader and return the value, along with the number of bytes read
+/// Read a single varint from the reader and return the value, along with the
+/// number of bytes read
 // pub async fn read_varint_async(
 //     reader: &mut (dyn AsyncRead + Unpin + Send),
 // ) -> Result<i32, BufReadError> {

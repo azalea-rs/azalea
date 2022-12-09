@@ -44,7 +44,8 @@ pub struct ServerAddress {
 impl<'a> TryFrom<&'a str> for ServerAddress {
     type Error = String;
 
-    /// Convert a Minecraft server address (host:port, the port is optional) to a ServerAddress
+    /// Convert a Minecraft server address (host:port, the port is optional) to
+    /// a ServerAddress
     fn try_from(string: &str) -> Result<Self, Self::Error> {
         if string.is_empty() {
             return Err("Empty string".to_string());

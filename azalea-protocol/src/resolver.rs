@@ -26,7 +26,9 @@ pub async fn resolve_address(address: &ServerAddress) -> Result<SocketAddr, Reso
         return Ok(SocketAddr::new(ip, address.port));
     }
 
-    // we specify Cloudflare instead of the default resolver because trust_dns_resolver has an issue on Windows where it's really slow using the default resolver
+    // we specify Cloudflare instead of the default resolver because
+    // trust_dns_resolver has an issue on Windows where it's really slow using the
+    // default resolver
     let resolver =
         TokioAsyncResolver::tokio(ResolverConfig::cloudflare(), ResolverOpts::default()).unwrap();
 
@@ -35,7 +37,8 @@ pub async fn resolve_address(address: &ServerAddress) -> Result<SocketAddr, Reso
         .srv_lookup(format!("_minecraft._tcp.{}", address.host).as_str())
         .await;
 
-    // if it resolves that means it's a redirect so we call resolve_address again with the new host
+    // if it resolves that means it's a redirect so we call resolve_address again
+    // with the new host
     if let Ok(redirect_result) = srv_redirect_result {
         let redirect_srv = redirect_result
             .iter()

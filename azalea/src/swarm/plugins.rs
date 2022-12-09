@@ -13,7 +13,8 @@ type U64Hasher = BuildHasherDefault<NoHashHasher<u64>>;
 /// A map of plugin ids to [`SwarmPlugin`] trait objects. The client stores
 /// this so we can keep the state for our [`Swarm`] plugins.
 ///
-/// If you're using azalea, you should generate this from the `swarm_plugins!` macro.
+/// If you're using azalea, you should generate this from the `swarm_plugins!`
+/// macro.
 #[derive(Clone, Default)]
 pub struct SwarmPlugins<S> {
     map: Option<HashMap<TypeId, Box<dyn SwarmPlugin<S>>, U64Hasher>>,

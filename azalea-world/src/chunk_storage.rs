@@ -50,9 +50,9 @@ pub struct ChunkStorage {
     pub chunks: HashMap<ChunkPos, Arc<Mutex<Chunk>>>,
 }
 
-/// A single chunk in a world (16*?*16 blocks). This only contains the blocks and biomes. You
-/// can derive the height of the chunk from the number of sections, but you
-/// need a [`ChunkStorage`] to get the minimum Y coordinate.
+/// A single chunk in a world (16*?*16 blocks). This only contains the blocks
+/// and biomes. You can derive the height of the chunk from the number of
+/// sections, but you need a [`ChunkStorage`] to get the minimum Y coordinate.
 #[derive(Debug)]
 pub struct Chunk {
     pub sections: Vec<Section>,
