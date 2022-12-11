@@ -164,11 +164,18 @@ impl WeakWorld {
         self.entity_storage.read().get_by_uuid(uuid)
     }
 
-    pub fn find_entity<F>(&self, mut f: F) -> Option<Arc<EntityData>>
+    pub fn entity_by<F>(&self, mut f: F) -> Option<Arc<EntityData>>
     where
         F: FnMut(&EntityData) -> bool,
     {
-        self.entity_storage.read().find_entity(|entity| f(entity))
+        self.entity_storage.read().entity_by(|e| f(e))
+    }
+
+    pub fn entities_by<F>(&self, mut f: F) -> Vec<Arc<EntityData>>
+    where
+        F: FnMut(&EntityData) -> bool,
+    {
+        self.entity_storage.read().entities_by(|e| f(e))
     }
 
     pub fn set_entity_pos(&self, entity_id: u32, new_pos: Vec3) -> Result<(), MoveEntityError> {

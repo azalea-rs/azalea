@@ -240,18 +240,18 @@ impl PartialEntityStorage {
             .update_entity_chunk(entity_id, old_chunk, new_chunk);
     }
 
-    pub fn find_entity<F>(&self, mut f: F) -> Option<Arc<EntityData>>
+    pub fn entity_by<F>(&self, mut f: F) -> Option<Arc<EntityData>>
     where
         F: FnMut(&Arc<EntityData>) -> bool,
     {
-        self.shared.read().find_entity(|e| f(e))
+        self.shared.read().entity_by(|e| f(e))
     }
 
-    pub fn find_entity_in_chunk<F>(&self, chunk: &ChunkPos, mut f: F) -> Option<Arc<EntityData>>
+    pub fn entity_by_in_chunk<F>(&self, chunk: &ChunkPos, mut f: F) -> Option<Arc<EntityData>>
     where
         F: FnMut(&EntityData) -> bool,
     {
-        self.shared.read().find_entity_in_chunk(chunk, |e| f(e))
+        self.shared.read().entity_by_in_chunk(chunk, |e| f(e))
     }
 }
 
@@ -352,7 +352,7 @@ impl WeakEntityStorage {
             .and_then(|id| self.data_by_id.get(id).and_then(|e| e.upgrade()))
     }
 
-    pub fn find_entity<F>(&self, mut f: F) -> Option<Arc<EntityData>>
+    pub fn entity_by<F>(&self, mut f: F) -> Option<Arc<EntityData>>
     where
         F: FnMut(&Arc<EntityData>) -> bool,
     {
@@ -366,7 +366,22 @@ impl WeakEntityStorage {
         None
     }
 
-    pub fn find_entity_in_chunk<F>(&self, chunk: &ChunkPos, mut f: F) -> Option<Arc<EntityData>>
+    pub fn entities_by<F>(&self, mut f: F) -> Vec<Arc<EntityData>>
+    where
+        F: FnMut(&Arc<EntityData>) -> bool,
+    {
+        let mut entities = Vec::new();
+        for entity in self.entities() {
+            if let Some(entity) = entity.upgrade() {
+                if f(&entity) {
+                    entities.push(entity);
+                }
+            }
+        }
+        entities
+    }
+
+    pub fn entity_by_in_chunk<F>(&self, chunk: &ChunkPos, mut f: F) -> Option<Arc<EntityData>>
     where
         F: FnMut(&EntityData) -> bool,
     {
