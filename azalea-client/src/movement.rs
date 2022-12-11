@@ -107,7 +107,7 @@ impl Client {
             };
 
             drop(player_entity);
-            let mut player_entity = self.entity_mut();
+            let mut player_entity = self.entity();
 
             if sending_position {
                 player_entity.last_pos = *player_entity.pos();
@@ -192,7 +192,7 @@ impl Client {
 
         // server ai step
         {
-            let mut player_entity = self.entity_mut();
+            let mut player_entity = self.entity();
 
             let physics_state = self.physics_state.lock();
             player_entity.xxa = physics_state.left_impulse;
@@ -222,7 +222,7 @@ impl Client {
             self.set_sprinting(true);
         }
 
-        let mut player_entity = self.entity_mut();
+        let mut player_entity = self.entity();
         player_entity.ai_step();
     }
 
@@ -318,7 +318,7 @@ impl Client {
     /// player. You should use the [`walk`] and [`sprint`] methods instead.
     /// Returns if the operation was successful.
     fn set_sprinting(&mut self, sprinting: bool) -> bool {
-        let mut player_entity = self.entity_mut();
+        let mut player_entity = self.entity();
         player_entity.metadata.sprinting = sprinting;
         if sprinting {
             player_entity
@@ -341,14 +341,13 @@ impl Client {
     /// If you're making a realistic client, calling this function every tick is
     /// recommended.
     pub fn set_jumping(&mut self, jumping: bool) {
-        let mut player_entity = self.entity_mut();
+        let mut player_entity = self.entity();
         player_entity.jumping = jumping;
     }
 
     /// Returns whether the player will try to jump next tick.
     pub fn jumping(&self) -> bool {
         let player_entity = self.entity();
-
         player_entity.jumping
     }
 
@@ -357,7 +356,7 @@ impl Client {
     /// f3 screen.
     /// `y_rot` goes from -180 to 180, and `x_rot` goes from -90 to 90.
     pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
-        let mut player_entity = self.entity_mut();
+        let mut player_entity = self.entity();
         player_entity.set_rotation(y_rot, x_rot);
     }
 

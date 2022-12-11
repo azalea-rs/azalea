@@ -6,7 +6,7 @@ use crate::{Client, Event};
 use async_trait::async_trait;
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_world::entity::EntityData;
-use log::debug;
+use log::{debug, error};
 use mtdstarlite::Edge;
 pub use mtdstarlite::MTDStarLite;
 use parking_lot::Mutex;
@@ -80,7 +80,7 @@ impl Trait for azalea_client::Client {
         let successors = |node: &Node| {
             let mut edges = Vec::new();
 
-            let world = self.world.read();
+            let world = &self.world.read().shared;
             for possible_move in possible_moves.iter() {
                 edges.push(Edge {
                     target: possible_move.next_node(node),
@@ -111,7 +111,11 @@ impl Trait for azalea_client::Client {
             .expect("Pathfinder plugin not installed!")
             .clone();
         // convert the Option<Vec<Node>> to a VecDeque<Node>
-        *state.path.lock() = p.expect("no path").into_iter().collect();
+        if let Some(p) = p {
+            *state.path.lock() = p.into_iter().collect();
+        } else {
+            error!("no path found");
+        }
     }
 }
 

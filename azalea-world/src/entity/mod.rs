@@ -5,7 +5,7 @@ pub mod metadata;
 
 use self::attributes::{AttributeInstance, AttributeModifiers};
 pub use self::metadata::EntityMetadata;
-use crate::World;
+use crate::WeakWorld;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, Vec3, AABB};
 pub use data::*;
@@ -17,7 +17,7 @@ use uuid::Uuid;
 
 /// A reference to an entity in a world.
 #[derive(Debug)]
-pub struct Entity<'d, D = &'d mut World> {
+pub struct Entity<'d, D = &'d WeakWorld> {
     /// The world this entity is in.
     pub world: D,
     /// The incrementing numerical id of the entity.
@@ -26,7 +26,7 @@ pub struct Entity<'d, D = &'d mut World> {
     _marker: PhantomData<&'d ()>,
 }
 
-impl<'d, D: Deref<Target = World>> Entity<'d, D> {
+impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
     pub fn new(world: D, id: u32, data: NonNull<EntityData>) -> Self {
         // TODO: have this be based on the entity type
         Self {
@@ -38,7 +38,7 @@ impl<'d, D: Deref<Target = World>> Entity<'d, D> {
     }
 }
 
-impl<'d, D: DerefMut<Target = World>> Entity<'d, D> {
+impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
     /// Sets the position of the entity. This doesn't update the cache in
     /// azalea-world, and should only be used within azalea-world!
     ///
@@ -95,7 +95,7 @@ impl<'d, D: DerefMut<Target = World>> Entity<'d, D> {
     }
 }
 
-impl<'d, D: Deref<Target = World>> Entity<'d, D> {
+impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
     #[inline]
     pub fn pos(&self) -> &Vec3 {
         &self.pos
@@ -150,8 +150,8 @@ impl<'d, D: Deref<Target = World>> Entity<'d, D> {
 
 // impl<
 //         'd,
-//         D: DerefMut<Target = World> + Deref<Target = World>,
-//         D2: Deref<Target = World>,
+//         D: Deref<Target = WeakWorld> + Deref<Target = WeakWorld>,
+//         D2: Deref<Target = WeakWorld>,
 //     > From<Entity<'d, D>> for Entity<'d, D2>
 // {
 //     fn from(entity: Entity<'d, D>) -> Entity<'d, D> {
@@ -164,13 +164,13 @@ impl<'d, D: Deref<Target = World>> Entity<'d, D> {
 //     }
 // }
 
-impl<D: DerefMut<Target = World>> DerefMut for Entity<'_, D> {
+impl<D: Deref<Target = WeakWorld>> DerefMut for Entity<'_, D> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { self.data.as_mut() }
     }
 }
 
-impl<D: Deref<Target = World>> Deref for Entity<'_, D> {
+impl<D: Deref<Target = WeakWorld>> Deref for Entity<'_, D> {
     type Target = EntityData;
 
     fn deref(&self) -> &Self::Target {
@@ -287,10 +287,11 @@ impl EntityData {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::PartialWorld;
 
     #[test]
     fn from_mut_entity_to_ref_entity() {
-        let mut world = World::default();
+        let mut world = PartialWorld::default();
         let uuid = Uuid::from_u128(100);
         world.add_entity(
             0,
@@ -301,7 +302,6 @@ mod tests {
             ),
         );
         let entity: Entity = world.entity_mut(0).unwrap();
-        let entity_ref = Entity::from(entity);
-        assert_eq!(entity_ref.uuid, uuid);
+        assert_eq!(entity.uuid, uuid);
     }
 }

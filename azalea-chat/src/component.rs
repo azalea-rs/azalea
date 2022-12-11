@@ -292,6 +292,11 @@ impl From<String> for Component {
         })
     }
 }
+impl From<&str> for Component {
+    fn from(s: &str) -> Self {
+        Self::from(s.to_string())
+    }
+}
 
 impl Display for Component {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

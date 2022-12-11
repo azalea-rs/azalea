@@ -50,7 +50,7 @@ async fn swarm_handle(
             if let Some(target) = swarm
                 .worlds
                 .read()
-                .find_one_entity(|e| e.id == "minecraft:player")
+                .find_entity(|e| e.id == "minecraft:player")
             {
                 for (bot, bot_state) in swarm {
                     bot.tick_goto_goal(pathfinder::Goals::Reach(target.bounding_box));

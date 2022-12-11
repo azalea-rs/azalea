@@ -78,6 +78,15 @@ impl ChatPacket {
     pub fn content(&self) -> String {
         self.split_sender_and_content().1
     }
+
+    /// Create a new ChatPacket from a string. This is meant to be used as a
+    /// convenience function for testing.
+    pub fn new(message: &str) -> Self {
+        ChatPacket::System(Arc::new(ClientboundSystemChatPacket {
+            content: Component::from(message),
+            overlay: false,
+        }))
+    }
 }
 
 impl Client {

@@ -34,7 +34,11 @@ use uuid::Uuid;
 pub struct PartialEntityStorage {
     pub shared: Arc<RwLock<WeakEntityStorage>>,
 
-    /// The entity id of the player that owns this struct.
+    /// The entity id of the player that owns this partial world. This will
+    /// make [`PartialWorld::entity_mut`] pretend the entity doesn't exist so
+    /// it doesn't get modified from outside sources.
+    ///
+    /// [`PartialWorld::entity_mut`]: crate::PartialWorld::entity_mut
     pub owner_entity_id: u32,
     pub updates_received: IntMap<u32, u32>,
     /// Strong references to the entities we have loaded.
@@ -172,11 +176,7 @@ impl PartialEntityStorage {
     /// Get an entity in the shared storage by its id, if it exists.
     #[inline]
     pub fn get_by_id(&self, id: u32) -> Option<Arc<EntityData>> {
-        self.shared
-            .read()
-            .data_by_id
-            .get(&id)
-            .and_then(|e| e.upgrade())
+        self.shared.read().get_by_id(id)
     }
 
     /// Get a reference to an entity by its UUID, if it's being loaded by this
@@ -204,13 +204,7 @@ impl PartialEntityStorage {
     /// Get an entity in the shared storage by its UUID, if it exists.
     #[inline]
     pub fn get_by_uuid(&self, uuid: &Uuid) -> Option<Arc<EntityData>> {
-        self.shared.read().id_by_uuid.get(uuid).and_then(|id| {
-            self.shared
-                .read()
-                .data_by_id
-                .get(id)
-                .and_then(|e| e.upgrade())
-        })
+        self.shared.read().get_by_uuid(uuid)
     }
 
     /// Clear all entities in a chunk. This will not clear them from the
@@ -241,46 +235,23 @@ impl PartialEntityStorage {
         old_chunk: &ChunkPos,
         new_chunk: &ChunkPos,
     ) {
-        if let Some(entities) = self.shared.write().ids_by_chunk.get_mut(old_chunk) {
-            entities.remove(&entity_id);
-        }
         self.shared
             .write()
-            .ids_by_chunk
-            .entry(*new_chunk)
-            .or_default()
-            .insert(entity_id);
+            .update_entity_chunk(entity_id, old_chunk, new_chunk);
     }
 
-    pub fn find_one_entity<F>(&self, mut f: F) -> Option<Arc<EntityData>>
+    pub fn find_entity<F>(&self, mut f: F) -> Option<Arc<EntityData>>
     where
         F: FnMut(&Arc<EntityData>) -> bool,
     {
-        for entity in self.shared.read().entities() {
-            if let Some(entity) = entity.upgrade() {
-                if f(&entity) {
-                    return Some(entity);
-                }
-            }
-        }
-        None
+        self.shared.read().find_entity(|e| f(e))
     }
 
-    pub fn find_one_entity_in_chunk<F>(&self, chunk: &ChunkPos, mut f: F) -> Option<Arc<EntityData>>
+    pub fn find_entity_in_chunk<F>(&self, chunk: &ChunkPos, mut f: F) -> Option<Arc<EntityData>>
     where
         F: FnMut(&EntityData) -> bool,
     {
-        let shared = self.shared.read();
-        if let Some(entities) = shared.ids_by_chunk.get(chunk) {
-            for entity_id in entities {
-                if let Some(entity) = shared.data_by_id.get(entity_id).and_then(|e| e.upgrade()) {
-                    if f(&entity) {
-                        return Some(entity);
-                    }
-                }
-            }
-        }
-        None
+        self.shared.read().find_entity_in_chunk(chunk, |e| f(e))
     }
 }
 
@@ -365,6 +336,67 @@ impl WeakEntityStorage {
     #[inline]
     pub fn contains_id(&self, id: &u32) -> bool {
         self.data_by_id.contains_key(id)
+    }
+
+    /// Get an entity by its id, if it exists.
+    #[inline]
+    pub fn get_by_id(&self, id: u32) -> Option<Arc<EntityData>> {
+        self.data_by_id.get(&id).and_then(|e| e.upgrade())
+    }
+
+    /// Get an entity in the shared storage by its UUID, if it exists.
+    #[inline]
+    pub fn get_by_uuid(&self, uuid: &Uuid) -> Option<Arc<EntityData>> {
+        self.id_by_uuid
+            .get(uuid)
+            .and_then(|id| self.data_by_id.get(id).and_then(|e| e.upgrade()))
+    }
+
+    pub fn find_entity<F>(&self, mut f: F) -> Option<Arc<EntityData>>
+    where
+        F: FnMut(&Arc<EntityData>) -> bool,
+    {
+        for entity in self.entities() {
+            if let Some(entity) = entity.upgrade() {
+                if f(&entity) {
+                    return Some(entity);
+                }
+            }
+        }
+        None
+    }
+
+    pub fn find_entity_in_chunk<F>(&self, chunk: &ChunkPos, mut f: F) -> Option<Arc<EntityData>>
+    where
+        F: FnMut(&EntityData) -> bool,
+    {
+        if let Some(entities) = self.ids_by_chunk.get(chunk) {
+            for entity_id in entities {
+                if let Some(entity) = self.data_by_id.get(entity_id).and_then(|e| e.upgrade()) {
+                    if f(&entity) {
+                        return Some(entity);
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    /// Move an entity from its old chunk to a new chunk.
+    #[inline]
+    pub fn update_entity_chunk(
+        &mut self,
+        entity_id: u32,
+        old_chunk: &ChunkPos,
+        new_chunk: &ChunkPos,
+    ) {
+        if let Some(entities) = self.ids_by_chunk.get_mut(old_chunk) {
+            entities.remove(&entity_id);
+        }
+        self.ids_by_chunk
+            .entry(*new_chunk)
+            .or_default()
+            .insert(entity_id);
     }
 }
 

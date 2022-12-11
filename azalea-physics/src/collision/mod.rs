@@ -6,11 +6,11 @@ mod world_collisions;
 
 use azalea_core::{Axis, Vec3, AABB, EPSILON};
 use azalea_world::entity::{Entity, EntityData};
-use azalea_world::{MoveEntityError, World};
+use azalea_world::{MoveEntityError, WeakWorld};
 pub use blocks::BlockWithShape;
 pub use discrete_voxel_shape::*;
 pub use shape::*;
-use std::ops::DerefMut;
+use std::ops::Deref;
 use world_collisions::CollisionGetter;
 
 pub enum MoverType {
@@ -33,7 +33,7 @@ pub trait MovableEntity {
     ) -> Result<(), MoveEntityError>;
 }
 
-impl HasCollision for World {
+impl<D: Deref<Target = WeakWorld>> HasCollision for D {
     // private Vec3 collide(Vec3 var1) {
     //     AABB var2 = this.getBoundingBox();
     //     List var3 = this.level.getEntityCollisions(this,
@@ -87,7 +87,7 @@ impl HasCollision for World {
     }
 }
 
-impl<D: DerefMut<Target = World>> MovableEntity for Entity<'_, D> {
+impl<D: Deref<Target = WeakWorld>> MovableEntity for Entity<'_, D> {
     /// Move an entity by a given delta, checking for collisions.
     fn move_colliding(
         &mut self,
@@ -206,7 +206,7 @@ fn collide_bounding_box(
     entity: Option<&EntityData>,
     movement: &Vec3,
     entity_bounding_box: &AABB,
-    world: &World,
+    world: &WeakWorld,
     entity_collisions: Vec<VoxelShape>,
 ) -> Vec3 {
     let mut collision_boxes: Vec<VoxelShape> = Vec::with_capacity(entity_collisions.len() + 1);

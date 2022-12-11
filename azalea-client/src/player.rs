@@ -1,12 +1,12 @@
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::Component;
 use azalea_core::GameType;
-use azalea_world::World;
+use azalea_world::PartialWorld;
 use uuid::Uuid;
 
 /// Something that has a world associated to it. this is usually a `Client`.
 pub trait WorldHaver {
-    fn world(&self) -> &World;
+    fn world(&self) -> &PartialWorld;
 }
 
 /// A player in the tab list.
