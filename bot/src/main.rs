@@ -90,11 +90,10 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
             let Some(sender) = m.username() else {
                 return Ok(())
             };
-            // let entity = bot
-            //     .world()
-            //     .entity_by(|e| e.kind() == azalea::EntityKind::Player && e.name() ==
-            // Some(sender));
-            let entity = None;
+            let entity = bot
+                .world()
+                .entity_by(|e| e.kind() == azalea::EntityKind::Player && e.name() == Some(sender));
+            // let entity = None;
             if let Some(entity) = entity {
                 if m.content() == "goto" {
                     let target_pos_vec3 = entity.pos();
