@@ -11,3 +11,4 @@ repository = "https://github.com/mat-1/azalea/tree/main/azalea-registry"
 [dependencies]
 azalea-buf = {path = "../azalea-buf", version = "^0.5.0" }
 azalea-registry-macros = {path = "./azalea-registry-macros", version = "^0.5.0" }
+enum-as-inner = "0.5.1"

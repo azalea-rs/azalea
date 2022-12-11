@@ -120,6 +120,7 @@ dependencies = [
  "azalea-core",
  "azalea-physics",
  "azalea-protocol",
+ "azalea-registry",
  "azalea-world",
  "env_logger",
  "futures",
@@ -343,6 +344,7 @@ version = "0.5.0"
 dependencies = [
  "azalea-buf",
  "azalea-registry-macros",
+ "enum-as-inner",
 ]
 
 [[package]]

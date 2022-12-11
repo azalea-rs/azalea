@@ -88,6 +88,7 @@ mod swarm;
 pub use azalea_block::*;
 pub use azalea_client::*;
 pub use azalea_core::{BlockPos, Vec3};
+pub use azalea_registry::EntityKind;
 pub use start::{start, Options};
 pub use swarm::*;
 

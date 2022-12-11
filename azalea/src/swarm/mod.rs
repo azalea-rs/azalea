@@ -409,7 +409,7 @@ where
                     let delay = (Duration::from_secs(5) * 2u32.pow(disconnects))
                         .min(Duration::from_secs(120));
                     let username = account.username.clone();
-                    error!("Error joining {username}: {e}. Waiting {delay:?} and trying again.");
+                    error!("Error joining as {username}: {e}. Waiting {delay:?} and trying again.");
                     tokio::time::sleep(delay).await;
                 }
             }

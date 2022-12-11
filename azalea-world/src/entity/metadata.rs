@@ -4924,7 +4924,7 @@ impl Default for Rabbit {
     fn default() -> Self {
         Self {
             abstract_animal: Default::default(),
-            kind: 0,
+            kind: Default::default(),
         }
     }
 }
@@ -8151,230 +8151,358 @@ pub enum EntityMetadata {
     ZombifiedPiglin(ZombifiedPiglin),
 }
 
-impl From<azalea_registry::EntityType> for EntityMetadata {
-    fn from(value: azalea_registry::EntityType) -> Self {
+impl From<azalea_registry::EntityKind> for EntityMetadata {
+    fn from(value: azalea_registry::EntityKind) -> Self {
         match value {
-            azalea_registry::EntityType::Allay => EntityMetadata::Allay(Allay::default()),
-            azalea_registry::EntityType::AreaEffectCloud => {
+            azalea_registry::EntityKind::Allay => EntityMetadata::Allay(Allay::default()),
+            azalea_registry::EntityKind::AreaEffectCloud => {
                 EntityMetadata::AreaEffectCloud(AreaEffectCloud::default())
             }
-            azalea_registry::EntityType::ArmorStand => {
+            azalea_registry::EntityKind::ArmorStand => {
                 EntityMetadata::ArmorStand(ArmorStand::default())
             }
-            azalea_registry::EntityType::Arrow => EntityMetadata::Arrow(Arrow::default()),
-            azalea_registry::EntityType::Axolotl => EntityMetadata::Axolotl(Axolotl::default()),
-            azalea_registry::EntityType::Bat => EntityMetadata::Bat(Bat::default()),
-            azalea_registry::EntityType::Bee => EntityMetadata::Bee(Bee::default()),
-            azalea_registry::EntityType::Blaze => EntityMetadata::Blaze(Blaze::default()),
-            azalea_registry::EntityType::Boat => EntityMetadata::Boat(Boat::default()),
-            azalea_registry::EntityType::Camel => EntityMetadata::Camel(Camel::default()),
-            azalea_registry::EntityType::Cat => EntityMetadata::Cat(Cat::default()),
-            azalea_registry::EntityType::CaveSpider => {
+            azalea_registry::EntityKind::Arrow => EntityMetadata::Arrow(Arrow::default()),
+            azalea_registry::EntityKind::Axolotl => EntityMetadata::Axolotl(Axolotl::default()),
+            azalea_registry::EntityKind::Bat => EntityMetadata::Bat(Bat::default()),
+            azalea_registry::EntityKind::Bee => EntityMetadata::Bee(Bee::default()),
+            azalea_registry::EntityKind::Blaze => EntityMetadata::Blaze(Blaze::default()),
+            azalea_registry::EntityKind::Boat => EntityMetadata::Boat(Boat::default()),
+            azalea_registry::EntityKind::Camel => EntityMetadata::Camel(Camel::default()),
+            azalea_registry::EntityKind::Cat => EntityMetadata::Cat(Cat::default()),
+            azalea_registry::EntityKind::CaveSpider => {
                 EntityMetadata::CaveSpider(CaveSpider::default())
             }
-            azalea_registry::EntityType::ChestBoat => {
+            azalea_registry::EntityKind::ChestBoat => {
                 EntityMetadata::ChestBoat(ChestBoat::default())
             }
-            azalea_registry::EntityType::ChestMinecart => {
+            azalea_registry::EntityKind::ChestMinecart => {
                 EntityMetadata::ChestMinecart(ChestMinecart::default())
             }
-            azalea_registry::EntityType::Chicken => EntityMetadata::Chicken(Chicken::default()),
-            azalea_registry::EntityType::Cod => EntityMetadata::Cod(Cod::default()),
-            azalea_registry::EntityType::CommandBlockMinecart => {
+            azalea_registry::EntityKind::Chicken => EntityMetadata::Chicken(Chicken::default()),
+            azalea_registry::EntityKind::Cod => EntityMetadata::Cod(Cod::default()),
+            azalea_registry::EntityKind::CommandBlockMinecart => {
                 EntityMetadata::CommandBlockMinecart(CommandBlockMinecart::default())
             }
-            azalea_registry::EntityType::Cow => EntityMetadata::Cow(Cow::default()),
-            azalea_registry::EntityType::Creeper => EntityMetadata::Creeper(Creeper::default()),
-            azalea_registry::EntityType::Dolphin => EntityMetadata::Dolphin(Dolphin::default()),
-            azalea_registry::EntityType::Donkey => EntityMetadata::Donkey(Donkey::default()),
-            azalea_registry::EntityType::DragonFireball => {
+            azalea_registry::EntityKind::Cow => EntityMetadata::Cow(Cow::default()),
+            azalea_registry::EntityKind::Creeper => EntityMetadata::Creeper(Creeper::default()),
+            azalea_registry::EntityKind::Dolphin => EntityMetadata::Dolphin(Dolphin::default()),
+            azalea_registry::EntityKind::Donkey => EntityMetadata::Donkey(Donkey::default()),
+            azalea_registry::EntityKind::DragonFireball => {
                 EntityMetadata::DragonFireball(DragonFireball::default())
             }
-            azalea_registry::EntityType::Drowned => EntityMetadata::Drowned(Drowned::default()),
-            azalea_registry::EntityType::Egg => EntityMetadata::Egg(Egg::default()),
-            azalea_registry::EntityType::ElderGuardian => {
+            azalea_registry::EntityKind::Drowned => EntityMetadata::Drowned(Drowned::default()),
+            azalea_registry::EntityKind::Egg => EntityMetadata::Egg(Egg::default()),
+            azalea_registry::EntityKind::ElderGuardian => {
                 EntityMetadata::ElderGuardian(ElderGuardian::default())
             }
-            azalea_registry::EntityType::EndCrystal => {
+            azalea_registry::EntityKind::EndCrystal => {
                 EntityMetadata::EndCrystal(EndCrystal::default())
             }
-            azalea_registry::EntityType::EnderDragon => {
+            azalea_registry::EntityKind::EnderDragon => {
                 EntityMetadata::EnderDragon(EnderDragon::default())
             }
-            azalea_registry::EntityType::EnderPearl => {
+            azalea_registry::EntityKind::EnderPearl => {
                 EntityMetadata::EnderPearl(EnderPearl::default())
             }
-            azalea_registry::EntityType::Enderman => EntityMetadata::Enderman(Enderman::default()),
-            azalea_registry::EntityType::Endermite => {
+            azalea_registry::EntityKind::Enderman => EntityMetadata::Enderman(Enderman::default()),
+            azalea_registry::EntityKind::Endermite => {
                 EntityMetadata::Endermite(Endermite::default())
             }
-            azalea_registry::EntityType::Evoker => EntityMetadata::Evoker(Evoker::default()),
-            azalea_registry::EntityType::EvokerFangs => {
+            azalea_registry::EntityKind::Evoker => EntityMetadata::Evoker(Evoker::default()),
+            azalea_registry::EntityKind::EvokerFangs => {
                 EntityMetadata::EvokerFangs(EvokerFangs::default())
             }
-            azalea_registry::EntityType::ExperienceBottle => {
+            azalea_registry::EntityKind::ExperienceBottle => {
                 EntityMetadata::ExperienceBottle(ExperienceBottle::default())
             }
-            azalea_registry::EntityType::ExperienceOrb => {
+            azalea_registry::EntityKind::ExperienceOrb => {
                 EntityMetadata::ExperienceOrb(ExperienceOrb::default())
             }
-            azalea_registry::EntityType::EyeOfEnder => {
+            azalea_registry::EntityKind::EyeOfEnder => {
                 EntityMetadata::EyeOfEnder(EyeOfEnder::default())
             }
-            azalea_registry::EntityType::FallingBlock => {
+            azalea_registry::EntityKind::FallingBlock => {
                 EntityMetadata::FallingBlock(FallingBlock::default())
             }
-            azalea_registry::EntityType::Fireball => EntityMetadata::Fireball(Fireball::default()),
-            azalea_registry::EntityType::FireworkRocket => {
+            azalea_registry::EntityKind::Fireball => EntityMetadata::Fireball(Fireball::default()),
+            azalea_registry::EntityKind::FireworkRocket => {
                 EntityMetadata::FireworkRocket(FireworkRocket::default())
             }
-            azalea_registry::EntityType::FishingBobber => {
+            azalea_registry::EntityKind::FishingBobber => {
                 EntityMetadata::FishingBobber(FishingBobber::default())
             }
-            azalea_registry::EntityType::Fox => EntityMetadata::Fox(Fox::default()),
-            azalea_registry::EntityType::Frog => EntityMetadata::Frog(Frog::default()),
-            azalea_registry::EntityType::FurnaceMinecart => {
+            azalea_registry::EntityKind::Fox => EntityMetadata::Fox(Fox::default()),
+            azalea_registry::EntityKind::Frog => EntityMetadata::Frog(Frog::default()),
+            azalea_registry::EntityKind::FurnaceMinecart => {
                 EntityMetadata::FurnaceMinecart(FurnaceMinecart::default())
             }
-            azalea_registry::EntityType::Ghast => EntityMetadata::Ghast(Ghast::default()),
-            azalea_registry::EntityType::Giant => EntityMetadata::Giant(Giant::default()),
-            azalea_registry::EntityType::GlowItemFrame => {
+            azalea_registry::EntityKind::Ghast => EntityMetadata::Ghast(Ghast::default()),
+            azalea_registry::EntityKind::Giant => EntityMetadata::Giant(Giant::default()),
+            azalea_registry::EntityKind::GlowItemFrame => {
                 EntityMetadata::GlowItemFrame(GlowItemFrame::default())
             }
-            azalea_registry::EntityType::GlowSquid => {
+            azalea_registry::EntityKind::GlowSquid => {
                 EntityMetadata::GlowSquid(GlowSquid::default())
             }
-            azalea_registry::EntityType::Goat => EntityMetadata::Goat(Goat::default()),
-            azalea_registry::EntityType::Guardian => EntityMetadata::Guardian(Guardian::default()),
-            azalea_registry::EntityType::Hoglin => EntityMetadata::Hoglin(Hoglin::default()),
-            azalea_registry::EntityType::HopperMinecart => {
+            azalea_registry::EntityKind::Goat => EntityMetadata::Goat(Goat::default()),
+            azalea_registry::EntityKind::Guardian => EntityMetadata::Guardian(Guardian::default()),
+            azalea_registry::EntityKind::Hoglin => EntityMetadata::Hoglin(Hoglin::default()),
+            azalea_registry::EntityKind::HopperMinecart => {
                 EntityMetadata::HopperMinecart(HopperMinecart::default())
             }
-            azalea_registry::EntityType::Horse => EntityMetadata::Horse(Horse::default()),
-            azalea_registry::EntityType::Husk => EntityMetadata::Husk(Husk::default()),
-            azalea_registry::EntityType::Illusioner => {
+            azalea_registry::EntityKind::Horse => EntityMetadata::Horse(Horse::default()),
+            azalea_registry::EntityKind::Husk => EntityMetadata::Husk(Husk::default()),
+            azalea_registry::EntityKind::Illusioner => {
                 EntityMetadata::Illusioner(Illusioner::default())
             }
-            azalea_registry::EntityType::IronGolem => {
+            azalea_registry::EntityKind::IronGolem => {
                 EntityMetadata::IronGolem(IronGolem::default())
             }
-            azalea_registry::EntityType::Item => EntityMetadata::Item(Item::default()),
-            azalea_registry::EntityType::ItemFrame => {
+            azalea_registry::EntityKind::Item => EntityMetadata::Item(Item::default()),
+            azalea_registry::EntityKind::ItemFrame => {
                 EntityMetadata::ItemFrame(ItemFrame::default())
             }
-            azalea_registry::EntityType::LeashKnot => {
+            azalea_registry::EntityKind::LeashKnot => {
                 EntityMetadata::LeashKnot(LeashKnot::default())
             }
-            azalea_registry::EntityType::LightningBolt => {
+            azalea_registry::EntityKind::LightningBolt => {
                 EntityMetadata::LightningBolt(LightningBolt::default())
             }
-            azalea_registry::EntityType::Llama => EntityMetadata::Llama(Llama::default()),
-            azalea_registry::EntityType::LlamaSpit => {
+            azalea_registry::EntityKind::Llama => EntityMetadata::Llama(Llama::default()),
+            azalea_registry::EntityKind::LlamaSpit => {
                 EntityMetadata::LlamaSpit(LlamaSpit::default())
             }
-            azalea_registry::EntityType::MagmaCube => {
+            azalea_registry::EntityKind::MagmaCube => {
                 EntityMetadata::MagmaCube(MagmaCube::default())
             }
-            azalea_registry::EntityType::Marker => EntityMetadata::Marker(Marker::default()),
-            azalea_registry::EntityType::Minecart => EntityMetadata::Minecart(Minecart::default()),
-            azalea_registry::EntityType::Mooshroom => {
+            azalea_registry::EntityKind::Marker => EntityMetadata::Marker(Marker::default()),
+            azalea_registry::EntityKind::Minecart => EntityMetadata::Minecart(Minecart::default()),
+            azalea_registry::EntityKind::Mooshroom => {
                 EntityMetadata::Mooshroom(Mooshroom::default())
             }
-            azalea_registry::EntityType::Mule => EntityMetadata::Mule(Mule::default()),
-            azalea_registry::EntityType::Ocelot => EntityMetadata::Ocelot(Ocelot::default()),
-            azalea_registry::EntityType::Painting => EntityMetadata::Painting(Painting::default()),
-            azalea_registry::EntityType::Panda => EntityMetadata::Panda(Panda::default()),
-            azalea_registry::EntityType::Parrot => EntityMetadata::Parrot(Parrot::default()),
-            azalea_registry::EntityType::Phantom => EntityMetadata::Phantom(Phantom::default()),
-            azalea_registry::EntityType::Pig => EntityMetadata::Pig(Pig::default()),
-            azalea_registry::EntityType::Piglin => EntityMetadata::Piglin(Piglin::default()),
-            azalea_registry::EntityType::PiglinBrute => {
+            azalea_registry::EntityKind::Mule => EntityMetadata::Mule(Mule::default()),
+            azalea_registry::EntityKind::Ocelot => EntityMetadata::Ocelot(Ocelot::default()),
+            azalea_registry::EntityKind::Painting => EntityMetadata::Painting(Painting::default()),
+            azalea_registry::EntityKind::Panda => EntityMetadata::Panda(Panda::default()),
+            azalea_registry::EntityKind::Parrot => EntityMetadata::Parrot(Parrot::default()),
+            azalea_registry::EntityKind::Phantom => EntityMetadata::Phantom(Phantom::default()),
+            azalea_registry::EntityKind::Pig => EntityMetadata::Pig(Pig::default()),
+            azalea_registry::EntityKind::Piglin => EntityMetadata::Piglin(Piglin::default()),
+            azalea_registry::EntityKind::PiglinBrute => {
                 EntityMetadata::PiglinBrute(PiglinBrute::default())
             }
-            azalea_registry::EntityType::Pillager => EntityMetadata::Pillager(Pillager::default()),
-            azalea_registry::EntityType::Player => EntityMetadata::Player(Player::default()),
-            azalea_registry::EntityType::PolarBear => {
+            azalea_registry::EntityKind::Pillager => EntityMetadata::Pillager(Pillager::default()),
+            azalea_registry::EntityKind::Player => EntityMetadata::Player(Player::default()),
+            azalea_registry::EntityKind::PolarBear => {
                 EntityMetadata::PolarBear(PolarBear::default())
             }
-            azalea_registry::EntityType::Potion => EntityMetadata::Potion(Potion::default()),
-            azalea_registry::EntityType::Pufferfish => {
+            azalea_registry::EntityKind::Potion => EntityMetadata::Potion(Potion::default()),
+            azalea_registry::EntityKind::Pufferfish => {
                 EntityMetadata::Pufferfish(Pufferfish::default())
             }
-            azalea_registry::EntityType::Rabbit => EntityMetadata::Rabbit(Rabbit::default()),
-            azalea_registry::EntityType::Ravager => EntityMetadata::Ravager(Ravager::default()),
-            azalea_registry::EntityType::Salmon => EntityMetadata::Salmon(Salmon::default()),
-            azalea_registry::EntityType::Sheep => EntityMetadata::Sheep(Sheep::default()),
-            azalea_registry::EntityType::Shulker => EntityMetadata::Shulker(Shulker::default()),
-            azalea_registry::EntityType::ShulkerBullet => {
+            azalea_registry::EntityKind::Rabbit => EntityMetadata::Rabbit(Rabbit::default()),
+            azalea_registry::EntityKind::Ravager => EntityMetadata::Ravager(Ravager::default()),
+            azalea_registry::EntityKind::Salmon => EntityMetadata::Salmon(Salmon::default()),
+            azalea_registry::EntityKind::Sheep => EntityMetadata::Sheep(Sheep::default()),
+            azalea_registry::EntityKind::Shulker => EntityMetadata::Shulker(Shulker::default()),
+            azalea_registry::EntityKind::ShulkerBullet => {
                 EntityMetadata::ShulkerBullet(ShulkerBullet::default())
             }
-            azalea_registry::EntityType::Silverfish => {
+            azalea_registry::EntityKind::Silverfish => {
                 EntityMetadata::Silverfish(Silverfish::default())
             }
-            azalea_registry::EntityType::Skeleton => EntityMetadata::Skeleton(Skeleton::default()),
-            azalea_registry::EntityType::SkeletonHorse => {
+            azalea_registry::EntityKind::Skeleton => EntityMetadata::Skeleton(Skeleton::default()),
+            azalea_registry::EntityKind::SkeletonHorse => {
                 EntityMetadata::SkeletonHorse(SkeletonHorse::default())
             }
-            azalea_registry::EntityType::Slime => EntityMetadata::Slime(Slime::default()),
-            azalea_registry::EntityType::SmallFireball => {
+            azalea_registry::EntityKind::Slime => EntityMetadata::Slime(Slime::default()),
+            azalea_registry::EntityKind::SmallFireball => {
                 EntityMetadata::SmallFireball(SmallFireball::default())
             }
-            azalea_registry::EntityType::SnowGolem => {
+            azalea_registry::EntityKind::SnowGolem => {
                 EntityMetadata::SnowGolem(SnowGolem::default())
             }
-            azalea_registry::EntityType::Snowball => EntityMetadata::Snowball(Snowball::default()),
-            azalea_registry::EntityType::SpawnerMinecart => {
+            azalea_registry::EntityKind::Snowball => EntityMetadata::Snowball(Snowball::default()),
+            azalea_registry::EntityKind::SpawnerMinecart => {
                 EntityMetadata::SpawnerMinecart(SpawnerMinecart::default())
             }
-            azalea_registry::EntityType::SpectralArrow => {
+            azalea_registry::EntityKind::SpectralArrow => {
                 EntityMetadata::SpectralArrow(SpectralArrow::default())
             }
-            azalea_registry::EntityType::Spider => EntityMetadata::Spider(Spider::default()),
-            azalea_registry::EntityType::Squid => EntityMetadata::Squid(Squid::default()),
-            azalea_registry::EntityType::Stray => EntityMetadata::Stray(Stray::default()),
-            azalea_registry::EntityType::Strider => EntityMetadata::Strider(Strider::default()),
-            azalea_registry::EntityType::Tadpole => EntityMetadata::Tadpole(Tadpole::default()),
-            azalea_registry::EntityType::Tnt => EntityMetadata::Tnt(Tnt::default()),
-            azalea_registry::EntityType::TntMinecart => {
+            azalea_registry::EntityKind::Spider => EntityMetadata::Spider(Spider::default()),
+            azalea_registry::EntityKind::Squid => EntityMetadata::Squid(Squid::default()),
+            azalea_registry::EntityKind::Stray => EntityMetadata::Stray(Stray::default()),
+            azalea_registry::EntityKind::Strider => EntityMetadata::Strider(Strider::default()),
+            azalea_registry::EntityKind::Tadpole => EntityMetadata::Tadpole(Tadpole::default()),
+            azalea_registry::EntityKind::Tnt => EntityMetadata::Tnt(Tnt::default()),
+            azalea_registry::EntityKind::TntMinecart => {
                 EntityMetadata::TntMinecart(TntMinecart::default())
             }
-            azalea_registry::EntityType::TraderLlama => {
+            azalea_registry::EntityKind::TraderLlama => {
                 EntityMetadata::TraderLlama(TraderLlama::default())
             }
-            azalea_registry::EntityType::Trident => EntityMetadata::Trident(Trident::default()),
-            azalea_registry::EntityType::TropicalFish => {
+            azalea_registry::EntityKind::Trident => EntityMetadata::Trident(Trident::default()),
+            azalea_registry::EntityKind::TropicalFish => {
                 EntityMetadata::TropicalFish(TropicalFish::default())
             }
-            azalea_registry::EntityType::Turtle => EntityMetadata::Turtle(Turtle::default()),
-            azalea_registry::EntityType::Vex => EntityMetadata::Vex(Vex::default()),
-            azalea_registry::EntityType::Villager => EntityMetadata::Villager(Villager::default()),
-            azalea_registry::EntityType::Vindicator => {
+            azalea_registry::EntityKind::Turtle => EntityMetadata::Turtle(Turtle::default()),
+            azalea_registry::EntityKind::Vex => EntityMetadata::Vex(Vex::default()),
+            azalea_registry::EntityKind::Villager => EntityMetadata::Villager(Villager::default()),
+            azalea_registry::EntityKind::Vindicator => {
                 EntityMetadata::Vindicator(Vindicator::default())
             }
-            azalea_registry::EntityType::WanderingTrader => {
+            azalea_registry::EntityKind::WanderingTrader => {
                 EntityMetadata::WanderingTrader(WanderingTrader::default())
             }
-            azalea_registry::EntityType::Warden => EntityMetadata::Warden(Warden::default()),
-            azalea_registry::EntityType::Witch => EntityMetadata::Witch(Witch::default()),
-            azalea_registry::EntityType::Wither => EntityMetadata::Wither(Wither::default()),
-            azalea_registry::EntityType::WitherSkeleton => {
+            azalea_registry::EntityKind::Warden => EntityMetadata::Warden(Warden::default()),
+            azalea_registry::EntityKind::Witch => EntityMetadata::Witch(Witch::default()),
+            azalea_registry::EntityKind::Wither => EntityMetadata::Wither(Wither::default()),
+            azalea_registry::EntityKind::WitherSkeleton => {
                 EntityMetadata::WitherSkeleton(WitherSkeleton::default())
             }
-            azalea_registry::EntityType::WitherSkull => {
+            azalea_registry::EntityKind::WitherSkull => {
                 EntityMetadata::WitherSkull(WitherSkull::default())
             }
-            azalea_registry::EntityType::Wolf => EntityMetadata::Wolf(Wolf::default()),
-            azalea_registry::EntityType::Zoglin => EntityMetadata::Zoglin(Zoglin::default()),
-            azalea_registry::EntityType::Zombie => EntityMetadata::Zombie(Zombie::default()),
-            azalea_registry::EntityType::ZombieHorse => {
+            azalea_registry::EntityKind::Wolf => EntityMetadata::Wolf(Wolf::default()),
+            azalea_registry::EntityKind::Zoglin => EntityMetadata::Zoglin(Zoglin::default()),
+            azalea_registry::EntityKind::Zombie => EntityMetadata::Zombie(Zombie::default()),
+            azalea_registry::EntityKind::ZombieHorse => {
                 EntityMetadata::ZombieHorse(ZombieHorse::default())
             }
-            azalea_registry::EntityType::ZombieVillager => {
+            azalea_registry::EntityKind::ZombieVillager => {
                 EntityMetadata::ZombieVillager(ZombieVillager::default())
             }
-            azalea_registry::EntityType::ZombifiedPiglin => {
+            azalea_registry::EntityKind::ZombifiedPiglin => {
                 EntityMetadata::ZombifiedPiglin(ZombifiedPiglin::default())
             }
+        }
+    }
+}
+
+impl From<&EntityMetadata> for azalea_registry::EntityKind {
+    fn from(value: &EntityMetadata) -> Self {
+        match value {
+            EntityMetadata::Allay(_) => azalea_registry::EntityKind::Allay,
+            EntityMetadata::AreaEffectCloud(_) => azalea_registry::EntityKind::AreaEffectCloud,
+            EntityMetadata::ArmorStand(_) => azalea_registry::EntityKind::ArmorStand,
+            EntityMetadata::Arrow(_) => azalea_registry::EntityKind::Arrow,
+            EntityMetadata::Axolotl(_) => azalea_registry::EntityKind::Axolotl,
+            EntityMetadata::Bat(_) => azalea_registry::EntityKind::Bat,
+            EntityMetadata::Bee(_) => azalea_registry::EntityKind::Bee,
+            EntityMetadata::Blaze(_) => azalea_registry::EntityKind::Blaze,
+            EntityMetadata::Boat(_) => azalea_registry::EntityKind::Boat,
+            EntityMetadata::Camel(_) => azalea_registry::EntityKind::Camel,
+            EntityMetadata::Cat(_) => azalea_registry::EntityKind::Cat,
+            EntityMetadata::CaveSpider(_) => azalea_registry::EntityKind::CaveSpider,
+            EntityMetadata::ChestBoat(_) => azalea_registry::EntityKind::ChestBoat,
+            EntityMetadata::ChestMinecart(_) => azalea_registry::EntityKind::ChestMinecart,
+            EntityMetadata::Chicken(_) => azalea_registry::EntityKind::Chicken,
+            EntityMetadata::Cod(_) => azalea_registry::EntityKind::Cod,
+            EntityMetadata::CommandBlockMinecart(_) => {
+                azalea_registry::EntityKind::CommandBlockMinecart
+            }
+            EntityMetadata::Cow(_) => azalea_registry::EntityKind::Cow,
+            EntityMetadata::Creeper(_) => azalea_registry::EntityKind::Creeper,
+            EntityMetadata::Dolphin(_) => azalea_registry::EntityKind::Dolphin,
+            EntityMetadata::Donkey(_) => azalea_registry::EntityKind::Donkey,
+            EntityMetadata::DragonFireball(_) => azalea_registry::EntityKind::DragonFireball,
+            EntityMetadata::Drowned(_) => azalea_registry::EntityKind::Drowned,
+            EntityMetadata::Egg(_) => azalea_registry::EntityKind::Egg,
+            EntityMetadata::ElderGuardian(_) => azalea_registry::EntityKind::ElderGuardian,
+            EntityMetadata::EndCrystal(_) => azalea_registry::EntityKind::EndCrystal,
+            EntityMetadata::EnderDragon(_) => azalea_registry::EntityKind::EnderDragon,
+            EntityMetadata::EnderPearl(_) => azalea_registry::EntityKind::EnderPearl,
+            EntityMetadata::Enderman(_) => azalea_registry::EntityKind::Enderman,
+            EntityMetadata::Endermite(_) => azalea_registry::EntityKind::Endermite,
+            EntityMetadata::Evoker(_) => azalea_registry::EntityKind::Evoker,
+            EntityMetadata::EvokerFangs(_) => azalea_registry::EntityKind::EvokerFangs,
+            EntityMetadata::ExperienceBottle(_) => azalea_registry::EntityKind::ExperienceBottle,
+            EntityMetadata::ExperienceOrb(_) => azalea_registry::EntityKind::ExperienceOrb,
+            EntityMetadata::EyeOfEnder(_) => azalea_registry::EntityKind::EyeOfEnder,
+            EntityMetadata::FallingBlock(_) => azalea_registry::EntityKind::FallingBlock,
+            EntityMetadata::Fireball(_) => azalea_registry::EntityKind::Fireball,
+            EntityMetadata::FireworkRocket(_) => azalea_registry::EntityKind::FireworkRocket,
+            EntityMetadata::FishingBobber(_) => azalea_registry::EntityKind::FishingBobber,
+            EntityMetadata::Fox(_) => azalea_registry::EntityKind::Fox,
+            EntityMetadata::Frog(_) => azalea_registry::EntityKind::Frog,
+            EntityMetadata::FurnaceMinecart(_) => azalea_registry::EntityKind::FurnaceMinecart,
+            EntityMetadata::Ghast(_) => azalea_registry::EntityKind::Ghast,
+            EntityMetadata::Giant(_) => azalea_registry::EntityKind::Giant,
+            EntityMetadata::GlowItemFrame(_) => azalea_registry::EntityKind::GlowItemFrame,
+            EntityMetadata::GlowSquid(_) => azalea_registry::EntityKind::GlowSquid,
+            EntityMetadata::Goat(_) => azalea_registry::EntityKind::Goat,
+            EntityMetadata::Guardian(_) => azalea_registry::EntityKind::Guardian,
+            EntityMetadata::Hoglin(_) => azalea_registry::EntityKind::Hoglin,
+            EntityMetadata::HopperMinecart(_) => azalea_registry::EntityKind::HopperMinecart,
+            EntityMetadata::Horse(_) => azalea_registry::EntityKind::Horse,
+            EntityMetadata::Husk(_) => azalea_registry::EntityKind::Husk,
+            EntityMetadata::Illusioner(_) => azalea_registry::EntityKind::Illusioner,
+            EntityMetadata::IronGolem(_) => azalea_registry::EntityKind::IronGolem,
+            EntityMetadata::Item(_) => azalea_registry::EntityKind::Item,
+            EntityMetadata::ItemFrame(_) => azalea_registry::EntityKind::ItemFrame,
+            EntityMetadata::LeashKnot(_) => azalea_registry::EntityKind::LeashKnot,
+            EntityMetadata::LightningBolt(_) => azalea_registry::EntityKind::LightningBolt,
+            EntityMetadata::Llama(_) => azalea_registry::EntityKind::Llama,
+            EntityMetadata::LlamaSpit(_) => azalea_registry::EntityKind::LlamaSpit,
+            EntityMetadata::MagmaCube(_) => azalea_registry::EntityKind::MagmaCube,
+            EntityMetadata::Marker(_) => azalea_registry::EntityKind::Marker,
+            EntityMetadata::Minecart(_) => azalea_registry::EntityKind::Minecart,
+            EntityMetadata::Mooshroom(_) => azalea_registry::EntityKind::Mooshroom,
+            EntityMetadata::Mule(_) => azalea_registry::EntityKind::Mule,
+            EntityMetadata::Ocelot(_) => azalea_registry::EntityKind::Ocelot,
+            EntityMetadata::Painting(_) => azalea_registry::EntityKind::Painting,
+            EntityMetadata::Panda(_) => azalea_registry::EntityKind::Panda,
+            EntityMetadata::Parrot(_) => azalea_registry::EntityKind::Parrot,
+            EntityMetadata::Phantom(_) => azalea_registry::EntityKind::Phantom,
+            EntityMetadata::Pig(_) => azalea_registry::EntityKind::Pig,
+            EntityMetadata::Piglin(_) => azalea_registry::EntityKind::Piglin,
+            EntityMetadata::PiglinBrute(_) => azalea_registry::EntityKind::PiglinBrute,
+            EntityMetadata::Pillager(_) => azalea_registry::EntityKind::Pillager,
+            EntityMetadata::Player(_) => azalea_registry::EntityKind::Player,
+            EntityMetadata::PolarBear(_) => azalea_registry::EntityKind::PolarBear,
+            EntityMetadata::Potion(_) => azalea_registry::EntityKind::Potion,
+            EntityMetadata::Pufferfish(_) => azalea_registry::EntityKind::Pufferfish,
+            EntityMetadata::Rabbit(_) => azalea_registry::EntityKind::Rabbit,
+            EntityMetadata::Ravager(_) => azalea_registry::EntityKind::Ravager,
+            EntityMetadata::Salmon(_) => azalea_registry::EntityKind::Salmon,
+            EntityMetadata::Sheep(_) => azalea_registry::EntityKind::Sheep,
+            EntityMetadata::Shulker(_) => azalea_registry::EntityKind::Shulker,
+            EntityMetadata::ShulkerBullet(_) => azalea_registry::EntityKind::ShulkerBullet,
+            EntityMetadata::Silverfish(_) => azalea_registry::EntityKind::Silverfish,
+            EntityMetadata::Skeleton(_) => azalea_registry::EntityKind::Skeleton,
+            EntityMetadata::SkeletonHorse(_) => azalea_registry::EntityKind::SkeletonHorse,
+            EntityMetadata::Slime(_) => azalea_registry::EntityKind::Slime,
+            EntityMetadata::SmallFireball(_) => azalea_registry::EntityKind::SmallFireball,
+            EntityMetadata::SnowGolem(_) => azalea_registry::EntityKind::SnowGolem,
+            EntityMetadata::Snowball(_) => azalea_registry::EntityKind::Snowball,
+            EntityMetadata::SpawnerMinecart(_) => azalea_registry::EntityKind::SpawnerMinecart,
+            EntityMetadata::SpectralArrow(_) => azalea_registry::EntityKind::SpectralArrow,
+            EntityMetadata::Spider(_) => azalea_registry::EntityKind::Spider,
+            EntityMetadata::Squid(_) => azalea_registry::EntityKind::Squid,
+            EntityMetadata::Stray(_) => azalea_registry::EntityKind::Stray,
+            EntityMetadata::Strider(_) => azalea_registry::EntityKind::Strider,
+            EntityMetadata::Tadpole(_) => azalea_registry::EntityKind::Tadpole,
+            EntityMetadata::Tnt(_) => azalea_registry::EntityKind::Tnt,
+            EntityMetadata::TntMinecart(_) => azalea_registry::EntityKind::TntMinecart,
+            EntityMetadata::TraderLlama(_) => azalea_registry::EntityKind::TraderLlama,
+            EntityMetadata::Trident(_) => azalea_registry::EntityKind::Trident,
+            EntityMetadata::TropicalFish(_) => azalea_registry::EntityKind::TropicalFish,
+            EntityMetadata::Turtle(_) => azalea_registry::EntityKind::Turtle,
+            EntityMetadata::Vex(_) => azalea_registry::EntityKind::Vex,
+            EntityMetadata::Villager(_) => azalea_registry::EntityKind::Villager,
+            EntityMetadata::Vindicator(_) => azalea_registry::EntityKind::Vindicator,
+            EntityMetadata::WanderingTrader(_) => azalea_registry::EntityKind::WanderingTrader,
+            EntityMetadata::Warden(_) => azalea_registry::EntityKind::Warden,
+            EntityMetadata::Witch(_) => azalea_registry::EntityKind::Witch,
+            EntityMetadata::Wither(_) => azalea_registry::EntityKind::Wither,
+            EntityMetadata::WitherSkeleton(_) => azalea_registry::EntityKind::WitherSkeleton,
+            EntityMetadata::WitherSkull(_) => azalea_registry::EntityKind::WitherSkull,
+            EntityMetadata::Wolf(_) => azalea_registry::EntityKind::Wolf,
+            EntityMetadata::Zoglin(_) => azalea_registry::EntityKind::Zoglin,
+            EntityMetadata::Zombie(_) => azalea_registry::EntityKind::Zombie,
+            EntityMetadata::ZombieHorse(_) => azalea_registry::EntityKind::ZombieHorse,
+            EntityMetadata::ZombieVillager(_) => azalea_registry::EntityKind::ZombieVillager,
+            EntityMetadata::ZombifiedPiglin(_) => azalea_registry::EntityKind::ZombifiedPiglin,
         }
     }
 }

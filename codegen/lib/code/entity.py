@@ -46,6 +46,7 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
     code.append('use azalea_block::BlockState;')
     code.append('use azalea_chat::Component;')
     code.append('use azalea_core::{BlockPos, Direction, Particle, Slot};')
+    code.append('use enum_as_inner::EnumAsInner;')
     code.append('use std::{collections::VecDeque, ops::{Deref, DerefMut}};')
     code.append('use uuid::Uuid;')
     code.append('')
@@ -282,21 +283,34 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
             code.append('')
 
     # make the EntityMetadata enum from entity_structs
-    code.append(f'#[derive(Debug, Clone)]')
+    code.append(f'#[derive(Debug, Clone, EnumAsInner)]')
     code.append('pub enum EntityMetadata {')
     for struct_name in entity_structs:
         code.append(f'{struct_name}({struct_name}),')
     code.append('}')
     code.append('')
 
-    # impl From<azalea_registry::EntityType> for EntityMetadata {
-    code.append('impl From<azalea_registry::EntityType> for EntityMetadata {')
-    code.append('fn from(value: azalea_registry::EntityType) -> Self {')
+    # impl From<azalea_registry::EntityKind> for EntityMetadata {
+    code.append('impl From<azalea_registry::EntityKind> for EntityMetadata {')
+    code.append('fn from(value: azalea_registry::EntityKind) -> Self {')
     code.append('match value {')
-    # azalea_registry::EntityType::Allay => EntityMetadata::Allay(Allay::default()),
+    # azalea_registry::EntityKind::Allay => EntityMetadata::Allay(Allay::default()),
     for struct_name in entity_structs:
         code.append(
-            f'azalea_registry::EntityType::{struct_name} => EntityMetadata::{struct_name}({struct_name}::default()),')
+            f'azalea_registry::EntityKind::{struct_name} => EntityMetadata::{struct_name}({struct_name}::default()),')
+    code.append('}')
+    code.append('}')
+    code.append('}')
+    code.append('')
+
+    # impl From<EntityMetadata> for azalea_registry::EntityKind {
+    code.append('impl From<&EntityMetadata> for azalea_registry::EntityKind {')
+    code.append('fn from(value: &EntityMetadata) -> Self {')
+    code.append('match value {')
+    # EntityMetadata::Allay(_) => azalea_registry::EntityKind::Allay,
+    for struct_name in entity_structs:
+        code.append(
+            f'EntityMetadata::{struct_name}(_) => azalea_registry::EntityKind::{struct_name},')
     code.append('}')
     code.append('}')
     code.append('}')

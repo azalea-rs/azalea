@@ -54,6 +54,12 @@ impl<T: Registry> McBufWritable for OptionalRegistry<T> {
         #     Air => "minecraft:air",
         #     Stone => "minecraft:stone"
         # });
+
+        if registry_name.endswith('_type'):
+            # change _type to _kind because that's Rustier (and because _type
+            # is a reserved keyword)
+            registry_name = registry_name[:-5] + '_type'
+
         registry_struct_name = to_camel_case(registry_name.split(':')[1])
         code.append(f'registry!({registry_struct_name}, {{')
         registry_entries = sorted(

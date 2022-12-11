@@ -2,6 +2,7 @@
 
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_registry_macros::registry;
+use enum_as_inner::EnumAsInner;
 use std::io::{Cursor, Write};
 
 pub trait Registry
@@ -1101,7 +1102,7 @@ registry!(Block, {
     ReinforcedDeepslate => "minecraft:reinforced_deepslate",
 });
 
-registry!(BlockEntityType, {
+registry!(BlockEntityKind, {
     Furnace => "minecraft:furnace",
     Chest => "minecraft:chest",
     TrappedChest => "minecraft:trapped_chest",
@@ -1358,7 +1359,7 @@ registry!(Enchantment, {
     VanishingCurse => "minecraft:vanishing_curse",
 });
 
-registry!(EntityType, {
+registry!(EntityKind, {
     Allay => "minecraft:allay",
     AreaEffectCloud => "minecraft:area_effect_cloud",
     ArmorStand => "minecraft:armor_stand",

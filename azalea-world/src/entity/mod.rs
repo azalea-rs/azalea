@@ -8,6 +8,7 @@ pub use self::metadata::EntityMetadata;
 use crate::WeakWorld;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, Vec3, AABB};
+use azalea_registry::EntityKind;
 pub use data::*;
 pub use dimensions::*;
 use std::marker::PhantomData;
@@ -281,6 +282,20 @@ impl EntityData {
     pub unsafe fn as_ptr(&self) -> NonNull<EntityData> {
         // this is cursed
         NonNull::new_unchecked(self as *const EntityData as *mut EntityData)
+    }
+
+    /// Returns the type of entity this is.
+    ///
+    /// ```rust
+    /// let entity = EntityData::new(
+    ///     Uuid::nil(),
+    ///     Vec3::default(),
+    ///     EntityMetadata::Player(metadata::Player::default()),
+    /// );
+    /// assert_eq!(entity.kind(), EntityKind::Player);
+    /// ```
+    pub fn kind(&self) -> EntityKind {
+        EntityKind::from(&self.metadata)
     }
 }
 
