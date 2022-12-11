@@ -88,8 +88,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                 bot.disconnect().await?;
             }
             let entity = bot
-                .world
-                .read()
+                .world()
                 .entity_by_uuid(&uuid::uuid!("6536bfed-8695-48fd-83a1-ecd24cf2a0fd"));
             if let Some(entity) = entity {
                 if m.content() == "goto" {
