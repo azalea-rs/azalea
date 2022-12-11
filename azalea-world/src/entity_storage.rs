@@ -30,6 +30,8 @@ use uuid::Uuid;
 /// `storage.shared.read().entities` [`WeakEntityStorage::entities`].
 ///
 /// This is meant to be used with shared worlds.
+///
+/// You can access the shared storage with `world.shared.read()`.
 #[derive(Debug, Default)]
 pub struct PartialEntityStorage {
     pub shared: Arc<RwLock<WeakEntityStorage>>,
@@ -39,7 +41,7 @@ pub struct PartialEntityStorage {
     /// it doesn't get modified from outside sources.
     ///
     /// [`PartialWorld::entity_mut`]: crate::PartialWorld::entity_mut
-    pub owner_entity_id: u32,
+    pub owner_entity_id: Option<u32>,
     pub updates_received: IntMap<u32, u32>,
     /// Strong references to the entities we have loaded.
     data_by_id: IntMap<u32, Arc<EntityData>>,
@@ -59,8 +61,10 @@ pub struct WeakEntityStorage {
 }
 
 impl PartialEntityStorage {
-    pub fn new(shared: Arc<RwLock<WeakEntityStorage>>, owner_entity_id: u32) -> Self {
-        shared.write().updates_received.insert(owner_entity_id, 0);
+    pub fn new(shared: Arc<RwLock<WeakEntityStorage>>, owner_entity_id: Option<u32>) -> Self {
+        if let Some(owner_entity_id) = owner_entity_id {
+            shared.write().updates_received.insert(owner_entity_id, 0);
+        }
         Self {
             shared,
             owner_entity_id,
@@ -94,7 +98,7 @@ impl PartialEntityStorage {
         // not there in which case set both to 1
         if let Some(&shared_updates_received) = shared.updates_received.get(&id) {
             // 0 means we're never tracking updates for this entity
-            if shared_updates_received != 0 || id == self.owner_entity_id {
+            if shared_updates_received != 0 || Some(id) == self.owner_entity_id {
                 self.updates_received.insert(id, 1);
             }
         } else {
@@ -125,15 +129,6 @@ impl PartialEntityStorage {
     #[inline]
     pub fn limited_contains_id(&self, id: &u32) -> bool {
         self.data_by_id.contains_key(id)
-    }
-
-    /// Whether the entity with the given id is in the shared storage (i.e.
-    /// it's possible we don't see the entity but something else in the shared
-    /// storage does). To check whether the entity is being loaded by this
-    /// storage, use [`PartialEntityStorage::limited_contains_id`].
-    #[inline]
-    pub fn contains_id(&self, id: &u32) -> bool {
-        self.shared.read().data_by_id.contains_key(id)
     }
 
     /// Get a reference to an entity by its id, if it's being loaded by this
@@ -173,12 +168,6 @@ impl PartialEntityStorage {
         }
     }
 
-    /// Get an entity in the shared storage by its id, if it exists.
-    #[inline]
-    pub fn get_by_id(&self, id: u32) -> Option<Arc<EntityData>> {
-        self.shared.read().get_by_id(id)
-    }
-
     /// Get a reference to an entity by its UUID, if it's being loaded by this
     /// storage.
     #[inline]
@@ -199,12 +188,6 @@ impl PartialEntityStorage {
             .id_by_uuid
             .get(uuid)
             .and_then(|id| self.data_by_id.get_mut(id))
-    }
-
-    /// Get an entity in the shared storage by its UUID, if it exists.
-    #[inline]
-    pub fn get_by_uuid(&self, uuid: &Uuid) -> Option<Arc<EntityData>> {
-        self.shared.read().get_by_uuid(uuid)
     }
 
     /// Clear all entities in a chunk. This will not clear them from the
@@ -238,20 +221,6 @@ impl PartialEntityStorage {
         self.shared
             .write()
             .update_entity_chunk(entity_id, old_chunk, new_chunk);
-    }
-
-    pub fn entity_by<F>(&self, mut f: F) -> Option<Arc<EntityData>>
-    where
-        F: FnMut(&Arc<EntityData>) -> bool,
-    {
-        self.shared.read().entity_by(|e| f(e))
-    }
-
-    pub fn entity_by_in_chunk<F>(&self, chunk: &ChunkPos, mut f: F) -> Option<Arc<EntityData>>
-    where
-        F: FnMut(&EntityData) -> bool,
-    {
-        self.shared.read().entity_by_in_chunk(chunk, |e| f(e))
     }
 }
 
@@ -425,7 +394,8 @@ mod tests {
     #[test]
     fn test_store_entity() {
         let mut storage = PartialEntityStorage::default();
-        assert!(storage.get_by_id(0).is_none());
+        assert!(storage.limited_get_by_id(0).is_none());
+        assert!(storage.shared.read().get_by_id(0).is_none());
 
         let uuid = Uuid::from_u128(100);
         storage.insert(
@@ -436,9 +406,11 @@ mod tests {
                 EntityMetadata::Player(metadata::Player::default()),
             ),
         );
-        assert_eq!(storage.get_by_id(0).unwrap().uuid, uuid);
+        assert_eq!(storage.limited_get_by_id(0).unwrap().uuid, uuid);
+        assert_eq!(storage.shared.read().get_by_id(0).unwrap().uuid, uuid);
 
         storage.remove_by_id(0);
-        assert!(storage.get_by_id(0).is_none());
+        assert!(storage.limited_get_by_id(0).is_none());
+        assert!(storage.shared.read().get_by_id(0).is_none());
     }
 }

@@ -523,7 +523,7 @@ impl Client {
                     *world_lock = PartialWorld::new(
                         client.client_information.read().view_distance.into(),
                         weak_world,
-                        p.player_id,
+                        Some(p.player_id),
                     );
 
                     let entity = EntityData::new(

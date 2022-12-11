@@ -19,7 +19,6 @@ use uuid::Uuid;
 /// `PartialWorld`s that have the same `WeakWorld`.
 ///
 /// This is primarily useful for having multiple clients in the same world.
-#[derive(Default)]
 pub struct PartialWorld {
     // we just need to keep a strong reference to `shared` so it doesn't get
     // dropped, we don't need to do anything with it
@@ -31,14 +30,14 @@ pub struct PartialWorld {
 
 /// A world where the chunks are stored as weak pointers. This is used for
 /// shared worlds.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct WeakWorld {
     pub chunk_storage: Arc<RwLock<WeakChunkStorage>>,
     pub entity_storage: Arc<RwLock<WeakEntityStorage>>,
 }
 
 impl PartialWorld {
-    pub fn new(chunk_radius: u32, shared: Arc<WeakWorld>, owner_entity_id: u32) -> Self {
+    pub fn new(chunk_radius: u32, shared: Arc<WeakWorld>, owner_entity_id: Option<u32>) -> Self {
         PartialWorld {
             shared: shared.clone(),
             chunk_storage: PartialChunkStorage::new(chunk_radius, shared.chunk_storage.clone()),
@@ -78,7 +77,8 @@ impl PartialWorld {
     /// Returns a mutable reference to the entity with the given ID.
     pub fn entity_mut(&mut self, id: u32) -> Option<Entity<'_, &WeakWorld>> {
         // no entity for you (we're processing this entity somewhere else)
-        if id != self.entity_storage.owner_entity_id && !self.entity_storage.maybe_update(id) {
+        if Some(id) != self.entity_storage.owner_entity_id && !self.entity_storage.maybe_update(id)
+        {
             return None;
         }
 
@@ -208,6 +208,22 @@ impl Debug for PartialWorld {
         f.debug_struct("World")
             .field("chunk_storage", &self.chunk_storage)
             .field("entity_storage", &self.entity_storage)
+            .field("shared", &self.shared)
             .finish()
+    }
+}
+
+impl Default for PartialWorld {
+    fn default() -> Self {
+        let chunk_storage = PartialChunkStorage::default();
+        let entity_storage = PartialEntityStorage::default();
+        Self {
+            shared: Arc::new(WeakWorld {
+                chunk_storage: chunk_storage.shared.clone(),
+                entity_storage: entity_storage.shared.clone(),
+            }),
+            chunk_storage,
+            entity_storage,
+        }
     }
 }

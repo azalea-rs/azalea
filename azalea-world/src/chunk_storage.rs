@@ -20,7 +20,7 @@ const SECTION_HEIGHT: u32 = 16;
 /// [`ChunkStorage`] instead.
 pub struct PartialChunkStorage {
     /// Chunk storage that can be shared by clients.
-    shared: Arc<RwLock<WeakChunkStorage>>,
+    pub shared: Arc<RwLock<WeakChunkStorage>>,
 
     pub view_center: ChunkPos,
     chunk_radius: u32,
@@ -32,6 +32,7 @@ pub struct PartialChunkStorage {
 /// A storage for chunks where they're only stored weakly, so if they're not
 /// actively being used somewhere else they'll be forgotten. This is used for
 /// shared worlds.
+#[derive(Debug)]
 pub struct WeakChunkStorage {
     pub height: u32,
     pub min_y: i32,
