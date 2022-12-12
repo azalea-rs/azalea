@@ -4,11 +4,6 @@ use azalea_core::GameType;
 use azalea_world::PartialWorld;
 use uuid::Uuid;
 
-/// Something that has a world associated to it. this is usually a `Client`.
-pub trait WorldHaver {
-    fn world(&self) -> &PartialWorld;
-}
-
 /// A player in the tab list.
 #[derive(Debug, Clone)]
 pub struct PlayerInfo {
