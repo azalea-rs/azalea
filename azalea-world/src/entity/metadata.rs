@@ -8,9038 +8,13772 @@ use super::{
 use azalea_block::BlockState;
 use azalea_chat::Component;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
-use azalea_registry::EntityKind;
-use enum_as_inner::EnumAsInner;
-use hecs::{BuiltEntity, Bundle, EntityBuilder, Query};
-use std::{
-    collections::VecDeque,
-    ops::{Deref, DerefMut},
-};
+use hecs::{BuiltEntity, EntityBuilder, Query};
 use thiserror::Error;
 use uuid::Uuid;
 
 #[derive(Error, Debug)]
-pub enum UpdateEntityError {
+pub enum UpdateMetadataError {
     #[error("Wrong type ({0:?})")]
     WrongType(EntityDataValue),
 }
-impl From<EntityDataValue> for UpdateEntityError {
+impl From<EntityDataValue> for UpdateMetadataError {
     fn from(value: EntityDataValue) -> Self {
         Self::WrongType(value)
     }
 }
 
-fn update_entity(
-    world: hecs::World,
-    entity: hecs::Entity,
-    data: EntityMetadataItems,
-) -> Result<(), UpdateEntityError> {
-    if let Ok(e) = world.query_one_mut::<AllayQuery>(entity) {
-        e.update_entity(world, entity, data)?;
-    }
-
-    Ok(())
-}
-
-pub struct Allay;
+pub struct OnFire(pub bool);
+pub struct ShiftKeyDown(pub bool);
+pub struct Sprinting(pub bool);
+pub struct Swimming(pub bool);
+pub struct CurrentlyGlowing(pub bool);
+pub struct Invisible(pub bool);
+pub struct FallFlying(pub bool);
+pub struct AirSupply(pub i32);
+pub struct CustomName(pub Option<Component>);
+pub struct CustomNameVisible(pub bool);
+pub struct Silent(pub bool);
+pub struct NoGravity(pub bool);
+pub struct TicksFrozen(pub i32);
+pub struct AutoSpinAttack(pub bool);
+pub struct AbstractLivingUsingItem(pub bool);
+pub struct Health(pub f32);
+pub struct AbstractLivingEffectColor(pub i32);
+pub struct EffectAmbience(pub bool);
+pub struct ArrowCount(pub i32);
+pub struct StingerCount(pub i32);
+pub struct SleepingPos(pub Option<BlockPos>);
+pub struct NoAi(pub bool);
+pub struct LeftHanded(pub bool);
+pub struct Aggressive(pub bool);
 pub struct Dancing(pub bool);
 pub struct CanDuplicate(pub bool);
+pub struct Allay;
+impl Allay {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(Dancing(false))
+            .add(CanDuplicate(true))
+            .build()
+    }
+}
 
 #[derive(Query)]
-pub struct AllayQuery<'a> {
-    pub health: &'a mut Health,
-    pub dancing: &'a mut Dancing,
-    pub can_duplicate: &'a mut CanDuplicate,
+struct AllayQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    dancing: &'a mut Dancing,
+    can_duplicate: &'a mut CanDuplicate,
 }
 impl AllayQuery<'_> {
-    pub fn update_entity(
+    pub fn update_metadata(
         &mut self,
         world: hecs::World,
         entity: hecs::Entity,
         data: EntityMetadataItems,
-    ) -> Result<(), UpdateEntityError> {
+    ) -> Result<(), UpdateMetadataError> {
         for d in data.0 {
             match d.index {
-                0 => *self.health = Health(d.value.into_float()?),
-                1 => *self.dancing = Dancing(d.value.into_boolean()?),
-                2 => *self.can_duplicate = CanDuplicate(d.value.into_boolean()?),
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.dancing = Dancing(d.value.into_boolean()?),
+                17 => *self.can_duplicate = CanDuplicate(d.value.into_boolean()?),
             }
         }
         Ok(())
     }
 }
 
-pub struct Health(pub f32);
-
-// #[derive(Debug, Clone)]
-// pub struct Allay {
-//     pub abstract_creature: AbstractCreature,
-//     pub dancing: bool,
-//     pub can_duplicate: bool,
-// }
-
-// impl Allay {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_creature = AbstractCreature::read(metadata)?;
-//         let dancing = metadata.pop_front()?.into_boolean().ok()?;
-//         let can_duplicate = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_creature,
-//             dancing,
-//             can_duplicate,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_creature.write());
-//         metadata.push(EntityDataValue::Boolean(self.dancing.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.can_duplicate.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Allay {
-//     fn default() -> Self {
-//         Self {
-//             abstract_creature: Default::default(),
-//             dancing: false,
-//             can_duplicate: true,
-//         }
-//     }
-// }
-
-// impl Allay {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_creature.set_index(index, value)?,
-//             16 => self.dancing = value.into_boolean().ok()?,
-//             17 => self.can_duplicate = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Allay {
-//     type Target = AbstractCreature;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_creature
-//     }
-// }
-// impl DerefMut for Allay {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_creature
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct AreaEffectCloud {
-//     pub abstract_entity: AbstractEntity,
-//     pub radius: f32,
-//     pub color: i32,
-//     pub waiting: bool,
-//     pub particle: Particle,
-// }
-
-// impl AreaEffectCloud {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let radius = metadata.pop_front()?.into_float().ok()?;
-//         let color = metadata.pop_front()?.into_int().ok()?;
-//         let waiting = metadata.pop_front()?.into_boolean().ok()?;
-//         let particle = metadata.pop_front()?.into_particle().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             radius,
-//             color,
-//             waiting,
-//             particle,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::Float(self.radius.clone()));
-//         metadata.push(EntityDataValue::Int(self.color.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.waiting.clone()));
-//         metadata.push(EntityDataValue::Particle(self.particle.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for AreaEffectCloud {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             radius: 3.0,
-//             color: 0,
-//             waiting: false,
-//             particle: Default::default(),
-//         }
-//     }
-// }
-
-// impl AreaEffectCloud {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.radius = value.into_float().ok()?,
-//             9 => self.color = value.into_int().ok()?,
-//             10 => self.waiting = value.into_boolean().ok()?,
-//             11 => self.particle = value.into_particle().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for AreaEffectCloud {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for AreaEffectCloud {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct ArmorStand {
-//     pub abstract_living: AbstractLiving,
-//     pub small: bool,
-//     pub show_arms: bool,
-//     pub no_base_plate: bool,
-//     pub marker: bool,
-//     pub head_pose: Rotations,
-//     pub body_pose: Rotations,
-//     pub left_arm_pose: Rotations,
-//     pub right_arm_pose: Rotations,
-//     pub left_leg_pose: Rotations,
-//     pub right_leg_pose: Rotations,
-// }
-
-// impl ArmorStand {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_living = AbstractLiving::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let small = bitfield & 0x1 != 0;
-//         let show_arms = bitfield & 0x4 != 0;
-//         let no_base_plate = bitfield & 0x8 != 0;
-//         let marker = bitfield & 0x10 != 0;
-//         let head_pose = metadata.pop_front()?.into_rotations().ok()?;
-//         let body_pose = metadata.pop_front()?.into_rotations().ok()?;
-//         let left_arm_pose = metadata.pop_front()?.into_rotations().ok()?;
-//         let right_arm_pose = metadata.pop_front()?.into_rotations().ok()?;
-//         let left_leg_pose = metadata.pop_front()?.into_rotations().ok()?;
-//         let right_leg_pose = metadata.pop_front()?.into_rotations().ok()?;
-//         Some(Self {
-//             abstract_living,
-//             small,
-//             show_arms,
-//             no_base_plate,
-//             marker,
-//             head_pose,
-//             body_pose,
-//             left_arm_pose,
-//             right_arm_pose,
-//             left_leg_pose,
-//             right_leg_pose,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_living.write());
-//         let mut bitfield = 0u8;
-//         if self.small {
-//             bitfield &= 0x1;
-//         }
-//         if self.show_arms {
-//             bitfield &= 0x4;
-//         }
-//         if self.no_base_plate {
-//             bitfield &= 0x8;
-//         }
-//         if self.marker {
-//             bitfield &= 0x10;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::Rotations(self.head_pose.clone()));
-//         metadata.push(EntityDataValue::Rotations(self.body_pose.clone()));
-//         metadata.push(EntityDataValue::Rotations(self.left_arm_pose.
-// clone()));         metadata.push(EntityDataValue::Rotations(self.
-// right_arm_pose.clone()));         metadata.
-// push(EntityDataValue::Rotations(self.left_leg_pose.clone()));
-//         metadata.push(EntityDataValue::Rotations(self.right_leg_pose.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for ArmorStand {
-//     fn default() -> Self {
-//         Self {
-//             abstract_living: Default::default(),
-//             small: false,
-//             show_arms: false,
-//             no_base_plate: false,
-//             marker: false,
-//             head_pose: Default::default(),
-//             body_pose: Default::default(),
-//             left_arm_pose: Default::default(),
-//             right_arm_pose: Default::default(),
-//             left_leg_pose: Default::default(),
-//             right_leg_pose: Default::default(),
-//         }
-//     }
-// }
-
-// impl ArmorStand {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=14 => self.abstract_living.set_index(index, value)?,
-//             15 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.small = bitfield & 0x1 != 0;
-//                 self.show_arms = bitfield & 0x4 != 0;
-//                 self.no_base_plate = bitfield & 0x8 != 0;
-//                 self.marker = bitfield & 0x10 != 0;
-//             }
-//             16 => self.head_pose = value.into_rotations().ok()?,
-//             17 => self.body_pose = value.into_rotations().ok()?,
-//             18 => self.left_arm_pose = value.into_rotations().ok()?,
-//             19 => self.right_arm_pose = value.into_rotations().ok()?,
-//             20 => self.left_leg_pose = value.into_rotations().ok()?,
-//             21 => self.right_leg_pose = value.into_rotations().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for ArmorStand {
-//     type Target = AbstractLiving;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_living
-//     }
-// }
-// impl DerefMut for ArmorStand {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_living
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Arrow {
-//     pub abstract_entity: AbstractEntity,
-//     pub crit_arrow: bool,
-//     pub shot_from_crossbow: bool,
-//     pub no_physics: bool,
-//     pub pierce_level: u8,
-//     pub effect_color: i32,
-// }
-
-// impl Arrow {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let crit_arrow = bitfield & 0x1 != 0;
-//         let shot_from_crossbow = bitfield & 0x4 != 0;
-//         let no_physics = bitfield & 0x2 != 0;
-//         let pierce_level = metadata.pop_front()?.into_byte().ok()?;
-//         let effect_color = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             crit_arrow,
-//             shot_from_crossbow,
-//             no_physics,
-//             pierce_level,
-//             effect_color,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         let mut bitfield = 0u8;
-//         if self.crit_arrow {
-//             bitfield &= 0x1;
-//         }
-//         if self.shot_from_crossbow {
-//             bitfield &= 0x4;
-//         }
-//         if self.no_physics {
-//             bitfield &= 0x2;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::Byte(self.pierce_level.clone()));
-//         metadata.push(EntityDataValue::Int(self.effect_color.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Arrow {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             crit_arrow: false,
-//             shot_from_crossbow: false,
-//             no_physics: false,
-//             pierce_level: 0,
-//             effect_color: -1,
-//         }
-//     }
-// }
-
-// impl Arrow {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.crit_arrow = bitfield & 0x1 != 0;
-//                 self.shot_from_crossbow = bitfield & 0x4 != 0;
-//                 self.no_physics = bitfield & 0x2 != 0;
-//             }
-//             9 => self.pierce_level = value.into_byte().ok()?,
-//             10 => self.effect_color = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Arrow {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for Arrow {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Axolotl {
-//     pub abstract_animal: AbstractAnimal,
-//     pub variant: i32,
-//     pub playing_dead: bool,
-//     pub from_bucket: bool,
-// }
-
-// impl Axolotl {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let variant = metadata.pop_front()?.into_int().ok()?;
-//         let playing_dead = metadata.pop_front()?.into_boolean().ok()?;
-//         let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             variant,
-//             playing_dead,
-//             from_bucket,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         metadata.push(EntityDataValue::Int(self.variant.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.playing_dead.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Axolotl {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             variant: 0,
-//             playing_dead: false,
-//             from_bucket: false,
-//         }
-//     }
-// }
-
-// impl Axolotl {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => self.variant = value.into_int().ok()?,
-//             18 => self.playing_dead = value.into_boolean().ok()?,
-//             19 => self.from_bucket = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Axolotl {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Axolotl {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Bat {
-//     pub abstract_insentient: AbstractInsentient,
-//     pub resting: bool,
-// }
-
-// impl Bat {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_insentient = AbstractInsentient::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let resting = bitfield & 0x1 != 0;
-//         Some(Self {
-//             abstract_insentient,
-//             resting,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_insentient.write());
-//         let mut bitfield = 0u8;
-//         if self.resting {
-//             bitfield &= 0x1;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata
-//     }
-// }
-
-// impl Default for Bat {
-//     fn default() -> Self {
-//         Self {
-//             abstract_insentient: Default::default(),
-//             resting: false,
-//         }
-//     }
-// }
-
-// impl Bat {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_insentient.set_index(index, value)?,
-//             16 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.resting = bitfield & 0x1 != 0;
-//             }
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Bat {
-//     type Target = AbstractInsentient;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_insentient
-//     }
-// }
-// impl DerefMut for Bat {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_insentient
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Bee {
-//     pub abstract_animal: AbstractAnimal,
-//     pub has_nectar: bool,
-//     pub has_stung: bool,
-//     pub rolling: bool,
-//     pub remaining_anger_time: i32,
-// }
-
-// impl Bee {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let has_nectar = bitfield & 0x8 != 0;
-//         let has_stung = bitfield & 0x4 != 0;
-//         let rolling = bitfield & 0x2 != 0;
-//         let remaining_anger_time = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             has_nectar,
-//             has_stung,
-//             rolling,
-//             remaining_anger_time,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         let mut bitfield = 0u8;
-//         if self.has_nectar {
-//             bitfield &= 0x8;
-//         }
-//         if self.has_stung {
-//             bitfield &= 0x4;
-//         }
-//         if self.rolling {
-//             bitfield &= 0x2;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::Int(self.remaining_anger_time.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for Bee {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             has_nectar: false,
-//             has_stung: false,
-//             rolling: false,
-//             remaining_anger_time: 0,
-//         }
-//     }
-// }
-
-// impl Bee {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.has_nectar = bitfield & 0x8 != 0;
-//                 self.has_stung = bitfield & 0x4 != 0;
-//                 self.rolling = bitfield & 0x2 != 0;
-//             }
-//             18 => self.remaining_anger_time = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Bee {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Bee {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Blaze {
-//     pub abstract_monster: AbstractMonster,
-//     pub charged: bool,
-// }
-
-// impl Blaze {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let charged = bitfield & 0x1 != 0;
-//         Some(Self {
-//             abstract_monster,
-//             charged,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         let mut bitfield = 0u8;
-//         if self.charged {
-//             bitfield &= 0x1;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata
-//     }
-// }
-
-// impl Default for Blaze {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             charged: false,
-//         }
-//     }
-// }
-
-// impl Blaze {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.charged = bitfield & 0x1 != 0;
-//             }
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Blaze {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Blaze {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Boat {
-//     pub abstract_entity: AbstractEntity,
-//     pub hurt: i32,
-//     pub hurtdir: i32,
-//     pub damage: f32,
-//     pub kind: i32,
-//     pub paddle_left: bool,
-//     pub paddle_right: bool,
-//     pub bubble_time: i32,
-// }
-
-// impl Boat {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let hurt = metadata.pop_front()?.into_int().ok()?;
-//         let hurtdir = metadata.pop_front()?.into_int().ok()?;
-//         let damage = metadata.pop_front()?.into_float().ok()?;
-//         let kind = metadata.pop_front()?.into_int().ok()?;
-//         let paddle_left = metadata.pop_front()?.into_boolean().ok()?;
-//         let paddle_right = metadata.pop_front()?.into_boolean().ok()?;
-//         let bubble_time = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             hurt,
-//             hurtdir,
-//             damage,
-//             kind,
-//             paddle_left,
-//             paddle_right,
-//             bubble_time,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::Int(self.hurt.clone()));
-//         metadata.push(EntityDataValue::Int(self.hurtdir.clone()));
-//         metadata.push(EntityDataValue::Float(self.damage.clone()));
-//         metadata.push(EntityDataValue::Int(self.kind.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.paddle_left.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.paddle_right.clone()));
-//         metadata.push(EntityDataValue::Int(self.bubble_time.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Boat {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             hurt: 0,
-//             hurtdir: 1,
-//             damage: 0.0,
-//             kind: Default::default(),
-//             paddle_left: false,
-//             paddle_right: false,
-//             bubble_time: 0,
-//         }
-//     }
-// }
-
-// impl Boat {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.hurt = value.into_int().ok()?,
-//             9 => self.hurtdir = value.into_int().ok()?,
-//             10 => self.damage = value.into_float().ok()?,
-//             11 => self.kind = value.into_int().ok()?,
-//             12 => self.paddle_left = value.into_boolean().ok()?,
-//             13 => self.paddle_right = value.into_boolean().ok()?,
-//             14 => self.bubble_time = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Boat {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for Boat {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Camel {
-//     pub abstract_animal: AbstractAnimal,
-//     pub tamed: bool,
-//     pub eating: bool,
-//     pub standing: bool,
-//     pub bred: bool,
-//     pub saddled: bool,
-//     pub owner_uuid: Option<Uuid>,
-//     pub dash: bool,
-//     pub last_pose_change_tick: i64,
-// }
-
-// impl Camel {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let tamed = bitfield & 0x2 != 0;
-//         let eating = bitfield & 0x10 != 0;
-//         let standing = bitfield & 0x20 != 0;
-//         let bred = bitfield & 0x8 != 0;
-//         let saddled = bitfield & 0x4 != 0;
-//         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-//         let dash = metadata.pop_front()?.into_boolean().ok()?;
-//         let last_pose_change_tick = metadata.pop_front()?.into_long().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             tamed,
-//             eating,
-//             standing,
-//             bred,
-//             saddled,
-//             owner_uuid,
-//             dash,
-//             last_pose_change_tick,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         let mut bitfield = 0u8;
-//         if self.tamed {
-//             bitfield &= 0x2;
-//         }
-//         if self.eating {
-//             bitfield &= 0x10;
-//         }
-//         if self.standing {
-//             bitfield &= 0x20;
-//         }
-//         if self.bred {
-//             bitfield &= 0x8;
-//         }
-//         if self.saddled {
-//             bitfield &= 0x4;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::OptionalUuid(self.owner_uuid.
-// clone()));         metadata.push(EntityDataValue::Boolean(self.dash.
-// clone()));         metadata.push(EntityDataValue::Long(self.
-// last_pose_change_tick.clone()));         metadata
-//     }
-// }
-
-// impl Default for Camel {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             tamed: false,
-//             eating: false,
-//             standing: false,
-//             bred: false,
-//             saddled: false,
-//             owner_uuid: None,
-//             dash: false,
-//             last_pose_change_tick: -52,
-//         }
-//     }
-// }
-
-// impl Camel {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.tamed = bitfield & 0x2 != 0;
-//                 self.eating = bitfield & 0x10 != 0;
-//                 self.standing = bitfield & 0x20 != 0;
-//                 self.bred = bitfield & 0x8 != 0;
-//                 self.saddled = bitfield & 0x4 != 0;
-//             }
-//             18 => self.owner_uuid = value.into_optional_uuid().ok()?,
-//             19 => self.dash = value.into_boolean().ok()?,
-//             20 => self.last_pose_change_tick = value.into_long().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Camel {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Camel {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Cat {
-//     pub abstract_tameable: AbstractTameable,
-//     pub variant: azalea_registry::CatVariant,
-//     pub is_lying: bool,
-//     pub relax_state_one: bool,
-//     pub collar_color: i32,
-// }
-
-// impl Cat {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_tameable = AbstractTameable::read(metadata)?;
-//         let variant = metadata.pop_front()?.into_cat_variant().ok()?;
-//         let is_lying = metadata.pop_front()?.into_boolean().ok()?;
-//         let relax_state_one = metadata.pop_front()?.into_boolean().ok()?;
-//         let collar_color = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_tameable,
-//             variant,
-//             is_lying,
-//             relax_state_one,
-//             collar_color,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_tameable.write());
-//         metadata.push(EntityDataValue::CatVariant(self.variant.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.is_lying.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.relax_state_one.
-// clone()));         metadata.push(EntityDataValue::Int(self.collar_color.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for Cat {
-//     fn default() -> Self {
-//         Self {
-//             abstract_tameable: Default::default(),
-//             variant: azalea_registry::CatVariant::Tabby,
-//             is_lying: false,
-//             relax_state_one: false,
-//             collar_color: Default::default(),
-//         }
-//     }
-// }
-
-// impl Cat {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=18 => self.abstract_tameable.set_index(index, value)?,
-//             19 => self.variant = value.into_cat_variant().ok()?,
-//             20 => self.is_lying = value.into_boolean().ok()?,
-//             21 => self.relax_state_one = value.into_boolean().ok()?,
-//             22 => self.collar_color = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Cat {
-//     type Target = AbstractTameable;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_tameable
-//     }
-// }
-// impl DerefMut for Cat {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_tameable
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct CaveSpider {
-//     pub spider: Spider,
-// }
-
-// impl CaveSpider {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let spider = Spider::read(metadata)?;
-//         Some(Self { spider })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.spider.write());
-//         metadata
-//     }
-// }
-
-// impl Default for CaveSpider {
-//     fn default() -> Self {
-//         Self {
-//             spider: Default::default(),
-//         }
-//     }
-// }
-
-// impl CaveSpider {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.spider.set_index(index, value)
-//     }
-// }
-// impl Deref for CaveSpider {
-//     type Target = Spider;
-//     fn deref(&self) -> &Self::Target {
-//         &self.spider
-//     }
-// }
-// impl DerefMut for CaveSpider {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.spider
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct ChestBoat {
-//     pub boat: Boat,
-// }
-
-// impl ChestBoat {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let boat = Boat::read(metadata)?;
-//         Some(Self { boat })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.boat.write());
-//         metadata
-//     }
-// }
-
-// impl Default for ChestBoat {
-//     fn default() -> Self {
-//         Self {
-//             boat: Default::default(),
-//         }
-//     }
-// }
-
-// impl ChestBoat {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.boat.set_index(index, value)
-//     }
-// }
-// impl Deref for ChestBoat {
-//     type Target = Boat;
-//     fn deref(&self) -> &Self::Target {
-//         &self.boat
-//     }
-// }
-// impl DerefMut for ChestBoat {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.boat
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct ChestMinecart {
-//     pub abstract_minecart: AbstractMinecart,
-// }
-
-// impl ChestMinecart {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_minecart = AbstractMinecart::read(metadata)?;
-//         Some(Self { abstract_minecart })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_minecart.write());
-//         metadata
-//     }
-// }
-
-// impl Default for ChestMinecart {
-//     fn default() -> Self {
-//         Self {
-//             abstract_minecart: Default::default(),
-//         }
-//     }
-// }
-
-// impl ChestMinecart {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_minecart.set_index(index, value)
-//     }
-// }
-// impl Deref for ChestMinecart {
-//     type Target = AbstractMinecart;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_minecart
-//     }
-// }
-// impl DerefMut for ChestMinecart {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_minecart
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Chicken {
-//     pub abstract_animal: AbstractAnimal,
-// }
-
-// impl Chicken {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         Some(Self { abstract_animal })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         metadata
-//     }
-// }
-
-// impl Default for Chicken {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//         }
-//     }
-// }
-
-// impl Chicken {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_animal.set_index(index, value)
-//     }
-// }
-// impl Deref for Chicken {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Chicken {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Cod {
-//     pub abstract_creature: AbstractCreature,
-//     pub from_bucket: bool,
-// }
-
-// impl Cod {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_creature = AbstractCreature::read(metadata)?;
-//         let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_creature,
-//             from_bucket,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_creature.write());
-//         metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Cod {
-//     fn default() -> Self {
-//         Self {
-//             abstract_creature: Default::default(),
-//             from_bucket: false,
-//         }
-//     }
-// }
-
-// impl Cod {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_creature.set_index(index, value)?,
-//             16 => self.from_bucket = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Cod {
-//     type Target = AbstractCreature;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_creature
-//     }
-// }
-// impl DerefMut for Cod {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_creature
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct CommandBlockMinecart {
-//     pub abstract_minecart: AbstractMinecart,
-//     pub command_name: String,
-//     pub last_output: Component,
-// }
-
-// impl CommandBlockMinecart {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_minecart = AbstractMinecart::read(metadata)?;
-//         let command_name = metadata.pop_front()?.into_string().ok()?;
-//         let last_output = metadata.pop_front()?.into_component().ok()?;
-//         Some(Self {
-//             abstract_minecart,
-//             command_name,
-//             last_output,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_minecart.write());
-//         metadata.push(EntityDataValue::String(self.command_name.clone()));
-//         metadata.push(EntityDataValue::Component(self.last_output.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for CommandBlockMinecart {
-//     fn default() -> Self {
-//         Self {
-//             abstract_minecart: Default::default(),
-//             command_name: "".to_string(),
-//             last_output: Default::default(),
-//         }
-//     }
-// }
-
-// impl CommandBlockMinecart {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=13 => self.abstract_minecart.set_index(index, value)?,
-//             14 => self.command_name = value.into_string().ok()?,
-//             15 => self.last_output = value.into_component().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for CommandBlockMinecart {
-//     type Target = AbstractMinecart;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_minecart
-//     }
-// }
-// impl DerefMut for CommandBlockMinecart {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_minecart
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Cow {
-//     pub abstract_animal: AbstractAnimal,
-// }
-
-// impl Cow {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         Some(Self { abstract_animal })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         metadata
-//     }
-// }
-
-// impl Default for Cow {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//         }
-//     }
-// }
-
-// impl Cow {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_animal.set_index(index, value)
-//     }
-// }
-// impl Deref for Cow {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Cow {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Creeper {
-//     pub abstract_monster: AbstractMonster,
-//     pub swell_dir: i32,
-//     pub is_powered: bool,
-//     pub is_ignited: bool,
-// }
-
-// impl Creeper {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let swell_dir = metadata.pop_front()?.into_int().ok()?;
-//         let is_powered = metadata.pop_front()?.into_boolean().ok()?;
-//         let is_ignited = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_monster,
-//             swell_dir,
-//             is_powered,
-//             is_ignited,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Int(self.swell_dir.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.is_powered.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.is_ignited.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Creeper {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             swell_dir: -1,
-//             is_powered: false,
-//             is_ignited: false,
-//         }
-//     }
-// }
-
-// impl Creeper {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.swell_dir = value.into_int().ok()?,
-//             17 => self.is_powered = value.into_boolean().ok()?,
-//             18 => self.is_ignited = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Creeper {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Creeper {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Dolphin {
-//     pub abstract_creature: AbstractCreature,
-//     pub treasure_pos: BlockPos,
-//     pub got_fish: bool,
-//     pub moistness_level: i32,
-// }
-
-// impl Dolphin {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_creature = AbstractCreature::read(metadata)?;
-//         let treasure_pos = metadata.pop_front()?.into_block_pos().ok()?;
-//         let got_fish = metadata.pop_front()?.into_boolean().ok()?;
-//         let moistness_level = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_creature,
-//             treasure_pos,
-//             got_fish,
-//             moistness_level,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_creature.write());
-//         metadata.push(EntityDataValue::BlockPos(self.treasure_pos.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.got_fish.clone()));
-//         metadata.push(EntityDataValue::Int(self.moistness_level.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Dolphin {
-//     fn default() -> Self {
-//         Self {
-//             abstract_creature: Default::default(),
-//             treasure_pos: BlockPos::new(0, 0, 0),
-//             got_fish: false,
-//             moistness_level: 2400,
-//         }
-//     }
-// }
-
-// impl Dolphin {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_creature.set_index(index, value)?,
-//             16 => self.treasure_pos = value.into_block_pos().ok()?,
-//             17 => self.got_fish = value.into_boolean().ok()?,
-//             18 => self.moistness_level = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Dolphin {
-//     type Target = AbstractCreature;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_creature
-//     }
-// }
-// impl DerefMut for Dolphin {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_creature
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Donkey {
-//     pub abstract_animal: AbstractAnimal,
-//     pub tamed: bool,
-//     pub eating: bool,
-//     pub standing: bool,
-//     pub bred: bool,
-//     pub saddled: bool,
-//     pub owner_uuid: Option<Uuid>,
-//     pub chest: bool,
-// }
-
-// impl Donkey {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let tamed = bitfield & 0x2 != 0;
-//         let eating = bitfield & 0x10 != 0;
-//         let standing = bitfield & 0x20 != 0;
-//         let bred = bitfield & 0x8 != 0;
-//         let saddled = bitfield & 0x4 != 0;
-//         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-//         let chest = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             tamed,
-//             eating,
-//             standing,
-//             bred,
-//             saddled,
-//             owner_uuid,
-//             chest,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         let mut bitfield = 0u8;
-//         if self.tamed {
-//             bitfield &= 0x2;
-//         }
-//         if self.eating {
-//             bitfield &= 0x10;
-//         }
-//         if self.standing {
-//             bitfield &= 0x20;
-//         }
-//         if self.bred {
-//             bitfield &= 0x8;
-//         }
-//         if self.saddled {
-//             bitfield &= 0x4;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::OptionalUuid(self.owner_uuid.
-// clone()));         metadata.push(EntityDataValue::Boolean(self.chest.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for Donkey {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             tamed: false,
-//             eating: false,
-//             standing: false,
-//             bred: false,
-//             saddled: false,
-//             owner_uuid: None,
-//             chest: false,
-//         }
-//     }
-// }
-
-// impl Donkey {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.tamed = bitfield & 0x2 != 0;
-//                 self.eating = bitfield & 0x10 != 0;
-//                 self.standing = bitfield & 0x20 != 0;
-//                 self.bred = bitfield & 0x8 != 0;
-//                 self.saddled = bitfield & 0x4 != 0;
-//             }
-//             18 => self.owner_uuid = value.into_optional_uuid().ok()?,
-//             19 => self.chest = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Donkey {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Donkey {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct DragonFireball {
-//     pub abstract_entity: AbstractEntity,
-// }
-
-// impl DragonFireball {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         Some(Self { abstract_entity })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata
-//     }
-// }
-
-// impl Default for DragonFireball {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//         }
-//     }
-// }
-
-// impl DragonFireball {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_entity.set_index(index, value)
-//     }
-// }
-// impl Deref for DragonFireball {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for DragonFireball {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Drowned {
-//     pub zombie: Zombie,
-// }
-
-// impl Drowned {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let zombie = Zombie::read(metadata)?;
-//         Some(Self { zombie })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.zombie.write());
-//         metadata
-//     }
-// }
-
-// impl Default for Drowned {
-//     fn default() -> Self {
-//         Self {
-//             zombie: Default::default(),
-//         }
-//     }
-// }
-
-// impl Drowned {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.zombie.set_index(index, value)
-//     }
-// }
-// impl Deref for Drowned {
-//     type Target = Zombie;
-//     fn deref(&self) -> &Self::Target {
-//         &self.zombie
-//     }
-// }
-// impl DerefMut for Drowned {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.zombie
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Egg {
-//     pub abstract_entity: AbstractEntity,
-//     pub item_stack: Slot,
-// }
-
-// impl Egg {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             item_stack,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Egg {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             item_stack: Slot::Empty,
-//         }
-//     }
-// }
-
-// impl Egg {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.item_stack = value.into_item_stack().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Egg {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for Egg {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct ElderGuardian {
-//     pub guardian: Guardian,
-// }
-
-// impl ElderGuardian {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let guardian = Guardian::read(metadata)?;
-//         Some(Self { guardian })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.guardian.write());
-//         metadata
-//     }
-// }
-
-// impl Default for ElderGuardian {
-//     fn default() -> Self {
-//         Self {
-//             guardian: Default::default(),
-//         }
-//     }
-// }
-
-// impl ElderGuardian {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.guardian.set_index(index, value)
-//     }
-// }
-// impl Deref for ElderGuardian {
-//     type Target = Guardian;
-//     fn deref(&self) -> &Self::Target {
-//         &self.guardian
-//     }
-// }
-// impl DerefMut for ElderGuardian {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.guardian
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct EndCrystal {
-//     pub abstract_entity: AbstractEntity,
-//     pub beam_target: Option<BlockPos>,
-//     pub show_bottom: bool,
-// }
-
-// impl EndCrystal {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let beam_target =
-// metadata.pop_front()?.into_optional_block_pos().ok()?;         let
-// show_bottom = metadata.pop_front()?.into_boolean().ok()?;         Some(Self {
-//             abstract_entity,
-//             beam_target,
-//             show_bottom,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::OptionalBlockPos(self.beam_target.
-// clone()));         metadata.push(EntityDataValue::Boolean(self.show_bottom.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for EndCrystal {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             beam_target: None,
-//             show_bottom: true,
-//         }
-//     }
-// }
-
-// impl EndCrystal {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.beam_target = value.into_optional_block_pos().ok()?,
-//             9 => self.show_bottom = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for EndCrystal {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for EndCrystal {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct EnderDragon {
-//     pub abstract_insentient: AbstractInsentient,
-//     pub phase: i32,
-// }
-
-// impl EnderDragon {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_insentient = AbstractInsentient::read(metadata)?;
-//         let phase = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_insentient,
-//             phase,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_insentient.write());
-//         metadata.push(EntityDataValue::Int(self.phase.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for EnderDragon {
-//     fn default() -> Self {
-//         Self {
-//             abstract_insentient: Default::default(),
-//             phase: Default::default(),
-//         }
-//     }
-// }
-
-// impl EnderDragon {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_insentient.set_index(index, value)?,
-//             16 => self.phase = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for EnderDragon {
-//     type Target = AbstractInsentient;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_insentient
-//     }
-// }
-// impl DerefMut for EnderDragon {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_insentient
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct EnderPearl {
-//     pub abstract_entity: AbstractEntity,
-//     pub item_stack: Slot,
-// }
-
-// impl EnderPearl {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             item_stack,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for EnderPearl {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             item_stack: Slot::Empty,
-//         }
-//     }
-// }
-
-// impl EnderPearl {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.item_stack = value.into_item_stack().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for EnderPearl {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for EnderPearl {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Enderman {
-//     pub abstract_monster: AbstractMonster,
-//     pub carry_state: BlockState,
-//     pub creepy: bool,
-//     pub stared_at: bool,
-// }
-
-// impl Enderman {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let carry_state = metadata.pop_front()?.into_block_state().ok()?;
-//         let creepy = metadata.pop_front()?.into_boolean().ok()?;
-//         let stared_at = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_monster,
-//             carry_state,
-//             creepy,
-//             stared_at,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::BlockState(self.carry_state.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.creepy.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.stared_at.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Enderman {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             carry_state: BlockState::Air,
-//             creepy: false,
-//             stared_at: false,
-//         }
-//     }
-// }
-
-// impl Enderman {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.carry_state = value.into_block_state().ok()?,
-//             17 => self.creepy = value.into_boolean().ok()?,
-//             18 => self.stared_at = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Enderman {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Enderman {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Endermite {
-//     pub abstract_monster: AbstractMonster,
-// }
-
-// impl Endermite {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         Some(Self { abstract_monster })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata
-//     }
-// }
-
-// impl Default for Endermite {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//         }
-//     }
-// }
-
-// impl Endermite {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_monster.set_index(index, value)
-//     }
-// }
-// impl Deref for Endermite {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Endermite {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Evoker {
-//     pub abstract_monster: AbstractMonster,
-//     pub is_celebrating: bool,
-//     pub spell_casting: u8,
-// }
-
-// impl Evoker {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
-//         let spell_casting = metadata.pop_front()?.into_byte().ok()?;
-//         Some(Self {
-//             abstract_monster,
-//             is_celebrating,
-//             spell_casting,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
-//         metadata.push(EntityDataValue::Byte(self.spell_casting.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Evoker {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             is_celebrating: false,
-//             spell_casting: 0,
-//         }
-//     }
-// }
-
-// impl Evoker {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.is_celebrating = value.into_boolean().ok()?,
-//             17 => self.spell_casting = value.into_byte().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Evoker {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Evoker {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct EvokerFangs {
-//     pub abstract_entity: AbstractEntity,
-// }
-
-// impl EvokerFangs {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         Some(Self { abstract_entity })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata
-//     }
-// }
-
-// impl Default for EvokerFangs {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//         }
-//     }
-// }
-
-// impl EvokerFangs {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_entity.set_index(index, value)
-//     }
-// }
-// impl Deref for EvokerFangs {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for EvokerFangs {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct ExperienceBottle {
-//     pub abstract_entity: AbstractEntity,
-//     pub item_stack: Slot,
-// }
-
-// impl ExperienceBottle {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             item_stack,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for ExperienceBottle {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             item_stack: Slot::Empty,
-//         }
-//     }
-// }
-
-// impl ExperienceBottle {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.item_stack = value.into_item_stack().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for ExperienceBottle {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for ExperienceBottle {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct ExperienceOrb {
-//     pub abstract_entity: AbstractEntity,
-// }
-
-// impl ExperienceOrb {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         Some(Self { abstract_entity })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata
-//     }
-// }
-
-// impl Default for ExperienceOrb {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//         }
-//     }
-// }
-
-// impl ExperienceOrb {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_entity.set_index(index, value)
-//     }
-// }
-// impl Deref for ExperienceOrb {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for ExperienceOrb {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct EyeOfEnder {
-//     pub abstract_entity: AbstractEntity,
-//     pub item_stack: Slot,
-// }
-
-// impl EyeOfEnder {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             item_stack,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for EyeOfEnder {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             item_stack: Slot::Empty,
-//         }
-//     }
-// }
-
-// impl EyeOfEnder {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.item_stack = value.into_item_stack().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for EyeOfEnder {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for EyeOfEnder {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct FallingBlock {
-//     pub abstract_entity: AbstractEntity,
-//     pub start_pos: BlockPos,
-// }
-
-// impl FallingBlock {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let start_pos = metadata.pop_front()?.into_block_pos().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             start_pos,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::BlockPos(self.start_pos.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for FallingBlock {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             start_pos: BlockPos::new(0, 0, 0),
-//         }
-//     }
-// }
-
-// impl FallingBlock {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.start_pos = value.into_block_pos().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for FallingBlock {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for FallingBlock {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Fireball {
-//     pub abstract_entity: AbstractEntity,
-//     pub item_stack: Slot,
-// }
-
-// impl Fireball {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             item_stack,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Fireball {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             item_stack: Slot::Empty,
-//         }
-//     }
-// }
-
-// impl Fireball {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.item_stack = value.into_item_stack().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Fireball {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for Fireball {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct FireworkRocket {
-//     pub abstract_entity: AbstractEntity,
-//     pub fireworks_item: Slot,
-//     pub attached_to_target: OptionalUnsignedInt,
-//     pub shot_at_angle: bool,
-// }
-
-// impl FireworkRocket {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let fireworks_item = metadata.pop_front()?.into_item_stack().ok()?;
-//         let attached_to_target =
-// metadata.pop_front()?.into_optional_unsigned_int().ok()?;         let
-// shot_at_angle = metadata.pop_front()?.into_boolean().ok()?;         Some(Self
-// {             abstract_entity,
-//             fireworks_item,
-//             attached_to_target,
-//             shot_at_angle,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::ItemStack(self.fireworks_item.
-// clone()));         metadata.push(EntityDataValue::OptionalUnsignedInt(
-//             self.attached_to_target.clone(),
-//         ));
-//         metadata.push(EntityDataValue::Boolean(self.shot_at_angle.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for FireworkRocket {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             fireworks_item: Slot::Empty,
-//             attached_to_target: OptionalUnsignedInt(None),
-//             shot_at_angle: false,
-//         }
-//     }
-// }
-
-// impl FireworkRocket {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.fireworks_item = value.into_item_stack().ok()?,
-//             9 => self.attached_to_target =
-// value.into_optional_unsigned_int().ok()?,             10 =>
-// self.shot_at_angle = value.into_boolean().ok()?,             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for FireworkRocket {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for FireworkRocket {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct FishingBobber {
-//     pub abstract_entity: AbstractEntity,
-//     pub hooked_entity: i32,
-//     pub biting: bool,
-// }
-
-// impl FishingBobber {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let hooked_entity = metadata.pop_front()?.into_int().ok()?;
-//         let biting = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             hooked_entity,
-//             biting,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::Int(self.hooked_entity.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.biting.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for FishingBobber {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             hooked_entity: 0,
-//             biting: false,
-//         }
-//     }
-// }
-
-// impl FishingBobber {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.hooked_entity = value.into_int().ok()?,
-//             9 => self.biting = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for FishingBobber {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for FishingBobber {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Fox {
-//     pub abstract_animal: AbstractAnimal,
-//     pub kind: i32,
-//     pub sitting: bool,
-//     pub faceplanted: bool,
-//     pub sleeping: bool,
-//     pub pouncing: bool,
-//     pub crouching: bool,
-//     pub interested: bool,
-//     pub trusted_id_0: Option<Uuid>,
-//     pub trusted_id_1: Option<Uuid>,
-// }
-
-// impl Fox {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let kind = metadata.pop_front()?.into_int().ok()?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let sitting = bitfield & 0x1 != 0;
-//         let faceplanted = bitfield & 0x40 != 0;
-//         let sleeping = bitfield & 0x20 != 0;
-//         let pouncing = bitfield & 0x10 != 0;
-//         let crouching = bitfield & 0x4 != 0;
-//         let interested = bitfield & 0x8 != 0;
-//         let trusted_id_0 = metadata.pop_front()?.into_optional_uuid().ok()?;
-//         let trusted_id_1 = metadata.pop_front()?.into_optional_uuid().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             kind,
-//             sitting,
-//             faceplanted,
-//             sleeping,
-//             pouncing,
-//             crouching,
-//             interested,
-//             trusted_id_0,
-//             trusted_id_1,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         metadata.push(EntityDataValue::Int(self.kind.clone()));
-//         let mut bitfield = 0u8;
-//         if self.sitting {
-//             bitfield &= 0x1;
-//         }
-//         if self.faceplanted {
-//             bitfield &= 0x40;
-//         }
-//         if self.sleeping {
-//             bitfield &= 0x20;
-//         }
-//         if self.pouncing {
-//             bitfield &= 0x10;
-//         }
-//         if self.crouching {
-//             bitfield &= 0x4;
-//         }
-//         if self.interested {
-//             bitfield &= 0x8;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::OptionalUuid(self.trusted_id_0.
-// clone()));         metadata.push(EntityDataValue::OptionalUuid(self.
-// trusted_id_1.clone()));         metadata
-//     }
-// }
-
-// impl Default for Fox {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             kind: 0,
-//             sitting: false,
-//             faceplanted: false,
-//             sleeping: false,
-//             pouncing: false,
-//             crouching: false,
-//             interested: false,
-//             trusted_id_0: None,
-//             trusted_id_1: None,
-//         }
-//     }
-// }
-
-// impl Fox {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => self.kind = value.into_int().ok()?,
-//             18 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.sitting = bitfield & 0x1 != 0;
-//                 self.faceplanted = bitfield & 0x40 != 0;
-//                 self.sleeping = bitfield & 0x20 != 0;
-//                 self.pouncing = bitfield & 0x10 != 0;
-//                 self.crouching = bitfield & 0x4 != 0;
-//                 self.interested = bitfield & 0x8 != 0;
-//             }
-//             19 => self.trusted_id_0 = value.into_optional_uuid().ok()?,
-//             20 => self.trusted_id_1 = value.into_optional_uuid().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Fox {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Fox {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Frog {
-//     pub abstract_animal: AbstractAnimal,
-//     pub variant: azalea_registry::FrogVariant,
-//     pub tongue_target: OptionalUnsignedInt,
-// }
-
-// impl Frog {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let variant = metadata.pop_front()?.into_frog_variant().ok()?;
-//         let tongue_target =
-// metadata.pop_front()?.into_optional_unsigned_int().ok()?;         Some(Self {
-//             abstract_animal,
-//             variant,
-//             tongue_target,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         metadata.push(EntityDataValue::FrogVariant(self.variant.clone()));
-//         metadata.push(EntityDataValue::OptionalUnsignedInt(
-//             self.tongue_target.clone(),
-//         ));
-//         metadata
-//     }
-// }
-
-// impl Default for Frog {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             variant: azalea_registry::FrogVariant::Temperate,
-//             tongue_target: OptionalUnsignedInt(None),
-//         }
-//     }
-// }
-
-// impl Frog {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => self.variant = value.into_frog_variant().ok()?,
-//             18 => self.tongue_target =
-// value.into_optional_unsigned_int().ok()?,             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Frog {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Frog {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct FurnaceMinecart {
-//     pub abstract_minecart: AbstractMinecart,
-//     pub fuel: bool,
-// }
-
-// impl FurnaceMinecart {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_minecart = AbstractMinecart::read(metadata)?;
-//         let fuel = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_minecart,
-//             fuel,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_minecart.write());
-//         metadata.push(EntityDataValue::Boolean(self.fuel.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for FurnaceMinecart {
-//     fn default() -> Self {
-//         Self {
-//             abstract_minecart: Default::default(),
-//             fuel: false,
-//         }
-//     }
-// }
-
-// impl FurnaceMinecart {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=13 => self.abstract_minecart.set_index(index, value)?,
-//             14 => self.fuel = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for FurnaceMinecart {
-//     type Target = AbstractMinecart;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_minecart
-//     }
-// }
-// impl DerefMut for FurnaceMinecart {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_minecart
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Ghast {
-//     pub abstract_insentient: AbstractInsentient,
-//     pub is_charging: bool,
-// }
-
-// impl Ghast {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_insentient = AbstractInsentient::read(metadata)?;
-//         let is_charging = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_insentient,
-//             is_charging,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_insentient.write());
-//         metadata.push(EntityDataValue::Boolean(self.is_charging.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Ghast {
-//     fn default() -> Self {
-//         Self {
-//             abstract_insentient: Default::default(),
-//             is_charging: false,
-//         }
-//     }
-// }
-
-// impl Ghast {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_insentient.set_index(index, value)?,
-//             16 => self.is_charging = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Ghast {
-//     type Target = AbstractInsentient;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_insentient
-//     }
-// }
-// impl DerefMut for Ghast {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_insentient
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Giant {
-//     pub abstract_monster: AbstractMonster,
-// }
-
-// impl Giant {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         Some(Self { abstract_monster })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata
-//     }
-// }
-
-// impl Default for Giant {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//         }
-//     }
-// }
-
-// impl Giant {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_monster.set_index(index, value)
-//     }
-// }
-// impl Deref for Giant {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Giant {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct GlowItemFrame {
-//     pub item_frame: ItemFrame,
-// }
-
-// impl GlowItemFrame {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let item_frame = ItemFrame::read(metadata)?;
-//         Some(Self { item_frame })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.item_frame.write());
-//         metadata
-//     }
-// }
-
-// impl Default for GlowItemFrame {
-//     fn default() -> Self {
-//         Self {
-//             item_frame: Default::default(),
-//         }
-//     }
-// }
-
-// impl GlowItemFrame {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.item_frame.set_index(index, value)
-//     }
-// }
-// impl Deref for GlowItemFrame {
-//     type Target = ItemFrame;
-//     fn deref(&self) -> &Self::Target {
-//         &self.item_frame
-//     }
-// }
-// impl DerefMut for GlowItemFrame {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.item_frame
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct GlowSquid {
-//     pub squid: Squid,
-//     pub dark_ticks_remaining: i32,
-// }
-
-// impl GlowSquid {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let squid = Squid::read(metadata)?;
-//         let dark_ticks_remaining = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             squid,
-//             dark_ticks_remaining,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.squid.write());
-//         metadata.push(EntityDataValue::Int(self.dark_ticks_remaining.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for GlowSquid {
-//     fn default() -> Self {
-//         Self {
-//             squid: Default::default(),
-//             dark_ticks_remaining: 0,
-//         }
-//     }
-// }
-
-// impl GlowSquid {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.squid.set_index(index, value)?,
-//             16 => self.dark_ticks_remaining = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for GlowSquid {
-//     type Target = Squid;
-//     fn deref(&self) -> &Self::Target {
-//         &self.squid
-//     }
-// }
-// impl DerefMut for GlowSquid {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.squid
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Goat {
-//     pub abstract_animal: AbstractAnimal,
-//     pub is_screaming_goat: bool,
-//     pub has_left_horn: bool,
-//     pub has_right_horn: bool,
-// }
-
-// impl Goat {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let is_screaming_goat = metadata.pop_front()?.into_boolean().ok()?;
-//         let has_left_horn = metadata.pop_front()?.into_boolean().ok()?;
-//         let has_right_horn = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             is_screaming_goat,
-//             has_left_horn,
-//             has_right_horn,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         metadata.push(EntityDataValue::Boolean(self.is_screaming_goat.
-// clone()));         metadata.push(EntityDataValue::Boolean(self.has_left_horn.
-// clone()));         metadata.push(EntityDataValue::Boolean(self.
-// has_right_horn.clone()));         metadata
-//     }
-// }
-
-// impl Default for Goat {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             is_screaming_goat: false,
-//             has_left_horn: true,
-//             has_right_horn: true,
-//         }
-//     }
-// }
-
-// impl Goat {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => self.is_screaming_goat = value.into_boolean().ok()?,
-//             18 => self.has_left_horn = value.into_boolean().ok()?,
-//             19 => self.has_right_horn = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Goat {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Goat {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Guardian {
-//     pub abstract_monster: AbstractMonster,
-//     pub moving: bool,
-//     pub attack_target: i32,
-// }
-
-// impl Guardian {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let moving = metadata.pop_front()?.into_boolean().ok()?;
-//         let attack_target = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_monster,
-//             moving,
-//             attack_target,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Boolean(self.moving.clone()));
-//         metadata.push(EntityDataValue::Int(self.attack_target.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Guardian {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             moving: false,
-//             attack_target: 0,
-//         }
-//     }
-// }
-
-// impl Guardian {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.moving = value.into_boolean().ok()?,
-//             17 => self.attack_target = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Guardian {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Guardian {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Hoglin {
-//     pub abstract_animal: AbstractAnimal,
-//     pub immune_to_zombification: bool,
-// }
-
-// impl Hoglin {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let immune_to_zombification =
-// metadata.pop_front()?.into_boolean().ok()?;         Some(Self {
-//             abstract_animal,
-//             immune_to_zombification,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         metadata.push(EntityDataValue::Boolean(
-//             self.immune_to_zombification.clone(),
-//         ));
-//         metadata
-//     }
-// }
-
-// impl Default for Hoglin {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             immune_to_zombification: false,
-//         }
-//     }
-// }
-
-// impl Hoglin {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => self.immune_to_zombification = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Hoglin {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Hoglin {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct HopperMinecart {
-//     pub abstract_minecart: AbstractMinecart,
-// }
-
-// impl HopperMinecart {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_minecart = AbstractMinecart::read(metadata)?;
-//         Some(Self { abstract_minecart })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_minecart.write());
-//         metadata
-//     }
-// }
-
-// impl Default for HopperMinecart {
-//     fn default() -> Self {
-//         Self {
-//             abstract_minecart: Default::default(),
-//         }
-//     }
-// }
-
-// impl HopperMinecart {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_minecart.set_index(index, value)
-//     }
-// }
-// impl Deref for HopperMinecart {
-//     type Target = AbstractMinecart;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_minecart
-//     }
-// }
-// impl DerefMut for HopperMinecart {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_minecart
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Horse {
-//     pub abstract_animal: AbstractAnimal,
-//     pub tamed: bool,
-//     pub eating: bool,
-//     pub standing: bool,
-//     pub bred: bool,
-//     pub saddled: bool,
-//     pub owner_uuid: Option<Uuid>,
-//     pub type_variant: i32,
-// }
-
-// impl Horse {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let tamed = bitfield & 0x2 != 0;
-//         let eating = bitfield & 0x10 != 0;
-//         let standing = bitfield & 0x20 != 0;
-//         let bred = bitfield & 0x8 != 0;
-//         let saddled = bitfield & 0x4 != 0;
-//         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-//         let type_variant = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             tamed,
-//             eating,
-//             standing,
-//             bred,
-//             saddled,
-//             owner_uuid,
-//             type_variant,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         let mut bitfield = 0u8;
-//         if self.tamed {
-//             bitfield &= 0x2;
-//         }
-//         if self.eating {
-//             bitfield &= 0x10;
-//         }
-//         if self.standing {
-//             bitfield &= 0x20;
-//         }
-//         if self.bred {
-//             bitfield &= 0x8;
-//         }
-//         if self.saddled {
-//             bitfield &= 0x4;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::OptionalUuid(self.owner_uuid.
-// clone()));         metadata.push(EntityDataValue::Int(self.type_variant.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for Horse {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             tamed: false,
-//             eating: false,
-//             standing: false,
-//             bred: false,
-//             saddled: false,
-//             owner_uuid: None,
-//             type_variant: 0,
-//         }
-//     }
-// }
-
-// impl Horse {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.tamed = bitfield & 0x2 != 0;
-//                 self.eating = bitfield & 0x10 != 0;
-//                 self.standing = bitfield & 0x20 != 0;
-//                 self.bred = bitfield & 0x8 != 0;
-//                 self.saddled = bitfield & 0x4 != 0;
-//             }
-//             18 => self.owner_uuid = value.into_optional_uuid().ok()?,
-//             19 => self.type_variant = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Horse {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Horse {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Husk {
-//     pub zombie: Zombie,
-// }
-
-// impl Husk {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let zombie = Zombie::read(metadata)?;
-//         Some(Self { zombie })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.zombie.write());
-//         metadata
-//     }
-// }
-
-// impl Default for Husk {
-//     fn default() -> Self {
-//         Self {
-//             zombie: Default::default(),
-//         }
-//     }
-// }
-
-// impl Husk {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.zombie.set_index(index, value)
-//     }
-// }
-// impl Deref for Husk {
-//     type Target = Zombie;
-//     fn deref(&self) -> &Self::Target {
-//         &self.zombie
-//     }
-// }
-// impl DerefMut for Husk {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.zombie
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Illusioner {
-//     pub abstract_monster: AbstractMonster,
-//     pub is_celebrating: bool,
-//     pub spell_casting: u8,
-// }
-
-// impl Illusioner {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
-//         let spell_casting = metadata.pop_front()?.into_byte().ok()?;
-//         Some(Self {
-//             abstract_monster,
-//             is_celebrating,
-//             spell_casting,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
-//         metadata.push(EntityDataValue::Byte(self.spell_casting.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Illusioner {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             is_celebrating: false,
-//             spell_casting: 0,
-//         }
-//     }
-// }
-
-// impl Illusioner {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.is_celebrating = value.into_boolean().ok()?,
-//             17 => self.spell_casting = value.into_byte().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Illusioner {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Illusioner {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct IronGolem {
-//     pub abstract_creature: AbstractCreature,
-//     pub player_created: bool,
-// }
-
-// impl IronGolem {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_creature = AbstractCreature::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let player_created = bitfield & 0x1 != 0;
-//         Some(Self {
-//             abstract_creature,
-//             player_created,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_creature.write());
-//         let mut bitfield = 0u8;
-//         if self.player_created {
-//             bitfield &= 0x1;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata
-//     }
-// }
-
-// impl Default for IronGolem {
-//     fn default() -> Self {
-//         Self {
-//             abstract_creature: Default::default(),
-//             player_created: false,
-//         }
-//     }
-// }
-
-// impl IronGolem {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_creature.set_index(index, value)?,
-//             16 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.player_created = bitfield & 0x1 != 0;
-//             }
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for IronGolem {
-//     type Target = AbstractCreature;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_creature
-//     }
-// }
-// impl DerefMut for IronGolem {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_creature
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Item {
-//     pub abstract_entity: AbstractEntity,
-//     pub item: Slot,
-// }
-
-// impl Item {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let item = metadata.pop_front()?.into_item_stack().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             item,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::ItemStack(self.item.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Item {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             item: Slot::Empty,
-//         }
-//     }
-// }
-
-// impl Item {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.item = value.into_item_stack().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Item {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for Item {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct ItemFrame {
-//     pub abstract_entity: AbstractEntity,
-//     pub item: Slot,
-//     pub rotation: i32,
-// }
-
-// impl ItemFrame {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let item = metadata.pop_front()?.into_item_stack().ok()?;
-//         let rotation = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             item,
-//             rotation,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::ItemStack(self.item.clone()));
-//         metadata.push(EntityDataValue::Int(self.rotation.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for ItemFrame {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             item: Slot::Empty,
-//             rotation: 0,
-//         }
-//     }
-// }
-
-// impl ItemFrame {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.item = value.into_item_stack().ok()?,
-//             9 => self.rotation = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for ItemFrame {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for ItemFrame {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct LeashKnot {
-//     pub abstract_entity: AbstractEntity,
-// }
-
-// impl LeashKnot {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         Some(Self { abstract_entity })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata
-//     }
-// }
-
-// impl Default for LeashKnot {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//         }
-//     }
-// }
-
-// impl LeashKnot {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_entity.set_index(index, value)
-//     }
-// }
-// impl Deref for LeashKnot {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for LeashKnot {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct LightningBolt {
-//     pub abstract_entity: AbstractEntity,
-// }
-
-// impl LightningBolt {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         Some(Self { abstract_entity })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata
-//     }
-// }
-
-// impl Default for LightningBolt {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//         }
-//     }
-// }
-
-// impl LightningBolt {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_entity.set_index(index, value)
-//     }
-// }
-// impl Deref for LightningBolt {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for LightningBolt {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Llama {
-//     pub abstract_animal: AbstractAnimal,
-//     pub tamed: bool,
-//     pub eating: bool,
-//     pub standing: bool,
-//     pub bred: bool,
-//     pub saddled: bool,
-//     pub owner_uuid: Option<Uuid>,
-//     pub chest: bool,
-//     pub strength: i32,
-//     pub swag: i32,
-//     pub variant: i32,
-// }
-
-// impl Llama {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let tamed = bitfield & 0x2 != 0;
-//         let eating = bitfield & 0x10 != 0;
-//         let standing = bitfield & 0x20 != 0;
-//         let bred = bitfield & 0x8 != 0;
-//         let saddled = bitfield & 0x4 != 0;
-//         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-//         let chest = metadata.pop_front()?.into_boolean().ok()?;
-//         let strength = metadata.pop_front()?.into_int().ok()?;
-//         let swag = metadata.pop_front()?.into_int().ok()?;
-//         let variant = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             tamed,
-//             eating,
-//             standing,
-//             bred,
-//             saddled,
-//             owner_uuid,
-//             chest,
-//             strength,
-//             swag,
-//             variant,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         let mut bitfield = 0u8;
-//         if self.tamed {
-//             bitfield &= 0x2;
-//         }
-//         if self.eating {
-//             bitfield &= 0x10;
-//         }
-//         if self.standing {
-//             bitfield &= 0x20;
-//         }
-//         if self.bred {
-//             bitfield &= 0x8;
-//         }
-//         if self.saddled {
-//             bitfield &= 0x4;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::OptionalUuid(self.owner_uuid.
-// clone()));         metadata.push(EntityDataValue::Boolean(self.chest.
-// clone()));         metadata.push(EntityDataValue::Int(self.strength.
-// clone()));         metadata.push(EntityDataValue::Int(self.swag.clone()));
-//         metadata.push(EntityDataValue::Int(self.variant.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Llama {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             tamed: false,
-//             eating: false,
-//             standing: false,
-//             bred: false,
-//             saddled: false,
-//             owner_uuid: None,
-//             chest: false,
-//             strength: 0,
-//             swag: -1,
-//             variant: 0,
-//         }
-//     }
-// }
-
-// impl Llama {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.tamed = bitfield & 0x2 != 0;
-//                 self.eating = bitfield & 0x10 != 0;
-//                 self.standing = bitfield & 0x20 != 0;
-//                 self.bred = bitfield & 0x8 != 0;
-//                 self.saddled = bitfield & 0x4 != 0;
-//             }
-//             18 => self.owner_uuid = value.into_optional_uuid().ok()?,
-//             19 => self.chest = value.into_boolean().ok()?,
-//             20 => self.strength = value.into_int().ok()?,
-//             21 => self.swag = value.into_int().ok()?,
-//             22 => self.variant = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Llama {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Llama {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct LlamaSpit {
-//     pub abstract_entity: AbstractEntity,
-// }
-
-// impl LlamaSpit {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         Some(Self { abstract_entity })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata
-//     }
-// }
-
-// impl Default for LlamaSpit {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//         }
-//     }
-// }
-
-// impl LlamaSpit {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_entity.set_index(index, value)
-//     }
-// }
-// impl Deref for LlamaSpit {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for LlamaSpit {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct MagmaCube {
-//     pub slime: Slime,
-// }
-
-// impl MagmaCube {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let slime = Slime::read(metadata)?;
-//         Some(Self { slime })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.slime.write());
-//         metadata
-//     }
-// }
-
-// impl Default for MagmaCube {
-//     fn default() -> Self {
-//         Self {
-//             slime: Default::default(),
-//         }
-//     }
-// }
-
-// impl MagmaCube {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.slime.set_index(index, value)
-//     }
-// }
-// impl Deref for MagmaCube {
-//     type Target = Slime;
-//     fn deref(&self) -> &Self::Target {
-//         &self.slime
-//     }
-// }
-// impl DerefMut for MagmaCube {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.slime
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Marker {
-//     pub abstract_entity: AbstractEntity,
-// }
-
-// impl Marker {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         Some(Self { abstract_entity })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata
-//     }
-// }
-
-// impl Default for Marker {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//         }
-//     }
-// }
-
-// impl Marker {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_entity.set_index(index, value)
-//     }
-// }
-// impl Deref for Marker {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for Marker {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Minecart {
-//     pub abstract_minecart: AbstractMinecart,
-// }
-
-// impl Minecart {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_minecart = AbstractMinecart::read(metadata)?;
-//         Some(Self { abstract_minecart })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_minecart.write());
-//         metadata
-//     }
-// }
-
-// impl Default for Minecart {
-//     fn default() -> Self {
-//         Self {
-//             abstract_minecart: Default::default(),
-//         }
-//     }
-// }
-
-// impl Minecart {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_minecart.set_index(index, value)
-//     }
-// }
-// impl Deref for Minecart {
-//     type Target = AbstractMinecart;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_minecart
-//     }
-// }
-// impl DerefMut for Minecart {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_minecart
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Mooshroom {
-//     pub cow: Cow,
-//     pub kind: String,
-// }
-
-// impl Mooshroom {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let cow = Cow::read(metadata)?;
-//         let kind = metadata.pop_front()?.into_string().ok()?;
-//         Some(Self { cow, kind })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.cow.write());
-//         metadata.push(EntityDataValue::String(self.kind.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Mooshroom {
-//     fn default() -> Self {
-//         Self {
-//             cow: Default::default(),
-//             kind: Default::default(),
-//         }
-//     }
-// }
-
-// impl Mooshroom {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.cow.set_index(index, value)?,
-//             17 => self.kind = value.into_string().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Mooshroom {
-//     type Target = Cow;
-//     fn deref(&self) -> &Self::Target {
-//         &self.cow
-//     }
-// }
-// impl DerefMut for Mooshroom {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.cow
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Mule {
-//     pub abstract_animal: AbstractAnimal,
-//     pub tamed: bool,
-//     pub eating: bool,
-//     pub standing: bool,
-//     pub bred: bool,
-//     pub saddled: bool,
-//     pub owner_uuid: Option<Uuid>,
-//     pub chest: bool,
-// }
-
-// impl Mule {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let tamed = bitfield & 0x2 != 0;
-//         let eating = bitfield & 0x10 != 0;
-//         let standing = bitfield & 0x20 != 0;
-//         let bred = bitfield & 0x8 != 0;
-//         let saddled = bitfield & 0x4 != 0;
-//         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-//         let chest = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             tamed,
-//             eating,
-//             standing,
-//             bred,
-//             saddled,
-//             owner_uuid,
-//             chest,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         let mut bitfield = 0u8;
-//         if self.tamed {
-//             bitfield &= 0x2;
-//         }
-//         if self.eating {
-//             bitfield &= 0x10;
-//         }
-//         if self.standing {
-//             bitfield &= 0x20;
-//         }
-//         if self.bred {
-//             bitfield &= 0x8;
-//         }
-//         if self.saddled {
-//             bitfield &= 0x4;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::OptionalUuid(self.owner_uuid.
-// clone()));         metadata.push(EntityDataValue::Boolean(self.chest.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for Mule {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             tamed: false,
-//             eating: false,
-//             standing: false,
-//             bred: false,
-//             saddled: false,
-//             owner_uuid: None,
-//             chest: false,
-//         }
-//     }
-// }
-
-// impl Mule {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.tamed = bitfield & 0x2 != 0;
-//                 self.eating = bitfield & 0x10 != 0;
-//                 self.standing = bitfield & 0x20 != 0;
-//                 self.bred = bitfield & 0x8 != 0;
-//                 self.saddled = bitfield & 0x4 != 0;
-//             }
-//             18 => self.owner_uuid = value.into_optional_uuid().ok()?,
-//             19 => self.chest = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Mule {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Mule {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Ocelot {
-//     pub abstract_animal: AbstractAnimal,
-//     pub trusting: bool,
-// }
-
-// impl Ocelot {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let trusting = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             trusting,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         metadata.push(EntityDataValue::Boolean(self.trusting.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Ocelot {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             trusting: false,
-//         }
-//     }
-// }
-
-// impl Ocelot {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => self.trusting = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Ocelot {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Ocelot {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Painting {
-//     pub abstract_entity: AbstractEntity,
-//     pub painting_variant: azalea_registry::PaintingVariant,
-// }
-
-// impl Painting {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let painting_variant =
-// metadata.pop_front()?.into_painting_variant().ok()?;         Some(Self {
-//             abstract_entity,
-//             painting_variant,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::PaintingVariant(
-//             self.painting_variant.clone(),
-//         ));
-//         metadata
-//     }
-// }
-
-// impl Default for Painting {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             painting_variant: azalea_registry::PaintingVariant::Kebab,
-//         }
-//     }
-// }
-
-// impl Painting {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.painting_variant = value.into_painting_variant().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Painting {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for Painting {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Panda {
-//     pub abstract_animal: AbstractAnimal,
-//     pub unhappy_counter: i32,
-//     pub sneeze_counter: i32,
-//     pub eat_counter: i32,
-//     pub sneezing: bool,
-//     pub sitting: bool,
-//     pub on_back: bool,
-//     pub rolling: bool,
-//     pub hidden_gene: u8,
-//     pub flags: u8,
-// }
-
-// impl Panda {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let unhappy_counter = metadata.pop_front()?.into_int().ok()?;
-//         let sneeze_counter = metadata.pop_front()?.into_int().ok()?;
-//         let eat_counter = metadata.pop_front()?.into_int().ok()?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let sneezing = bitfield & 0x2 != 0;
-//         let sitting = bitfield & 0x8 != 0;
-//         let on_back = bitfield & 0x10 != 0;
-//         let rolling = bitfield & 0x4 != 0;
-//         let hidden_gene = metadata.pop_front()?.into_byte().ok()?;
-//         let flags = metadata.pop_front()?.into_byte().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             unhappy_counter,
-//             sneeze_counter,
-//             eat_counter,
-//             sneezing,
-//             sitting,
-//             on_back,
-//             rolling,
-//             hidden_gene,
-//             flags,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         metadata.push(EntityDataValue::Int(self.unhappy_counter.clone()));
-//         metadata.push(EntityDataValue::Int(self.sneeze_counter.clone()));
-//         metadata.push(EntityDataValue::Int(self.eat_counter.clone()));
-//         let mut bitfield = 0u8;
-//         if self.sneezing {
-//             bitfield &= 0x2;
-//         }
-//         if self.sitting {
-//             bitfield &= 0x8;
-//         }
-//         if self.on_back {
-//             bitfield &= 0x10;
-//         }
-//         if self.rolling {
-//             bitfield &= 0x4;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::Byte(self.hidden_gene.clone()));
-//         metadata.push(EntityDataValue::Byte(self.flags.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Panda {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             unhappy_counter: 0,
-//             sneeze_counter: 0,
-//             eat_counter: 0,
-//             sneezing: false,
-//             sitting: false,
-//             on_back: false,
-//             rolling: false,
-//             hidden_gene: 0,
-//             flags: 0,
-//         }
-//     }
-// }
-
-// impl Panda {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => self.unhappy_counter = value.into_int().ok()?,
-//             18 => self.sneeze_counter = value.into_int().ok()?,
-//             19 => self.eat_counter = value.into_int().ok()?,
-//             20 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.sneezing = bitfield & 0x2 != 0;
-//                 self.sitting = bitfield & 0x8 != 0;
-//                 self.on_back = bitfield & 0x10 != 0;
-//                 self.rolling = bitfield & 0x4 != 0;
-//             }
-//             21 => self.hidden_gene = value.into_byte().ok()?,
-//             22 => self.flags = value.into_byte().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Panda {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Panda {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Parrot {
-//     pub abstract_tameable: AbstractTameable,
-//     pub variant: i32,
-// }
-
-// impl Parrot {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_tameable = AbstractTameable::read(metadata)?;
-//         let variant = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_tameable,
-//             variant,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_tameable.write());
-//         metadata.push(EntityDataValue::Int(self.variant.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Parrot {
-//     fn default() -> Self {
-//         Self {
-//             abstract_tameable: Default::default(),
-//             variant: 0,
-//         }
-//     }
-// }
-
-// impl Parrot {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=18 => self.abstract_tameable.set_index(index, value)?,
-//             19 => self.variant = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Parrot {
-//     type Target = AbstractTameable;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_tameable
-//     }
-// }
-// impl DerefMut for Parrot {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_tameable
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Phantom {
-//     pub abstract_insentient: AbstractInsentient,
-//     pub size: i32,
-// }
-
-// impl Phantom {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_insentient = AbstractInsentient::read(metadata)?;
-//         let size = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_insentient,
-//             size,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_insentient.write());
-//         metadata.push(EntityDataValue::Int(self.size.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Phantom {
-//     fn default() -> Self {
-//         Self {
-//             abstract_insentient: Default::default(),
-//             size: 0,
-//         }
-//     }
-// }
-
-// impl Phantom {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_insentient.set_index(index, value)?,
-//             16 => self.size = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Phantom {
-//     type Target = AbstractInsentient;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_insentient
-//     }
-// }
-// impl DerefMut for Phantom {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_insentient
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Pig {
-//     pub abstract_animal: AbstractAnimal,
-//     pub saddle: bool,
-//     pub boost_time: i32,
-// }
-
-// impl Pig {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let saddle = metadata.pop_front()?.into_boolean().ok()?;
-//         let boost_time = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             saddle,
-//             boost_time,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         metadata.push(EntityDataValue::Boolean(self.saddle.clone()));
-//         metadata.push(EntityDataValue::Int(self.boost_time.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Pig {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             saddle: false,
-//             boost_time: 0,
-//         }
-//     }
-// }
-
-// impl Pig {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => self.saddle = value.into_boolean().ok()?,
-//             18 => self.boost_time = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Pig {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Pig {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Piglin {
-//     pub abstract_monster: AbstractMonster,
-//     pub immune_to_zombification: bool,
-//     pub baby: bool,
-//     pub is_charging_crossbow: bool,
-//     pub is_dancing: bool,
-// }
-
-// impl Piglin {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let immune_to_zombification =
-// metadata.pop_front()?.into_boolean().ok()?;         let baby =
-// metadata.pop_front()?.into_boolean().ok()?;         let is_charging_crossbow
-// = metadata.pop_front()?.into_boolean().ok()?;         let is_dancing =
-// metadata.pop_front()?.into_boolean().ok()?;         Some(Self {
-//             abstract_monster,
-//             immune_to_zombification,
-//             baby,
-//             is_charging_crossbow,
-//             is_dancing,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Boolean(
-//             self.immune_to_zombification.clone(),
-//         ));
-//         metadata.push(EntityDataValue::Boolean(self.baby.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.is_charging_crossbow.
-// clone()));         metadata.push(EntityDataValue::Boolean(self.is_dancing.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for Piglin {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             immune_to_zombification: false,
-//             baby: false,
-//             is_charging_crossbow: false,
-//             is_dancing: false,
-//         }
-//     }
-// }
-
-// impl Piglin {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.immune_to_zombification = value.into_boolean().ok()?,
-//             17 => self.baby = value.into_boolean().ok()?,
-//             18 => self.is_charging_crossbow = value.into_boolean().ok()?,
-//             19 => self.is_dancing = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Piglin {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Piglin {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct PiglinBrute {
-//     pub abstract_monster: AbstractMonster,
-//     pub immune_to_zombification: bool,
-// }
-
-// impl PiglinBrute {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let immune_to_zombification =
-// metadata.pop_front()?.into_boolean().ok()?;         Some(Self {
-//             abstract_monster,
-//             immune_to_zombification,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Boolean(
-//             self.immune_to_zombification.clone(),
-//         ));
-//         metadata
-//     }
-// }
-
-// impl Default for PiglinBrute {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             immune_to_zombification: false,
-//         }
-//     }
-// }
-
-// impl PiglinBrute {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.immune_to_zombification = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for PiglinBrute {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for PiglinBrute {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Pillager {
-//     pub abstract_monster: AbstractMonster,
-//     pub is_celebrating: bool,
-//     pub is_charging_crossbow: bool,
-// }
-
-// impl Pillager {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
-//         let is_charging_crossbow =
-// metadata.pop_front()?.into_boolean().ok()?;         Some(Self {
-//             abstract_monster,
-//             is_celebrating,
-//             is_charging_crossbow,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.is_charging_crossbow.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for Pillager {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             is_celebrating: false,
-//             is_charging_crossbow: false,
-//         }
-//     }
-// }
-
-// impl Pillager {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.is_celebrating = value.into_boolean().ok()?,
-//             17 => self.is_charging_crossbow = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Pillager {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Pillager {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Player {
-//     pub abstract_living: AbstractLiving,
-//     pub player_absorption: f32,
-//     pub score: i32,
-//     pub player_mode_customisation: u8,
-//     pub player_main_hand: u8,
-//     pub shoulder_left: azalea_nbt::Tag,
-//     pub shoulder_right: azalea_nbt::Tag,
-// }
-
-// impl Player {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_living = AbstractLiving::read(metadata)?;
-//         let player_absorption = metadata.pop_front()?.into_float().ok()?;
-//         let score = metadata.pop_front()?.into_int().ok()?;
-//         let player_mode_customisation =
-// metadata.pop_front()?.into_byte().ok()?;         let player_main_hand =
-// metadata.pop_front()?.into_byte().ok()?;         let shoulder_left =
-// metadata.pop_front()?.into_compound_tag().ok()?;         let shoulder_right =
-// metadata.pop_front()?.into_compound_tag().ok()?;         Some(Self {
-//             abstract_living,
-//             player_absorption,
-//             score,
-//             player_mode_customisation,
-//             player_main_hand,
-//             shoulder_left,
-//             shoulder_right,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_living.write());
-//         metadata.push(EntityDataValue::Float(self.player_absorption.
-// clone()));         metadata.push(EntityDataValue::Int(self.score.clone()));
-//         metadata.push(EntityDataValue::Byte(
-//             self.player_mode_customisation.clone(),
-//         ));
-//         metadata.push(EntityDataValue::Byte(self.player_main_hand.clone()));
-//         metadata.push(EntityDataValue::CompoundTag(self.shoulder_left.
-// clone()));         metadata.push(EntityDataValue::CompoundTag(self.
-// shoulder_right.clone()));         metadata
-//     }
-// }
-
-// impl Default for Player {
-//     fn default() -> Self {
-//         Self {
-//             abstract_living: Default::default(),
-//             player_absorption: 0.0,
-//             score: 0,
-//             player_mode_customisation: 0,
-//             player_main_hand: 1,
-//             shoulder_left: azalea_nbt::Tag::Compound(Default::default()),
-//             shoulder_right: azalea_nbt::Tag::Compound(Default::default()),
-//         }
-//     }
-// }
-
-// impl Player {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=14 => self.abstract_living.set_index(index, value)?,
-//             15 => self.player_absorption = value.into_float().ok()?,
-//             16 => self.score = value.into_int().ok()?,
-//             17 => self.player_mode_customisation = value.into_byte().ok()?,
-//             18 => self.player_main_hand = value.into_byte().ok()?,
-//             19 => self.shoulder_left = value.into_compound_tag().ok()?,
-//             20 => self.shoulder_right = value.into_compound_tag().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Player {
-//     type Target = AbstractLiving;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_living
-//     }
-// }
-// impl DerefMut for Player {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_living
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct PolarBear {
-//     pub abstract_animal: AbstractAnimal,
-//     pub standing: bool,
-// }
-
-// impl PolarBear {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let standing = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             standing,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         metadata.push(EntityDataValue::Boolean(self.standing.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for PolarBear {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             standing: false,
-//         }
-//     }
-// }
-
-// impl PolarBear {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => self.standing = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for PolarBear {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for PolarBear {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Potion {
-//     pub abstract_entity: AbstractEntity,
-//     pub item_stack: Slot,
-// }
-
-// impl Potion {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             item_stack,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Potion {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             item_stack: Slot::Empty,
-//         }
-//     }
-// }
-
-// impl Potion {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.item_stack = value.into_item_stack().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Potion {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for Potion {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Pufferfish {
-//     pub abstract_creature: AbstractCreature,
-//     pub from_bucket: bool,
-//     pub puff_state: i32,
-// }
-
-// impl Pufferfish {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_creature = AbstractCreature::read(metadata)?;
-//         let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
-//         let puff_state = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_creature,
-//             from_bucket,
-//             puff_state,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_creature.write());
-//         metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
-//         metadata.push(EntityDataValue::Int(self.puff_state.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Pufferfish {
-//     fn default() -> Self {
-//         Self {
-//             abstract_creature: Default::default(),
-//             from_bucket: false,
-//             puff_state: 0,
-//         }
-//     }
-// }
-
-// impl Pufferfish {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_creature.set_index(index, value)?,
-//             16 => self.from_bucket = value.into_boolean().ok()?,
-//             17 => self.puff_state = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Pufferfish {
-//     type Target = AbstractCreature;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_creature
-//     }
-// }
-// impl DerefMut for Pufferfish {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_creature
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Rabbit {
-//     pub abstract_animal: AbstractAnimal,
-//     pub kind: i32,
-// }
-
-// impl Rabbit {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let kind = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             kind,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         metadata.push(EntityDataValue::Int(self.kind.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Rabbit {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             kind: Default::default(),
-//         }
-//     }
-// }
-
-// impl Rabbit {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => self.kind = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Rabbit {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Rabbit {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Ravager {
-//     pub abstract_monster: AbstractMonster,
-//     pub is_celebrating: bool,
-// }
-
-// impl Ravager {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_monster,
-//             is_celebrating,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Ravager {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             is_celebrating: false,
-//         }
-//     }
-// }
-
-// impl Ravager {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.is_celebrating = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Ravager {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Ravager {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Salmon {
-//     pub abstract_creature: AbstractCreature,
-//     pub from_bucket: bool,
-// }
-
-// impl Salmon {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_creature = AbstractCreature::read(metadata)?;
-//         let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_creature,
-//             from_bucket,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_creature.write());
-//         metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Salmon {
-//     fn default() -> Self {
-//         Self {
-//             abstract_creature: Default::default(),
-//             from_bucket: false,
-//         }
-//     }
-// }
-
-// impl Salmon {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_creature.set_index(index, value)?,
-//             16 => self.from_bucket = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Salmon {
-//     type Target = AbstractCreature;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_creature
-//     }
-// }
-// impl DerefMut for Salmon {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_creature
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Sheep {
-//     pub abstract_animal: AbstractAnimal,
-//     pub sheared: bool,
-// }
-
-// impl Sheep {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let sheared = bitfield & 0x10 != 0;
-//         Some(Self {
-//             abstract_animal,
-//             sheared,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         let mut bitfield = 0u8;
-//         if self.sheared {
-//             bitfield &= 0x10;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata
-//     }
-// }
-
-// impl Default for Sheep {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             sheared: false,
-//         }
-//     }
-// }
-
-// impl Sheep {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.sheared = bitfield & 0x10 != 0;
-//             }
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Sheep {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Sheep {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Shulker {
-//     pub abstract_creature: AbstractCreature,
-//     pub attach_face: Direction,
-//     pub peek: u8,
-//     pub color: u8,
-// }
-
-// impl Shulker {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_creature = AbstractCreature::read(metadata)?;
-//         let attach_face = metadata.pop_front()?.into_direction().ok()?;
-//         let peek = metadata.pop_front()?.into_byte().ok()?;
-//         let color = metadata.pop_front()?.into_byte().ok()?;
-//         Some(Self {
-//             abstract_creature,
-//             attach_face,
-//             peek,
-//             color,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_creature.write());
-//         metadata.push(EntityDataValue::Direction(self.attach_face.clone()));
-//         metadata.push(EntityDataValue::Byte(self.peek.clone()));
-//         metadata.push(EntityDataValue::Byte(self.color.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Shulker {
-//     fn default() -> Self {
-//         Self {
-//             abstract_creature: Default::default(),
-//             attach_face: Default::default(),
-//             peek: 0,
-//             color: 16,
-//         }
-//     }
-// }
-
-// impl Shulker {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_creature.set_index(index, value)?,
-//             16 => self.attach_face = value.into_direction().ok()?,
-//             17 => self.peek = value.into_byte().ok()?,
-//             18 => self.color = value.into_byte().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Shulker {
-//     type Target = AbstractCreature;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_creature
-//     }
-// }
-// impl DerefMut for Shulker {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_creature
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct ShulkerBullet {
-//     pub abstract_entity: AbstractEntity,
-// }
-
-// impl ShulkerBullet {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         Some(Self { abstract_entity })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata
-//     }
-// }
-
-// impl Default for ShulkerBullet {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//         }
-//     }
-// }
-
-// impl ShulkerBullet {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_entity.set_index(index, value)
-//     }
-// }
-// impl Deref for ShulkerBullet {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for ShulkerBullet {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Silverfish {
-//     pub abstract_monster: AbstractMonster,
-// }
-
-// impl Silverfish {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         Some(Self { abstract_monster })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata
-//     }
-// }
-
-// impl Default for Silverfish {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//         }
-//     }
-// }
-
-// impl Silverfish {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_monster.set_index(index, value)
-//     }
-// }
-// impl Deref for Silverfish {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Silverfish {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Skeleton {
-//     pub abstract_monster: AbstractMonster,
-//     pub stray_conversion: bool,
-// }
-
-// impl Skeleton {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let stray_conversion = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_monster,
-//             stray_conversion,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Boolean(self.stray_conversion.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for Skeleton {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             stray_conversion: false,
-//         }
-//     }
-// }
-
-// impl Skeleton {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.stray_conversion = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Skeleton {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Skeleton {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct SkeletonHorse {
-//     pub abstract_animal: AbstractAnimal,
-//     pub tamed: bool,
-//     pub eating: bool,
-//     pub standing: bool,
-//     pub bred: bool,
-//     pub saddled: bool,
-//     pub owner_uuid: Option<Uuid>,
-// }
-
-// impl SkeletonHorse {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let tamed = bitfield & 0x2 != 0;
-//         let eating = bitfield & 0x10 != 0;
-//         let standing = bitfield & 0x20 != 0;
-//         let bred = bitfield & 0x8 != 0;
-//         let saddled = bitfield & 0x4 != 0;
-//         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             tamed,
-//             eating,
-//             standing,
-//             bred,
-//             saddled,
-//             owner_uuid,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         let mut bitfield = 0u8;
-//         if self.tamed {
-//             bitfield &= 0x2;
-//         }
-//         if self.eating {
-//             bitfield &= 0x10;
-//         }
-//         if self.standing {
-//             bitfield &= 0x20;
-//         }
-//         if self.bred {
-//             bitfield &= 0x8;
-//         }
-//         if self.saddled {
-//             bitfield &= 0x4;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::OptionalUuid(self.owner_uuid.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for SkeletonHorse {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             tamed: false,
-//             eating: false,
-//             standing: false,
-//             bred: false,
-//             saddled: false,
-//             owner_uuid: None,
-//         }
-//     }
-// }
-
-// impl SkeletonHorse {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.tamed = bitfield & 0x2 != 0;
-//                 self.eating = bitfield & 0x10 != 0;
-//                 self.standing = bitfield & 0x20 != 0;
-//                 self.bred = bitfield & 0x8 != 0;
-//                 self.saddled = bitfield & 0x4 != 0;
-//             }
-//             18 => self.owner_uuid = value.into_optional_uuid().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for SkeletonHorse {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for SkeletonHorse {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Slime {
-//     pub abstract_insentient: AbstractInsentient,
-//     pub size: i32,
-// }
-
-// impl Slime {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_insentient = AbstractInsentient::read(metadata)?;
-//         let size = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_insentient,
-//             size,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_insentient.write());
-//         metadata.push(EntityDataValue::Int(self.size.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Slime {
-//     fn default() -> Self {
-//         Self {
-//             abstract_insentient: Default::default(),
-//             size: 1,
-//         }
-//     }
-// }
-
-// impl Slime {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_insentient.set_index(index, value)?,
-//             16 => self.size = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Slime {
-//     type Target = AbstractInsentient;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_insentient
-//     }
-// }
-// impl DerefMut for Slime {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_insentient
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct SmallFireball {
-//     pub abstract_entity: AbstractEntity,
-//     pub item_stack: Slot,
-// }
-
-// impl SmallFireball {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             item_stack,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for SmallFireball {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             item_stack: Slot::Empty,
-//         }
-//     }
-// }
-
-// impl SmallFireball {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.item_stack = value.into_item_stack().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for SmallFireball {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for SmallFireball {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct SnowGolem {
-//     pub abstract_creature: AbstractCreature,
-//     pub has_pumpkin: bool,
-// }
-
-// impl SnowGolem {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_creature = AbstractCreature::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let has_pumpkin = bitfield & 0x10 != 0;
-//         Some(Self {
-//             abstract_creature,
-//             has_pumpkin,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_creature.write());
-//         let mut bitfield = 0u8;
-//         if self.has_pumpkin {
-//             bitfield &= 0x10;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata
-//     }
-// }
-
-// impl Default for SnowGolem {
-//     fn default() -> Self {
-//         Self {
-//             abstract_creature: Default::default(),
-//             has_pumpkin: true,
-//         }
-//     }
-// }
-
-// impl SnowGolem {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_creature.set_index(index, value)?,
-//             16 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.has_pumpkin = bitfield & 0x10 != 0;
-//             }
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for SnowGolem {
-//     type Target = AbstractCreature;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_creature
-//     }
-// }
-// impl DerefMut for SnowGolem {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_creature
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Snowball {
-//     pub abstract_entity: AbstractEntity,
-//     pub item_stack: Slot,
-// }
-
-// impl Snowball {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             item_stack,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Snowball {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             item_stack: Slot::Empty,
-//         }
-//     }
-// }
-
-// impl Snowball {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.item_stack = value.into_item_stack().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Snowball {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for Snowball {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct SpawnerMinecart {
-//     pub abstract_minecart: AbstractMinecart,
-// }
-
-// impl SpawnerMinecart {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_minecart = AbstractMinecart::read(metadata)?;
-//         Some(Self { abstract_minecart })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_minecart.write());
-//         metadata
-//     }
-// }
-
-// impl Default for SpawnerMinecart {
-//     fn default() -> Self {
-//         Self {
-//             abstract_minecart: Default::default(),
-//         }
-//     }
-// }
-
-// impl SpawnerMinecart {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_minecart.set_index(index, value)
-//     }
-// }
-// impl Deref for SpawnerMinecart {
-//     type Target = AbstractMinecart;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_minecart
-//     }
-// }
-// impl DerefMut for SpawnerMinecart {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_minecart
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct SpectralArrow {
-//     pub abstract_entity: AbstractEntity,
-//     pub crit_arrow: bool,
-//     pub shot_from_crossbow: bool,
-//     pub no_physics: bool,
-//     pub pierce_level: u8,
-// }
-
-// impl SpectralArrow {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let crit_arrow = bitfield & 0x1 != 0;
-//         let shot_from_crossbow = bitfield & 0x4 != 0;
-//         let no_physics = bitfield & 0x2 != 0;
-//         let pierce_level = metadata.pop_front()?.into_byte().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             crit_arrow,
-//             shot_from_crossbow,
-//             no_physics,
-//             pierce_level,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         let mut bitfield = 0u8;
-//         if self.crit_arrow {
-//             bitfield &= 0x1;
-//         }
-//         if self.shot_from_crossbow {
-//             bitfield &= 0x4;
-//         }
-//         if self.no_physics {
-//             bitfield &= 0x2;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::Byte(self.pierce_level.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for SpectralArrow {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             crit_arrow: false,
-//             shot_from_crossbow: false,
-//             no_physics: false,
-//             pierce_level: 0,
-//         }
-//     }
-// }
-
-// impl SpectralArrow {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.crit_arrow = bitfield & 0x1 != 0;
-//                 self.shot_from_crossbow = bitfield & 0x4 != 0;
-//                 self.no_physics = bitfield & 0x2 != 0;
-//             }
-//             9 => self.pierce_level = value.into_byte().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for SpectralArrow {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for SpectralArrow {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Spider {
-//     pub abstract_monster: AbstractMonster,
-//     pub climbing: bool,
-// }
-
-// impl Spider {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let climbing = bitfield & 0x1 != 0;
-//         Some(Self {
-//             abstract_monster,
-//             climbing,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         let mut bitfield = 0u8;
-//         if self.climbing {
-//             bitfield &= 0x1;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata
-//     }
-// }
-
-// impl Default for Spider {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             climbing: false,
-//         }
-//     }
-// }
-
-// impl Spider {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.climbing = bitfield & 0x1 != 0;
-//             }
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Spider {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Spider {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Squid {
-//     pub abstract_creature: AbstractCreature,
-// }
-
-// impl Squid {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_creature = AbstractCreature::read(metadata)?;
-//         Some(Self { abstract_creature })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_creature.write());
-//         metadata
-//     }
-// }
-
-// impl Default for Squid {
-//     fn default() -> Self {
-//         Self {
-//             abstract_creature: Default::default(),
-//         }
-//     }
-// }
-
-// impl Squid {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_creature.set_index(index, value)
-//     }
-// }
-// impl Deref for Squid {
-//     type Target = AbstractCreature;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_creature
-//     }
-// }
-// impl DerefMut for Squid {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_creature
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Stray {
-//     pub abstract_monster: AbstractMonster,
-// }
-
-// impl Stray {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         Some(Self { abstract_monster })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata
-//     }
-// }
-
-// impl Default for Stray {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//         }
-//     }
-// }
-
-// impl Stray {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_monster.set_index(index, value)
-//     }
-// }
-// impl Deref for Stray {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Stray {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Strider {
-//     pub abstract_animal: AbstractAnimal,
-//     pub boost_time: i32,
-//     pub suffocating: bool,
-//     pub saddle: bool,
-// }
-
-// impl Strider {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let boost_time = metadata.pop_front()?.into_int().ok()?;
-//         let suffocating = metadata.pop_front()?.into_boolean().ok()?;
-//         let saddle = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             boost_time,
-//             suffocating,
-//             saddle,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         metadata.push(EntityDataValue::Int(self.boost_time.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.suffocating.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.saddle.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Strider {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             boost_time: 0,
-//             suffocating: false,
-//             saddle: false,
-//         }
-//     }
-// }
-
-// impl Strider {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => self.boost_time = value.into_int().ok()?,
-//             18 => self.suffocating = value.into_boolean().ok()?,
-//             19 => self.saddle = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Strider {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Strider {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Tadpole {
-//     pub abstract_creature: AbstractCreature,
-//     pub from_bucket: bool,
-// }
-
-// impl Tadpole {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_creature = AbstractCreature::read(metadata)?;
-//         let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_creature,
-//             from_bucket,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_creature.write());
-//         metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Tadpole {
-//     fn default() -> Self {
-//         Self {
-//             abstract_creature: Default::default(),
-//             from_bucket: false,
-//         }
-//     }
-// }
-
-// impl Tadpole {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_creature.set_index(index, value)?,
-//             16 => self.from_bucket = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Tadpole {
-//     type Target = AbstractCreature;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_creature
-//     }
-// }
-// impl DerefMut for Tadpole {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_creature
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Tnt {
-//     pub abstract_entity: AbstractEntity,
-//     pub fuse: i32,
-// }
-
-// impl Tnt {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let fuse = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             fuse,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::Int(self.fuse.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Tnt {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             fuse: 80,
-//         }
-//     }
-// }
-
-// impl Tnt {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.fuse = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Tnt {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for Tnt {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct TntMinecart {
-//     pub abstract_minecart: AbstractMinecart,
-// }
-
-// impl TntMinecart {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_minecart = AbstractMinecart::read(metadata)?;
-//         Some(Self { abstract_minecart })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_minecart.write());
-//         metadata
-//     }
-// }
-
-// impl Default for TntMinecart {
-//     fn default() -> Self {
-//         Self {
-//             abstract_minecart: Default::default(),
-//         }
-//     }
-// }
-
-// impl TntMinecart {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_minecart.set_index(index, value)
-//     }
-// }
-// impl Deref for TntMinecart {
-//     type Target = AbstractMinecart;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_minecart
-//     }
-// }
-// impl DerefMut for TntMinecart {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_minecart
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct TraderLlama {
-//     pub llama: Llama,
-// }
-
-// impl TraderLlama {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let llama = Llama::read(metadata)?;
-//         Some(Self { llama })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.llama.write());
-//         metadata
-//     }
-// }
-
-// impl Default for TraderLlama {
-//     fn default() -> Self {
-//         Self {
-//             llama: Default::default(),
-//         }
-//     }
-// }
-
-// impl TraderLlama {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.llama.set_index(index, value)
-//     }
-// }
-// impl Deref for TraderLlama {
-//     type Target = Llama;
-//     fn deref(&self) -> &Self::Target {
-//         &self.llama
-//     }
-// }
-// impl DerefMut for TraderLlama {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.llama
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Trident {
-//     pub abstract_entity: AbstractEntity,
-//     pub crit_arrow: bool,
-//     pub shot_from_crossbow: bool,
-//     pub no_physics: bool,
-//     pub pierce_level: u8,
-//     pub loyalty: u8,
-//     pub foil: bool,
-// }
-
-// impl Trident {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let crit_arrow = bitfield & 0x1 != 0;
-//         let shot_from_crossbow = bitfield & 0x4 != 0;
-//         let no_physics = bitfield & 0x2 != 0;
-//         let pierce_level = metadata.pop_front()?.into_byte().ok()?;
-//         let loyalty = metadata.pop_front()?.into_byte().ok()?;
-//         let foil = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             crit_arrow,
-//             shot_from_crossbow,
-//             no_physics,
-//             pierce_level,
-//             loyalty,
-//             foil,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         let mut bitfield = 0u8;
-//         if self.crit_arrow {
-//             bitfield &= 0x1;
-//         }
-//         if self.shot_from_crossbow {
-//             bitfield &= 0x4;
-//         }
-//         if self.no_physics {
-//             bitfield &= 0x2;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::Byte(self.pierce_level.clone()));
-//         metadata.push(EntityDataValue::Byte(self.loyalty.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.foil.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Trident {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             crit_arrow: false,
-//             shot_from_crossbow: false,
-//             no_physics: false,
-//             pierce_level: 0,
-//             loyalty: 0,
-//             foil: false,
-//         }
-//     }
-// }
-
-// impl Trident {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.crit_arrow = bitfield & 0x1 != 0;
-//                 self.shot_from_crossbow = bitfield & 0x4 != 0;
-//                 self.no_physics = bitfield & 0x2 != 0;
-//             }
-//             9 => self.pierce_level = value.into_byte().ok()?,
-//             10 => self.loyalty = value.into_byte().ok()?,
-//             11 => self.foil = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Trident {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for Trident {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct TropicalFish {
-//     pub abstract_creature: AbstractCreature,
-//     pub from_bucket: bool,
-//     pub type_variant: i32,
-// }
-
-// impl TropicalFish {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_creature = AbstractCreature::read(metadata)?;
-//         let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
-//         let type_variant = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_creature,
-//             from_bucket,
-//             type_variant,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_creature.write());
-//         metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
-//         metadata.push(EntityDataValue::Int(self.type_variant.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for TropicalFish {
-//     fn default() -> Self {
-//         Self {
-//             abstract_creature: Default::default(),
-//             from_bucket: false,
-//             type_variant: 0,
-//         }
-//     }
-// }
-
-// impl TropicalFish {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_creature.set_index(index, value)?,
-//             16 => self.from_bucket = value.into_boolean().ok()?,
-//             17 => self.type_variant = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for TropicalFish {
-//     type Target = AbstractCreature;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_creature
-//     }
-// }
-// impl DerefMut for TropicalFish {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_creature
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Turtle {
-//     pub abstract_animal: AbstractAnimal,
-//     pub home_pos: BlockPos,
-//     pub has_egg: bool,
-//     pub laying_egg: bool,
-//     pub travel_pos: BlockPos,
-//     pub going_home: bool,
-//     pub travelling: bool,
-// }
-
-// impl Turtle {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let home_pos = metadata.pop_front()?.into_block_pos().ok()?;
-//         let has_egg = metadata.pop_front()?.into_boolean().ok()?;
-//         let laying_egg = metadata.pop_front()?.into_boolean().ok()?;
-//         let travel_pos = metadata.pop_front()?.into_block_pos().ok()?;
-//         let going_home = metadata.pop_front()?.into_boolean().ok()?;
-//         let travelling = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             home_pos,
-//             has_egg,
-//             laying_egg,
-//             travel_pos,
-//             going_home,
-//             travelling,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         metadata.push(EntityDataValue::BlockPos(self.home_pos.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.has_egg.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.laying_egg.clone()));
-//         metadata.push(EntityDataValue::BlockPos(self.travel_pos.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.going_home.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.travelling.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Turtle {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             home_pos: BlockPos::new(0, 0, 0),
-//             has_egg: false,
-//             laying_egg: false,
-//             travel_pos: BlockPos::new(0, 0, 0),
-//             going_home: false,
-//             travelling: false,
-//         }
-//     }
-// }
-
-// impl Turtle {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => self.home_pos = value.into_block_pos().ok()?,
-//             18 => self.has_egg = value.into_boolean().ok()?,
-//             19 => self.laying_egg = value.into_boolean().ok()?,
-//             20 => self.travel_pos = value.into_block_pos().ok()?,
-//             21 => self.going_home = value.into_boolean().ok()?,
-//             22 => self.travelling = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Turtle {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for Turtle {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Vex {
-//     pub abstract_monster: AbstractMonster,
-//     pub flags: u8,
-// }
-
-// impl Vex {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let flags = metadata.pop_front()?.into_byte().ok()?;
-//         Some(Self {
-//             abstract_monster,
-//             flags,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Byte(self.flags.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Vex {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             flags: 0,
-//         }
-//     }
-// }
-
-// impl Vex {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.flags = value.into_byte().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Vex {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Vex {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Villager {
-//     pub abstract_ageable: AbstractAgeable,
-//     pub unhappy_counter: i32,
-//     pub villager_data: VillagerData,
-// }
-
-// impl Villager {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_ageable = AbstractAgeable::read(metadata)?;
-//         let unhappy_counter = metadata.pop_front()?.into_int().ok()?;
-//         let villager_data = metadata.pop_front()?.into_villager_data().ok()?;
-//         Some(Self {
-//             abstract_ageable,
-//             unhappy_counter,
-//             villager_data,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_ageable.write());
-//         metadata.push(EntityDataValue::Int(self.unhappy_counter.clone()));
-//         metadata.push(EntityDataValue::VillagerData(self.villager_data.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for Villager {
-//     fn default() -> Self {
-//         Self {
-//             abstract_ageable: Default::default(),
-//             unhappy_counter: 0,
-//             villager_data: VillagerData {
-//                 kind: azalea_registry::VillagerType::Plains,
-//                 profession: azalea_registry::VillagerProfession::None,
-//                 level: 0,
-//             },
-//         }
-//     }
-// }
-
-// impl Villager {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_ageable.set_index(index, value)?,
-//             17 => self.unhappy_counter = value.into_int().ok()?,
-//             18 => self.villager_data = value.into_villager_data().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Villager {
-//     type Target = AbstractAgeable;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_ageable
-//     }
-// }
-// impl DerefMut for Villager {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_ageable
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Vindicator {
-//     pub abstract_monster: AbstractMonster,
-//     pub is_celebrating: bool,
-// }
-
-// impl Vindicator {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_monster,
-//             is_celebrating,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Vindicator {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             is_celebrating: false,
-//         }
-//     }
-// }
-
-// impl Vindicator {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.is_celebrating = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Vindicator {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Vindicator {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct WanderingTrader {
-//     pub abstract_ageable: AbstractAgeable,
-//     pub unhappy_counter: i32,
-// }
-
-// impl WanderingTrader {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_ageable = AbstractAgeable::read(metadata)?;
-//         let unhappy_counter = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_ageable,
-//             unhappy_counter,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_ageable.write());
-//         metadata.push(EntityDataValue::Int(self.unhappy_counter.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for WanderingTrader {
-//     fn default() -> Self {
-//         Self {
-//             abstract_ageable: Default::default(),
-//             unhappy_counter: 0,
-//         }
-//     }
-// }
-
-// impl WanderingTrader {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_ageable.set_index(index, value)?,
-//             17 => self.unhappy_counter = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for WanderingTrader {
-//     type Target = AbstractAgeable;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_ageable
-//     }
-// }
-// impl DerefMut for WanderingTrader {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_ageable
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Warden {
-//     pub abstract_monster: AbstractMonster,
-//     pub client_anger_level: i32,
-// }
-
-// impl Warden {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let client_anger_level = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_monster,
-//             client_anger_level,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Int(self.client_anger_level.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Warden {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             client_anger_level: 0,
-//         }
-//     }
-// }
-
-// impl Warden {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.client_anger_level = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Warden {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Warden {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Witch {
-//     pub abstract_monster: AbstractMonster,
-//     pub is_celebrating: bool,
-//     pub using_item: bool,
-// }
-
-// impl Witch {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
-//         let using_item = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_monster,
-//             is_celebrating,
-//             using_item,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.using_item.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Witch {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             is_celebrating: false,
-//             using_item: false,
-//         }
-//     }
-// }
-
-// impl Witch {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.is_celebrating = value.into_boolean().ok()?,
-//             17 => self.using_item = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Witch {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Witch {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Wither {
-//     pub abstract_monster: AbstractMonster,
-//     pub target_a: i32,
-//     pub target_b: i32,
-//     pub target_c: i32,
-//     pub inv: i32,
-// }
-
-// impl Wither {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let target_a = metadata.pop_front()?.into_int().ok()?;
-//         let target_b = metadata.pop_front()?.into_int().ok()?;
-//         let target_c = metadata.pop_front()?.into_int().ok()?;
-//         let inv = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_monster,
-//             target_a,
-//             target_b,
-//             target_c,
-//             inv,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Int(self.target_a.clone()));
-//         metadata.push(EntityDataValue::Int(self.target_b.clone()));
-//         metadata.push(EntityDataValue::Int(self.target_c.clone()));
-//         metadata.push(EntityDataValue::Int(self.inv.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Wither {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             target_a: 0,
-//             target_b: 0,
-//             target_c: 0,
-//             inv: 0,
-//         }
-//     }
-// }
-
-// impl Wither {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.target_a = value.into_int().ok()?,
-//             17 => self.target_b = value.into_int().ok()?,
-//             18 => self.target_c = value.into_int().ok()?,
-//             19 => self.inv = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Wither {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Wither {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct WitherSkeleton {
-//     pub abstract_monster: AbstractMonster,
-// }
-
-// impl WitherSkeleton {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         Some(Self { abstract_monster })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata
-//     }
-// }
-
-// impl Default for WitherSkeleton {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//         }
-//     }
-// }
-
-// impl WitherSkeleton {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_monster.set_index(index, value)
-//     }
-// }
-// impl Deref for WitherSkeleton {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for WitherSkeleton {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct WitherSkull {
-//     pub abstract_entity: AbstractEntity,
-//     pub dangerous: bool,
-// }
-
-// impl WitherSkull {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let dangerous = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             dangerous,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::Boolean(self.dangerous.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for WitherSkull {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             dangerous: false,
-//         }
-//     }
-// }
-
-// impl WitherSkull {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.dangerous = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for WitherSkull {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for WitherSkull {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Wolf {
-//     pub abstract_tameable: AbstractTameable,
-//     pub interested: bool,
-//     pub collar_color: i32,
-//     pub remaining_anger_time: i32,
-// }
-
-// impl Wolf {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_tameable = AbstractTameable::read(metadata)?;
-//         let interested = metadata.pop_front()?.into_boolean().ok()?;
-//         let collar_color = metadata.pop_front()?.into_int().ok()?;
-//         let remaining_anger_time = metadata.pop_front()?.into_int().ok()?;
-//         Some(Self {
-//             abstract_tameable,
-//             interested,
-//             collar_color,
-//             remaining_anger_time,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_tameable.write());
-//         metadata.push(EntityDataValue::Boolean(self.interested.clone()));
-//         metadata.push(EntityDataValue::Int(self.collar_color.clone()));
-//         metadata.push(EntityDataValue::Int(self.remaining_anger_time.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for Wolf {
-//     fn default() -> Self {
-//         Self {
-//             abstract_tameable: Default::default(),
-//             interested: false,
-//             collar_color: Default::default(),
-//             remaining_anger_time: 0,
-//         }
-//     }
-// }
-
-// impl Wolf {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=18 => self.abstract_tameable.set_index(index, value)?,
-//             19 => self.interested = value.into_boolean().ok()?,
-//             20 => self.collar_color = value.into_int().ok()?,
-//             21 => self.remaining_anger_time = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Wolf {
-//     type Target = AbstractTameable;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_tameable
-//     }
-// }
-// impl DerefMut for Wolf {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_tameable
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Zoglin {
-//     pub abstract_monster: AbstractMonster,
-//     pub baby: bool,
-// }
-
-// impl Zoglin {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let baby = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_monster,
-//             baby,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Boolean(self.baby.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for Zoglin {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             baby: false,
-//         }
-//     }
-// }
-
-// impl Zoglin {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.baby = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Zoglin {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Zoglin {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct Zombie {
-//     pub abstract_monster: AbstractMonster,
-//     pub baby: bool,
-//     pub special_type: i32,
-//     pub drowned_conversion: bool,
-// }
-
-// impl Zombie {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_monster = AbstractMonster::read(metadata)?;
-//         let baby = metadata.pop_front()?.into_boolean().ok()?;
-//         let special_type = metadata.pop_front()?.into_int().ok()?;
-//         let drowned_conversion = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_monster,
-//             baby,
-//             special_type,
-//             drowned_conversion,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_monster.write());
-//         metadata.push(EntityDataValue::Boolean(self.baby.clone()));
-//         metadata.push(EntityDataValue::Int(self.special_type.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.drowned_conversion.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for Zombie {
-//     fn default() -> Self {
-//         Self {
-//             abstract_monster: Default::default(),
-//             baby: false,
-//             special_type: 0,
-//             drowned_conversion: false,
-//         }
-//     }
-// }
-
-// impl Zombie {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_monster.set_index(index, value)?,
-//             16 => self.baby = value.into_boolean().ok()?,
-//             17 => self.special_type = value.into_int().ok()?,
-//             18 => self.drowned_conversion = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for Zombie {
-//     type Target = AbstractMonster;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_monster
-//     }
-// }
-// impl DerefMut for Zombie {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_monster
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct ZombieHorse {
-//     pub abstract_animal: AbstractAnimal,
-//     pub tamed: bool,
-//     pub eating: bool,
-//     pub standing: bool,
-//     pub bred: bool,
-//     pub saddled: bool,
-//     pub owner_uuid: Option<Uuid>,
-// }
-
-// impl ZombieHorse {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let tamed = bitfield & 0x2 != 0;
-//         let eating = bitfield & 0x10 != 0;
-//         let standing = bitfield & 0x20 != 0;
-//         let bred = bitfield & 0x8 != 0;
-//         let saddled = bitfield & 0x4 != 0;
-//         let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             tamed,
-//             eating,
-//             standing,
-//             bred,
-//             saddled,
-//             owner_uuid,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         let mut bitfield = 0u8;
-//         if self.tamed {
-//             bitfield &= 0x2;
-//         }
-//         if self.eating {
-//             bitfield &= 0x10;
-//         }
-//         if self.standing {
-//             bitfield &= 0x20;
-//         }
-//         if self.bred {
-//             bitfield &= 0x8;
-//         }
-//         if self.saddled {
-//             bitfield &= 0x4;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::OptionalUuid(self.owner_uuid.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for ZombieHorse {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             tamed: false,
-//             eating: false,
-//             standing: false,
-//             bred: false,
-//             saddled: false,
-//             owner_uuid: None,
-//         }
-//     }
-// }
-
-// impl ZombieHorse {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.tamed = bitfield & 0x2 != 0;
-//                 self.eating = bitfield & 0x10 != 0;
-//                 self.standing = bitfield & 0x20 != 0;
-//                 self.bred = bitfield & 0x8 != 0;
-//                 self.saddled = bitfield & 0x4 != 0;
-//             }
-//             18 => self.owner_uuid = value.into_optional_uuid().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for ZombieHorse {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for ZombieHorse {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct ZombieVillager {
-//     pub zombie: Zombie,
-//     pub converting: bool,
-//     pub villager_data: VillagerData,
-// }
-
-// impl ZombieVillager {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let zombie = Zombie::read(metadata)?;
-//         let converting = metadata.pop_front()?.into_boolean().ok()?;
-//         let villager_data = metadata.pop_front()?.into_villager_data().ok()?;
-//         Some(Self {
-//             zombie,
-//             converting,
-//             villager_data,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.zombie.write());
-//         metadata.push(EntityDataValue::Boolean(self.converting.clone()));
-//         metadata.push(EntityDataValue::VillagerData(self.villager_data.
-// clone()));         metadata
-//     }
-// }
-
-// impl Default for ZombieVillager {
-//     fn default() -> Self {
-//         Self {
-//             zombie: Default::default(),
-//             converting: false,
-//             villager_data: VillagerData {
-//                 kind: azalea_registry::VillagerType::Plains,
-//                 profession: azalea_registry::VillagerProfession::None,
-//                 level: 0,
-//             },
-//         }
-//     }
-// }
-
-// impl ZombieVillager {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=18 => self.zombie.set_index(index, value)?,
-//             19 => self.converting = value.into_boolean().ok()?,
-//             20 => self.villager_data = value.into_villager_data().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for ZombieVillager {
-//     type Target = Zombie;
-//     fn deref(&self) -> &Self::Target {
-//         &self.zombie
-//     }
-// }
-// impl DerefMut for ZombieVillager {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.zombie
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct ZombifiedPiglin {
-//     pub zombie: Zombie,
-// }
-
-// impl ZombifiedPiglin {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let zombie = Zombie::read(metadata)?;
-//         Some(Self { zombie })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.zombie.write());
-//         metadata
-//     }
-// }
-
-// impl Default for ZombifiedPiglin {
-//     fn default() -> Self {
-//         Self {
-//             zombie: Default::default(),
-//         }
-//     }
-// }
-
-// impl ZombifiedPiglin {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.zombie.set_index(index, value)
-//     }
-// }
-// impl Deref for ZombifiedPiglin {
-//     type Target = Zombie;
-//     fn deref(&self) -> &Self::Target {
-//         &self.zombie
-//     }
-// }
-// impl DerefMut for ZombifiedPiglin {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.zombie
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct AbstractAgeable {
-//     pub abstract_creature: AbstractCreature,
-//     pub baby: bool,
-// }
-
-// impl AbstractAgeable {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_creature = AbstractCreature::read(metadata)?;
-//         let baby = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_creature,
-//             baby,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_creature.write());
-//         metadata.push(EntityDataValue::Boolean(self.baby.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for AbstractAgeable {
-//     fn default() -> Self {
-//         Self {
-//             abstract_creature: Default::default(),
-//             baby: false,
-//         }
-//     }
-// }
-
-// impl AbstractAgeable {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=15 => self.abstract_creature.set_index(index, value)?,
-//             16 => self.baby = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for AbstractAgeable {
-//     type Target = AbstractCreature;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_creature
-//     }
-// }
-// impl DerefMut for AbstractAgeable {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_creature
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct AbstractAnimal {
-//     pub abstract_ageable: AbstractAgeable,
-// }
-
-// impl AbstractAnimal {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_ageable = AbstractAgeable::read(metadata)?;
-//         Some(Self { abstract_ageable })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_ageable.write());
-//         metadata
-//     }
-// }
-
-// impl Default for AbstractAnimal {
-//     fn default() -> Self {
-//         Self {
-//             abstract_ageable: Default::default(),
-//         }
-//     }
-// }
-
-// impl AbstractAnimal {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_ageable.set_index(index, value)
-//     }
-// }
-// impl Deref for AbstractAnimal {
-//     type Target = AbstractAgeable;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_ageable
-//     }
-// }
-// impl DerefMut for AbstractAnimal {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_ageable
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct AbstractCreature {
-//     pub abstract_insentient: AbstractInsentient,
-// }
-
-// impl AbstractCreature {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_insentient = AbstractInsentient::read(metadata)?;
-//         Some(Self {
-//             abstract_insentient,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_insentient.write());
-//         metadata
-//     }
-// }
-
-// impl Default for AbstractCreature {
-//     fn default() -> Self {
-//         Self {
-//             abstract_insentient: Default::default(),
-//         }
-//     }
-// }
-
-// impl AbstractCreature {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_insentient.set_index(index, value)
-//     }
-// }
-// impl Deref for AbstractCreature {
-//     type Target = AbstractInsentient;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_insentient
-//     }
-// }
-// impl DerefMut for AbstractCreature {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_insentient
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct AbstractEntity {
-//     pub on_fire: bool,
-//     pub shift_key_down: bool,
-//     pub sprinting: bool,
-//     pub swimming: bool,
-//     pub currently_glowing: bool,
-//     pub invisible: bool,
-//     pub fall_flying: bool,
-//     pub air_supply: i32,
-//     pub custom_name: Option<Component>,
-//     pub custom_name_visible: bool,
-//     pub silent: bool,
-//     pub no_gravity: bool,
-//     pub pose: Pose,
-//     pub ticks_frozen: i32,
-// }
-
-// impl AbstractEntity {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let on_fire = bitfield & 0x1 != 0;
-//         let shift_key_down = bitfield & 0x2 != 0;
-//         let sprinting = bitfield & 0x8 != 0;
-//         let swimming = bitfield & 0x10 != 0;
-//         let currently_glowing = bitfield & 0x40 != 0;
-//         let invisible = bitfield & 0x20 != 0;
-//         let fall_flying = bitfield & 0x80 != 0;
-//         let air_supply = metadata.pop_front()?.into_int().ok()?;
-//         let custom_name =
-// metadata.pop_front()?.into_optional_component().ok()?;         let
-// custom_name_visible = metadata.pop_front()?.into_boolean().ok()?;         let
-// silent = metadata.pop_front()?.into_boolean().ok()?;         let no_gravity =
-// metadata.pop_front()?.into_boolean().ok()?;         let pose =
-// metadata.pop_front()?.into_pose().ok()?;         let ticks_frozen =
-// metadata.pop_front()?.into_int().ok()?;         Some(Self {
-//             on_fire,
-//             shift_key_down,
-//             sprinting,
-//             swimming,
-//             currently_glowing,
-//             invisible,
-//             fall_flying,
-//             air_supply,
-//             custom_name,
-//             custom_name_visible,
-//             silent,
-//             no_gravity,
-//             pose,
-//             ticks_frozen,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         let mut bitfield = 0u8;
-//         if self.on_fire {
-//             bitfield &= 0x1;
-//         }
-//         if self.shift_key_down {
-//             bitfield &= 0x2;
-//         }
-//         if self.sprinting {
-//             bitfield &= 0x8;
-//         }
-//         if self.swimming {
-//             bitfield &= 0x10;
-//         }
-//         if self.currently_glowing {
-//             bitfield &= 0x40;
-//         }
-//         if self.invisible {
-//             bitfield &= 0x20;
-//         }
-//         if self.fall_flying {
-//             bitfield &= 0x80;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::Int(self.air_supply.clone()));
-//         metadata.push(EntityDataValue::OptionalComponent(self.custom_name.
-// clone()));         metadata.push(EntityDataValue::Boolean(self.
-// custom_name_visible.clone()));         metadata.
-// push(EntityDataValue::Boolean(self.silent.clone()));         metadata.
-// push(EntityDataValue::Boolean(self.no_gravity.clone()));         metadata.
-// push(EntityDataValue::Pose(self.pose.clone()));         metadata.
-// push(EntityDataValue::Int(self.ticks_frozen.clone()));         metadata
-//     }
-// }
-
-// impl Default for AbstractEntity {
-//     fn default() -> Self {
-//         Self {
-//             on_fire: false,
-//             shift_key_down: false,
-//             sprinting: false,
-//             swimming: false,
-//             currently_glowing: false,
-//             invisible: false,
-//             fall_flying: false,
-//             air_supply: Default::default(),
-//             custom_name: None,
-//             custom_name_visible: false,
-//             silent: false,
-//             no_gravity: false,
-//             pose: Default::default(),
-//             ticks_frozen: 0,
-//         }
-//     }
-// }
-
-// impl AbstractEntity {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.on_fire = bitfield & 0x1 != 0;
-//                 self.shift_key_down = bitfield & 0x2 != 0;
-//                 self.sprinting = bitfield & 0x8 != 0;
-//                 self.swimming = bitfield & 0x10 != 0;
-//                 self.currently_glowing = bitfield & 0x40 != 0;
-//                 self.invisible = bitfield & 0x20 != 0;
-//                 self.fall_flying = bitfield & 0x80 != 0;
-//             }
-//             1 => self.air_supply = value.into_int().ok()?,
-//             2 => self.custom_name = value.into_optional_component().ok()?,
-//             3 => self.custom_name_visible = value.into_boolean().ok()?,
-//             4 => self.silent = value.into_boolean().ok()?,
-//             5 => self.no_gravity = value.into_boolean().ok()?,
-//             6 => self.pose = value.into_pose().ok()?,
-//             7 => self.ticks_frozen = value.into_int().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// #[derive(Debug, Clone)]
-// pub struct AbstractInsentient {
-//     pub abstract_living: AbstractLiving,
-//     pub no_ai: bool,
-//     pub left_handed: bool,
-//     pub aggressive: bool,
-// }
-
-// impl AbstractInsentient {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_living = AbstractLiving::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let no_ai = bitfield & 0x1 != 0;
-//         let left_handed = bitfield & 0x2 != 0;
-//         let aggressive = bitfield & 0x4 != 0;
-//         Some(Self {
-//             abstract_living,
-//             no_ai,
-//             left_handed,
-//             aggressive,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_living.write());
-//         let mut bitfield = 0u8;
-//         if self.no_ai {
-//             bitfield &= 0x1;
-//         }
-//         if self.left_handed {
-//             bitfield &= 0x2;
-//         }
-//         if self.aggressive {
-//             bitfield &= 0x4;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata
-//     }
-// }
-
-// impl Default for AbstractInsentient {
-//     fn default() -> Self {
-//         Self {
-//             abstract_living: Default::default(),
-//             no_ai: false,
-//             left_handed: false,
-//             aggressive: false,
-//         }
-//     }
-// }
-
-// impl AbstractInsentient {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=14 => self.abstract_living.set_index(index, value)?,
-//             15 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.no_ai = bitfield & 0x1 != 0;
-//                 self.left_handed = bitfield & 0x2 != 0;
-//                 self.aggressive = bitfield & 0x4 != 0;
-//             }
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for AbstractInsentient {
-//     type Target = AbstractLiving;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_living
-//     }
-// }
-// impl DerefMut for AbstractInsentient {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_living
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct AbstractLiving {
-//     pub abstract_entity: AbstractEntity,
-//     pub auto_spin_attack: bool,
-//     pub using_item: bool,
-//     pub health: f32,
-//     pub effect_color: i32,
-//     pub effect_ambience: bool,
-//     pub arrow_count: i32,
-//     pub stinger_count: i32,
-//     pub sleeping_pos: Option<BlockPos>,
-// }
-
-// impl AbstractLiving {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let auto_spin_attack = bitfield & 0x4 != 0;
-//         let using_item = bitfield & 0x1 != 0;
-//         let health = metadata.pop_front()?.into_float().ok()?;
-//         let effect_color = metadata.pop_front()?.into_int().ok()?;
-//         let effect_ambience = metadata.pop_front()?.into_boolean().ok()?;
-//         let arrow_count = metadata.pop_front()?.into_int().ok()?;
-//         let stinger_count = metadata.pop_front()?.into_int().ok()?;
-//         let sleeping_pos =
-// metadata.pop_front()?.into_optional_block_pos().ok()?;         Some(Self {
-//             abstract_entity,
-//             auto_spin_attack,
-//             using_item,
-//             health,
-//             effect_color,
-//             effect_ambience,
-//             arrow_count,
-//             stinger_count,
-//             sleeping_pos,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         let mut bitfield = 0u8;
-//         if self.auto_spin_attack {
-//             bitfield &= 0x4;
-//         }
-//         if self.using_item {
-//             bitfield &= 0x1;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::Float(self.health.clone()));
-//         metadata.push(EntityDataValue::Int(self.effect_color.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.effect_ambience.
-// clone()));         metadata.push(EntityDataValue::Int(self.arrow_count.
-// clone()));         metadata.push(EntityDataValue::Int(self.stinger_count.
-// clone()));         metadata.push(EntityDataValue::OptionalBlockPos(self.
-// sleeping_pos.clone()));         metadata
-//     }
-// }
-
-// impl Default for AbstractLiving {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             auto_spin_attack: false,
-//             using_item: false,
-//             health: 1.0,
-//             effect_color: 0,
-//             effect_ambience: false,
-//             arrow_count: 0,
-//             stinger_count: 0,
-//             sleeping_pos: None,
-//         }
-//     }
-// }
-
-// impl AbstractLiving {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.auto_spin_attack = bitfield & 0x4 != 0;
-//                 self.using_item = bitfield & 0x1 != 0;
-//             }
-//             9 => self.health = value.into_float().ok()?,
-//             10 => self.effect_color = value.into_int().ok()?,
-//             11 => self.effect_ambience = value.into_boolean().ok()?,
-//             12 => self.arrow_count = value.into_int().ok()?,
-//             13 => self.stinger_count = value.into_int().ok()?,
-//             14 => self.sleeping_pos = value.into_optional_block_pos().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for AbstractLiving {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for AbstractLiving {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct AbstractMinecart {
-//     pub abstract_entity: AbstractEntity,
-//     pub hurt: i32,
-//     pub hurtdir: i32,
-//     pub damage: f32,
-//     pub display_block: i32,
-//     pub display_offset: i32,
-//     pub custom_display: bool,
-// }
-
-// impl AbstractMinecart {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_entity = AbstractEntity::read(metadata)?;
-//         let hurt = metadata.pop_front()?.into_int().ok()?;
-//         let hurtdir = metadata.pop_front()?.into_int().ok()?;
-//         let damage = metadata.pop_front()?.into_float().ok()?;
-//         let display_block = metadata.pop_front()?.into_int().ok()?;
-//         let display_offset = metadata.pop_front()?.into_int().ok()?;
-//         let custom_display = metadata.pop_front()?.into_boolean().ok()?;
-//         Some(Self {
-//             abstract_entity,
-//             hurt,
-//             hurtdir,
-//             damage,
-//             display_block,
-//             display_offset,
-//             custom_display,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_entity.write());
-//         metadata.push(EntityDataValue::Int(self.hurt.clone()));
-//         metadata.push(EntityDataValue::Int(self.hurtdir.clone()));
-//         metadata.push(EntityDataValue::Float(self.damage.clone()));
-//         metadata.push(EntityDataValue::Int(self.display_block.clone()));
-//         metadata.push(EntityDataValue::Int(self.display_offset.clone()));
-//         metadata.push(EntityDataValue::Boolean(self.custom_display.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for AbstractMinecart {
-//     fn default() -> Self {
-//         Self {
-//             abstract_entity: Default::default(),
-//             hurt: 0,
-//             hurtdir: 1,
-//             damage: 0.0,
-//             display_block: Default::default(),
-//             display_offset: 6,
-//             custom_display: false,
-//         }
-//     }
-// }
-
-// impl AbstractMinecart {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=7 => self.abstract_entity.set_index(index, value)?,
-//             8 => self.hurt = value.into_int().ok()?,
-//             9 => self.hurtdir = value.into_int().ok()?,
-//             10 => self.damage = value.into_float().ok()?,
-//             11 => self.display_block = value.into_int().ok()?,
-//             12 => self.display_offset = value.into_int().ok()?,
-//             13 => self.custom_display = value.into_boolean().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for AbstractMinecart {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_entity
-//     }
-// }
-// impl DerefMut for AbstractMinecart {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_entity
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct AbstractMonster {
-//     pub abstract_creature: AbstractCreature,
-// }
-
-// impl AbstractMonster {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_creature = AbstractCreature::read(metadata)?;
-//         Some(Self { abstract_creature })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_creature.write());
-//         metadata
-//     }
-// }
-
-// impl Default for AbstractMonster {
-//     fn default() -> Self {
-//         Self {
-//             abstract_creature: Default::default(),
-//         }
-//     }
-// }
-
-// impl AbstractMonster {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         self.abstract_creature.set_index(index, value)
-//     }
-// }
-// impl Deref for AbstractMonster {
-//     type Target = AbstractCreature;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_creature
-//     }
-// }
-// impl DerefMut for AbstractMonster {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_creature
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct AbstractTameable {
-//     pub abstract_animal: AbstractAnimal,
-//     pub tame: bool,
-//     pub in_sitting_pose: bool,
-//     pub owneruuid: Option<Uuid>,
-// }
-
-// impl AbstractTameable {
-//     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-//         let abstract_animal = AbstractAnimal::read(metadata)?;
-//         let bitfield = metadata.pop_front()?.into_byte().ok()?;
-//         let tame = bitfield & 0x4 != 0;
-//         let in_sitting_pose = bitfield & 0x1 != 0;
-//         let owneruuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-//         Some(Self {
-//             abstract_animal,
-//             tame,
-//             in_sitting_pose,
-//             owneruuid,
-//         })
-//     }
-
-//     pub fn write(&self) -> Vec<EntityDataValue> {
-//         let mut metadata = Vec::new();
-//         metadata.extend(self.abstract_animal.write());
-//         let mut bitfield = 0u8;
-//         if self.tame {
-//             bitfield &= 0x4;
-//         }
-//         if self.in_sitting_pose {
-//             bitfield &= 0x1;
-//         }
-//         metadata.push(EntityDataValue::Byte(bitfield));
-//         metadata.push(EntityDataValue::OptionalUuid(self.owneruuid.clone()));
-//         metadata
-//     }
-// }
-
-// impl Default for AbstractTameable {
-//     fn default() -> Self {
-//         Self {
-//             abstract_animal: Default::default(),
-//             tame: false,
-//             in_sitting_pose: false,
-//             owneruuid: None,
-//         }
-//     }
-// }
-
-// impl AbstractTameable {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match index {
-//             0..=16 => self.abstract_animal.set_index(index, value)?,
-//             17 => {
-//                 let bitfield = value.into_byte().ok()?;
-//                 self.tame = bitfield & 0x4 != 0;
-//                 self.in_sitting_pose = bitfield & 0x1 != 0;
-//             }
-//             18 => self.owneruuid = value.into_optional_uuid().ok()?,
-//             _ => {}
-//         }
-//         Some(())
-//     }
-// }
-// impl Deref for AbstractTameable {
-//     type Target = AbstractAnimal;
-//     fn deref(&self) -> &Self::Target {
-//         &self.abstract_animal
-//     }
-// }
-// impl DerefMut for AbstractTameable {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.abstract_animal
-//     }
-// }
-
-// #[derive(Debug, Clone, EnumAsInner)]
-// pub enum EntityMetadata {
-//     Allay(Allay),
-//     AreaEffectCloud(AreaEffectCloud),
-//     ArmorStand(ArmorStand),
-//     Arrow(Arrow),
-//     Axolotl(Axolotl),
-//     Bat(Bat),
-//     Bee(Bee),
-//     Blaze(Blaze),
-//     Boat(Boat),
-//     Camel(Camel),
-//     Cat(Cat),
-//     CaveSpider(CaveSpider),
-//     ChestBoat(ChestBoat),
-//     ChestMinecart(ChestMinecart),
-//     Chicken(Chicken),
-//     Cod(Cod),
-//     CommandBlockMinecart(CommandBlockMinecart),
-//     Cow(Cow),
-//     Creeper(Creeper),
-//     Dolphin(Dolphin),
-//     Donkey(Donkey),
-//     DragonFireball(DragonFireball),
-//     Drowned(Drowned),
-//     Egg(Egg),
-//     ElderGuardian(ElderGuardian),
-//     EndCrystal(EndCrystal),
-//     EnderDragon(EnderDragon),
-//     EnderPearl(EnderPearl),
-//     Enderman(Enderman),
-//     Endermite(Endermite),
-//     Evoker(Evoker),
-//     EvokerFangs(EvokerFangs),
-//     ExperienceBottle(ExperienceBottle),
-//     ExperienceOrb(ExperienceOrb),
-//     EyeOfEnder(EyeOfEnder),
-//     FallingBlock(FallingBlock),
-//     Fireball(Fireball),
-//     FireworkRocket(FireworkRocket),
-//     FishingBobber(FishingBobber),
-//     Fox(Fox),
-//     Frog(Frog),
-//     FurnaceMinecart(FurnaceMinecart),
-//     Ghast(Ghast),
-//     Giant(Giant),
-//     GlowItemFrame(GlowItemFrame),
-//     GlowSquid(GlowSquid),
-//     Goat(Goat),
-//     Guardian(Guardian),
-//     Hoglin(Hoglin),
-//     HopperMinecart(HopperMinecart),
-//     Horse(Horse),
-//     Husk(Husk),
-//     Illusioner(Illusioner),
-//     IronGolem(IronGolem),
-//     Item(Item),
-//     ItemFrame(ItemFrame),
-//     LeashKnot(LeashKnot),
-//     LightningBolt(LightningBolt),
-//     Llama(Llama),
-//     LlamaSpit(LlamaSpit),
-//     MagmaCube(MagmaCube),
-//     Marker(Marker),
-//     Minecart(Minecart),
-//     Mooshroom(Mooshroom),
-//     Mule(Mule),
-//     Ocelot(Ocelot),
-//     Painting(Painting),
-//     Panda(Panda),
-//     Parrot(Parrot),
-//     Phantom(Phantom),
-//     Pig(Pig),
-//     Piglin(Piglin),
-//     PiglinBrute(PiglinBrute),
-//     Pillager(Pillager),
-//     Player(Player),
-//     PolarBear(PolarBear),
-//     Potion(Potion),
-//     Pufferfish(Pufferfish),
-//     Rabbit(Rabbit),
-//     Ravager(Ravager),
-//     Salmon(Salmon),
-//     Sheep(Sheep),
-//     Shulker(Shulker),
-//     ShulkerBullet(ShulkerBullet),
-//     Silverfish(Silverfish),
-//     Skeleton(Skeleton),
-//     SkeletonHorse(SkeletonHorse),
-//     Slime(Slime),
-//     SmallFireball(SmallFireball),
-//     SnowGolem(SnowGolem),
-//     Snowball(Snowball),
-//     SpawnerMinecart(SpawnerMinecart),
-//     SpectralArrow(SpectralArrow),
-//     Spider(Spider),
-//     Squid(Squid),
-//     Stray(Stray),
-//     Strider(Strider),
-//     Tadpole(Tadpole),
-//     Tnt(Tnt),
-//     TntMinecart(TntMinecart),
-//     TraderLlama(TraderLlama),
-//     Trident(Trident),
-//     TropicalFish(TropicalFish),
-//     Turtle(Turtle),
-//     Vex(Vex),
-//     Villager(Villager),
-//     Vindicator(Vindicator),
-//     WanderingTrader(WanderingTrader),
-//     Warden(Warden),
-//     Witch(Witch),
-//     Wither(Wither),
-//     WitherSkeleton(WitherSkeleton),
-//     WitherSkull(WitherSkull),
-//     Wolf(Wolf),
-//     Zoglin(Zoglin),
-//     Zombie(Zombie),
-//     ZombieHorse(ZombieHorse),
-//     ZombieVillager(ZombieVillager),
-//     ZombifiedPiglin(ZombifiedPiglin),
-// }
-
-// impl From<azalea_registry::EntityKind> for EntityMetadata {
-//     fn from(value: azalea_registry::EntityKind) -> Self {
-//         match value {
-//             azalea_registry::EntityKind::Allay =>
-// EntityMetadata::Allay(Allay::default()),
-// azalea_registry::EntityKind::AreaEffectCloud => {
-// EntityMetadata::AreaEffectCloud(AreaEffectCloud::default())             }
-//             azalea_registry::EntityKind::ArmorStand => {
-//                 EntityMetadata::ArmorStand(ArmorStand::default())
-//             }
-//             azalea_registry::EntityKind::Arrow =>
-// EntityMetadata::Arrow(Arrow::default()),
-// azalea_registry::EntityKind::Axolotl =>
-// EntityMetadata::Axolotl(Axolotl::default()),
-// azalea_registry::EntityKind::Bat => EntityMetadata::Bat(Bat::default()),
-//             azalea_registry::EntityKind::Bee =>
-// EntityMetadata::Bee(Bee::default()),
-// azalea_registry::EntityKind::Blaze =>
-// EntityMetadata::Blaze(Blaze::default()),
-// azalea_registry::EntityKind::Boat => EntityMetadata::Boat(Boat::default()),
-//             azalea_registry::EntityKind::Camel =>
-// EntityMetadata::Camel(Camel::default()),
-// azalea_registry::EntityKind::Cat => EntityMetadata::Cat(Cat::default()),
-//             azalea_registry::EntityKind::CaveSpider => {
-//                 EntityMetadata::CaveSpider(CaveSpider::default())
-//             }
-//             azalea_registry::EntityKind::ChestBoat => {
-//                 EntityMetadata::ChestBoat(ChestBoat::default())
-//             }
-//             azalea_registry::EntityKind::ChestMinecart => {
-//                 EntityMetadata::ChestMinecart(ChestMinecart::default())
-//             }
-//             azalea_registry::EntityKind::Chicken =>
-// EntityMetadata::Chicken(Chicken::default()),
-// azalea_registry::EntityKind::Cod => EntityMetadata::Cod(Cod::default()),
-//             azalea_registry::EntityKind::CommandBlockMinecart => {
-//
-// EntityMetadata::CommandBlockMinecart(CommandBlockMinecart::default())
-//             }
-//             azalea_registry::EntityKind::Cow =>
-// EntityMetadata::Cow(Cow::default()),
-// azalea_registry::EntityKind::Creeper =>
-// EntityMetadata::Creeper(Creeper::default()),
-// azalea_registry::EntityKind::Dolphin =>
-// EntityMetadata::Dolphin(Dolphin::default()),
-// azalea_registry::EntityKind::Donkey =>
-// EntityMetadata::Donkey(Donkey::default()),
-// azalea_registry::EntityKind::DragonFireball => {
-// EntityMetadata::DragonFireball(DragonFireball::default())             }
-//             azalea_registry::EntityKind::Drowned =>
-// EntityMetadata::Drowned(Drowned::default()),
-// azalea_registry::EntityKind::Egg => EntityMetadata::Egg(Egg::default()),
-//             azalea_registry::EntityKind::ElderGuardian => {
-//                 EntityMetadata::ElderGuardian(ElderGuardian::default())
-//             }
-//             azalea_registry::EntityKind::EndCrystal => {
-//                 EntityMetadata::EndCrystal(EndCrystal::default())
-//             }
-//             azalea_registry::EntityKind::EnderDragon => {
-//                 EntityMetadata::EnderDragon(EnderDragon::default())
-//             }
-//             azalea_registry::EntityKind::EnderPearl => {
-//                 EntityMetadata::EnderPearl(EnderPearl::default())
-//             }
-//             azalea_registry::EntityKind::Enderman =>
-// EntityMetadata::Enderman(Enderman::default()),
-// azalea_registry::EntityKind::Endermite => {
-// EntityMetadata::Endermite(Endermite::default())             }
-//             azalea_registry::EntityKind::Evoker =>
-// EntityMetadata::Evoker(Evoker::default()),
-// azalea_registry::EntityKind::EvokerFangs => {
-// EntityMetadata::EvokerFangs(EvokerFangs::default())             }
-//             azalea_registry::EntityKind::ExperienceBottle => {
-//                 EntityMetadata::ExperienceBottle(ExperienceBottle::default())
-//             }
-//             azalea_registry::EntityKind::ExperienceOrb => {
-//                 EntityMetadata::ExperienceOrb(ExperienceOrb::default())
-//             }
-//             azalea_registry::EntityKind::EyeOfEnder => {
-//                 EntityMetadata::EyeOfEnder(EyeOfEnder::default())
-//             }
-//             azalea_registry::EntityKind::FallingBlock => {
-//                 EntityMetadata::FallingBlock(FallingBlock::default())
-//             }
-//             azalea_registry::EntityKind::Fireball =>
-// EntityMetadata::Fireball(Fireball::default()),
-// azalea_registry::EntityKind::FireworkRocket => {
-// EntityMetadata::FireworkRocket(FireworkRocket::default())             }
-//             azalea_registry::EntityKind::FishingBobber => {
-//                 EntityMetadata::FishingBobber(FishingBobber::default())
-//             }
-//             azalea_registry::EntityKind::Fox =>
-// EntityMetadata::Fox(Fox::default()),
-// azalea_registry::EntityKind::Frog => EntityMetadata::Frog(Frog::default()),
-//             azalea_registry::EntityKind::FurnaceMinecart => {
-//                 EntityMetadata::FurnaceMinecart(FurnaceMinecart::default())
-//             }
-//             azalea_registry::EntityKind::Ghast =>
-// EntityMetadata::Ghast(Ghast::default()),
-// azalea_registry::EntityKind::Giant =>
-// EntityMetadata::Giant(Giant::default()),
-// azalea_registry::EntityKind::GlowItemFrame => {
-// EntityMetadata::GlowItemFrame(GlowItemFrame::default())             }
-//             azalea_registry::EntityKind::GlowSquid => {
-//                 EntityMetadata::GlowSquid(GlowSquid::default())
-//             }
-//             azalea_registry::EntityKind::Goat =>
-// EntityMetadata::Goat(Goat::default()),
-// azalea_registry::EntityKind::Guardian =>
-// EntityMetadata::Guardian(Guardian::default()),
-// azalea_registry::EntityKind::Hoglin =>
-// EntityMetadata::Hoglin(Hoglin::default()),
-// azalea_registry::EntityKind::HopperMinecart => {
-// EntityMetadata::HopperMinecart(HopperMinecart::default())             }
-//             azalea_registry::EntityKind::Horse =>
-// EntityMetadata::Horse(Horse::default()),
-// azalea_registry::EntityKind::Husk => EntityMetadata::Husk(Husk::default()),
-//             azalea_registry::EntityKind::Illusioner => {
-//                 EntityMetadata::Illusioner(Illusioner::default())
-//             }
-//             azalea_registry::EntityKind::IronGolem => {
-//                 EntityMetadata::IronGolem(IronGolem::default())
-//             }
-//             azalea_registry::EntityKind::Item =>
-// EntityMetadata::Item(Item::default()),
-// azalea_registry::EntityKind::ItemFrame => {
-// EntityMetadata::ItemFrame(ItemFrame::default())             }
-//             azalea_registry::EntityKind::LeashKnot => {
-//                 EntityMetadata::LeashKnot(LeashKnot::default())
-//             }
-//             azalea_registry::EntityKind::LightningBolt => {
-//                 EntityMetadata::LightningBolt(LightningBolt::default())
-//             }
-//             azalea_registry::EntityKind::Llama =>
-// EntityMetadata::Llama(Llama::default()),
-// azalea_registry::EntityKind::LlamaSpit => {
-// EntityMetadata::LlamaSpit(LlamaSpit::default())             }
-//             azalea_registry::EntityKind::MagmaCube => {
-//                 EntityMetadata::MagmaCube(MagmaCube::default())
-//             }
-//             azalea_registry::EntityKind::Marker =>
-// EntityMetadata::Marker(Marker::default()),
-// azalea_registry::EntityKind::Minecart =>
-// EntityMetadata::Minecart(Minecart::default()),
-// azalea_registry::EntityKind::Mooshroom => {
-// EntityMetadata::Mooshroom(Mooshroom::default())             }
-//             azalea_registry::EntityKind::Mule =>
-// EntityMetadata::Mule(Mule::default()),
-// azalea_registry::EntityKind::Ocelot =>
-// EntityMetadata::Ocelot(Ocelot::default()),
-// azalea_registry::EntityKind::Painting =>
-// EntityMetadata::Painting(Painting::default()),
-// azalea_registry::EntityKind::Panda =>
-// EntityMetadata::Panda(Panda::default()),
-// azalea_registry::EntityKind::Parrot =>
-// EntityMetadata::Parrot(Parrot::default()),
-// azalea_registry::EntityKind::Phantom =>
-// EntityMetadata::Phantom(Phantom::default()),
-// azalea_registry::EntityKind::Pig => EntityMetadata::Pig(Pig::default()),
-//             azalea_registry::EntityKind::Piglin =>
-// EntityMetadata::Piglin(Piglin::default()),
-// azalea_registry::EntityKind::PiglinBrute => {
-// EntityMetadata::PiglinBrute(PiglinBrute::default())             }
-//             azalea_registry::EntityKind::Pillager =>
-// EntityMetadata::Pillager(Pillager::default()),
-// azalea_registry::EntityKind::Player =>
-// EntityMetadata::Player(Player::default()),
-// azalea_registry::EntityKind::PolarBear => {
-// EntityMetadata::PolarBear(PolarBear::default())             }
-//             azalea_registry::EntityKind::Potion =>
-// EntityMetadata::Potion(Potion::default()),
-// azalea_registry::EntityKind::Pufferfish => {
-// EntityMetadata::Pufferfish(Pufferfish::default())             }
-//             azalea_registry::EntityKind::Rabbit =>
-// EntityMetadata::Rabbit(Rabbit::default()),
-// azalea_registry::EntityKind::Ravager =>
-// EntityMetadata::Ravager(Ravager::default()),
-// azalea_registry::EntityKind::Salmon =>
-// EntityMetadata::Salmon(Salmon::default()),
-// azalea_registry::EntityKind::Sheep =>
-// EntityMetadata::Sheep(Sheep::default()),
-// azalea_registry::EntityKind::Shulker =>
-// EntityMetadata::Shulker(Shulker::default()),
-// azalea_registry::EntityKind::ShulkerBullet => {
-// EntityMetadata::ShulkerBullet(ShulkerBullet::default())             }
-//             azalea_registry::EntityKind::Silverfish => {
-//                 EntityMetadata::Silverfish(Silverfish::default())
-//             }
-//             azalea_registry::EntityKind::Skeleton =>
-// EntityMetadata::Skeleton(Skeleton::default()),
-// azalea_registry::EntityKind::SkeletonHorse => {
-// EntityMetadata::SkeletonHorse(SkeletonHorse::default())             }
-//             azalea_registry::EntityKind::Slime =>
-// EntityMetadata::Slime(Slime::default()),
-// azalea_registry::EntityKind::SmallFireball => {
-// EntityMetadata::SmallFireball(SmallFireball::default())             }
-//             azalea_registry::EntityKind::SnowGolem => {
-//                 EntityMetadata::SnowGolem(SnowGolem::default())
-//             }
-//             azalea_registry::EntityKind::Snowball =>
-// EntityMetadata::Snowball(Snowball::default()),
-// azalea_registry::EntityKind::SpawnerMinecart => {
-// EntityMetadata::SpawnerMinecart(SpawnerMinecart::default())             }
-//             azalea_registry::EntityKind::SpectralArrow => {
-//                 EntityMetadata::SpectralArrow(SpectralArrow::default())
-//             }
-//             azalea_registry::EntityKind::Spider =>
-// EntityMetadata::Spider(Spider::default()),
-// azalea_registry::EntityKind::Squid =>
-// EntityMetadata::Squid(Squid::default()),
-// azalea_registry::EntityKind::Stray =>
-// EntityMetadata::Stray(Stray::default()),
-// azalea_registry::EntityKind::Strider =>
-// EntityMetadata::Strider(Strider::default()),
-// azalea_registry::EntityKind::Tadpole =>
-// EntityMetadata::Tadpole(Tadpole::default()),
-// azalea_registry::EntityKind::Tnt => EntityMetadata::Tnt(Tnt::default()),
-//             azalea_registry::EntityKind::TntMinecart => {
-//                 EntityMetadata::TntMinecart(TntMinecart::default())
-//             }
-//             azalea_registry::EntityKind::TraderLlama => {
-//                 EntityMetadata::TraderLlama(TraderLlama::default())
-//             }
-//             azalea_registry::EntityKind::Trident =>
-// EntityMetadata::Trident(Trident::default()),
-// azalea_registry::EntityKind::TropicalFish => {
-// EntityMetadata::TropicalFish(TropicalFish::default())             }
-//             azalea_registry::EntityKind::Turtle =>
-// EntityMetadata::Turtle(Turtle::default()),
-// azalea_registry::EntityKind::Vex => EntityMetadata::Vex(Vex::default()),
-//             azalea_registry::EntityKind::Villager =>
-// EntityMetadata::Villager(Villager::default()),
-// azalea_registry::EntityKind::Vindicator => {
-// EntityMetadata::Vindicator(Vindicator::default())             }
-//             azalea_registry::EntityKind::WanderingTrader => {
-//                 EntityMetadata::WanderingTrader(WanderingTrader::default())
-//             }
-//             azalea_registry::EntityKind::Warden =>
-// EntityMetadata::Warden(Warden::default()),
-// azalea_registry::EntityKind::Witch =>
-// EntityMetadata::Witch(Witch::default()),
-// azalea_registry::EntityKind::Wither =>
-// EntityMetadata::Wither(Wither::default()),
-// azalea_registry::EntityKind::WitherSkeleton => {
-// EntityMetadata::WitherSkeleton(WitherSkeleton::default())             }
-//             azalea_registry::EntityKind::WitherSkull => {
-//                 EntityMetadata::WitherSkull(WitherSkull::default())
-//             }
-//             azalea_registry::EntityKind::Wolf =>
-// EntityMetadata::Wolf(Wolf::default()),
-// azalea_registry::EntityKind::Zoglin =>
-// EntityMetadata::Zoglin(Zoglin::default()),
-// azalea_registry::EntityKind::Zombie =>
-// EntityMetadata::Zombie(Zombie::default()),
-// azalea_registry::EntityKind::ZombieHorse => {
-// EntityMetadata::ZombieHorse(ZombieHorse::default())             }
-//             azalea_registry::EntityKind::ZombieVillager => {
-//                 EntityMetadata::ZombieVillager(ZombieVillager::default())
-//             }
-//             azalea_registry::EntityKind::ZombifiedPiglin => {
-//                 EntityMetadata::ZombifiedPiglin(ZombifiedPiglin::default())
-//             }
-//         }
-//     }
-// }
-
-// impl From<&EntityMetadata> for azalea_registry::EntityKind {
-//     fn from(value: &EntityMetadata) -> Self {
-//         match value {
-//             EntityMetadata::Allay(_) => azalea_registry::EntityKind::Allay,
-//             EntityMetadata::AreaEffectCloud(_) =>
-// azalea_registry::EntityKind::AreaEffectCloud,
-// EntityMetadata::ArmorStand(_) => azalea_registry::EntityKind::ArmorStand,
-//             EntityMetadata::Arrow(_) => azalea_registry::EntityKind::Arrow,
-//             EntityMetadata::Axolotl(_) =>
-// azalea_registry::EntityKind::Axolotl,             EntityMetadata::Bat(_) =>
-// azalea_registry::EntityKind::Bat,             EntityMetadata::Bee(_) =>
-// azalea_registry::EntityKind::Bee,             EntityMetadata::Blaze(_) =>
-// azalea_registry::EntityKind::Blaze,             EntityMetadata::Boat(_) =>
-// azalea_registry::EntityKind::Boat,             EntityMetadata::Camel(_) =>
-// azalea_registry::EntityKind::Camel,             EntityMetadata::Cat(_) =>
-// azalea_registry::EntityKind::Cat,             EntityMetadata::CaveSpider(_)
-// => azalea_registry::EntityKind::CaveSpider,
-// EntityMetadata::ChestBoat(_) => azalea_registry::EntityKind::ChestBoat,
-//             EntityMetadata::ChestMinecart(_) =>
-// azalea_registry::EntityKind::ChestMinecart,
-// EntityMetadata::Chicken(_) => azalea_registry::EntityKind::Chicken,
-//             EntityMetadata::Cod(_) => azalea_registry::EntityKind::Cod,
-//             EntityMetadata::CommandBlockMinecart(_) => {
-//                 azalea_registry::EntityKind::CommandBlockMinecart
-//             }
-//             EntityMetadata::Cow(_) => azalea_registry::EntityKind::Cow,
-//             EntityMetadata::Creeper(_) =>
-// azalea_registry::EntityKind::Creeper,             EntityMetadata::Dolphin(_)
-// => azalea_registry::EntityKind::Dolphin,
-// EntityMetadata::Donkey(_) => azalea_registry::EntityKind::Donkey,
-// EntityMetadata::DragonFireball(_) =>
-// azalea_registry::EntityKind::DragonFireball,
-// EntityMetadata::Drowned(_) => azalea_registry::EntityKind::Drowned,
-//             EntityMetadata::Egg(_) => azalea_registry::EntityKind::Egg,
-//             EntityMetadata::ElderGuardian(_) =>
-// azalea_registry::EntityKind::ElderGuardian,
-// EntityMetadata::EndCrystal(_) => azalea_registry::EntityKind::EndCrystal,
-//             EntityMetadata::EnderDragon(_) =>
-// azalea_registry::EntityKind::EnderDragon,
-// EntityMetadata::EnderPearl(_) => azalea_registry::EntityKind::EnderPearl,
-//             EntityMetadata::Enderman(_) =>
-// azalea_registry::EntityKind::Enderman,
-// EntityMetadata::Endermite(_) => azalea_registry::EntityKind::Endermite,
-//             EntityMetadata::Evoker(_) => azalea_registry::EntityKind::Evoker,
-//             EntityMetadata::EvokerFangs(_) =>
-// azalea_registry::EntityKind::EvokerFangs,
-// EntityMetadata::ExperienceBottle(_) =>
-// azalea_registry::EntityKind::ExperienceBottle,
-// EntityMetadata::ExperienceOrb(_) =>
-// azalea_registry::EntityKind::ExperienceOrb,
-// EntityMetadata::EyeOfEnder(_) => azalea_registry::EntityKind::EyeOfEnder,
-//             EntityMetadata::FallingBlock(_) =>
-// azalea_registry::EntityKind::FallingBlock,
-// EntityMetadata::Fireball(_) => azalea_registry::EntityKind::Fireball,
-//             EntityMetadata::FireworkRocket(_) =>
-// azalea_registry::EntityKind::FireworkRocket,
-// EntityMetadata::FishingBobber(_) =>
-// azalea_registry::EntityKind::FishingBobber,
-// EntityMetadata::Fox(_) => azalea_registry::EntityKind::Fox,
-// EntityMetadata::Frog(_) => azalea_registry::EntityKind::Frog,
-// EntityMetadata::FurnaceMinecart(_) =>
-// azalea_registry::EntityKind::FurnaceMinecart,
-// EntityMetadata::Ghast(_) => azalea_registry::EntityKind::Ghast,
-// EntityMetadata::Giant(_) => azalea_registry::EntityKind::Giant,
-// EntityMetadata::GlowItemFrame(_) =>
-// azalea_registry::EntityKind::GlowItemFrame,
-// EntityMetadata::GlowSquid(_) => azalea_registry::EntityKind::GlowSquid,
-//             EntityMetadata::Goat(_) => azalea_registry::EntityKind::Goat,
-//             EntityMetadata::Guardian(_) =>
-// azalea_registry::EntityKind::Guardian,             EntityMetadata::Hoglin(_)
-// => azalea_registry::EntityKind::Hoglin,
-// EntityMetadata::HopperMinecart(_) =>
-// azalea_registry::EntityKind::HopperMinecart,
-// EntityMetadata::Horse(_) => azalea_registry::EntityKind::Horse,
-// EntityMetadata::Husk(_) => azalea_registry::EntityKind::Husk,
-// EntityMetadata::Illusioner(_) => azalea_registry::EntityKind::Illusioner,
-//             EntityMetadata::IronGolem(_) =>
-// azalea_registry::EntityKind::IronGolem,             EntityMetadata::Item(_)
-// => azalea_registry::EntityKind::Item,
-// EntityMetadata::ItemFrame(_) => azalea_registry::EntityKind::ItemFrame,
-//             EntityMetadata::LeashKnot(_) =>
-// azalea_registry::EntityKind::LeashKnot,
-// EntityMetadata::LightningBolt(_) =>
-// azalea_registry::EntityKind::LightningBolt,
-// EntityMetadata::Llama(_) => azalea_registry::EntityKind::Llama,
-// EntityMetadata::LlamaSpit(_) => azalea_registry::EntityKind::LlamaSpit,
-//             EntityMetadata::MagmaCube(_) =>
-// azalea_registry::EntityKind::MagmaCube,             EntityMetadata::Marker(_)
-// => azalea_registry::EntityKind::Marker,
-// EntityMetadata::Minecart(_) => azalea_registry::EntityKind::Minecart,
-//             EntityMetadata::Mooshroom(_) =>
-// azalea_registry::EntityKind::Mooshroom,             EntityMetadata::Mule(_)
-// => azalea_registry::EntityKind::Mule,             EntityMetadata::Ocelot(_)
-// => azalea_registry::EntityKind::Ocelot,
-// EntityMetadata::Painting(_) => azalea_registry::EntityKind::Painting,
-//             EntityMetadata::Panda(_) => azalea_registry::EntityKind::Panda,
-//             EntityMetadata::Parrot(_) => azalea_registry::EntityKind::Parrot,
-//             EntityMetadata::Phantom(_) =>
-// azalea_registry::EntityKind::Phantom,             EntityMetadata::Pig(_) =>
-// azalea_registry::EntityKind::Pig,             EntityMetadata::Piglin(_) =>
-// azalea_registry::EntityKind::Piglin,
-// EntityMetadata::PiglinBrute(_) => azalea_registry::EntityKind::PiglinBrute,
-//             EntityMetadata::Pillager(_) =>
-// azalea_registry::EntityKind::Pillager,             EntityMetadata::Player(_)
-// => azalea_registry::EntityKind::Player,
-// EntityMetadata::PolarBear(_) => azalea_registry::EntityKind::PolarBear,
-//             EntityMetadata::Potion(_) => azalea_registry::EntityKind::Potion,
-//             EntityMetadata::Pufferfish(_) =>
-// azalea_registry::EntityKind::Pufferfish,
-// EntityMetadata::Rabbit(_) => azalea_registry::EntityKind::Rabbit,
-// EntityMetadata::Ravager(_) => azalea_registry::EntityKind::Ravager,
-//             EntityMetadata::Salmon(_) => azalea_registry::EntityKind::Salmon,
-//             EntityMetadata::Sheep(_) => azalea_registry::EntityKind::Sheep,
-//             EntityMetadata::Shulker(_) =>
-// azalea_registry::EntityKind::Shulker,
-// EntityMetadata::ShulkerBullet(_) =>
-// azalea_registry::EntityKind::ShulkerBullet,
-// EntityMetadata::Silverfish(_) => azalea_registry::EntityKind::Silverfish,
-//             EntityMetadata::Skeleton(_) =>
-// azalea_registry::EntityKind::Skeleton,
-// EntityMetadata::SkeletonHorse(_) =>
-// azalea_registry::EntityKind::SkeletonHorse,
-// EntityMetadata::Slime(_) => azalea_registry::EntityKind::Slime,
-// EntityMetadata::SmallFireball(_) =>
-// azalea_registry::EntityKind::SmallFireball,
-// EntityMetadata::SnowGolem(_) => azalea_registry::EntityKind::SnowGolem,
-//             EntityMetadata::Snowball(_) =>
-// azalea_registry::EntityKind::Snowball,
-// EntityMetadata::SpawnerMinecart(_) =>
-// azalea_registry::EntityKind::SpawnerMinecart,
-// EntityMetadata::SpectralArrow(_) =>
-// azalea_registry::EntityKind::SpectralArrow,
-// EntityMetadata::Spider(_) => azalea_registry::EntityKind::Spider,
-// EntityMetadata::Squid(_) => azalea_registry::EntityKind::Squid,
-// EntityMetadata::Stray(_) => azalea_registry::EntityKind::Stray,
-// EntityMetadata::Strider(_) => azalea_registry::EntityKind::Strider,
-//             EntityMetadata::Tadpole(_) =>
-// azalea_registry::EntityKind::Tadpole,             EntityMetadata::Tnt(_) =>
-// azalea_registry::EntityKind::Tnt,             EntityMetadata::TntMinecart(_)
-// => azalea_registry::EntityKind::TntMinecart,
-// EntityMetadata::TraderLlama(_) => azalea_registry::EntityKind::TraderLlama,
-//             EntityMetadata::Trident(_) =>
-// azalea_registry::EntityKind::Trident,
-// EntityMetadata::TropicalFish(_) => azalea_registry::EntityKind::TropicalFish,
-//             EntityMetadata::Turtle(_) => azalea_registry::EntityKind::Turtle,
-//             EntityMetadata::Vex(_) => azalea_registry::EntityKind::Vex,
-//             EntityMetadata::Villager(_) =>
-// azalea_registry::EntityKind::Villager,
-// EntityMetadata::Vindicator(_) => azalea_registry::EntityKind::Vindicator,
-//             EntityMetadata::WanderingTrader(_) =>
-// azalea_registry::EntityKind::WanderingTrader,
-// EntityMetadata::Warden(_) => azalea_registry::EntityKind::Warden,
-// EntityMetadata::Witch(_) => azalea_registry::EntityKind::Witch,
-// EntityMetadata::Wither(_) => azalea_registry::EntityKind::Wither,
-// EntityMetadata::WitherSkeleton(_) =>
-// azalea_registry::EntityKind::WitherSkeleton,
-// EntityMetadata::WitherSkull(_) => azalea_registry::EntityKind::WitherSkull,
-//             EntityMetadata::Wolf(_) => azalea_registry::EntityKind::Wolf,
-//             EntityMetadata::Zoglin(_) => azalea_registry::EntityKind::Zoglin,
-//             EntityMetadata::Zombie(_) => azalea_registry::EntityKind::Zombie,
-//             EntityMetadata::ZombieHorse(_) =>
-// azalea_registry::EntityKind::ZombieHorse,
-// EntityMetadata::ZombieVillager(_) =>
-// azalea_registry::EntityKind::ZombieVillager,
-// EntityMetadata::ZombifiedPiglin(_) =>
-// azalea_registry::EntityKind::ZombifiedPiglin,         }
-//     }
-// }
-
-// impl EntityMetadata {
-//     pub fn set_index(&mut self, index: u8, value: EntityDataValue) ->
-// Option<()> {         match self {
-//             EntityMetadata::Allay(entity) => entity.set_index(index, value),
-//             EntityMetadata::AreaEffectCloud(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::ArmorStand(entity) => entity.set_index(index, value),
-//             EntityMetadata::Arrow(entity) => entity.set_index(index, value),
-//             EntityMetadata::Axolotl(entity) => entity.set_index(index,
-// value),             EntityMetadata::Bat(entity) => entity.set_index(index,
-// value),             EntityMetadata::Bee(entity) => entity.set_index(index,
-// value),             EntityMetadata::Blaze(entity) => entity.set_index(index,
-// value),             EntityMetadata::Boat(entity) => entity.set_index(index,
-// value),             EntityMetadata::Camel(entity) => entity.set_index(index,
-// value),             EntityMetadata::Cat(entity) => entity.set_index(index,
-// value),             EntityMetadata::CaveSpider(entity) =>
-// entity.set_index(index, value),             EntityMetadata::ChestBoat(entity)
-// => entity.set_index(index, value),
-// EntityMetadata::ChestMinecart(entity) => entity.set_index(index, value),
-//             EntityMetadata::Chicken(entity) => entity.set_index(index,
-// value),             EntityMetadata::Cod(entity) => entity.set_index(index,
-// value),             EntityMetadata::CommandBlockMinecart(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Cow(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Creeper(entity)
-// => entity.set_index(index, value),
-// EntityMetadata::Dolphin(entity) => entity.set_index(index, value),
-//             EntityMetadata::Donkey(entity) => entity.set_index(index, value),
-//             EntityMetadata::DragonFireball(entity) => entity.set_index(index,
-// value),             EntityMetadata::Drowned(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Egg(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::ElderGuardian(entity) => entity.set_index(index, value),
-//             EntityMetadata::EndCrystal(entity) => entity.set_index(index,
-// value),             EntityMetadata::EnderDragon(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::EnderPearl(entity) => entity.set_index(index, value),
-//             EntityMetadata::Enderman(entity) => entity.set_index(index,
-// value),             EntityMetadata::Endermite(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Evoker(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::EvokerFangs(entity) => entity.set_index(index, value),
-//             EntityMetadata::ExperienceBottle(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::ExperienceOrb(entity) => entity.set_index(index, value),
-//             EntityMetadata::EyeOfEnder(entity) => entity.set_index(index,
-// value),             EntityMetadata::FallingBlock(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Fireball(entity)
-// => entity.set_index(index, value),
-// EntityMetadata::FireworkRocket(entity) => entity.set_index(index, value),
-//             EntityMetadata::FishingBobber(entity) => entity.set_index(index,
-// value),             EntityMetadata::Fox(entity) => entity.set_index(index,
-// value),             EntityMetadata::Frog(entity) => entity.set_index(index,
-// value),             EntityMetadata::FurnaceMinecart(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Ghast(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Giant(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::GlowItemFrame(entity) => entity.set_index(index, value),
-//             EntityMetadata::GlowSquid(entity) => entity.set_index(index,
-// value),             EntityMetadata::Goat(entity) => entity.set_index(index,
-// value),             EntityMetadata::Guardian(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Hoglin(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::HopperMinecart(entity) => entity.set_index(index, value),
-//             EntityMetadata::Horse(entity) => entity.set_index(index, value),
-//             EntityMetadata::Husk(entity) => entity.set_index(index, value),
-//             EntityMetadata::Illusioner(entity) => entity.set_index(index,
-// value),             EntityMetadata::IronGolem(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Item(entity) =>
-// entity.set_index(index, value),             EntityMetadata::ItemFrame(entity)
-// => entity.set_index(index, value),
-// EntityMetadata::LeashKnot(entity) => entity.set_index(index, value),
-//             EntityMetadata::LightningBolt(entity) => entity.set_index(index,
-// value),             EntityMetadata::Llama(entity) => entity.set_index(index,
-// value),             EntityMetadata::LlamaSpit(entity) =>
-// entity.set_index(index, value),             EntityMetadata::MagmaCube(entity)
-// => entity.set_index(index, value),             EntityMetadata::Marker(entity)
-// => entity.set_index(index, value),
-// EntityMetadata::Minecart(entity) => entity.set_index(index, value),
-//             EntityMetadata::Mooshroom(entity) => entity.set_index(index,
-// value),             EntityMetadata::Mule(entity) => entity.set_index(index,
-// value),             EntityMetadata::Ocelot(entity) => entity.set_index(index,
-// value),             EntityMetadata::Painting(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Panda(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Parrot(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Phantom(entity)
-// => entity.set_index(index, value),             EntityMetadata::Pig(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Piglin(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::PiglinBrute(entity) => entity.set_index(index, value),
-//             EntityMetadata::Pillager(entity) => entity.set_index(index,
-// value),             EntityMetadata::Player(entity) => entity.set_index(index,
-// value),             EntityMetadata::PolarBear(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Potion(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::Pufferfish(entity) => entity.set_index(index, value),
-//             EntityMetadata::Rabbit(entity) => entity.set_index(index, value),
-//             EntityMetadata::Ravager(entity) => entity.set_index(index,
-// value),             EntityMetadata::Salmon(entity) => entity.set_index(index,
-// value),             EntityMetadata::Sheep(entity) => entity.set_index(index,
-// value),             EntityMetadata::Shulker(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::ShulkerBullet(entity) => entity.set_index(index, value),
-//             EntityMetadata::Silverfish(entity) => entity.set_index(index,
-// value),             EntityMetadata::Skeleton(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::SkeletonHorse(entity) => entity.set_index(index, value),
-//             EntityMetadata::Slime(entity) => entity.set_index(index, value),
-//             EntityMetadata::SmallFireball(entity) => entity.set_index(index,
-// value),             EntityMetadata::SnowGolem(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Snowball(entity)
-// => entity.set_index(index, value),
-// EntityMetadata::SpawnerMinecart(entity) => entity.set_index(index, value),
-//             EntityMetadata::SpectralArrow(entity) => entity.set_index(index,
-// value),             EntityMetadata::Spider(entity) => entity.set_index(index,
-// value),             EntityMetadata::Squid(entity) => entity.set_index(index,
-// value),             EntityMetadata::Stray(entity) => entity.set_index(index,
-// value),             EntityMetadata::Strider(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Tadpole(entity)
-// => entity.set_index(index, value),             EntityMetadata::Tnt(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::TntMinecart(entity) => entity.set_index(index, value),
-//             EntityMetadata::TraderLlama(entity) => entity.set_index(index,
-// value),             EntityMetadata::Trident(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::TropicalFish(entity) => entity.set_index(index, value),
-//             EntityMetadata::Turtle(entity) => entity.set_index(index, value),
-//             EntityMetadata::Vex(entity) => entity.set_index(index, value),
-//             EntityMetadata::Villager(entity) => entity.set_index(index,
-// value),             EntityMetadata::Vindicator(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::WanderingTrader(entity) => entity.set_index(index, value),
-//             EntityMetadata::Warden(entity) => entity.set_index(index, value),
-//             EntityMetadata::Witch(entity) => entity.set_index(index, value),
-//             EntityMetadata::Wither(entity) => entity.set_index(index, value),
-//             EntityMetadata::WitherSkeleton(entity) => entity.set_index(index,
-// value),             EntityMetadata::WitherSkull(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Wolf(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Zoglin(entity) =>
-// entity.set_index(index, value),             EntityMetadata::Zombie(entity) =>
-// entity.set_index(index, value),
-// EntityMetadata::ZombieHorse(entity) => entity.set_index(index, value),
-//             EntityMetadata::ZombieVillager(entity) => entity.set_index(index,
-// value),             EntityMetadata::ZombifiedPiglin(entity) =>
-// entity.set_index(index, value),         }
-//     }
-// }
-
-// impl Deref for EntityMetadata {
-//     type Target = AbstractEntity;
-//     fn deref(&self) -> &Self::Target {
-//         match self {
-//             EntityMetadata::Allay(entity) => entity,
-//             EntityMetadata::AreaEffectCloud(entity) => entity,
-//             EntityMetadata::ArmorStand(entity) => entity,
-//             EntityMetadata::Arrow(entity) => entity,
-//             EntityMetadata::Axolotl(entity) => entity,
-//             EntityMetadata::Bat(entity) => entity,
-//             EntityMetadata::Bee(entity) => entity,
-//             EntityMetadata::Blaze(entity) => entity,
-//             EntityMetadata::Boat(entity) => entity,
-//             EntityMetadata::Camel(entity) => entity,
-//             EntityMetadata::Cat(entity) => entity,
-//             EntityMetadata::CaveSpider(entity) => entity,
-//             EntityMetadata::ChestBoat(entity) => entity,
-//             EntityMetadata::ChestMinecart(entity) => entity,
-//             EntityMetadata::Chicken(entity) => entity,
-//             EntityMetadata::Cod(entity) => entity,
-//             EntityMetadata::CommandBlockMinecart(entity) => entity,
-//             EntityMetadata::Cow(entity) => entity,
-//             EntityMetadata::Creeper(entity) => entity,
-//             EntityMetadata::Dolphin(entity) => entity,
-//             EntityMetadata::Donkey(entity) => entity,
-//             EntityMetadata::DragonFireball(entity) => entity,
-//             EntityMetadata::Drowned(entity) => entity,
-//             EntityMetadata::Egg(entity) => entity,
-//             EntityMetadata::ElderGuardian(entity) => entity,
-//             EntityMetadata::EndCrystal(entity) => entity,
-//             EntityMetadata::EnderDragon(entity) => entity,
-//             EntityMetadata::EnderPearl(entity) => entity,
-//             EntityMetadata::Enderman(entity) => entity,
-//             EntityMetadata::Endermite(entity) => entity,
-//             EntityMetadata::Evoker(entity) => entity,
-//             EntityMetadata::EvokerFangs(entity) => entity,
-//             EntityMetadata::ExperienceBottle(entity) => entity,
-//             EntityMetadata::ExperienceOrb(entity) => entity,
-//             EntityMetadata::EyeOfEnder(entity) => entity,
-//             EntityMetadata::FallingBlock(entity) => entity,
-//             EntityMetadata::Fireball(entity) => entity,
-//             EntityMetadata::FireworkRocket(entity) => entity,
-//             EntityMetadata::FishingBobber(entity) => entity,
-//             EntityMetadata::Fox(entity) => entity,
-//             EntityMetadata::Frog(entity) => entity,
-//             EntityMetadata::FurnaceMinecart(entity) => entity,
-//             EntityMetadata::Ghast(entity) => entity,
-//             EntityMetadata::Giant(entity) => entity,
-//             EntityMetadata::GlowItemFrame(entity) => entity,
-//             EntityMetadata::GlowSquid(entity) => entity,
-//             EntityMetadata::Goat(entity) => entity,
-//             EntityMetadata::Guardian(entity) => entity,
-//             EntityMetadata::Hoglin(entity) => entity,
-//             EntityMetadata::HopperMinecart(entity) => entity,
-//             EntityMetadata::Horse(entity) => entity,
-//             EntityMetadata::Husk(entity) => entity,
-//             EntityMetadata::Illusioner(entity) => entity,
-//             EntityMetadata::IronGolem(entity) => entity,
-//             EntityMetadata::Item(entity) => entity,
-//             EntityMetadata::ItemFrame(entity) => entity,
-//             EntityMetadata::LeashKnot(entity) => entity,
-//             EntityMetadata::LightningBolt(entity) => entity,
-//             EntityMetadata::Llama(entity) => entity,
-//             EntityMetadata::LlamaSpit(entity) => entity,
-//             EntityMetadata::MagmaCube(entity) => entity,
-//             EntityMetadata::Marker(entity) => entity,
-//             EntityMetadata::Minecart(entity) => entity,
-//             EntityMetadata::Mooshroom(entity) => entity,
-//             EntityMetadata::Mule(entity) => entity,
-//             EntityMetadata::Ocelot(entity) => entity,
-//             EntityMetadata::Painting(entity) => entity,
-//             EntityMetadata::Panda(entity) => entity,
-//             EntityMetadata::Parrot(entity) => entity,
-//             EntityMetadata::Phantom(entity) => entity,
-//             EntityMetadata::Pig(entity) => entity,
-//             EntityMetadata::Piglin(entity) => entity,
-//             EntityMetadata::PiglinBrute(entity) => entity,
-//             EntityMetadata::Pillager(entity) => entity,
-//             EntityMetadata::Player(entity) => entity,
-//             EntityMetadata::PolarBear(entity) => entity,
-//             EntityMetadata::Potion(entity) => entity,
-//             EntityMetadata::Pufferfish(entity) => entity,
-//             EntityMetadata::Rabbit(entity) => entity,
-//             EntityMetadata::Ravager(entity) => entity,
-//             EntityMetadata::Salmon(entity) => entity,
-//             EntityMetadata::Sheep(entity) => entity,
-//             EntityMetadata::Shulker(entity) => entity,
-//             EntityMetadata::ShulkerBullet(entity) => entity,
-//             EntityMetadata::Silverfish(entity) => entity,
-//             EntityMetadata::Skeleton(entity) => entity,
-//             EntityMetadata::SkeletonHorse(entity) => entity,
-//             EntityMetadata::Slime(entity) => entity,
-//             EntityMetadata::SmallFireball(entity) => entity,
-//             EntityMetadata::SnowGolem(entity) => entity,
-//             EntityMetadata::Snowball(entity) => entity,
-//             EntityMetadata::SpawnerMinecart(entity) => entity,
-//             EntityMetadata::SpectralArrow(entity) => entity,
-//             EntityMetadata::Spider(entity) => entity,
-//             EntityMetadata::Squid(entity) => entity,
-//             EntityMetadata::Stray(entity) => entity,
-//             EntityMetadata::Strider(entity) => entity,
-//             EntityMetadata::Tadpole(entity) => entity,
-//             EntityMetadata::Tnt(entity) => entity,
-//             EntityMetadata::TntMinecart(entity) => entity,
-//             EntityMetadata::TraderLlama(entity) => entity,
-//             EntityMetadata::Trident(entity) => entity,
-//             EntityMetadata::TropicalFish(entity) => entity,
-//             EntityMetadata::Turtle(entity) => entity,
-//             EntityMetadata::Vex(entity) => entity,
-//             EntityMetadata::Villager(entity) => entity,
-//             EntityMetadata::Vindicator(entity) => entity,
-//             EntityMetadata::WanderingTrader(entity) => entity,
-//             EntityMetadata::Warden(entity) => entity,
-//             EntityMetadata::Witch(entity) => entity,
-//             EntityMetadata::Wither(entity) => entity,
-//             EntityMetadata::WitherSkeleton(entity) => entity,
-//             EntityMetadata::WitherSkull(entity) => entity,
-//             EntityMetadata::Wolf(entity) => entity,
-//             EntityMetadata::Zoglin(entity) => entity,
-//             EntityMetadata::Zombie(entity) => entity,
-//             EntityMetadata::ZombieHorse(entity) => entity,
-//             EntityMetadata::ZombieVillager(entity) => entity,
-//             EntityMetadata::ZombifiedPiglin(entity) => entity,
-//         }
-//     }
-// }
-// impl DerefMut for EntityMetadata {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         match self {
-//             EntityMetadata::Allay(entity) => entity,
-//             EntityMetadata::AreaEffectCloud(entity) => entity,
-//             EntityMetadata::ArmorStand(entity) => entity,
-//             EntityMetadata::Arrow(entity) => entity,
-//             EntityMetadata::Axolotl(entity) => entity,
-//             EntityMetadata::Bat(entity) => entity,
-//             EntityMetadata::Bee(entity) => entity,
-//             EntityMetadata::Blaze(entity) => entity,
-//             EntityMetadata::Boat(entity) => entity,
-//             EntityMetadata::Camel(entity) => entity,
-//             EntityMetadata::Cat(entity) => entity,
-//             EntityMetadata::CaveSpider(entity) => entity,
-//             EntityMetadata::ChestBoat(entity) => entity,
-//             EntityMetadata::ChestMinecart(entity) => entity,
-//             EntityMetadata::Chicken(entity) => entity,
-//             EntityMetadata::Cod(entity) => entity,
-//             EntityMetadata::CommandBlockMinecart(entity) => entity,
-//             EntityMetadata::Cow(entity) => entity,
-//             EntityMetadata::Creeper(entity) => entity,
-//             EntityMetadata::Dolphin(entity) => entity,
-//             EntityMetadata::Donkey(entity) => entity,
-//             EntityMetadata::DragonFireball(entity) => entity,
-//             EntityMetadata::Drowned(entity) => entity,
-//             EntityMetadata::Egg(entity) => entity,
-//             EntityMetadata::ElderGuardian(entity) => entity,
-//             EntityMetadata::EndCrystal(entity) => entity,
-//             EntityMetadata::EnderDragon(entity) => entity,
-//             EntityMetadata::EnderPearl(entity) => entity,
-//             EntityMetadata::Enderman(entity) => entity,
-//             EntityMetadata::Endermite(entity) => entity,
-//             EntityMetadata::Evoker(entity) => entity,
-//             EntityMetadata::EvokerFangs(entity) => entity,
-//             EntityMetadata::ExperienceBottle(entity) => entity,
-//             EntityMetadata::ExperienceOrb(entity) => entity,
-//             EntityMetadata::EyeOfEnder(entity) => entity,
-//             EntityMetadata::FallingBlock(entity) => entity,
-//             EntityMetadata::Fireball(entity) => entity,
-//             EntityMetadata::FireworkRocket(entity) => entity,
-//             EntityMetadata::FishingBobber(entity) => entity,
-//             EntityMetadata::Fox(entity) => entity,
-//             EntityMetadata::Frog(entity) => entity,
-//             EntityMetadata::FurnaceMinecart(entity) => entity,
-//             EntityMetadata::Ghast(entity) => entity,
-//             EntityMetadata::Giant(entity) => entity,
-//             EntityMetadata::GlowItemFrame(entity) => entity,
-//             EntityMetadata::GlowSquid(entity) => entity,
-//             EntityMetadata::Goat(entity) => entity,
-//             EntityMetadata::Guardian(entity) => entity,
-//             EntityMetadata::Hoglin(entity) => entity,
-//             EntityMetadata::HopperMinecart(entity) => entity,
-//             EntityMetadata::Horse(entity) => entity,
-//             EntityMetadata::Husk(entity) => entity,
-//             EntityMetadata::Illusioner(entity) => entity,
-//             EntityMetadata::IronGolem(entity) => entity,
-//             EntityMetadata::Item(entity) => entity,
-//             EntityMetadata::ItemFrame(entity) => entity,
-//             EntityMetadata::LeashKnot(entity) => entity,
-//             EntityMetadata::LightningBolt(entity) => entity,
-//             EntityMetadata::Llama(entity) => entity,
-//             EntityMetadata::LlamaSpit(entity) => entity,
-//             EntityMetadata::MagmaCube(entity) => entity,
-//             EntityMetadata::Marker(entity) => entity,
-//             EntityMetadata::Minecart(entity) => entity,
-//             EntityMetadata::Mooshroom(entity) => entity,
-//             EntityMetadata::Mule(entity) => entity,
-//             EntityMetadata::Ocelot(entity) => entity,
-//             EntityMetadata::Painting(entity) => entity,
-//             EntityMetadata::Panda(entity) => entity,
-//             EntityMetadata::Parrot(entity) => entity,
-//             EntityMetadata::Phantom(entity) => entity,
-//             EntityMetadata::Pig(entity) => entity,
-//             EntityMetadata::Piglin(entity) => entity,
-//             EntityMetadata::PiglinBrute(entity) => entity,
-//             EntityMetadata::Pillager(entity) => entity,
-//             EntityMetadata::Player(entity) => entity,
-//             EntityMetadata::PolarBear(entity) => entity,
-//             EntityMetadata::Potion(entity) => entity,
-//             EntityMetadata::Pufferfish(entity) => entity,
-//             EntityMetadata::Rabbit(entity) => entity,
-//             EntityMetadata::Ravager(entity) => entity,
-//             EntityMetadata::Salmon(entity) => entity,
-//             EntityMetadata::Sheep(entity) => entity,
-//             EntityMetadata::Shulker(entity) => entity,
-//             EntityMetadata::ShulkerBullet(entity) => entity,
-//             EntityMetadata::Silverfish(entity) => entity,
-//             EntityMetadata::Skeleton(entity) => entity,
-//             EntityMetadata::SkeletonHorse(entity) => entity,
-//             EntityMetadata::Slime(entity) => entity,
-//             EntityMetadata::SmallFireball(entity) => entity,
-//             EntityMetadata::SnowGolem(entity) => entity,
-//             EntityMetadata::Snowball(entity) => entity,
-//             EntityMetadata::SpawnerMinecart(entity) => entity,
-//             EntityMetadata::SpectralArrow(entity) => entity,
-//             EntityMetadata::Spider(entity) => entity,
-//             EntityMetadata::Squid(entity) => entity,
-//             EntityMetadata::Stray(entity) => entity,
-//             EntityMetadata::Strider(entity) => entity,
-//             EntityMetadata::Tadpole(entity) => entity,
-//             EntityMetadata::Tnt(entity) => entity,
-//             EntityMetadata::TntMinecart(entity) => entity,
-//             EntityMetadata::TraderLlama(entity) => entity,
-//             EntityMetadata::Trident(entity) => entity,
-//             EntityMetadata::TropicalFish(entity) => entity,
-//             EntityMetadata::Turtle(entity) => entity,
-//             EntityMetadata::Vex(entity) => entity,
-//             EntityMetadata::Villager(entity) => entity,
-//             EntityMetadata::Vindicator(entity) => entity,
-//             EntityMetadata::WanderingTrader(entity) => entity,
-//             EntityMetadata::Warden(entity) => entity,
-//             EntityMetadata::Witch(entity) => entity,
-//             EntityMetadata::Wither(entity) => entity,
-//             EntityMetadata::WitherSkeleton(entity) => entity,
-//             EntityMetadata::WitherSkull(entity) => entity,
-//             EntityMetadata::Wolf(entity) => entity,
-//             EntityMetadata::Zoglin(entity) => entity,
-//             EntityMetadata::Zombie(entity) => entity,
-//             EntityMetadata::ZombieHorse(entity) => entity,
-//             EntityMetadata::ZombieVillager(entity) => entity,
-//             EntityMetadata::ZombifiedPiglin(entity) => entity,
-//         }
-//     }
-// }
+pub struct Radius(pub f32);
+pub struct AreaEffectCloudColor(pub i32);
+pub struct Waiting(pub bool);
+pub struct AreaEffectCloud;
+impl AreaEffectCloud {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(Radius(3.0))
+            .add(AreaEffectCloudColor(0))
+            .add(Waiting(false))
+            .add(Particle::default())
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct AreaEffectCloudQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    radius: &'a mut Radius,
+    area_effect_cloud_color: &'a mut AreaEffectCloudColor,
+    waiting: &'a mut Waiting,
+    particle: &'a mut Particle,
+}
+impl AreaEffectCloudQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.radius = Radius(d.value.into_float()?),
+                9 => *self.area_effect_cloud_color = AreaEffectCloudColor(d.value.into_int()?),
+                10 => *self.waiting = Waiting(d.value.into_boolean()?),
+                11 => *self.particle = d.value.into_particle()?,
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Small(pub bool);
+pub struct ShowArms(pub bool);
+pub struct NoBasePlate(pub bool);
+pub struct ArmorStandMarker(pub bool);
+pub struct HeadPose(pub Rotations);
+pub struct BodyPose(pub Rotations);
+pub struct LeftArmPose(pub Rotations);
+pub struct RightArmPose(pub Rotations);
+pub struct LeftLegPose(pub Rotations);
+pub struct RightLegPose(pub Rotations);
+pub struct ArmorStand;
+impl ArmorStand {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(Small(false))
+            .add(ShowArms(false))
+            .add(NoBasePlate(false))
+            .add(ArmorStandMarker(false))
+            .add(HeadPose(Default::default()))
+            .add(BodyPose(Default::default()))
+            .add(LeftArmPose(Default::default()))
+            .add(RightArmPose(Default::default()))
+            .add(LeftLegPose(Default::default()))
+            .add(RightLegPose(Default::default()))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ArmorStandQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    small: &'a mut Small,
+    show_arms: &'a mut ShowArms,
+    no_base_plate: &'a mut NoBasePlate,
+    armor_stand_marker: &'a mut ArmorStandMarker,
+    head_pose: &'a mut HeadPose,
+    body_pose: &'a mut BodyPose,
+    left_arm_pose: &'a mut LeftArmPose,
+    right_arm_pose: &'a mut RightArmPose,
+    left_leg_pose: &'a mut LeftLegPose,
+    right_leg_pose: &'a mut RightLegPose,
+}
+impl ArmorStandQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.small = Small(bitfield & 0x1 != 0);
+                    *self.show_arms = ShowArms(bitfield & 0x4 != 0);
+                    *self.no_base_plate = NoBasePlate(bitfield & 0x8 != 0);
+                    *self.armor_stand_marker = ArmorStandMarker(bitfield & 0x10 != 0);
+                }
+                16 => *self.head_pose = HeadPose(d.value.into_rotations()?),
+                17 => *self.body_pose = BodyPose(d.value.into_rotations()?),
+                18 => *self.left_arm_pose = LeftArmPose(d.value.into_rotations()?),
+                19 => *self.right_arm_pose = RightArmPose(d.value.into_rotations()?),
+                20 => *self.left_leg_pose = LeftLegPose(d.value.into_rotations()?),
+                21 => *self.right_leg_pose = RightLegPose(d.value.into_rotations()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ArrowCritArrow(pub bool);
+pub struct ArrowShotFromCrossbow(pub bool);
+pub struct ArrowNoPhysics(pub bool);
+pub struct ArrowPierceLevel(pub u8);
+pub struct ArrowEffectColor(pub i32);
+pub struct Arrow;
+impl Arrow {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(ArrowCritArrow(false))
+            .add(ArrowShotFromCrossbow(false))
+            .add(ArrowNoPhysics(false))
+            .add(ArrowPierceLevel(0))
+            .add(ArrowEffectColor(-1))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ArrowQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    arrow_crit_arrow: &'a mut ArrowCritArrow,
+    arrow_shot_from_crossbow: &'a mut ArrowShotFromCrossbow,
+    arrow_no_physics: &'a mut ArrowNoPhysics,
+    arrow_pierce_level: &'a mut ArrowPierceLevel,
+    arrow_effect_color: &'a mut ArrowEffectColor,
+}
+impl ArrowQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.arrow_crit_arrow = ArrowCritArrow(bitfield & 0x1 != 0);
+                    *self.arrow_shot_from_crossbow = ArrowShotFromCrossbow(bitfield & 0x4 != 0);
+                    *self.arrow_no_physics = ArrowNoPhysics(bitfield & 0x2 != 0);
+                }
+                9 => *self.arrow_pierce_level = ArrowPierceLevel(d.value.into_byte()?),
+                10 => *self.arrow_effect_color = ArrowEffectColor(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct AbstractAgeableBaby(pub bool);
+pub struct AxolotlVariant(pub i32);
+pub struct PlayingDead(pub bool);
+pub struct AxolotlFromBucket(pub bool);
+pub struct Axolotl;
+impl Axolotl {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(AxolotlVariant(0))
+            .add(PlayingDead(false))
+            .add(AxolotlFromBucket(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct AxolotlQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    axolotl_variant: &'a mut AxolotlVariant,
+    playing_dead: &'a mut PlayingDead,
+    axolotl_from_bucket: &'a mut AxolotlFromBucket,
+}
+impl AxolotlQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => *self.axolotl_variant = AxolotlVariant(d.value.into_int()?),
+                18 => *self.playing_dead = PlayingDead(d.value.into_boolean()?),
+                19 => *self.axolotl_from_bucket = AxolotlFromBucket(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Resting(pub bool);
+pub struct Bat;
+impl Bat {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(Resting(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct BatQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    resting: &'a mut Resting,
+}
+impl BatQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.resting = Resting(bitfield & 0x1 != 0);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct HasNectar(pub bool);
+pub struct HasStung(pub bool);
+pub struct BeeRolling(pub bool);
+pub struct BeeRemainingAngerTime(pub i32);
+pub struct Bee;
+impl Bee {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(HasNectar(false))
+            .add(HasStung(false))
+            .add(BeeRolling(false))
+            .add(BeeRemainingAngerTime(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct BeeQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    has_nectar: &'a mut HasNectar,
+    has_stung: &'a mut HasStung,
+    bee_rolling: &'a mut BeeRolling,
+    bee_remaining_anger_time: &'a mut BeeRemainingAngerTime,
+}
+impl BeeQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.has_nectar = HasNectar(bitfield & 0x8 != 0);
+                    *self.has_stung = HasStung(bitfield & 0x4 != 0);
+                    *self.bee_rolling = BeeRolling(bitfield & 0x2 != 0);
+                }
+                18 => *self.bee_remaining_anger_time = BeeRemainingAngerTime(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Charged(pub bool);
+pub struct Blaze;
+impl Blaze {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(Charged(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct BlazeQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    charged: &'a mut Charged,
+}
+impl BlazeQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.charged = Charged(bitfield & 0x1 != 0);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct BoatHurt(pub i32);
+pub struct BoatHurtdir(pub i32);
+pub struct BoatDamage(pub f32);
+pub struct BoatKind(pub i32);
+pub struct PaddleLeft(pub bool);
+pub struct PaddleRight(pub bool);
+pub struct BubbleTime(pub i32);
+pub struct Boat;
+impl Boat {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(BoatHurt(0))
+            .add(BoatHurtdir(1))
+            .add(BoatDamage(0.0))
+            .add(BoatKind(Default::default()))
+            .add(PaddleLeft(false))
+            .add(PaddleRight(false))
+            .add(BubbleTime(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct BoatQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    boat_hurt: &'a mut BoatHurt,
+    boat_hurtdir: &'a mut BoatHurtdir,
+    boat_damage: &'a mut BoatDamage,
+    boat_kind: &'a mut BoatKind,
+    paddle_left: &'a mut PaddleLeft,
+    paddle_right: &'a mut PaddleRight,
+    bubble_time: &'a mut BubbleTime,
+}
+impl BoatQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.boat_hurt = BoatHurt(d.value.into_int()?),
+                9 => *self.boat_hurtdir = BoatHurtdir(d.value.into_int()?),
+                10 => *self.boat_damage = BoatDamage(d.value.into_float()?),
+                11 => *self.boat_kind = BoatKind(d.value.into_int()?),
+                12 => *self.paddle_left = PaddleLeft(d.value.into_boolean()?),
+                13 => *self.paddle_right = PaddleRight(d.value.into_boolean()?),
+                14 => *self.bubble_time = BubbleTime(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct CamelTamed(pub bool);
+pub struct CamelEating(pub bool);
+pub struct CamelStanding(pub bool);
+pub struct CamelBred(pub bool);
+pub struct CamelSaddled(pub bool);
+pub struct CamelOwnerUuid(pub Option<Uuid>);
+pub struct Dash(pub bool);
+pub struct LastPoseChangeTick(pub i64);
+pub struct Camel;
+impl Camel {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(CamelTamed(false))
+            .add(CamelEating(false))
+            .add(CamelStanding(false))
+            .add(CamelBred(false))
+            .add(CamelSaddled(false))
+            .add(CamelOwnerUuid(None))
+            .add(Dash(false))
+            .add(LastPoseChangeTick(-52))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct CamelQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    camel_tamed: &'a mut CamelTamed,
+    camel_eating: &'a mut CamelEating,
+    camel_standing: &'a mut CamelStanding,
+    camel_bred: &'a mut CamelBred,
+    camel_saddled: &'a mut CamelSaddled,
+    camel_owner_uuid: &'a mut CamelOwnerUuid,
+    dash: &'a mut Dash,
+    last_pose_change_tick: &'a mut LastPoseChangeTick,
+}
+impl CamelQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.camel_tamed = CamelTamed(bitfield & 0x2 != 0);
+                    *self.camel_eating = CamelEating(bitfield & 0x10 != 0);
+                    *self.camel_standing = CamelStanding(bitfield & 0x20 != 0);
+                    *self.camel_bred = CamelBred(bitfield & 0x8 != 0);
+                    *self.camel_saddled = CamelSaddled(bitfield & 0x4 != 0);
+                }
+                18 => *self.camel_owner_uuid = CamelOwnerUuid(d.value.into_optional_uuid()?),
+                19 => *self.dash = Dash(d.value.into_boolean()?),
+                20 => *self.last_pose_change_tick = LastPoseChangeTick(d.value.into_long()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Tame(pub bool);
+pub struct InSittingPose(pub bool);
+pub struct Owneruuid(pub Option<Uuid>);
+pub struct CatVariant(pub azalea_registry::CatVariant);
+pub struct IsLying(pub bool);
+pub struct RelaxStateOne(pub bool);
+pub struct CatCollarColor(pub i32);
+pub struct Cat;
+impl Cat {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(Tame(false))
+            .add(InSittingPose(false))
+            .add(Owneruuid(None))
+            .add(CatVariant(azalea_registry::CatVariant::Tabby))
+            .add(IsLying(false))
+            .add(RelaxStateOne(false))
+            .add(CatCollarColor(Default::default()))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct CatQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    tame: &'a mut Tame,
+    in_sitting_pose: &'a mut InSittingPose,
+    owneruuid: &'a mut Owneruuid,
+    cat_variant: &'a mut CatVariant,
+    is_lying: &'a mut IsLying,
+    relax_state_one: &'a mut RelaxStateOne,
+    cat_collar_color: &'a mut CatCollarColor,
+}
+impl CatQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.tame = Tame(bitfield & 0x4 != 0);
+                    *self.in_sitting_pose = InSittingPose(bitfield & 0x1 != 0);
+                }
+                18 => *self.owneruuid = Owneruuid(d.value.into_optional_uuid()?),
+                19 => *self.cat_variant = CatVariant(d.value.into_cat_variant()?),
+                20 => *self.is_lying = IsLying(d.value.into_boolean()?),
+                21 => *self.relax_state_one = RelaxStateOne(d.value.into_boolean()?),
+                22 => *self.cat_collar_color = CatCollarColor(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Climbing(pub bool);
+pub struct CaveSpider;
+impl CaveSpider {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(Climbing(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct CaveSpiderQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    climbing: &'a mut Climbing,
+}
+impl CaveSpiderQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.climbing = Climbing(bitfield & 0x1 != 0);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ChestBoat;
+impl ChestBoat {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(BoatHurt(0))
+            .add(BoatHurtdir(1))
+            .add(BoatDamage(0.0))
+            .add(BoatKind(Default::default()))
+            .add(PaddleLeft(false))
+            .add(PaddleRight(false))
+            .add(BubbleTime(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ChestBoatQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    boat_hurt: &'a mut BoatHurt,
+    boat_hurtdir: &'a mut BoatHurtdir,
+    boat_damage: &'a mut BoatDamage,
+    boat_kind: &'a mut BoatKind,
+    paddle_left: &'a mut PaddleLeft,
+    paddle_right: &'a mut PaddleRight,
+    bubble_time: &'a mut BubbleTime,
+}
+impl ChestBoatQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.boat_hurt = BoatHurt(d.value.into_int()?),
+                9 => *self.boat_hurtdir = BoatHurtdir(d.value.into_int()?),
+                10 => *self.boat_damage = BoatDamage(d.value.into_float()?),
+                11 => *self.boat_kind = BoatKind(d.value.into_int()?),
+                12 => *self.paddle_left = PaddleLeft(d.value.into_boolean()?),
+                13 => *self.paddle_right = PaddleRight(d.value.into_boolean()?),
+                14 => *self.bubble_time = BubbleTime(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct AbstractMinecartHurt(pub i32);
+pub struct AbstractMinecartHurtdir(pub i32);
+pub struct AbstractMinecartDamage(pub f32);
+pub struct DisplayBlock(pub i32);
+pub struct DisplayOffset(pub i32);
+pub struct CustomDisplay(pub bool);
+pub struct ChestMinecart;
+impl ChestMinecart {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AbstractMinecartHurt(0))
+            .add(AbstractMinecartHurtdir(1))
+            .add(AbstractMinecartDamage(0.0))
+            .add(DisplayBlock(Default::default()))
+            .add(DisplayOffset(6))
+            .add(CustomDisplay(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ChestMinecartQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    abstract_minecart_hurt: &'a mut AbstractMinecartHurt,
+    abstract_minecart_hurtdir: &'a mut AbstractMinecartHurtdir,
+    abstract_minecart_damage: &'a mut AbstractMinecartDamage,
+    display_block: &'a mut DisplayBlock,
+    display_offset: &'a mut DisplayOffset,
+    custom_display: &'a mut CustomDisplay,
+}
+impl ChestMinecartQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.abstract_minecart_hurt = AbstractMinecartHurt(d.value.into_int()?),
+                9 => *self.abstract_minecart_hurtdir = AbstractMinecartHurtdir(d.value.into_int()?),
+                10 => {
+                    *self.abstract_minecart_damage = AbstractMinecartDamage(d.value.into_float()?)
+                }
+                11 => *self.display_block = DisplayBlock(d.value.into_int()?),
+                12 => *self.display_offset = DisplayOffset(d.value.into_int()?),
+                13 => *self.custom_display = CustomDisplay(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Chicken;
+impl Chicken {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ChickenQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+}
+impl ChickenQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct CodFromBucket(pub bool);
+pub struct Cod;
+impl Cod {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(CodFromBucket(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct CodQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    cod_from_bucket: &'a mut CodFromBucket,
+}
+impl CodQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.cod_from_bucket = CodFromBucket(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct CommandName(pub String);
+pub struct LastOutput(pub Component);
+pub struct CommandBlockMinecart;
+impl CommandBlockMinecart {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AbstractMinecartHurt(0))
+            .add(AbstractMinecartHurtdir(1))
+            .add(AbstractMinecartDamage(0.0))
+            .add(DisplayBlock(Default::default()))
+            .add(DisplayOffset(6))
+            .add(CustomDisplay(false))
+            .add(CommandName("".to_string()))
+            .add(LastOutput(Default::default()))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct CommandBlockMinecartQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    abstract_minecart_hurt: &'a mut AbstractMinecartHurt,
+    abstract_minecart_hurtdir: &'a mut AbstractMinecartHurtdir,
+    abstract_minecart_damage: &'a mut AbstractMinecartDamage,
+    display_block: &'a mut DisplayBlock,
+    display_offset: &'a mut DisplayOffset,
+    custom_display: &'a mut CustomDisplay,
+    command_name: &'a mut CommandName,
+    last_output: &'a mut LastOutput,
+}
+impl CommandBlockMinecartQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.abstract_minecart_hurt = AbstractMinecartHurt(d.value.into_int()?),
+                9 => *self.abstract_minecart_hurtdir = AbstractMinecartHurtdir(d.value.into_int()?),
+                10 => {
+                    *self.abstract_minecart_damage = AbstractMinecartDamage(d.value.into_float()?)
+                }
+                11 => *self.display_block = DisplayBlock(d.value.into_int()?),
+                12 => *self.display_offset = DisplayOffset(d.value.into_int()?),
+                13 => *self.custom_display = CustomDisplay(d.value.into_boolean()?),
+                14 => *self.command_name = CommandName(d.value.into_string()?),
+                15 => *self.last_output = LastOutput(d.value.into_component()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Cow;
+impl Cow {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct CowQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+}
+impl CowQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct SwellDir(pub i32);
+pub struct IsPowered(pub bool);
+pub struct IsIgnited(pub bool);
+pub struct Creeper;
+impl Creeper {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(SwellDir(-1))
+            .add(IsPowered(false))
+            .add(IsIgnited(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct CreeperQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    swell_dir: &'a mut SwellDir,
+    is_powered: &'a mut IsPowered,
+    is_ignited: &'a mut IsIgnited,
+}
+impl CreeperQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.swell_dir = SwellDir(d.value.into_int()?),
+                17 => *self.is_powered = IsPowered(d.value.into_boolean()?),
+                18 => *self.is_ignited = IsIgnited(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct TreasurePos(pub BlockPos);
+pub struct GotFish(pub bool);
+pub struct MoistnessLevel(pub i32);
+pub struct Dolphin;
+impl Dolphin {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(TreasurePos(BlockPos::new(0, 0, 0)))
+            .add(GotFish(false))
+            .add(MoistnessLevel(2400))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct DolphinQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    treasure_pos: &'a mut TreasurePos,
+    got_fish: &'a mut GotFish,
+    moistness_level: &'a mut MoistnessLevel,
+}
+impl DolphinQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.treasure_pos = TreasurePos(d.value.into_block_pos()?),
+                17 => *self.got_fish = GotFish(d.value.into_boolean()?),
+                18 => *self.moistness_level = MoistnessLevel(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct DonkeyTamed(pub bool);
+pub struct DonkeyEating(pub bool);
+pub struct DonkeyStanding(pub bool);
+pub struct DonkeyBred(pub bool);
+pub struct DonkeySaddled(pub bool);
+pub struct DonkeyOwnerUuid(pub Option<Uuid>);
+pub struct DonkeyChest(pub bool);
+pub struct Donkey;
+impl Donkey {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(DonkeyTamed(false))
+            .add(DonkeyEating(false))
+            .add(DonkeyStanding(false))
+            .add(DonkeyBred(false))
+            .add(DonkeySaddled(false))
+            .add(DonkeyOwnerUuid(None))
+            .add(DonkeyChest(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct DonkeyQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    donkey_tamed: &'a mut DonkeyTamed,
+    donkey_eating: &'a mut DonkeyEating,
+    donkey_standing: &'a mut DonkeyStanding,
+    donkey_bred: &'a mut DonkeyBred,
+    donkey_saddled: &'a mut DonkeySaddled,
+    donkey_owner_uuid: &'a mut DonkeyOwnerUuid,
+    donkey_chest: &'a mut DonkeyChest,
+}
+impl DonkeyQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.donkey_tamed = DonkeyTamed(bitfield & 0x2 != 0);
+                    *self.donkey_eating = DonkeyEating(bitfield & 0x10 != 0);
+                    *self.donkey_standing = DonkeyStanding(bitfield & 0x20 != 0);
+                    *self.donkey_bred = DonkeyBred(bitfield & 0x8 != 0);
+                    *self.donkey_saddled = DonkeySaddled(bitfield & 0x4 != 0);
+                }
+                18 => *self.donkey_owner_uuid = DonkeyOwnerUuid(d.value.into_optional_uuid()?),
+                19 => *self.donkey_chest = DonkeyChest(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct DragonFireball;
+impl DragonFireball {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct DragonFireballQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+}
+impl DragonFireballQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ZombieBaby(pub bool);
+pub struct SpecialType(pub i32);
+pub struct DrownedConversion(pub bool);
+pub struct Drowned;
+impl Drowned {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(ZombieBaby(false))
+            .add(SpecialType(0))
+            .add(DrownedConversion(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct DrownedQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    zombie_baby: &'a mut ZombieBaby,
+    special_type: &'a mut SpecialType,
+    drowned_conversion: &'a mut DrownedConversion,
+}
+impl DrownedQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.zombie_baby = ZombieBaby(d.value.into_boolean()?),
+                17 => *self.special_type = SpecialType(d.value.into_int()?),
+                18 => *self.drowned_conversion = DrownedConversion(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct EggItemStack(pub Slot);
+pub struct Egg;
+impl Egg {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(EggItemStack(Slot::Empty))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct EggQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    egg_item_stack: &'a mut EggItemStack,
+}
+impl EggQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.egg_item_stack = EggItemStack(d.value.into_item_stack()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Moving(pub bool);
+pub struct AttackTarget(pub i32);
+pub struct ElderGuardian;
+impl ElderGuardian {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(Moving(false))
+            .add(AttackTarget(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ElderGuardianQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    moving: &'a mut Moving,
+    attack_target: &'a mut AttackTarget,
+}
+impl ElderGuardianQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.moving = Moving(d.value.into_boolean()?),
+                17 => *self.attack_target = AttackTarget(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct BeamTarget(pub Option<BlockPos>);
+pub struct ShowBottom(pub bool);
+pub struct EndCrystal;
+impl EndCrystal {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(BeamTarget(None))
+            .add(ShowBottom(true))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct EndCrystalQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    beam_target: &'a mut BeamTarget,
+    show_bottom: &'a mut ShowBottom,
+}
+impl EndCrystalQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.beam_target = BeamTarget(d.value.into_optional_block_pos()?),
+                9 => *self.show_bottom = ShowBottom(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Phase(pub i32);
+pub struct EnderDragon;
+impl EnderDragon {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(Phase(Default::default()))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct EnderDragonQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    phase: &'a mut Phase,
+}
+impl EnderDragonQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.phase = Phase(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct EnderPearlItemStack(pub Slot);
+pub struct EnderPearl;
+impl EnderPearl {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(EnderPearlItemStack(Slot::Empty))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct EnderPearlQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    ender_pearl_item_stack: &'a mut EnderPearlItemStack,
+}
+impl EnderPearlQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.ender_pearl_item_stack = EnderPearlItemStack(d.value.into_item_stack()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct CarryState(pub BlockState);
+pub struct Creepy(pub bool);
+pub struct StaredAt(pub bool);
+pub struct Enderman;
+impl Enderman {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(CarryState(BlockState::Air))
+            .add(Creepy(false))
+            .add(StaredAt(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct EndermanQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    carry_state: &'a mut CarryState,
+    creepy: &'a mut Creepy,
+    stared_at: &'a mut StaredAt,
+}
+impl EndermanQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.carry_state = CarryState(d.value.into_block_state()?),
+                17 => *self.creepy = Creepy(d.value.into_boolean()?),
+                18 => *self.stared_at = StaredAt(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Endermite;
+impl Endermite {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct EndermiteQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+}
+impl EndermiteQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct EvokerIsCelebrating(pub bool);
+pub struct EvokerSpellCasting(pub u8);
+pub struct Evoker;
+impl Evoker {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(EvokerIsCelebrating(false))
+            .add(EvokerSpellCasting(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct EvokerQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    evoker_is_celebrating: &'a mut EvokerIsCelebrating,
+    evoker_spell_casting: &'a mut EvokerSpellCasting,
+}
+impl EvokerQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.evoker_is_celebrating = EvokerIsCelebrating(d.value.into_boolean()?),
+                17 => *self.evoker_spell_casting = EvokerSpellCasting(d.value.into_byte()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct EvokerFangs;
+impl EvokerFangs {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct EvokerFangsQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+}
+impl EvokerFangsQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ExperienceBottleItemStack(pub Slot);
+pub struct ExperienceBottle;
+impl ExperienceBottle {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(ExperienceBottleItemStack(Slot::Empty))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ExperienceBottleQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    experience_bottle_item_stack: &'a mut ExperienceBottleItemStack,
+}
+impl ExperienceBottleQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    *self.experience_bottle_item_stack =
+                        ExperienceBottleItemStack(d.value.into_item_stack()?)
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ExperienceOrb;
+impl ExperienceOrb {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ExperienceOrbQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+}
+impl ExperienceOrbQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct EyeOfEnderItemStack(pub Slot);
+pub struct EyeOfEnder;
+impl EyeOfEnder {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(EyeOfEnderItemStack(Slot::Empty))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct EyeOfEnderQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    eye_of_ender_item_stack: &'a mut EyeOfEnderItemStack,
+}
+impl EyeOfEnderQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    *self.eye_of_ender_item_stack = EyeOfEnderItemStack(d.value.into_item_stack()?)
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct StartPos(pub BlockPos);
+pub struct FallingBlock;
+impl FallingBlock {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(StartPos(BlockPos::new(0, 0, 0)))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct FallingBlockQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    start_pos: &'a mut StartPos,
+}
+impl FallingBlockQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.start_pos = StartPos(d.value.into_block_pos()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct FireballItemStack(pub Slot);
+pub struct Fireball;
+impl Fireball {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(FireballItemStack(Slot::Empty))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct FireballQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    fireball_item_stack: &'a mut FireballItemStack,
+}
+impl FireballQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.fireball_item_stack = FireballItemStack(d.value.into_item_stack()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct FireworksItem(pub Slot);
+pub struct AttachedToTarget(pub OptionalUnsignedInt);
+pub struct ShotAtAngle(pub bool);
+pub struct FireworkRocket;
+impl FireworkRocket {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(FireworksItem(Slot::Empty))
+            .add(AttachedToTarget(OptionalUnsignedInt(None)))
+            .add(ShotAtAngle(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct FireworkRocketQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    fireworks_item: &'a mut FireworksItem,
+    attached_to_target: &'a mut AttachedToTarget,
+    shot_at_angle: &'a mut ShotAtAngle,
+}
+impl FireworkRocketQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.fireworks_item = FireworksItem(d.value.into_item_stack()?),
+                9 => {
+                    *self.attached_to_target =
+                        AttachedToTarget(d.value.into_optional_unsigned_int()?)
+                }
+                10 => *self.shot_at_angle = ShotAtAngle(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct HookedEntity(pub i32);
+pub struct Biting(pub bool);
+pub struct FishingBobber;
+impl FishingBobber {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(HookedEntity(0))
+            .add(Biting(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct FishingBobberQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    hooked_entity: &'a mut HookedEntity,
+    biting: &'a mut Biting,
+}
+impl FishingBobberQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.hooked_entity = HookedEntity(d.value.into_int()?),
+                9 => *self.biting = Biting(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct FoxKind(pub i32);
+pub struct FoxSitting(pub bool);
+pub struct Faceplanted(pub bool);
+pub struct Sleeping(pub bool);
+pub struct Pouncing(pub bool);
+pub struct Crouching(pub bool);
+pub struct FoxInterested(pub bool);
+pub struct TrustedId0(pub Option<Uuid>);
+pub struct TrustedId1(pub Option<Uuid>);
+pub struct Fox;
+impl Fox {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(FoxKind(0))
+            .add(FoxSitting(false))
+            .add(Faceplanted(false))
+            .add(Sleeping(false))
+            .add(Pouncing(false))
+            .add(Crouching(false))
+            .add(FoxInterested(false))
+            .add(TrustedId0(None))
+            .add(TrustedId1(None))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct FoxQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    fox_kind: &'a mut FoxKind,
+    fox_sitting: &'a mut FoxSitting,
+    faceplanted: &'a mut Faceplanted,
+    sleeping: &'a mut Sleeping,
+    pouncing: &'a mut Pouncing,
+    crouching: &'a mut Crouching,
+    fox_interested: &'a mut FoxInterested,
+    trusted_id_0: &'a mut TrustedId0,
+    trusted_id_1: &'a mut TrustedId1,
+}
+impl FoxQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => *self.fox_kind = FoxKind(d.value.into_int()?),
+                18 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.fox_sitting = FoxSitting(bitfield & 0x1 != 0);
+                    *self.faceplanted = Faceplanted(bitfield & 0x40 != 0);
+                    *self.sleeping = Sleeping(bitfield & 0x20 != 0);
+                    *self.pouncing = Pouncing(bitfield & 0x10 != 0);
+                    *self.crouching = Crouching(bitfield & 0x4 != 0);
+                    *self.fox_interested = FoxInterested(bitfield & 0x8 != 0);
+                }
+                19 => *self.trusted_id_0 = TrustedId0(d.value.into_optional_uuid()?),
+                20 => *self.trusted_id_1 = TrustedId1(d.value.into_optional_uuid()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct FrogVariant(pub azalea_registry::FrogVariant);
+pub struct TongueTarget(pub OptionalUnsignedInt);
+pub struct Frog;
+impl Frog {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(FrogVariant(azalea_registry::FrogVariant::Temperate))
+            .add(TongueTarget(OptionalUnsignedInt(None)))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct FrogQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    frog_variant: &'a mut FrogVariant,
+    tongue_target: &'a mut TongueTarget,
+}
+impl FrogQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => *self.frog_variant = FrogVariant(d.value.into_frog_variant()?),
+                18 => *self.tongue_target = TongueTarget(d.value.into_optional_unsigned_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Fuel(pub bool);
+pub struct FurnaceMinecart;
+impl FurnaceMinecart {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AbstractMinecartHurt(0))
+            .add(AbstractMinecartHurtdir(1))
+            .add(AbstractMinecartDamage(0.0))
+            .add(DisplayBlock(Default::default()))
+            .add(DisplayOffset(6))
+            .add(CustomDisplay(false))
+            .add(Fuel(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct FurnaceMinecartQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    abstract_minecart_hurt: &'a mut AbstractMinecartHurt,
+    abstract_minecart_hurtdir: &'a mut AbstractMinecartHurtdir,
+    abstract_minecart_damage: &'a mut AbstractMinecartDamage,
+    display_block: &'a mut DisplayBlock,
+    display_offset: &'a mut DisplayOffset,
+    custom_display: &'a mut CustomDisplay,
+    fuel: &'a mut Fuel,
+}
+impl FurnaceMinecartQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.abstract_minecart_hurt = AbstractMinecartHurt(d.value.into_int()?),
+                9 => *self.abstract_minecart_hurtdir = AbstractMinecartHurtdir(d.value.into_int()?),
+                10 => {
+                    *self.abstract_minecart_damage = AbstractMinecartDamage(d.value.into_float()?)
+                }
+                11 => *self.display_block = DisplayBlock(d.value.into_int()?),
+                12 => *self.display_offset = DisplayOffset(d.value.into_int()?),
+                13 => *self.custom_display = CustomDisplay(d.value.into_boolean()?),
+                14 => *self.fuel = Fuel(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct IsCharging(pub bool);
+pub struct Ghast;
+impl Ghast {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(IsCharging(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct GhastQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    is_charging: &'a mut IsCharging,
+}
+impl GhastQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.is_charging = IsCharging(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Giant;
+impl Giant {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct GiantQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+}
+impl GiantQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ItemFrameItem(pub Slot);
+pub struct Rotation(pub i32);
+pub struct GlowItemFrame;
+impl GlowItemFrame {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(ItemFrameItem(Slot::Empty))
+            .add(Rotation(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct GlowItemFrameQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    item_frame_item: &'a mut ItemFrameItem,
+    rotation: &'a mut Rotation,
+}
+impl GlowItemFrameQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.item_frame_item = ItemFrameItem(d.value.into_item_stack()?),
+                9 => *self.rotation = Rotation(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct DarkTicksRemaining(pub i32);
+pub struct GlowSquid;
+impl GlowSquid {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(DarkTicksRemaining(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct GlowSquidQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    dark_ticks_remaining: &'a mut DarkTicksRemaining,
+}
+impl GlowSquidQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.dark_ticks_remaining = DarkTicksRemaining(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct IsScreamingGoat(pub bool);
+pub struct HasLeftHorn(pub bool);
+pub struct HasRightHorn(pub bool);
+pub struct Goat;
+impl Goat {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(IsScreamingGoat(false))
+            .add(HasLeftHorn(true))
+            .add(HasRightHorn(true))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct GoatQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    is_screaming_goat: &'a mut IsScreamingGoat,
+    has_left_horn: &'a mut HasLeftHorn,
+    has_right_horn: &'a mut HasRightHorn,
+}
+impl GoatQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => *self.is_screaming_goat = IsScreamingGoat(d.value.into_boolean()?),
+                18 => *self.has_left_horn = HasLeftHorn(d.value.into_boolean()?),
+                19 => *self.has_right_horn = HasRightHorn(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Guardian;
+impl Guardian {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(Moving(false))
+            .add(AttackTarget(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct GuardianQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    moving: &'a mut Moving,
+    attack_target: &'a mut AttackTarget,
+}
+impl GuardianQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.moving = Moving(d.value.into_boolean()?),
+                17 => *self.attack_target = AttackTarget(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct HoglinImmuneToZombification(pub bool);
+pub struct Hoglin;
+impl Hoglin {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(HoglinImmuneToZombification(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct HoglinQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    hoglin_immune_to_zombification: &'a mut HoglinImmuneToZombification,
+}
+impl HoglinQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    *self.hoglin_immune_to_zombification =
+                        HoglinImmuneToZombification(d.value.into_boolean()?)
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct HopperMinecart;
+impl HopperMinecart {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AbstractMinecartHurt(0))
+            .add(AbstractMinecartHurtdir(1))
+            .add(AbstractMinecartDamage(0.0))
+            .add(DisplayBlock(Default::default()))
+            .add(DisplayOffset(6))
+            .add(CustomDisplay(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct HopperMinecartQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    abstract_minecart_hurt: &'a mut AbstractMinecartHurt,
+    abstract_minecart_hurtdir: &'a mut AbstractMinecartHurtdir,
+    abstract_minecart_damage: &'a mut AbstractMinecartDamage,
+    display_block: &'a mut DisplayBlock,
+    display_offset: &'a mut DisplayOffset,
+    custom_display: &'a mut CustomDisplay,
+}
+impl HopperMinecartQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.abstract_minecart_hurt = AbstractMinecartHurt(d.value.into_int()?),
+                9 => *self.abstract_minecart_hurtdir = AbstractMinecartHurtdir(d.value.into_int()?),
+                10 => {
+                    *self.abstract_minecart_damage = AbstractMinecartDamage(d.value.into_float()?)
+                }
+                11 => *self.display_block = DisplayBlock(d.value.into_int()?),
+                12 => *self.display_offset = DisplayOffset(d.value.into_int()?),
+                13 => *self.custom_display = CustomDisplay(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct HorseTamed(pub bool);
+pub struct HorseEating(pub bool);
+pub struct HorseStanding(pub bool);
+pub struct HorseBred(pub bool);
+pub struct HorseSaddled(pub bool);
+pub struct HorseOwnerUuid(pub Option<Uuid>);
+pub struct HorseTypeVariant(pub i32);
+pub struct Horse;
+impl Horse {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(HorseTamed(false))
+            .add(HorseEating(false))
+            .add(HorseStanding(false))
+            .add(HorseBred(false))
+            .add(HorseSaddled(false))
+            .add(HorseOwnerUuid(None))
+            .add(HorseTypeVariant(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct HorseQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    horse_tamed: &'a mut HorseTamed,
+    horse_eating: &'a mut HorseEating,
+    horse_standing: &'a mut HorseStanding,
+    horse_bred: &'a mut HorseBred,
+    horse_saddled: &'a mut HorseSaddled,
+    horse_owner_uuid: &'a mut HorseOwnerUuid,
+    horse_type_variant: &'a mut HorseTypeVariant,
+}
+impl HorseQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.horse_tamed = HorseTamed(bitfield & 0x2 != 0);
+                    *self.horse_eating = HorseEating(bitfield & 0x10 != 0);
+                    *self.horse_standing = HorseStanding(bitfield & 0x20 != 0);
+                    *self.horse_bred = HorseBred(bitfield & 0x8 != 0);
+                    *self.horse_saddled = HorseSaddled(bitfield & 0x4 != 0);
+                }
+                18 => *self.horse_owner_uuid = HorseOwnerUuid(d.value.into_optional_uuid()?),
+                19 => *self.horse_type_variant = HorseTypeVariant(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Husk;
+impl Husk {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(ZombieBaby(false))
+            .add(SpecialType(0))
+            .add(DrownedConversion(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct HuskQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    zombie_baby: &'a mut ZombieBaby,
+    special_type: &'a mut SpecialType,
+    drowned_conversion: &'a mut DrownedConversion,
+}
+impl HuskQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.zombie_baby = ZombieBaby(d.value.into_boolean()?),
+                17 => *self.special_type = SpecialType(d.value.into_int()?),
+                18 => *self.drowned_conversion = DrownedConversion(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct IllusionerIsCelebrating(pub bool);
+pub struct IllusionerSpellCasting(pub u8);
+pub struct Illusioner;
+impl Illusioner {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(IllusionerIsCelebrating(false))
+            .add(IllusionerSpellCasting(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct IllusionerQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    illusioner_is_celebrating: &'a mut IllusionerIsCelebrating,
+    illusioner_spell_casting: &'a mut IllusionerSpellCasting,
+}
+impl IllusionerQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => {
+                    *self.illusioner_is_celebrating =
+                        IllusionerIsCelebrating(d.value.into_boolean()?)
+                }
+                17 => *self.illusioner_spell_casting = IllusionerSpellCasting(d.value.into_byte()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct PlayerCreated(pub bool);
+pub struct IronGolem;
+impl IronGolem {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(PlayerCreated(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct IronGolemQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    player_created: &'a mut PlayerCreated,
+}
+impl IronGolemQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.player_created = PlayerCreated(bitfield & 0x1 != 0);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ItemItem(pub Slot);
+pub struct Item;
+impl Item {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(ItemItem(Slot::Empty))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ItemQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    item_item: &'a mut ItemItem,
+}
+impl ItemQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.item_item = ItemItem(d.value.into_item_stack()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ItemFrame;
+impl ItemFrame {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(ItemFrameItem(Slot::Empty))
+            .add(Rotation(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ItemFrameQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    item_frame_item: &'a mut ItemFrameItem,
+    rotation: &'a mut Rotation,
+}
+impl ItemFrameQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.item_frame_item = ItemFrameItem(d.value.into_item_stack()?),
+                9 => *self.rotation = Rotation(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct LeashKnot;
+impl LeashKnot {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct LeashKnotQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+}
+impl LeashKnotQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct LightningBolt;
+impl LightningBolt {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct LightningBoltQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+}
+impl LightningBoltQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct LlamaTamed(pub bool);
+pub struct LlamaEating(pub bool);
+pub struct LlamaStanding(pub bool);
+pub struct LlamaBred(pub bool);
+pub struct LlamaSaddled(pub bool);
+pub struct LlamaOwnerUuid(pub Option<Uuid>);
+pub struct LlamaChest(pub bool);
+pub struct Strength(pub i32);
+pub struct Swag(pub i32);
+pub struct LlamaVariant(pub i32);
+pub struct Llama;
+impl Llama {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(LlamaTamed(false))
+            .add(LlamaEating(false))
+            .add(LlamaStanding(false))
+            .add(LlamaBred(false))
+            .add(LlamaSaddled(false))
+            .add(LlamaOwnerUuid(None))
+            .add(LlamaChest(false))
+            .add(Strength(0))
+            .add(Swag(-1))
+            .add(LlamaVariant(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct LlamaQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    llama_tamed: &'a mut LlamaTamed,
+    llama_eating: &'a mut LlamaEating,
+    llama_standing: &'a mut LlamaStanding,
+    llama_bred: &'a mut LlamaBred,
+    llama_saddled: &'a mut LlamaSaddled,
+    llama_owner_uuid: &'a mut LlamaOwnerUuid,
+    llama_chest: &'a mut LlamaChest,
+    strength: &'a mut Strength,
+    swag: &'a mut Swag,
+    llama_variant: &'a mut LlamaVariant,
+}
+impl LlamaQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.llama_tamed = LlamaTamed(bitfield & 0x2 != 0);
+                    *self.llama_eating = LlamaEating(bitfield & 0x10 != 0);
+                    *self.llama_standing = LlamaStanding(bitfield & 0x20 != 0);
+                    *self.llama_bred = LlamaBred(bitfield & 0x8 != 0);
+                    *self.llama_saddled = LlamaSaddled(bitfield & 0x4 != 0);
+                }
+                18 => *self.llama_owner_uuid = LlamaOwnerUuid(d.value.into_optional_uuid()?),
+                19 => *self.llama_chest = LlamaChest(d.value.into_boolean()?),
+                20 => *self.strength = Strength(d.value.into_int()?),
+                21 => *self.swag = Swag(d.value.into_int()?),
+                22 => *self.llama_variant = LlamaVariant(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct LlamaSpit;
+impl LlamaSpit {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct LlamaSpitQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+}
+impl LlamaSpitQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct SlimeSize(pub i32);
+pub struct MagmaCube;
+impl MagmaCube {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(SlimeSize(1))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct MagmaCubeQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    slime_size: &'a mut SlimeSize,
+}
+impl MagmaCubeQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.slime_size = SlimeSize(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Marker;
+impl Marker {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct MarkerQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+}
+impl MarkerQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Minecart;
+impl Minecart {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AbstractMinecartHurt(0))
+            .add(AbstractMinecartHurtdir(1))
+            .add(AbstractMinecartDamage(0.0))
+            .add(DisplayBlock(Default::default()))
+            .add(DisplayOffset(6))
+            .add(CustomDisplay(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct MinecartQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    abstract_minecart_hurt: &'a mut AbstractMinecartHurt,
+    abstract_minecart_hurtdir: &'a mut AbstractMinecartHurtdir,
+    abstract_minecart_damage: &'a mut AbstractMinecartDamage,
+    display_block: &'a mut DisplayBlock,
+    display_offset: &'a mut DisplayOffset,
+    custom_display: &'a mut CustomDisplay,
+}
+impl MinecartQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.abstract_minecart_hurt = AbstractMinecartHurt(d.value.into_int()?),
+                9 => *self.abstract_minecart_hurtdir = AbstractMinecartHurtdir(d.value.into_int()?),
+                10 => {
+                    *self.abstract_minecart_damage = AbstractMinecartDamage(d.value.into_float()?)
+                }
+                11 => *self.display_block = DisplayBlock(d.value.into_int()?),
+                12 => *self.display_offset = DisplayOffset(d.value.into_int()?),
+                13 => *self.custom_display = CustomDisplay(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct MooshroomKind(pub String);
+pub struct Mooshroom;
+impl Mooshroom {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(MooshroomKind(Default::default()))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct MooshroomQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    mooshroom_kind: &'a mut MooshroomKind,
+}
+impl MooshroomQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => *self.mooshroom_kind = MooshroomKind(d.value.into_string()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct MuleTamed(pub bool);
+pub struct MuleEating(pub bool);
+pub struct MuleStanding(pub bool);
+pub struct MuleBred(pub bool);
+pub struct MuleSaddled(pub bool);
+pub struct MuleOwnerUuid(pub Option<Uuid>);
+pub struct MuleChest(pub bool);
+pub struct Mule;
+impl Mule {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(MuleTamed(false))
+            .add(MuleEating(false))
+            .add(MuleStanding(false))
+            .add(MuleBred(false))
+            .add(MuleSaddled(false))
+            .add(MuleOwnerUuid(None))
+            .add(MuleChest(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct MuleQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    mule_tamed: &'a mut MuleTamed,
+    mule_eating: &'a mut MuleEating,
+    mule_standing: &'a mut MuleStanding,
+    mule_bred: &'a mut MuleBred,
+    mule_saddled: &'a mut MuleSaddled,
+    mule_owner_uuid: &'a mut MuleOwnerUuid,
+    mule_chest: &'a mut MuleChest,
+}
+impl MuleQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.mule_tamed = MuleTamed(bitfield & 0x2 != 0);
+                    *self.mule_eating = MuleEating(bitfield & 0x10 != 0);
+                    *self.mule_standing = MuleStanding(bitfield & 0x20 != 0);
+                    *self.mule_bred = MuleBred(bitfield & 0x8 != 0);
+                    *self.mule_saddled = MuleSaddled(bitfield & 0x4 != 0);
+                }
+                18 => *self.mule_owner_uuid = MuleOwnerUuid(d.value.into_optional_uuid()?),
+                19 => *self.mule_chest = MuleChest(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Trusting(pub bool);
+pub struct Ocelot;
+impl Ocelot {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(Trusting(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct OcelotQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    trusting: &'a mut Trusting,
+}
+impl OcelotQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => *self.trusting = Trusting(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct PaintingVariant(pub azalea_registry::PaintingVariant);
+pub struct Painting;
+impl Painting {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(PaintingVariant(azalea_registry::PaintingVariant::Kebab))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct PaintingQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    painting_variant: &'a mut PaintingVariant,
+}
+impl PaintingQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.painting_variant = PaintingVariant(d.value.into_painting_variant()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct PandaUnhappyCounter(pub i32);
+pub struct SneezeCounter(pub i32);
+pub struct EatCounter(pub i32);
+pub struct Sneezing(pub bool);
+pub struct PandaSitting(pub bool);
+pub struct OnBack(pub bool);
+pub struct PandaRolling(pub bool);
+pub struct HiddenGene(pub u8);
+pub struct PandaFlags(pub u8);
+pub struct Panda;
+impl Panda {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(PandaUnhappyCounter(0))
+            .add(SneezeCounter(0))
+            .add(EatCounter(0))
+            .add(Sneezing(false))
+            .add(PandaSitting(false))
+            .add(OnBack(false))
+            .add(PandaRolling(false))
+            .add(HiddenGene(0))
+            .add(PandaFlags(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct PandaQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    panda_unhappy_counter: &'a mut PandaUnhappyCounter,
+    sneeze_counter: &'a mut SneezeCounter,
+    eat_counter: &'a mut EatCounter,
+    sneezing: &'a mut Sneezing,
+    panda_sitting: &'a mut PandaSitting,
+    on_back: &'a mut OnBack,
+    panda_rolling: &'a mut PandaRolling,
+    hidden_gene: &'a mut HiddenGene,
+    panda_flags: &'a mut PandaFlags,
+}
+impl PandaQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => *self.panda_unhappy_counter = PandaUnhappyCounter(d.value.into_int()?),
+                18 => *self.sneeze_counter = SneezeCounter(d.value.into_int()?),
+                19 => *self.eat_counter = EatCounter(d.value.into_int()?),
+                20 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.sneezing = Sneezing(bitfield & 0x2 != 0);
+                    *self.panda_sitting = PandaSitting(bitfield & 0x8 != 0);
+                    *self.on_back = OnBack(bitfield & 0x10 != 0);
+                    *self.panda_rolling = PandaRolling(bitfield & 0x4 != 0);
+                }
+                21 => *self.hidden_gene = HiddenGene(d.value.into_byte()?),
+                22 => *self.panda_flags = PandaFlags(d.value.into_byte()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ParrotVariant(pub i32);
+pub struct Parrot;
+impl Parrot {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(Tame(false))
+            .add(InSittingPose(false))
+            .add(Owneruuid(None))
+            .add(ParrotVariant(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ParrotQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    tame: &'a mut Tame,
+    in_sitting_pose: &'a mut InSittingPose,
+    owneruuid: &'a mut Owneruuid,
+    parrot_variant: &'a mut ParrotVariant,
+}
+impl ParrotQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.tame = Tame(bitfield & 0x4 != 0);
+                    *self.in_sitting_pose = InSittingPose(bitfield & 0x1 != 0);
+                }
+                18 => *self.owneruuid = Owneruuid(d.value.into_optional_uuid()?),
+                19 => *self.parrot_variant = ParrotVariant(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct PhantomSize(pub i32);
+pub struct Phantom;
+impl Phantom {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(PhantomSize(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct PhantomQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    phantom_size: &'a mut PhantomSize,
+}
+impl PhantomQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.phantom_size = PhantomSize(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct PigSaddle(pub bool);
+pub struct PigBoostTime(pub i32);
+pub struct Pig;
+impl Pig {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(PigSaddle(false))
+            .add(PigBoostTime(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct PigQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    pig_saddle: &'a mut PigSaddle,
+    pig_boost_time: &'a mut PigBoostTime,
+}
+impl PigQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => *self.pig_saddle = PigSaddle(d.value.into_boolean()?),
+                18 => *self.pig_boost_time = PigBoostTime(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct PiglinImmuneToZombification(pub bool);
+pub struct PiglinBaby(pub bool);
+pub struct PiglinIsChargingCrossbow(pub bool);
+pub struct IsDancing(pub bool);
+pub struct Piglin;
+impl Piglin {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(PiglinImmuneToZombification(false))
+            .add(PiglinBaby(false))
+            .add(PiglinIsChargingCrossbow(false))
+            .add(IsDancing(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct PiglinQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    piglin_immune_to_zombification: &'a mut PiglinImmuneToZombification,
+    piglin_baby: &'a mut PiglinBaby,
+    piglin_is_charging_crossbow: &'a mut PiglinIsChargingCrossbow,
+    is_dancing: &'a mut IsDancing,
+}
+impl PiglinQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => {
+                    *self.piglin_immune_to_zombification =
+                        PiglinImmuneToZombification(d.value.into_boolean()?)
+                }
+                17 => *self.piglin_baby = PiglinBaby(d.value.into_boolean()?),
+                18 => {
+                    *self.piglin_is_charging_crossbow =
+                        PiglinIsChargingCrossbow(d.value.into_boolean()?)
+                }
+                19 => *self.is_dancing = IsDancing(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct PiglinBruteImmuneToZombification(pub bool);
+pub struct PiglinBrute;
+impl PiglinBrute {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(PiglinBruteImmuneToZombification(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct PiglinBruteQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    piglin_brute_immune_to_zombification: &'a mut PiglinBruteImmuneToZombification,
+}
+impl PiglinBruteQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => {
+                    *self.piglin_brute_immune_to_zombification =
+                        PiglinBruteImmuneToZombification(d.value.into_boolean()?)
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct PillagerIsCelebrating(pub bool);
+pub struct PillagerIsChargingCrossbow(pub bool);
+pub struct Pillager;
+impl Pillager {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(PillagerIsCelebrating(false))
+            .add(PillagerIsChargingCrossbow(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct PillagerQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    pillager_is_celebrating: &'a mut PillagerIsCelebrating,
+    pillager_is_charging_crossbow: &'a mut PillagerIsChargingCrossbow,
+}
+impl PillagerQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => {
+                    *self.pillager_is_celebrating = PillagerIsCelebrating(d.value.into_boolean()?)
+                }
+                17 => {
+                    *self.pillager_is_charging_crossbow =
+                        PillagerIsChargingCrossbow(d.value.into_boolean()?)
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct PlayerAbsorption(pub f32);
+pub struct Score(pub i32);
+pub struct PlayerModeCustomisation(pub u8);
+pub struct PlayerMainHand(pub u8);
+pub struct ShoulderLeft(pub azalea_nbt::Tag);
+pub struct ShoulderRight(pub azalea_nbt::Tag);
+pub struct Player;
+impl Player {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(PlayerAbsorption(0.0))
+            .add(Score(0))
+            .add(PlayerModeCustomisation(0))
+            .add(PlayerMainHand(1))
+            .add(ShoulderLeft(azalea_nbt::Tag::Compound(Default::default())))
+            .add(ShoulderRight(azalea_nbt::Tag::Compound(Default::default())))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct PlayerQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    player_absorption: &'a mut PlayerAbsorption,
+    score: &'a mut Score,
+    player_mode_customisation: &'a mut PlayerModeCustomisation,
+    player_main_hand: &'a mut PlayerMainHand,
+    shoulder_left: &'a mut ShoulderLeft,
+    shoulder_right: &'a mut ShoulderRight,
+}
+impl PlayerQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => *self.player_absorption = PlayerAbsorption(d.value.into_float()?),
+                16 => *self.score = Score(d.value.into_int()?),
+                17 => {
+                    *self.player_mode_customisation = PlayerModeCustomisation(d.value.into_byte()?)
+                }
+                18 => *self.player_main_hand = PlayerMainHand(d.value.into_byte()?),
+                19 => *self.shoulder_left = ShoulderLeft(d.value.into_compound_tag()?),
+                20 => *self.shoulder_right = ShoulderRight(d.value.into_compound_tag()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct PolarBearStanding(pub bool);
+pub struct PolarBear;
+impl PolarBear {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(PolarBearStanding(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct PolarBearQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    polar_bear_standing: &'a mut PolarBearStanding,
+}
+impl PolarBearQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => *self.polar_bear_standing = PolarBearStanding(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct PotionItemStack(pub Slot);
+pub struct Potion;
+impl Potion {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(PotionItemStack(Slot::Empty))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct PotionQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    potion_item_stack: &'a mut PotionItemStack,
+}
+impl PotionQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.potion_item_stack = PotionItemStack(d.value.into_item_stack()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct PufferfishFromBucket(pub bool);
+pub struct PuffState(pub i32);
+pub struct Pufferfish;
+impl Pufferfish {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(PufferfishFromBucket(false))
+            .add(PuffState(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct PufferfishQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    pufferfish_from_bucket: &'a mut PufferfishFromBucket,
+    puff_state: &'a mut PuffState,
+}
+impl PufferfishQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.pufferfish_from_bucket = PufferfishFromBucket(d.value.into_boolean()?),
+                17 => *self.puff_state = PuffState(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct RabbitKind(pub i32);
+pub struct Rabbit;
+impl Rabbit {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(RabbitKind(Default::default()))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct RabbitQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    rabbit_kind: &'a mut RabbitKind,
+}
+impl RabbitQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => *self.rabbit_kind = RabbitKind(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct RavagerIsCelebrating(pub bool);
+pub struct Ravager;
+impl Ravager {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(RavagerIsCelebrating(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct RavagerQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    ravager_is_celebrating: &'a mut RavagerIsCelebrating,
+}
+impl RavagerQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.ravager_is_celebrating = RavagerIsCelebrating(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct SalmonFromBucket(pub bool);
+pub struct Salmon;
+impl Salmon {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(SalmonFromBucket(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct SalmonQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    salmon_from_bucket: &'a mut SalmonFromBucket,
+}
+impl SalmonQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.salmon_from_bucket = SalmonFromBucket(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Sheared(pub bool);
+pub struct Sheep;
+impl Sheep {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(Sheared(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct SheepQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    sheared: &'a mut Sheared,
+}
+impl SheepQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.sheared = Sheared(bitfield & 0x10 != 0);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct AttachFace(pub Direction);
+pub struct Peek(pub u8);
+pub struct ShulkerColor(pub u8);
+pub struct Shulker;
+impl Shulker {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AttachFace(Default::default()))
+            .add(Peek(0))
+            .add(ShulkerColor(16))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ShulkerQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    attach_face: &'a mut AttachFace,
+    peek: &'a mut Peek,
+    shulker_color: &'a mut ShulkerColor,
+}
+impl ShulkerQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.attach_face = AttachFace(d.value.into_direction()?),
+                17 => *self.peek = Peek(d.value.into_byte()?),
+                18 => *self.shulker_color = ShulkerColor(d.value.into_byte()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ShulkerBullet;
+impl ShulkerBullet {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ShulkerBulletQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+}
+impl ShulkerBulletQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Silverfish;
+impl Silverfish {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct SilverfishQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+}
+impl SilverfishQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct StrayConversion(pub bool);
+pub struct Skeleton;
+impl Skeleton {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(StrayConversion(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct SkeletonQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    stray_conversion: &'a mut StrayConversion,
+}
+impl SkeletonQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.stray_conversion = StrayConversion(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct SkeletonHorseTamed(pub bool);
+pub struct SkeletonHorseEating(pub bool);
+pub struct SkeletonHorseStanding(pub bool);
+pub struct SkeletonHorseBred(pub bool);
+pub struct SkeletonHorseSaddled(pub bool);
+pub struct SkeletonHorseOwnerUuid(pub Option<Uuid>);
+pub struct SkeletonHorse;
+impl SkeletonHorse {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(SkeletonHorseTamed(false))
+            .add(SkeletonHorseEating(false))
+            .add(SkeletonHorseStanding(false))
+            .add(SkeletonHorseBred(false))
+            .add(SkeletonHorseSaddled(false))
+            .add(SkeletonHorseOwnerUuid(None))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct SkeletonHorseQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    skeleton_horse_tamed: &'a mut SkeletonHorseTamed,
+    skeleton_horse_eating: &'a mut SkeletonHorseEating,
+    skeleton_horse_standing: &'a mut SkeletonHorseStanding,
+    skeleton_horse_bred: &'a mut SkeletonHorseBred,
+    skeleton_horse_saddled: &'a mut SkeletonHorseSaddled,
+    skeleton_horse_owner_uuid: &'a mut SkeletonHorseOwnerUuid,
+}
+impl SkeletonHorseQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.skeleton_horse_tamed = SkeletonHorseTamed(bitfield & 0x2 != 0);
+                    *self.skeleton_horse_eating = SkeletonHorseEating(bitfield & 0x10 != 0);
+                    *self.skeleton_horse_standing = SkeletonHorseStanding(bitfield & 0x20 != 0);
+                    *self.skeleton_horse_bred = SkeletonHorseBred(bitfield & 0x8 != 0);
+                    *self.skeleton_horse_saddled = SkeletonHorseSaddled(bitfield & 0x4 != 0);
+                }
+                18 => {
+                    *self.skeleton_horse_owner_uuid =
+                        SkeletonHorseOwnerUuid(d.value.into_optional_uuid()?)
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Slime;
+impl Slime {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(SlimeSize(1))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct SlimeQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    slime_size: &'a mut SlimeSize,
+}
+impl SlimeQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.slime_size = SlimeSize(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct SmallFireballItemStack(pub Slot);
+pub struct SmallFireball;
+impl SmallFireball {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(SmallFireballItemStack(Slot::Empty))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct SmallFireballQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    small_fireball_item_stack: &'a mut SmallFireballItemStack,
+}
+impl SmallFireballQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    *self.small_fireball_item_stack =
+                        SmallFireballItemStack(d.value.into_item_stack()?)
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct HasPumpkin(pub bool);
+pub struct SnowGolem;
+impl SnowGolem {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(HasPumpkin(true))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct SnowGolemQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    has_pumpkin: &'a mut HasPumpkin,
+}
+impl SnowGolemQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.has_pumpkin = HasPumpkin(bitfield & 0x10 != 0);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct SnowballItemStack(pub Slot);
+pub struct Snowball;
+impl Snowball {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(SnowballItemStack(Slot::Empty))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct SnowballQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    snowball_item_stack: &'a mut SnowballItemStack,
+}
+impl SnowballQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.snowball_item_stack = SnowballItemStack(d.value.into_item_stack()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct SpawnerMinecart;
+impl SpawnerMinecart {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AbstractMinecartHurt(0))
+            .add(AbstractMinecartHurtdir(1))
+            .add(AbstractMinecartDamage(0.0))
+            .add(DisplayBlock(Default::default()))
+            .add(DisplayOffset(6))
+            .add(CustomDisplay(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct SpawnerMinecartQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    abstract_minecart_hurt: &'a mut AbstractMinecartHurt,
+    abstract_minecart_hurtdir: &'a mut AbstractMinecartHurtdir,
+    abstract_minecart_damage: &'a mut AbstractMinecartDamage,
+    display_block: &'a mut DisplayBlock,
+    display_offset: &'a mut DisplayOffset,
+    custom_display: &'a mut CustomDisplay,
+}
+impl SpawnerMinecartQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.abstract_minecart_hurt = AbstractMinecartHurt(d.value.into_int()?),
+                9 => *self.abstract_minecart_hurtdir = AbstractMinecartHurtdir(d.value.into_int()?),
+                10 => {
+                    *self.abstract_minecart_damage = AbstractMinecartDamage(d.value.into_float()?)
+                }
+                11 => *self.display_block = DisplayBlock(d.value.into_int()?),
+                12 => *self.display_offset = DisplayOffset(d.value.into_int()?),
+                13 => *self.custom_display = CustomDisplay(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct SpectralArrowCritArrow(pub bool);
+pub struct SpectralArrowShotFromCrossbow(pub bool);
+pub struct SpectralArrowNoPhysics(pub bool);
+pub struct SpectralArrowPierceLevel(pub u8);
+pub struct SpectralArrow;
+impl SpectralArrow {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(SpectralArrowCritArrow(false))
+            .add(SpectralArrowShotFromCrossbow(false))
+            .add(SpectralArrowNoPhysics(false))
+            .add(SpectralArrowPierceLevel(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct SpectralArrowQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    spectral_arrow_crit_arrow: &'a mut SpectralArrowCritArrow,
+    spectral_arrow_shot_from_crossbow: &'a mut SpectralArrowShotFromCrossbow,
+    spectral_arrow_no_physics: &'a mut SpectralArrowNoPhysics,
+    spectral_arrow_pierce_level: &'a mut SpectralArrowPierceLevel,
+}
+impl SpectralArrowQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.spectral_arrow_crit_arrow = SpectralArrowCritArrow(bitfield & 0x1 != 0);
+                    *self.spectral_arrow_shot_from_crossbow =
+                        SpectralArrowShotFromCrossbow(bitfield & 0x4 != 0);
+                    *self.spectral_arrow_no_physics = SpectralArrowNoPhysics(bitfield & 0x2 != 0);
+                }
+                9 => {
+                    *self.spectral_arrow_pierce_level =
+                        SpectralArrowPierceLevel(d.value.into_byte()?)
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Spider;
+impl Spider {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(Climbing(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct SpiderQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    climbing: &'a mut Climbing,
+}
+impl SpiderQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.climbing = Climbing(bitfield & 0x1 != 0);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Squid;
+impl Squid {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct SquidQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+}
+impl SquidQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Stray;
+impl Stray {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct StrayQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+}
+impl StrayQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct StriderBoostTime(pub i32);
+pub struct Suffocating(pub bool);
+pub struct StriderSaddle(pub bool);
+pub struct Strider;
+impl Strider {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(StriderBoostTime(0))
+            .add(Suffocating(false))
+            .add(StriderSaddle(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct StriderQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    strider_boost_time: &'a mut StriderBoostTime,
+    suffocating: &'a mut Suffocating,
+    strider_saddle: &'a mut StriderSaddle,
+}
+impl StriderQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => *self.strider_boost_time = StriderBoostTime(d.value.into_int()?),
+                18 => *self.suffocating = Suffocating(d.value.into_boolean()?),
+                19 => *self.strider_saddle = StriderSaddle(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct TadpoleFromBucket(pub bool);
+pub struct Tadpole;
+impl Tadpole {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(TadpoleFromBucket(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct TadpoleQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    tadpole_from_bucket: &'a mut TadpoleFromBucket,
+}
+impl TadpoleQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.tadpole_from_bucket = TadpoleFromBucket(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Fuse(pub i32);
+pub struct Tnt;
+impl Tnt {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(Fuse(80))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct TntQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    fuse: &'a mut Fuse,
+}
+impl TntQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.fuse = Fuse(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct TntMinecart;
+impl TntMinecart {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AbstractMinecartHurt(0))
+            .add(AbstractMinecartHurtdir(1))
+            .add(AbstractMinecartDamage(0.0))
+            .add(DisplayBlock(Default::default()))
+            .add(DisplayOffset(6))
+            .add(CustomDisplay(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct TntMinecartQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    abstract_minecart_hurt: &'a mut AbstractMinecartHurt,
+    abstract_minecart_hurtdir: &'a mut AbstractMinecartHurtdir,
+    abstract_minecart_damage: &'a mut AbstractMinecartDamage,
+    display_block: &'a mut DisplayBlock,
+    display_offset: &'a mut DisplayOffset,
+    custom_display: &'a mut CustomDisplay,
+}
+impl TntMinecartQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.abstract_minecart_hurt = AbstractMinecartHurt(d.value.into_int()?),
+                9 => *self.abstract_minecart_hurtdir = AbstractMinecartHurtdir(d.value.into_int()?),
+                10 => {
+                    *self.abstract_minecart_damage = AbstractMinecartDamage(d.value.into_float()?)
+                }
+                11 => *self.display_block = DisplayBlock(d.value.into_int()?),
+                12 => *self.display_offset = DisplayOffset(d.value.into_int()?),
+                13 => *self.custom_display = CustomDisplay(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct TraderLlama;
+impl TraderLlama {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(LlamaTamed(false))
+            .add(LlamaEating(false))
+            .add(LlamaStanding(false))
+            .add(LlamaBred(false))
+            .add(LlamaSaddled(false))
+            .add(LlamaOwnerUuid(None))
+            .add(LlamaChest(false))
+            .add(Strength(0))
+            .add(Swag(-1))
+            .add(LlamaVariant(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct TraderLlamaQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    llama_tamed: &'a mut LlamaTamed,
+    llama_eating: &'a mut LlamaEating,
+    llama_standing: &'a mut LlamaStanding,
+    llama_bred: &'a mut LlamaBred,
+    llama_saddled: &'a mut LlamaSaddled,
+    llama_owner_uuid: &'a mut LlamaOwnerUuid,
+    llama_chest: &'a mut LlamaChest,
+    strength: &'a mut Strength,
+    swag: &'a mut Swag,
+    llama_variant: &'a mut LlamaVariant,
+}
+impl TraderLlamaQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.llama_tamed = LlamaTamed(bitfield & 0x2 != 0);
+                    *self.llama_eating = LlamaEating(bitfield & 0x10 != 0);
+                    *self.llama_standing = LlamaStanding(bitfield & 0x20 != 0);
+                    *self.llama_bred = LlamaBred(bitfield & 0x8 != 0);
+                    *self.llama_saddled = LlamaSaddled(bitfield & 0x4 != 0);
+                }
+                18 => *self.llama_owner_uuid = LlamaOwnerUuid(d.value.into_optional_uuid()?),
+                19 => *self.llama_chest = LlamaChest(d.value.into_boolean()?),
+                20 => *self.strength = Strength(d.value.into_int()?),
+                21 => *self.swag = Swag(d.value.into_int()?),
+                22 => *self.llama_variant = LlamaVariant(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct TridentCritArrow(pub bool);
+pub struct TridentShotFromCrossbow(pub bool);
+pub struct TridentNoPhysics(pub bool);
+pub struct TridentPierceLevel(pub u8);
+pub struct Loyalty(pub u8);
+pub struct Foil(pub bool);
+pub struct Trident;
+impl Trident {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(TridentCritArrow(false))
+            .add(TridentShotFromCrossbow(false))
+            .add(TridentNoPhysics(false))
+            .add(TridentPierceLevel(0))
+            .add(Loyalty(0))
+            .add(Foil(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct TridentQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    trident_crit_arrow: &'a mut TridentCritArrow,
+    trident_shot_from_crossbow: &'a mut TridentShotFromCrossbow,
+    trident_no_physics: &'a mut TridentNoPhysics,
+    trident_pierce_level: &'a mut TridentPierceLevel,
+    loyalty: &'a mut Loyalty,
+    foil: &'a mut Foil,
+}
+impl TridentQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.trident_crit_arrow = TridentCritArrow(bitfield & 0x1 != 0);
+                    *self.trident_shot_from_crossbow = TridentShotFromCrossbow(bitfield & 0x4 != 0);
+                    *self.trident_no_physics = TridentNoPhysics(bitfield & 0x2 != 0);
+                }
+                9 => *self.trident_pierce_level = TridentPierceLevel(d.value.into_byte()?),
+                10 => *self.loyalty = Loyalty(d.value.into_byte()?),
+                11 => *self.foil = Foil(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct TropicalFishFromBucket(pub bool);
+pub struct TropicalFishTypeVariant(pub i32);
+pub struct TropicalFish;
+impl TropicalFish {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(TropicalFishFromBucket(false))
+            .add(TropicalFishTypeVariant(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct TropicalFishQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    tropical_fish_from_bucket: &'a mut TropicalFishFromBucket,
+    tropical_fish_type_variant: &'a mut TropicalFishTypeVariant,
+}
+impl TropicalFishQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => {
+                    *self.tropical_fish_from_bucket =
+                        TropicalFishFromBucket(d.value.into_boolean()?)
+                }
+                17 => {
+                    *self.tropical_fish_type_variant = TropicalFishTypeVariant(d.value.into_int()?)
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct HomePos(pub BlockPos);
+pub struct HasEgg(pub bool);
+pub struct LayingEgg(pub bool);
+pub struct TravelPos(pub BlockPos);
+pub struct GoingHome(pub bool);
+pub struct Travelling(pub bool);
+pub struct Turtle;
+impl Turtle {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(HomePos(BlockPos::new(0, 0, 0)))
+            .add(HasEgg(false))
+            .add(LayingEgg(false))
+            .add(TravelPos(BlockPos::new(0, 0, 0)))
+            .add(GoingHome(false))
+            .add(Travelling(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct TurtleQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    home_pos: &'a mut HomePos,
+    has_egg: &'a mut HasEgg,
+    laying_egg: &'a mut LayingEgg,
+    travel_pos: &'a mut TravelPos,
+    going_home: &'a mut GoingHome,
+    travelling: &'a mut Travelling,
+}
+impl TurtleQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => *self.home_pos = HomePos(d.value.into_block_pos()?),
+                18 => *self.has_egg = HasEgg(d.value.into_boolean()?),
+                19 => *self.laying_egg = LayingEgg(d.value.into_boolean()?),
+                20 => *self.travel_pos = TravelPos(d.value.into_block_pos()?),
+                21 => *self.going_home = GoingHome(d.value.into_boolean()?),
+                22 => *self.travelling = Travelling(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct VexFlags(pub u8);
+pub struct Vex;
+impl Vex {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(VexFlags(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct VexQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    vex_flags: &'a mut VexFlags,
+}
+impl VexQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.vex_flags = VexFlags(d.value.into_byte()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct VillagerUnhappyCounter(pub i32);
+pub struct VillagerVillagerData(pub VillagerData);
+pub struct Villager;
+impl Villager {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(VillagerUnhappyCounter(0))
+            .add(VillagerVillagerData(VillagerData {
+                kind: azalea_registry::VillagerType::Plains,
+                profession: azalea_registry::VillagerProfession::None,
+                level: 0,
+            }))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct VillagerQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    villager_unhappy_counter: &'a mut VillagerUnhappyCounter,
+    villager_villager_data: &'a mut VillagerVillagerData,
+}
+impl VillagerQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => *self.villager_unhappy_counter = VillagerUnhappyCounter(d.value.into_int()?),
+                18 => {
+                    *self.villager_villager_data =
+                        VillagerVillagerData(d.value.into_villager_data()?)
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct VindicatorIsCelebrating(pub bool);
+pub struct Vindicator;
+impl Vindicator {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(VindicatorIsCelebrating(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct VindicatorQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    vindicator_is_celebrating: &'a mut VindicatorIsCelebrating,
+}
+impl VindicatorQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => {
+                    *self.vindicator_is_celebrating =
+                        VindicatorIsCelebrating(d.value.into_boolean()?)
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct WanderingTraderUnhappyCounter(pub i32);
+pub struct WanderingTrader;
+impl WanderingTrader {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(WanderingTraderUnhappyCounter(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct WanderingTraderQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    wandering_trader_unhappy_counter: &'a mut WanderingTraderUnhappyCounter,
+}
+impl WanderingTraderQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    *self.wandering_trader_unhappy_counter =
+                        WanderingTraderUnhappyCounter(d.value.into_int()?)
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ClientAngerLevel(pub i32);
+pub struct Warden;
+impl Warden {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(ClientAngerLevel(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct WardenQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    client_anger_level: &'a mut ClientAngerLevel,
+}
+impl WardenQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.client_anger_level = ClientAngerLevel(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct WitchIsCelebrating(pub bool);
+pub struct WitchUsingItem(pub bool);
+pub struct Witch;
+impl Witch {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(WitchIsCelebrating(false))
+            .add(WitchUsingItem(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct WitchQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    witch_is_celebrating: &'a mut WitchIsCelebrating,
+    witch_using_item: &'a mut WitchUsingItem,
+}
+impl WitchQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.witch_is_celebrating = WitchIsCelebrating(d.value.into_boolean()?),
+                17 => *self.witch_using_item = WitchUsingItem(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct TargetA(pub i32);
+pub struct TargetB(pub i32);
+pub struct TargetC(pub i32);
+pub struct Inv(pub i32);
+pub struct Wither;
+impl Wither {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(TargetA(0))
+            .add(TargetB(0))
+            .add(TargetC(0))
+            .add(Inv(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct WitherQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    target_a: &'a mut TargetA,
+    target_b: &'a mut TargetB,
+    target_c: &'a mut TargetC,
+    inv: &'a mut Inv,
+}
+impl WitherQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.target_a = TargetA(d.value.into_int()?),
+                17 => *self.target_b = TargetB(d.value.into_int()?),
+                18 => *self.target_c = TargetC(d.value.into_int()?),
+                19 => *self.inv = Inv(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct WitherSkeleton;
+impl WitherSkeleton {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct WitherSkeletonQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+}
+impl WitherSkeletonQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Dangerous(pub bool);
+pub struct WitherSkull;
+impl WitherSkull {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(Dangerous(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct WitherSkullQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    dangerous: &'a mut Dangerous,
+}
+impl WitherSkullQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => *self.dangerous = Dangerous(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct WolfInterested(pub bool);
+pub struct WolfCollarColor(pub i32);
+pub struct WolfRemainingAngerTime(pub i32);
+pub struct Wolf;
+impl Wolf {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(Tame(false))
+            .add(InSittingPose(false))
+            .add(Owneruuid(None))
+            .add(WolfInterested(false))
+            .add(WolfCollarColor(Default::default()))
+            .add(WolfRemainingAngerTime(0))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct WolfQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    tame: &'a mut Tame,
+    in_sitting_pose: &'a mut InSittingPose,
+    owneruuid: &'a mut Owneruuid,
+    wolf_interested: &'a mut WolfInterested,
+    wolf_collar_color: &'a mut WolfCollarColor,
+    wolf_remaining_anger_time: &'a mut WolfRemainingAngerTime,
+}
+impl WolfQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.tame = Tame(bitfield & 0x4 != 0);
+                    *self.in_sitting_pose = InSittingPose(bitfield & 0x1 != 0);
+                }
+                18 => *self.owneruuid = Owneruuid(d.value.into_optional_uuid()?),
+                19 => *self.wolf_interested = WolfInterested(d.value.into_boolean()?),
+                20 => *self.wolf_collar_color = WolfCollarColor(d.value.into_int()?),
+                21 => *self.wolf_remaining_anger_time = WolfRemainingAngerTime(d.value.into_int()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ZoglinBaby(pub bool);
+pub struct Zoglin;
+impl Zoglin {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(ZoglinBaby(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ZoglinQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    zoglin_baby: &'a mut ZoglinBaby,
+}
+impl ZoglinQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.zoglin_baby = ZoglinBaby(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Zombie;
+impl Zombie {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(ZombieBaby(false))
+            .add(SpecialType(0))
+            .add(DrownedConversion(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ZombieQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    zombie_baby: &'a mut ZombieBaby,
+    special_type: &'a mut SpecialType,
+    drowned_conversion: &'a mut DrownedConversion,
+}
+impl ZombieQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.zombie_baby = ZombieBaby(d.value.into_boolean()?),
+                17 => *self.special_type = SpecialType(d.value.into_int()?),
+                18 => *self.drowned_conversion = DrownedConversion(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ZombieHorseTamed(pub bool);
+pub struct ZombieHorseEating(pub bool);
+pub struct ZombieHorseStanding(pub bool);
+pub struct ZombieHorseBred(pub bool);
+pub struct ZombieHorseSaddled(pub bool);
+pub struct ZombieHorseOwnerUuid(pub Option<Uuid>);
+pub struct ZombieHorse;
+impl ZombieHorse {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(AbstractAgeableBaby(false))
+            .add(ZombieHorseTamed(false))
+            .add(ZombieHorseEating(false))
+            .add(ZombieHorseStanding(false))
+            .add(ZombieHorseBred(false))
+            .add(ZombieHorseSaddled(false))
+            .add(ZombieHorseOwnerUuid(None))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ZombieHorseQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    abstract_ageable_baby: &'a mut AbstractAgeableBaby,
+    zombie_horse_tamed: &'a mut ZombieHorseTamed,
+    zombie_horse_eating: &'a mut ZombieHorseEating,
+    zombie_horse_standing: &'a mut ZombieHorseStanding,
+    zombie_horse_bred: &'a mut ZombieHorseBred,
+    zombie_horse_saddled: &'a mut ZombieHorseSaddled,
+    zombie_horse_owner_uuid: &'a mut ZombieHorseOwnerUuid,
+}
+impl ZombieHorseQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
+                17 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.zombie_horse_tamed = ZombieHorseTamed(bitfield & 0x2 != 0);
+                    *self.zombie_horse_eating = ZombieHorseEating(bitfield & 0x10 != 0);
+                    *self.zombie_horse_standing = ZombieHorseStanding(bitfield & 0x20 != 0);
+                    *self.zombie_horse_bred = ZombieHorseBred(bitfield & 0x8 != 0);
+                    *self.zombie_horse_saddled = ZombieHorseSaddled(bitfield & 0x4 != 0);
+                }
+                18 => {
+                    *self.zombie_horse_owner_uuid =
+                        ZombieHorseOwnerUuid(d.value.into_optional_uuid()?)
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct Converting(pub bool);
+pub struct ZombieVillagerVillagerData(pub VillagerData);
+pub struct ZombieVillager;
+impl ZombieVillager {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(ZombieBaby(false))
+            .add(SpecialType(0))
+            .add(DrownedConversion(false))
+            .add(Converting(false))
+            .add(ZombieVillagerVillagerData(VillagerData {
+                kind: azalea_registry::VillagerType::Plains,
+                profession: azalea_registry::VillagerProfession::None,
+                level: 0,
+            }))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ZombieVillagerQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    zombie_baby: &'a mut ZombieBaby,
+    special_type: &'a mut SpecialType,
+    drowned_conversion: &'a mut DrownedConversion,
+    converting: &'a mut Converting,
+    zombie_villager_villager_data: &'a mut ZombieVillagerVillagerData,
+}
+impl ZombieVillagerQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.zombie_baby = ZombieBaby(d.value.into_boolean()?),
+                17 => *self.special_type = SpecialType(d.value.into_int()?),
+                18 => *self.drowned_conversion = DrownedConversion(d.value.into_boolean()?),
+                19 => *self.converting = Converting(d.value.into_boolean()?),
+                20 => {
+                    *self.zombie_villager_villager_data =
+                        ZombieVillagerVillagerData(d.value.into_villager_data()?)
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ZombifiedPiglin;
+impl ZombifiedPiglin {
+    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {
+        builder
+            .add(OnFire(false))
+            .add(ShiftKeyDown(false))
+            .add(Sprinting(false))
+            .add(Swimming(false))
+            .add(CurrentlyGlowing(false))
+            .add(Invisible(false))
+            .add(FallFlying(false))
+            .add(AirSupply(Default::default()))
+            .add(CustomName(None))
+            .add(CustomNameVisible(false))
+            .add(Silent(false))
+            .add(NoGravity(false))
+            .add(Pose::default())
+            .add(TicksFrozen(0))
+            .add(AutoSpinAttack(false))
+            .add(AbstractLivingUsingItem(false))
+            .add(Health(1.0))
+            .add(AbstractLivingEffectColor(0))
+            .add(EffectAmbience(false))
+            .add(ArrowCount(0))
+            .add(StingerCount(0))
+            .add(SleepingPos(None))
+            .add(NoAi(false))
+            .add(LeftHanded(false))
+            .add(Aggressive(false))
+            .add(ZombieBaby(false))
+            .add(SpecialType(0))
+            .add(DrownedConversion(false))
+            .build()
+    }
+}
+
+#[derive(Query)]
+struct ZombifiedPiglinQuery<'a> {
+    on_fire: &'a mut OnFire,
+    shift_key_down: &'a mut ShiftKeyDown,
+    sprinting: &'a mut Sprinting,
+    swimming: &'a mut Swimming,
+    currently_glowing: &'a mut CurrentlyGlowing,
+    invisible: &'a mut Invisible,
+    fall_flying: &'a mut FallFlying,
+    air_supply: &'a mut AirSupply,
+    custom_name: &'a mut CustomName,
+    custom_name_visible: &'a mut CustomNameVisible,
+    silent: &'a mut Silent,
+    no_gravity: &'a mut NoGravity,
+    pose: &'a mut Pose,
+    ticks_frozen: &'a mut TicksFrozen,
+    auto_spin_attack: &'a mut AutoSpinAttack,
+    abstract_living_using_item: &'a mut AbstractLivingUsingItem,
+    health: &'a mut Health,
+    abstract_living_effect_color: &'a mut AbstractLivingEffectColor,
+    effect_ambience: &'a mut EffectAmbience,
+    arrow_count: &'a mut ArrowCount,
+    stinger_count: &'a mut StingerCount,
+    sleeping_pos: &'a mut SleepingPos,
+    no_ai: &'a mut NoAi,
+    left_handed: &'a mut LeftHanded,
+    aggressive: &'a mut Aggressive,
+    zombie_baby: &'a mut ZombieBaby,
+    special_type: &'a mut SpecialType,
+    drowned_conversion: &'a mut DrownedConversion,
+}
+impl ZombifiedPiglinQuery<'_> {
+    pub fn update_metadata(
+        &mut self,
+        world: hecs::World,
+        entity: hecs::Entity,
+        data: EntityMetadataItems,
+    ) -> Result<(), UpdateMetadataError> {
+        for d in data.0 {
+            match d.index {
+                0 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.on_fire = OnFire(bitfield & 0x1 != 0);
+                    *self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
+                    *self.sprinting = Sprinting(bitfield & 0x8 != 0);
+                    *self.swimming = Swimming(bitfield & 0x10 != 0);
+                    *self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
+                    *self.invisible = Invisible(bitfield & 0x20 != 0);
+                    *self.fall_flying = FallFlying(bitfield & 0x80 != 0);
+                }
+                1 => *self.air_supply = AirSupply(d.value.into_int()?),
+                2 => *self.custom_name = CustomName(d.value.into_optional_component()?),
+                3 => *self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
+                4 => *self.silent = Silent(d.value.into_boolean()?),
+                5 => *self.no_gravity = NoGravity(d.value.into_boolean()?),
+                6 => *self.pose = d.value.into_pose()?,
+                7 => *self.ticks_frozen = TicksFrozen(d.value.into_int()?),
+                8 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
+                    *self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
+                }
+                9 => *self.health = Health(d.value.into_float()?),
+                10 => {
+                    *self.abstract_living_effect_color =
+                        AbstractLivingEffectColor(d.value.into_int()?)
+                }
+                11 => *self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
+                12 => *self.arrow_count = ArrowCount(d.value.into_int()?),
+                13 => *self.stinger_count = StingerCount(d.value.into_int()?),
+                14 => *self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
+                15 => {
+                    let bitfield = d.value.into_byte()?;
+                    *self.no_ai = NoAi(bitfield & 0x1 != 0);
+                    *self.left_handed = LeftHanded(bitfield & 0x2 != 0);
+                    *self.aggressive = Aggressive(bitfield & 0x4 != 0);
+                }
+                16 => *self.zombie_baby = ZombieBaby(d.value.into_boolean()?),
+                17 => *self.special_type = SpecialType(d.value.into_int()?),
+                18 => *self.drowned_conversion = DrownedConversion(d.value.into_boolean()?),
+            }
+        }
+        Ok(())
+    }
+}
+
+fn update_metadata(
+    world: hecs::World,
+    entity: hecs::Entity,
+    data: EntityMetadataItems,
+) -> Result<(), UpdateMetadataError> {
+    if let Ok(e) = world.query_one_mut::<AllayQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<AreaEffectCloudQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ArmorStandQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ArrowQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<AxolotlQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<BatQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<BeeQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<BlazeQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<BoatQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<CamelQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<CatQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<CaveSpiderQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ChestBoatQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ChestMinecartQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ChickenQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<CodQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<CommandBlockMinecartQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<CowQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<CreeperQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<DolphinQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<DonkeyQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<DragonFireballQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<DrownedQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<EggQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ElderGuardianQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<EndCrystalQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<EnderDragonQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<EnderPearlQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<EndermanQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<EndermiteQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<EvokerQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<EvokerFangsQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ExperienceBottleQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ExperienceOrbQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<EyeOfEnderQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<FallingBlockQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<FireballQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<FireworkRocketQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<FishingBobberQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<FoxQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<FrogQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<FurnaceMinecartQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<GhastQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<GiantQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<GlowItemFrameQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<GlowSquidQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<GoatQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<GuardianQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<HoglinQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<HopperMinecartQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<HorseQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<HuskQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<IllusionerQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<IronGolemQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ItemQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ItemFrameQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<LeashKnotQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<LightningBoltQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<LlamaQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<LlamaSpitQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<MagmaCubeQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<MarkerQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<MinecartQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<MooshroomQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<MuleQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<OcelotQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<PaintingQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<PandaQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ParrotQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<PhantomQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<PigQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<PiglinQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<PiglinBruteQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<PillagerQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<PlayerQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<PolarBearQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<PotionQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<PufferfishQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<RabbitQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<RavagerQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<SalmonQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<SheepQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ShulkerQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ShulkerBulletQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<SilverfishQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<SkeletonQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<SkeletonHorseQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<SlimeQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<SmallFireballQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<SnowGolemQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<SnowballQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<SpawnerMinecartQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<SpectralArrowQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<SpiderQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<SquidQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<StrayQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<StriderQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<TadpoleQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<TntQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<TntMinecartQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<TraderLlamaQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<TridentQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<TropicalFishQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<TurtleQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<VexQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<VillagerQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<VindicatorQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<WanderingTraderQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<WardenQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<WitchQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<WitherQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<WitherSkeletonQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<WitherSkullQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<WolfQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ZoglinQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ZombieQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ZombieHorseQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ZombieVillagerQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    if let Ok(e) = world.query_one_mut::<ZombifiedPiglinQuery>(entity) {
+        e.update_metadata(world, entity, data)?;
+        return Ok(());
+    }
+    Ok(())
+}

@@ -4,7 +4,6 @@ mod dimensions;
 pub mod metadata;
 
 use self::attributes::{AttributeInstance, AttributeModifiers};
-pub use self::metadata::EntityMetadata;
 use crate::WeakWorld;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, Vec3, AABB};
@@ -217,9 +216,6 @@ pub struct EntityData {
     pub jumping: bool,
 
     pub has_impulse: bool,
-
-    /// Stores some extra data about the entity, including the entity type.
-    pub metadata: EntityMetadata,
 
     /// The attributes and modifiers that the entity has (for example, speed).
     pub attributes: AttributeModifiers,
