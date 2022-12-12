@@ -2,7 +2,6 @@
 
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_registry_macros::registry;
-use enum_as_inner::EnumAsInner;
 use std::io::{Cursor, Write};
 
 pub trait Registry
@@ -1143,7 +1142,7 @@ registry!(BlockEntityKind, {
     ChiseledBookshelf => "minecraft:chiseled_bookshelf",
 });
 
-registry!(BlockPredicateType, {
+registry!(BlockPredicateKind, {
     MatchingBlocks => "minecraft:matching_blocks",
     MatchingBlockTag => "minecraft:matching_block_tag",
     MatchingFluids => "minecraft:matching_fluids",
@@ -1188,7 +1187,7 @@ registry!(ChunkStatus, {
     Full => "minecraft:full",
 });
 
-registry!(CommandArgumentType, {
+registry!(CommandArgumentKind, {
     Bool => "brigadier:bool",
     Float => "brigadier:float",
     Double => "brigadier:double",
@@ -1481,7 +1480,7 @@ registry!(EntityKind, {
     FishingBobber => "minecraft:fishing_bobber",
 });
 
-registry!(FloatProviderType, {
+registry!(FloatProviderKind, {
     Constant => "minecraft:constant",
     Uniform => "minecraft:uniform",
     ClampedNormal => "minecraft:clamped_normal",
@@ -1551,7 +1550,7 @@ registry!(GameEvent, {
     Teleport => "minecraft:teleport",
 });
 
-registry!(HeightProviderType, {
+registry!(HeightProviderKind, {
     Constant => "minecraft:constant",
     Uniform => "minecraft:uniform",
     BiasedToBottom => "minecraft:biased_to_bottom",
@@ -1571,7 +1570,7 @@ registry!(Instrument, {
     DreamGoatHorn => "minecraft:dream_goat_horn",
 });
 
-registry!(IntProviderType, {
+registry!(IntProviderKind, {
     Constant => "minecraft:constant",
     Uniform => "minecraft:uniform",
     BiasedToBottom => "minecraft:biased_to_bottom",
@@ -2769,7 +2768,7 @@ registry!(Item, {
     EchoShard => "minecraft:echo_shard",
 });
 
-registry!(LootConditionType, {
+registry!(LootConditionKind, {
     Inverted => "minecraft:inverted",
     Alternative => "minecraft:alternative",
     RandomChance => "minecraft:random_chance",
@@ -2789,7 +2788,7 @@ registry!(LootConditionType, {
     ValueCheck => "minecraft:value_check",
 });
 
-registry!(LootFunctionType, {
+registry!(LootFunctionKind, {
     SetCount => "minecraft:set_count",
     EnchantWithLevels => "minecraft:enchant_with_levels",
     EnchantRandomly => "minecraft:enchant_randomly",
@@ -2817,19 +2816,19 @@ registry!(LootFunctionType, {
     SetInstrument => "minecraft:set_instrument",
 });
 
-registry!(LootNbtProviderType, {
+registry!(LootNbtProviderKind, {
     Storage => "minecraft:storage",
     Context => "minecraft:context",
 });
 
-registry!(LootNumberProviderType, {
+registry!(LootNumberProviderKind, {
     Constant => "minecraft:constant",
     Uniform => "minecraft:uniform",
     Binomial => "minecraft:binomial",
     Score => "minecraft:score",
 });
 
-registry!(LootPoolEntryType, {
+registry!(LootPoolEntryKind, {
     Empty => "minecraft:empty",
     Item => "minecraft:item",
     LootTable => "minecraft:loot_table",
@@ -2840,12 +2839,12 @@ registry!(LootPoolEntryType, {
     Group => "minecraft:group",
 });
 
-registry!(LootScoreProviderType, {
+registry!(LootScoreProviderKind, {
     Fixed => "minecraft:fixed",
     Context => "minecraft:context",
 });
 
-registry!(MemoryModuleType, {
+registry!(MemoryModuleKind, {
     Dummy => "minecraft:dummy",
     Home => "minecraft:home",
     JobSite => "minecraft:job_site",
@@ -3037,7 +3036,7 @@ registry!(PaintingVariant, {
     DonkeyKong => "minecraft:donkey_kong",
 });
 
-registry!(ParticleType, {
+registry!(ParticleKind, {
     AmbientEntityEffect => "minecraft:ambient_entity_effect",
     AngryVillager => "minecraft:angry_villager",
     Block => "minecraft:block",
@@ -3133,7 +3132,7 @@ registry!(ParticleType, {
     Shriek => "minecraft:shriek",
 });
 
-registry!(PointOfInterestType, {
+registry!(PointOfInterestKind, {
     Armorer => "minecraft:armorer",
     Butcher => "minecraft:butcher",
     Cartographer => "minecraft:cartographer",
@@ -3162,7 +3161,7 @@ registry!(PosRuleTest, {
     AxisAlignedLinearPos => "minecraft:axis_aligned_linear_pos",
 });
 
-registry!(PositionSourceType, {
+registry!(PositionSourceKind, {
     Block => "minecraft:block",
     Entity => "minecraft:entity",
 });
@@ -3237,7 +3236,7 @@ registry!(RecipeSerializer, {
     Smithing => "minecraft:smithing",
 });
 
-registry!(RecipeType, {
+registry!(RecipeKind, {
     Crafting => "minecraft:crafting",
     Smelting => "minecraft:smelting",
     Blasting => "minecraft:blasting",
@@ -3263,7 +3262,7 @@ registry!(Schedule, {
     VillagerDefault => "minecraft:villager_default",
 });
 
-registry!(SensorType, {
+registry!(SensorKind, {
     Dummy => "minecraft:dummy",
     NearestItems => "minecraft:nearest_items",
     NearestLivingEntities => "minecraft:nearest_living_entities",
@@ -4683,7 +4682,7 @@ registry!(SoundEvent, {
     EntityZombieVillagerStep => "minecraft:entity.zombie_villager.step",
 });
 
-registry!(StatType, {
+registry!(StatKind, {
     Mined => "minecraft:mined",
     Crafted => "minecraft:crafted",
     Used => "minecraft:used",
@@ -4713,7 +4712,7 @@ registry!(VillagerProfession, {
     Weaponsmith => "minecraft:weaponsmith",
 });
 
-registry!(VillagerType, {
+registry!(VillagerKind, {
     Desert => "minecraft:desert",
     Jungle => "minecraft:jungle",
     Plains => "minecraft:plains",
@@ -4730,7 +4729,7 @@ registry!(WorldgenBiomeSource, {
     TheEnd => "minecraft:the_end",
 });
 
-registry!(WorldgenBlockStateProviderType, {
+registry!(WorldgenBlockStateProviderKind, {
     SimpleStateProvider => "minecraft:simple_state_provider",
     WeightedStateProvider => "minecraft:weighted_state_provider",
     NoiseThresholdProvider => "minecraft:noise_threshold_provider",
@@ -4752,7 +4751,7 @@ registry!(WorldgenChunkGenerator, {
     Debug => "minecraft:debug",
 });
 
-registry!(WorldgenDensityFunctionType, {
+registry!(WorldgenDensityFunctionKind, {
     BlendAlpha => "minecraft:blend_alpha",
     BlendOffset => "minecraft:blend_offset",
     Beardifier => "minecraft:beardifier",
@@ -4851,12 +4850,12 @@ registry!(WorldgenFeature, {
     SculkPatch => "minecraft:sculk_patch",
 });
 
-registry!(WorldgenFeatureSizeType, {
+registry!(WorldgenFeatureSizeKind, {
     TwoLayersFeatureSize => "minecraft:two_layers_feature_size",
     ThreeLayersFeatureSize => "minecraft:three_layers_feature_size",
 });
 
-registry!(WorldgenFoliagePlacerType, {
+registry!(WorldgenFoliagePlacerKind, {
     BlobFoliagePlacer => "minecraft:blob_foliage_placer",
     SpruceFoliagePlacer => "minecraft:spruce_foliage_placer",
     PineFoliagePlacer => "minecraft:pine_foliage_placer",
@@ -4890,7 +4889,7 @@ registry!(WorldgenMaterialRule, {
     Condition => "minecraft:condition",
 });
 
-registry!(WorldgenPlacementModifierType, {
+registry!(WorldgenPlacementModifierKind, {
     BlockPredicateFilter => "minecraft:block_predicate_filter",
     RarityFilter => "minecraft:rarity_filter",
     SurfaceRelativeThresholdFilter => "minecraft:surface_relative_threshold_filter",
@@ -4908,7 +4907,7 @@ registry!(WorldgenPlacementModifierType, {
     CarvingMask => "minecraft:carving_mask",
 });
 
-registry!(WorldgenRootPlacerType, {
+registry!(WorldgenRootPlacerKind, {
     MangroveRootPlacer => "minecraft:mangrove_root_placer",
 });
 
@@ -4997,7 +4996,7 @@ registry!(WorldgenStructureProcessor, {
     ProtectedBlocks => "minecraft:protected_blocks",
 });
 
-registry!(WorldgenStructureType, {
+registry!(WorldgenStructureKind, {
     BuriedTreasure => "minecraft:buried_treasure",
     DesertPyramid => "minecraft:desert_pyramid",
     EndCity => "minecraft:end_city",
@@ -5016,7 +5015,7 @@ registry!(WorldgenStructureType, {
     WoodlandMansion => "minecraft:woodland_mansion",
 });
 
-registry!(WorldgenTreeDecoratorType, {
+registry!(WorldgenTreeDecoratorKind, {
     TrunkVine => "minecraft:trunk_vine",
     LeaveVine => "minecraft:leave_vine",
     Cocoa => "minecraft:cocoa",
@@ -5025,7 +5024,7 @@ registry!(WorldgenTreeDecoratorType, {
     AttachedToLeaves => "minecraft:attached_to_leaves",
 });
 
-registry!(WorldgenTrunkPlacerType, {
+registry!(WorldgenTrunkPlacerKind, {
     StraightTrunkPlacer => "minecraft:straight_trunk_placer",
     ForkingTrunkPlacer => "minecraft:forking_trunk_placer",
     GiantTrunkPlacer => "minecraft:giant_trunk_placer",
