@@ -1,10 +1,12 @@
-use crate::entity::EntityData;
+use crate::entity::{EntityData, EntityId};
 use azalea_core::ChunkPos;
+use hecs::EntityBuilder;
 use log::warn;
 use nohash_hasher::{IntMap, IntSet};
 use parking_lot::RwLock;
 use std::{
     collections::HashMap,
+    fmt::Debug,
     sync::{Arc, Weak},
 };
 use uuid::Uuid;
@@ -42,21 +44,32 @@ pub struct PartialEntityStorage {
     ///
     /// [`PartialWorld::entity_mut`]: crate::PartialWorld::entity_mut
     pub owner_entity_id: Option<u32>,
+    /// A counter for each entity that tracks how many updates we've observed
+    /// for it.
+    ///
+    /// This is used for shared worlds (i.e. swarms), to make sure we don't
+    /// update entities twice on accident.
     pub updates_received: IntMap<u32, u32>,
-    /// Strong references to the entities we have loaded.
-    data_by_id: IntMap<u32, Arc<EntityData>>,
+    /// A set of all the entity ids in render distance.
+    loaded_entity_ids: IntSet<u32>,
 }
 
 /// Weakly store entities in a world. If the entities aren't being referenced
 /// by anything else (like an [`PartialEntityStorage`]), they'll be forgotten.
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct WeakEntityStorage {
-    data_by_id: IntMap<u32, Weak<EntityData>>,
+    /// The ECS that actually contains the entities.
+    ecs: hecs::World,
+
+    /// The number of `PartialWorld`s that have this entity loaded.
+    /// (this is reference counting)
+    entity_reference_count: IntMap<EntityId, usize>,
     /// An index of all the entity ids we know are in a chunk
-    ids_by_chunk: HashMap<ChunkPos, IntSet<u32>>,
+    ids_by_chunk: HashMap<ChunkPos, IntSet<EntityId>>,
     /// An index of entity ids by their UUIDs
     id_by_uuid: HashMap<Uuid, u32>,
 
+    /// The canonical number of updates we've gotten for every entity.
     pub updates_received: IntMap<u32, u32>,
 }
 
@@ -69,19 +82,24 @@ impl PartialEntityStorage {
             shared,
             owner_entity_id,
             updates_received: IntMap::default(),
-            data_by_id: IntMap::default(),
+            loaded_entity_ids: IntSet::default(),
         }
     }
 
     /// Add an entity to the storage.
     #[inline]
-    pub fn insert(&mut self, id: u32, entity: EntityData) {
-        // if the entity is already in the shared world, we don't need to do anything
-        if self.shared.read().data_by_id.contains_key(&id) {
+    pub fn insert(&mut self, id: u32, bundle: impl bevy_ecs::prelude::Bundle) {
+        // if you're trying to optimize this, see if checking if the id is in
+        // self.loaded_entity_ids would help with performance
+        // i didn't put the check here just in case it doesn't actually help
+
+        // if the entity is already in the shared world, we don't need to do
+        // anything
+        if self.shared.read().contains_id(&id) {
             return;
         }
 
-        // add the entity to the "indexes"
+        // add the entity to the indexes
         let mut shared = self.shared.write();
         shared
             .ids_by_chunk
@@ -381,6 +399,18 @@ impl WeakEntityStorage {
             .entry(*new_chunk)
             .or_default()
             .insert(entity_id);
+    }
+}
+
+impl Debug for WeakEntityStorage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("WeakEntityStorage")
+            // .field("ecs", &self.ecs)
+            .field("entity_reference_count", &self.entity_reference_count)
+            .field("ids_by_chunk", &self.ids_by_chunk)
+            .field("id_by_uuid", &self.id_by_uuid)
+            .field("updates_received", &self.updates_received)
+            .finish()
     }
 }
 

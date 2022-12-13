@@ -15,6 +15,10 @@ use std::ops::{Deref, DerefMut};
 use std::ptr::NonNull;
 use uuid::Uuid;
 
+/// NOTE: EntityId internally uses twice the memory as just a u32, so if a u32
+/// would work just as well then use that.
+pub type EntityId = hecs::Entity;
+
 /// A reference to an entity in a world.
 #[derive(Debug)]
 pub struct Entity<'d, D = &'d WeakWorld> {
