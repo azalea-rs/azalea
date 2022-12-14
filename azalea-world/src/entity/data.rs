@@ -1,8 +1,9 @@
 use azalea_block::BlockState;
 use azalea_buf::{BufReadError, McBufVarReadable, McBufVarWritable};
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot};
+use bevy_ecs::component::Component;
 use enum_as_inner::EnumAsInner;
 use nohash_hasher::IntSet;
 use std::io::{Cursor, Write};
@@ -52,8 +53,8 @@ pub enum EntityDataValue {
     Long(i64),
     Float(f32),
     String(String),
-    Component(Component),
-    OptionalComponent(Option<Component>),
+    FormattedText(FormattedText),
+    OptionalComponent(Option<FormattedText>),
     ItemStack(Slot),
     Boolean(bool),
     Rotations(Rotations),
@@ -105,7 +106,7 @@ pub struct Rotations {
     pub z: f32,
 }
 
-#[derive(Clone, Debug, Copy, McBuf, Default)]
+#[derive(Clone, Debug, Copy, McBuf, Default, Component)]
 pub enum Pose {
     #[default]
     Standing = 0,

@@ -1,7 +1,7 @@
 use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::Cursor;
 use std::io::Write;
@@ -18,7 +18,7 @@ pub enum Operation {
     Add(AddOperation),
     Remove,
     UpdateProgress(f32),
-    UpdateName(Component),
+    UpdateName(FormattedText),
     UpdateStyle(Style),
     UpdateProperties(Properties),
 }
@@ -30,7 +30,7 @@ impl McBufReadable for Operation {
             0 => Operation::Add(AddOperation::read_from(buf)?),
             1 => Operation::Remove,
             2 => Operation::UpdateProgress(f32::read_from(buf)?),
-            3 => Operation::UpdateName(Component::read_from(buf)?),
+            3 => Operation::UpdateName(FormattedText::read_from(buf)?),
             4 => Operation::UpdateStyle(Style::read_from(buf)?),
             5 => Operation::UpdateProperties(Properties::read_from(buf)?),
             _ => {
@@ -75,7 +75,7 @@ impl McBufWritable for Operation {
 
 #[derive(Clone, Debug, McBuf)]
 pub struct AddOperation {
-    name: Component,
+    name: FormattedText,
     progress: f32,
     style: Style,
     properties: Properties,

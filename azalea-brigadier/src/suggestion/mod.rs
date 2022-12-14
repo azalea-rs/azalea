@@ -4,7 +4,7 @@ use crate::context::StringRange;
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::McBufWritable;
 #[cfg(feature = "azalea-buf")]
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 #[cfg(feature = "azalea-buf")]
 use std::io::Write;
 pub use suggestions::*;
@@ -58,7 +58,7 @@ impl<M: Clone> Suggestion<M> {
 }
 
 #[cfg(feature = "azalea-buf")]
-impl McBufWritable for Suggestion<Component> {
+impl McBufWritable for Suggestion<FormattedText> {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self.text.write_into(buf)?;
         self.tooltip.write_into(buf)?;

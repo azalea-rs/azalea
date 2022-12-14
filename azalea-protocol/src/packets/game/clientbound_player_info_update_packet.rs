@@ -2,7 +2,7 @@ use azalea_auth::game_profile::{GameProfile, ProfilePropertyValue};
 use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_core::{BitSet, GameType};
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::{
@@ -25,7 +25,7 @@ pub struct PlayerInfoEntry {
     pub listed: bool,
     pub latency: i32,
     pub game_mode: GameType,
-    pub display_name: Option<Component>,
+    pub display_name: Option<FormattedText>,
     pub chat_session: Option<RemoteChatSessionData>,
 }
 
@@ -53,7 +53,7 @@ pub struct UpdateLatencyAction {
 }
 #[derive(Clone, Debug, McBuf)]
 pub struct UpdateDisplayNameAction {
-    pub display_name: Option<Component>,
+    pub display_name: Option<FormattedText>,
 }
 
 impl McBufReadable for ClientboundPlayerInfoUpdatePacket {

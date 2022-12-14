@@ -99,7 +99,7 @@ pub enum BrigadierParser {
     ItemStack,
     ItemPredicate,
     Color,
-    Component,
+    FormattedText,
     Message,
     NbtCompoundTag,
     NbtTag,

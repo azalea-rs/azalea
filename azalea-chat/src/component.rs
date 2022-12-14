@@ -16,7 +16,7 @@ use std::{
 /// A chat component, basically anything you can see in chat.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
-pub enum Component {
+pub enum FormattedText {
     Text(TextComponent),
     Translatable(TranslatableComponent),
 }
@@ -27,7 +27,7 @@ pub static DEFAULT_STYLE: Lazy<Style> = Lazy::new(|| Style {
 });
 
 /// A chat component
-impl Component {
+impl FormattedText {
     pub fn get_base_mut(&mut self) -> &mut BaseComponent {
         match self {
             Self::Text(c) => &mut c.base,
@@ -43,14 +43,16 @@ impl Component {
     }
 
     /// Add a component as a sibling of this one
-    fn append(&mut self, sibling: Component) {
+    fn append(&mut self, sibling: FormattedText) {
         self.get_base_mut().siblings.push(sibling);
     }
 
     /// Get the "separator" component from the json
-    fn parse_separator(json: &serde_json::Value) -> Result<Option<Component>, serde_json::Error> {
+    fn parse_separator(
+        json: &serde_json::Value,
+    ) -> Result<Option<FormattedText>, serde_json::Error> {
         if json.get("separator").is_some() {
-            return Ok(Some(Component::deserialize(
+            return Ok(Some(FormattedText::deserialize(
                 json.get("separator").unwrap(),
             )?));
         }
@@ -61,16 +63,17 @@ impl Component {
     /// [ANSI string](https://en.wikipedia.org/wiki/ANSI_escape_code), so you
     /// can print it to your terminal and get styling.
     ///
-    /// This is technically a shortcut for [`Component::to_ansi_custom_style`]
-    /// with a default [`Style`] colored white.
+    /// This is technically a shortcut for
+    /// [`FormattedText::to_ansi_custom_style`] with a default [`Style`]
+    /// colored white.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use azalea_chat::Component;
+    /// use azalea_chat::FormattedText;
     /// use serde::de::Deserialize;
     ///
-    /// let component = Component::deserialize(&serde_json::json!({
+    /// let component = FormattedText::deserialize(&serde_json::json!({
     ///    "text": "Hello, world!",
     ///    "color": "red",
     /// })).unwrap();
@@ -85,7 +88,7 @@ impl Component {
     /// Convert this component into an
     /// [ANSI string](https://en.wikipedia.org/wiki/ANSI_escape_code).
     ///
-    /// This is the same as [`Component::to_ansi`], but you can specify a
+    /// This is the same as [`FormattedText::to_ansi`], but you can specify a
     /// default [`Style`] to use.
     pub fn to_ansi_custom_style(&self, default_style: &Style) -> String {
         // this contains the final string will all the ansi escape codes
@@ -116,12 +119,12 @@ impl Component {
     }
 }
 
-impl IntoIterator for Component {
+impl IntoIterator for FormattedText {
     /// Recursively call the function for every component in this component
     fn into_iter(self) -> Self::IntoIter {
         let base = self.get_base();
         let siblings = base.siblings.clone();
-        let mut v: Vec<Component> = Vec::with_capacity(siblings.len() + 1);
+        let mut v: Vec<FormattedText> = Vec::with_capacity(siblings.len() + 1);
         v.push(self);
         for sibling in siblings {
             v.extend(sibling.into_iter());
@@ -130,11 +133,11 @@ impl IntoIterator for Component {
         v.into_iter()
     }
 
-    type Item = Component;
+    type Item = FormattedText;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 }
 
-impl<'de> Deserialize<'de> for Component {
+impl<'de> Deserialize<'de> for FormattedText {
     fn deserialize<D>(de: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -142,11 +145,11 @@ impl<'de> Deserialize<'de> for Component {
         let json: serde_json::Value = serde::Deserialize::deserialize(de)?;
 
         // we create a component that we might add siblings to
-        let mut component: Component;
+        let mut component: FormattedText;
 
         // if it's primitive, make it a text component
         if !json.is_array() && !json.is_object() {
-            return Ok(Component::Text(TextComponent::new(
+            return Ok(FormattedText::Text(TextComponent::new(
                 json.as_str().unwrap_or("").to_string(),
             )));
         }
@@ -154,7 +157,7 @@ impl<'de> Deserialize<'de> for Component {
         else if json.is_object() {
             if let Some(text) = json.get("text") {
                 let text = text.as_str().unwrap_or("").to_string();
-                component = Component::Text(TextComponent::new(text));
+                component = FormattedText::Text(TextComponent::new(text));
             } else if let Some(translate) = json.get("translate") {
                 let translate = translate
                     .as_str()
@@ -169,8 +172,8 @@ impl<'de> Deserialize<'de> for Component {
                         // if it's a string component with no styling and no siblings, just add a
                         // string to with_array otherwise add the component
                         // to the array
-                        let c = Component::deserialize(item).map_err(de::Error::custom)?;
-                        if let Component::Text(text_component) = c {
+                        let c = FormattedText::deserialize(item).map_err(de::Error::custom)?;
+                        if let FormattedText::Text(text_component) = c {
                             if text_component.base.siblings.is_empty()
                                 && text_component.base.style.is_empty()
                             {
@@ -178,16 +181,19 @@ impl<'de> Deserialize<'de> for Component {
                                 continue;
                             }
                         }
-                        with_array.push(StringOrComponent::Component(
-                            Component::deserialize(item).map_err(de::Error::custom)?,
+                        with_array.push(StringOrComponent::FormattedText(
+                            FormattedText::deserialize(item).map_err(de::Error::custom)?,
                         ));
                     }
-                    component =
-                        Component::Translatable(TranslatableComponent::new(translate, with_array));
+                    component = FormattedText::Translatable(TranslatableComponent::new(
+                        translate, with_array,
+                    ));
                 } else {
                     // if it doesn't have a "with", just have the with_array be empty
-                    component =
-                        Component::Translatable(TranslatableComponent::new(translate, Vec::new()));
+                    component = FormattedText::Translatable(TranslatableComponent::new(
+                        translate,
+                        Vec::new(),
+                    ));
                 }
             } else if let Some(score) = json.get("score") {
                 // object = GsonHelper.getAsJsonObject(jsonObject, "score");
@@ -213,10 +219,11 @@ impl<'de> Deserialize<'de> for Component {
                     nbt
                 } else {
                     return Err(de::Error::custom(
-                        format!("Don't know how to turn {json} into a Component").as_str(),
+                        format!("Don't know how to turn {json} into a FormattedText").as_str(),
                     ));
                 };
-                let _separator = Component::parse_separator(&json).map_err(de::Error::custom)?;
+                let _separator =
+                    FormattedText::parse_separator(&json).map_err(de::Error::custom)?;
 
                 let _interpret = match json.get("interpret") {
                     Some(v) => v.as_bool().ok_or(Some(false)).unwrap(),
@@ -237,7 +244,7 @@ impl<'de> Deserialize<'de> for Component {
                 }
                 for extra_component in extra {
                     let sibling =
-                        Component::deserialize(extra_component).map_err(de::Error::custom)?;
+                        FormattedText::deserialize(extra_component).map_err(de::Error::custom)?;
                     component.append(sibling);
                 }
             }
@@ -250,33 +257,35 @@ impl<'de> Deserialize<'de> for Component {
         // ok so it's not an object, if it's an array deserialize every item
         else if !json.is_array() {
             return Err(de::Error::custom(
-                format!("Don't know how to turn {json} into a Component").as_str(),
+                format!("Don't know how to turn {json} into a FormattedText").as_str(),
             ));
         }
         let json_array = json.as_array().unwrap();
         // the first item in the array is the one that we're gonna return, the others
         // are siblings
-        let mut component = Component::deserialize(&json_array[0]).map_err(de::Error::custom)?;
+        let mut component =
+            FormattedText::deserialize(&json_array[0]).map_err(de::Error::custom)?;
         for i in 1..json_array.len() {
             component.append(
-                Component::deserialize(json_array.get(i).unwrap()).map_err(de::Error::custom)?,
+                FormattedText::deserialize(json_array.get(i).unwrap())
+                    .map_err(de::Error::custom)?,
             );
         }
         Ok(component)
     }
 }
 
-impl McBufReadable for Component {
+impl McBufReadable for FormattedText {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let string = String::read_from(buf)?;
-        debug!("Component string: {}", string);
+        debug!("FormattedText string: {}", string);
         let json: serde_json::Value = serde_json::from_str(string.as_str())?;
-        let component = Component::deserialize(json)?;
+        let component = FormattedText::deserialize(json)?;
         Ok(component)
     }
 }
 
-impl McBufWritable for Component {
+impl McBufWritable for FormattedText {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let json = serde_json::to_string(self).unwrap();
         json.write_into(buf)?;
@@ -284,31 +293,31 @@ impl McBufWritable for Component {
     }
 }
 
-impl From<String> for Component {
+impl From<String> for FormattedText {
     fn from(s: String) -> Self {
-        Component::Text(TextComponent {
+        FormattedText::Text(TextComponent {
             text: s,
             base: BaseComponent::default(),
         })
     }
 }
-impl From<&str> for Component {
+impl From<&str> for FormattedText {
     fn from(s: &str) -> Self {
         Self::from(s.to_string())
     }
 }
 
-impl Display for Component {
+impl Display for FormattedText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Component::Text(c) => c.fmt(f),
-            Component::Translatable(c) => c.fmt(f),
+            FormattedText::Text(c) => c.fmt(f),
+            FormattedText::Translatable(c) => c.fmt(f),
         }
     }
 }
 
-impl Default for Component {
+impl Default for FormattedText {
     fn default() -> Self {
-        Component::Text(TextComponent::default())
+        FormattedText::Text(TextComponent::default())
     }
 }

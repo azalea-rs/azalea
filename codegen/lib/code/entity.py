@@ -15,8 +15,8 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
         {'name': 'Long', 'type': 'i64'},
         {'name': 'Float', 'type': 'f32'},
         {'name': 'String', 'type': 'String'},
-        {'name': 'Component', 'type': 'Component'},
-        {'name': 'OptionalComponent', 'type': 'Option<Component>'},
+        {'name': 'Component', 'type': 'FormattedText'},
+        {'name': 'OptionalComponent', 'type': 'Option<FormattedText>'},
         {'name': 'ItemStack', 'type': 'Slot'},
         {'name': 'Boolean', 'type': 'bool'},
         {'name': 'Rotations', 'type': 'Rotations'},
@@ -45,9 +45,9 @@ use super::{
     EntityDataValue, EntityMetadataItems, OptionalUnsignedInt, Pose, Rotations, VillagerData,
 };
 use azalea_block::BlockState;
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
-use hecs::{Query, EntityBuilder, BuiltEntity};
+use bevy_ecs::{bundle::Bundle, component::Component};
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -160,33 +160,124 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 metadata_type_data = metadata_types[type_id]
                 rust_type = metadata_type_data['type']
 
+                code.append(f'#[derive(Component)]')
                 code.append(f'pub struct {struct_name}(pub {rust_type});')
             else:
                 # if it's a bitfield just make a struct for each bit
                 for mask, name in name_or_bitfield.items():
                     name = maybe_rename_field(name, index)
                     struct_name = upper_first_letter(to_camel_case(name))
+                    code.append(f'#[derive(Component)]')
                     code.append(f'pub struct {struct_name}(pub bool);')
 
         # add the entity struct and Query struct
         is_actually_entity = not entity_id.startswith('~')
         if is_actually_entity:
             struct_name: str = upper_first_letter(to_camel_case(entity_id))
+            code.append(f'#[derive(Component)]')
             code.append(f'pub struct {struct_name};')
 
-            # impl Allay {
-            #     pub fn default(builder: &mut EntityBuilder) {
-            #         builder
-            #             .add(OnFire(false))
-            #             .add(ShiftKeyDown(false))
-            #             .add(Sprinting(false))
-            #             .add(Swimming(false));
+            # #[derive(Bundle)]
+            # struct AllayBundle {
+            #     health: Health,
+            #     ...
+            #     dancing: Dancing,
+            #     can_duplicate: CanDuplicate,
+            # }
+            bundle_struct_name = f'{struct_name}Bundle'
+            code.append(f'')
+            code.append(f'#[derive(Bundle)]')
+            code.append(f'struct {bundle_struct_name} {{')
+            for index, name_or_bitfield in enumerate(all_field_names_or_bitfields):
+                if isinstance(name_or_bitfield, str):
+                    name_or_bitfield = maybe_rename_field(
+                        name_or_bitfield, index)
+                    struct_name = upper_first_letter(
+                        to_camel_case(name_or_bitfield))
+                    code.append(
+                        f'    {name_or_bitfield}: {struct_name},')
+                else:
+                    for mask, name in name_or_bitfield.items():
+                        name = maybe_rename_field(name, index)
+
+                        struct_name = upper_first_letter(to_camel_case(name))
+                        code.append(f'    {name}: {struct_name},')
+            code.append('}')
+
+            # impl AllayBundle {
+            #     pub fn update_metadata(
+            #         &mut self,
+            #         ecs: bevy_ecs::world::World,
+            #         entity: bevy_ecs::world::EntityMut,
+            #         data: EntityMetadataItems,
+            #     ) -> Result<(), UpdateMetadataError> {
+            #         for d in data.0 {
+            #             match d.index {
+            #                 0 => self.health = Health(d.value.into_float()?),
+            #                 1 => self.dancing = Dancing(d.value.into_boolean()?),
+            #                 2 => self.can_duplicate = CanDuplicate(d.value.into_boolean()?),
+            #             }
+            #         }
+            #         Ok(())
             #     }
             # }
-            code.append(f'impl {struct_name} {{')
+            code.append(f'impl {bundle_struct_name} {{')
             code.append(
-                '    pub fn default(builder: &mut EntityBuilder) -> BuiltEntity {')
-            code.append('        builder')
+                f'    pub fn update_metadata(&mut self, ecs: bevy_ecs::world::World, entity: bevy_ecs::world::EntityMut, data: EntityMetadataItems) -> Result<(), UpdateMetadataError> {{')
+            code.append(f'        for d in data.0 {{')
+            code.append(f'            match d.index {{')
+            for index, name_or_bitfield in enumerate(all_field_names_or_bitfields):
+                if isinstance(name_or_bitfield, str):
+                    name_or_bitfield = maybe_rename_field(
+                        name_or_bitfield, index)
+
+                    struct_name = upper_first_letter(
+                        to_camel_case(name_or_bitfield))
+                    if name_or_bitfield in single_use_imported_types:
+                        struct_name = ''
+
+                    type_id = next(filter(lambda i: i['index'] == index, entity_metadatas))[
+                        'type_id']
+                    metadata_type_data = metadata_types[type_id]
+                    rust_type = metadata_type_data['type']
+                    type_name = metadata_type_data['name']
+
+                    type_name_field = to_snake_case(type_name)
+                    read_field_code = f'{struct_name}(d.value.into_{type_name_field}()?)' if struct_name else f'd.value.into_{type_name_field}()?'
+                    code.append(
+                        f'                {index} => self.{name_or_bitfield} = {read_field_code},')
+                else:
+                    code.append(f'                {index} => {{')
+                    code.append(
+                        f'let bitfield = d.value.into_byte()?;')
+                    for mask, name in name_or_bitfield.items():
+                        name = maybe_rename_field(name, index)
+                        struct_name = upper_first_letter(to_camel_case(name))
+
+                        code.append(
+                            f'self.{name} = {struct_name}(bitfield & {mask} != 0);')
+                    code.append('                },')
+            code.append('            }')
+            code.append('        }')
+            code.append('        Ok(())')
+            code.append('    }')
+            code.append('}')
+            code.append('')
+
+            # impl Default for AllayBundle {
+            #     fn default() -> Self {
+            #         Self {
+            #             on_fire: OnFire(false),
+            #             shift_key_down: ShiftKeyDown(false),
+            #             sprinting: Sprinting(false),
+            #             swimming: Swimming(false)
+            #        }
+            #     }
+            # }
+            code.append(f'impl Default for {bundle_struct_name} {{')
+            code.append(
+                '    fn default() -> Self {')
+            code.append('        Self {')
             for index, name_or_bitfield in enumerate(all_field_names_or_bitfields):
                 default = next(filter(lambda i: i['index'] == index, entity_metadatas)).get(
                     'default', 'Default::default()')
@@ -212,7 +303,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                         elif type_name == 'FrogVariant':
                             default = 'azalea_registry::FrogVariant::Temperate'
                         elif type_name == 'VillagerData':
-                            default = 'VillagerData { kind: azalea_registry::VillagerType::Plains, profession: azalea_registry::VillagerProfession::None, level: 0 }'
+                            default = 'VillagerData { kind: azalea_registry::VillagerKind::Plains, profession: azalea_registry::VillagerProfession::None, level: 0 }'
                         else:
                             default = f'{type_name}::default()' if name in single_use_imported_types else 'Default::default()'
                     else:
@@ -238,10 +329,10 @@ impl From<EntityDataValue> for UpdateMetadataError {
                         elif type_name == 'CompoundTag':
                             default = f'azalea_nbt::Tag::Compound({default})' if default != 'Empty' else 'azalea_nbt::Tag::Compound(Default::default())'
                     if name in single_use_imported_types:
-                        code.append(f'            .add({default})')
+                        code.append(f'            {name}: {default},')
                     else:
                         code.append(
-                            f'            .add({upper_first_letter(to_camel_case(name))}({default}))')
+                            f'            {name}: {upper_first_letter(to_camel_case(name))}({default}),')
                 else:
                     # if it's a bitfield, we'll have to extract the default for
                     # each bool from each bit in the default
@@ -251,94 +342,8 @@ impl From<EntityDataValue> for UpdateMetadataError {
                         bit_default = 'true' if (
                             default & mask != 0) else 'false'
                         code.append(
-                            f'            .add({upper_first_letter(to_camel_case(name))}({bit_default}))')
-            code.append(f'            .build()')
-            code.append('    }')
-            code.append('}')
-
-            # #[derive(Query)]
-            # struct AllayQuery<'a> {
-            #     health: &'a mut Health,
-            #     ...
-            #     dancing: &'a mut Dancing,
-            #     can_duplicate: &'a mut CanDuplicate,
-            # }
-            query_struct_name = f'{struct_name}Query'
-            code.append(f'')
-            code.append(f'#[derive(Query)]')
-            code.append(f'struct {query_struct_name}<\'a> {{')
-            for index, name_or_bitfield in enumerate(all_field_names_or_bitfields):
-                if isinstance(name_or_bitfield, str):
-                    name_or_bitfield = maybe_rename_field(
-                        name_or_bitfield, index)
-                    struct_name = upper_first_letter(
-                        to_camel_case(name_or_bitfield))
-                    code.append(
-                        f'    {name_or_bitfield}: &\'a mut {struct_name},')
-                else:
-                    for mask, name in name_or_bitfield.items():
-                        name = maybe_rename_field(name, index)
-
-                        struct_name = upper_first_letter(to_camel_case(name))
-                        code.append(f'    {name}: &\'a mut {struct_name},')
-            code.append('}')
-
-            # impl AllayQuery<'_> {
-            #     pub fn update_metadata(
-            #         &mut self,
-            #         world: hecs::World,
-            #         entity: hecs::Entity,
-            #         data: EntityMetadataItems,
-            #     ) -> Result<(), UpdateMetadataError> {
-            #         for d in data.0 {
-            #             match d.index {
-            #                 0 => *self.health = Health(d.value.into_float()?),
-            #                 1 => *self.dancing = Dancing(d.value.into_boolean()?),
-            #                 2 => *self.can_duplicate = CanDuplicate(d.value.into_boolean()?),
-            #             }
-            #         }
-            #         Ok(())
-            #     }
-            # }
-            code.append(f'impl {query_struct_name}<\'_> {{')
-            code.append(
-                f'    pub fn update_metadata(&mut self, world: hecs::World, entity: hecs::Entity, data: EntityMetadataItems) -> Result<(), UpdateMetadataError> {{')
-            code.append(f'        for d in data.0 {{')
-            code.append(f'            match d.index {{')
-            for index, name_or_bitfield in enumerate(all_field_names_or_bitfields):
-                if isinstance(name_or_bitfield, str):
-                    name_or_bitfield = maybe_rename_field(
-                        name_or_bitfield, index)
-
-                    struct_name = upper_first_letter(
-                        to_camel_case(name_or_bitfield))
-                    if name_or_bitfield in single_use_imported_types:
-                        struct_name = ''
-
-                    type_id = next(filter(lambda i: i['index'] == index, entity_metadatas))[
-                        'type_id']
-                    metadata_type_data = metadata_types[type_id]
-                    rust_type = metadata_type_data['type']
-                    type_name = metadata_type_data['name']
-
-                    type_name_field = to_snake_case(type_name)
-                    read_field_code = f'{struct_name}(d.value.into_{type_name_field}()?)' if struct_name else f'd.value.into_{type_name_field}()?'
-                    code.append(
-                        f'                {index} => *self.{name_or_bitfield} = {read_field_code},')
-                else:
-                    code.append(f'                {index} => {{')
-                    code.append(
-                        f'let bitfield = d.value.into_byte()?;')
-                    for mask, name in name_or_bitfield.items():
-                        name = maybe_rename_field(name, index)
-                        struct_name = upper_first_letter(to_camel_case(name))
-
-                        code.append(
-                            f'*self.{name} = {struct_name}(bitfield & {mask} != 0);')
-                    code.append('                },')
-            code.append('            }')
+                            f'            {name}: {upper_first_letter(to_camel_case(name))}({bit_default}),')
             code.append('        }')
-            code.append('        Ok(())')
             code.append('    }')
             code.append('}')
             code.append('')
@@ -349,29 +354,29 @@ impl From<EntityDataValue> for UpdateMetadataError {
 
     # and now make the main update_metadata
     # fn update_metadata(
-    #     world: hecs::World,
-    #     entity: hecs::Entity,
+    #     ecs: bevy_ecs::world::World,
+    #     entity: bevy_ecs::world::EntityMut,
     #     data: EntityMetadataItems,
     # ) -> Result<(), UpdateMetadataError> {
-    #     if let Ok(e) = world.query_one_mut::<AllayQuery>(entity) {
-    #         e.update_metadata(world, entity, data)?;
+    #     if let Ok(e) = world.query_one_mut::<AllayBundle>(entity) {
+    #         e.update_metadata(ecs, entity, data)?;
     #         return Ok(());
     #     }
 
     #     Ok(())
     # }
     code.append(
-        f'fn update_metadata(world: hecs::World, entity: hecs::Entity, data: EntityMetadataItems) -> Result<(), UpdateMetadataError> {{')
+        f'fn update_metadata(ecs: bevy_ecs::world::World, entity: bevy_ecs::world::EntityMut, data: EntityMetadataItems) -> Result<(), UpdateMetadataError> {{')
     for entity_id in burger_entity_data:
         if entity_id.startswith('~'):
             # not actually an entiry
             continue
         struct_name: str = upper_first_letter(to_camel_case(entity_id))
-        query_struct_name = f'{struct_name}Query'
+        bundle_struct_name = f'{struct_name}Bundle'
         code.append(
-            f'    if let Ok(e) = world.query_one_mut::<{query_struct_name}>(entity) {{')
+            f'    if let Ok(e) = ecs.query_one_mut::<{bundle_struct_name}>(entity) {{')
         code.append(
-            f'        e.update_metadata(world, entity, data)?;')
+            f'        e.update_metadata(ecs, entity, data)?;')
         code.append(f'        return Ok(());')
         code.append('    }')
     code.append('    Ok(())')

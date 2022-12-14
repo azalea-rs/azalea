@@ -1,7 +1,7 @@
 //! Implementations of chat-related features.
 
 use crate::Client;
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_protocol::packets::game::{
     clientbound_player_chat_packet::ClientboundPlayerChatPacket,
     clientbound_system_chat_packet::ClientboundSystemChatPacket,
@@ -29,7 +29,7 @@ macro_rules! regex {
 
 impl ChatPacket {
     /// Get the message shown in chat for this packet.
-    pub fn message(&self) -> Component {
+    pub fn message(&self) -> FormattedText {
         match self {
             ChatPacket::System(p) => p.content.clone(),
             ChatPacket::Player(p) => p.message(),
@@ -83,7 +83,7 @@ impl ChatPacket {
     /// convenience function for testing.
     pub fn new(message: &str) -> Self {
         ChatPacket::System(Arc::new(ClientboundSystemChatPacket {
-            content: Component::from(message),
+            content: FormattedText::from(message),
             overlay: false,
         }))
     }

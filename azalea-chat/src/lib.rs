@@ -7,4 +7,4 @@ pub mod style;
 pub mod text_component;
 pub mod translatable_component;
 
-pub use component::Component;
+pub use component::FormattedText;

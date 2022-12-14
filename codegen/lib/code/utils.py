@@ -44,8 +44,8 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
         field_type_rs = 'String'
 
     elif burger_type == 'chatcomponent':
-        field_type_rs = 'Component'
-        uses.add('azalea_chat::Component')
+        field_type_rs = 'FormattedText'
+        uses.add('azalea_chat::FormattedText')
     elif burger_type == 'identifier':
         field_type_rs = 'ResourceLocation'
         uses.add('azalea_core::ResourceLocation')

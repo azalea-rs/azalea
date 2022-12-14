@@ -1205,7 +1205,7 @@ registry!(CommandArgumentKind, {
     ItemStack => "minecraft:item_stack",
     ItemPredicate => "minecraft:item_predicate",
     Color => "minecraft:color",
-    Component => "minecraft:component",
+    FormattedText => "minecraft:component",
     Message => "minecraft:message",
     NbtCompoundTag => "minecraft:nbt_compound_tag",
     NbtTag => "minecraft:nbt_tag",

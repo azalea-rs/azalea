@@ -1,5 +1,5 @@
 use azalea_auth::game_profile::GameProfile;
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_core::GameType;
 use azalea_world::PartialWorld;
 use uuid::Uuid;
@@ -13,5 +13,5 @@ pub struct PlayerInfo {
     pub gamemode: GameType,
     pub latency: i32,
     /// The player's display name in the tab list.
-    pub display_name: Option<Component>,
+    pub display_name: Option<FormattedText>,
 }
