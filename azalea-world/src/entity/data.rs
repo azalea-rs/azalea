@@ -54,7 +54,7 @@ pub enum EntityDataValue {
     Float(f32),
     String(String),
     FormattedText(FormattedText),
-    OptionalComponent(Option<FormattedText>),
+    OptionalFormattedText(Option<FormattedText>),
     ItemStack(Slot),
     Boolean(bool),
     Rotations(Rotations),

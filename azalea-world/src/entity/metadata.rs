@@ -3,7 +3,8 @@
 
 #![allow(clippy::clone_on_copy, clippy::derivable_impls)]
 use super::{
-    EntityDataValue, EntityMetadataItems, OptionalUnsignedInt, Pose, Rotations, VillagerData,
+    EntityDataItem, EntityDataValue, EntityMetadataItems, OptionalUnsignedInt, Pose, Rotations,
+    VillagerData,
 };
 use azalea_block::BlockState;
 use azalea_chat::FormattedText;
@@ -77,119 +78,67 @@ pub struct Dancing(pub bool);
 pub struct CanDuplicate(pub bool);
 #[derive(Component)]
 pub struct Allay;
-
-#[derive(Bundle)]
-struct AllayBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    dancing: Dancing,
-    can_duplicate: CanDuplicate,
-}
-impl AllayBundle {
+impl Allay {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.dancing = Dancing(d.value.into_boolean()?),
-                17 => self.can_duplicate = CanDuplicate(d.value.into_boolean()?),
+        match d.index {
+            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(Dancing(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(CanDuplicate(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct AllayBundle {
+    parent: AbstractCreatureBundle,
+    dancing: Dancing,
+    can_duplicate: CanDuplicate,
+}
 impl Default for AllayBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractCreatureBundle {
+                parent: AbstractInsentientBundle {
+                    parent: AbstractLivingBundle {
+                        parent: AbstractEntityBundle {
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
             dancing: Dancing(false),
             can_duplicate: CanDuplicate(true),
         }
@@ -204,81 +153,58 @@ pub struct AreaEffectCloudColor(pub i32);
 pub struct Waiting(pub bool);
 #[derive(Component)]
 pub struct AreaEffectCloud;
-
-#[derive(Bundle)]
-struct AreaEffectCloudBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    radius: Radius,
-    area_effect_cloud_color: AreaEffectCloudColor,
-    waiting: Waiting,
-    particle: Particle,
-}
-impl AreaEffectCloudBundle {
+impl AreaEffectCloud {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.radius = Radius(d.value.into_float()?),
-                9 => self.area_effect_cloud_color = AreaEffectCloudColor(d.value.into_int()?),
-                10 => self.waiting = Waiting(d.value.into_boolean()?),
-                11 => self.particle = d.value.into_particle()?,
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(Radius(d.value.into_float()?));
+            }
+            9 => {
+                entity.insert(AreaEffectCloudColor(d.value.into_int()?));
+            }
+            10 => {
+                entity.insert(Waiting(d.value.into_boolean()?));
+            }
+            11 => {
+                entity.insert(d.value.into_particle()?);
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct AreaEffectCloudBundle {
+    parent: AbstractEntityBundle,
+    radius: Radius,
+    area_effect_cloud_color: AreaEffectCloudColor,
+    waiting: Waiting,
+    particle: Particle,
+}
 impl Default for AreaEffectCloudBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             radius: Radius(3.0),
             area_effect_cloud_color: AreaEffectCloudColor(0),
             waiting: Waiting(false),
@@ -309,31 +235,47 @@ pub struct LeftLegPose(pub Rotations);
 pub struct RightLegPose(pub Rotations);
 #[derive(Component)]
 pub struct ArmorStand;
+impl ArmorStand {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=14 => AbstractLiving::update_metadata(ecs, entity, d)?,
+            15 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(Small(bitfield & 0x1 != 0));
+                entity.insert(ShowArms(bitfield & 0x4 != 0));
+                entity.insert(NoBasePlate(bitfield & 0x8 != 0));
+                entity.insert(ArmorStandMarker(bitfield & 0x10 != 0));
+            }
+            16 => {
+                entity.insert(HeadPose(d.value.into_rotations()?));
+            }
+            17 => {
+                entity.insert(BodyPose(d.value.into_rotations()?));
+            }
+            18 => {
+                entity.insert(LeftArmPose(d.value.into_rotations()?));
+            }
+            19 => {
+                entity.insert(RightArmPose(d.value.into_rotations()?));
+            }
+            20 => {
+                entity.insert(LeftLegPose(d.value.into_rotations()?));
+            }
+            21 => {
+                entity.insert(RightLegPose(d.value.into_rotations()?));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct ArmorStandBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
+    parent: AbstractLivingBundle,
     small: Small,
     show_arms: ShowArms,
     no_base_plate: NoBasePlate,
@@ -345,90 +287,35 @@ struct ArmorStandBundle {
     left_leg_pose: LeftLegPose,
     right_leg_pose: RightLegPose,
 }
-impl ArmorStandBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.small = Small(bitfield & 0x1 != 0);
-                    self.show_arms = ShowArms(bitfield & 0x4 != 0);
-                    self.no_base_plate = NoBasePlate(bitfield & 0x8 != 0);
-                    self.armor_stand_marker = ArmorStandMarker(bitfield & 0x10 != 0);
-                }
-                16 => self.head_pose = HeadPose(d.value.into_rotations()?),
-                17 => self.body_pose = BodyPose(d.value.into_rotations()?),
-                18 => self.left_arm_pose = LeftArmPose(d.value.into_rotations()?),
-                19 => self.right_arm_pose = RightArmPose(d.value.into_rotations()?),
-                20 => self.left_leg_pose = LeftLegPose(d.value.into_rotations()?),
-                21 => self.right_leg_pose = RightLegPose(d.value.into_rotations()?),
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Default for ArmorStandBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
+            parent: AbstractLivingBundle {
+                parent: AbstractEntityBundle {
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                auto_spin_attack: AutoSpinAttack(false),
+                abstract_living_using_item: AbstractLivingUsingItem(false),
+                health: Health(1.0),
+                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                effect_ambience: EffectAmbience(false),
+                arrow_count: ArrowCount(0),
+                stinger_count: StingerCount(0),
+                sleeping_pos: SleepingPos(None),
+            },
             small: Small(false),
             show_arms: ShowArms(false),
             no_base_plate: NoBasePlate(false),
@@ -455,86 +342,59 @@ pub struct ArrowPierceLevel(pub u8);
 pub struct ArrowEffectColor(pub i32);
 #[derive(Component)]
 pub struct Arrow;
-
-#[derive(Bundle)]
-struct ArrowBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    arrow_crit_arrow: ArrowCritArrow,
-    arrow_shot_from_crossbow: ArrowShotFromCrossbow,
-    arrow_no_physics: ArrowNoPhysics,
-    arrow_pierce_level: ArrowPierceLevel,
-    arrow_effect_color: ArrowEffectColor,
-}
-impl ArrowBundle {
+impl Arrow {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.arrow_crit_arrow = ArrowCritArrow(bitfield & 0x1 != 0);
-                    self.arrow_shot_from_crossbow = ArrowShotFromCrossbow(bitfield & 0x4 != 0);
-                    self.arrow_no_physics = ArrowNoPhysics(bitfield & 0x2 != 0);
-                }
-                9 => self.arrow_pierce_level = ArrowPierceLevel(d.value.into_byte()?),
-                10 => self.arrow_effect_color = ArrowEffectColor(d.value.into_int()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(ArrowCritArrow(bitfield & 0x1 != 0));
+                entity.insert(ArrowShotFromCrossbow(bitfield & 0x4 != 0));
+                entity.insert(ArrowNoPhysics(bitfield & 0x2 != 0));
+            }
+            9 => {
+                entity.insert(ArrowPierceLevel(d.value.into_byte()?));
+            }
+            10 => {
+                entity.insert(ArrowEffectColor(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ArrowBundle {
+    parent: AbstractEntityBundle,
+    arrow_crit_arrow: ArrowCritArrow,
+    arrow_shot_from_crossbow: ArrowShotFromCrossbow,
+    arrow_no_physics: ArrowNoPhysics,
+    arrow_pierce_level: ArrowPierceLevel,
+    arrow_effect_color: ArrowEffectColor,
+}
 impl Default for ArrowBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             arrow_crit_arrow: ArrowCritArrow(false),
             arrow_shot_from_crossbow: ArrowShotFromCrossbow(false),
             arrow_no_physics: ArrowNoPhysics(false),
@@ -554,124 +414,76 @@ pub struct PlayingDead(pub bool);
 pub struct AxolotlFromBucket(pub bool);
 #[derive(Component)]
 pub struct Axolotl;
-
-#[derive(Bundle)]
-struct AxolotlBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    axolotl_variant: AxolotlVariant,
-    playing_dead: PlayingDead,
-    axolotl_from_bucket: AxolotlFromBucket,
-}
-impl AxolotlBundle {
+impl Axolotl {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => self.axolotl_variant = AxolotlVariant(d.value.into_int()?),
-                18 => self.playing_dead = PlayingDead(d.value.into_boolean()?),
-                19 => self.axolotl_from_bucket = AxolotlFromBucket(d.value.into_boolean()?),
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(AxolotlVariant(d.value.into_int()?));
+            }
+            18 => {
+                entity.insert(PlayingDead(d.value.into_boolean()?));
+            }
+            19 => {
+                entity.insert(AxolotlFromBucket(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct AxolotlBundle {
+    parent: AbstractAnimalBundle,
+    axolotl_variant: AxolotlVariant,
+    playing_dead: PlayingDead,
+    axolotl_from_bucket: AxolotlFromBucket,
+}
 impl Default for AxolotlBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             axolotl_variant: AxolotlVariant(0),
             playing_dead: PlayingDead(false),
             axolotl_from_bucket: AxolotlFromBucket(false),
@@ -683,120 +495,62 @@ impl Default for AxolotlBundle {
 pub struct Resting(pub bool);
 #[derive(Component)]
 pub struct Bat;
-
-#[derive(Bundle)]
-struct BatBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    resting: Resting,
-}
-impl BatBundle {
+impl Bat {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.resting = Resting(bitfield & 0x1 != 0);
-                }
+        match d.index {
+            0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
+            16 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(Resting(bitfield & 0x1 != 0));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct BatBundle {
+    parent: AbstractInsentientBundle,
+    resting: Resting,
+}
 impl Default for BatBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractInsentientBundle {
+                parent: AbstractLivingBundle {
+                    parent: AbstractEntityBundle {
+                        on_fire: OnFire(false),
+                        shift_key_down: ShiftKeyDown(false),
+                        sprinting: Sprinting(false),
+                        swimming: Swimming(false),
+                        currently_glowing: CurrentlyGlowing(false),
+                        invisible: Invisible(false),
+                        fall_flying: FallFlying(false),
+                        air_supply: AirSupply(Default::default()),
+                        custom_name: CustomName(None),
+                        custom_name_visible: CustomNameVisible(false),
+                        silent: Silent(false),
+                        no_gravity: NoGravity(false),
+                        pose: Pose::default(),
+                        ticks_frozen: TicksFrozen(0),
+                    },
+                    auto_spin_attack: AutoSpinAttack(false),
+                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                    health: Health(1.0),
+                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                    effect_ambience: EffectAmbience(false),
+                    arrow_count: ArrowCount(0),
+                    stinger_count: StingerCount(0),
+                    sleeping_pos: SleepingPos(None),
+                },
+                no_ai: NoAi(false),
+                left_handed: LeftHanded(false),
+                aggressive: Aggressive(false),
+            },
             resting: Resting(false),
         }
     }
@@ -812,129 +566,77 @@ pub struct BeeRolling(pub bool);
 pub struct BeeRemainingAngerTime(pub i32);
 #[derive(Component)]
 pub struct Bee;
-
-#[derive(Bundle)]
-struct BeeBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    has_nectar: HasNectar,
-    has_stung: HasStung,
-    bee_rolling: BeeRolling,
-    bee_remaining_anger_time: BeeRemainingAngerTime,
-}
-impl BeeBundle {
+impl Bee {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.has_nectar = HasNectar(bitfield & 0x8 != 0);
-                    self.has_stung = HasStung(bitfield & 0x4 != 0);
-                    self.bee_rolling = BeeRolling(bitfield & 0x2 != 0);
-                }
-                18 => self.bee_remaining_anger_time = BeeRemainingAngerTime(d.value.into_int()?),
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(HasNectar(bitfield & 0x8 != 0));
+                entity.insert(HasStung(bitfield & 0x4 != 0));
+                entity.insert(BeeRolling(bitfield & 0x2 != 0));
+            }
+            18 => {
+                entity.insert(BeeRemainingAngerTime(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct BeeBundle {
+    parent: AbstractAnimalBundle,
+    has_nectar: HasNectar,
+    has_stung: HasStung,
+    bee_rolling: BeeRolling,
+    bee_remaining_anger_time: BeeRemainingAngerTime,
+}
 impl Default for BeeBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             has_nectar: HasNectar(false),
             has_stung: HasStung(false),
             bee_rolling: BeeRolling(false),
@@ -947,120 +649,66 @@ impl Default for BeeBundle {
 pub struct Charged(pub bool);
 #[derive(Component)]
 pub struct Blaze;
-
-#[derive(Bundle)]
-struct BlazeBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    charged: Charged,
-}
-impl BlazeBundle {
+impl Blaze {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.charged = Charged(bitfield & 0x1 != 0);
-                }
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(Charged(bitfield & 0x1 != 0));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct BlazeBundle {
+    parent: AbstractMonsterBundle,
+    charged: Charged,
+}
 impl Default for BlazeBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             charged: Charged(false),
         }
     }
@@ -1082,23 +730,43 @@ pub struct PaddleRight(pub bool);
 pub struct BubbleTime(pub i32);
 #[derive(Component)]
 pub struct Boat;
+impl Boat {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(BoatHurt(d.value.into_int()?));
+            }
+            9 => {
+                entity.insert(BoatHurtdir(d.value.into_int()?));
+            }
+            10 => {
+                entity.insert(BoatDamage(d.value.into_float()?));
+            }
+            11 => {
+                entity.insert(BoatKind(d.value.into_int()?));
+            }
+            12 => {
+                entity.insert(PaddleLeft(d.value.into_boolean()?));
+            }
+            13 => {
+                entity.insert(PaddleRight(d.value.into_boolean()?));
+            }
+            14 => {
+                entity.insert(BubbleTime(d.value.into_int()?));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct BoatBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
+    parent: AbstractEntityBundle,
     boat_hurt: BoatHurt,
     boat_hurtdir: BoatHurtdir,
     boat_damage: BoatDamage,
@@ -1107,62 +775,25 @@ struct BoatBundle {
     paddle_right: PaddleRight,
     bubble_time: BubbleTime,
 }
-impl BoatBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.boat_hurt = BoatHurt(d.value.into_int()?),
-                9 => self.boat_hurtdir = BoatHurtdir(d.value.into_int()?),
-                10 => self.boat_damage = BoatDamage(d.value.into_float()?),
-                11 => self.boat_kind = BoatKind(d.value.into_int()?),
-                12 => self.paddle_left = PaddleLeft(d.value.into_boolean()?),
-                13 => self.paddle_right = PaddleRight(d.value.into_boolean()?),
-                14 => self.bubble_time = BubbleTime(d.value.into_int()?),
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Default for BoatBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             boat_hurt: BoatHurt(0),
             boat_hurtdir: BoatHurtdir(1),
             boat_damage: BoatDamage(0.0),
@@ -1192,35 +823,39 @@ pub struct Dash(pub bool);
 pub struct LastPoseChangeTick(pub i64);
 #[derive(Component)]
 pub struct Camel;
+impl Camel {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(CamelTamed(bitfield & 0x2 != 0));
+                entity.insert(CamelEating(bitfield & 0x10 != 0));
+                entity.insert(CamelStanding(bitfield & 0x20 != 0));
+                entity.insert(CamelBred(bitfield & 0x8 != 0));
+                entity.insert(CamelSaddled(bitfield & 0x4 != 0));
+            }
+            18 => {
+                entity.insert(CamelOwnerUuid(d.value.into_optional_uuid()?));
+            }
+            19 => {
+                entity.insert(Dash(d.value.into_boolean()?));
+            }
+            20 => {
+                entity.insert(LastPoseChangeTick(d.value.into_long()?));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct CamelBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
+    parent: AbstractAnimalBundle,
     camel_tamed: CamelTamed,
     camel_eating: CamelEating,
     camel_standing: CamelStanding,
@@ -1230,99 +865,47 @@ struct CamelBundle {
     dash: Dash,
     last_pose_change_tick: LastPoseChangeTick,
 }
-impl CamelBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.camel_tamed = CamelTamed(bitfield & 0x2 != 0);
-                    self.camel_eating = CamelEating(bitfield & 0x10 != 0);
-                    self.camel_standing = CamelStanding(bitfield & 0x20 != 0);
-                    self.camel_bred = CamelBred(bitfield & 0x8 != 0);
-                    self.camel_saddled = CamelSaddled(bitfield & 0x4 != 0);
-                }
-                18 => self.camel_owner_uuid = CamelOwnerUuid(d.value.into_optional_uuid()?),
-                19 => self.dash = Dash(d.value.into_boolean()?),
-                20 => self.last_pose_change_tick = LastPoseChangeTick(d.value.into_long()?),
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Default for CamelBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             camel_tamed: CamelTamed(false),
             camel_eating: CamelEating(false),
             camel_standing: CamelStanding(false),
@@ -1351,138 +934,85 @@ pub struct RelaxStateOne(pub bool);
 pub struct CatCollarColor(pub i32);
 #[derive(Component)]
 pub struct Cat;
-
-#[derive(Bundle)]
-struct CatBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    tame: Tame,
-    in_sitting_pose: InSittingPose,
-    owneruuid: Owneruuid,
-    cat_variant: CatVariant,
-    is_lying: IsLying,
-    relax_state_one: RelaxStateOne,
-    cat_collar_color: CatCollarColor,
-}
-impl CatBundle {
+impl Cat {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.tame = Tame(bitfield & 0x4 != 0);
-                    self.in_sitting_pose = InSittingPose(bitfield & 0x1 != 0);
-                }
-                18 => self.owneruuid = Owneruuid(d.value.into_optional_uuid()?),
-                19 => self.cat_variant = CatVariant(d.value.into_cat_variant()?),
-                20 => self.is_lying = IsLying(d.value.into_boolean()?),
-                21 => self.relax_state_one = RelaxStateOne(d.value.into_boolean()?),
-                22 => self.cat_collar_color = CatCollarColor(d.value.into_int()?),
+        match d.index {
+            0..=18 => AbstractTameable::update_metadata(ecs, entity, d)?,
+            19 => {
+                entity.insert(CatVariant(d.value.into_cat_variant()?));
+            }
+            20 => {
+                entity.insert(IsLying(d.value.into_boolean()?));
+            }
+            21 => {
+                entity.insert(RelaxStateOne(d.value.into_boolean()?));
+            }
+            22 => {
+                entity.insert(CatCollarColor(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct CatBundle {
+    parent: AbstractTameableBundle,
+    cat_variant: CatVariant,
+    is_lying: IsLying,
+    relax_state_one: RelaxStateOne,
+    cat_collar_color: CatCollarColor,
+}
 impl Default for CatBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
-            tame: Tame(false),
-            in_sitting_pose: InSittingPose(false),
-            owneruuid: Owneruuid(None),
+            parent: AbstractTameableBundle {
+                parent: AbstractAnimalBundle {
+                    parent: AbstractAgeableBundle {
+                        parent: AbstractCreatureBundle {
+                            parent: AbstractInsentientBundle {
+                                parent: AbstractLivingBundle {
+                                    parent: AbstractEntityBundle {
+                                        on_fire: OnFire(false),
+                                        shift_key_down: ShiftKeyDown(false),
+                                        sprinting: Sprinting(false),
+                                        swimming: Swimming(false),
+                                        currently_glowing: CurrentlyGlowing(false),
+                                        invisible: Invisible(false),
+                                        fall_flying: FallFlying(false),
+                                        air_supply: AirSupply(Default::default()),
+                                        custom_name: CustomName(None),
+                                        custom_name_visible: CustomNameVisible(false),
+                                        silent: Silent(false),
+                                        no_gravity: NoGravity(false),
+                                        pose: Pose::default(),
+                                        ticks_frozen: TicksFrozen(0),
+                                    },
+                                    auto_spin_attack: AutoSpinAttack(false),
+                                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                                    health: Health(1.0),
+                                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                    effect_ambience: EffectAmbience(false),
+                                    arrow_count: ArrowCount(0),
+                                    stinger_count: StingerCount(0),
+                                    sleeping_pos: SleepingPos(None),
+                                },
+                                no_ai: NoAi(false),
+                                left_handed: LeftHanded(false),
+                                aggressive: Aggressive(false),
+                            },
+                        },
+                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                    },
+                },
+                tame: Tame(false),
+                in_sitting_pose: InSittingPose(false),
+                owneruuid: Owneruuid(None),
+            },
             cat_variant: CatVariant(azalea_registry::CatVariant::Tabby),
             is_lying: IsLying(false),
             relax_state_one: RelaxStateOne(false),
@@ -1495,215 +1025,115 @@ impl Default for CatBundle {
 pub struct Climbing(pub bool);
 #[derive(Component)]
 pub struct CaveSpider;
-
-#[derive(Bundle)]
-struct CaveSpiderBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    climbing: Climbing,
-}
-impl CaveSpiderBundle {
+impl CaveSpider {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.climbing = Climbing(bitfield & 0x1 != 0);
-                }
-            }
+        match d.index {
+            0..=16 => Spider::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct CaveSpiderBundle {
+    parent: SpiderBundle,
+}
 impl Default for CaveSpiderBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            climbing: Climbing(false),
+            parent: SpiderBundle {
+                parent: AbstractMonsterBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                },
+                climbing: Climbing(false),
+            },
         }
     }
 }
 
 #[derive(Component)]
 pub struct ChestBoat;
-
-#[derive(Bundle)]
-struct ChestBoatBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    boat_hurt: BoatHurt,
-    boat_hurtdir: BoatHurtdir,
-    boat_damage: BoatDamage,
-    boat_kind: BoatKind,
-    paddle_left: PaddleLeft,
-    paddle_right: PaddleRight,
-    bubble_time: BubbleTime,
-}
-impl ChestBoatBundle {
+impl ChestBoat {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.boat_hurt = BoatHurt(d.value.into_int()?),
-                9 => self.boat_hurtdir = BoatHurtdir(d.value.into_int()?),
-                10 => self.boat_damage = BoatDamage(d.value.into_float()?),
-                11 => self.boat_kind = BoatKind(d.value.into_int()?),
-                12 => self.paddle_left = PaddleLeft(d.value.into_boolean()?),
-                13 => self.paddle_right = PaddleRight(d.value.into_boolean()?),
-                14 => self.bubble_time = BubbleTime(d.value.into_int()?),
-            }
+        match d.index {
+            0..=14 => Boat::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ChestBoatBundle {
+    parent: BoatBundle,
+}
 impl Default for ChestBoatBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            boat_hurt: BoatHurt(0),
-            boat_hurtdir: BoatHurtdir(1),
-            boat_damage: BoatDamage(0.0),
-            boat_kind: BoatKind(Default::default()),
-            paddle_left: PaddleLeft(false),
-            paddle_right: PaddleRight(false),
-            bubble_time: BubbleTime(0),
+            parent: BoatBundle {
+                parent: AbstractEntityBundle {
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                boat_hurt: BoatHurt(0),
+                boat_hurtdir: BoatHurtdir(1),
+                boat_damage: BoatDamage(0.0),
+                boat_kind: BoatKind(Default::default()),
+                paddle_left: PaddleLeft(false),
+                paddle_right: PaddleRight(false),
+                bubble_time: BubbleTime(0),
+            },
         }
     }
 }
@@ -1722,209 +1152,114 @@ pub struct DisplayOffset(pub i32);
 pub struct CustomDisplay(pub bool);
 #[derive(Component)]
 pub struct ChestMinecart;
-
-#[derive(Bundle)]
-struct ChestMinecartBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    abstract_minecart_hurt: AbstractMinecartHurt,
-    abstract_minecart_hurtdir: AbstractMinecartHurtdir,
-    abstract_minecart_damage: AbstractMinecartDamage,
-    display_block: DisplayBlock,
-    display_offset: DisplayOffset,
-    custom_display: CustomDisplay,
-}
-impl ChestMinecartBundle {
+impl ChestMinecart {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.abstract_minecart_hurt = AbstractMinecartHurt(d.value.into_int()?),
-                9 => self.abstract_minecart_hurtdir = AbstractMinecartHurtdir(d.value.into_int()?),
-                10 => self.abstract_minecart_damage = AbstractMinecartDamage(d.value.into_float()?),
-                11 => self.display_block = DisplayBlock(d.value.into_int()?),
-                12 => self.display_offset = DisplayOffset(d.value.into_int()?),
-                13 => self.custom_display = CustomDisplay(d.value.into_boolean()?),
-            }
+        match d.index {
+            0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ChestMinecartBundle {
+    parent: AbstractMinecartBundle,
+}
 impl Default for ChestMinecartBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            abstract_minecart_hurt: AbstractMinecartHurt(0),
-            abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
-            abstract_minecart_damage: AbstractMinecartDamage(0.0),
-            display_block: DisplayBlock(Default::default()),
-            display_offset: DisplayOffset(6),
-            custom_display: CustomDisplay(false),
+            parent: AbstractMinecartBundle {
+                parent: AbstractEntityBundle {
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                abstract_minecart_hurt: AbstractMinecartHurt(0),
+                abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+                abstract_minecart_damage: AbstractMinecartDamage(0.0),
+                display_block: DisplayBlock(Default::default()),
+                display_offset: DisplayOffset(6),
+                custom_display: CustomDisplay(false),
+            },
         }
     }
 }
 
 #[derive(Component)]
 pub struct Chicken;
-
-#[derive(Bundle)]
-struct ChickenBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-}
-impl ChickenBundle {
+impl Chicken {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-            }
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ChickenBundle {
+    parent: AbstractAnimalBundle,
+}
 impl Default for ChickenBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
         }
     }
 }
@@ -1933,117 +1268,63 @@ impl Default for ChickenBundle {
 pub struct CodFromBucket(pub bool);
 #[derive(Component)]
 pub struct Cod;
-
-#[derive(Bundle)]
-struct CodBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    cod_from_bucket: CodFromBucket,
-}
-impl CodBundle {
+impl Cod {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.cod_from_bucket = CodFromBucket(d.value.into_boolean()?),
+        match d.index {
+            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(CodFromBucket(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct CodBundle {
+    parent: AbstractCreatureBundle,
+    cod_from_bucket: CodFromBucket,
+}
 impl Default for CodBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractCreatureBundle {
+                parent: AbstractInsentientBundle {
+                    parent: AbstractLivingBundle {
+                        parent: AbstractEntityBundle {
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
             cod_from_bucket: CodFromBucket(false),
         }
     }
@@ -2055,95 +1336,58 @@ pub struct CommandName(pub String);
 pub struct LastOutput(pub FormattedText);
 #[derive(Component)]
 pub struct CommandBlockMinecart;
-
-#[derive(Bundle)]
-struct CommandBlockMinecartBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    abstract_minecart_hurt: AbstractMinecartHurt,
-    abstract_minecart_hurtdir: AbstractMinecartHurtdir,
-    abstract_minecart_damage: AbstractMinecartDamage,
-    display_block: DisplayBlock,
-    display_offset: DisplayOffset,
-    custom_display: CustomDisplay,
-    command_name: CommandName,
-    last_output: LastOutput,
-}
-impl CommandBlockMinecartBundle {
+impl CommandBlockMinecart {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.abstract_minecart_hurt = AbstractMinecartHurt(d.value.into_int()?),
-                9 => self.abstract_minecart_hurtdir = AbstractMinecartHurtdir(d.value.into_int()?),
-                10 => self.abstract_minecart_damage = AbstractMinecartDamage(d.value.into_float()?),
-                11 => self.display_block = DisplayBlock(d.value.into_int()?),
-                12 => self.display_offset = DisplayOffset(d.value.into_int()?),
-                13 => self.custom_display = CustomDisplay(d.value.into_boolean()?),
-                14 => self.command_name = CommandName(d.value.into_string()?),
-                15 => self.last_output = LastOutput(d.value.into_formatted_text()?),
+        match d.index {
+            0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
+            14 => {
+                entity.insert(CommandName(d.value.into_string()?));
+            }
+            15 => {
+                entity.insert(LastOutput(d.value.into_formatted_text()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct CommandBlockMinecartBundle {
+    parent: AbstractMinecartBundle,
+    command_name: CommandName,
+    last_output: LastOutput,
+}
 impl Default for CommandBlockMinecartBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            abstract_minecart_hurt: AbstractMinecartHurt(0),
-            abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
-            abstract_minecart_damage: AbstractMinecartDamage(0.0),
-            display_block: DisplayBlock(Default::default()),
-            display_offset: DisplayOffset(6),
-            custom_display: CustomDisplay(false),
+            parent: AbstractMinecartBundle {
+                parent: AbstractEntityBundle {
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                abstract_minecart_hurt: AbstractMinecartHurt(0),
+                abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+                abstract_minecart_damage: AbstractMinecartDamage(0.0),
+                display_block: DisplayBlock(Default::default()),
+                display_offset: DisplayOffset(6),
+                custom_display: CustomDisplay(false),
+            },
             command_name: CommandName("".to_string()),
             last_output: LastOutput(Default::default()),
         }
@@ -2152,118 +1396,64 @@ impl Default for CommandBlockMinecartBundle {
 
 #[derive(Component)]
 pub struct Cow;
-
-#[derive(Bundle)]
-struct CowBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-}
-impl CowBundle {
+impl Cow {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-            }
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct CowBundle {
+    parent: AbstractAnimalBundle,
+}
 impl Default for CowBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
         }
     }
 }
@@ -2276,121 +1466,73 @@ pub struct IsPowered(pub bool);
 pub struct IsIgnited(pub bool);
 #[derive(Component)]
 pub struct Creeper;
-
-#[derive(Bundle)]
-struct CreeperBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    swell_dir: SwellDir,
-    is_powered: IsPowered,
-    is_ignited: IsIgnited,
-}
-impl CreeperBundle {
+impl Creeper {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.swell_dir = SwellDir(d.value.into_int()?),
-                17 => self.is_powered = IsPowered(d.value.into_boolean()?),
-                18 => self.is_ignited = IsIgnited(d.value.into_boolean()?),
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(SwellDir(d.value.into_int()?));
+            }
+            17 => {
+                entity.insert(IsPowered(d.value.into_boolean()?));
+            }
+            18 => {
+                entity.insert(IsIgnited(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct CreeperBundle {
+    parent: AbstractMonsterBundle,
+    swell_dir: SwellDir,
+    is_powered: IsPowered,
+    is_ignited: IsIgnited,
+}
 impl Default for CreeperBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             swell_dir: SwellDir(-1),
             is_powered: IsPowered(false),
             is_ignited: IsIgnited(false),
@@ -2406,121 +1548,71 @@ pub struct GotFish(pub bool);
 pub struct MoistnessLevel(pub i32);
 #[derive(Component)]
 pub struct Dolphin;
-
-#[derive(Bundle)]
-struct DolphinBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    treasure_pos: TreasurePos,
-    got_fish: GotFish,
-    moistness_level: MoistnessLevel,
-}
-impl DolphinBundle {
+impl Dolphin {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.treasure_pos = TreasurePos(d.value.into_block_pos()?),
-                17 => self.got_fish = GotFish(d.value.into_boolean()?),
-                18 => self.moistness_level = MoistnessLevel(d.value.into_int()?),
+        match d.index {
+            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(TreasurePos(d.value.into_block_pos()?));
+            }
+            17 => {
+                entity.insert(GotFish(d.value.into_boolean()?));
+            }
+            18 => {
+                entity.insert(MoistnessLevel(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct DolphinBundle {
+    parent: AbstractCreatureBundle,
+    treasure_pos: TreasurePos,
+    got_fish: GotFish,
+    moistness_level: MoistnessLevel,
+}
 impl Default for DolphinBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractCreatureBundle {
+                parent: AbstractInsentientBundle {
+                    parent: AbstractLivingBundle {
+                        parent: AbstractEntityBundle {
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
             treasure_pos: TreasurePos(BlockPos::new(0, 0, 0)),
             got_fish: GotFish(false),
             moistness_level: MoistnessLevel(2400),
@@ -2544,35 +1636,36 @@ pub struct DonkeyOwnerUuid(pub Option<Uuid>);
 pub struct DonkeyChest(pub bool);
 #[derive(Component)]
 pub struct Donkey;
+impl Donkey {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(DonkeyTamed(bitfield & 0x2 != 0));
+                entity.insert(DonkeyEating(bitfield & 0x10 != 0));
+                entity.insert(DonkeyStanding(bitfield & 0x20 != 0));
+                entity.insert(DonkeyBred(bitfield & 0x8 != 0));
+                entity.insert(DonkeySaddled(bitfield & 0x4 != 0));
+            }
+            18 => {
+                entity.insert(DonkeyOwnerUuid(d.value.into_optional_uuid()?));
+            }
+            19 => {
+                entity.insert(DonkeyChest(d.value.into_boolean()?));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct DonkeyBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
+    parent: AbstractAnimalBundle,
     donkey_tamed: DonkeyTamed,
     donkey_eating: DonkeyEating,
     donkey_standing: DonkeyStanding,
@@ -2581,98 +1674,47 @@ struct DonkeyBundle {
     donkey_owner_uuid: DonkeyOwnerUuid,
     donkey_chest: DonkeyChest,
 }
-impl DonkeyBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.donkey_tamed = DonkeyTamed(bitfield & 0x2 != 0);
-                    self.donkey_eating = DonkeyEating(bitfield & 0x10 != 0);
-                    self.donkey_standing = DonkeyStanding(bitfield & 0x20 != 0);
-                    self.donkey_bred = DonkeyBred(bitfield & 0x8 != 0);
-                    self.donkey_saddled = DonkeySaddled(bitfield & 0x4 != 0);
-                }
-                18 => self.donkey_owner_uuid = DonkeyOwnerUuid(d.value.into_optional_uuid()?),
-                19 => self.donkey_chest = DonkeyChest(d.value.into_boolean()?),
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Default for DonkeyBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             donkey_tamed: DonkeyTamed(false),
             donkey_eating: DonkeyEating(false),
             donkey_standing: DonkeyStanding(false),
@@ -2686,73 +1728,42 @@ impl Default for DonkeyBundle {
 
 #[derive(Component)]
 pub struct DragonFireball;
-
-#[derive(Bundle)]
-struct DragonFireballBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-}
-impl DragonFireballBundle {
+impl DragonFireball {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-            }
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct DragonFireballBundle {
+    parent: AbstractEntityBundle,
+}
 impl Default for DragonFireballBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
         }
     }
 }
@@ -2765,124 +1776,66 @@ pub struct SpecialType(pub i32);
 pub struct DrownedConversion(pub bool);
 #[derive(Component)]
 pub struct Drowned;
-
-#[derive(Bundle)]
-struct DrownedBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    zombie_baby: ZombieBaby,
-    special_type: SpecialType,
-    drowned_conversion: DrownedConversion,
-}
-impl DrownedBundle {
+impl Drowned {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.zombie_baby = ZombieBaby(d.value.into_boolean()?),
-                17 => self.special_type = SpecialType(d.value.into_int()?),
-                18 => self.drowned_conversion = DrownedConversion(d.value.into_boolean()?),
-            }
+        match d.index {
+            0..=18 => Zombie::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct DrownedBundle {
+    parent: ZombieBundle,
+}
 impl Default for DrownedBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            zombie_baby: ZombieBaby(false),
-            special_type: SpecialType(0),
-            drowned_conversion: DrownedConversion(false),
+            parent: ZombieBundle {
+                parent: AbstractMonsterBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                },
+                zombie_baby: ZombieBaby(false),
+                special_type: SpecialType(0),
+                drowned_conversion: DrownedConversion(false),
+            },
         }
     }
 }
@@ -2891,75 +1844,46 @@ impl Default for DrownedBundle {
 pub struct EggItemStack(pub Slot);
 #[derive(Component)]
 pub struct Egg;
-
-#[derive(Bundle)]
-struct EggBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    egg_item_stack: EggItemStack,
-}
-impl EggBundle {
+impl Egg {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.egg_item_stack = EggItemStack(d.value.into_item_stack()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(EggItemStack(d.value.into_item_stack()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct EggBundle {
+    parent: AbstractEntityBundle,
+    egg_item_stack: EggItemStack,
+}
 impl Default for EggBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             egg_item_stack: EggItemStack(Slot::Empty),
         }
     }
@@ -2971,121 +1895,65 @@ pub struct Moving(pub bool);
 pub struct AttackTarget(pub i32);
 #[derive(Component)]
 pub struct ElderGuardian;
-
-#[derive(Bundle)]
-struct ElderGuardianBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    moving: Moving,
-    attack_target: AttackTarget,
-}
-impl ElderGuardianBundle {
+impl ElderGuardian {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.moving = Moving(d.value.into_boolean()?),
-                17 => self.attack_target = AttackTarget(d.value.into_int()?),
-            }
+        match d.index {
+            0..=17 => Guardian::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ElderGuardianBundle {
+    parent: GuardianBundle,
+}
 impl Default for ElderGuardianBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            moving: Moving(false),
-            attack_target: AttackTarget(0),
+            parent: GuardianBundle {
+                parent: AbstractMonsterBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                },
+                moving: Moving(false),
+                attack_target: AttackTarget(0),
+            },
         }
     }
 }
@@ -3096,77 +1964,50 @@ pub struct BeamTarget(pub Option<BlockPos>);
 pub struct ShowBottom(pub bool);
 #[derive(Component)]
 pub struct EndCrystal;
-
-#[derive(Bundle)]
-struct EndCrystalBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    beam_target: BeamTarget,
-    show_bottom: ShowBottom,
-}
-impl EndCrystalBundle {
+impl EndCrystal {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.beam_target = BeamTarget(d.value.into_optional_block_pos()?),
-                9 => self.show_bottom = ShowBottom(d.value.into_boolean()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(BeamTarget(d.value.into_optional_block_pos()?));
+            }
+            9 => {
+                entity.insert(ShowBottom(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct EndCrystalBundle {
+    parent: AbstractEntityBundle,
+    beam_target: BeamTarget,
+    show_bottom: ShowBottom,
+}
 impl Default for EndCrystalBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             beam_target: BeamTarget(None),
             show_bottom: ShowBottom(true),
         }
@@ -3177,117 +2018,61 @@ impl Default for EndCrystalBundle {
 pub struct Phase(pub i32);
 #[derive(Component)]
 pub struct EnderDragon;
-
-#[derive(Bundle)]
-struct EnderDragonBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    phase: Phase,
-}
-impl EnderDragonBundle {
+impl EnderDragon {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.phase = Phase(d.value.into_int()?),
+        match d.index {
+            0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(Phase(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct EnderDragonBundle {
+    parent: AbstractInsentientBundle,
+    phase: Phase,
+}
 impl Default for EnderDragonBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractInsentientBundle {
+                parent: AbstractLivingBundle {
+                    parent: AbstractEntityBundle {
+                        on_fire: OnFire(false),
+                        shift_key_down: ShiftKeyDown(false),
+                        sprinting: Sprinting(false),
+                        swimming: Swimming(false),
+                        currently_glowing: CurrentlyGlowing(false),
+                        invisible: Invisible(false),
+                        fall_flying: FallFlying(false),
+                        air_supply: AirSupply(Default::default()),
+                        custom_name: CustomName(None),
+                        custom_name_visible: CustomNameVisible(false),
+                        silent: Silent(false),
+                        no_gravity: NoGravity(false),
+                        pose: Pose::default(),
+                        ticks_frozen: TicksFrozen(0),
+                    },
+                    auto_spin_attack: AutoSpinAttack(false),
+                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                    health: Health(1.0),
+                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                    effect_ambience: EffectAmbience(false),
+                    arrow_count: ArrowCount(0),
+                    stinger_count: StingerCount(0),
+                    sleeping_pos: SleepingPos(None),
+                },
+                no_ai: NoAi(false),
+                left_handed: LeftHanded(false),
+                aggressive: Aggressive(false),
+            },
             phase: Phase(Default::default()),
         }
     }
@@ -3297,75 +2082,46 @@ impl Default for EnderDragonBundle {
 pub struct EnderPearlItemStack(pub Slot);
 #[derive(Component)]
 pub struct EnderPearl;
-
-#[derive(Bundle)]
-struct EnderPearlBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    ender_pearl_item_stack: EnderPearlItemStack,
-}
-impl EnderPearlBundle {
+impl EnderPearl {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.ender_pearl_item_stack = EnderPearlItemStack(d.value.into_item_stack()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(EnderPearlItemStack(d.value.into_item_stack()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct EnderPearlBundle {
+    parent: AbstractEntityBundle,
+    ender_pearl_item_stack: EnderPearlItemStack,
+}
 impl Default for EnderPearlBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             ender_pearl_item_stack: EnderPearlItemStack(Slot::Empty),
         }
     }
@@ -3379,121 +2135,73 @@ pub struct Creepy(pub bool);
 pub struct StaredAt(pub bool);
 #[derive(Component)]
 pub struct Enderman;
-
-#[derive(Bundle)]
-struct EndermanBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    carry_state: CarryState,
-    creepy: Creepy,
-    stared_at: StaredAt,
-}
-impl EndermanBundle {
+impl Enderman {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.carry_state = CarryState(d.value.into_block_state()?),
-                17 => self.creepy = Creepy(d.value.into_boolean()?),
-                18 => self.stared_at = StaredAt(d.value.into_boolean()?),
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(CarryState(d.value.into_block_state()?));
+            }
+            17 => {
+                entity.insert(Creepy(d.value.into_boolean()?));
+            }
+            18 => {
+                entity.insert(StaredAt(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct EndermanBundle {
+    parent: AbstractMonsterBundle,
+    carry_state: CarryState,
+    creepy: Creepy,
+    stared_at: StaredAt,
+}
 impl Default for EndermanBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             carry_state: CarryState(BlockState::Air),
             creepy: Creepy(false),
             stared_at: StaredAt(false),
@@ -3503,115 +2211,61 @@ impl Default for EndermanBundle {
 
 #[derive(Component)]
 pub struct Endermite;
-
-#[derive(Bundle)]
-struct EndermiteBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-}
-impl EndermiteBundle {
+impl Endermite {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-            }
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct EndermiteBundle {
+    parent: AbstractMonsterBundle,
+}
 impl Default for EndermiteBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
         }
     }
 }
@@ -3622,119 +2276,69 @@ pub struct EvokerIsCelebrating(pub bool);
 pub struct EvokerSpellCasting(pub u8);
 #[derive(Component)]
 pub struct Evoker;
-
-#[derive(Bundle)]
-struct EvokerBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    evoker_is_celebrating: EvokerIsCelebrating,
-    evoker_spell_casting: EvokerSpellCasting,
-}
-impl EvokerBundle {
+impl Evoker {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.evoker_is_celebrating = EvokerIsCelebrating(d.value.into_boolean()?),
-                17 => self.evoker_spell_casting = EvokerSpellCasting(d.value.into_byte()?),
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(EvokerIsCelebrating(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(EvokerSpellCasting(d.value.into_byte()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct EvokerBundle {
+    parent: AbstractMonsterBundle,
+    evoker_is_celebrating: EvokerIsCelebrating,
+    evoker_spell_casting: EvokerSpellCasting,
+}
 impl Default for EvokerBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             evoker_is_celebrating: EvokerIsCelebrating(false),
             evoker_spell_casting: EvokerSpellCasting(0),
         }
@@ -3743,73 +2347,42 @@ impl Default for EvokerBundle {
 
 #[derive(Component)]
 pub struct EvokerFangs;
-
-#[derive(Bundle)]
-struct EvokerFangsBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-}
-impl EvokerFangsBundle {
+impl EvokerFangs {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-            }
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct EvokerFangsBundle {
+    parent: AbstractEntityBundle,
+}
 impl Default for EvokerFangsBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
         }
     }
 }
@@ -3818,78 +2391,46 @@ impl Default for EvokerFangsBundle {
 pub struct ExperienceBottleItemStack(pub Slot);
 #[derive(Component)]
 pub struct ExperienceBottle;
-
-#[derive(Bundle)]
-struct ExperienceBottleBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    experience_bottle_item_stack: ExperienceBottleItemStack,
-}
-impl ExperienceBottleBundle {
+impl ExperienceBottle {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    self.experience_bottle_item_stack =
-                        ExperienceBottleItemStack(d.value.into_item_stack()?)
-                }
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(ExperienceBottleItemStack(d.value.into_item_stack()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ExperienceBottleBundle {
+    parent: AbstractEntityBundle,
+    experience_bottle_item_stack: ExperienceBottleItemStack,
+}
 impl Default for ExperienceBottleBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             experience_bottle_item_stack: ExperienceBottleItemStack(Slot::Empty),
         }
     }
@@ -3897,73 +2438,42 @@ impl Default for ExperienceBottleBundle {
 
 #[derive(Component)]
 pub struct ExperienceOrb;
-
-#[derive(Bundle)]
-struct ExperienceOrbBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-}
-impl ExperienceOrbBundle {
+impl ExperienceOrb {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-            }
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ExperienceOrbBundle {
+    parent: AbstractEntityBundle,
+}
 impl Default for ExperienceOrbBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
         }
     }
 }
@@ -3972,75 +2482,46 @@ impl Default for ExperienceOrbBundle {
 pub struct EyeOfEnderItemStack(pub Slot);
 #[derive(Component)]
 pub struct EyeOfEnder;
-
-#[derive(Bundle)]
-struct EyeOfEnderBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    eye_of_ender_item_stack: EyeOfEnderItemStack,
-}
-impl EyeOfEnderBundle {
+impl EyeOfEnder {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.eye_of_ender_item_stack = EyeOfEnderItemStack(d.value.into_item_stack()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(EyeOfEnderItemStack(d.value.into_item_stack()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct EyeOfEnderBundle {
+    parent: AbstractEntityBundle,
+    eye_of_ender_item_stack: EyeOfEnderItemStack,
+}
 impl Default for EyeOfEnderBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             eye_of_ender_item_stack: EyeOfEnderItemStack(Slot::Empty),
         }
     }
@@ -4050,75 +2531,46 @@ impl Default for EyeOfEnderBundle {
 pub struct StartPos(pub BlockPos);
 #[derive(Component)]
 pub struct FallingBlock;
-
-#[derive(Bundle)]
-struct FallingBlockBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    start_pos: StartPos,
-}
-impl FallingBlockBundle {
+impl FallingBlock {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.start_pos = StartPos(d.value.into_block_pos()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(StartPos(d.value.into_block_pos()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct FallingBlockBundle {
+    parent: AbstractEntityBundle,
+    start_pos: StartPos,
+}
 impl Default for FallingBlockBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             start_pos: StartPos(BlockPos::new(0, 0, 0)),
         }
     }
@@ -4128,75 +2580,46 @@ impl Default for FallingBlockBundle {
 pub struct FireballItemStack(pub Slot);
 #[derive(Component)]
 pub struct Fireball;
-
-#[derive(Bundle)]
-struct FireballBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    fireball_item_stack: FireballItemStack,
-}
-impl FireballBundle {
+impl Fireball {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.fireball_item_stack = FireballItemStack(d.value.into_item_stack()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(FireballItemStack(d.value.into_item_stack()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct FireballBundle {
+    parent: AbstractEntityBundle,
+    fireball_item_stack: FireballItemStack,
+}
 impl Default for FireballBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             fireball_item_stack: FireballItemStack(Slot::Empty),
         }
     }
@@ -4210,82 +2633,54 @@ pub struct AttachedToTarget(pub OptionalUnsignedInt);
 pub struct ShotAtAngle(pub bool);
 #[derive(Component)]
 pub struct FireworkRocket;
-
-#[derive(Bundle)]
-struct FireworkRocketBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    fireworks_item: FireworksItem,
-    attached_to_target: AttachedToTarget,
-    shot_at_angle: ShotAtAngle,
-}
-impl FireworkRocketBundle {
+impl FireworkRocket {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.fireworks_item = FireworksItem(d.value.into_item_stack()?),
-                9 => {
-                    self.attached_to_target =
-                        AttachedToTarget(d.value.into_optional_unsigned_int()?)
-                }
-                10 => self.shot_at_angle = ShotAtAngle(d.value.into_boolean()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(FireworksItem(d.value.into_item_stack()?));
+            }
+            9 => {
+                entity.insert(AttachedToTarget(d.value.into_optional_unsigned_int()?));
+            }
+            10 => {
+                entity.insert(ShotAtAngle(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct FireworkRocketBundle {
+    parent: AbstractEntityBundle,
+    fireworks_item: FireworksItem,
+    attached_to_target: AttachedToTarget,
+    shot_at_angle: ShotAtAngle,
+}
 impl Default for FireworkRocketBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             fireworks_item: FireworksItem(Slot::Empty),
             attached_to_target: AttachedToTarget(OptionalUnsignedInt(None)),
             shot_at_angle: ShotAtAngle(false),
@@ -4299,77 +2694,50 @@ pub struct HookedEntity(pub i32);
 pub struct Biting(pub bool);
 #[derive(Component)]
 pub struct FishingBobber;
-
-#[derive(Bundle)]
-struct FishingBobberBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    hooked_entity: HookedEntity,
-    biting: Biting,
-}
-impl FishingBobberBundle {
+impl FishingBobber {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.hooked_entity = HookedEntity(d.value.into_int()?),
-                9 => self.biting = Biting(d.value.into_boolean()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(HookedEntity(d.value.into_int()?));
+            }
+            9 => {
+                entity.insert(Biting(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct FishingBobberBundle {
+    parent: AbstractEntityBundle,
+    hooked_entity: HookedEntity,
+    biting: Biting,
+}
 impl Default for FishingBobberBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             hooked_entity: HookedEntity(0),
             biting: Biting(false),
         }
@@ -4396,35 +2764,40 @@ pub struct TrustedId0(pub Option<Uuid>);
 pub struct TrustedId1(pub Option<Uuid>);
 #[derive(Component)]
 pub struct Fox;
+impl Fox {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(FoxKind(d.value.into_int()?));
+            }
+            18 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(FoxSitting(bitfield & 0x1 != 0));
+                entity.insert(Faceplanted(bitfield & 0x40 != 0));
+                entity.insert(Sleeping(bitfield & 0x20 != 0));
+                entity.insert(Pouncing(bitfield & 0x10 != 0));
+                entity.insert(Crouching(bitfield & 0x4 != 0));
+                entity.insert(FoxInterested(bitfield & 0x8 != 0));
+            }
+            19 => {
+                entity.insert(TrustedId0(d.value.into_optional_uuid()?));
+            }
+            20 => {
+                entity.insert(TrustedId1(d.value.into_optional_uuid()?));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct FoxBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
+    parent: AbstractAnimalBundle,
     fox_kind: FoxKind,
     fox_sitting: FoxSitting,
     faceplanted: Faceplanted,
@@ -4435,100 +2808,47 @@ struct FoxBundle {
     trusted_id_0: TrustedId0,
     trusted_id_1: TrustedId1,
 }
-impl FoxBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => self.fox_kind = FoxKind(d.value.into_int()?),
-                18 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.fox_sitting = FoxSitting(bitfield & 0x1 != 0);
-                    self.faceplanted = Faceplanted(bitfield & 0x40 != 0);
-                    self.sleeping = Sleeping(bitfield & 0x20 != 0);
-                    self.pouncing = Pouncing(bitfield & 0x10 != 0);
-                    self.crouching = Crouching(bitfield & 0x4 != 0);
-                    self.fox_interested = FoxInterested(bitfield & 0x8 != 0);
-                }
-                19 => self.trusted_id_0 = TrustedId0(d.value.into_optional_uuid()?),
-                20 => self.trusted_id_1 = TrustedId1(d.value.into_optional_uuid()?),
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Default for FoxBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             fox_kind: FoxKind(0),
             fox_sitting: FoxSitting(false),
             faceplanted: Faceplanted(false),
@@ -4548,122 +2868,72 @@ pub struct FrogVariant(pub azalea_registry::FrogVariant);
 pub struct TongueTarget(pub OptionalUnsignedInt);
 #[derive(Component)]
 pub struct Frog;
-
-#[derive(Bundle)]
-struct FrogBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    frog_variant: FrogVariant,
-    tongue_target: TongueTarget,
-}
-impl FrogBundle {
+impl Frog {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => self.frog_variant = FrogVariant(d.value.into_frog_variant()?),
-                18 => self.tongue_target = TongueTarget(d.value.into_optional_unsigned_int()?),
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(FrogVariant(d.value.into_frog_variant()?));
+            }
+            18 => {
+                entity.insert(TongueTarget(d.value.into_optional_unsigned_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct FrogBundle {
+    parent: AbstractAnimalBundle,
+    frog_variant: FrogVariant,
+    tongue_target: TongueTarget,
+}
 impl Default for FrogBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             frog_variant: FrogVariant(azalea_registry::FrogVariant::Temperate),
             tongue_target: TongueTarget(OptionalUnsignedInt(None)),
         }
@@ -4674,93 +2944,54 @@ impl Default for FrogBundle {
 pub struct Fuel(pub bool);
 #[derive(Component)]
 pub struct FurnaceMinecart;
-
-#[derive(Bundle)]
-struct FurnaceMinecartBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    abstract_minecart_hurt: AbstractMinecartHurt,
-    abstract_minecart_hurtdir: AbstractMinecartHurtdir,
-    abstract_minecart_damage: AbstractMinecartDamage,
-    display_block: DisplayBlock,
-    display_offset: DisplayOffset,
-    custom_display: CustomDisplay,
-    fuel: Fuel,
-}
-impl FurnaceMinecartBundle {
+impl FurnaceMinecart {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.abstract_minecart_hurt = AbstractMinecartHurt(d.value.into_int()?),
-                9 => self.abstract_minecart_hurtdir = AbstractMinecartHurtdir(d.value.into_int()?),
-                10 => self.abstract_minecart_damage = AbstractMinecartDamage(d.value.into_float()?),
-                11 => self.display_block = DisplayBlock(d.value.into_int()?),
-                12 => self.display_offset = DisplayOffset(d.value.into_int()?),
-                13 => self.custom_display = CustomDisplay(d.value.into_boolean()?),
-                14 => self.fuel = Fuel(d.value.into_boolean()?),
+        match d.index {
+            0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
+            14 => {
+                entity.insert(Fuel(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct FurnaceMinecartBundle {
+    parent: AbstractMinecartBundle,
+    fuel: Fuel,
+}
 impl Default for FurnaceMinecartBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            abstract_minecart_hurt: AbstractMinecartHurt(0),
-            abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
-            abstract_minecart_damage: AbstractMinecartDamage(0.0),
-            display_block: DisplayBlock(Default::default()),
-            display_offset: DisplayOffset(6),
-            custom_display: CustomDisplay(false),
+            parent: AbstractMinecartBundle {
+                parent: AbstractEntityBundle {
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                abstract_minecart_hurt: AbstractMinecartHurt(0),
+                abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+                abstract_minecart_damage: AbstractMinecartDamage(0.0),
+                display_block: DisplayBlock(Default::default()),
+                display_offset: DisplayOffset(6),
+                custom_display: CustomDisplay(false),
+            },
             fuel: Fuel(false),
         }
     }
@@ -4770,117 +3001,61 @@ impl Default for FurnaceMinecartBundle {
 pub struct IsCharging(pub bool);
 #[derive(Component)]
 pub struct Ghast;
-
-#[derive(Bundle)]
-struct GhastBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    is_charging: IsCharging,
-}
-impl GhastBundle {
+impl Ghast {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.is_charging = IsCharging(d.value.into_boolean()?),
+        match d.index {
+            0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(IsCharging(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct GhastBundle {
+    parent: AbstractInsentientBundle,
+    is_charging: IsCharging,
+}
 impl Default for GhastBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractInsentientBundle {
+                parent: AbstractLivingBundle {
+                    parent: AbstractEntityBundle {
+                        on_fire: OnFire(false),
+                        shift_key_down: ShiftKeyDown(false),
+                        sprinting: Sprinting(false),
+                        swimming: Swimming(false),
+                        currently_glowing: CurrentlyGlowing(false),
+                        invisible: Invisible(false),
+                        fall_flying: FallFlying(false),
+                        air_supply: AirSupply(Default::default()),
+                        custom_name: CustomName(None),
+                        custom_name_visible: CustomNameVisible(false),
+                        silent: Silent(false),
+                        no_gravity: NoGravity(false),
+                        pose: Pose::default(),
+                        ticks_frozen: TicksFrozen(0),
+                    },
+                    auto_spin_attack: AutoSpinAttack(false),
+                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                    health: Health(1.0),
+                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                    effect_ambience: EffectAmbience(false),
+                    arrow_count: ArrowCount(0),
+                    stinger_count: StingerCount(0),
+                    sleeping_pos: SleepingPos(None),
+                },
+                no_ai: NoAi(false),
+                left_handed: LeftHanded(false),
+                aggressive: Aggressive(false),
+            },
             is_charging: IsCharging(false),
         }
     }
@@ -4888,115 +3063,61 @@ impl Default for GhastBundle {
 
 #[derive(Component)]
 pub struct Giant;
-
-#[derive(Bundle)]
-struct GiantBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-}
-impl GiantBundle {
+impl Giant {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-            }
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct GiantBundle {
+    parent: AbstractMonsterBundle,
+}
 impl Default for GiantBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
         }
     }
 }
@@ -5007,79 +3128,46 @@ pub struct ItemFrameItem(pub Slot);
 pub struct Rotation(pub i32);
 #[derive(Component)]
 pub struct GlowItemFrame;
-
-#[derive(Bundle)]
-struct GlowItemFrameBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    item_frame_item: ItemFrameItem,
-    rotation: Rotation,
-}
-impl GlowItemFrameBundle {
+impl GlowItemFrame {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.item_frame_item = ItemFrameItem(d.value.into_item_stack()?),
-                9 => self.rotation = Rotation(d.value.into_int()?),
-            }
+        match d.index {
+            0..=9 => ItemFrame::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct GlowItemFrameBundle {
+    parent: ItemFrameBundle,
+}
 impl Default for GlowItemFrameBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            item_frame_item: ItemFrameItem(Slot::Empty),
-            rotation: Rotation(0),
+            parent: ItemFrameBundle {
+                parent: AbstractEntityBundle {
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                item_frame_item: ItemFrameItem(Slot::Empty),
+                rotation: Rotation(0),
+            },
         }
     }
 }
@@ -5088,117 +3176,65 @@ impl Default for GlowItemFrameBundle {
 pub struct DarkTicksRemaining(pub i32);
 #[derive(Component)]
 pub struct GlowSquid;
-
-#[derive(Bundle)]
-struct GlowSquidBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    dark_ticks_remaining: DarkTicksRemaining,
-}
-impl GlowSquidBundle {
+impl GlowSquid {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.dark_ticks_remaining = DarkTicksRemaining(d.value.into_int()?),
+        match d.index {
+            0..=15 => Squid::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(DarkTicksRemaining(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct GlowSquidBundle {
+    parent: SquidBundle,
+    dark_ticks_remaining: DarkTicksRemaining,
+}
 impl Default for GlowSquidBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: SquidBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             dark_ticks_remaining: DarkTicksRemaining(0),
         }
     }
@@ -5212,124 +3248,76 @@ pub struct HasLeftHorn(pub bool);
 pub struct HasRightHorn(pub bool);
 #[derive(Component)]
 pub struct Goat;
-
-#[derive(Bundle)]
-struct GoatBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    is_screaming_goat: IsScreamingGoat,
-    has_left_horn: HasLeftHorn,
-    has_right_horn: HasRightHorn,
-}
-impl GoatBundle {
+impl Goat {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => self.is_screaming_goat = IsScreamingGoat(d.value.into_boolean()?),
-                18 => self.has_left_horn = HasLeftHorn(d.value.into_boolean()?),
-                19 => self.has_right_horn = HasRightHorn(d.value.into_boolean()?),
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(IsScreamingGoat(d.value.into_boolean()?));
+            }
+            18 => {
+                entity.insert(HasLeftHorn(d.value.into_boolean()?));
+            }
+            19 => {
+                entity.insert(HasRightHorn(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct GoatBundle {
+    parent: AbstractAnimalBundle,
+    is_screaming_goat: IsScreamingGoat,
+    has_left_horn: HasLeftHorn,
+    has_right_horn: HasRightHorn,
+}
 impl Default for GoatBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             is_screaming_goat: IsScreamingGoat(false),
             has_left_horn: HasLeftHorn(true),
             has_right_horn: HasRightHorn(true),
@@ -5339,119 +3327,69 @@ impl Default for GoatBundle {
 
 #[derive(Component)]
 pub struct Guardian;
-
-#[derive(Bundle)]
-struct GuardianBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    moving: Moving,
-    attack_target: AttackTarget,
-}
-impl GuardianBundle {
+impl Guardian {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.moving = Moving(d.value.into_boolean()?),
-                17 => self.attack_target = AttackTarget(d.value.into_int()?),
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(Moving(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(AttackTarget(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct GuardianBundle {
+    parent: AbstractMonsterBundle,
+    moving: Moving,
+    attack_target: AttackTarget,
+}
 impl Default for GuardianBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             moving: Moving(false),
             attack_target: AttackTarget(0),
         }
@@ -5462,123 +3400,68 @@ impl Default for GuardianBundle {
 pub struct HoglinImmuneToZombification(pub bool);
 #[derive(Component)]
 pub struct Hoglin;
-
-#[derive(Bundle)]
-struct HoglinBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    hoglin_immune_to_zombification: HoglinImmuneToZombification,
-}
-impl HoglinBundle {
+impl Hoglin {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    self.hoglin_immune_to_zombification =
-                        HoglinImmuneToZombification(d.value.into_boolean()?)
-                }
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(HoglinImmuneToZombification(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct HoglinBundle {
+    parent: AbstractAnimalBundle,
+    hoglin_immune_to_zombification: HoglinImmuneToZombification,
+}
 impl Default for HoglinBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             hoglin_immune_to_zombification: HoglinImmuneToZombification(false),
         }
     }
@@ -5586,91 +3469,50 @@ impl Default for HoglinBundle {
 
 #[derive(Component)]
 pub struct HopperMinecart;
-
-#[derive(Bundle)]
-struct HopperMinecartBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    abstract_minecart_hurt: AbstractMinecartHurt,
-    abstract_minecart_hurtdir: AbstractMinecartHurtdir,
-    abstract_minecart_damage: AbstractMinecartDamage,
-    display_block: DisplayBlock,
-    display_offset: DisplayOffset,
-    custom_display: CustomDisplay,
-}
-impl HopperMinecartBundle {
+impl HopperMinecart {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.abstract_minecart_hurt = AbstractMinecartHurt(d.value.into_int()?),
-                9 => self.abstract_minecart_hurtdir = AbstractMinecartHurtdir(d.value.into_int()?),
-                10 => self.abstract_minecart_damage = AbstractMinecartDamage(d.value.into_float()?),
-                11 => self.display_block = DisplayBlock(d.value.into_int()?),
-                12 => self.display_offset = DisplayOffset(d.value.into_int()?),
-                13 => self.custom_display = CustomDisplay(d.value.into_boolean()?),
-            }
+        match d.index {
+            0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct HopperMinecartBundle {
+    parent: AbstractMinecartBundle,
+}
 impl Default for HopperMinecartBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            abstract_minecart_hurt: AbstractMinecartHurt(0),
-            abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
-            abstract_minecart_damage: AbstractMinecartDamage(0.0),
-            display_block: DisplayBlock(Default::default()),
-            display_offset: DisplayOffset(6),
-            custom_display: CustomDisplay(false),
+            parent: AbstractMinecartBundle {
+                parent: AbstractEntityBundle {
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                abstract_minecart_hurt: AbstractMinecartHurt(0),
+                abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+                abstract_minecart_damage: AbstractMinecartDamage(0.0),
+                display_block: DisplayBlock(Default::default()),
+                display_offset: DisplayOffset(6),
+                custom_display: CustomDisplay(false),
+            },
         }
     }
 }
@@ -5691,35 +3533,36 @@ pub struct HorseOwnerUuid(pub Option<Uuid>);
 pub struct HorseTypeVariant(pub i32);
 #[derive(Component)]
 pub struct Horse;
+impl Horse {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(HorseTamed(bitfield & 0x2 != 0));
+                entity.insert(HorseEating(bitfield & 0x10 != 0));
+                entity.insert(HorseStanding(bitfield & 0x20 != 0));
+                entity.insert(HorseBred(bitfield & 0x8 != 0));
+                entity.insert(HorseSaddled(bitfield & 0x4 != 0));
+            }
+            18 => {
+                entity.insert(HorseOwnerUuid(d.value.into_optional_uuid()?));
+            }
+            19 => {
+                entity.insert(HorseTypeVariant(d.value.into_int()?));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct HorseBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
+    parent: AbstractAnimalBundle,
     horse_tamed: HorseTamed,
     horse_eating: HorseEating,
     horse_standing: HorseStanding,
@@ -5728,98 +3571,47 @@ struct HorseBundle {
     horse_owner_uuid: HorseOwnerUuid,
     horse_type_variant: HorseTypeVariant,
 }
-impl HorseBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.horse_tamed = HorseTamed(bitfield & 0x2 != 0);
-                    self.horse_eating = HorseEating(bitfield & 0x10 != 0);
-                    self.horse_standing = HorseStanding(bitfield & 0x20 != 0);
-                    self.horse_bred = HorseBred(bitfield & 0x8 != 0);
-                    self.horse_saddled = HorseSaddled(bitfield & 0x4 != 0);
-                }
-                18 => self.horse_owner_uuid = HorseOwnerUuid(d.value.into_optional_uuid()?),
-                19 => self.horse_type_variant = HorseTypeVariant(d.value.into_int()?),
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Default for HorseBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             horse_tamed: HorseTamed(false),
             horse_eating: HorseEating(false),
             horse_standing: HorseStanding(false),
@@ -5833,124 +3625,66 @@ impl Default for HorseBundle {
 
 #[derive(Component)]
 pub struct Husk;
-
-#[derive(Bundle)]
-struct HuskBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    zombie_baby: ZombieBaby,
-    special_type: SpecialType,
-    drowned_conversion: DrownedConversion,
-}
-impl HuskBundle {
+impl Husk {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.zombie_baby = ZombieBaby(d.value.into_boolean()?),
-                17 => self.special_type = SpecialType(d.value.into_int()?),
-                18 => self.drowned_conversion = DrownedConversion(d.value.into_boolean()?),
-            }
+        match d.index {
+            0..=18 => Zombie::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct HuskBundle {
+    parent: ZombieBundle,
+}
 impl Default for HuskBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            zombie_baby: ZombieBaby(false),
-            special_type: SpecialType(0),
-            drowned_conversion: DrownedConversion(false),
+            parent: ZombieBundle {
+                parent: AbstractMonsterBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                },
+                zombie_baby: ZombieBaby(false),
+                special_type: SpecialType(0),
+                drowned_conversion: DrownedConversion(false),
+            },
         }
     }
 }
@@ -5961,122 +3695,69 @@ pub struct IllusionerIsCelebrating(pub bool);
 pub struct IllusionerSpellCasting(pub u8);
 #[derive(Component)]
 pub struct Illusioner;
-
-#[derive(Bundle)]
-struct IllusionerBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    illusioner_is_celebrating: IllusionerIsCelebrating,
-    illusioner_spell_casting: IllusionerSpellCasting,
-}
-impl IllusionerBundle {
+impl Illusioner {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => {
-                    self.illusioner_is_celebrating =
-                        IllusionerIsCelebrating(d.value.into_boolean()?)
-                }
-                17 => self.illusioner_spell_casting = IllusionerSpellCasting(d.value.into_byte()?),
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(IllusionerIsCelebrating(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(IllusionerSpellCasting(d.value.into_byte()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct IllusionerBundle {
+    parent: AbstractMonsterBundle,
+    illusioner_is_celebrating: IllusionerIsCelebrating,
+    illusioner_spell_casting: IllusionerSpellCasting,
+}
 impl Default for IllusionerBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             illusioner_is_celebrating: IllusionerIsCelebrating(false),
             illusioner_spell_casting: IllusionerSpellCasting(0),
         }
@@ -6087,120 +3768,64 @@ impl Default for IllusionerBundle {
 pub struct PlayerCreated(pub bool);
 #[derive(Component)]
 pub struct IronGolem;
-
-#[derive(Bundle)]
-struct IronGolemBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    player_created: PlayerCreated,
-}
-impl IronGolemBundle {
+impl IronGolem {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.player_created = PlayerCreated(bitfield & 0x1 != 0);
-                }
+        match d.index {
+            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            16 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(PlayerCreated(bitfield & 0x1 != 0));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct IronGolemBundle {
+    parent: AbstractCreatureBundle,
+    player_created: PlayerCreated,
+}
 impl Default for IronGolemBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractCreatureBundle {
+                parent: AbstractInsentientBundle {
+                    parent: AbstractLivingBundle {
+                        parent: AbstractEntityBundle {
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
             player_created: PlayerCreated(false),
         }
     }
@@ -6210,75 +3835,46 @@ impl Default for IronGolemBundle {
 pub struct ItemItem(pub Slot);
 #[derive(Component)]
 pub struct Item;
-
-#[derive(Bundle)]
-struct ItemBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    item_item: ItemItem,
-}
-impl ItemBundle {
+impl Item {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.item_item = ItemItem(d.value.into_item_stack()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(ItemItem(d.value.into_item_stack()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ItemBundle {
+    parent: AbstractEntityBundle,
+    item_item: ItemItem,
+}
 impl Default for ItemBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             item_item: ItemItem(Slot::Empty),
         }
     }
@@ -6286,77 +3882,50 @@ impl Default for ItemBundle {
 
 #[derive(Component)]
 pub struct ItemFrame;
-
-#[derive(Bundle)]
-struct ItemFrameBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    item_frame_item: ItemFrameItem,
-    rotation: Rotation,
-}
-impl ItemFrameBundle {
+impl ItemFrame {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.item_frame_item = ItemFrameItem(d.value.into_item_stack()?),
-                9 => self.rotation = Rotation(d.value.into_int()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(ItemFrameItem(d.value.into_item_stack()?));
+            }
+            9 => {
+                entity.insert(Rotation(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ItemFrameBundle {
+    parent: AbstractEntityBundle,
+    item_frame_item: ItemFrameItem,
+    rotation: Rotation,
+}
 impl Default for ItemFrameBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             item_frame_item: ItemFrameItem(Slot::Empty),
             rotation: Rotation(0),
         }
@@ -6365,146 +3934,84 @@ impl Default for ItemFrameBundle {
 
 #[derive(Component)]
 pub struct LeashKnot;
-
-#[derive(Bundle)]
-struct LeashKnotBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-}
-impl LeashKnotBundle {
+impl LeashKnot {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-            }
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct LeashKnotBundle {
+    parent: AbstractEntityBundle,
+}
 impl Default for LeashKnotBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
         }
     }
 }
 
 #[derive(Component)]
 pub struct LightningBolt;
-
-#[derive(Bundle)]
-struct LightningBoltBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-}
-impl LightningBoltBundle {
+impl LightningBolt {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-            }
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct LightningBoltBundle {
+    parent: AbstractEntityBundle,
+}
 impl Default for LightningBoltBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
         }
     }
 }
@@ -6531,35 +4038,45 @@ pub struct Swag(pub i32);
 pub struct LlamaVariant(pub i32);
 #[derive(Component)]
 pub struct Llama;
+impl Llama {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(LlamaTamed(bitfield & 0x2 != 0));
+                entity.insert(LlamaEating(bitfield & 0x10 != 0));
+                entity.insert(LlamaStanding(bitfield & 0x20 != 0));
+                entity.insert(LlamaBred(bitfield & 0x8 != 0));
+                entity.insert(LlamaSaddled(bitfield & 0x4 != 0));
+            }
+            18 => {
+                entity.insert(LlamaOwnerUuid(d.value.into_optional_uuid()?));
+            }
+            19 => {
+                entity.insert(LlamaChest(d.value.into_boolean()?));
+            }
+            20 => {
+                entity.insert(Strength(d.value.into_int()?));
+            }
+            21 => {
+                entity.insert(Swag(d.value.into_int()?));
+            }
+            22 => {
+                entity.insert(LlamaVariant(d.value.into_int()?));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct LlamaBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
+    parent: AbstractAnimalBundle,
     llama_tamed: LlamaTamed,
     llama_eating: LlamaEating,
     llama_standing: LlamaStanding,
@@ -6571,101 +4088,47 @@ struct LlamaBundle {
     swag: Swag,
     llama_variant: LlamaVariant,
 }
-impl LlamaBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.llama_tamed = LlamaTamed(bitfield & 0x2 != 0);
-                    self.llama_eating = LlamaEating(bitfield & 0x10 != 0);
-                    self.llama_standing = LlamaStanding(bitfield & 0x20 != 0);
-                    self.llama_bred = LlamaBred(bitfield & 0x8 != 0);
-                    self.llama_saddled = LlamaSaddled(bitfield & 0x4 != 0);
-                }
-                18 => self.llama_owner_uuid = LlamaOwnerUuid(d.value.into_optional_uuid()?),
-                19 => self.llama_chest = LlamaChest(d.value.into_boolean()?),
-                20 => self.strength = Strength(d.value.into_int()?),
-                21 => self.swag = Swag(d.value.into_int()?),
-                22 => self.llama_variant = LlamaVariant(d.value.into_int()?),
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Default for LlamaBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             llama_tamed: LlamaTamed(false),
             llama_eating: LlamaEating(false),
             llama_standing: LlamaStanding(false),
@@ -6682,73 +4145,42 @@ impl Default for LlamaBundle {
 
 #[derive(Component)]
 pub struct LlamaSpit;
-
-#[derive(Bundle)]
-struct LlamaSpitBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-}
-impl LlamaSpitBundle {
+impl LlamaSpit {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-            }
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct LlamaSpitBundle {
+    parent: AbstractEntityBundle,
+}
 impl Default for LlamaSpitBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
         }
     }
 }
@@ -6757,282 +4189,152 @@ impl Default for LlamaSpitBundle {
 pub struct SlimeSize(pub i32);
 #[derive(Component)]
 pub struct MagmaCube;
-
-#[derive(Bundle)]
-struct MagmaCubeBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    slime_size: SlimeSize,
-}
-impl MagmaCubeBundle {
+impl MagmaCube {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.slime_size = SlimeSize(d.value.into_int()?),
-            }
+        match d.index {
+            0..=16 => Slime::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct MagmaCubeBundle {
+    parent: SlimeBundle,
+}
 impl Default for MagmaCubeBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            slime_size: SlimeSize(1),
+            parent: SlimeBundle {
+                parent: AbstractInsentientBundle {
+                    parent: AbstractLivingBundle {
+                        parent: AbstractEntityBundle {
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+                slime_size: SlimeSize(1),
+            },
         }
     }
 }
 
 #[derive(Component)]
 pub struct Marker;
-
-#[derive(Bundle)]
-struct MarkerBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-}
-impl MarkerBundle {
+impl Marker {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-            }
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct MarkerBundle {
+    parent: AbstractEntityBundle,
+}
 impl Default for MarkerBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
         }
     }
 }
 
 #[derive(Component)]
 pub struct Minecart;
-
-#[derive(Bundle)]
-struct MinecartBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    abstract_minecart_hurt: AbstractMinecartHurt,
-    abstract_minecart_hurtdir: AbstractMinecartHurtdir,
-    abstract_minecart_damage: AbstractMinecartDamage,
-    display_block: DisplayBlock,
-    display_offset: DisplayOffset,
-    custom_display: CustomDisplay,
-}
-impl MinecartBundle {
+impl Minecart {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.abstract_minecart_hurt = AbstractMinecartHurt(d.value.into_int()?),
-                9 => self.abstract_minecart_hurtdir = AbstractMinecartHurtdir(d.value.into_int()?),
-                10 => self.abstract_minecart_damage = AbstractMinecartDamage(d.value.into_float()?),
-                11 => self.display_block = DisplayBlock(d.value.into_int()?),
-                12 => self.display_offset = DisplayOffset(d.value.into_int()?),
-                13 => self.custom_display = CustomDisplay(d.value.into_boolean()?),
-            }
+        match d.index {
+            0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct MinecartBundle {
+    parent: AbstractMinecartBundle,
+}
 impl Default for MinecartBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            abstract_minecart_hurt: AbstractMinecartHurt(0),
-            abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
-            abstract_minecart_damage: AbstractMinecartDamage(0.0),
-            display_block: DisplayBlock(Default::default()),
-            display_offset: DisplayOffset(6),
-            custom_display: CustomDisplay(false),
+            parent: AbstractMinecartBundle {
+                parent: AbstractEntityBundle {
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                abstract_minecart_hurt: AbstractMinecartHurt(0),
+                abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+                abstract_minecart_damage: AbstractMinecartDamage(0.0),
+                display_block: DisplayBlock(Default::default()),
+                display_offset: DisplayOffset(6),
+                custom_display: CustomDisplay(false),
+            },
         }
     }
 }
@@ -7041,120 +4343,70 @@ impl Default for MinecartBundle {
 pub struct MooshroomKind(pub String);
 #[derive(Component)]
 pub struct Mooshroom;
-
-#[derive(Bundle)]
-struct MooshroomBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    mooshroom_kind: MooshroomKind,
-}
-impl MooshroomBundle {
+impl Mooshroom {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => self.mooshroom_kind = MooshroomKind(d.value.into_string()?),
+        match d.index {
+            0..=16 => Cow::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(MooshroomKind(d.value.into_string()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct MooshroomBundle {
+    parent: CowBundle,
+    mooshroom_kind: MooshroomKind,
+}
 impl Default for MooshroomBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: CowBundle {
+                parent: AbstractAnimalBundle {
+                    parent: AbstractAgeableBundle {
+                        parent: AbstractCreatureBundle {
+                            parent: AbstractInsentientBundle {
+                                parent: AbstractLivingBundle {
+                                    parent: AbstractEntityBundle {
+                                        on_fire: OnFire(false),
+                                        shift_key_down: ShiftKeyDown(false),
+                                        sprinting: Sprinting(false),
+                                        swimming: Swimming(false),
+                                        currently_glowing: CurrentlyGlowing(false),
+                                        invisible: Invisible(false),
+                                        fall_flying: FallFlying(false),
+                                        air_supply: AirSupply(Default::default()),
+                                        custom_name: CustomName(None),
+                                        custom_name_visible: CustomNameVisible(false),
+                                        silent: Silent(false),
+                                        no_gravity: NoGravity(false),
+                                        pose: Pose::default(),
+                                        ticks_frozen: TicksFrozen(0),
+                                    },
+                                    auto_spin_attack: AutoSpinAttack(false),
+                                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                                    health: Health(1.0),
+                                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                    effect_ambience: EffectAmbience(false),
+                                    arrow_count: ArrowCount(0),
+                                    stinger_count: StingerCount(0),
+                                    sleeping_pos: SleepingPos(None),
+                                },
+                                no_ai: NoAi(false),
+                                left_handed: LeftHanded(false),
+                                aggressive: Aggressive(false),
+                            },
+                        },
+                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                    },
+                },
+            },
             mooshroom_kind: MooshroomKind(Default::default()),
         }
     }
@@ -7176,35 +4428,36 @@ pub struct MuleOwnerUuid(pub Option<Uuid>);
 pub struct MuleChest(pub bool);
 #[derive(Component)]
 pub struct Mule;
+impl Mule {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(MuleTamed(bitfield & 0x2 != 0));
+                entity.insert(MuleEating(bitfield & 0x10 != 0));
+                entity.insert(MuleStanding(bitfield & 0x20 != 0));
+                entity.insert(MuleBred(bitfield & 0x8 != 0));
+                entity.insert(MuleSaddled(bitfield & 0x4 != 0));
+            }
+            18 => {
+                entity.insert(MuleOwnerUuid(d.value.into_optional_uuid()?));
+            }
+            19 => {
+                entity.insert(MuleChest(d.value.into_boolean()?));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct MuleBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
+    parent: AbstractAnimalBundle,
     mule_tamed: MuleTamed,
     mule_eating: MuleEating,
     mule_standing: MuleStanding,
@@ -7213,98 +4466,47 @@ struct MuleBundle {
     mule_owner_uuid: MuleOwnerUuid,
     mule_chest: MuleChest,
 }
-impl MuleBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.mule_tamed = MuleTamed(bitfield & 0x2 != 0);
-                    self.mule_eating = MuleEating(bitfield & 0x10 != 0);
-                    self.mule_standing = MuleStanding(bitfield & 0x20 != 0);
-                    self.mule_bred = MuleBred(bitfield & 0x8 != 0);
-                    self.mule_saddled = MuleSaddled(bitfield & 0x4 != 0);
-                }
-                18 => self.mule_owner_uuid = MuleOwnerUuid(d.value.into_optional_uuid()?),
-                19 => self.mule_chest = MuleChest(d.value.into_boolean()?),
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Default for MuleBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             mule_tamed: MuleTamed(false),
             mule_eating: MuleEating(false),
             mule_standing: MuleStanding(false),
@@ -7320,120 +4522,68 @@ impl Default for MuleBundle {
 pub struct Trusting(pub bool);
 #[derive(Component)]
 pub struct Ocelot;
-
-#[derive(Bundle)]
-struct OcelotBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    trusting: Trusting,
-}
-impl OcelotBundle {
+impl Ocelot {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => self.trusting = Trusting(d.value.into_boolean()?),
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(Trusting(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct OcelotBundle {
+    parent: AbstractAnimalBundle,
+    trusting: Trusting,
+}
 impl Default for OcelotBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             trusting: Trusting(false),
         }
     }
@@ -7443,75 +4593,46 @@ impl Default for OcelotBundle {
 pub struct PaintingVariant(pub azalea_registry::PaintingVariant);
 #[derive(Component)]
 pub struct Painting;
-
-#[derive(Bundle)]
-struct PaintingBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    painting_variant: PaintingVariant,
-}
-impl PaintingBundle {
+impl Painting {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.painting_variant = PaintingVariant(d.value.into_painting_variant()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(PaintingVariant(d.value.into_painting_variant()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct PaintingBundle {
+    parent: AbstractEntityBundle,
+    painting_variant: PaintingVariant,
+}
 impl Default for PaintingBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             painting_variant: PaintingVariant(azalea_registry::PaintingVariant::Kebab),
         }
     }
@@ -7537,35 +4658,44 @@ pub struct HiddenGene(pub u8);
 pub struct PandaFlags(pub u8);
 #[derive(Component)]
 pub struct Panda;
+impl Panda {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(PandaUnhappyCounter(d.value.into_int()?));
+            }
+            18 => {
+                entity.insert(SneezeCounter(d.value.into_int()?));
+            }
+            19 => {
+                entity.insert(EatCounter(d.value.into_int()?));
+            }
+            20 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(Sneezing(bitfield & 0x2 != 0));
+                entity.insert(PandaSitting(bitfield & 0x8 != 0));
+                entity.insert(OnBack(bitfield & 0x10 != 0));
+                entity.insert(PandaRolling(bitfield & 0x4 != 0));
+            }
+            21 => {
+                entity.insert(HiddenGene(d.value.into_byte()?));
+            }
+            22 => {
+                entity.insert(PandaFlags(d.value.into_byte()?));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct PandaBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
+    parent: AbstractAnimalBundle,
     panda_unhappy_counter: PandaUnhappyCounter,
     sneeze_counter: SneezeCounter,
     eat_counter: EatCounter,
@@ -7576,100 +4706,47 @@ struct PandaBundle {
     hidden_gene: HiddenGene,
     panda_flags: PandaFlags,
 }
-impl PandaBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => self.panda_unhappy_counter = PandaUnhappyCounter(d.value.into_int()?),
-                18 => self.sneeze_counter = SneezeCounter(d.value.into_int()?),
-                19 => self.eat_counter = EatCounter(d.value.into_int()?),
-                20 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.sneezing = Sneezing(bitfield & 0x2 != 0);
-                    self.panda_sitting = PandaSitting(bitfield & 0x8 != 0);
-                    self.on_back = OnBack(bitfield & 0x10 != 0);
-                    self.panda_rolling = PandaRolling(bitfield & 0x4 != 0);
-                }
-                21 => self.hidden_gene = HiddenGene(d.value.into_byte()?),
-                22 => self.panda_flags = PandaFlags(d.value.into_byte()?),
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Default for PandaBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             panda_unhappy_counter: PandaUnhappyCounter(0),
             sneeze_counter: SneezeCounter(0),
             eat_counter: EatCounter(0),
@@ -7687,132 +4764,73 @@ impl Default for PandaBundle {
 pub struct ParrotVariant(pub i32);
 #[derive(Component)]
 pub struct Parrot;
-
-#[derive(Bundle)]
-struct ParrotBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    tame: Tame,
-    in_sitting_pose: InSittingPose,
-    owneruuid: Owneruuid,
-    parrot_variant: ParrotVariant,
-}
-impl ParrotBundle {
+impl Parrot {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.tame = Tame(bitfield & 0x4 != 0);
-                    self.in_sitting_pose = InSittingPose(bitfield & 0x1 != 0);
-                }
-                18 => self.owneruuid = Owneruuid(d.value.into_optional_uuid()?),
-                19 => self.parrot_variant = ParrotVariant(d.value.into_int()?),
+        match d.index {
+            0..=18 => AbstractTameable::update_metadata(ecs, entity, d)?,
+            19 => {
+                entity.insert(ParrotVariant(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ParrotBundle {
+    parent: AbstractTameableBundle,
+    parrot_variant: ParrotVariant,
+}
 impl Default for ParrotBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
-            tame: Tame(false),
-            in_sitting_pose: InSittingPose(false),
-            owneruuid: Owneruuid(None),
+            parent: AbstractTameableBundle {
+                parent: AbstractAnimalBundle {
+                    parent: AbstractAgeableBundle {
+                        parent: AbstractCreatureBundle {
+                            parent: AbstractInsentientBundle {
+                                parent: AbstractLivingBundle {
+                                    parent: AbstractEntityBundle {
+                                        on_fire: OnFire(false),
+                                        shift_key_down: ShiftKeyDown(false),
+                                        sprinting: Sprinting(false),
+                                        swimming: Swimming(false),
+                                        currently_glowing: CurrentlyGlowing(false),
+                                        invisible: Invisible(false),
+                                        fall_flying: FallFlying(false),
+                                        air_supply: AirSupply(Default::default()),
+                                        custom_name: CustomName(None),
+                                        custom_name_visible: CustomNameVisible(false),
+                                        silent: Silent(false),
+                                        no_gravity: NoGravity(false),
+                                        pose: Pose::default(),
+                                        ticks_frozen: TicksFrozen(0),
+                                    },
+                                    auto_spin_attack: AutoSpinAttack(false),
+                                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                                    health: Health(1.0),
+                                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                    effect_ambience: EffectAmbience(false),
+                                    arrow_count: ArrowCount(0),
+                                    stinger_count: StingerCount(0),
+                                    sleeping_pos: SleepingPos(None),
+                                },
+                                no_ai: NoAi(false),
+                                left_handed: LeftHanded(false),
+                                aggressive: Aggressive(false),
+                            },
+                        },
+                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                    },
+                },
+                tame: Tame(false),
+                in_sitting_pose: InSittingPose(false),
+                owneruuid: Owneruuid(None),
+            },
             parrot_variant: ParrotVariant(0),
         }
     }
@@ -7822,117 +4840,61 @@ impl Default for ParrotBundle {
 pub struct PhantomSize(pub i32);
 #[derive(Component)]
 pub struct Phantom;
-
-#[derive(Bundle)]
-struct PhantomBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    phantom_size: PhantomSize,
-}
-impl PhantomBundle {
+impl Phantom {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.phantom_size = PhantomSize(d.value.into_int()?),
+        match d.index {
+            0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(PhantomSize(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct PhantomBundle {
+    parent: AbstractInsentientBundle,
+    phantom_size: PhantomSize,
+}
 impl Default for PhantomBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractInsentientBundle {
+                parent: AbstractLivingBundle {
+                    parent: AbstractEntityBundle {
+                        on_fire: OnFire(false),
+                        shift_key_down: ShiftKeyDown(false),
+                        sprinting: Sprinting(false),
+                        swimming: Swimming(false),
+                        currently_glowing: CurrentlyGlowing(false),
+                        invisible: Invisible(false),
+                        fall_flying: FallFlying(false),
+                        air_supply: AirSupply(Default::default()),
+                        custom_name: CustomName(None),
+                        custom_name_visible: CustomNameVisible(false),
+                        silent: Silent(false),
+                        no_gravity: NoGravity(false),
+                        pose: Pose::default(),
+                        ticks_frozen: TicksFrozen(0),
+                    },
+                    auto_spin_attack: AutoSpinAttack(false),
+                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                    health: Health(1.0),
+                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                    effect_ambience: EffectAmbience(false),
+                    arrow_count: ArrowCount(0),
+                    stinger_count: StingerCount(0),
+                    sleeping_pos: SleepingPos(None),
+                },
+                no_ai: NoAi(false),
+                left_handed: LeftHanded(false),
+                aggressive: Aggressive(false),
+            },
             phantom_size: PhantomSize(0),
         }
     }
@@ -7944,122 +4906,72 @@ pub struct PigSaddle(pub bool);
 pub struct PigBoostTime(pub i32);
 #[derive(Component)]
 pub struct Pig;
-
-#[derive(Bundle)]
-struct PigBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    pig_saddle: PigSaddle,
-    pig_boost_time: PigBoostTime,
-}
-impl PigBundle {
+impl Pig {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => self.pig_saddle = PigSaddle(d.value.into_boolean()?),
-                18 => self.pig_boost_time = PigBoostTime(d.value.into_int()?),
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(PigSaddle(d.value.into_boolean()?));
+            }
+            18 => {
+                entity.insert(PigBoostTime(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct PigBundle {
+    parent: AbstractAnimalBundle,
+    pig_saddle: PigSaddle,
+    pig_boost_time: PigBoostTime,
+}
 impl Default for PigBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             pig_saddle: PigSaddle(false),
             pig_boost_time: PigBoostTime(0),
         }
@@ -8076,129 +4988,77 @@ pub struct PiglinIsChargingCrossbow(pub bool);
 pub struct IsDancing(pub bool);
 #[derive(Component)]
 pub struct Piglin;
-
-#[derive(Bundle)]
-struct PiglinBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    piglin_immune_to_zombification: PiglinImmuneToZombification,
-    piglin_baby: PiglinBaby,
-    piglin_is_charging_crossbow: PiglinIsChargingCrossbow,
-    is_dancing: IsDancing,
-}
-impl PiglinBundle {
+impl Piglin {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => {
-                    self.piglin_immune_to_zombification =
-                        PiglinImmuneToZombification(d.value.into_boolean()?)
-                }
-                17 => self.piglin_baby = PiglinBaby(d.value.into_boolean()?),
-                18 => {
-                    self.piglin_is_charging_crossbow =
-                        PiglinIsChargingCrossbow(d.value.into_boolean()?)
-                }
-                19 => self.is_dancing = IsDancing(d.value.into_boolean()?),
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(PiglinImmuneToZombification(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(PiglinBaby(d.value.into_boolean()?));
+            }
+            18 => {
+                entity.insert(PiglinIsChargingCrossbow(d.value.into_boolean()?));
+            }
+            19 => {
+                entity.insert(IsDancing(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct PiglinBundle {
+    parent: AbstractMonsterBundle,
+    piglin_immune_to_zombification: PiglinImmuneToZombification,
+    piglin_baby: PiglinBaby,
+    piglin_is_charging_crossbow: PiglinIsChargingCrossbow,
+    is_dancing: IsDancing,
+}
 impl Default for PiglinBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             piglin_immune_to_zombification: PiglinImmuneToZombification(false),
             piglin_baby: PiglinBaby(false),
             piglin_is_charging_crossbow: PiglinIsChargingCrossbow(false),
@@ -8211,120 +5071,65 @@ impl Default for PiglinBundle {
 pub struct PiglinBruteImmuneToZombification(pub bool);
 #[derive(Component)]
 pub struct PiglinBrute;
-
-#[derive(Bundle)]
-struct PiglinBruteBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    piglin_brute_immune_to_zombification: PiglinBruteImmuneToZombification,
-}
-impl PiglinBruteBundle {
+impl PiglinBrute {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => {
-                    self.piglin_brute_immune_to_zombification =
-                        PiglinBruteImmuneToZombification(d.value.into_boolean()?)
-                }
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(PiglinBruteImmuneToZombification(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct PiglinBruteBundle {
+    parent: AbstractMonsterBundle,
+    piglin_brute_immune_to_zombification: PiglinBruteImmuneToZombification,
+}
 impl Default for PiglinBruteBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             piglin_brute_immune_to_zombification: PiglinBruteImmuneToZombification(false),
         }
     }
@@ -8336,122 +5141,69 @@ pub struct PillagerIsCelebrating(pub bool);
 pub struct PillagerIsChargingCrossbow(pub bool);
 #[derive(Component)]
 pub struct Pillager;
-
-#[derive(Bundle)]
-struct PillagerBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    pillager_is_celebrating: PillagerIsCelebrating,
-    pillager_is_charging_crossbow: PillagerIsChargingCrossbow,
-}
-impl PillagerBundle {
+impl Pillager {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.pillager_is_celebrating = PillagerIsCelebrating(d.value.into_boolean()?),
-                17 => {
-                    self.pillager_is_charging_crossbow =
-                        PillagerIsChargingCrossbow(d.value.into_boolean()?)
-                }
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(PillagerIsCelebrating(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(PillagerIsChargingCrossbow(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct PillagerBundle {
+    parent: AbstractMonsterBundle,
+    pillager_is_celebrating: PillagerIsCelebrating,
+    pillager_is_charging_crossbow: PillagerIsChargingCrossbow,
+}
 impl Default for PillagerBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             pillager_is_celebrating: PillagerIsCelebrating(false),
             pillager_is_charging_crossbow: PillagerIsChargingCrossbow(false),
         }
@@ -8472,31 +5224,40 @@ pub struct ShoulderLeft(pub azalea_nbt::Tag);
 pub struct ShoulderRight(pub azalea_nbt::Tag);
 #[derive(Component)]
 pub struct Player;
+impl Player {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=14 => AbstractLiving::update_metadata(ecs, entity, d)?,
+            15 => {
+                entity.insert(PlayerAbsorption(d.value.into_float()?));
+            }
+            16 => {
+                entity.insert(Score(d.value.into_int()?));
+            }
+            17 => {
+                entity.insert(PlayerModeCustomisation(d.value.into_byte()?));
+            }
+            18 => {
+                entity.insert(PlayerMainHand(d.value.into_byte()?));
+            }
+            19 => {
+                entity.insert(ShoulderLeft(d.value.into_compound_tag()?));
+            }
+            20 => {
+                entity.insert(ShoulderRight(d.value.into_compound_tag()?));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct PlayerBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
+    parent: AbstractLivingBundle,
     player_absorption: PlayerAbsorption,
     score: Score,
     player_mode_customisation: PlayerModeCustomisation,
@@ -8504,85 +5265,35 @@ struct PlayerBundle {
     shoulder_left: ShoulderLeft,
     shoulder_right: ShoulderRight,
 }
-impl PlayerBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => self.player_absorption = PlayerAbsorption(d.value.into_float()?),
-                16 => self.score = Score(d.value.into_int()?),
-                17 => {
-                    self.player_mode_customisation = PlayerModeCustomisation(d.value.into_byte()?)
-                }
-                18 => self.player_main_hand = PlayerMainHand(d.value.into_byte()?),
-                19 => self.shoulder_left = ShoulderLeft(d.value.into_compound_tag()?),
-                20 => self.shoulder_right = ShoulderRight(d.value.into_compound_tag()?),
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Default for PlayerBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
+            parent: AbstractLivingBundle {
+                parent: AbstractEntityBundle {
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                auto_spin_attack: AutoSpinAttack(false),
+                abstract_living_using_item: AbstractLivingUsingItem(false),
+                health: Health(1.0),
+                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                effect_ambience: EffectAmbience(false),
+                arrow_count: ArrowCount(0),
+                stinger_count: StingerCount(0),
+                sleeping_pos: SleepingPos(None),
+            },
             player_absorption: PlayerAbsorption(0.0),
             score: Score(0),
             player_mode_customisation: PlayerModeCustomisation(0),
@@ -8597,120 +5308,68 @@ impl Default for PlayerBundle {
 pub struct PolarBearStanding(pub bool);
 #[derive(Component)]
 pub struct PolarBear;
-
-#[derive(Bundle)]
-struct PolarBearBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    polar_bear_standing: PolarBearStanding,
-}
-impl PolarBearBundle {
+impl PolarBear {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => self.polar_bear_standing = PolarBearStanding(d.value.into_boolean()?),
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(PolarBearStanding(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct PolarBearBundle {
+    parent: AbstractAnimalBundle,
+    polar_bear_standing: PolarBearStanding,
+}
 impl Default for PolarBearBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             polar_bear_standing: PolarBearStanding(false),
         }
     }
@@ -8720,75 +5379,46 @@ impl Default for PolarBearBundle {
 pub struct PotionItemStack(pub Slot);
 #[derive(Component)]
 pub struct Potion;
-
-#[derive(Bundle)]
-struct PotionBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    potion_item_stack: PotionItemStack,
-}
-impl PotionBundle {
+impl Potion {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.potion_item_stack = PotionItemStack(d.value.into_item_stack()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(PotionItemStack(d.value.into_item_stack()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct PotionBundle {
+    parent: AbstractEntityBundle,
+    potion_item_stack: PotionItemStack,
+}
 impl Default for PotionBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             potion_item_stack: PotionItemStack(Slot::Empty),
         }
     }
@@ -8800,119 +5430,67 @@ pub struct PufferfishFromBucket(pub bool);
 pub struct PuffState(pub i32);
 #[derive(Component)]
 pub struct Pufferfish;
-
-#[derive(Bundle)]
-struct PufferfishBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    pufferfish_from_bucket: PufferfishFromBucket,
-    puff_state: PuffState,
-}
-impl PufferfishBundle {
+impl Pufferfish {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.pufferfish_from_bucket = PufferfishFromBucket(d.value.into_boolean()?),
-                17 => self.puff_state = PuffState(d.value.into_int()?),
+        match d.index {
+            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(PufferfishFromBucket(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(PuffState(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct PufferfishBundle {
+    parent: AbstractCreatureBundle,
+    pufferfish_from_bucket: PufferfishFromBucket,
+    puff_state: PuffState,
+}
 impl Default for PufferfishBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractCreatureBundle {
+                parent: AbstractInsentientBundle {
+                    parent: AbstractLivingBundle {
+                        parent: AbstractEntityBundle {
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
             pufferfish_from_bucket: PufferfishFromBucket(false),
             puff_state: PuffState(0),
         }
@@ -8923,120 +5501,68 @@ impl Default for PufferfishBundle {
 pub struct RabbitKind(pub i32);
 #[derive(Component)]
 pub struct Rabbit;
-
-#[derive(Bundle)]
-struct RabbitBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    rabbit_kind: RabbitKind,
-}
-impl RabbitBundle {
+impl Rabbit {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => self.rabbit_kind = RabbitKind(d.value.into_int()?),
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(RabbitKind(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct RabbitBundle {
+    parent: AbstractAnimalBundle,
+    rabbit_kind: RabbitKind,
+}
 impl Default for RabbitBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             rabbit_kind: RabbitKind(Default::default()),
         }
     }
@@ -9046,117 +5572,65 @@ impl Default for RabbitBundle {
 pub struct RavagerIsCelebrating(pub bool);
 #[derive(Component)]
 pub struct Ravager;
-
-#[derive(Bundle)]
-struct RavagerBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    ravager_is_celebrating: RavagerIsCelebrating,
-}
-impl RavagerBundle {
+impl Ravager {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.ravager_is_celebrating = RavagerIsCelebrating(d.value.into_boolean()?),
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(RavagerIsCelebrating(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct RavagerBundle {
+    parent: AbstractMonsterBundle,
+    ravager_is_celebrating: RavagerIsCelebrating,
+}
 impl Default for RavagerBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             ravager_is_celebrating: RavagerIsCelebrating(false),
         }
     }
@@ -9166,117 +5640,63 @@ impl Default for RavagerBundle {
 pub struct SalmonFromBucket(pub bool);
 #[derive(Component)]
 pub struct Salmon;
-
-#[derive(Bundle)]
-struct SalmonBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    salmon_from_bucket: SalmonFromBucket,
-}
-impl SalmonBundle {
+impl Salmon {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.salmon_from_bucket = SalmonFromBucket(d.value.into_boolean()?),
+        match d.index {
+            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(SalmonFromBucket(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct SalmonBundle {
+    parent: AbstractCreatureBundle,
+    salmon_from_bucket: SalmonFromBucket,
+}
 impl Default for SalmonBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractCreatureBundle {
+                parent: AbstractInsentientBundle {
+                    parent: AbstractLivingBundle {
+                        parent: AbstractEntityBundle {
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
             salmon_from_bucket: SalmonFromBucket(false),
         }
     }
@@ -9286,123 +5706,69 @@ impl Default for SalmonBundle {
 pub struct Sheared(pub bool);
 #[derive(Component)]
 pub struct Sheep;
-
-#[derive(Bundle)]
-struct SheepBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    sheared: Sheared,
-}
-impl SheepBundle {
+impl Sheep {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.sheared = Sheared(bitfield & 0x10 != 0);
-                }
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(Sheared(bitfield & 0x10 != 0));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct SheepBundle {
+    parent: AbstractAnimalBundle,
+    sheared: Sheared,
+}
 impl Default for SheepBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             sheared: Sheared(false),
         }
     }
@@ -9416,121 +5782,71 @@ pub struct Peek(pub u8);
 pub struct ShulkerColor(pub u8);
 #[derive(Component)]
 pub struct Shulker;
-
-#[derive(Bundle)]
-struct ShulkerBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    attach_face: AttachFace,
-    peek: Peek,
-    shulker_color: ShulkerColor,
-}
-impl ShulkerBundle {
+impl Shulker {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.attach_face = AttachFace(d.value.into_direction()?),
-                17 => self.peek = Peek(d.value.into_byte()?),
-                18 => self.shulker_color = ShulkerColor(d.value.into_byte()?),
+        match d.index {
+            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(AttachFace(d.value.into_direction()?));
+            }
+            17 => {
+                entity.insert(Peek(d.value.into_byte()?));
+            }
+            18 => {
+                entity.insert(ShulkerColor(d.value.into_byte()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ShulkerBundle {
+    parent: AbstractCreatureBundle,
+    attach_face: AttachFace,
+    peek: Peek,
+    shulker_color: ShulkerColor,
+}
 impl Default for ShulkerBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractCreatureBundle {
+                parent: AbstractInsentientBundle {
+                    parent: AbstractLivingBundle {
+                        parent: AbstractEntityBundle {
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
             attach_face: AttachFace(Default::default()),
             peek: Peek(0),
             shulker_color: ShulkerColor(16),
@@ -9540,188 +5856,103 @@ impl Default for ShulkerBundle {
 
 #[derive(Component)]
 pub struct ShulkerBullet;
-
-#[derive(Bundle)]
-struct ShulkerBulletBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-}
-impl ShulkerBulletBundle {
+impl ShulkerBullet {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-            }
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ShulkerBulletBundle {
+    parent: AbstractEntityBundle,
+}
 impl Default for ShulkerBulletBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
         }
     }
 }
 
 #[derive(Component)]
 pub struct Silverfish;
-
-#[derive(Bundle)]
-struct SilverfishBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-}
-impl SilverfishBundle {
+impl Silverfish {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-            }
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct SilverfishBundle {
+    parent: AbstractMonsterBundle,
+}
 impl Default for SilverfishBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
         }
     }
 }
@@ -9730,117 +5961,65 @@ impl Default for SilverfishBundle {
 pub struct StrayConversion(pub bool);
 #[derive(Component)]
 pub struct Skeleton;
-
-#[derive(Bundle)]
-struct SkeletonBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    stray_conversion: StrayConversion,
-}
-impl SkeletonBundle {
+impl Skeleton {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.stray_conversion = StrayConversion(d.value.into_boolean()?),
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(StrayConversion(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct SkeletonBundle {
+    parent: AbstractMonsterBundle,
+    stray_conversion: StrayConversion,
+}
 impl Default for SkeletonBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             stray_conversion: StrayConversion(false),
         }
     }
@@ -9860,35 +6039,33 @@ pub struct SkeletonHorseSaddled(pub bool);
 pub struct SkeletonHorseOwnerUuid(pub Option<Uuid>);
 #[derive(Component)]
 pub struct SkeletonHorse;
+impl SkeletonHorse {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(SkeletonHorseTamed(bitfield & 0x2 != 0));
+                entity.insert(SkeletonHorseEating(bitfield & 0x10 != 0));
+                entity.insert(SkeletonHorseStanding(bitfield & 0x20 != 0));
+                entity.insert(SkeletonHorseBred(bitfield & 0x8 != 0));
+                entity.insert(SkeletonHorseSaddled(bitfield & 0x4 != 0));
+            }
+            18 => {
+                entity.insert(SkeletonHorseOwnerUuid(d.value.into_optional_uuid()?));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct SkeletonHorseBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
+    parent: AbstractAnimalBundle,
     skeleton_horse_tamed: SkeletonHorseTamed,
     skeleton_horse_eating: SkeletonHorseEating,
     skeleton_horse_standing: SkeletonHorseStanding,
@@ -9896,100 +6073,47 @@ struct SkeletonHorseBundle {
     skeleton_horse_saddled: SkeletonHorseSaddled,
     skeleton_horse_owner_uuid: SkeletonHorseOwnerUuid,
 }
-impl SkeletonHorseBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.skeleton_horse_tamed = SkeletonHorseTamed(bitfield & 0x2 != 0);
-                    self.skeleton_horse_eating = SkeletonHorseEating(bitfield & 0x10 != 0);
-                    self.skeleton_horse_standing = SkeletonHorseStanding(bitfield & 0x20 != 0);
-                    self.skeleton_horse_bred = SkeletonHorseBred(bitfield & 0x8 != 0);
-                    self.skeleton_horse_saddled = SkeletonHorseSaddled(bitfield & 0x4 != 0);
-                }
-                18 => {
-                    self.skeleton_horse_owner_uuid =
-                        SkeletonHorseOwnerUuid(d.value.into_optional_uuid()?)
-                }
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Default for SkeletonHorseBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             skeleton_horse_tamed: SkeletonHorseTamed(false),
             skeleton_horse_eating: SkeletonHorseEating(false),
             skeleton_horse_standing: SkeletonHorseStanding(false),
@@ -10002,117 +6126,61 @@ impl Default for SkeletonHorseBundle {
 
 #[derive(Component)]
 pub struct Slime;
-
-#[derive(Bundle)]
-struct SlimeBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    slime_size: SlimeSize,
-}
-impl SlimeBundle {
+impl Slime {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.slime_size = SlimeSize(d.value.into_int()?),
+        match d.index {
+            0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(SlimeSize(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct SlimeBundle {
+    parent: AbstractInsentientBundle,
+    slime_size: SlimeSize,
+}
 impl Default for SlimeBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractInsentientBundle {
+                parent: AbstractLivingBundle {
+                    parent: AbstractEntityBundle {
+                        on_fire: OnFire(false),
+                        shift_key_down: ShiftKeyDown(false),
+                        sprinting: Sprinting(false),
+                        swimming: Swimming(false),
+                        currently_glowing: CurrentlyGlowing(false),
+                        invisible: Invisible(false),
+                        fall_flying: FallFlying(false),
+                        air_supply: AirSupply(Default::default()),
+                        custom_name: CustomName(None),
+                        custom_name_visible: CustomNameVisible(false),
+                        silent: Silent(false),
+                        no_gravity: NoGravity(false),
+                        pose: Pose::default(),
+                        ticks_frozen: TicksFrozen(0),
+                    },
+                    auto_spin_attack: AutoSpinAttack(false),
+                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                    health: Health(1.0),
+                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                    effect_ambience: EffectAmbience(false),
+                    arrow_count: ArrowCount(0),
+                    stinger_count: StingerCount(0),
+                    sleeping_pos: SleepingPos(None),
+                },
+                no_ai: NoAi(false),
+                left_handed: LeftHanded(false),
+                aggressive: Aggressive(false),
+            },
             slime_size: SlimeSize(1),
         }
     }
@@ -10122,78 +6190,46 @@ impl Default for SlimeBundle {
 pub struct SmallFireballItemStack(pub Slot);
 #[derive(Component)]
 pub struct SmallFireball;
-
-#[derive(Bundle)]
-struct SmallFireballBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    small_fireball_item_stack: SmallFireballItemStack,
-}
-impl SmallFireballBundle {
+impl SmallFireball {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    self.small_fireball_item_stack =
-                        SmallFireballItemStack(d.value.into_item_stack()?)
-                }
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(SmallFireballItemStack(d.value.into_item_stack()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct SmallFireballBundle {
+    parent: AbstractEntityBundle,
+    small_fireball_item_stack: SmallFireballItemStack,
+}
 impl Default for SmallFireballBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             small_fireball_item_stack: SmallFireballItemStack(Slot::Empty),
         }
     }
@@ -10203,120 +6239,64 @@ impl Default for SmallFireballBundle {
 pub struct HasPumpkin(pub bool);
 #[derive(Component)]
 pub struct SnowGolem;
-
-#[derive(Bundle)]
-struct SnowGolemBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    has_pumpkin: HasPumpkin,
-}
-impl SnowGolemBundle {
+impl SnowGolem {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.has_pumpkin = HasPumpkin(bitfield & 0x10 != 0);
-                }
+        match d.index {
+            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            16 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(HasPumpkin(bitfield & 0x10 != 0));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct SnowGolemBundle {
+    parent: AbstractCreatureBundle,
+    has_pumpkin: HasPumpkin,
+}
 impl Default for SnowGolemBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractCreatureBundle {
+                parent: AbstractInsentientBundle {
+                    parent: AbstractLivingBundle {
+                        parent: AbstractEntityBundle {
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
             has_pumpkin: HasPumpkin(true),
         }
     }
@@ -10326,75 +6306,46 @@ impl Default for SnowGolemBundle {
 pub struct SnowballItemStack(pub Slot);
 #[derive(Component)]
 pub struct Snowball;
-
-#[derive(Bundle)]
-struct SnowballBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    snowball_item_stack: SnowballItemStack,
-}
-impl SnowballBundle {
+impl Snowball {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.snowball_item_stack = SnowballItemStack(d.value.into_item_stack()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(SnowballItemStack(d.value.into_item_stack()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct SnowballBundle {
+    parent: AbstractEntityBundle,
+    snowball_item_stack: SnowballItemStack,
+}
 impl Default for SnowballBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             snowball_item_stack: SnowballItemStack(Slot::Empty),
         }
     }
@@ -10402,91 +6353,50 @@ impl Default for SnowballBundle {
 
 #[derive(Component)]
 pub struct SpawnerMinecart;
-
-#[derive(Bundle)]
-struct SpawnerMinecartBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    abstract_minecart_hurt: AbstractMinecartHurt,
-    abstract_minecart_hurtdir: AbstractMinecartHurtdir,
-    abstract_minecart_damage: AbstractMinecartDamage,
-    display_block: DisplayBlock,
-    display_offset: DisplayOffset,
-    custom_display: CustomDisplay,
-}
-impl SpawnerMinecartBundle {
+impl SpawnerMinecart {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.abstract_minecart_hurt = AbstractMinecartHurt(d.value.into_int()?),
-                9 => self.abstract_minecart_hurtdir = AbstractMinecartHurtdir(d.value.into_int()?),
-                10 => self.abstract_minecart_damage = AbstractMinecartDamage(d.value.into_float()?),
-                11 => self.display_block = DisplayBlock(d.value.into_int()?),
-                12 => self.display_offset = DisplayOffset(d.value.into_int()?),
-                13 => self.custom_display = CustomDisplay(d.value.into_boolean()?),
-            }
+        match d.index {
+            0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct SpawnerMinecartBundle {
+    parent: AbstractMinecartBundle,
+}
 impl Default for SpawnerMinecartBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            abstract_minecart_hurt: AbstractMinecartHurt(0),
-            abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
-            abstract_minecart_damage: AbstractMinecartDamage(0.0),
-            display_block: DisplayBlock(Default::default()),
-            display_offset: DisplayOffset(6),
-            custom_display: CustomDisplay(false),
+            parent: AbstractMinecartBundle {
+                parent: AbstractEntityBundle {
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                abstract_minecart_hurt: AbstractMinecartHurt(0),
+                abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+                abstract_minecart_damage: AbstractMinecartDamage(0.0),
+                display_block: DisplayBlock(Default::default()),
+                display_offset: DisplayOffset(6),
+                custom_display: CustomDisplay(false),
+            },
         }
     }
 }
@@ -10501,88 +6411,55 @@ pub struct SpectralArrowNoPhysics(pub bool);
 pub struct SpectralArrowPierceLevel(pub u8);
 #[derive(Component)]
 pub struct SpectralArrow;
-
-#[derive(Bundle)]
-struct SpectralArrowBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    spectral_arrow_crit_arrow: SpectralArrowCritArrow,
-    spectral_arrow_shot_from_crossbow: SpectralArrowShotFromCrossbow,
-    spectral_arrow_no_physics: SpectralArrowNoPhysics,
-    spectral_arrow_pierce_level: SpectralArrowPierceLevel,
-}
-impl SpectralArrowBundle {
+impl SpectralArrow {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.spectral_arrow_crit_arrow = SpectralArrowCritArrow(bitfield & 0x1 != 0);
-                    self.spectral_arrow_shot_from_crossbow =
-                        SpectralArrowShotFromCrossbow(bitfield & 0x4 != 0);
-                    self.spectral_arrow_no_physics = SpectralArrowNoPhysics(bitfield & 0x2 != 0);
-                }
-                9 => {
-                    self.spectral_arrow_pierce_level =
-                        SpectralArrowPierceLevel(d.value.into_byte()?)
-                }
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(SpectralArrowCritArrow(bitfield & 0x1 != 0));
+                entity.insert(SpectralArrowShotFromCrossbow(bitfield & 0x4 != 0));
+                entity.insert(SpectralArrowNoPhysics(bitfield & 0x2 != 0));
+            }
+            9 => {
+                entity.insert(SpectralArrowPierceLevel(d.value.into_byte()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct SpectralArrowBundle {
+    parent: AbstractEntityBundle,
+    spectral_arrow_crit_arrow: SpectralArrowCritArrow,
+    spectral_arrow_shot_from_crossbow: SpectralArrowShotFromCrossbow,
+    spectral_arrow_no_physics: SpectralArrowNoPhysics,
+    spectral_arrow_pierce_level: SpectralArrowPierceLevel,
+}
 impl Default for SpectralArrowBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             spectral_arrow_crit_arrow: SpectralArrowCritArrow(false),
             spectral_arrow_shot_from_crossbow: SpectralArrowShotFromCrossbow(false),
             spectral_arrow_no_physics: SpectralArrowNoPhysics(false),
@@ -10593,120 +6470,66 @@ impl Default for SpectralArrowBundle {
 
 #[derive(Component)]
 pub struct Spider;
-
-#[derive(Bundle)]
-struct SpiderBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    climbing: Climbing,
-}
-impl SpiderBundle {
+impl Spider {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.climbing = Climbing(bitfield & 0x1 != 0);
-                }
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(Climbing(bitfield & 0x1 != 0));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct SpiderBundle {
+    parent: AbstractMonsterBundle,
+    climbing: Climbing,
+}
 impl Default for SpiderBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             climbing: Climbing(false),
         }
     }
@@ -10714,230 +6537,120 @@ impl Default for SpiderBundle {
 
 #[derive(Component)]
 pub struct Squid;
-
-#[derive(Bundle)]
-struct SquidBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-}
-impl SquidBundle {
+impl Squid {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-            }
+        match d.index {
+            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct SquidBundle {
+    parent: AbstractCreatureBundle,
+}
 impl Default for SquidBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractCreatureBundle {
+                parent: AbstractInsentientBundle {
+                    parent: AbstractLivingBundle {
+                        parent: AbstractEntityBundle {
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
         }
     }
 }
 
 #[derive(Component)]
 pub struct Stray;
-
-#[derive(Bundle)]
-struct StrayBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-}
-impl StrayBundle {
+impl Stray {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-            }
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct StrayBundle {
+    parent: AbstractMonsterBundle,
+}
 impl Default for StrayBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
         }
     }
 }
@@ -10950,124 +6663,76 @@ pub struct Suffocating(pub bool);
 pub struct StriderSaddle(pub bool);
 #[derive(Component)]
 pub struct Strider;
-
-#[derive(Bundle)]
-struct StriderBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    strider_boost_time: StriderBoostTime,
-    suffocating: Suffocating,
-    strider_saddle: StriderSaddle,
-}
-impl StriderBundle {
+impl Strider {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => self.strider_boost_time = StriderBoostTime(d.value.into_int()?),
-                18 => self.suffocating = Suffocating(d.value.into_boolean()?),
-                19 => self.strider_saddle = StriderSaddle(d.value.into_boolean()?),
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(StriderBoostTime(d.value.into_int()?));
+            }
+            18 => {
+                entity.insert(Suffocating(d.value.into_boolean()?));
+            }
+            19 => {
+                entity.insert(StriderSaddle(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct StriderBundle {
+    parent: AbstractAnimalBundle,
+    strider_boost_time: StriderBoostTime,
+    suffocating: Suffocating,
+    strider_saddle: StriderSaddle,
+}
 impl Default for StriderBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             strider_boost_time: StriderBoostTime(0),
             suffocating: Suffocating(false),
             strider_saddle: StriderSaddle(false),
@@ -11079,117 +6744,63 @@ impl Default for StriderBundle {
 pub struct TadpoleFromBucket(pub bool);
 #[derive(Component)]
 pub struct Tadpole;
-
-#[derive(Bundle)]
-struct TadpoleBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    tadpole_from_bucket: TadpoleFromBucket,
-}
-impl TadpoleBundle {
+impl Tadpole {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.tadpole_from_bucket = TadpoleFromBucket(d.value.into_boolean()?),
+        match d.index {
+            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(TadpoleFromBucket(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct TadpoleBundle {
+    parent: AbstractCreatureBundle,
+    tadpole_from_bucket: TadpoleFromBucket,
+}
 impl Default for TadpoleBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractCreatureBundle {
+                parent: AbstractInsentientBundle {
+                    parent: AbstractLivingBundle {
+                        parent: AbstractEntityBundle {
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
             tadpole_from_bucket: TadpoleFromBucket(false),
         }
     }
@@ -11199,75 +6810,46 @@ impl Default for TadpoleBundle {
 pub struct Fuse(pub i32);
 #[derive(Component)]
 pub struct Tnt;
-
-#[derive(Bundle)]
-struct TntBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    fuse: Fuse,
-}
-impl TntBundle {
+impl Tnt {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.fuse = Fuse(d.value.into_int()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(Fuse(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct TntBundle {
+    parent: AbstractEntityBundle,
+    fuse: Fuse,
+}
 impl Default for TntBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             fuse: Fuse(80),
         }
     }
@@ -11275,242 +6857,126 @@ impl Default for TntBundle {
 
 #[derive(Component)]
 pub struct TntMinecart;
-
-#[derive(Bundle)]
-struct TntMinecartBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    abstract_minecart_hurt: AbstractMinecartHurt,
-    abstract_minecart_hurtdir: AbstractMinecartHurtdir,
-    abstract_minecart_damage: AbstractMinecartDamage,
-    display_block: DisplayBlock,
-    display_offset: DisplayOffset,
-    custom_display: CustomDisplay,
-}
-impl TntMinecartBundle {
+impl TntMinecart {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.abstract_minecart_hurt = AbstractMinecartHurt(d.value.into_int()?),
-                9 => self.abstract_minecart_hurtdir = AbstractMinecartHurtdir(d.value.into_int()?),
-                10 => self.abstract_minecart_damage = AbstractMinecartDamage(d.value.into_float()?),
-                11 => self.display_block = DisplayBlock(d.value.into_int()?),
-                12 => self.display_offset = DisplayOffset(d.value.into_int()?),
-                13 => self.custom_display = CustomDisplay(d.value.into_boolean()?),
-            }
+        match d.index {
+            0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct TntMinecartBundle {
+    parent: AbstractMinecartBundle,
+}
 impl Default for TntMinecartBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            abstract_minecart_hurt: AbstractMinecartHurt(0),
-            abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
-            abstract_minecart_damage: AbstractMinecartDamage(0.0),
-            display_block: DisplayBlock(Default::default()),
-            display_offset: DisplayOffset(6),
-            custom_display: CustomDisplay(false),
+            parent: AbstractMinecartBundle {
+                parent: AbstractEntityBundle {
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                abstract_minecart_hurt: AbstractMinecartHurt(0),
+                abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+                abstract_minecart_damage: AbstractMinecartDamage(0.0),
+                display_block: DisplayBlock(Default::default()),
+                display_offset: DisplayOffset(6),
+                custom_display: CustomDisplay(false),
+            },
         }
     }
 }
 
 #[derive(Component)]
 pub struct TraderLlama;
-
-#[derive(Bundle)]
-struct TraderLlamaBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    llama_tamed: LlamaTamed,
-    llama_eating: LlamaEating,
-    llama_standing: LlamaStanding,
-    llama_bred: LlamaBred,
-    llama_saddled: LlamaSaddled,
-    llama_owner_uuid: LlamaOwnerUuid,
-    llama_chest: LlamaChest,
-    strength: Strength,
-    swag: Swag,
-    llama_variant: LlamaVariant,
-}
-impl TraderLlamaBundle {
+impl TraderLlama {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.llama_tamed = LlamaTamed(bitfield & 0x2 != 0);
-                    self.llama_eating = LlamaEating(bitfield & 0x10 != 0);
-                    self.llama_standing = LlamaStanding(bitfield & 0x20 != 0);
-                    self.llama_bred = LlamaBred(bitfield & 0x8 != 0);
-                    self.llama_saddled = LlamaSaddled(bitfield & 0x4 != 0);
-                }
-                18 => self.llama_owner_uuid = LlamaOwnerUuid(d.value.into_optional_uuid()?),
-                19 => self.llama_chest = LlamaChest(d.value.into_boolean()?),
-                20 => self.strength = Strength(d.value.into_int()?),
-                21 => self.swag = Swag(d.value.into_int()?),
-                22 => self.llama_variant = LlamaVariant(d.value.into_int()?),
-            }
+        match d.index {
+            0..=22 => Llama::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct TraderLlamaBundle {
+    parent: LlamaBundle,
+}
 impl Default for TraderLlamaBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
-            llama_tamed: LlamaTamed(false),
-            llama_eating: LlamaEating(false),
-            llama_standing: LlamaStanding(false),
-            llama_bred: LlamaBred(false),
-            llama_saddled: LlamaSaddled(false),
-            llama_owner_uuid: LlamaOwnerUuid(None),
-            llama_chest: LlamaChest(false),
-            strength: Strength(0),
-            swag: Swag(-1),
-            llama_variant: LlamaVariant(0),
+            parent: LlamaBundle {
+                parent: AbstractAnimalBundle {
+                    parent: AbstractAgeableBundle {
+                        parent: AbstractCreatureBundle {
+                            parent: AbstractInsentientBundle {
+                                parent: AbstractLivingBundle {
+                                    parent: AbstractEntityBundle {
+                                        on_fire: OnFire(false),
+                                        shift_key_down: ShiftKeyDown(false),
+                                        sprinting: Sprinting(false),
+                                        swimming: Swimming(false),
+                                        currently_glowing: CurrentlyGlowing(false),
+                                        invisible: Invisible(false),
+                                        fall_flying: FallFlying(false),
+                                        air_supply: AirSupply(Default::default()),
+                                        custom_name: CustomName(None),
+                                        custom_name_visible: CustomNameVisible(false),
+                                        silent: Silent(false),
+                                        no_gravity: NoGravity(false),
+                                        pose: Pose::default(),
+                                        ticks_frozen: TicksFrozen(0),
+                                    },
+                                    auto_spin_attack: AutoSpinAttack(false),
+                                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                                    health: Health(1.0),
+                                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                    effect_ambience: EffectAmbience(false),
+                                    arrow_count: ArrowCount(0),
+                                    stinger_count: StingerCount(0),
+                                    sleeping_pos: SleepingPos(None),
+                                },
+                                no_ai: NoAi(false),
+                                left_handed: LeftHanded(false),
+                                aggressive: Aggressive(false),
+                            },
+                        },
+                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                    },
+                },
+                llama_tamed: LlamaTamed(false),
+                llama_eating: LlamaEating(false),
+                llama_standing: LlamaStanding(false),
+                llama_bred: LlamaBred(false),
+                llama_saddled: LlamaSaddled(false),
+                llama_owner_uuid: LlamaOwnerUuid(None),
+                llama_chest: LlamaChest(false),
+                strength: Strength(0),
+                swag: Swag(-1),
+                llama_variant: LlamaVariant(0),
+            },
         }
     }
 }
@@ -11529,23 +6995,37 @@ pub struct Loyalty(pub u8);
 pub struct Foil(pub bool);
 #[derive(Component)]
 pub struct Trident;
+impl Trident {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(TridentCritArrow(bitfield & 0x1 != 0));
+                entity.insert(TridentShotFromCrossbow(bitfield & 0x4 != 0));
+                entity.insert(TridentNoPhysics(bitfield & 0x2 != 0));
+            }
+            9 => {
+                entity.insert(TridentPierceLevel(d.value.into_byte()?));
+            }
+            10 => {
+                entity.insert(Loyalty(d.value.into_byte()?));
+            }
+            11 => {
+                entity.insert(Foil(d.value.into_boolean()?));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct TridentBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
+    parent: AbstractEntityBundle,
     trident_crit_arrow: TridentCritArrow,
     trident_shot_from_crossbow: TridentShotFromCrossbow,
     trident_no_physics: TridentNoPhysics,
@@ -11553,64 +7033,25 @@ struct TridentBundle {
     loyalty: Loyalty,
     foil: Foil,
 }
-impl TridentBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.trident_crit_arrow = TridentCritArrow(bitfield & 0x1 != 0);
-                    self.trident_shot_from_crossbow = TridentShotFromCrossbow(bitfield & 0x4 != 0);
-                    self.trident_no_physics = TridentNoPhysics(bitfield & 0x2 != 0);
-                }
-                9 => self.trident_pierce_level = TridentPierceLevel(d.value.into_byte()?),
-                10 => self.loyalty = Loyalty(d.value.into_byte()?),
-                11 => self.foil = Foil(d.value.into_boolean()?),
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Default for TridentBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             trident_crit_arrow: TridentCritArrow(false),
             trident_shot_from_crossbow: TridentShotFromCrossbow(false),
             trident_no_physics: TridentNoPhysics(false),
@@ -11627,123 +7068,67 @@ pub struct TropicalFishFromBucket(pub bool);
 pub struct TropicalFishTypeVariant(pub i32);
 #[derive(Component)]
 pub struct TropicalFish;
-
-#[derive(Bundle)]
-struct TropicalFishBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    tropical_fish_from_bucket: TropicalFishFromBucket,
-    tropical_fish_type_variant: TropicalFishTypeVariant,
-}
-impl TropicalFishBundle {
+impl TropicalFish {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => {
-                    self.tropical_fish_from_bucket = TropicalFishFromBucket(d.value.into_boolean()?)
-                }
-                17 => {
-                    self.tropical_fish_type_variant = TropicalFishTypeVariant(d.value.into_int()?)
-                }
+        match d.index {
+            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(TropicalFishFromBucket(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(TropicalFishTypeVariant(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct TropicalFishBundle {
+    parent: AbstractCreatureBundle,
+    tropical_fish_from_bucket: TropicalFishFromBucket,
+    tropical_fish_type_variant: TropicalFishTypeVariant,
+}
 impl Default for TropicalFishBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractCreatureBundle {
+                parent: AbstractInsentientBundle {
+                    parent: AbstractLivingBundle {
+                        parent: AbstractEntityBundle {
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
             tropical_fish_from_bucket: TropicalFishFromBucket(false),
             tropical_fish_type_variant: TropicalFishTypeVariant(0),
         }
@@ -11764,35 +7149,40 @@ pub struct GoingHome(pub bool);
 pub struct Travelling(pub bool);
 #[derive(Component)]
 pub struct Turtle;
+impl Turtle {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(HomePos(d.value.into_block_pos()?));
+            }
+            18 => {
+                entity.insert(HasEgg(d.value.into_boolean()?));
+            }
+            19 => {
+                entity.insert(LayingEgg(d.value.into_boolean()?));
+            }
+            20 => {
+                entity.insert(TravelPos(d.value.into_block_pos()?));
+            }
+            21 => {
+                entity.insert(GoingHome(d.value.into_boolean()?));
+            }
+            22 => {
+                entity.insert(Travelling(d.value.into_boolean()?));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct TurtleBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
+    parent: AbstractAnimalBundle,
     home_pos: HomePos,
     has_egg: HasEgg,
     laying_egg: LayingEgg,
@@ -11800,94 +7190,47 @@ struct TurtleBundle {
     going_home: GoingHome,
     travelling: Travelling,
 }
-impl TurtleBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => self.home_pos = HomePos(d.value.into_block_pos()?),
-                18 => self.has_egg = HasEgg(d.value.into_boolean()?),
-                19 => self.laying_egg = LayingEgg(d.value.into_boolean()?),
-                20 => self.travel_pos = TravelPos(d.value.into_block_pos()?),
-                21 => self.going_home = GoingHome(d.value.into_boolean()?),
-                22 => self.travelling = Travelling(d.value.into_boolean()?),
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Default for TurtleBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             home_pos: HomePos(BlockPos::new(0, 0, 0)),
             has_egg: HasEgg(false),
             laying_egg: LayingEgg(false),
@@ -11902,117 +7245,65 @@ impl Default for TurtleBundle {
 pub struct VexFlags(pub u8);
 #[derive(Component)]
 pub struct Vex;
-
-#[derive(Bundle)]
-struct VexBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    vex_flags: VexFlags,
-}
-impl VexBundle {
+impl Vex {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.vex_flags = VexFlags(d.value.into_byte()?),
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(VexFlags(d.value.into_byte()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct VexBundle {
+    parent: AbstractMonsterBundle,
+    vex_flags: VexFlags,
+}
 impl Default for VexBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             vex_flags: VexFlags(0),
         }
     }
@@ -12024,125 +7315,70 @@ pub struct VillagerUnhappyCounter(pub i32);
 pub struct VillagerVillagerData(pub VillagerData);
 #[derive(Component)]
 pub struct Villager;
-
-#[derive(Bundle)]
-struct VillagerBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    villager_unhappy_counter: VillagerUnhappyCounter,
-    villager_villager_data: VillagerVillagerData,
-}
-impl VillagerBundle {
+impl Villager {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => self.villager_unhappy_counter = VillagerUnhappyCounter(d.value.into_int()?),
-                18 => {
-                    self.villager_villager_data =
-                        VillagerVillagerData(d.value.into_villager_data()?)
-                }
+        match d.index {
+            0..=16 => AbstractAgeable::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(VillagerUnhappyCounter(d.value.into_int()?));
+            }
+            18 => {
+                entity.insert(VillagerVillagerData(d.value.into_villager_data()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct VillagerBundle {
+    parent: AbstractAgeableBundle,
+    villager_unhappy_counter: VillagerUnhappyCounter,
+    villager_villager_data: VillagerVillagerData,
+}
 impl Default for VillagerBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAgeableBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+                abstract_ageable_baby: AbstractAgeableBaby(false),
+            },
             villager_unhappy_counter: VillagerUnhappyCounter(0),
             villager_villager_data: VillagerVillagerData(VillagerData {
                 kind: azalea_registry::VillagerKind::Plains,
@@ -12157,120 +7393,65 @@ impl Default for VillagerBundle {
 pub struct VindicatorIsCelebrating(pub bool);
 #[derive(Component)]
 pub struct Vindicator;
-
-#[derive(Bundle)]
-struct VindicatorBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    vindicator_is_celebrating: VindicatorIsCelebrating,
-}
-impl VindicatorBundle {
+impl Vindicator {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => {
-                    self.vindicator_is_celebrating =
-                        VindicatorIsCelebrating(d.value.into_boolean()?)
-                }
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(VindicatorIsCelebrating(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct VindicatorBundle {
+    parent: AbstractMonsterBundle,
+    vindicator_is_celebrating: VindicatorIsCelebrating,
+}
 impl Default for VindicatorBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             vindicator_is_celebrating: VindicatorIsCelebrating(false),
         }
     }
@@ -12280,123 +7461,66 @@ impl Default for VindicatorBundle {
 pub struct WanderingTraderUnhappyCounter(pub i32);
 #[derive(Component)]
 pub struct WanderingTrader;
-
-#[derive(Bundle)]
-struct WanderingTraderBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    wandering_trader_unhappy_counter: WanderingTraderUnhappyCounter,
-}
-impl WanderingTraderBundle {
+impl WanderingTrader {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    self.wandering_trader_unhappy_counter =
-                        WanderingTraderUnhappyCounter(d.value.into_int()?)
-                }
+        match d.index {
+            0..=16 => AbstractAgeable::update_metadata(ecs, entity, d)?,
+            17 => {
+                entity.insert(WanderingTraderUnhappyCounter(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct WanderingTraderBundle {
+    parent: AbstractAgeableBundle,
+    wandering_trader_unhappy_counter: WanderingTraderUnhappyCounter,
+}
 impl Default for WanderingTraderBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAgeableBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+                abstract_ageable_baby: AbstractAgeableBaby(false),
+            },
             wandering_trader_unhappy_counter: WanderingTraderUnhappyCounter(0),
         }
     }
@@ -12406,117 +7530,65 @@ impl Default for WanderingTraderBundle {
 pub struct ClientAngerLevel(pub i32);
 #[derive(Component)]
 pub struct Warden;
-
-#[derive(Bundle)]
-struct WardenBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    client_anger_level: ClientAngerLevel,
-}
-impl WardenBundle {
+impl Warden {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.client_anger_level = ClientAngerLevel(d.value.into_int()?),
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(ClientAngerLevel(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct WardenBundle {
+    parent: AbstractMonsterBundle,
+    client_anger_level: ClientAngerLevel,
+}
 impl Default for WardenBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             client_anger_level: ClientAngerLevel(0),
         }
     }
@@ -12528,119 +7600,69 @@ pub struct WitchIsCelebrating(pub bool);
 pub struct WitchUsingItem(pub bool);
 #[derive(Component)]
 pub struct Witch;
-
-#[derive(Bundle)]
-struct WitchBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    witch_is_celebrating: WitchIsCelebrating,
-    witch_using_item: WitchUsingItem,
-}
-impl WitchBundle {
+impl Witch {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.witch_is_celebrating = WitchIsCelebrating(d.value.into_boolean()?),
-                17 => self.witch_using_item = WitchUsingItem(d.value.into_boolean()?),
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(WitchIsCelebrating(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(WitchUsingItem(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct WitchBundle {
+    parent: AbstractMonsterBundle,
+    witch_is_celebrating: WitchIsCelebrating,
+    witch_using_item: WitchUsingItem,
+}
 impl Default for WitchBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             witch_is_celebrating: WitchIsCelebrating(false),
             witch_using_item: WitchUsingItem(false),
         }
@@ -12657,123 +7679,77 @@ pub struct TargetC(pub i32);
 pub struct Inv(pub i32);
 #[derive(Component)]
 pub struct Wither;
-
-#[derive(Bundle)]
-struct WitherBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    target_a: TargetA,
-    target_b: TargetB,
-    target_c: TargetC,
-    inv: Inv,
-}
-impl WitherBundle {
+impl Wither {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.target_a = TargetA(d.value.into_int()?),
-                17 => self.target_b = TargetB(d.value.into_int()?),
-                18 => self.target_c = TargetC(d.value.into_int()?),
-                19 => self.inv = Inv(d.value.into_int()?),
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(TargetA(d.value.into_int()?));
+            }
+            17 => {
+                entity.insert(TargetB(d.value.into_int()?));
+            }
+            18 => {
+                entity.insert(TargetC(d.value.into_int()?));
+            }
+            19 => {
+                entity.insert(Inv(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct WitherBundle {
+    parent: AbstractMonsterBundle,
+    target_a: TargetA,
+    target_b: TargetB,
+    target_c: TargetC,
+    inv: Inv,
+}
 impl Default for WitherBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             target_a: TargetA(0),
             target_b: TargetB(0),
             target_c: TargetC(0),
@@ -12784,115 +7760,61 @@ impl Default for WitherBundle {
 
 #[derive(Component)]
 pub struct WitherSkeleton;
-
-#[derive(Bundle)]
-struct WitherSkeletonBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-}
-impl WitherSkeletonBundle {
+impl WitherSkeleton {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-            }
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct WitherSkeletonBundle {
+    parent: AbstractMonsterBundle,
+}
 impl Default for WitherSkeletonBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
         }
     }
 }
@@ -12901,75 +7823,46 @@ impl Default for WitherSkeletonBundle {
 pub struct Dangerous(pub bool);
 #[derive(Component)]
 pub struct WitherSkull;
-
-#[derive(Bundle)]
-struct WitherSkullBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    dangerous: Dangerous,
-}
-impl WitherSkullBundle {
+impl WitherSkull {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => self.dangerous = Dangerous(d.value.into_boolean()?),
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(Dangerous(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct WitherSkullBundle {
+    parent: AbstractEntityBundle,
+    dangerous: Dangerous,
+}
 impl Default for WitherSkullBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             dangerous: Dangerous(false),
         }
     }
@@ -12983,136 +7876,81 @@ pub struct WolfCollarColor(pub i32);
 pub struct WolfRemainingAngerTime(pub i32);
 #[derive(Component)]
 pub struct Wolf;
-
-#[derive(Bundle)]
-struct WolfBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
-    tame: Tame,
-    in_sitting_pose: InSittingPose,
-    owneruuid: Owneruuid,
-    wolf_interested: WolfInterested,
-    wolf_collar_color: WolfCollarColor,
-    wolf_remaining_anger_time: WolfRemainingAngerTime,
-}
-impl WolfBundle {
+impl Wolf {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.tame = Tame(bitfield & 0x4 != 0);
-                    self.in_sitting_pose = InSittingPose(bitfield & 0x1 != 0);
-                }
-                18 => self.owneruuid = Owneruuid(d.value.into_optional_uuid()?),
-                19 => self.wolf_interested = WolfInterested(d.value.into_boolean()?),
-                20 => self.wolf_collar_color = WolfCollarColor(d.value.into_int()?),
-                21 => self.wolf_remaining_anger_time = WolfRemainingAngerTime(d.value.into_int()?),
+        match d.index {
+            0..=18 => AbstractTameable::update_metadata(ecs, entity, d)?,
+            19 => {
+                entity.insert(WolfInterested(d.value.into_boolean()?));
+            }
+            20 => {
+                entity.insert(WolfCollarColor(d.value.into_int()?));
+            }
+            21 => {
+                entity.insert(WolfRemainingAngerTime(d.value.into_int()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct WolfBundle {
+    parent: AbstractTameableBundle,
+    wolf_interested: WolfInterested,
+    wolf_collar_color: WolfCollarColor,
+    wolf_remaining_anger_time: WolfRemainingAngerTime,
+}
 impl Default for WolfBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
-            tame: Tame(false),
-            in_sitting_pose: InSittingPose(false),
-            owneruuid: Owneruuid(None),
+            parent: AbstractTameableBundle {
+                parent: AbstractAnimalBundle {
+                    parent: AbstractAgeableBundle {
+                        parent: AbstractCreatureBundle {
+                            parent: AbstractInsentientBundle {
+                                parent: AbstractLivingBundle {
+                                    parent: AbstractEntityBundle {
+                                        on_fire: OnFire(false),
+                                        shift_key_down: ShiftKeyDown(false),
+                                        sprinting: Sprinting(false),
+                                        swimming: Swimming(false),
+                                        currently_glowing: CurrentlyGlowing(false),
+                                        invisible: Invisible(false),
+                                        fall_flying: FallFlying(false),
+                                        air_supply: AirSupply(Default::default()),
+                                        custom_name: CustomName(None),
+                                        custom_name_visible: CustomNameVisible(false),
+                                        silent: Silent(false),
+                                        no_gravity: NoGravity(false),
+                                        pose: Pose::default(),
+                                        ticks_frozen: TicksFrozen(0),
+                                    },
+                                    auto_spin_attack: AutoSpinAttack(false),
+                                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                                    health: Health(1.0),
+                                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                    effect_ambience: EffectAmbience(false),
+                                    arrow_count: ArrowCount(0),
+                                    stinger_count: StingerCount(0),
+                                    sleeping_pos: SleepingPos(None),
+                                },
+                                no_ai: NoAi(false),
+                                left_handed: LeftHanded(false),
+                                aggressive: Aggressive(false),
+                            },
+                        },
+                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                    },
+                },
+                tame: Tame(false),
+                in_sitting_pose: InSittingPose(false),
+                owneruuid: Owneruuid(None),
+            },
             wolf_interested: WolfInterested(false),
             wolf_collar_color: WolfCollarColor(Default::default()),
             wolf_remaining_anger_time: WolfRemainingAngerTime(0),
@@ -13124,117 +7962,65 @@ impl Default for WolfBundle {
 pub struct ZoglinBaby(pub bool);
 #[derive(Component)]
 pub struct Zoglin;
-
-#[derive(Bundle)]
-struct ZoglinBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    zoglin_baby: ZoglinBaby,
-}
-impl ZoglinBundle {
+impl Zoglin {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.zoglin_baby = ZoglinBaby(d.value.into_boolean()?),
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(ZoglinBaby(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ZoglinBundle {
+    parent: AbstractMonsterBundle,
+    zoglin_baby: ZoglinBaby,
+}
 impl Default for ZoglinBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             zoglin_baby: ZoglinBaby(false),
         }
     }
@@ -13242,121 +8028,73 @@ impl Default for ZoglinBundle {
 
 #[derive(Component)]
 pub struct Zombie;
-
-#[derive(Bundle)]
-struct ZombieBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    zombie_baby: ZombieBaby,
-    special_type: SpecialType,
-    drowned_conversion: DrownedConversion,
-}
-impl ZombieBundle {
+impl Zombie {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.zombie_baby = ZombieBaby(d.value.into_boolean()?),
-                17 => self.special_type = SpecialType(d.value.into_int()?),
-                18 => self.drowned_conversion = DrownedConversion(d.value.into_boolean()?),
+        match d.index {
+            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(ZombieBaby(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(SpecialType(d.value.into_int()?));
+            }
+            18 => {
+                entity.insert(DrownedConversion(d.value.into_boolean()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ZombieBundle {
+    parent: AbstractMonsterBundle,
+    zombie_baby: ZombieBaby,
+    special_type: SpecialType,
+    drowned_conversion: DrownedConversion,
+}
 impl Default for ZombieBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
+            parent: AbstractMonsterBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
             zombie_baby: ZombieBaby(false),
             special_type: SpecialType(0),
             drowned_conversion: DrownedConversion(false),
@@ -13378,35 +8116,33 @@ pub struct ZombieHorseSaddled(pub bool);
 pub struct ZombieHorseOwnerUuid(pub Option<Uuid>);
 #[derive(Component)]
 pub struct ZombieHorse;
+impl ZombieHorse {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(ZombieHorseTamed(bitfield & 0x2 != 0));
+                entity.insert(ZombieHorseEating(bitfield & 0x10 != 0));
+                entity.insert(ZombieHorseStanding(bitfield & 0x20 != 0));
+                entity.insert(ZombieHorseBred(bitfield & 0x8 != 0));
+                entity.insert(ZombieHorseSaddled(bitfield & 0x4 != 0));
+            }
+            18 => {
+                entity.insert(ZombieHorseOwnerUuid(d.value.into_optional_uuid()?));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct ZombieHorseBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    abstract_ageable_baby: AbstractAgeableBaby,
+    parent: AbstractAnimalBundle,
     zombie_horse_tamed: ZombieHorseTamed,
     zombie_horse_eating: ZombieHorseEating,
     zombie_horse_standing: ZombieHorseStanding,
@@ -13414,100 +8150,47 @@ struct ZombieHorseBundle {
     zombie_horse_saddled: ZombieHorseSaddled,
     zombie_horse_owner_uuid: ZombieHorseOwnerUuid,
 }
-impl ZombieHorseBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.abstract_ageable_baby = AbstractAgeableBaby(d.value.into_boolean()?),
-                17 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.zombie_horse_tamed = ZombieHorseTamed(bitfield & 0x2 != 0);
-                    self.zombie_horse_eating = ZombieHorseEating(bitfield & 0x10 != 0);
-                    self.zombie_horse_standing = ZombieHorseStanding(bitfield & 0x20 != 0);
-                    self.zombie_horse_bred = ZombieHorseBred(bitfield & 0x8 != 0);
-                    self.zombie_horse_saddled = ZombieHorseSaddled(bitfield & 0x4 != 0);
-                }
-                18 => {
-                    self.zombie_horse_owner_uuid =
-                        ZombieHorseOwnerUuid(d.value.into_optional_uuid()?)
-                }
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Default for ZombieHorseBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
             zombie_horse_tamed: ZombieHorseTamed(false),
             zombie_horse_eating: ZombieHorseEating(false),
             zombie_horse_standing: ZombieHorseStanding(false),
@@ -13524,131 +8207,74 @@ pub struct Converting(pub bool);
 pub struct ZombieVillagerVillagerData(pub VillagerData);
 #[derive(Component)]
 pub struct ZombieVillager;
-
-#[derive(Bundle)]
-struct ZombieVillagerBundle {
-    on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
-    sprinting: Sprinting,
-    swimming: Swimming,
-    currently_glowing: CurrentlyGlowing,
-    invisible: Invisible,
-    fall_flying: FallFlying,
-    air_supply: AirSupply,
-    custom_name: CustomName,
-    custom_name_visible: CustomNameVisible,
-    silent: Silent,
-    no_gravity: NoGravity,
-    pose: Pose,
-    ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    zombie_baby: ZombieBaby,
-    special_type: SpecialType,
-    drowned_conversion: DrownedConversion,
-    converting: Converting,
-    zombie_villager_villager_data: ZombieVillagerVillagerData,
-}
-impl ZombieVillagerBundle {
+impl ZombieVillager {
     pub fn update_metadata(
-        &mut self,
         ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.zombie_baby = ZombieBaby(d.value.into_boolean()?),
-                17 => self.special_type = SpecialType(d.value.into_int()?),
-                18 => self.drowned_conversion = DrownedConversion(d.value.into_boolean()?),
-                19 => self.converting = Converting(d.value.into_boolean()?),
-                20 => {
-                    self.zombie_villager_villager_data =
-                        ZombieVillagerVillagerData(d.value.into_villager_data()?)
-                }
+        match d.index {
+            0..=18 => Zombie::update_metadata(ecs, entity, d)?,
+            19 => {
+                entity.insert(Converting(d.value.into_boolean()?));
+            }
+            20 => {
+                entity.insert(ZombieVillagerVillagerData(d.value.into_villager_data()?));
             }
         }
         Ok(())
     }
 }
 
+#[derive(Bundle)]
+struct ZombieVillagerBundle {
+    parent: ZombieBundle,
+    converting: Converting,
+    zombie_villager_villager_data: ZombieVillagerVillagerData,
+}
 impl Default for ZombieVillagerBundle {
     fn default() -> Self {
         Self {
-            on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
-            sprinting: Sprinting(false),
-            swimming: Swimming(false),
-            currently_glowing: CurrentlyGlowing(false),
-            invisible: Invisible(false),
-            fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
-            custom_name: CustomName(None),
-            custom_name_visible: CustomNameVisible(false),
-            silent: Silent(false),
-            no_gravity: NoGravity(false),
-            pose: Pose::default(),
-            ticks_frozen: TicksFrozen(0),
-            auto_spin_attack: AutoSpinAttack(false),
-            abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
-            abstract_living_effect_color: AbstractLivingEffectColor(0),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            zombie_baby: ZombieBaby(false),
-            special_type: SpecialType(0),
-            drowned_conversion: DrownedConversion(false),
+            parent: ZombieBundle {
+                parent: AbstractMonsterBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                },
+                zombie_baby: ZombieBaby(false),
+                special_type: SpecialType(0),
+                drowned_conversion: DrownedConversion(false),
+            },
             converting: Converting(false),
             zombie_villager_villager_data: ZombieVillagerVillagerData(VillagerData {
                 kind: azalea_registry::VillagerKind::Plains,
@@ -13661,9 +8287,300 @@ impl Default for ZombieVillagerBundle {
 
 #[derive(Component)]
 pub struct ZombifiedPiglin;
+impl ZombifiedPiglin {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=18 => Zombie::update_metadata(ecs, entity, d)?,
+        }
+        Ok(())
+    }
+}
 
 #[derive(Bundle)]
 struct ZombifiedPiglinBundle {
+    parent: ZombieBundle,
+}
+impl Default for ZombifiedPiglinBundle {
+    fn default() -> Self {
+        Self {
+            parent: ZombieBundle {
+                parent: AbstractMonsterBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                },
+                zombie_baby: ZombieBaby(false),
+                special_type: SpecialType(0),
+                drowned_conversion: DrownedConversion(false),
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractAgeable;
+impl AbstractAgeable {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            16 => {
+                entity.insert(AbstractAgeableBaby(d.value.into_boolean()?));
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+struct AbstractAgeableBundle {
+    parent: AbstractCreatureBundle,
+    abstract_ageable_baby: AbstractAgeableBaby,
+}
+impl Default for AbstractAgeableBundle {
+    fn default() -> Self {
+        Self {
+            parent: AbstractCreatureBundle {
+                parent: AbstractInsentientBundle {
+                    parent: AbstractLivingBundle {
+                        parent: AbstractEntityBundle {
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+            abstract_ageable_baby: AbstractAgeableBaby(false),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractAnimal;
+impl AbstractAnimal {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAgeable::update_metadata(ecs, entity, d)?,
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+struct AbstractAnimalBundle {
+    parent: AbstractAgeableBundle,
+}
+impl Default for AbstractAnimalBundle {
+    fn default() -> Self {
+        Self {
+            parent: AbstractAgeableBundle {
+                parent: AbstractCreatureBundle {
+                    parent: AbstractInsentientBundle {
+                        parent: AbstractLivingBundle {
+                            parent: AbstractEntityBundle {
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+                abstract_ageable_baby: AbstractAgeableBaby(false),
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractCreature;
+impl AbstractCreature {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+struct AbstractCreatureBundle {
+    parent: AbstractInsentientBundle,
+}
+impl Default for AbstractCreatureBundle {
+    fn default() -> Self {
+        Self {
+            parent: AbstractInsentientBundle {
+                parent: AbstractLivingBundle {
+                    parent: AbstractEntityBundle {
+                        on_fire: OnFire(false),
+                        shift_key_down: ShiftKeyDown(false),
+                        sprinting: Sprinting(false),
+                        swimming: Swimming(false),
+                        currently_glowing: CurrentlyGlowing(false),
+                        invisible: Invisible(false),
+                        fall_flying: FallFlying(false),
+                        air_supply: AirSupply(Default::default()),
+                        custom_name: CustomName(None),
+                        custom_name_visible: CustomNameVisible(false),
+                        silent: Silent(false),
+                        no_gravity: NoGravity(false),
+                        pose: Pose::default(),
+                        ticks_frozen: TicksFrozen(0),
+                    },
+                    auto_spin_attack: AutoSpinAttack(false),
+                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                    health: Health(1.0),
+                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                    effect_ambience: EffectAmbience(false),
+                    arrow_count: ArrowCount(0),
+                    stinger_count: StingerCount(0),
+                    sleeping_pos: SleepingPos(None),
+                },
+                no_ai: NoAi(false),
+                left_handed: LeftHanded(false),
+                aggressive: Aggressive(false),
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractEntity;
+impl AbstractEntity {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(OnFire(bitfield & 0x1 != 0));
+                entity.insert(ShiftKeyDown(bitfield & 0x2 != 0));
+                entity.insert(Sprinting(bitfield & 0x8 != 0));
+                entity.insert(Swimming(bitfield & 0x10 != 0));
+                entity.insert(CurrentlyGlowing(bitfield & 0x40 != 0));
+                entity.insert(Invisible(bitfield & 0x20 != 0));
+                entity.insert(FallFlying(bitfield & 0x80 != 0));
+            }
+            1 => {
+                entity.insert(AirSupply(d.value.into_int()?));
+            }
+            2 => {
+                entity.insert(CustomName(d.value.into_optional_formatted_text()?));
+            }
+            3 => {
+                entity.insert(CustomNameVisible(d.value.into_boolean()?));
+            }
+            4 => {
+                entity.insert(Silent(d.value.into_boolean()?));
+            }
+            5 => {
+                entity.insert(NoGravity(d.value.into_boolean()?));
+            }
+            6 => {
+                entity.insert(d.value.into_pose()?);
+            }
+            7 => {
+                entity.insert(TicksFrozen(d.value.into_int()?));
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+struct AbstractEntityBundle {
     on_fire: OnFire,
     shift_key_down: ShiftKeyDown,
     sprinting: Sprinting,
@@ -13678,77 +8595,8 @@ struct ZombifiedPiglinBundle {
     no_gravity: NoGravity,
     pose: Pose,
     ticks_frozen: TicksFrozen,
-    auto_spin_attack: AutoSpinAttack,
-    abstract_living_using_item: AbstractLivingUsingItem,
-    health: Health,
-    abstract_living_effect_color: AbstractLivingEffectColor,
-    effect_ambience: EffectAmbience,
-    arrow_count: ArrowCount,
-    stinger_count: StingerCount,
-    sleeping_pos: SleepingPos,
-    no_ai: NoAi,
-    left_handed: LeftHanded,
-    aggressive: Aggressive,
-    zombie_baby: ZombieBaby,
-    special_type: SpecialType,
-    drowned_conversion: DrownedConversion,
 }
-impl ZombifiedPiglinBundle {
-    pub fn update_metadata(
-        &mut self,
-        ecs: bevy_ecs::world::World,
-        entity: bevy_ecs::world::EntityMut,
-        data: EntityMetadataItems,
-    ) -> Result<(), UpdateMetadataError> {
-        for d in data.0 {
-            match d.index {
-                0 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.on_fire = OnFire(bitfield & 0x1 != 0);
-                    self.shift_key_down = ShiftKeyDown(bitfield & 0x2 != 0);
-                    self.sprinting = Sprinting(bitfield & 0x8 != 0);
-                    self.swimming = Swimming(bitfield & 0x10 != 0);
-                    self.currently_glowing = CurrentlyGlowing(bitfield & 0x40 != 0);
-                    self.invisible = Invisible(bitfield & 0x20 != 0);
-                    self.fall_flying = FallFlying(bitfield & 0x80 != 0);
-                }
-                1 => self.air_supply = AirSupply(d.value.into_int()?),
-                2 => self.custom_name = CustomName(d.value.into_optional_component()?),
-                3 => self.custom_name_visible = CustomNameVisible(d.value.into_boolean()?),
-                4 => self.silent = Silent(d.value.into_boolean()?),
-                5 => self.no_gravity = NoGravity(d.value.into_boolean()?),
-                6 => self.pose = d.value.into_pose()?,
-                7 => self.ticks_frozen = TicksFrozen(d.value.into_int()?),
-                8 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.auto_spin_attack = AutoSpinAttack(bitfield & 0x4 != 0);
-                    self.abstract_living_using_item = AbstractLivingUsingItem(bitfield & 0x1 != 0);
-                }
-                9 => self.health = Health(d.value.into_float()?),
-                10 => {
-                    self.abstract_living_effect_color =
-                        AbstractLivingEffectColor(d.value.into_int()?)
-                }
-                11 => self.effect_ambience = EffectAmbience(d.value.into_boolean()?),
-                12 => self.arrow_count = ArrowCount(d.value.into_int()?),
-                13 => self.stinger_count = StingerCount(d.value.into_int()?),
-                14 => self.sleeping_pos = SleepingPos(d.value.into_optional_block_pos()?),
-                15 => {
-                    let bitfield = d.value.into_byte()?;
-                    self.no_ai = NoAi(bitfield & 0x1 != 0);
-                    self.left_handed = LeftHanded(bitfield & 0x2 != 0);
-                    self.aggressive = Aggressive(bitfield & 0x4 != 0);
-                }
-                16 => self.zombie_baby = ZombieBaby(d.value.into_boolean()?),
-                17 => self.special_type = SpecialType(d.value.into_int()?),
-                18 => self.drowned_conversion = DrownedConversion(d.value.into_boolean()?),
-            }
-        }
-        Ok(())
-    }
-}
-
-impl Default for ZombifiedPiglinBundle {
+impl Default for AbstractEntityBundle {
     fn default() -> Self {
         Self {
             on_fire: OnFire(false),
@@ -13765,6 +8613,143 @@ impl Default for ZombifiedPiglinBundle {
             no_gravity: NoGravity(false),
             pose: Pose::default(),
             ticks_frozen: TicksFrozen(0),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractInsentient;
+impl AbstractInsentient {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=14 => AbstractLiving::update_metadata(ecs, entity, d)?,
+            15 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(NoAi(bitfield & 0x1 != 0));
+                entity.insert(LeftHanded(bitfield & 0x2 != 0));
+                entity.insert(Aggressive(bitfield & 0x4 != 0));
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+struct AbstractInsentientBundle {
+    parent: AbstractLivingBundle,
+    no_ai: NoAi,
+    left_handed: LeftHanded,
+    aggressive: Aggressive,
+}
+impl Default for AbstractInsentientBundle {
+    fn default() -> Self {
+        Self {
+            parent: AbstractLivingBundle {
+                parent: AbstractEntityBundle {
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                auto_spin_attack: AutoSpinAttack(false),
+                abstract_living_using_item: AbstractLivingUsingItem(false),
+                health: Health(1.0),
+                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                effect_ambience: EffectAmbience(false),
+                arrow_count: ArrowCount(0),
+                stinger_count: StingerCount(0),
+                sleeping_pos: SleepingPos(None),
+            },
+            no_ai: NoAi(false),
+            left_handed: LeftHanded(false),
+            aggressive: Aggressive(false),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractLiving;
+impl AbstractLiving {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(AutoSpinAttack(bitfield & 0x4 != 0));
+                entity.insert(AbstractLivingUsingItem(bitfield & 0x1 != 0));
+            }
+            9 => {
+                entity.insert(Health(d.value.into_float()?));
+            }
+            10 => {
+                entity.insert(AbstractLivingEffectColor(d.value.into_int()?));
+            }
+            11 => {
+                entity.insert(EffectAmbience(d.value.into_boolean()?));
+            }
+            12 => {
+                entity.insert(ArrowCount(d.value.into_int()?));
+            }
+            13 => {
+                entity.insert(StingerCount(d.value.into_int()?));
+            }
+            14 => {
+                entity.insert(SleepingPos(d.value.into_optional_block_pos()?));
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+struct AbstractLivingBundle {
+    parent: AbstractEntityBundle,
+    auto_spin_attack: AutoSpinAttack,
+    abstract_living_using_item: AbstractLivingUsingItem,
+    health: Health,
+    abstract_living_effect_color: AbstractLivingEffectColor,
+    effect_ambience: EffectAmbience,
+    arrow_count: ArrowCount,
+    stinger_count: StingerCount,
+    sleeping_pos: SleepingPos,
+}
+impl Default for AbstractLivingBundle {
+    fn default() -> Self {
+        Self {
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
             auto_spin_attack: AutoSpinAttack(false),
             abstract_living_using_item: AbstractLivingUsingItem(false),
             health: Health(1.0),
@@ -13773,495 +8758,936 @@ impl Default for ZombifiedPiglinBundle {
             arrow_count: ArrowCount(0),
             stinger_count: StingerCount(0),
             sleeping_pos: SleepingPos(None),
-            no_ai: NoAi(false),
-            left_handed: LeftHanded(false),
-            aggressive: Aggressive(false),
-            zombie_baby: ZombieBaby(false),
-            special_type: SpecialType(0),
-            drowned_conversion: DrownedConversion(false),
         }
     }
 }
 
-fn update_metadata(
+#[derive(Component)]
+pub struct AbstractMinecart;
+impl AbstractMinecart {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            8 => {
+                entity.insert(AbstractMinecartHurt(d.value.into_int()?));
+            }
+            9 => {
+                entity.insert(AbstractMinecartHurtdir(d.value.into_int()?));
+            }
+            10 => {
+                entity.insert(AbstractMinecartDamage(d.value.into_float()?));
+            }
+            11 => {
+                entity.insert(DisplayBlock(d.value.into_int()?));
+            }
+            12 => {
+                entity.insert(DisplayOffset(d.value.into_int()?));
+            }
+            13 => {
+                entity.insert(CustomDisplay(d.value.into_boolean()?));
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+struct AbstractMinecartBundle {
+    parent: AbstractEntityBundle,
+    abstract_minecart_hurt: AbstractMinecartHurt,
+    abstract_minecart_hurtdir: AbstractMinecartHurtdir,
+    abstract_minecart_damage: AbstractMinecartDamage,
+    display_block: DisplayBlock,
+    display_offset: DisplayOffset,
+    custom_display: CustomDisplay,
+}
+impl Default for AbstractMinecartBundle {
+    fn default() -> Self {
+        Self {
+            parent: AbstractEntityBundle {
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            abstract_minecart_hurt: AbstractMinecartHurt(0),
+            abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+            abstract_minecart_damage: AbstractMinecartDamage(0.0),
+            display_block: DisplayBlock(Default::default()),
+            display_offset: DisplayOffset(6),
+            custom_display: CustomDisplay(false),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractMonster;
+impl AbstractMonster {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+struct AbstractMonsterBundle {
+    parent: AbstractCreatureBundle,
+}
+impl Default for AbstractMonsterBundle {
+    fn default() -> Self {
+        Self {
+            parent: AbstractCreatureBundle {
+                parent: AbstractInsentientBundle {
+                    parent: AbstractLivingBundle {
+                        parent: AbstractEntityBundle {
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractTameable;
+impl AbstractTameable {
+    pub fn update_metadata(
+        ecs: bevy_ecs::world::World,
+        entity: &mut bevy_ecs::world::EntityMut,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(Tame(bitfield & 0x4 != 0));
+                entity.insert(InSittingPose(bitfield & 0x1 != 0));
+            }
+            18 => {
+                entity.insert(Owneruuid(d.value.into_optional_uuid()?));
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+struct AbstractTameableBundle {
+    parent: AbstractAnimalBundle,
+    tame: Tame,
+    in_sitting_pose: InSittingPose,
+    owneruuid: Owneruuid,
+}
+impl Default for AbstractTameableBundle {
+    fn default() -> Self {
+        Self {
+            parent: AbstractAnimalBundle {
+                parent: AbstractAgeableBundle {
+                    parent: AbstractCreatureBundle {
+                        parent: AbstractInsentientBundle {
+                            parent: AbstractLivingBundle {
+                                parent: AbstractEntityBundle {
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            tame: Tame(false),
+            in_sitting_pose: InSittingPose(false),
+            owneruuid: Owneruuid(None),
+        }
+    }
+}
+
+fn update_metadatas(
     ecs: bevy_ecs::world::World,
     entity: bevy_ecs::world::EntityMut,
     data: EntityMetadataItems,
 ) -> Result<(), UpdateMetadataError> {
-    if let Ok(e) = world.query_one_mut::<AllayBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Allay>() {
+        for d in data.0 {
+            Allay::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<AreaEffectCloudBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<AreaEffectCloud>() {
+        for d in data.0 {
+            AreaEffectCloud::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ArmorStandBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<ArmorStand>() {
+        for d in data.0 {
+            ArmorStand::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ArrowBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Arrow>() {
+        for d in data.0 {
+            Arrow::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<AxolotlBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Axolotl>() {
+        for d in data.0 {
+            Axolotl::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<BatBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Bat>() {
+        for d in data.0 {
+            Bat::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<BeeBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Bee>() {
+        for d in data.0 {
+            Bee::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<BlazeBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Blaze>() {
+        for d in data.0 {
+            Blaze::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<BoatBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Boat>() {
+        for d in data.0 {
+            Boat::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<CamelBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Camel>() {
+        for d in data.0 {
+            Camel::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<CatBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Cat>() {
+        for d in data.0 {
+            Cat::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<CaveSpiderBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<CaveSpider>() {
+        for d in data.0 {
+            CaveSpider::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ChestBoatBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<ChestBoat>() {
+        for d in data.0 {
+            ChestBoat::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ChestMinecartBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<ChestMinecart>() {
+        for d in data.0 {
+            ChestMinecart::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ChickenBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Chicken>() {
+        for d in data.0 {
+            Chicken::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<CodBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Cod>() {
+        for d in data.0 {
+            Cod::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<CommandBlockMinecartBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<CommandBlockMinecart>() {
+        for d in data.0 {
+            CommandBlockMinecart::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<CowBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Cow>() {
+        for d in data.0 {
+            Cow::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<CreeperBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Creeper>() {
+        for d in data.0 {
+            Creeper::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<DolphinBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Dolphin>() {
+        for d in data.0 {
+            Dolphin::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<DonkeyBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Donkey>() {
+        for d in data.0 {
+            Donkey::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<DragonFireballBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<DragonFireball>() {
+        for d in data.0 {
+            DragonFireball::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<DrownedBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Drowned>() {
+        for d in data.0 {
+            Drowned::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<EggBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Egg>() {
+        for d in data.0 {
+            Egg::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ElderGuardianBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<ElderGuardian>() {
+        for d in data.0 {
+            ElderGuardian::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<EndCrystalBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<EndCrystal>() {
+        for d in data.0 {
+            EndCrystal::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<EnderDragonBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<EnderDragon>() {
+        for d in data.0 {
+            EnderDragon::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<EnderPearlBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<EnderPearl>() {
+        for d in data.0 {
+            EnderPearl::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<EndermanBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Enderman>() {
+        for d in data.0 {
+            Enderman::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<EndermiteBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Endermite>() {
+        for d in data.0 {
+            Endermite::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<EvokerBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Evoker>() {
+        for d in data.0 {
+            Evoker::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<EvokerFangsBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<EvokerFangs>() {
+        for d in data.0 {
+            EvokerFangs::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ExperienceBottleBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<ExperienceBottle>() {
+        for d in data.0 {
+            ExperienceBottle::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ExperienceOrbBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<ExperienceOrb>() {
+        for d in data.0 {
+            ExperienceOrb::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<EyeOfEnderBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<EyeOfEnder>() {
+        for d in data.0 {
+            EyeOfEnder::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<FallingBlockBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<FallingBlock>() {
+        for d in data.0 {
+            FallingBlock::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<FireballBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Fireball>() {
+        for d in data.0 {
+            Fireball::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<FireworkRocketBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<FireworkRocket>() {
+        for d in data.0 {
+            FireworkRocket::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<FishingBobberBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<FishingBobber>() {
+        for d in data.0 {
+            FishingBobber::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<FoxBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Fox>() {
+        for d in data.0 {
+            Fox::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<FrogBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Frog>() {
+        for d in data.0 {
+            Frog::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<FurnaceMinecartBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<FurnaceMinecart>() {
+        for d in data.0 {
+            FurnaceMinecart::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<GhastBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Ghast>() {
+        for d in data.0 {
+            Ghast::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<GiantBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Giant>() {
+        for d in data.0 {
+            Giant::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<GlowItemFrameBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<GlowItemFrame>() {
+        for d in data.0 {
+            GlowItemFrame::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<GlowSquidBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<GlowSquid>() {
+        for d in data.0 {
+            GlowSquid::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<GoatBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Goat>() {
+        for d in data.0 {
+            Goat::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<GuardianBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Guardian>() {
+        for d in data.0 {
+            Guardian::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<HoglinBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Hoglin>() {
+        for d in data.0 {
+            Hoglin::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<HopperMinecartBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<HopperMinecart>() {
+        for d in data.0 {
+            HopperMinecart::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<HorseBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Horse>() {
+        for d in data.0 {
+            Horse::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<HuskBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Husk>() {
+        for d in data.0 {
+            Husk::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<IllusionerBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Illusioner>() {
+        for d in data.0 {
+            Illusioner::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<IronGolemBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<IronGolem>() {
+        for d in data.0 {
+            IronGolem::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ItemBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Item>() {
+        for d in data.0 {
+            Item::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ItemFrameBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<ItemFrame>() {
+        for d in data.0 {
+            ItemFrame::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<LeashKnotBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<LeashKnot>() {
+        for d in data.0 {
+            LeashKnot::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<LightningBoltBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<LightningBolt>() {
+        for d in data.0 {
+            LightningBolt::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<LlamaBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Llama>() {
+        for d in data.0 {
+            Llama::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<LlamaSpitBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<LlamaSpit>() {
+        for d in data.0 {
+            LlamaSpit::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<MagmaCubeBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<MagmaCube>() {
+        for d in data.0 {
+            MagmaCube::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<MarkerBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Marker>() {
+        for d in data.0 {
+            Marker::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<MinecartBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Minecart>() {
+        for d in data.0 {
+            Minecart::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<MooshroomBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Mooshroom>() {
+        for d in data.0 {
+            Mooshroom::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<MuleBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Mule>() {
+        for d in data.0 {
+            Mule::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<OcelotBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Ocelot>() {
+        for d in data.0 {
+            Ocelot::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<PaintingBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Painting>() {
+        for d in data.0 {
+            Painting::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<PandaBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Panda>() {
+        for d in data.0 {
+            Panda::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ParrotBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Parrot>() {
+        for d in data.0 {
+            Parrot::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<PhantomBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Phantom>() {
+        for d in data.0 {
+            Phantom::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<PigBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Pig>() {
+        for d in data.0 {
+            Pig::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<PiglinBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Piglin>() {
+        for d in data.0 {
+            Piglin::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<PiglinBruteBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<PiglinBrute>() {
+        for d in data.0 {
+            PiglinBrute::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<PillagerBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Pillager>() {
+        for d in data.0 {
+            Pillager::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<PlayerBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Player>() {
+        for d in data.0 {
+            Player::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<PolarBearBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<PolarBear>() {
+        for d in data.0 {
+            PolarBear::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<PotionBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Potion>() {
+        for d in data.0 {
+            Potion::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<PufferfishBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Pufferfish>() {
+        for d in data.0 {
+            Pufferfish::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<RabbitBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Rabbit>() {
+        for d in data.0 {
+            Rabbit::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<RavagerBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Ravager>() {
+        for d in data.0 {
+            Ravager::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<SalmonBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Salmon>() {
+        for d in data.0 {
+            Salmon::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<SheepBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Sheep>() {
+        for d in data.0 {
+            Sheep::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ShulkerBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Shulker>() {
+        for d in data.0 {
+            Shulker::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ShulkerBulletBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<ShulkerBullet>() {
+        for d in data.0 {
+            ShulkerBullet::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<SilverfishBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Silverfish>() {
+        for d in data.0 {
+            Silverfish::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<SkeletonBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Skeleton>() {
+        for d in data.0 {
+            Skeleton::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<SkeletonHorseBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<SkeletonHorse>() {
+        for d in data.0 {
+            SkeletonHorse::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<SlimeBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Slime>() {
+        for d in data.0 {
+            Slime::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<SmallFireballBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<SmallFireball>() {
+        for d in data.0 {
+            SmallFireball::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<SnowGolemBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<SnowGolem>() {
+        for d in data.0 {
+            SnowGolem::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<SnowballBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Snowball>() {
+        for d in data.0 {
+            Snowball::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<SpawnerMinecartBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<SpawnerMinecart>() {
+        for d in data.0 {
+            SpawnerMinecart::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<SpectralArrowBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<SpectralArrow>() {
+        for d in data.0 {
+            SpectralArrow::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<SpiderBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Spider>() {
+        for d in data.0 {
+            Spider::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<SquidBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Squid>() {
+        for d in data.0 {
+            Squid::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<StrayBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Stray>() {
+        for d in data.0 {
+            Stray::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<StriderBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Strider>() {
+        for d in data.0 {
+            Strider::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<TadpoleBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Tadpole>() {
+        for d in data.0 {
+            Tadpole::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<TntBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Tnt>() {
+        for d in data.0 {
+            Tnt::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<TntMinecartBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<TntMinecart>() {
+        for d in data.0 {
+            TntMinecart::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<TraderLlamaBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<TraderLlama>() {
+        for d in data.0 {
+            TraderLlama::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<TridentBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Trident>() {
+        for d in data.0 {
+            Trident::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<TropicalFishBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<TropicalFish>() {
+        for d in data.0 {
+            TropicalFish::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<TurtleBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Turtle>() {
+        for d in data.0 {
+            Turtle::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<VexBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Vex>() {
+        for d in data.0 {
+            Vex::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<VillagerBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Villager>() {
+        for d in data.0 {
+            Villager::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<VindicatorBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Vindicator>() {
+        for d in data.0 {
+            Vindicator::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<WanderingTraderBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<WanderingTrader>() {
+        for d in data.0 {
+            WanderingTrader::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<WardenBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Warden>() {
+        for d in data.0 {
+            Warden::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<WitchBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Witch>() {
+        for d in data.0 {
+            Witch::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<WitherBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Wither>() {
+        for d in data.0 {
+            Wither::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<WitherSkeletonBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<WitherSkeleton>() {
+        for d in data.0 {
+            WitherSkeleton::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<WitherSkullBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<WitherSkull>() {
+        for d in data.0 {
+            WitherSkull::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<WolfBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Wolf>() {
+        for d in data.0 {
+            Wolf::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ZoglinBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Zoglin>() {
+        for d in data.0 {
+            Zoglin::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ZombieBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<Zombie>() {
+        for d in data.0 {
+            Zombie::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ZombieHorseBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<ZombieHorse>() {
+        for d in data.0 {
+            ZombieHorse::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ZombieVillagerBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<ZombieVillager>() {
+        for d in data.0 {
+            ZombieVillager::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
-    if let Ok(e) = world.query_one_mut::<ZombifiedPiglinBundle>(entity) {
-        e.update_metadata(ecs, entity, data)?;
+    if entity.contains::<ZombifiedPiglin>() {
+        for d in data.0 {
+            ZombifiedPiglin::update_metadata(ecs, &mut entity, d)?;
+        }
         return Ok(());
     }
     Ok(())
