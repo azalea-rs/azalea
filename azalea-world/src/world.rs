@@ -85,8 +85,8 @@ impl PartialWorld {
         self.shared.entity(id)
     }
 
-    pub fn add_entity(&mut self, id: u32, entity: EntityData) {
-        self.entity_storage.insert(id, entity);
+    pub fn add_entity(&mut self, id: u32, bundle: impl bevy_ecs::prelude::Bundle) {
+        self.entity_storage.insert(id, bundle);
     }
 
     pub fn set_entity_pos(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), MoveEntityError> {

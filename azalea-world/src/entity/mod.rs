@@ -8,41 +8,60 @@ use crate::WeakWorld;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, Vec3, AABB};
 use azalea_registry::EntityKind;
+use bevy_ecs::component::Component;
 pub use data::*;
 pub use dimensions::*;
-use std::marker::PhantomData;
-use std::ops::{Deref, DerefMut};
-use std::ptr::NonNull;
+use std::{
+    fmt::Debug,
+    marker::PhantomData,
+    ops::{Deref, DerefMut},
+    ptr::NonNull,
+};
 use uuid::Uuid;
 
-/// NOTE: EntityId internally uses twice the memory as just a u32, so if a u32
+/// Note: EntityId internally uses twice the memory as just a u32, so if a u32
 /// would work just as well then use that.
-pub type EntityId = hecs::Entity;
+pub type EntityId = bevy_ecs::entity::Entity;
 
-/// A reference to an entity in a world.
-#[derive(Debug)]
-pub struct Entity<'d, D = &'d WeakWorld> {
+/// A mutable reference to an entity in a world.
+pub struct Entity<'w, W = &'w WeakWorld> {
     /// The world this entity is in.
-    pub world: D,
-    /// The incrementing numerical id of the entity.
-    pub id: u32,
-    pub data: NonNull<EntityData>,
-    _marker: PhantomData<&'d ()>,
+    pub world: W,
+    /// The container for the incrementing numerical id of the entity.
+    pub id: EntityId,
+    pub data: bevy_ecs::world::EntityMut<'w>,
 }
 
 impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
-    pub fn new(world: D, id: u32, data: NonNull<EntityData>) -> Self {
-        // TODO: have this be based on the entity type
-        Self {
-            world,
-            id,
-            data,
-            _marker: PhantomData,
-        }
+    /// Create an Entity when we already know its id and data.
+    pub fn new(world: D, id: u32, bundle: impl bevy_ecs::bundle::Bundle) -> Self {
+        let id = EntityId::from_raw(id);
+        let ecs = world.entity_storage.write().ecs;
+
+        // bevy_ecs only returns None if the entity only exists with a different
+        // generation, which shouldn't be possible here
+        let mut data =
+            world.entity_storage.write().ecs.get_or_spawn(id).expect(
+                "Entities should always be generation 0 if we're manually spawning from ids",
+            );
+        Self { world, id, data }
     }
 }
 
 impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
+    // todo: write more here and add an example too
+    /// Get data from the entity.
+    pub fn get<T: bevy_ecs::component::Component>(&self) -> Option<&T> {
+        self.data.get()
+    }
+    pub fn get_mut<T: bevy_ecs::component::Component>(
+        &mut self,
+    ) -> Option<bevy_ecs::world::Mut<T>> {
+        self.data.get_mut()
+    }
+}
+
+impl<'w, W: Deref<Target = WeakWorld>> Entity<'w, W> {
     /// Sets the position of the entity. This doesn't update the cache in
     /// azalea-world, and should only be used within azalea-world!
     ///
@@ -92,103 +111,75 @@ impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
     ///
     /// TODO: this should be changed to have a proper error.
     pub fn apply_metadata(&mut self, items: &Vec<EntityDataItem>) -> Option<()> {
-        for item in items {
-            self.metadata.set_index(item.index, item.value.clone())?;
-        }
+        // for item in items {
+        //     self.metadata.set_index(item.index, item.value.clone())?;
+        // }
         Some(())
     }
 }
 
-impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
-    #[inline]
-    pub fn pos(&self) -> &Vec3 {
-        &self.pos
-    }
-
-    pub fn make_bounding_box(&self) -> AABB {
-        self.dimensions.make_bounding_box(self.pos())
-    }
-
-    /// Get the position of the block below the entity, but a little lower.
-    pub fn on_pos_legacy(&self) -> BlockPos {
-        self.on_pos(0.2)
-    }
-
-    // int x = Mth.floor(this.position.x);
-    // int y = Mth.floor(this.position.y - (double)var1);
-    // int z = Mth.floor(this.position.z);
-    // BlockPos var5 = new BlockPos(x, y, z);
-    // if (this.level.getBlockState(var5).isAir()) {
-    //    BlockPos var6 = var5.below();
-    //    BlockState var7 = this.level.getBlockState(var6);
-    //    if (var7.is(BlockTags.FENCES) || var7.is(BlockTags.WALLS) ||
-    // var7.getBlock() instanceof FenceGateBlock) {       return var6;
-    //    }
-    // }
-    // return var5;
-    pub fn on_pos(&self, offset: f32) -> BlockPos {
-        let x = self.pos().x.floor() as i32;
-        let y = (self.pos().y - offset as f64).floor() as i32;
-        let z = self.pos().z.floor() as i32;
-        let pos = BlockPos { x, y, z };
-
-        // TODO: check if block below is a fence, wall, or fence gate
-        let block_pos = pos.down(1);
-        let block_state = self.world.get_block_state(&block_pos);
-        if block_state == Some(BlockState::Air) {
-            let block_pos_below = block_pos.down(1);
-            let block_state_below = self.world.get_block_state(&block_pos_below);
-            if let Some(_block_state_below) = block_state_below {
-                // if block_state_below.is_fence()
-                //     || block_state_below.is_wall()
-                //     || block_state_below.is_fence_gate()
-                // {
-                //     return block_pos_below;
-                // }
-            }
-        }
-
-        pos
-    }
+pub fn make_bounding_box(physics: &EntityPhysics) -> AABB {
+    physics.dimensions.make_bounding_box(&physics.pos)
 }
 
-// impl<
-//         'd,
-//         D: Deref<Target = WeakWorld> + Deref<Target = WeakWorld>,
-//         D2: Deref<Target = WeakWorld>,
-//     > From<Entity<'d, D>> for Entity<'d, D2>
-// {
-//     fn from(entity: Entity<'d, D>) -> Entity<'d, D> {
-//         Entity {
-//             world: entity.world,
-//             id: entity.id,
-//             data: entity.data,
-//             _marker: PhantomData,
-//         }
-//     }
+/// Get the position of the block below the entity, but a little lower.
+pub fn on_pos_legacy<W: Deref<Target = WeakWorld>>(world: &W, physics: &EntityPhysics) -> BlockPos {
+    on_pos(world, physics, 0.2)
+}
+
+// int x = Mth.floor(this.position.x);
+// int y = Mth.floor(this.position.y - (double)var1);
+// int z = Mth.floor(this.position.z);
+// BlockPos var5 = new BlockPos(x, y, z);
+// if (this.level.getBlockState(var5).isAir()) {
+//    BlockPos var6 = var5.below();
+//    BlockState var7 = this.level.getBlockState(var6);
+//    if (var7.is(BlockTags.FENCES) || var7.is(BlockTags.WALLS) ||
+// var7.getBlock() instanceof FenceGateBlock) {       return var6;
+//    }
 // }
+// return var5;
+pub fn on_pos<W: Deref<Target = WeakWorld>>(
+    world: &W,
+    physics: &EntityPhysics,
+    offset: f32,
+) -> BlockPos {
+    let x = physics.pos.x.floor() as i32;
+    let y = (physics.pos.y - offset as f64).floor() as i32;
+    let z = physics.pos.z.floor() as i32;
+    let pos = BlockPos { x, y, z };
 
-impl<D: Deref<Target = WeakWorld>> DerefMut for Entity<'_, D> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { self.data.as_mut() }
+    // TODO: check if block below is a fence, wall, or fence gate
+    let block_pos = pos.down(1);
+    let block_state = world.get_block_state(&block_pos);
+    if block_state == Some(BlockState::Air) {
+        let block_pos_below = block_pos.down(1);
+        let block_state_below = world.get_block_state(&block_pos_below);
+        if let Some(_block_state_below) = block_state_below {
+            // if block_state_below.is_fence()
+            //     || block_state_below.is_wall()
+            //     || block_state_below.is_fence_gate()
+            // {
+            //     return block_pos_below;
+            // }
+        }
     }
+
+    pos
 }
 
-impl<D: Deref<Target = WeakWorld>> Deref for Entity<'_, D> {
-    type Target = EntityData;
+#[derive(Component)]
+pub struct EntityUuid(pub Uuid);
 
-    fn deref(&self) -> &Self::Target {
-        unsafe { self.data.as_ref() }
-    }
-}
-
-#[derive(Debug)]
-pub struct EntityData {
-    pub uuid: Uuid,
+/// The physics data relating to the entity, such as position, velocity, and
+/// bounding box.
+#[derive(Debug, Component)]
+pub struct EntityPhysics {
     /// The position of the entity right now.
     /// This can be changde with unsafe_move, but the correct way is with
     /// world.move_entity
-    pos: Vec3,
+    pub pos: Vec3,
+
     /// The position of the entity last tick.
     pub last_pos: Vec3,
     pub delta: Vec3,
@@ -220,9 +211,6 @@ pub struct EntityData {
     pub jumping: bool,
 
     pub has_impulse: bool,
-
-    /// The attributes and modifiers that the entity has (for example, speed).
-    pub attributes: AttributeModifiers,
 }
 
 impl EntityData {
@@ -296,6 +284,12 @@ impl EntityData {
     /// ```
     pub fn kind(&self) -> EntityKind {
         EntityKind::from(&self.metadata)
+    }
+}
+
+impl<W: Deref<Target = WeakWorld>> Debug for Entity<'_, W> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Entity").field("id", &self.id).finish()
     }
 }
 

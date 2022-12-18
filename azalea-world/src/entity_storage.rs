@@ -1,6 +1,5 @@
 use crate::entity::{EntityData, EntityId};
 use azalea_core::ChunkPos;
-use hecs::EntityBuilder;
 use log::warn;
 use nohash_hasher::{IntMap, IntSet};
 use parking_lot::RwLock;
@@ -58,8 +57,8 @@ pub struct PartialEntityStorage {
 /// by anything else (like an [`PartialEntityStorage`]), they'll be forgotten.
 #[derive(Default)]
 pub struct WeakEntityStorage {
-    /// The ECS that actually contains the entities.
-    ecs: hecs::World,
+    /// The ECS world that actually contains the entities.
+    pub(crate) ecs: bevy_ecs::world::World,
 
     /// The number of `PartialWorld`s that have this entity loaded.
     /// (this is reference counting)
@@ -88,7 +87,7 @@ impl PartialEntityStorage {
 
     /// Add an entity to the storage.
     #[inline]
-    pub fn insert(&mut self, id: u32, bundle: impl bevy_ecs::prelude::Bundle) {
+    pub fn insert(&mut self, id: u32, bundle: impl bevy_ecs::bundle::Bundle) {
         // if you're trying to optimize this, see if checking if the id is in
         // self.loaded_entity_ids would help with performance
         // i didn't put the check here just in case it doesn't actually help

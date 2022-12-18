@@ -6,10 +6,11 @@ use std::{
 };
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+use bevy_ecs::component::Component;
 use thiserror::Error;
 use uuid::{uuid, Uuid};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Component)]
 pub struct AttributeModifiers {
     pub speed: AttributeInstance,
 }

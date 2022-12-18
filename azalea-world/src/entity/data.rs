@@ -1,3 +1,5 @@
+//! Define some types needed for entity metadata.
+
 use azalea_block::BlockState;
 use azalea_buf::{BufReadError, McBufVarReadable, McBufVarWritable};
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
@@ -121,7 +123,7 @@ pub enum Pose {
 
 #[derive(Debug, Clone, McBuf)]
 pub struct VillagerData {
-    pub kind: azalea_registry::VillagerType,
+    pub kind: azalea_registry::VillagerKind,
     pub profession: azalea_registry::VillagerProfession,
     #[var]
     pub level: u32,
