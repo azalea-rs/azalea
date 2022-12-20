@@ -2,10 +2,7 @@
 // Don't change it manually!
 
 #![allow(clippy::clone_on_copy, clippy::derivable_impls)]
-use super::{
-    EntityDataItem, EntityDataValue, EntityMetadataItems, OptionalUnsignedInt, Pose, Rotations,
-    VillagerData,
-};
+use super::{EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Rotations, VillagerData};
 use azalea_block::BlockState;
 use azalea_chat::FormattedText;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
@@ -82,7 +79,7 @@ impl Allay {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
@@ -157,7 +154,7 @@ impl AreaEffectCloud {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -239,7 +236,7 @@ impl ArmorStand {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=14 => AbstractLiving::update_metadata(ecs, entity, d)?,
@@ -346,7 +343,7 @@ impl Arrow {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -418,7 +415,7 @@ impl Axolotl {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -499,7 +496,7 @@ impl Bat {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
@@ -570,7 +567,7 @@ impl Bee {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -653,7 +650,7 @@ impl Blaze {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -734,7 +731,7 @@ impl Boat {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -827,7 +824,7 @@ impl Camel {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -938,7 +935,7 @@ impl Cat {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=18 => AbstractTameable::update_metadata(ecs, entity, d)?,
@@ -1029,7 +1026,7 @@ impl CaveSpider {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => Spider::update_metadata(ecs, entity, d)?,
@@ -1093,7 +1090,7 @@ impl ChestBoat {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=14 => Boat::update_metadata(ecs, entity, d)?,
@@ -1156,7 +1153,7 @@ impl ChestMinecart {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
@@ -1206,7 +1203,7 @@ impl Chicken {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -1272,7 +1269,7 @@ impl Cod {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
@@ -1340,7 +1337,7 @@ impl CommandBlockMinecart {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
@@ -1400,7 +1397,7 @@ impl Cow {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -1470,7 +1467,7 @@ impl Creeper {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -1552,7 +1549,7 @@ impl Dolphin {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
@@ -1640,7 +1637,7 @@ impl Donkey {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -1732,7 +1729,7 @@ impl DragonFireball {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -1780,7 +1777,7 @@ impl Drowned {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=18 => Zombie::update_metadata(ecs, entity, d)?,
@@ -1848,7 +1845,7 @@ impl Egg {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -1899,7 +1896,7 @@ impl ElderGuardian {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=17 => Guardian::update_metadata(ecs, entity, d)?,
@@ -1968,7 +1965,7 @@ impl EndCrystal {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -2022,7 +2019,7 @@ impl EnderDragon {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
@@ -2086,7 +2083,7 @@ impl EnderPearl {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -2139,7 +2136,7 @@ impl Enderman {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -2215,7 +2212,7 @@ impl Endermite {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -2280,7 +2277,7 @@ impl Evoker {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -2351,7 +2348,7 @@ impl EvokerFangs {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -2395,7 +2392,7 @@ impl ExperienceBottle {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -2442,7 +2439,7 @@ impl ExperienceOrb {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -2486,7 +2483,7 @@ impl EyeOfEnder {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -2535,7 +2532,7 @@ impl FallingBlock {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -2584,7 +2581,7 @@ impl Fireball {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -2637,7 +2634,7 @@ impl FireworkRocket {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -2698,7 +2695,7 @@ impl FishingBobber {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -2768,7 +2765,7 @@ impl Fox {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -2872,7 +2869,7 @@ impl Frog {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -2948,7 +2945,7 @@ impl FurnaceMinecart {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
@@ -3005,7 +3002,7 @@ impl Ghast {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
@@ -3067,7 +3064,7 @@ impl Giant {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -3132,7 +3129,7 @@ impl GlowItemFrame {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=9 => ItemFrame::update_metadata(ecs, entity, d)?,
@@ -3180,7 +3177,7 @@ impl GlowSquid {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => Squid::update_metadata(ecs, entity, d)?,
@@ -3252,7 +3249,7 @@ impl Goat {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -3331,7 +3328,7 @@ impl Guardian {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -3404,7 +3401,7 @@ impl Hoglin {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -3473,7 +3470,7 @@ impl HopperMinecart {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
@@ -3537,7 +3534,7 @@ impl Horse {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -3629,7 +3626,7 @@ impl Husk {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=18 => Zombie::update_metadata(ecs, entity, d)?,
@@ -3699,7 +3696,7 @@ impl Illusioner {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -3772,7 +3769,7 @@ impl IronGolem {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
@@ -3839,7 +3836,7 @@ impl Item {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -3886,7 +3883,7 @@ impl ItemFrame {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -3938,7 +3935,7 @@ impl LeashKnot {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -3980,7 +3977,7 @@ impl LightningBolt {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -4042,7 +4039,7 @@ impl Llama {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -4149,7 +4146,7 @@ impl LlamaSpit {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -4193,7 +4190,7 @@ impl MagmaCube {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => Slime::update_metadata(ecs, entity, d)?,
@@ -4253,7 +4250,7 @@ impl Marker {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -4295,7 +4292,7 @@ impl Minecart {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
@@ -4347,7 +4344,7 @@ impl Mooshroom {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => Cow::update_metadata(ecs, entity, d)?,
@@ -4432,7 +4429,7 @@ impl Mule {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -4526,7 +4523,7 @@ impl Ocelot {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -4597,7 +4594,7 @@ impl Painting {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -4662,7 +4659,7 @@ impl Panda {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -4768,7 +4765,7 @@ impl Parrot {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=18 => AbstractTameable::update_metadata(ecs, entity, d)?,
@@ -4844,7 +4841,7 @@ impl Phantom {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
@@ -4910,7 +4907,7 @@ impl Pig {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -4992,7 +4989,7 @@ impl Piglin {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -5075,7 +5072,7 @@ impl PiglinBrute {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -5145,7 +5142,7 @@ impl Pillager {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -5228,7 +5225,7 @@ impl Player {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=14 => AbstractLiving::update_metadata(ecs, entity, d)?,
@@ -5312,7 +5309,7 @@ impl PolarBear {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -5383,7 +5380,7 @@ impl Potion {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -5434,7 +5431,7 @@ impl Pufferfish {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
@@ -5505,7 +5502,7 @@ impl Rabbit {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -5576,7 +5573,7 @@ impl Ravager {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -5644,7 +5641,7 @@ impl Salmon {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
@@ -5710,7 +5707,7 @@ impl Sheep {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -5786,7 +5783,7 @@ impl Shulker {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
@@ -5860,7 +5857,7 @@ impl ShulkerBullet {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -5902,7 +5899,7 @@ impl Silverfish {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -5965,7 +5962,7 @@ impl Skeleton {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -6043,7 +6040,7 @@ impl SkeletonHorse {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -6130,7 +6127,7 @@ impl Slime {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
@@ -6194,7 +6191,7 @@ impl SmallFireball {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -6243,7 +6240,7 @@ impl SnowGolem {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
@@ -6310,7 +6307,7 @@ impl Snowball {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -6357,7 +6354,7 @@ impl SpawnerMinecart {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
@@ -6415,7 +6412,7 @@ impl SpectralArrow {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -6474,7 +6471,7 @@ impl Spider {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -6541,7 +6538,7 @@ impl Squid {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
@@ -6600,7 +6597,7 @@ impl Stray {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -6667,7 +6664,7 @@ impl Strider {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -6748,7 +6745,7 @@ impl Tadpole {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
@@ -6814,7 +6811,7 @@ impl Tnt {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -6861,7 +6858,7 @@ impl TntMinecart {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
@@ -6911,7 +6908,7 @@ impl TraderLlama {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=22 => Llama::update_metadata(ecs, entity, d)?,
@@ -6999,7 +6996,7 @@ impl Trident {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -7072,7 +7069,7 @@ impl TropicalFish {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
@@ -7153,7 +7150,7 @@ impl Turtle {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -7249,7 +7246,7 @@ impl Vex {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -7319,7 +7316,7 @@ impl Villager {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAgeable::update_metadata(ecs, entity, d)?,
@@ -7397,7 +7394,7 @@ impl Vindicator {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -7465,7 +7462,7 @@ impl WanderingTrader {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAgeable::update_metadata(ecs, entity, d)?,
@@ -7534,7 +7531,7 @@ impl Warden {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -7604,7 +7601,7 @@ impl Witch {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -7683,7 +7680,7 @@ impl Wither {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -7764,7 +7761,7 @@ impl WitherSkeleton {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -7827,7 +7824,7 @@ impl WitherSkull {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -7880,7 +7877,7 @@ impl Wolf {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=18 => AbstractTameable::update_metadata(ecs, entity, d)?,
@@ -7966,7 +7963,7 @@ impl Zoglin {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -8032,7 +8029,7 @@ impl Zombie {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
@@ -8120,7 +8117,7 @@ impl ZombieHorse {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -8211,7 +8208,7 @@ impl ZombieVillager {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=18 => Zombie::update_metadata(ecs, entity, d)?,
@@ -8291,7 +8288,7 @@ impl ZombifiedPiglin {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=18 => Zombie::update_metadata(ecs, entity, d)?,
@@ -8357,7 +8354,7 @@ impl AbstractAgeable {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
@@ -8421,7 +8418,7 @@ impl AbstractAnimal {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAgeable::update_metadata(ecs, entity, d)?,
@@ -8483,7 +8480,7 @@ impl AbstractCreature {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
@@ -8540,7 +8537,7 @@ impl AbstractEntity {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0 => {
@@ -8623,7 +8620,7 @@ impl AbstractInsentient {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=14 => AbstractLiving::update_metadata(ecs, entity, d)?,
@@ -8687,7 +8684,7 @@ impl AbstractLiving {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -8768,7 +8765,7 @@ impl AbstractMinecart {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
@@ -8840,7 +8837,7 @@ impl AbstractMonster {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
@@ -8899,7 +8896,7 @@ impl AbstractTameable {
     pub fn update_metadata(
         ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: EntityDataItem,
+        d: &EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
@@ -8971,721 +8968,721 @@ impl Default for AbstractTameableBundle {
     }
 }
 
-fn update_metadatas(
+pub fn update_metadatas(
     ecs: bevy_ecs::world::World,
     entity: bevy_ecs::world::EntityMut,
-    data: EntityMetadataItems,
+    items: &Vec<EntityDataItem>,
 ) -> Result<(), UpdateMetadataError> {
     if entity.contains::<Allay>() {
-        for d in data.0 {
+        for d in items {
             Allay::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<AreaEffectCloud>() {
-        for d in data.0 {
+        for d in items {
             AreaEffectCloud::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ArmorStand>() {
-        for d in data.0 {
+        for d in items {
             ArmorStand::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Arrow>() {
-        for d in data.0 {
+        for d in items {
             Arrow::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Axolotl>() {
-        for d in data.0 {
+        for d in items {
             Axolotl::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Bat>() {
-        for d in data.0 {
+        for d in items {
             Bat::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Bee>() {
-        for d in data.0 {
+        for d in items {
             Bee::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Blaze>() {
-        for d in data.0 {
+        for d in items {
             Blaze::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Boat>() {
-        for d in data.0 {
+        for d in items {
             Boat::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Camel>() {
-        for d in data.0 {
+        for d in items {
             Camel::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Cat>() {
-        for d in data.0 {
+        for d in items {
             Cat::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<CaveSpider>() {
-        for d in data.0 {
+        for d in items {
             CaveSpider::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ChestBoat>() {
-        for d in data.0 {
+        for d in items {
             ChestBoat::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ChestMinecart>() {
-        for d in data.0 {
+        for d in items {
             ChestMinecart::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Chicken>() {
-        for d in data.0 {
+        for d in items {
             Chicken::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Cod>() {
-        for d in data.0 {
+        for d in items {
             Cod::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<CommandBlockMinecart>() {
-        for d in data.0 {
+        for d in items {
             CommandBlockMinecart::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Cow>() {
-        for d in data.0 {
+        for d in items {
             Cow::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Creeper>() {
-        for d in data.0 {
+        for d in items {
             Creeper::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Dolphin>() {
-        for d in data.0 {
+        for d in items {
             Dolphin::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Donkey>() {
-        for d in data.0 {
+        for d in items {
             Donkey::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<DragonFireball>() {
-        for d in data.0 {
+        for d in items {
             DragonFireball::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Drowned>() {
-        for d in data.0 {
+        for d in items {
             Drowned::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Egg>() {
-        for d in data.0 {
+        for d in items {
             Egg::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ElderGuardian>() {
-        for d in data.0 {
+        for d in items {
             ElderGuardian::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<EndCrystal>() {
-        for d in data.0 {
+        for d in items {
             EndCrystal::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<EnderDragon>() {
-        for d in data.0 {
+        for d in items {
             EnderDragon::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<EnderPearl>() {
-        for d in data.0 {
+        for d in items {
             EnderPearl::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Enderman>() {
-        for d in data.0 {
+        for d in items {
             Enderman::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Endermite>() {
-        for d in data.0 {
+        for d in items {
             Endermite::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Evoker>() {
-        for d in data.0 {
+        for d in items {
             Evoker::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<EvokerFangs>() {
-        for d in data.0 {
+        for d in items {
             EvokerFangs::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ExperienceBottle>() {
-        for d in data.0 {
+        for d in items {
             ExperienceBottle::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ExperienceOrb>() {
-        for d in data.0 {
+        for d in items {
             ExperienceOrb::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<EyeOfEnder>() {
-        for d in data.0 {
+        for d in items {
             EyeOfEnder::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<FallingBlock>() {
-        for d in data.0 {
+        for d in items {
             FallingBlock::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Fireball>() {
-        for d in data.0 {
+        for d in items {
             Fireball::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<FireworkRocket>() {
-        for d in data.0 {
+        for d in items {
             FireworkRocket::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<FishingBobber>() {
-        for d in data.0 {
+        for d in items {
             FishingBobber::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Fox>() {
-        for d in data.0 {
+        for d in items {
             Fox::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Frog>() {
-        for d in data.0 {
+        for d in items {
             Frog::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<FurnaceMinecart>() {
-        for d in data.0 {
+        for d in items {
             FurnaceMinecart::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Ghast>() {
-        for d in data.0 {
+        for d in items {
             Ghast::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Giant>() {
-        for d in data.0 {
+        for d in items {
             Giant::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<GlowItemFrame>() {
-        for d in data.0 {
+        for d in items {
             GlowItemFrame::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<GlowSquid>() {
-        for d in data.0 {
+        for d in items {
             GlowSquid::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Goat>() {
-        for d in data.0 {
+        for d in items {
             Goat::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Guardian>() {
-        for d in data.0 {
+        for d in items {
             Guardian::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Hoglin>() {
-        for d in data.0 {
+        for d in items {
             Hoglin::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<HopperMinecart>() {
-        for d in data.0 {
+        for d in items {
             HopperMinecart::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Horse>() {
-        for d in data.0 {
+        for d in items {
             Horse::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Husk>() {
-        for d in data.0 {
+        for d in items {
             Husk::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Illusioner>() {
-        for d in data.0 {
+        for d in items {
             Illusioner::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<IronGolem>() {
-        for d in data.0 {
+        for d in items {
             IronGolem::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Item>() {
-        for d in data.0 {
+        for d in items {
             Item::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ItemFrame>() {
-        for d in data.0 {
+        for d in items {
             ItemFrame::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<LeashKnot>() {
-        for d in data.0 {
+        for d in items {
             LeashKnot::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<LightningBolt>() {
-        for d in data.0 {
+        for d in items {
             LightningBolt::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Llama>() {
-        for d in data.0 {
+        for d in items {
             Llama::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<LlamaSpit>() {
-        for d in data.0 {
+        for d in items {
             LlamaSpit::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<MagmaCube>() {
-        for d in data.0 {
+        for d in items {
             MagmaCube::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Marker>() {
-        for d in data.0 {
+        for d in items {
             Marker::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Minecart>() {
-        for d in data.0 {
+        for d in items {
             Minecart::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Mooshroom>() {
-        for d in data.0 {
+        for d in items {
             Mooshroom::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Mule>() {
-        for d in data.0 {
+        for d in items {
             Mule::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Ocelot>() {
-        for d in data.0 {
+        for d in items {
             Ocelot::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Painting>() {
-        for d in data.0 {
+        for d in items {
             Painting::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Panda>() {
-        for d in data.0 {
+        for d in items {
             Panda::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Parrot>() {
-        for d in data.0 {
+        for d in items {
             Parrot::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Phantom>() {
-        for d in data.0 {
+        for d in items {
             Phantom::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Pig>() {
-        for d in data.0 {
+        for d in items {
             Pig::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Piglin>() {
-        for d in data.0 {
+        for d in items {
             Piglin::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<PiglinBrute>() {
-        for d in data.0 {
+        for d in items {
             PiglinBrute::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Pillager>() {
-        for d in data.0 {
+        for d in items {
             Pillager::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Player>() {
-        for d in data.0 {
+        for d in items {
             Player::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<PolarBear>() {
-        for d in data.0 {
+        for d in items {
             PolarBear::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Potion>() {
-        for d in data.0 {
+        for d in items {
             Potion::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Pufferfish>() {
-        for d in data.0 {
+        for d in items {
             Pufferfish::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Rabbit>() {
-        for d in data.0 {
+        for d in items {
             Rabbit::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Ravager>() {
-        for d in data.0 {
+        for d in items {
             Ravager::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Salmon>() {
-        for d in data.0 {
+        for d in items {
             Salmon::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Sheep>() {
-        for d in data.0 {
+        for d in items {
             Sheep::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Shulker>() {
-        for d in data.0 {
+        for d in items {
             Shulker::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ShulkerBullet>() {
-        for d in data.0 {
+        for d in items {
             ShulkerBullet::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Silverfish>() {
-        for d in data.0 {
+        for d in items {
             Silverfish::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Skeleton>() {
-        for d in data.0 {
+        for d in items {
             Skeleton::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<SkeletonHorse>() {
-        for d in data.0 {
+        for d in items {
             SkeletonHorse::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Slime>() {
-        for d in data.0 {
+        for d in items {
             Slime::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<SmallFireball>() {
-        for d in data.0 {
+        for d in items {
             SmallFireball::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<SnowGolem>() {
-        for d in data.0 {
+        for d in items {
             SnowGolem::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Snowball>() {
-        for d in data.0 {
+        for d in items {
             Snowball::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<SpawnerMinecart>() {
-        for d in data.0 {
+        for d in items {
             SpawnerMinecart::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<SpectralArrow>() {
-        for d in data.0 {
+        for d in items {
             SpectralArrow::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Spider>() {
-        for d in data.0 {
+        for d in items {
             Spider::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Squid>() {
-        for d in data.0 {
+        for d in items {
             Squid::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Stray>() {
-        for d in data.0 {
+        for d in items {
             Stray::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Strider>() {
-        for d in data.0 {
+        for d in items {
             Strider::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Tadpole>() {
-        for d in data.0 {
+        for d in items {
             Tadpole::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Tnt>() {
-        for d in data.0 {
+        for d in items {
             Tnt::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<TntMinecart>() {
-        for d in data.0 {
+        for d in items {
             TntMinecart::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<TraderLlama>() {
-        for d in data.0 {
+        for d in items {
             TraderLlama::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Trident>() {
-        for d in data.0 {
+        for d in items {
             Trident::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<TropicalFish>() {
-        for d in data.0 {
+        for d in items {
             TropicalFish::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Turtle>() {
-        for d in data.0 {
+        for d in items {
             Turtle::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Vex>() {
-        for d in data.0 {
+        for d in items {
             Vex::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Villager>() {
-        for d in data.0 {
+        for d in items {
             Villager::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Vindicator>() {
-        for d in data.0 {
+        for d in items {
             Vindicator::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<WanderingTrader>() {
-        for d in data.0 {
+        for d in items {
             WanderingTrader::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Warden>() {
-        for d in data.0 {
+        for d in items {
             Warden::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Witch>() {
-        for d in data.0 {
+        for d in items {
             Witch::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Wither>() {
-        for d in data.0 {
+        for d in items {
             Wither::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<WitherSkeleton>() {
-        for d in data.0 {
+        for d in items {
             WitherSkeleton::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<WitherSkull>() {
-        for d in data.0 {
+        for d in items {
             WitherSkull::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Wolf>() {
-        for d in data.0 {
+        for d in items {
             Wolf::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Zoglin>() {
-        for d in data.0 {
+        for d in items {
             Zoglin::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Zombie>() {
-        for d in data.0 {
+        for d in items {
             Zombie::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ZombieHorse>() {
-        for d in data.0 {
+        for d in items {
             ZombieHorse::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ZombieVillager>() {
-        for d in data.0 {
+        for d in items {
             ZombieVillager::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ZombifiedPiglin>() {
-        for d in data.0 {
+        for d in items {
             ZombifiedPiglin::update_metadata(ecs, &mut entity, d)?;
         }
         return Ok(());

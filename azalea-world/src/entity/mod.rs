@@ -3,47 +3,84 @@ mod data;
 mod dimensions;
 pub mod metadata;
 
-use self::attributes::{AttributeInstance, AttributeModifiers};
+use self::{
+    attributes::{AttributeInstance, AttributeModifiers},
+    metadata::UpdateMetadataError,
+};
 use crate::WeakWorld;
 use azalea_block::BlockState;
-use azalea_core::{BlockPos, Vec3, AABB};
+use azalea_core::{BlockPos, ChunkPos, Vec3, AABB};
 use azalea_registry::EntityKind;
-use bevy_ecs::component::Component;
+use bevy_ecs::{component::Component, world::EntityMut};
 pub use data::*;
+use derive_more::{Deref, DerefMut};
 pub use dimensions::*;
 use std::{
-    fmt::Debug,
+    fmt::{Debug, Display, Formatter},
     marker::PhantomData,
     ops::{Deref, DerefMut},
     ptr::NonNull,
 };
 use uuid::Uuid;
 
-/// Note: EntityId internally uses twice the memory as just a u32, so if a u32
-/// would work just as well then use that.
-pub type EntityId = bevy_ecs::entity::Entity;
+/// The unique 32-bit unsigned id of an entity.
+#[derive(Deref, Eq, PartialEq, DerefMut)]
+pub struct EntityId(pub u32);
+impl From<EntityId> for bevy_ecs::entity::Entity {
+    // bevy_ecs `Entity`s also store the "generation" which adds another 32 bits,
+    // but we don't care about the generation
+    fn from(id: EntityId) -> Self {
+        Self::from_raw(*id)
+    }
+}
+impl Debug for EntityId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "EntityId({})", **self)
+    }
+}
+impl Display for EntityId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", **self)
+    }
+}
+impl std::hash::Hash for EntityId {
+    fn hash<H: std::hash::Hasher>(&self, hasher: &mut H) {
+        hasher.write_u32(self.0)
+    }
+}
+impl nohash_hasher::IsEnabled for EntityId {}
 
 /// A mutable reference to an entity in a world.
 pub struct Entity<'w, W = &'w WeakWorld> {
-    /// The world this entity is in.
+    /// The [`WeakWorld`] this entity is in.
     pub world: W,
     /// The container for the incrementing numerical id of the entity.
     pub id: EntityId,
+    /// The ECS data for the entity.
     pub data: bevy_ecs::world::EntityMut<'w>,
+}
+
+/// Create an entity if you only have a [`bevy_ecs::world::World`].
+///
+/// If you do have access to a [`PartialEntityStorage`] though then just call
+/// [`PartialEntityStorage::insert`].
+pub(crate) fn new_entity<'w>(
+    ecs: &mut bevy_ecs::world::World,
+    id: EntityId,
+    bundle: impl bevy_ecs::bundle::Bundle,
+) -> EntityMut<'w> {
+    // bevy_ecs only returns None if the entity only exists with a different
+    // generation, which shouldn't be possible here
+    ecs.get_or_spawn(id.into())
+        .expect("Entities should always be generation 0 if we're manually spawning from ids")
 }
 
 impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
     /// Create an Entity when we already know its id and data.
-    pub fn new(world: D, id: u32, bundle: impl bevy_ecs::bundle::Bundle) -> Self {
-        let id = EntityId::from_raw(id);
+    pub(crate) fn new(world: D, id: u32, bundle: impl bevy_ecs::bundle::Bundle) -> Self {
         let ecs = world.entity_storage.write().ecs;
-
-        // bevy_ecs only returns None if the entity only exists with a different
-        // generation, which shouldn't be possible here
-        let mut data =
-            world.entity_storage.write().ecs.get_or_spawn(id).expect(
-                "Entities should always be generation 0 if we're manually spawning from ids",
-            );
+        let id = EntityId(id);
+        let data = new_entity(&mut ecs, id, bundle);
         Self { world, id, data }
     }
 }
@@ -61,70 +98,70 @@ impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
     }
 }
 
-impl<'w, W: Deref<Target = WeakWorld>> Entity<'w, W> {
-    /// Sets the position of the entity. This doesn't update the cache in
-    /// azalea-world, and should only be used within azalea-world!
-    ///
-    /// # Safety
-    /// Cached position in the world must be updated.
-    pub unsafe fn move_unchecked(&mut self, new_pos: Vec3) {
-        self.pos = new_pos;
-        let bounding_box = self.make_bounding_box();
-        self.bounding_box = bounding_box;
-    }
+/// Sets the position of the entity. This doesn't update the cache in
+/// azalea-world, and should only be used within azalea-world!
+///
+/// # Safety
+/// Cached position in the world must be updated.
+pub unsafe fn move_unchecked(pos: &mut Position, physics: &mut Physics, new_pos: Vec3) {
+    *pos = Position(new_pos);
+    let bounding_box = make_bounding_box(pos, physics);
+    physics.bounding_box = bounding_box;
+}
 
-    pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
-        self.y_rot = y_rot % 360.0;
-        self.x_rot = x_rot.clamp(-90.0, 90.0) % 360.0;
-        // TODO: minecraft also sets yRotO and xRotO to xRot and yRot ... but
-        // idk what they're used for so
-    }
+pub fn set_rotation(physics: &mut Physics, y_rot: f32, x_rot: f32) {
+    physics.y_rot = y_rot % 360.0;
+    physics.x_rot = x_rot.clamp(-90.0, 90.0) % 360.0;
+    // TODO: minecraft also sets yRotO and xRotO to xRot and yRot ... but
+    // idk what they're used for so
+}
 
-    pub fn move_relative(&mut self, speed: f32, acceleration: &Vec3) {
-        let input_vector = self.input_vector(speed, acceleration);
-        self.delta += input_vector;
-    }
+pub fn move_relative(physics: &mut Physics, speed: f32, acceleration: &Vec3) {
+    let input_vector = input_vector(physics, speed, acceleration);
+    physics.delta += input_vector;
+}
 
-    pub fn input_vector(&self, speed: f32, acceleration: &Vec3) -> Vec3 {
-        let distance = acceleration.length_squared();
-        if distance < 1.0E-7 {
-            return Vec3::default();
-        }
-        let acceleration = if distance > 1.0 {
-            acceleration.normalize()
-        } else {
-            *acceleration
-        }
-        .scale(speed as f64);
-        let y_rot = f32::sin(self.y_rot * 0.017453292f32);
-        let x_rot = f32::cos(self.y_rot * 0.017453292f32);
-        Vec3 {
-            x: acceleration.x * (x_rot as f64) - acceleration.z * (y_rot as f64),
-            y: acceleration.y,
-            z: acceleration.z * (x_rot as f64) + acceleration.x * (y_rot as f64),
-        }
+pub fn input_vector(physics: &mut Physics, speed: f32, acceleration: &Vec3) -> Vec3 {
+    let distance = acceleration.length_squared();
+    if distance < 1.0E-7 {
+        return Vec3::default();
     }
-
-    /// Apply the given metadata items to the entity. Everything that isn't
-    /// included in items will be left unchanged. If an error occured, None
-    /// will be returned.
-    ///
-    /// TODO: this should be changed to have a proper error.
-    pub fn apply_metadata(&mut self, items: &Vec<EntityDataItem>) -> Option<()> {
-        // for item in items {
-        //     self.metadata.set_index(item.index, item.value.clone())?;
-        // }
-        Some(())
+    let acceleration = if distance > 1.0 {
+        acceleration.normalize()
+    } else {
+        *acceleration
+    }
+    .scale(speed as f64);
+    let y_rot = f32::sin(physics.y_rot * 0.017453292f32);
+    let x_rot = f32::cos(physics.y_rot * 0.017453292f32);
+    Vec3 {
+        x: acceleration.x * (x_rot as f64) - acceleration.z * (y_rot as f64),
+        y: acceleration.y,
+        z: acceleration.z * (x_rot as f64) + acceleration.x * (y_rot as f64),
     }
 }
 
-pub fn make_bounding_box(physics: &EntityPhysics) -> AABB {
-    physics.dimensions.make_bounding_box(&physics.pos)
+/// Apply the given metadata items to the entity. Everything that isn't
+/// included in items will be left unchanged.
+pub fn update_metadatas(
+    ecs: bevy_ecs::world::World,
+    entity: bevy_ecs::world::EntityMut,
+    items: &Vec<EntityDataItem>,
+) -> Result<(), UpdateMetadataError> {
+    metadata::update_metadatas(ecs, entity, items)
+}
+
+pub fn make_bounding_box(pos: &Position, physics: &Physics) -> AABB {
+    physics.dimensions.make_bounding_box(&pos)
 }
 
 /// Get the position of the block below the entity, but a little lower.
-pub fn on_pos_legacy<W: Deref<Target = WeakWorld>>(world: &W, physics: &EntityPhysics) -> BlockPos {
-    on_pos(world, physics, 0.2)
+pub fn on_pos_legacy<W: Deref<Target = WeakWorld>>(
+    world: &W,
+    pos: &Position,
+    physics: &Physics,
+) -> BlockPos {
+    on_pos(world, pos, physics, 0.2)
 }
 
 // int x = Mth.floor(this.position.x);
@@ -141,12 +178,13 @@ pub fn on_pos_legacy<W: Deref<Target = WeakWorld>>(world: &W, physics: &EntityPh
 // return var5;
 pub fn on_pos<W: Deref<Target = WeakWorld>>(
     world: &W,
-    physics: &EntityPhysics,
+    pos: &Position,
+    physics: &Physics,
     offset: f32,
 ) -> BlockPos {
-    let x = physics.pos.x.floor() as i32;
-    let y = (physics.pos.y - offset as f64).floor() as i32;
-    let z = physics.pos.z.floor() as i32;
+    let x = pos.x.floor() as i32;
+    let y = (pos.y - offset as f64).floor() as i32;
+    let z = pos.z.floor() as i32;
     let pos = BlockPos { x, y, z };
 
     // TODO: check if block below is a fence, wall, or fence gate
@@ -168,18 +206,24 @@ pub fn on_pos<W: Deref<Target = WeakWorld>>(
     pos
 }
 
-#[derive(Component)]
-pub struct EntityUuid(pub Uuid);
+#[derive(Component, Deref, DerefMut)]
+pub struct EntityUuid(Uuid);
+
+/// The position of the entity right now.
+/// This can be changed with unsafe_move, but the correct way is with
+/// world.move_entity
+#[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
+pub struct Position(Vec3);
+impl From<&Position> for ChunkPos {
+    fn from(value: &Position) -> Self {
+        ChunkPos::from(&value.0)
+    }
+}
 
 /// The physics data relating to the entity, such as position, velocity, and
 /// bounding box.
 #[derive(Debug, Component)]
-pub struct EntityPhysics {
-    /// The position of the entity right now.
-    /// This can be changde with unsafe_move, but the correct way is with
-    /// world.move_entity
-    pub pos: Vec3,
-
+pub struct Physics {
     /// The position of the entity last tick.
     pub last_pos: Vec3,
     pub delta: Vec3,
@@ -213,79 +257,79 @@ pub struct EntityPhysics {
     pub has_impulse: bool,
 }
 
-impl EntityData {
-    pub fn new(uuid: Uuid, pos: Vec3, metadata: EntityMetadata) -> Self {
-        let dimensions = EntityDimensions {
-            width: 0.6,
-            height: 1.8,
-        };
+// impl EntityData {
+//     pub fn new(uuid: Uuid, pos: Vec3, metadata: EntityMetadata) -> Self {
+//         let dimensions = EntityDimensions {
+//             width: 0.6,
+//             height: 1.8,
+//         };
 
-        Self {
-            uuid,
-            pos,
-            last_pos: pos,
-            delta: Vec3::default(),
+//         Self {
+//             uuid,
+//             pos,
+//             last_pos: pos,
+//             delta: Vec3::default(),
 
-            xxa: 0.,
-            yya: 0.,
-            zza: 0.,
+//             xxa: 0.,
+//             yya: 0.,
+//             zza: 0.,
 
-            x_rot: 0.,
-            y_rot: 0.,
+//             x_rot: 0.,
+//             y_rot: 0.,
 
-            y_rot_last: 0.,
-            x_rot_last: 0.,
+//             y_rot_last: 0.,
+//             x_rot_last: 0.,
 
-            on_ground: false,
-            last_on_ground: false,
+//             on_ground: false,
+//             last_on_ground: false,
 
-            // TODO: have this be based on the entity type
-            bounding_box: dimensions.make_bounding_box(&pos),
-            dimensions,
+//             // TODO: have this be based on the entity type
+//             bounding_box: dimensions.make_bounding_box(&pos),
+//             dimensions,
 
-            has_impulse: false,
+//             has_impulse: false,
 
-            jumping: false,
+//             jumping: false,
 
-            metadata,
+//             metadata,
 
-            attributes: AttributeModifiers {
-                // TODO: do the correct defaults for everything, some entities have different
-                // defaults
-                speed: AttributeInstance::new(0.1),
-            },
-        }
-    }
+//             attributes: AttributeModifiers {
+//                 // TODO: do the correct defaults for everything, some
+// entities have different                 // defaults
+//                 speed: AttributeInstance::new(0.1),
+//             },
+//         }
+//     }
 
-    /// Get the position of the entity in the world.
-    #[inline]
-    pub fn pos(&self) -> &Vec3 {
-        &self.pos
-    }
+//     /// Get the position of the entity in the world.
+//     #[inline]
+//     pub fn pos(&self) -> &Vec3 {
+//         &self.pos
+//     }
 
-    /// Convert this &self into a (mutable) pointer.
-    ///
-    /// # Safety
-    /// The entity MUST exist for at least as long as this pointer exists.
-    pub unsafe fn as_ptr(&self) -> NonNull<EntityData> {
-        // this is cursed
-        NonNull::new_unchecked(self as *const EntityData as *mut EntityData)
-    }
+//     /// Convert this &self into a (mutable) pointer.
+//     ///
+//     /// # Safety
+//     /// The entity MUST exist for at least as long as this pointer exists.
+//     pub unsafe fn as_ptr(&self) -> NonNull<EntityData> {
+//         // this is cursed
+//         NonNull::new_unchecked(self as *const EntityData as *mut EntityData)
+//     }
 
-    /// Returns the type of entity this is.
-    ///
-    /// ```rust
-    /// let entity = EntityData::new(
-    ///     Uuid::nil(),
-    ///     Vec3::default(),
-    ///     EntityMetadata::Player(metadata::Player::default()),
-    /// );
-    /// assert_eq!(entity.kind(), EntityKind::Player);
-    /// ```
-    pub fn kind(&self) -> EntityKind {
-        EntityKind::from(&self.metadata)
-    }
-}
+//     /// Returns the type of entity this is.
+//     ///
+//     /// ```rust
+//     /// let entity = EntityData::new(
+//     ///     Uuid::nil(),
+//     ///     Vec3::default(),
+//     ///     EntityMetadata::Player(metadata::Player::default()),
+//     /// );
+//     /// assert_eq!(entity.kind(), EntityKind::Player);
+//     /// ```
+//     pub fn kind(&self) -> EntityKind {
+//         EntityKind::from(&self.metadata)
+//     }
+// }
 
 impl<W: Deref<Target = WeakWorld>> Debug for Entity<'_, W> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

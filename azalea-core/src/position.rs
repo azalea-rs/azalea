@@ -270,10 +270,20 @@ impl From<&Vec3> for BlockPos {
         }
     }
 }
+impl From<Vec3> for BlockPos {
+    fn from(pos: Vec3) -> Self {
+        BlockPos::from(&pos)
+    }
+}
 
 impl From<&Vec3> for ChunkPos {
     fn from(pos: &Vec3) -> Self {
         ChunkPos::from(&BlockPos::from(pos))
+    }
+}
+impl From<Vec3> for ChunkPos {
+    fn from(pos: Vec3) -> Self {
+        ChunkPos::from(&pos)
     }
 }
 

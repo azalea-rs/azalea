@@ -42,7 +42,7 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
 
 #![allow(clippy::clone_on_copy, clippy::derivable_impls)]
 use super::{
-    EntityDataValue, EntityMetadataItems, OptionalUnsignedInt, Pose, Rotations, VillagerData, EntityDataItem,
+    EntityDataValue, OptionalUnsignedInt, Pose, Rotations, VillagerData, EntityDataItem,
 };
 use azalea_block::BlockState;
 use azalea_chat::FormattedText;
@@ -197,7 +197,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
         # }
         code.append(f'impl {struct_name} {{')
         code.append(
-            f'    pub fn update_metadata(ecs: bevy_ecs::world::World, entity: &mut bevy_ecs::world::EntityMut, d: EntityDataItem) -> Result<(), UpdateMetadataError> {{')
+            f'    pub fn update_metadata(ecs: bevy_ecs::world::World, entity: &mut bevy_ecs::world::EntityMut, d: &EntityDataItem) -> Result<(), UpdateMetadataError> {{')
         code.append(f'        match d.index {{')
 
         parent_last_index = -1
@@ -389,13 +389,13 @@ impl From<EntityDataValue> for UpdateMetadataError {
         new_entity(entity_id)
 
     # and now make the main update_metadatas
-    # fn update_metadatas(
+    # pub fn update_metadatas(
     #     ecs: bevy_ecs::world::World,
     #     entity: bevy_ecs::world::EntityMut,
-    #     data: EntityMetadataItems,
+    #     items: &Vec<EntityDataItem>,
     # ) -> Result<(), UpdateMetadataError> {
     #     if entity.contains::<Allay>() {
-    #         for d in data.0 {
+    #         for d in items {
     #             Allay::update_metadata(ecs, entity, d)?;
     #         }
     #         return Ok(());
@@ -404,7 +404,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     #     Ok(())
     # }
     code.append(
-        f'fn update_metadatas(ecs: bevy_ecs::world::World, entity: bevy_ecs::world::EntityMut, data: EntityMetadataItems) -> Result<(), UpdateMetadataError> {{')
+        f'pub fn update_metadatas(ecs: bevy_ecs::world::World, entity: bevy_ecs::world::EntityMut, items: &Vec<EntityDataItem>) -> Result<(), UpdateMetadataError> {{')
     for entity_id in burger_entity_data:
         if entity_id.startswith('~'):
             # not actually an entity
@@ -412,7 +412,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
         struct_name: str = upper_first_letter(to_camel_case(entity_id))
         code.append(
             f'    if entity.contains::<{struct_name}>() {{')
-        code.append('        for d in data.0 {')
+        code.append('        for d in items {')
         code.append(
             f'            {struct_name}::update_metadata(ecs, &mut entity, d)?;')
         code.append('        }')

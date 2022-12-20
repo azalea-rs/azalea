@@ -1,5 +1,5 @@
 use crate::{
-    entity::{Entity, EntityData},
+    entity::{move_unchecked, Entity, Physics, Position},
     Chunk, MoveEntityError, PartialChunkStorage, PartialEntityStorage, WeakChunkStorage,
     WeakEntityStorage,
 };
@@ -93,10 +93,15 @@ impl PartialWorld {
         let mut entity = self
             .entity_mut(entity_id)
             .ok_or_else(|| MoveEntityError::EntityDoesNotExist(Backtrace::capture()))?;
-        let old_chunk = ChunkPos::from(entity.pos());
+
+        let pos = entity.get_mut::<Position>().unwrap();
+        let physics = entity.get_mut::<Physics>().unwrap();
+
+        let old_chunk = ChunkPos::from(pos.as_ref());
         let new_chunk = ChunkPos::from(&new_pos);
         // this is fine because we update the chunk below
-        unsafe { entity.move_unchecked(new_pos) };
+        unsafe { move_unchecked(&mut pos, &mut physics, new_pos) };
+
         if old_chunk != new_chunk {
             self.entity_storage
                 .update_entity_chunk(entity_id, &old_chunk, &new_chunk);
@@ -112,13 +117,17 @@ impl PartialWorld {
         let mut entity = self
             .entity_mut(entity_id)
             .ok_or_else(|| MoveEntityError::EntityDoesNotExist(Backtrace::capture()))?;
-        let new_pos = entity.pos().with_delta(delta);
 
-        let old_chunk = ChunkPos::from(entity.pos());
+        let pos = entity.get_mut::<Position>().unwrap();
+        let physics = entity.get_mut::<Physics>().unwrap();
+
+        let new_pos = pos.with_delta(delta);
+
+        let old_chunk = ChunkPos::from(pos.as_ref());
         let new_chunk = ChunkPos::from(&new_pos);
         // this is fine because we update the chunk below
 
-        unsafe { entity.move_unchecked(new_pos) };
+        unsafe { move_unchecked(&mut pos, &mut physics, new_pos) };
         if old_chunk != new_chunk {
             self.entity_storage
                 .update_entity_chunk(entity_id, &old_chunk, &new_chunk);
@@ -146,14 +155,11 @@ impl WeakWorld {
         self.chunk_storage.read().min_y
     }
 
-    pub fn entity_data_by_id(&self, id: u32) -> Option<Arc<EntityData>> {
-        self.entity_storage.read().get_by_id(id)
-    }
-
     /// Returns a entity with the given ID.
     ///
     /// The returned Entity can technically be mutated, but you should avoid
-    /// doing any relative mutations.
+    /// doing any relative mutations (i.e. getting the current position and then
+    /// setting the new position relative to that position).
     pub fn entity(&self, id: u32) -> Option<Entity<&WeakWorld>> {
         let entity_data = self.entity_storage.read().get_by_id(id)?;
         let entity_ptr = unsafe { entity_data.as_ptr() };
@@ -168,7 +174,7 @@ impl WeakWorld {
     where
         F: FnMut(&EntityData) -> bool,
     {
-        self.entity_storage.read().entity_by(|e| f(e))
+        self.entity_storage.read().get_by(|e| f(e))
     }
 
     pub fn entities_by<F>(&self, mut f: F) -> Vec<Arc<EntityData>>
@@ -182,10 +188,14 @@ impl WeakWorld {
         let mut entity = self
             .entity(entity_id)
             .ok_or_else(|| MoveEntityError::EntityDoesNotExist(Backtrace::capture()))?;
-        let old_chunk = ChunkPos::from(entity.pos());
+
+        let pos = entity.get_mut::<Position>().unwrap();
+        let physics = entity.get_mut::<Physics>().unwrap();
+
+        let old_chunk = ChunkPos::from(pos.as_ref());
         let new_chunk = ChunkPos::from(&new_pos);
         // this is fine because we update the chunk below
-        unsafe { entity.move_unchecked(new_pos) };
+        unsafe { move_unchecked(&mut pos, &mut physics, new_pos) };
         if old_chunk != new_chunk {
             self.entity_storage
                 .write()
