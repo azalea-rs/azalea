@@ -183,12 +183,11 @@ impl From<EntityDataValue> for UpdateMetadataError {
 
         # impl Allay {
         #     pub fn update_metadata(
-        #         ecs: bevy_ecs::world::World,
         #         entity: &mut bevy_ecs::world::EntityMut,
         #         d: EntityDataItem,
         #     ) -> Result<(), UpdateMetadataError> {
         #         match d.index {
-        #             0..=15 => AbstractCreatureBundle::update_metadata(ecs, entity, d)?,
+        #             0..=15 => AbstractCreatureBundle::update_metadata(entity, d)?,
         #             16 => entity.insert(Dancing(d.value.into_boolean()?)),
         #             17 => entity.insert(CanDuplicate(d.value.into_boolean()?)),
         #         }
@@ -197,7 +196,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
         # }
         code.append(f'impl {struct_name} {{')
         code.append(
-            f'    pub fn update_metadata(ecs: bevy_ecs::world::World, entity: &mut bevy_ecs::world::EntityMut, d: &EntityDataItem) -> Result<(), UpdateMetadataError> {{')
+            f'    pub fn update_metadata(entity: &mut bevy_ecs::world::EntityMut, d: EntityDataItem) -> Result<(), UpdateMetadataError> {{')
         code.append(f'        match d.index {{')
 
         parent_last_index = -1
@@ -207,7 +206,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 parent_last_index = index
         if parent_last_index != -1:
             code.append(
-                f'            0..={parent_last_index} => {parent_struct_name}::update_metadata(ecs, entity, d)?,')
+                f'            0..={parent_last_index} => {parent_struct_name}::update_metadata(entity, d)?,')
 
         for index, name_or_bitfield in enumerate(all_field_names_or_bitfields):
             if index <= parent_last_index:
@@ -242,6 +241,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                     code.append(
                         f'entity.insert({field_struct_name}(bitfield & {mask} != 0));')
                 code.append('            },')
+        code.append('            _ => {}')
         code.append('        }')
         code.append('        Ok(())')
         code.append('    }')
@@ -390,13 +390,12 @@ impl From<EntityDataValue> for UpdateMetadataError {
 
     # and now make the main update_metadatas
     # pub fn update_metadatas(
-    #     ecs: bevy_ecs::world::World,
     #     entity: bevy_ecs::world::EntityMut,
-    #     items: &Vec<EntityDataItem>,
+    #     items: Vec<EntityDataItem>,
     # ) -> Result<(), UpdateMetadataError> {
     #     if entity.contains::<Allay>() {
     #         for d in items {
-    #             Allay::update_metadata(ecs, entity, d)?;
+    #             Allay::update_metadata(entity, d)?;
     #         }
     #         return Ok(());
     #     }
@@ -404,7 +403,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     #     Ok(())
     # }
     code.append(
-        f'pub fn update_metadatas(ecs: bevy_ecs::world::World, entity: bevy_ecs::world::EntityMut, items: &Vec<EntityDataItem>) -> Result<(), UpdateMetadataError> {{')
+        f'pub fn update_metadatas(mut entity: bevy_ecs::world::EntityMut, items: Vec<EntityDataItem>) -> Result<(), UpdateMetadataError> {{')
     for entity_id in burger_entity_data:
         if entity_id.startswith('~'):
             # not actually an entity
@@ -414,7 +413,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
             f'    if entity.contains::<{struct_name}>() {{')
         code.append('        for d in items {')
         code.append(
-            f'            {struct_name}::update_metadata(ecs, &mut entity, d)?;')
+            f'            {struct_name}::update_metadata(&mut entity, d)?;')
         code.append('        }')
         code.append(f'        return Ok(());')
         code.append('    }')

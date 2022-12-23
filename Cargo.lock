@@ -424,6 +424,7 @@ dependencies = [
  "enum-as-inner",
  "log",
  "nohash-hasher",
+ "once_cell",
  "parking_lot",
  "thiserror",
  "uuid",

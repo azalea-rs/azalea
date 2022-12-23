@@ -1,11 +1,16 @@
 use crate::{
-    entity::{move_unchecked, Entity, Physics, Position},
+    entity::{move_unchecked, EcsEntityId, EntityId, Physics, Position},
     Chunk, MoveEntityError, PartialChunkStorage, PartialEntityStorage, WeakChunkStorage,
     WeakEntityStorage,
 };
 use azalea_block::BlockState;
 use azalea_buf::BufReadError;
 use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
+use bevy_ecs::{
+    query::{QueryEntityError, QueryState, ReadOnlyWorldQuery, WorldQuery},
+    system::Query,
+    world::EntityMut,
+};
 use parking_lot::RwLock;
 use std::{backtrace::Backtrace, fmt::Debug};
 use std::{fmt::Formatter, io::Cursor, sync::Arc};
@@ -37,7 +42,11 @@ pub struct WeakWorld {
 }
 
 impl PartialWorld {
-    pub fn new(chunk_radius: u32, shared: Arc<WeakWorld>, owner_entity_id: Option<u32>) -> Self {
+    pub fn new(
+        chunk_radius: u32,
+        shared: Arc<WeakWorld>,
+        owner_entity_id: Option<EntityId>,
+    ) -> Self {
         PartialWorld {
             shared: shared.clone(),
             chunk_storage: PartialChunkStorage::new(chunk_radius, shared.chunk_storage.clone()),
@@ -74,65 +83,61 @@ impl PartialWorld {
         self.chunk_storage.set_block_state(pos, state)
     }
 
-    /// Returns a mutable reference to the entity with the given ID.
-    pub fn entity_mut(&mut self, id: u32) -> Option<Entity<'_, &WeakWorld>> {
+    /// Whether we're allowed to update the entity with the given ID.
+    ///
+    /// Only call this if you're actually updating the entity, otherwise it'll
+    /// cause the update tracker to get out of sync.
+    fn maybe_update_entity(&mut self, id: EntityId) -> bool {
         // no entity for you (we're processing this entity somewhere else)
         if Some(id) != self.entity_storage.owner_entity_id && !self.entity_storage.maybe_update(id)
         {
-            return None;
+            false
+        } else {
+            true
         }
-
-        self.shared.entity(id)
     }
 
-    pub fn add_entity(&mut self, id: u32, bundle: impl bevy_ecs::prelude::Bundle) {
+    /// Makes sure we can modify this EntityId, and returns it if we can.
+    ///
+    /// Only call this if you're actually updating the entity, otherwise it'll
+    /// cause the update tracker to get out of sync.
+    pub fn entity_mut(&mut self, id: EntityId) -> Option<EntityId> {
+        if self.maybe_update_entity(id) {
+            Some(id)
+        } else {
+            None
+        }
+    }
+
+    pub fn add_entity(&mut self, id: EntityId, bundle: impl bevy_ecs::prelude::Bundle) {
         self.entity_storage.insert(id, bundle);
     }
 
-    pub fn set_entity_pos(&mut self, entity_id: u32, new_pos: Vec3) -> Result<(), MoveEntityError> {
-        let mut entity = self
-            .entity_mut(entity_id)
-            .ok_or_else(|| MoveEntityError::EntityDoesNotExist(Backtrace::capture()))?;
-
-        let pos = entity.get_mut::<Position>().unwrap();
-        let physics = entity.get_mut::<Physics>().unwrap();
-
-        let old_chunk = ChunkPos::from(pos.as_ref());
-        let new_chunk = ChunkPos::from(&new_pos);
-        // this is fine because we update the chunk below
-        unsafe { move_unchecked(&mut pos, &mut physics, new_pos) };
-
-        if old_chunk != new_chunk {
-            self.entity_storage
-                .update_entity_chunk(entity_id, &old_chunk, &new_chunk);
+    pub fn set_entity_pos(
+        &mut self,
+        entity_id: EntityId,
+        new_pos: Vec3,
+    ) -> Result<(), MoveEntityError> {
+        if self.maybe_update_entity(entity_id) {
+            self.shared.set_entity_pos(entity_id, new_pos)
+        } else {
+            Err(MoveEntityError::EntityDoesNotExist(Backtrace::capture()))
         }
-        Ok(())
     }
 
     pub fn move_entity_with_delta(
         &mut self,
-        entity_id: u32,
+        entity_id: EntityId,
         delta: &PositionDelta8,
     ) -> Result<(), MoveEntityError> {
-        let mut entity = self
-            .entity_mut(entity_id)
-            .ok_or_else(|| MoveEntityError::EntityDoesNotExist(Backtrace::capture()))?;
-
-        let pos = entity.get_mut::<Position>().unwrap();
-        let physics = entity.get_mut::<Physics>().unwrap();
+        let mut query = self.shared.query_entities::<&Position>();
+        let pos = **query
+            .get(&self.shared.entity_storage.read().ecs, entity_id.into())
+            .map_err(|_| MoveEntityError::EntityDoesNotExist(Backtrace::capture()))?;
 
         let new_pos = pos.with_delta(delta);
 
-        let old_chunk = ChunkPos::from(pos.as_ref());
-        let new_chunk = ChunkPos::from(&new_pos);
-        // this is fine because we update the chunk below
-
-        unsafe { move_unchecked(&mut pos, &mut physics, new_pos) };
-        if old_chunk != new_chunk {
-            self.entity_storage
-                .update_entity_chunk(entity_id, &old_chunk, &new_chunk);
-        }
-        Ok(())
+        self.set_entity_pos(entity_id, new_pos)
     }
 }
 
@@ -155,47 +160,29 @@ impl WeakWorld {
         self.chunk_storage.read().min_y
     }
 
-    /// Returns a entity with the given ID.
-    ///
-    /// The returned Entity can technically be mutated, but you should avoid
-    /// doing any relative mutations (i.e. getting the current position and then
-    /// setting the new position relative to that position).
-    pub fn entity(&self, id: u32) -> Option<Entity<&WeakWorld>> {
-        let entity_data = self.entity_storage.read().get_by_id(id)?;
-        let entity_ptr = unsafe { entity_data.as_ptr() };
-        Some(Entity::new(self, id, entity_ptr))
+    pub fn id_by_uuid(&self, uuid: &Uuid) -> Option<EntityId> {
+        self.entity_storage.read().id_by_uuid(uuid).copied()
     }
 
-    pub fn entity_by_uuid(&self, uuid: &Uuid) -> Option<Arc<EntityData>> {
-        self.entity_storage.read().get_by_uuid(uuid)
+    pub fn query_entities<Q: WorldQuery>(&self) -> QueryState<Q, ()> {
+        self.entity_storage.write().query::<Q>()
     }
 
-    pub fn entity_by<F>(&self, mut f: F) -> Option<Arc<EntityData>>
-    where
-        F: FnMut(&EntityData) -> bool,
-    {
-        self.entity_storage.read().get_by(|e| f(e))
-    }
-
-    pub fn entities_by<F>(&self, mut f: F) -> Vec<Arc<EntityData>>
-    where
-        F: FnMut(&EntityData) -> bool,
-    {
-        self.entity_storage.read().entities_by(|e| f(e))
-    }
-
-    pub fn set_entity_pos(&self, entity_id: u32, new_pos: Vec3) -> Result<(), MoveEntityError> {
-        let mut entity = self
-            .entity(entity_id)
-            .ok_or_else(|| MoveEntityError::EntityDoesNotExist(Backtrace::capture()))?;
-
-        let pos = entity.get_mut::<Position>().unwrap();
-        let physics = entity.get_mut::<Physics>().unwrap();
+    pub fn set_entity_pos(
+        &self,
+        entity_id: EntityId,
+        new_pos: Vec3,
+    ) -> Result<(), MoveEntityError> {
+        let mut entity_storage = self.entity_storage.write();
+        let mut query = entity_storage.query::<(&mut Position, &mut Physics)>();
+        let (pos, physics) = query
+            .get_mut(&mut entity_storage.ecs, entity_id.into())
+            .unwrap();
 
         let old_chunk = ChunkPos::from(pos.as_ref());
         let new_chunk = ChunkPos::from(&new_pos);
         // this is fine because we update the chunk below
-        unsafe { move_unchecked(&mut pos, &mut physics, new_pos) };
+        unsafe { move_unchecked(pos.into_inner(), physics.into_inner(), new_pos) };
         if old_chunk != new_chunk {
             self.entity_storage
                 .write()

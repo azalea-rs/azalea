@@ -1,8 +1,12 @@
-use crate::entity::{new_entity, Entity, EntityId, EntityUuid, Position};
+use crate::entity::{new_entity, EcsEntityId, EntityId, EntityUuid, Position};
 use azalea_core::ChunkPos;
-use bevy_ecs::world::{EntityMut, EntityRef};
+use bevy_ecs::{
+    query::{QueryEntityError, QueryState, ReadOnlyWorldQuery, WorldQuery},
+    world::{EntityMut, EntityRef},
+};
 use log::warn;
 use nohash_hasher::{IntMap, IntSet};
+use once_cell::sync::Lazy;
 use parking_lot::RwLock;
 use std::{
     collections::HashMap,
@@ -88,31 +92,26 @@ impl PartialEntityStorage {
 
     /// Add an entity to the storage.
     #[inline]
-    pub fn insert(&mut self, id: u32, bundle: impl bevy_ecs::bundle::Bundle) {
-        // if you're trying to optimize this, see if checking if the id is in
-        // self.loaded_entity_ids would help with performance
-        // i didn't put the check here just in case it doesn't actually help
-
+    pub fn insert(&mut self, id: EntityId, bundle: impl bevy_ecs::bundle::Bundle) {
+        let mut shared = self.shared.write();
         // if the entity is already in the shared world, we don't need to do
         // anything
-        let id = EntityId(id);
-
-        if self.shared.read().contains_id(id) {
+        if shared.contains_id(id) {
             return;
         }
 
-        let entity = new_entity(&mut self.shared.read().ecs, id, bundle);
+        new_entity(&mut shared.ecs, id, bundle);
+
+        let mut query = shared.ecs.query::<(&EntityUuid, &Position)>();
+        let (&uuid, &pos) = query.get(&mut shared.ecs, id.into()).unwrap();
 
         // add the entity to the indexes
-        let mut shared = self.shared.write();
         shared
             .ids_by_chunk
-            .entry(ChunkPos::from(entity.get::<Position>().unwrap()))
+            .entry(ChunkPos::from(&pos))
             .or_default()
             .insert(id);
-        shared
-            .id_by_uuid
-            .insert(**entity.get::<EntityUuid>().unwrap(), id);
+        shared.id_by_uuid.insert(*uuid, id);
         self.loaded_entity_ids.insert(id);
         // set our updates_received to the shared updates_received, unless it's
         // not there in which case set both to 1
@@ -132,15 +131,22 @@ impl PartialEntityStorage {
     #[inline]
     pub fn remove_by_id(&mut self, id: EntityId) {
         if self.loaded_entity_ids.remove(&id) {
-            let entity = self.shared.read().get_by_id(id).expect(
-                "If the entity was being loaded by this storage, it must be in the shared storage.",
+            let mut shared = self.shared.write();
+
+            let mut query = shared.query::<(&Position, &EntityUuid)>();
+            let (pos, uuid) = query.get(&mut shared.ecs, id.into()).expect(
+                "If the entity was being loaded by this storage, it must be in the shared
+                storage.",
             );
-            let pos = entity.get::<Position>().unwrap();
             let chunk = ChunkPos::from(pos);
-            let uuid = **entity.get::<EntityUuid>().unwrap();
+            let uuid = **uuid;
+
+            // TODO: is this line actually necessary? test if it doesn't immediately
+            // panic/deadlock without this line
+            drop(query);
+
             self.updates_received.remove(&id);
-            drop(entity);
-            self.shared.write().remove_entity_if_unused(id, uuid, chunk);
+            shared.remove_entity_if_unused(id, uuid, chunk);
         } else {
             warn!("Tried to remove entity with id {id} but it was not found.")
         }
@@ -154,12 +160,15 @@ impl PartialEntityStorage {
         self.loaded_entity_ids.contains(id)
     }
 
-    /// Get a reference to an entity by its id, if it's being loaded by this
-    /// storage.
+    /// Get an [`EntityId`] from this u32 entity ID if the entity is being
+    /// loaded by this storage.
+    ///
+    /// Note that you can just create an `EntityId` directly if you want, and
+    /// it'll work if the entity is being loaded by any storage.
     #[inline]
-    pub fn limited_get_by_id(&self, id: EntityId) -> Option<EntityMut> {
-        if self.limited_contains_id(&id) {
-            self.shared.read().get_by_id(id)
+    pub fn limited_get_by_id(&self, id: u32) -> Option<EntityId> {
+        if self.limited_contains_id(&EntityId(id)) {
+            Some(EntityId(id))
         } else {
             None
         }
@@ -191,23 +200,24 @@ impl PartialEntityStorage {
     /// Get a reference to an entity by its UUID, if it's being loaded by this
     /// storage.
     #[inline]
-    pub fn limited_get_by_uuid(&self, uuid: &Uuid) -> Option<EntityMut> {
-        let entity_id = self.shared.read().id_by_uuid.get(uuid)?;
-        self.limited_get_by_id(*entity_id)
+    pub fn limited_get_by_uuid(&self, uuid: &Uuid) -> Option<EntityId> {
+        let shared = self.shared.read();
+        let entity_id = shared.id_by_uuid.get(uuid)?;
+        self.limited_get_by_id(entity_id.0)
     }
 
     /// Clear all entities in a chunk. This will not clear them from the
     /// shared storage, unless there are no other references to them.
     pub fn clear_chunk(&mut self, chunk: &ChunkPos) {
-        let shared = self.shared.write();
-        if let Some(entities) = shared.ids_by_chunk.get(chunk) {
-            for id in entities.iter() {
-                if self.loaded_entity_ids.remove(id) {
-                    let mut entity = shared.get_by_id(*id).unwrap();
-                    let uuid = **entity.get::<EntityUuid>().unwrap();
-                    drop(entity);
+        let mut shared = self.shared.write();
+        let mut query = shared.query::<&EntityUuid>();
+
+        if let Some(entities) = shared.ids_by_chunk.get(chunk).cloned() {
+            for &id in entities.iter() {
+                if self.loaded_entity_ids.remove(&id) {
+                    let uuid = **query.get(&shared.ecs, id.into()).unwrap();
                     // maybe remove it from the storage
-                    shared.remove_entity_if_unused(*id, uuid, *chunk);
+                    shared.remove_entity_if_unused(id, uuid, *chunk);
                 }
             }
         }
@@ -217,7 +227,7 @@ impl PartialEntityStorage {
     #[inline]
     pub fn update_entity_chunk(
         &mut self,
-        entity_id: u32,
+        entity_id: EntityId,
         old_chunk: &ChunkPos,
         new_chunk: &ChunkPos,
     ) {
@@ -226,6 +236,10 @@ impl PartialEntityStorage {
             .update_entity_chunk(entity_id, old_chunk, new_chunk);
     }
 }
+
+/// This is useful so functions that return an IntSet of entity ids can return a
+/// reference to nothing.
+static EMPTY_ENTITY_ID_INTSET: Lazy<IntSet<EntityId>> = Lazy::new(|| IntSet::default());
 
 impl WeakEntityStorage {
     pub fn new() -> Self {
@@ -246,9 +260,9 @@ impl WeakEntityStorage {
     ///
     /// Returns whether the entity was removed.
     pub fn remove_entity_if_unused(&mut self, id: EntityId, uuid: Uuid, chunk: ChunkPos) -> bool {
-        if let Some(&mut count) = self.entity_reference_count.get_mut(&id) {
-            count -= 1;
-            if count == 0 {
+        if let Some(count) = self.entity_reference_count.get_mut(&id) {
+            *count -= 1;
+            if *count == 0 {
                 self.entity_reference_count.remove(&id);
                 return true;
             }
@@ -282,106 +296,32 @@ impl WeakEntityStorage {
         }
     }
 
-    /// Get an iterator over all entities in the shared storage. The iterator
-    /// is over `Weak<EntityData>`s, so you'll have to manually try to upgrade.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// # use std::sync::Arc;
-    /// # use azalea_world::{PartialEntityStorage, entity::{EntityData, EntityMetadata, metadata}};
-    /// # use azalea_core::Vec3;
-    /// # use uuid::Uuid;
-    /// #
-    /// let mut storage = PartialEntityStorage::default();
-    /// storage.insert(
-    ///     0,
-    ///     EntityData::new(
-    ///         Uuid::nil(),
-    ///         Vec3::default(),
-    ///         EntityMetadata::Player(metadata::Player::default()),
-    ///     ),
-    /// );
-    /// for entity in storage.shared.read().entities() {
-    ///     if let Some(entity) = entity.upgrade() {
-    ///         println!("Entity: {:?}", entity);
-    ///     }
-    /// }
-    /// ```
-    pub fn entities(&self) -> std::collections::hash_map::Values<'_, u32, Weak<EntityData>> {
-        self.data_by_id.values()
+    pub fn query<Q: WorldQuery>(&mut self) -> QueryState<Q, ()> {
+        self.ecs.query::<Q>()
     }
 
     /// Whether the entity with the given id is in the shared storage.
     #[inline]
     pub fn contains_id(&self, id: EntityId) -> bool {
-        self.ecs.get_entity(*id).is_some()
+        self.ecs.get_entity(id.into()).is_some()
     }
 
-    /// Get an entity by its id, if it exists.
-    #[inline]
-    pub fn get_by_id(&self, id: EntityId) -> Option<EntityMut> {
-        self.ecs.get_entity_mut(*id)
+    /// Returns a set of entities in the given chunk.
+    pub fn entities_in_chunk<F>(&self, chunk: &ChunkPos) -> &IntSet<EntityId> {
+        self.ids_by_chunk
+            .get(chunk)
+            .unwrap_or(&EMPTY_ENTITY_ID_INTSET)
     }
 
-    /// Get an entity in the shared storage by its UUID, if it exists.
-    #[inline]
-    pub fn get_by_uuid(&self, uuid: &Uuid) -> Option<Arc<EntityData>> {
-        self.id_by_uuid
-            .get(uuid)
-            .and_then(|id| self.data_by_id.get(id).and_then(|e| e.upgrade()))
-    }
-
-    pub fn get_by<F>(&self, mut f: F) -> Option<Arc<EntityData>>
-    where
-        F: FnMut(&Arc<EntityData>) -> bool,
-    {
-        for entity in self.entities() {
-            if let Some(entity) = entity.upgrade() {
-                if f(&entity) {
-                    return Some(entity);
-                }
-            }
-        }
-        None
-    }
-
-    pub fn entities_by<F>(&self, mut f: F) -> Vec<Arc<EntityData>>
-    where
-        F: FnMut(&Arc<EntityData>) -> bool,
-    {
-        let mut entities = Vec::new();
-        for entity in self.entities() {
-            if let Some(entity) = entity.upgrade() {
-                if f(&entity) {
-                    entities.push(entity);
-                }
-            }
-        }
-        entities
-    }
-
-    pub fn entity_by_in_chunk<F>(&self, chunk: &ChunkPos, mut f: F) -> Option<Arc<EntityData>>
-    where
-        F: FnMut(&EntityData) -> bool,
-    {
-        if let Some(entities) = self.ids_by_chunk.get(chunk) {
-            for entity_id in entities {
-                if let Some(entity) = self.data_by_id.get(entity_id).and_then(|e| e.upgrade()) {
-                    if f(&entity) {
-                        return Some(entity);
-                    }
-                }
-            }
-        }
-        None
+    pub fn id_by_uuid(&self, uuid: &Uuid) -> Option<&EntityId> {
+        self.id_by_uuid.get(uuid)
     }
 
     /// Move an entity from its old chunk to a new chunk.
     #[inline]
     pub fn update_entity_chunk(
         &mut self,
-        entity_id: u32,
+        entity_id: EntityId,
         old_chunk: &ChunkPos,
         new_chunk: &ChunkPos,
     ) {
@@ -409,7 +349,7 @@ impl Debug for WeakEntityStorage {
 
 #[cfg(test)]
 mod tests {
-    use crate::entity::{metadata, EntityMetadata};
+    use crate::entity::metadata;
 
     use super::*;
     use azalea_core::Vec3;

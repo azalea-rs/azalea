@@ -77,18 +77,18 @@ pub struct CanDuplicate(pub bool);
 pub struct Allay;
 impl Allay {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractCreature::update_metadata(entity, d)?,
             16 => {
                 entity.insert(Dancing(d.value.into_boolean()?));
             }
             17 => {
                 entity.insert(CanDuplicate(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -152,12 +152,11 @@ pub struct Waiting(pub bool);
 pub struct AreaEffectCloud;
 impl AreaEffectCloud {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(Radius(d.value.into_float()?));
             }
@@ -170,6 +169,7 @@ impl AreaEffectCloud {
             11 => {
                 entity.insert(d.value.into_particle()?);
             }
+            _ => {}
         }
         Ok(())
     }
@@ -234,12 +234,11 @@ pub struct RightLegPose(pub Rotations);
 pub struct ArmorStand;
 impl ArmorStand {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=14 => AbstractLiving::update_metadata(ecs, entity, d)?,
+            0..=14 => AbstractLiving::update_metadata(entity, d)?,
             15 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Small(bitfield & 0x1 != 0));
@@ -265,6 +264,7 @@ impl ArmorStand {
             21 => {
                 entity.insert(RightLegPose(d.value.into_rotations()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -341,12 +341,11 @@ pub struct ArrowEffectColor(pub i32);
 pub struct Arrow;
 impl Arrow {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(ArrowCritArrow(bitfield & 0x1 != 0));
@@ -359,6 +358,7 @@ impl Arrow {
             10 => {
                 entity.insert(ArrowEffectColor(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -413,12 +413,11 @@ pub struct AxolotlFromBucket(pub bool);
 pub struct Axolotl;
 impl Axolotl {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 entity.insert(AxolotlVariant(d.value.into_int()?));
             }
@@ -428,6 +427,7 @@ impl Axolotl {
             19 => {
                 entity.insert(AxolotlFromBucket(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -494,16 +494,16 @@ pub struct Resting(pub bool);
 pub struct Bat;
 impl Bat {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractInsentient::update_metadata(entity, d)?,
             16 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Resting(bitfield & 0x1 != 0));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -565,12 +565,11 @@ pub struct BeeRemainingAngerTime(pub i32);
 pub struct Bee;
 impl Bee {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(HasNectar(bitfield & 0x8 != 0));
@@ -580,6 +579,7 @@ impl Bee {
             18 => {
                 entity.insert(BeeRemainingAngerTime(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -648,16 +648,16 @@ pub struct Charged(pub bool);
 pub struct Blaze;
 impl Blaze {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Charged(bitfield & 0x1 != 0));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -729,12 +729,11 @@ pub struct BubbleTime(pub i32);
 pub struct Boat;
 impl Boat {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(BoatHurt(d.value.into_int()?));
             }
@@ -756,6 +755,7 @@ impl Boat {
             14 => {
                 entity.insert(BubbleTime(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -822,12 +822,11 @@ pub struct LastPoseChangeTick(pub i64);
 pub struct Camel;
 impl Camel {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(CamelTamed(bitfield & 0x2 != 0));
@@ -845,6 +844,7 @@ impl Camel {
             20 => {
                 entity.insert(LastPoseChangeTick(d.value.into_long()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -933,12 +933,11 @@ pub struct CatCollarColor(pub i32);
 pub struct Cat;
 impl Cat {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => AbstractTameable::update_metadata(ecs, entity, d)?,
+            0..=18 => AbstractTameable::update_metadata(entity, d)?,
             19 => {
                 entity.insert(CatVariant(d.value.into_cat_variant()?));
             }
@@ -951,6 +950,7 @@ impl Cat {
             22 => {
                 entity.insert(CatCollarColor(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -1024,12 +1024,12 @@ pub struct Climbing(pub bool);
 pub struct CaveSpider;
 impl CaveSpider {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => Spider::update_metadata(ecs, entity, d)?,
+            0..=16 => Spider::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -1088,12 +1088,12 @@ impl Default for CaveSpiderBundle {
 pub struct ChestBoat;
 impl ChestBoat {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=14 => Boat::update_metadata(ecs, entity, d)?,
+            0..=14 => Boat::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -1151,12 +1151,12 @@ pub struct CustomDisplay(pub bool);
 pub struct ChestMinecart;
 impl ChestMinecart {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
+            0..=13 => AbstractMinecart::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -1201,12 +1201,12 @@ impl Default for ChestMinecartBundle {
 pub struct Chicken;
 impl Chicken {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -1267,15 +1267,15 @@ pub struct CodFromBucket(pub bool);
 pub struct Cod;
 impl Cod {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractCreature::update_metadata(entity, d)?,
             16 => {
                 entity.insert(CodFromBucket(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -1335,18 +1335,18 @@ pub struct LastOutput(pub FormattedText);
 pub struct CommandBlockMinecart;
 impl CommandBlockMinecart {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
+            0..=13 => AbstractMinecart::update_metadata(entity, d)?,
             14 => {
                 entity.insert(CommandName(d.value.into_string()?));
             }
             15 => {
                 entity.insert(LastOutput(d.value.into_formatted_text()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -1395,12 +1395,12 @@ impl Default for CommandBlockMinecartBundle {
 pub struct Cow;
 impl Cow {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -1465,12 +1465,11 @@ pub struct IsIgnited(pub bool);
 pub struct Creeper;
 impl Creeper {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(SwellDir(d.value.into_int()?));
             }
@@ -1480,6 +1479,7 @@ impl Creeper {
             18 => {
                 entity.insert(IsIgnited(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -1547,12 +1547,11 @@ pub struct MoistnessLevel(pub i32);
 pub struct Dolphin;
 impl Dolphin {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractCreature::update_metadata(entity, d)?,
             16 => {
                 entity.insert(TreasurePos(d.value.into_block_pos()?));
             }
@@ -1562,6 +1561,7 @@ impl Dolphin {
             18 => {
                 entity.insert(MoistnessLevel(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -1635,12 +1635,11 @@ pub struct DonkeyChest(pub bool);
 pub struct Donkey;
 impl Donkey {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(DonkeyTamed(bitfield & 0x2 != 0));
@@ -1655,6 +1654,7 @@ impl Donkey {
             19 => {
                 entity.insert(DonkeyChest(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -1727,12 +1727,12 @@ impl Default for DonkeyBundle {
 pub struct DragonFireball;
 impl DragonFireball {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -1775,12 +1775,12 @@ pub struct DrownedConversion(pub bool);
 pub struct Drowned;
 impl Drowned {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => Zombie::update_metadata(ecs, entity, d)?,
+            0..=18 => Zombie::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -1843,15 +1843,15 @@ pub struct EggItemStack(pub Slot);
 pub struct Egg;
 impl Egg {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(EggItemStack(d.value.into_item_stack()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -1894,12 +1894,12 @@ pub struct AttackTarget(pub i32);
 pub struct ElderGuardian;
 impl ElderGuardian {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=17 => Guardian::update_metadata(ecs, entity, d)?,
+            0..=17 => Guardian::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -1963,18 +1963,18 @@ pub struct ShowBottom(pub bool);
 pub struct EndCrystal;
 impl EndCrystal {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(BeamTarget(d.value.into_optional_block_pos()?));
             }
             9 => {
                 entity.insert(ShowBottom(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -2017,15 +2017,15 @@ pub struct Phase(pub i32);
 pub struct EnderDragon;
 impl EnderDragon {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractInsentient::update_metadata(entity, d)?,
             16 => {
                 entity.insert(Phase(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -2081,15 +2081,15 @@ pub struct EnderPearlItemStack(pub Slot);
 pub struct EnderPearl;
 impl EnderPearl {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(EnderPearlItemStack(d.value.into_item_stack()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -2134,12 +2134,11 @@ pub struct StaredAt(pub bool);
 pub struct Enderman;
 impl Enderman {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(CarryState(d.value.into_block_state()?));
             }
@@ -2149,6 +2148,7 @@ impl Enderman {
             18 => {
                 entity.insert(StaredAt(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -2210,12 +2210,12 @@ impl Default for EndermanBundle {
 pub struct Endermite;
 impl Endermite {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -2275,18 +2275,18 @@ pub struct EvokerSpellCasting(pub u8);
 pub struct Evoker;
 impl Evoker {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(EvokerIsCelebrating(d.value.into_boolean()?));
             }
             17 => {
                 entity.insert(EvokerSpellCasting(d.value.into_byte()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -2346,12 +2346,12 @@ impl Default for EvokerBundle {
 pub struct EvokerFangs;
 impl EvokerFangs {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -2390,15 +2390,15 @@ pub struct ExperienceBottleItemStack(pub Slot);
 pub struct ExperienceBottle;
 impl ExperienceBottle {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(ExperienceBottleItemStack(d.value.into_item_stack()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -2437,12 +2437,12 @@ impl Default for ExperienceBottleBundle {
 pub struct ExperienceOrb;
 impl ExperienceOrb {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -2481,15 +2481,15 @@ pub struct EyeOfEnderItemStack(pub Slot);
 pub struct EyeOfEnder;
 impl EyeOfEnder {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(EyeOfEnderItemStack(d.value.into_item_stack()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -2530,15 +2530,15 @@ pub struct StartPos(pub BlockPos);
 pub struct FallingBlock;
 impl FallingBlock {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(StartPos(d.value.into_block_pos()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -2579,15 +2579,15 @@ pub struct FireballItemStack(pub Slot);
 pub struct Fireball;
 impl Fireball {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(FireballItemStack(d.value.into_item_stack()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -2632,12 +2632,11 @@ pub struct ShotAtAngle(pub bool);
 pub struct FireworkRocket;
 impl FireworkRocket {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(FireworksItem(d.value.into_item_stack()?));
             }
@@ -2647,6 +2646,7 @@ impl FireworkRocket {
             10 => {
                 entity.insert(ShotAtAngle(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -2693,18 +2693,18 @@ pub struct Biting(pub bool);
 pub struct FishingBobber;
 impl FishingBobber {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(HookedEntity(d.value.into_int()?));
             }
             9 => {
                 entity.insert(Biting(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -2763,12 +2763,11 @@ pub struct TrustedId1(pub Option<Uuid>);
 pub struct Fox;
 impl Fox {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 entity.insert(FoxKind(d.value.into_int()?));
             }
@@ -2787,6 +2786,7 @@ impl Fox {
             20 => {
                 entity.insert(TrustedId1(d.value.into_optional_uuid()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -2867,18 +2867,18 @@ pub struct TongueTarget(pub OptionalUnsignedInt);
 pub struct Frog;
 impl Frog {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 entity.insert(FrogVariant(d.value.into_frog_variant()?));
             }
             18 => {
                 entity.insert(TongueTarget(d.value.into_optional_unsigned_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -2943,15 +2943,15 @@ pub struct Fuel(pub bool);
 pub struct FurnaceMinecart;
 impl FurnaceMinecart {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
+            0..=13 => AbstractMinecart::update_metadata(entity, d)?,
             14 => {
                 entity.insert(Fuel(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -3000,15 +3000,15 @@ pub struct IsCharging(pub bool);
 pub struct Ghast;
 impl Ghast {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractInsentient::update_metadata(entity, d)?,
             16 => {
                 entity.insert(IsCharging(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -3062,12 +3062,12 @@ impl Default for GhastBundle {
 pub struct Giant;
 impl Giant {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -3127,12 +3127,12 @@ pub struct Rotation(pub i32);
 pub struct GlowItemFrame;
 impl GlowItemFrame {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=9 => ItemFrame::update_metadata(ecs, entity, d)?,
+            0..=9 => ItemFrame::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -3175,15 +3175,15 @@ pub struct DarkTicksRemaining(pub i32);
 pub struct GlowSquid;
 impl GlowSquid {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => Squid::update_metadata(ecs, entity, d)?,
+            0..=15 => Squid::update_metadata(entity, d)?,
             16 => {
                 entity.insert(DarkTicksRemaining(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -3247,12 +3247,11 @@ pub struct HasRightHorn(pub bool);
 pub struct Goat;
 impl Goat {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 entity.insert(IsScreamingGoat(d.value.into_boolean()?));
             }
@@ -3262,6 +3261,7 @@ impl Goat {
             19 => {
                 entity.insert(HasRightHorn(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -3326,18 +3326,18 @@ impl Default for GoatBundle {
 pub struct Guardian;
 impl Guardian {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(Moving(d.value.into_boolean()?));
             }
             17 => {
                 entity.insert(AttackTarget(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -3399,15 +3399,15 @@ pub struct HoglinImmuneToZombification(pub bool);
 pub struct Hoglin;
 impl Hoglin {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 entity.insert(HoglinImmuneToZombification(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -3468,12 +3468,12 @@ impl Default for HoglinBundle {
 pub struct HopperMinecart;
 impl HopperMinecart {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
+            0..=13 => AbstractMinecart::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -3532,12 +3532,11 @@ pub struct HorseTypeVariant(pub i32);
 pub struct Horse;
 impl Horse {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(HorseTamed(bitfield & 0x2 != 0));
@@ -3552,6 +3551,7 @@ impl Horse {
             19 => {
                 entity.insert(HorseTypeVariant(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -3624,12 +3624,12 @@ impl Default for HorseBundle {
 pub struct Husk;
 impl Husk {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => Zombie::update_metadata(ecs, entity, d)?,
+            0..=18 => Zombie::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -3694,18 +3694,18 @@ pub struct IllusionerSpellCasting(pub u8);
 pub struct Illusioner;
 impl Illusioner {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(IllusionerIsCelebrating(d.value.into_boolean()?));
             }
             17 => {
                 entity.insert(IllusionerSpellCasting(d.value.into_byte()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -3767,16 +3767,16 @@ pub struct PlayerCreated(pub bool);
 pub struct IronGolem;
 impl IronGolem {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractCreature::update_metadata(entity, d)?,
             16 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(PlayerCreated(bitfield & 0x1 != 0));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -3834,15 +3834,15 @@ pub struct ItemItem(pub Slot);
 pub struct Item;
 impl Item {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(ItemItem(d.value.into_item_stack()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -3881,18 +3881,18 @@ impl Default for ItemBundle {
 pub struct ItemFrame;
 impl ItemFrame {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(ItemFrameItem(d.value.into_item_stack()?));
             }
             9 => {
                 entity.insert(Rotation(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -3933,12 +3933,12 @@ impl Default for ItemFrameBundle {
 pub struct LeashKnot;
 impl LeashKnot {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -3975,12 +3975,12 @@ impl Default for LeashKnotBundle {
 pub struct LightningBolt;
 impl LightningBolt {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -4037,12 +4037,11 @@ pub struct LlamaVariant(pub i32);
 pub struct Llama;
 impl Llama {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(LlamaTamed(bitfield & 0x2 != 0));
@@ -4066,6 +4065,7 @@ impl Llama {
             22 => {
                 entity.insert(LlamaVariant(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -4144,12 +4144,12 @@ impl Default for LlamaBundle {
 pub struct LlamaSpit;
 impl LlamaSpit {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -4188,12 +4188,12 @@ pub struct SlimeSize(pub i32);
 pub struct MagmaCube;
 impl MagmaCube {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => Slime::update_metadata(ecs, entity, d)?,
+            0..=16 => Slime::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -4248,12 +4248,12 @@ impl Default for MagmaCubeBundle {
 pub struct Marker;
 impl Marker {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -4290,12 +4290,12 @@ impl Default for MarkerBundle {
 pub struct Minecart;
 impl Minecart {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
+            0..=13 => AbstractMinecart::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -4342,15 +4342,15 @@ pub struct MooshroomKind(pub String);
 pub struct Mooshroom;
 impl Mooshroom {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => Cow::update_metadata(ecs, entity, d)?,
+            0..=16 => Cow::update_metadata(entity, d)?,
             17 => {
                 entity.insert(MooshroomKind(d.value.into_string()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -4427,12 +4427,11 @@ pub struct MuleChest(pub bool);
 pub struct Mule;
 impl Mule {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(MuleTamed(bitfield & 0x2 != 0));
@@ -4447,6 +4446,7 @@ impl Mule {
             19 => {
                 entity.insert(MuleChest(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -4521,15 +4521,15 @@ pub struct Trusting(pub bool);
 pub struct Ocelot;
 impl Ocelot {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 entity.insert(Trusting(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -4592,15 +4592,15 @@ pub struct PaintingVariant(pub azalea_registry::PaintingVariant);
 pub struct Painting;
 impl Painting {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(PaintingVariant(d.value.into_painting_variant()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -4657,12 +4657,11 @@ pub struct PandaFlags(pub u8);
 pub struct Panda;
 impl Panda {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 entity.insert(PandaUnhappyCounter(d.value.into_int()?));
             }
@@ -4685,6 +4684,7 @@ impl Panda {
             22 => {
                 entity.insert(PandaFlags(d.value.into_byte()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -4763,15 +4763,15 @@ pub struct ParrotVariant(pub i32);
 pub struct Parrot;
 impl Parrot {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => AbstractTameable::update_metadata(ecs, entity, d)?,
+            0..=18 => AbstractTameable::update_metadata(entity, d)?,
             19 => {
                 entity.insert(ParrotVariant(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -4839,15 +4839,15 @@ pub struct PhantomSize(pub i32);
 pub struct Phantom;
 impl Phantom {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractInsentient::update_metadata(entity, d)?,
             16 => {
                 entity.insert(PhantomSize(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -4905,18 +4905,18 @@ pub struct PigBoostTime(pub i32);
 pub struct Pig;
 impl Pig {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 entity.insert(PigSaddle(d.value.into_boolean()?));
             }
             18 => {
                 entity.insert(PigBoostTime(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -4987,12 +4987,11 @@ pub struct IsDancing(pub bool);
 pub struct Piglin;
 impl Piglin {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(PiglinImmuneToZombification(d.value.into_boolean()?));
             }
@@ -5005,6 +5004,7 @@ impl Piglin {
             19 => {
                 entity.insert(IsDancing(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -5070,15 +5070,15 @@ pub struct PiglinBruteImmuneToZombification(pub bool);
 pub struct PiglinBrute;
 impl PiglinBrute {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(PiglinBruteImmuneToZombification(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -5140,18 +5140,18 @@ pub struct PillagerIsChargingCrossbow(pub bool);
 pub struct Pillager;
 impl Pillager {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(PillagerIsCelebrating(d.value.into_boolean()?));
             }
             17 => {
                 entity.insert(PillagerIsChargingCrossbow(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -5223,12 +5223,11 @@ pub struct ShoulderRight(pub azalea_nbt::Tag);
 pub struct Player;
 impl Player {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=14 => AbstractLiving::update_metadata(ecs, entity, d)?,
+            0..=14 => AbstractLiving::update_metadata(entity, d)?,
             15 => {
                 entity.insert(PlayerAbsorption(d.value.into_float()?));
             }
@@ -5247,6 +5246,7 @@ impl Player {
             20 => {
                 entity.insert(ShoulderRight(d.value.into_compound_tag()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -5307,15 +5307,15 @@ pub struct PolarBearStanding(pub bool);
 pub struct PolarBear;
 impl PolarBear {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 entity.insert(PolarBearStanding(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -5378,15 +5378,15 @@ pub struct PotionItemStack(pub Slot);
 pub struct Potion;
 impl Potion {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(PotionItemStack(d.value.into_item_stack()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -5429,18 +5429,18 @@ pub struct PuffState(pub i32);
 pub struct Pufferfish;
 impl Pufferfish {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractCreature::update_metadata(entity, d)?,
             16 => {
                 entity.insert(PufferfishFromBucket(d.value.into_boolean()?));
             }
             17 => {
                 entity.insert(PuffState(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -5500,15 +5500,15 @@ pub struct RabbitKind(pub i32);
 pub struct Rabbit;
 impl Rabbit {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 entity.insert(RabbitKind(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -5571,15 +5571,15 @@ pub struct RavagerIsCelebrating(pub bool);
 pub struct Ravager;
 impl Ravager {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(RavagerIsCelebrating(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -5639,15 +5639,15 @@ pub struct SalmonFromBucket(pub bool);
 pub struct Salmon;
 impl Salmon {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractCreature::update_metadata(entity, d)?,
             16 => {
                 entity.insert(SalmonFromBucket(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -5705,16 +5705,16 @@ pub struct Sheared(pub bool);
 pub struct Sheep;
 impl Sheep {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Sheared(bitfield & 0x10 != 0));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -5781,12 +5781,11 @@ pub struct ShulkerColor(pub u8);
 pub struct Shulker;
 impl Shulker {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractCreature::update_metadata(entity, d)?,
             16 => {
                 entity.insert(AttachFace(d.value.into_direction()?));
             }
@@ -5796,6 +5795,7 @@ impl Shulker {
             18 => {
                 entity.insert(ShulkerColor(d.value.into_byte()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -5855,12 +5855,12 @@ impl Default for ShulkerBundle {
 pub struct ShulkerBullet;
 impl ShulkerBullet {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -5897,12 +5897,12 @@ impl Default for ShulkerBulletBundle {
 pub struct Silverfish;
 impl Silverfish {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -5960,15 +5960,15 @@ pub struct StrayConversion(pub bool);
 pub struct Skeleton;
 impl Skeleton {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(StrayConversion(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -6038,12 +6038,11 @@ pub struct SkeletonHorseOwnerUuid(pub Option<Uuid>);
 pub struct SkeletonHorse;
 impl SkeletonHorse {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(SkeletonHorseTamed(bitfield & 0x2 != 0));
@@ -6055,6 +6054,7 @@ impl SkeletonHorse {
             18 => {
                 entity.insert(SkeletonHorseOwnerUuid(d.value.into_optional_uuid()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -6125,15 +6125,15 @@ impl Default for SkeletonHorseBundle {
 pub struct Slime;
 impl Slime {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractInsentient::update_metadata(entity, d)?,
             16 => {
                 entity.insert(SlimeSize(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -6189,15 +6189,15 @@ pub struct SmallFireballItemStack(pub Slot);
 pub struct SmallFireball;
 impl SmallFireball {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(SmallFireballItemStack(d.value.into_item_stack()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -6238,16 +6238,16 @@ pub struct HasPumpkin(pub bool);
 pub struct SnowGolem;
 impl SnowGolem {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractCreature::update_metadata(entity, d)?,
             16 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(HasPumpkin(bitfield & 0x10 != 0));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -6305,15 +6305,15 @@ pub struct SnowballItemStack(pub Slot);
 pub struct Snowball;
 impl Snowball {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(SnowballItemStack(d.value.into_item_stack()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -6352,12 +6352,12 @@ impl Default for SnowballBundle {
 pub struct SpawnerMinecart;
 impl SpawnerMinecart {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
+            0..=13 => AbstractMinecart::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -6410,12 +6410,11 @@ pub struct SpectralArrowPierceLevel(pub u8);
 pub struct SpectralArrow;
 impl SpectralArrow {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(SpectralArrowCritArrow(bitfield & 0x1 != 0));
@@ -6425,6 +6424,7 @@ impl SpectralArrow {
             9 => {
                 entity.insert(SpectralArrowPierceLevel(d.value.into_byte()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -6469,16 +6469,16 @@ impl Default for SpectralArrowBundle {
 pub struct Spider;
 impl Spider {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Climbing(bitfield & 0x1 != 0));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -6536,12 +6536,12 @@ impl Default for SpiderBundle {
 pub struct Squid;
 impl Squid {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -6595,12 +6595,12 @@ impl Default for SquidBundle {
 pub struct Stray;
 impl Stray {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -6662,12 +6662,11 @@ pub struct StriderSaddle(pub bool);
 pub struct Strider;
 impl Strider {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 entity.insert(StriderBoostTime(d.value.into_int()?));
             }
@@ -6677,6 +6676,7 @@ impl Strider {
             19 => {
                 entity.insert(StriderSaddle(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -6743,15 +6743,15 @@ pub struct TadpoleFromBucket(pub bool);
 pub struct Tadpole;
 impl Tadpole {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractCreature::update_metadata(entity, d)?,
             16 => {
                 entity.insert(TadpoleFromBucket(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -6809,15 +6809,15 @@ pub struct Fuse(pub i32);
 pub struct Tnt;
 impl Tnt {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(Fuse(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -6856,12 +6856,12 @@ impl Default for TntBundle {
 pub struct TntMinecart;
 impl TntMinecart {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::update_metadata(ecs, entity, d)?,
+            0..=13 => AbstractMinecart::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -6906,12 +6906,12 @@ impl Default for TntMinecartBundle {
 pub struct TraderLlama;
 impl TraderLlama {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=22 => Llama::update_metadata(ecs, entity, d)?,
+            0..=22 => Llama::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -6994,12 +6994,11 @@ pub struct Foil(pub bool);
 pub struct Trident;
 impl Trident {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(TridentCritArrow(bitfield & 0x1 != 0));
@@ -7015,6 +7014,7 @@ impl Trident {
             11 => {
                 entity.insert(Foil(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -7067,18 +7067,18 @@ pub struct TropicalFishTypeVariant(pub i32);
 pub struct TropicalFish;
 impl TropicalFish {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractCreature::update_metadata(entity, d)?,
             16 => {
                 entity.insert(TropicalFishFromBucket(d.value.into_boolean()?));
             }
             17 => {
                 entity.insert(TropicalFishTypeVariant(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -7148,12 +7148,11 @@ pub struct Travelling(pub bool);
 pub struct Turtle;
 impl Turtle {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 entity.insert(HomePos(d.value.into_block_pos()?));
             }
@@ -7172,6 +7171,7 @@ impl Turtle {
             22 => {
                 entity.insert(Travelling(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -7244,15 +7244,15 @@ pub struct VexFlags(pub u8);
 pub struct Vex;
 impl Vex {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(VexFlags(d.value.into_byte()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -7314,18 +7314,18 @@ pub struct VillagerVillagerData(pub VillagerData);
 pub struct Villager;
 impl Villager {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAgeable::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAgeable::update_metadata(entity, d)?,
             17 => {
                 entity.insert(VillagerUnhappyCounter(d.value.into_int()?));
             }
             18 => {
                 entity.insert(VillagerVillagerData(d.value.into_villager_data()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -7392,15 +7392,15 @@ pub struct VindicatorIsCelebrating(pub bool);
 pub struct Vindicator;
 impl Vindicator {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(VindicatorIsCelebrating(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -7460,15 +7460,15 @@ pub struct WanderingTraderUnhappyCounter(pub i32);
 pub struct WanderingTrader;
 impl WanderingTrader {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAgeable::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAgeable::update_metadata(entity, d)?,
             17 => {
                 entity.insert(WanderingTraderUnhappyCounter(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -7529,15 +7529,15 @@ pub struct ClientAngerLevel(pub i32);
 pub struct Warden;
 impl Warden {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(ClientAngerLevel(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -7599,18 +7599,18 @@ pub struct WitchUsingItem(pub bool);
 pub struct Witch;
 impl Witch {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(WitchIsCelebrating(d.value.into_boolean()?));
             }
             17 => {
                 entity.insert(WitchUsingItem(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -7678,12 +7678,11 @@ pub struct Inv(pub i32);
 pub struct Wither;
 impl Wither {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(TargetA(d.value.into_int()?));
             }
@@ -7696,6 +7695,7 @@ impl Wither {
             19 => {
                 entity.insert(Inv(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -7759,12 +7759,12 @@ impl Default for WitherBundle {
 pub struct WitherSkeleton;
 impl WitherSkeleton {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -7822,15 +7822,15 @@ pub struct Dangerous(pub bool);
 pub struct WitherSkull;
 impl WitherSkull {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(Dangerous(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -7875,12 +7875,11 @@ pub struct WolfRemainingAngerTime(pub i32);
 pub struct Wolf;
 impl Wolf {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => AbstractTameable::update_metadata(ecs, entity, d)?,
+            0..=18 => AbstractTameable::update_metadata(entity, d)?,
             19 => {
                 entity.insert(WolfInterested(d.value.into_boolean()?));
             }
@@ -7890,6 +7889,7 @@ impl Wolf {
             21 => {
                 entity.insert(WolfRemainingAngerTime(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -7961,15 +7961,15 @@ pub struct ZoglinBaby(pub bool);
 pub struct Zoglin;
 impl Zoglin {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(ZoglinBaby(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -8027,12 +8027,11 @@ impl Default for ZoglinBundle {
 pub struct Zombie;
 impl Zombie {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractMonster::update_metadata(entity, d)?,
             16 => {
                 entity.insert(ZombieBaby(d.value.into_boolean()?));
             }
@@ -8042,6 +8041,7 @@ impl Zombie {
             18 => {
                 entity.insert(DrownedConversion(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -8115,12 +8115,11 @@ pub struct ZombieHorseOwnerUuid(pub Option<Uuid>);
 pub struct ZombieHorse;
 impl ZombieHorse {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(ZombieHorseTamed(bitfield & 0x2 != 0));
@@ -8132,6 +8131,7 @@ impl ZombieHorse {
             18 => {
                 entity.insert(ZombieHorseOwnerUuid(d.value.into_optional_uuid()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -8206,18 +8206,18 @@ pub struct ZombieVillagerVillagerData(pub VillagerData);
 pub struct ZombieVillager;
 impl ZombieVillager {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => Zombie::update_metadata(ecs, entity, d)?,
+            0..=18 => Zombie::update_metadata(entity, d)?,
             19 => {
                 entity.insert(Converting(d.value.into_boolean()?));
             }
             20 => {
                 entity.insert(ZombieVillagerVillagerData(d.value.into_villager_data()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -8286,12 +8286,12 @@ impl Default for ZombieVillagerBundle {
 pub struct ZombifiedPiglin;
 impl ZombifiedPiglin {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => Zombie::update_metadata(ecs, entity, d)?,
+            0..=18 => Zombie::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -8352,15 +8352,15 @@ impl Default for ZombifiedPiglinBundle {
 pub struct AbstractAgeable;
 impl AbstractAgeable {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractCreature::update_metadata(entity, d)?,
             16 => {
                 entity.insert(AbstractAgeableBaby(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -8416,12 +8416,12 @@ impl Default for AbstractAgeableBundle {
 pub struct AbstractAnimal;
 impl AbstractAnimal {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAgeable::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAgeable::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -8478,12 +8478,12 @@ impl Default for AbstractAnimalBundle {
 pub struct AbstractCreature;
 impl AbstractCreature {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractInsentient::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractInsentient::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -8535,9 +8535,8 @@ impl Default for AbstractCreatureBundle {
 pub struct AbstractEntity;
 impl AbstractEntity {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0 => {
@@ -8571,6 +8570,7 @@ impl AbstractEntity {
             7 => {
                 entity.insert(TicksFrozen(d.value.into_int()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -8618,18 +8618,18 @@ impl Default for AbstractEntityBundle {
 pub struct AbstractInsentient;
 impl AbstractInsentient {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=14 => AbstractLiving::update_metadata(ecs, entity, d)?,
+            0..=14 => AbstractLiving::update_metadata(entity, d)?,
             15 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(NoAi(bitfield & 0x1 != 0));
                 entity.insert(LeftHanded(bitfield & 0x2 != 0));
                 entity.insert(Aggressive(bitfield & 0x4 != 0));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -8682,12 +8682,11 @@ impl Default for AbstractInsentientBundle {
 pub struct AbstractLiving;
 impl AbstractLiving {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(AutoSpinAttack(bitfield & 0x4 != 0));
@@ -8711,6 +8710,7 @@ impl AbstractLiving {
             14 => {
                 entity.insert(SleepingPos(d.value.into_optional_block_pos()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -8763,12 +8763,11 @@ impl Default for AbstractLivingBundle {
 pub struct AbstractMinecart;
 impl AbstractMinecart {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(ecs, entity, d)?,
+            0..=7 => AbstractEntity::update_metadata(entity, d)?,
             8 => {
                 entity.insert(AbstractMinecartHurt(d.value.into_int()?));
             }
@@ -8787,6 +8786,7 @@ impl AbstractMinecart {
             13 => {
                 entity.insert(CustomDisplay(d.value.into_boolean()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -8835,12 +8835,12 @@ impl Default for AbstractMinecartBundle {
 pub struct AbstractMonster;
 impl AbstractMonster {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(ecs, entity, d)?,
+            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            _ => {}
         }
         Ok(())
     }
@@ -8894,12 +8894,11 @@ impl Default for AbstractMonsterBundle {
 pub struct AbstractTameable;
 impl AbstractTameable {
     pub fn update_metadata(
-        ecs: bevy_ecs::world::World,
         entity: &mut bevy_ecs::world::EntityMut,
-        d: &EntityDataItem,
+        d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(ecs, entity, d)?,
+            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Tame(bitfield & 0x4 != 0));
@@ -8908,6 +8907,7 @@ impl AbstractTameable {
             18 => {
                 entity.insert(Owneruuid(d.value.into_optional_uuid()?));
             }
+            _ => {}
         }
         Ok(())
     }
@@ -8969,721 +8969,720 @@ impl Default for AbstractTameableBundle {
 }
 
 pub fn update_metadatas(
-    ecs: bevy_ecs::world::World,
-    entity: bevy_ecs::world::EntityMut,
-    items: &Vec<EntityDataItem>,
+    mut entity: bevy_ecs::world::EntityMut,
+    items: Vec<EntityDataItem>,
 ) -> Result<(), UpdateMetadataError> {
     if entity.contains::<Allay>() {
         for d in items {
-            Allay::update_metadata(ecs, &mut entity, d)?;
+            Allay::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<AreaEffectCloud>() {
         for d in items {
-            AreaEffectCloud::update_metadata(ecs, &mut entity, d)?;
+            AreaEffectCloud::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ArmorStand>() {
         for d in items {
-            ArmorStand::update_metadata(ecs, &mut entity, d)?;
+            ArmorStand::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Arrow>() {
         for d in items {
-            Arrow::update_metadata(ecs, &mut entity, d)?;
+            Arrow::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Axolotl>() {
         for d in items {
-            Axolotl::update_metadata(ecs, &mut entity, d)?;
+            Axolotl::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Bat>() {
         for d in items {
-            Bat::update_metadata(ecs, &mut entity, d)?;
+            Bat::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Bee>() {
         for d in items {
-            Bee::update_metadata(ecs, &mut entity, d)?;
+            Bee::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Blaze>() {
         for d in items {
-            Blaze::update_metadata(ecs, &mut entity, d)?;
+            Blaze::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Boat>() {
         for d in items {
-            Boat::update_metadata(ecs, &mut entity, d)?;
+            Boat::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Camel>() {
         for d in items {
-            Camel::update_metadata(ecs, &mut entity, d)?;
+            Camel::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Cat>() {
         for d in items {
-            Cat::update_metadata(ecs, &mut entity, d)?;
+            Cat::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<CaveSpider>() {
         for d in items {
-            CaveSpider::update_metadata(ecs, &mut entity, d)?;
+            CaveSpider::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ChestBoat>() {
         for d in items {
-            ChestBoat::update_metadata(ecs, &mut entity, d)?;
+            ChestBoat::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ChestMinecart>() {
         for d in items {
-            ChestMinecart::update_metadata(ecs, &mut entity, d)?;
+            ChestMinecart::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Chicken>() {
         for d in items {
-            Chicken::update_metadata(ecs, &mut entity, d)?;
+            Chicken::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Cod>() {
         for d in items {
-            Cod::update_metadata(ecs, &mut entity, d)?;
+            Cod::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<CommandBlockMinecart>() {
         for d in items {
-            CommandBlockMinecart::update_metadata(ecs, &mut entity, d)?;
+            CommandBlockMinecart::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Cow>() {
         for d in items {
-            Cow::update_metadata(ecs, &mut entity, d)?;
+            Cow::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Creeper>() {
         for d in items {
-            Creeper::update_metadata(ecs, &mut entity, d)?;
+            Creeper::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Dolphin>() {
         for d in items {
-            Dolphin::update_metadata(ecs, &mut entity, d)?;
+            Dolphin::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Donkey>() {
         for d in items {
-            Donkey::update_metadata(ecs, &mut entity, d)?;
+            Donkey::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<DragonFireball>() {
         for d in items {
-            DragonFireball::update_metadata(ecs, &mut entity, d)?;
+            DragonFireball::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Drowned>() {
         for d in items {
-            Drowned::update_metadata(ecs, &mut entity, d)?;
+            Drowned::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Egg>() {
         for d in items {
-            Egg::update_metadata(ecs, &mut entity, d)?;
+            Egg::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ElderGuardian>() {
         for d in items {
-            ElderGuardian::update_metadata(ecs, &mut entity, d)?;
+            ElderGuardian::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<EndCrystal>() {
         for d in items {
-            EndCrystal::update_metadata(ecs, &mut entity, d)?;
+            EndCrystal::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<EnderDragon>() {
         for d in items {
-            EnderDragon::update_metadata(ecs, &mut entity, d)?;
+            EnderDragon::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<EnderPearl>() {
         for d in items {
-            EnderPearl::update_metadata(ecs, &mut entity, d)?;
+            EnderPearl::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Enderman>() {
         for d in items {
-            Enderman::update_metadata(ecs, &mut entity, d)?;
+            Enderman::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Endermite>() {
         for d in items {
-            Endermite::update_metadata(ecs, &mut entity, d)?;
+            Endermite::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Evoker>() {
         for d in items {
-            Evoker::update_metadata(ecs, &mut entity, d)?;
+            Evoker::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<EvokerFangs>() {
         for d in items {
-            EvokerFangs::update_metadata(ecs, &mut entity, d)?;
+            EvokerFangs::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ExperienceBottle>() {
         for d in items {
-            ExperienceBottle::update_metadata(ecs, &mut entity, d)?;
+            ExperienceBottle::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ExperienceOrb>() {
         for d in items {
-            ExperienceOrb::update_metadata(ecs, &mut entity, d)?;
+            ExperienceOrb::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<EyeOfEnder>() {
         for d in items {
-            EyeOfEnder::update_metadata(ecs, &mut entity, d)?;
+            EyeOfEnder::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<FallingBlock>() {
         for d in items {
-            FallingBlock::update_metadata(ecs, &mut entity, d)?;
+            FallingBlock::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Fireball>() {
         for d in items {
-            Fireball::update_metadata(ecs, &mut entity, d)?;
+            Fireball::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<FireworkRocket>() {
         for d in items {
-            FireworkRocket::update_metadata(ecs, &mut entity, d)?;
+            FireworkRocket::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<FishingBobber>() {
         for d in items {
-            FishingBobber::update_metadata(ecs, &mut entity, d)?;
+            FishingBobber::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Fox>() {
         for d in items {
-            Fox::update_metadata(ecs, &mut entity, d)?;
+            Fox::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Frog>() {
         for d in items {
-            Frog::update_metadata(ecs, &mut entity, d)?;
+            Frog::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<FurnaceMinecart>() {
         for d in items {
-            FurnaceMinecart::update_metadata(ecs, &mut entity, d)?;
+            FurnaceMinecart::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Ghast>() {
         for d in items {
-            Ghast::update_metadata(ecs, &mut entity, d)?;
+            Ghast::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Giant>() {
         for d in items {
-            Giant::update_metadata(ecs, &mut entity, d)?;
+            Giant::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<GlowItemFrame>() {
         for d in items {
-            GlowItemFrame::update_metadata(ecs, &mut entity, d)?;
+            GlowItemFrame::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<GlowSquid>() {
         for d in items {
-            GlowSquid::update_metadata(ecs, &mut entity, d)?;
+            GlowSquid::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Goat>() {
         for d in items {
-            Goat::update_metadata(ecs, &mut entity, d)?;
+            Goat::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Guardian>() {
         for d in items {
-            Guardian::update_metadata(ecs, &mut entity, d)?;
+            Guardian::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Hoglin>() {
         for d in items {
-            Hoglin::update_metadata(ecs, &mut entity, d)?;
+            Hoglin::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<HopperMinecart>() {
         for d in items {
-            HopperMinecart::update_metadata(ecs, &mut entity, d)?;
+            HopperMinecart::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Horse>() {
         for d in items {
-            Horse::update_metadata(ecs, &mut entity, d)?;
+            Horse::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Husk>() {
         for d in items {
-            Husk::update_metadata(ecs, &mut entity, d)?;
+            Husk::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Illusioner>() {
         for d in items {
-            Illusioner::update_metadata(ecs, &mut entity, d)?;
+            Illusioner::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<IronGolem>() {
         for d in items {
-            IronGolem::update_metadata(ecs, &mut entity, d)?;
+            IronGolem::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Item>() {
         for d in items {
-            Item::update_metadata(ecs, &mut entity, d)?;
+            Item::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ItemFrame>() {
         for d in items {
-            ItemFrame::update_metadata(ecs, &mut entity, d)?;
+            ItemFrame::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<LeashKnot>() {
         for d in items {
-            LeashKnot::update_metadata(ecs, &mut entity, d)?;
+            LeashKnot::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<LightningBolt>() {
         for d in items {
-            LightningBolt::update_metadata(ecs, &mut entity, d)?;
+            LightningBolt::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Llama>() {
         for d in items {
-            Llama::update_metadata(ecs, &mut entity, d)?;
+            Llama::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<LlamaSpit>() {
         for d in items {
-            LlamaSpit::update_metadata(ecs, &mut entity, d)?;
+            LlamaSpit::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<MagmaCube>() {
         for d in items {
-            MagmaCube::update_metadata(ecs, &mut entity, d)?;
+            MagmaCube::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Marker>() {
         for d in items {
-            Marker::update_metadata(ecs, &mut entity, d)?;
+            Marker::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Minecart>() {
         for d in items {
-            Minecart::update_metadata(ecs, &mut entity, d)?;
+            Minecart::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Mooshroom>() {
         for d in items {
-            Mooshroom::update_metadata(ecs, &mut entity, d)?;
+            Mooshroom::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Mule>() {
         for d in items {
-            Mule::update_metadata(ecs, &mut entity, d)?;
+            Mule::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Ocelot>() {
         for d in items {
-            Ocelot::update_metadata(ecs, &mut entity, d)?;
+            Ocelot::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Painting>() {
         for d in items {
-            Painting::update_metadata(ecs, &mut entity, d)?;
+            Painting::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Panda>() {
         for d in items {
-            Panda::update_metadata(ecs, &mut entity, d)?;
+            Panda::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Parrot>() {
         for d in items {
-            Parrot::update_metadata(ecs, &mut entity, d)?;
+            Parrot::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Phantom>() {
         for d in items {
-            Phantom::update_metadata(ecs, &mut entity, d)?;
+            Phantom::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Pig>() {
         for d in items {
-            Pig::update_metadata(ecs, &mut entity, d)?;
+            Pig::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Piglin>() {
         for d in items {
-            Piglin::update_metadata(ecs, &mut entity, d)?;
+            Piglin::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<PiglinBrute>() {
         for d in items {
-            PiglinBrute::update_metadata(ecs, &mut entity, d)?;
+            PiglinBrute::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Pillager>() {
         for d in items {
-            Pillager::update_metadata(ecs, &mut entity, d)?;
+            Pillager::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Player>() {
         for d in items {
-            Player::update_metadata(ecs, &mut entity, d)?;
+            Player::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<PolarBear>() {
         for d in items {
-            PolarBear::update_metadata(ecs, &mut entity, d)?;
+            PolarBear::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Potion>() {
         for d in items {
-            Potion::update_metadata(ecs, &mut entity, d)?;
+            Potion::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Pufferfish>() {
         for d in items {
-            Pufferfish::update_metadata(ecs, &mut entity, d)?;
+            Pufferfish::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Rabbit>() {
         for d in items {
-            Rabbit::update_metadata(ecs, &mut entity, d)?;
+            Rabbit::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Ravager>() {
         for d in items {
-            Ravager::update_metadata(ecs, &mut entity, d)?;
+            Ravager::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Salmon>() {
         for d in items {
-            Salmon::update_metadata(ecs, &mut entity, d)?;
+            Salmon::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Sheep>() {
         for d in items {
-            Sheep::update_metadata(ecs, &mut entity, d)?;
+            Sheep::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Shulker>() {
         for d in items {
-            Shulker::update_metadata(ecs, &mut entity, d)?;
+            Shulker::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ShulkerBullet>() {
         for d in items {
-            ShulkerBullet::update_metadata(ecs, &mut entity, d)?;
+            ShulkerBullet::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Silverfish>() {
         for d in items {
-            Silverfish::update_metadata(ecs, &mut entity, d)?;
+            Silverfish::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Skeleton>() {
         for d in items {
-            Skeleton::update_metadata(ecs, &mut entity, d)?;
+            Skeleton::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<SkeletonHorse>() {
         for d in items {
-            SkeletonHorse::update_metadata(ecs, &mut entity, d)?;
+            SkeletonHorse::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Slime>() {
         for d in items {
-            Slime::update_metadata(ecs, &mut entity, d)?;
+            Slime::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<SmallFireball>() {
         for d in items {
-            SmallFireball::update_metadata(ecs, &mut entity, d)?;
+            SmallFireball::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<SnowGolem>() {
         for d in items {
-            SnowGolem::update_metadata(ecs, &mut entity, d)?;
+            SnowGolem::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Snowball>() {
         for d in items {
-            Snowball::update_metadata(ecs, &mut entity, d)?;
+            Snowball::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<SpawnerMinecart>() {
         for d in items {
-            SpawnerMinecart::update_metadata(ecs, &mut entity, d)?;
+            SpawnerMinecart::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<SpectralArrow>() {
         for d in items {
-            SpectralArrow::update_metadata(ecs, &mut entity, d)?;
+            SpectralArrow::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Spider>() {
         for d in items {
-            Spider::update_metadata(ecs, &mut entity, d)?;
+            Spider::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Squid>() {
         for d in items {
-            Squid::update_metadata(ecs, &mut entity, d)?;
+            Squid::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Stray>() {
         for d in items {
-            Stray::update_metadata(ecs, &mut entity, d)?;
+            Stray::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Strider>() {
         for d in items {
-            Strider::update_metadata(ecs, &mut entity, d)?;
+            Strider::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Tadpole>() {
         for d in items {
-            Tadpole::update_metadata(ecs, &mut entity, d)?;
+            Tadpole::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Tnt>() {
         for d in items {
-            Tnt::update_metadata(ecs, &mut entity, d)?;
+            Tnt::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<TntMinecart>() {
         for d in items {
-            TntMinecart::update_metadata(ecs, &mut entity, d)?;
+            TntMinecart::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<TraderLlama>() {
         for d in items {
-            TraderLlama::update_metadata(ecs, &mut entity, d)?;
+            TraderLlama::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Trident>() {
         for d in items {
-            Trident::update_metadata(ecs, &mut entity, d)?;
+            Trident::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<TropicalFish>() {
         for d in items {
-            TropicalFish::update_metadata(ecs, &mut entity, d)?;
+            TropicalFish::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Turtle>() {
         for d in items {
-            Turtle::update_metadata(ecs, &mut entity, d)?;
+            Turtle::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Vex>() {
         for d in items {
-            Vex::update_metadata(ecs, &mut entity, d)?;
+            Vex::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Villager>() {
         for d in items {
-            Villager::update_metadata(ecs, &mut entity, d)?;
+            Villager::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Vindicator>() {
         for d in items {
-            Vindicator::update_metadata(ecs, &mut entity, d)?;
+            Vindicator::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<WanderingTrader>() {
         for d in items {
-            WanderingTrader::update_metadata(ecs, &mut entity, d)?;
+            WanderingTrader::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Warden>() {
         for d in items {
-            Warden::update_metadata(ecs, &mut entity, d)?;
+            Warden::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Witch>() {
         for d in items {
-            Witch::update_metadata(ecs, &mut entity, d)?;
+            Witch::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Wither>() {
         for d in items {
-            Wither::update_metadata(ecs, &mut entity, d)?;
+            Wither::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<WitherSkeleton>() {
         for d in items {
-            WitherSkeleton::update_metadata(ecs, &mut entity, d)?;
+            WitherSkeleton::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<WitherSkull>() {
         for d in items {
-            WitherSkull::update_metadata(ecs, &mut entity, d)?;
+            WitherSkull::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Wolf>() {
         for d in items {
-            Wolf::update_metadata(ecs, &mut entity, d)?;
+            Wolf::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Zoglin>() {
         for d in items {
-            Zoglin::update_metadata(ecs, &mut entity, d)?;
+            Zoglin::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<Zombie>() {
         for d in items {
-            Zombie::update_metadata(ecs, &mut entity, d)?;
+            Zombie::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ZombieHorse>() {
         for d in items {
-            ZombieHorse::update_metadata(ecs, &mut entity, d)?;
+            ZombieHorse::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ZombieVillager>() {
         for d in items {
-            ZombieVillager::update_metadata(ecs, &mut entity, d)?;
+            ZombieVillager::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }
     if entity.contains::<ZombifiedPiglin>() {
         for d in items {
-            ZombifiedPiglin::update_metadata(ecs, &mut entity, d)?;
+            ZombifiedPiglin::update_metadata(&mut entity, d)?;
         }
         return Ok(());
     }

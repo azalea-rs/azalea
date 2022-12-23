@@ -3,30 +3,30 @@ mod data;
 mod dimensions;
 pub mod metadata;
 
-use self::{
-    attributes::{AttributeInstance, AttributeModifiers},
-    metadata::UpdateMetadataError,
-};
+use self::metadata::UpdateMetadataError;
 use crate::WeakWorld;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, ChunkPos, Vec3, AABB};
-use azalea_registry::EntityKind;
-use bevy_ecs::{component::Component, world::EntityMut};
+use bevy_ecs::{
+    component::Component,
+    world::{EntityMut, Mut},
+};
 pub use data::*;
 use derive_more::{Deref, DerefMut};
 pub use dimensions::*;
 use std::{
     fmt::{Debug, Display, Formatter},
-    marker::PhantomData,
-    ops::{Deref, DerefMut},
-    ptr::NonNull,
+    ops::Deref,
 };
 use uuid::Uuid;
 
+/// An entity ID that's used by ECS library.
+pub type EcsEntityId = bevy_ecs::entity::Entity;
+
 /// The unique 32-bit unsigned id of an entity.
-#[derive(Deref, Eq, PartialEq, DerefMut)]
+#[derive(Deref, Eq, PartialEq, DerefMut, Copy, Clone)]
 pub struct EntityId(pub u32);
-impl From<EntityId> for bevy_ecs::entity::Entity {
+impl From<EntityId> for EcsEntityId {
     // bevy_ecs `Entity`s also store the "generation" which adds another 32 bits,
     // but we don't care about the generation
     fn from(id: EntityId) -> Self {
@@ -50,53 +50,56 @@ impl std::hash::Hash for EntityId {
 }
 impl nohash_hasher::IsEnabled for EntityId {}
 
-/// A mutable reference to an entity in a world.
-pub struct Entity<'w, W = &'w WeakWorld> {
-    /// The [`WeakWorld`] this entity is in.
-    pub world: W,
-    /// The container for the incrementing numerical id of the entity.
-    pub id: EntityId,
-    /// The ECS data for the entity.
-    pub data: bevy_ecs::world::EntityMut<'w>,
-}
+// /// A mutable reference to an entity in a world.
+// pub struct Entity<'w, W = &'w WeakWorld> {
+//     /// The [`WeakWorld`] this entity is in.
+//     pub world: W,
+//     /// The incrementing numerical id of the entity.
+//     pub id: u32,
+//     /// The ECS data for the entity.
+//     pub data: bevy_ecs::world::EntityMut<'w>,
+// }
 
 /// Create an entity if you only have a [`bevy_ecs::world::World`].
 ///
 /// If you do have access to a [`PartialEntityStorage`] though then just call
 /// [`PartialEntityStorage::insert`].
+///
+/// This doesn't return anything since you should be using the [`EntityId`] to
+/// get the entity data.
 pub(crate) fn new_entity<'w>(
-    ecs: &mut bevy_ecs::world::World,
+    ecs: &'w mut bevy_ecs::world::World,
     id: EntityId,
     bundle: impl bevy_ecs::bundle::Bundle,
-) -> EntityMut<'w> {
+) {
     // bevy_ecs only returns None if the entity only exists with a different
     // generation, which shouldn't be possible here
-    ecs.get_or_spawn(id.into())
-        .expect("Entities should always be generation 0 if we're manually spawning from ids")
+    let mut entity = ecs
+        .get_or_spawn(id.into())
+        .expect("Entities should always be generation 0 if we're manually spawning from ids");
 }
 
-impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
-    /// Create an Entity when we already know its id and data.
-    pub(crate) fn new(world: D, id: u32, bundle: impl bevy_ecs::bundle::Bundle) -> Self {
-        let ecs = world.entity_storage.write().ecs;
-        let id = EntityId(id);
-        let data = new_entity(&mut ecs, id, bundle);
-        Self { world, id, data }
-    }
-}
+// impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
+//     /// Create an Entity when we already know its id and data.
+//     pub(crate) fn new(world: D, id: u32, bundle: impl
+// bevy_ecs::bundle::Bundle) -> Self {         let ecs =
+// world.entity_storage.write().ecs;         let data = new_entity(&mut ecs, id,
+// bundle);         Self { world, id, data }
+//     }
+// }
 
-impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
-    // todo: write more here and add an example too
-    /// Get data from the entity.
-    pub fn get<T: bevy_ecs::component::Component>(&self) -> Option<&T> {
-        self.data.get()
-    }
-    pub fn get_mut<T: bevy_ecs::component::Component>(
-        &mut self,
-    ) -> Option<bevy_ecs::world::Mut<T>> {
-        self.data.get_mut()
-    }
-}
+// impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
+//     // todo: write more here and add an example too
+//     /// Get data from the entity.
+//     pub fn get<T: bevy_ecs::component::Component>(&self) -> Option<&T> {
+//         self.data.get()
+//     }
+//     pub fn get_mut<T: bevy_ecs::component::Component>(
+//         &mut self,
+//     ) -> Option<bevy_ecs::world::Mut<T>> {
+//         self.data.get_mut()
+//     }
+// }
 
 /// Sets the position of the entity. This doesn't update the cache in
 /// azalea-world, and should only be used within azalea-world!
@@ -105,7 +108,7 @@ impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
 /// Cached position in the world must be updated.
 pub unsafe fn move_unchecked(pos: &mut Position, physics: &mut Physics, new_pos: Vec3) {
     *pos = Position(new_pos);
-    let bounding_box = make_bounding_box(pos, physics);
+    let bounding_box = make_bounding_box(&pos, &physics);
     physics.bounding_box = bounding_box;
 }
 
@@ -146,9 +149,9 @@ pub fn input_vector(physics: &mut Physics, speed: f32, acceleration: &Vec3) -> V
 pub fn update_metadatas(
     ecs: bevy_ecs::world::World,
     entity: bevy_ecs::world::EntityMut,
-    items: &Vec<EntityDataItem>,
+    items: Vec<EntityDataItem>,
 ) -> Result<(), UpdateMetadataError> {
-    metadata::update_metadatas(ecs, entity, items)
+    metadata::update_metadatas(entity, items)
 }
 
 pub fn make_bounding_box(pos: &Position, physics: &Physics) -> AABB {
@@ -206,7 +209,7 @@ pub fn on_pos<W: Deref<Target = WeakWorld>>(
     pos
 }
 
-#[derive(Component, Deref, DerefMut)]
+#[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct EntityUuid(Uuid);
 
 /// The position of the entity right now.
@@ -331,11 +334,11 @@ pub struct Physics {
 //     }
 // }
 
-impl<W: Deref<Target = WeakWorld>> Debug for Entity<'_, W> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Entity").field("id", &self.id).finish()
-    }
-}
+// impl<W: Deref<Target = WeakWorld>> Debug for Entity<'_, W> {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         f.debug_struct("Entity").field("id", &self.id).finish()
+//     }
+// }
 
 #[cfg(test)]
 mod tests {

@@ -47,15 +47,11 @@ async fn swarm_handle(
     match event {
         SwarmEvent::Tick => {
             // choose an arbitrary player within render distance to target
-            if let Some(target) = swarm
-                .worlds
-                .read()
-                .entity_by(|e| e.id == "minecraft:player")
-            {
+            if let Some(target) = swarm.worlds.read().entity_by(|_: &Player| true) {
                 for (bot, bot_state) in swarm {
                     bot.tick_goto_goal(pathfinder::Goals::Reach(target.bounding_box));
                     // if target.bounding_box.distance(bot.eyes) < bot.reach_distance() {
-                    if bot.entity().can_reach(target.bounding_box) {
+                    if azalea::entities::can_reach(bot.entity(), target.bounding_box) {
                         bot.swing();
                     }
                     if !bot.using_held_item() && bot.hunger() <= 17 {

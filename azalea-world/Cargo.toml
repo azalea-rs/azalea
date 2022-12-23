@@ -20,6 +20,7 @@ derive_more = {version = "0.99.17", features = ["deref", "deref_mut"]}
 enum-as-inner = "0.5.1"
 log = "0.4.17"
 nohash-hasher = "0.2.0"
+once_cell = "1.16.0"
 parking_lot = "^0.12.1"
 thiserror = "1.0.34"
 uuid = "1.1.2"
