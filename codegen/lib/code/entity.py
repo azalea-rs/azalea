@@ -182,12 +182,12 @@ impl From<EntityDataValue> for UpdateMetadataError {
             to_camel_case(parent_id.lstrip("~"))) if parent_id else None
 
         # impl Allay {
-        #     pub fn update_metadata(
+        #     pub fn apply_metadata(
         #         entity: &mut bevy_ecs::world::EntityMut,
         #         d: EntityDataItem,
         #     ) -> Result<(), UpdateMetadataError> {
         #         match d.index {
-        #             0..=15 => AbstractCreatureBundle::update_metadata(entity, d)?,
+        #             0..=15 => AbstractCreatureBundle::apply_metadata(entity, d)?,
         #             16 => entity.insert(Dancing(d.value.into_boolean()?)),
         #             17 => entity.insert(CanDuplicate(d.value.into_boolean()?)),
         #         }
@@ -196,7 +196,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
         # }
         code.append(f'impl {struct_name} {{')
         code.append(
-            f'    pub fn update_metadata(entity: &mut bevy_ecs::world::EntityMut, d: EntityDataItem) -> Result<(), UpdateMetadataError> {{')
+            f'    pub fn apply_metadata(entity: &mut bevy_ecs::world::EntityMut, d: EntityDataItem) -> Result<(), UpdateMetadataError> {{')
         code.append(f'        match d.index {{')
 
         parent_last_index = -1
@@ -206,7 +206,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 parent_last_index = index
         if parent_last_index != -1:
             code.append(
-                f'            0..={parent_last_index} => {parent_struct_name}::update_metadata(entity, d)?,')
+                f'            0..={parent_last_index} => {parent_struct_name}::apply_metadata(entity, d)?,')
 
         for index, name_or_bitfield in enumerate(all_field_names_or_bitfields):
             if index <= parent_last_index:
@@ -255,13 +255,15 @@ impl From<EntityDataValue> for UpdateMetadataError {
         #     dancing: Dancing,
         #     can_duplicate: CanDuplicate,
         # }
-        bundle_struct_name = f'{struct_name}Bundle'
+        bundle_struct_name = f'{struct_name}MetadataBundle'
         code.append(f'')
         code.append(f'#[derive(Bundle)]')
-        code.append(f'struct {bundle_struct_name} {{')
+        code.append(f'pub struct {bundle_struct_name} {{')
+        code.append(
+            f'    _marker: {struct_name},')
         if parent_struct_name:
             code.append(
-                f'    parent: {parent_struct_name}Bundle,')
+                f'    parent: {parent_struct_name}MetadataBundle,')
         for index, name_or_bitfield in get_entity_metadata_names(entity_id, burger_entity_data, mappings).items():
             if isinstance(name_or_bitfield, str):
                 name_or_bitfield = maybe_rename_field(
@@ -281,6 +283,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
         # impl Default for AllayBundle {
         #     fn default() -> Self {
         #         Self {
+        #             _marker: Allay,
         #             parent: AbstractCreatureBundle {
         #                 on_fire: OnFire(false),
         #                 shift_key_down: ShiftKeyDown(false),
@@ -297,7 +300,14 @@ impl From<EntityDataValue> for UpdateMetadataError {
         def generate_fields(this_entity_id: str):
             # on_fire: OnFire(false),
             # shift_key_down: ShiftKeyDown(false),
-            # if it has a parent, put it (recursion)
+
+            # _marker
+            this_entity_struct_name = upper_first_letter(
+                to_camel_case(this_entity_id.lstrip('~')))
+            code.append(
+                f'            _marker: {this_entity_struct_name},')
+
+            # if it has a parent, put it (do recursion)
             # parent: AbstractCreatureBundle { ... },
             this_entity_parent_ids = get_entity_parents(
                 this_entity_id, burger_entity_data)
@@ -305,7 +315,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 this_entity_parent_ids) > 1 else None
             if this_entity_parent_id:
                 bundle_struct_name = upper_first_letter(
-                    to_camel_case(this_entity_parent_id.lstrip('~'))) + 'Bundle'
+                    to_camel_case(this_entity_parent_id.lstrip('~'))) + 'MetadataBundle'
                 code.append(
                     f'            parent: {bundle_struct_name} {{')
                 generate_fields(this_entity_parent_id)
@@ -388,14 +398,14 @@ impl From<EntityDataValue> for UpdateMetadataError {
     for entity_id in burger_entity_data:
         new_entity(entity_id)
 
-    # and now make the main update_metadatas
-    # pub fn update_metadatas(
-    #     entity: bevy_ecs::world::EntityMut,
+    # and now make the main apply_metadata
+    # pub fn apply_metadata(
+    #     entity: &mut bevy_ecs::world::EntityMut,
     #     items: Vec<EntityDataItem>,
     # ) -> Result<(), UpdateMetadataError> {
     #     if entity.contains::<Allay>() {
     #         for d in items {
-    #             Allay::update_metadata(entity, d)?;
+    #             Allay::apply_metadata(entity, d)?;
     #         }
     #         return Ok(());
     #     }
@@ -403,21 +413,48 @@ impl From<EntityDataValue> for UpdateMetadataError {
     #     Ok(())
     # }
     code.append(
-        f'pub fn update_metadatas(mut entity: bevy_ecs::world::EntityMut, items: Vec<EntityDataItem>) -> Result<(), UpdateMetadataError> {{')
+        f'pub fn apply_metadata(entity: &mut bevy_ecs::world::EntityMut, items: Vec<EntityDataItem>) -> Result<(), UpdateMetadataError> {{')
+    code.append(
+        '    let entity_kind = entity.get::<super::EntityKind>().unwrap();')
+    code.append('    match **entity_kind {')
     for entity_id in burger_entity_data:
         if entity_id.startswith('~'):
             # not actually an entity
             continue
         struct_name: str = upper_first_letter(to_camel_case(entity_id))
         code.append(
-            f'    if entity.contains::<{struct_name}>() {{')
-        code.append('        for d in items {')
+            f'        azalea_registry::EntityKind::{struct_name} => {{')
+        code.append('            for d in items {')
         code.append(
-            f'            {struct_name}::update_metadata(&mut entity, d)?;')
-        code.append('        }')
-        code.append(f'        return Ok(());')
-        code.append('    }')
+            f'                {struct_name}::apply_metadata(entity, d)?;')
+        code.append('            }')
+        code.append('        },')
+    code.append('    }')
     code.append('    Ok(())')
+    code.append('}')
+    code.append('')
+
+    # pub fn apply_default_metadata(entity: &mut bevy_ecs::world::EntityMut, kind: azalea_registry::EntityKind) {
+    #     match kind {
+    #         azalea_registry::EntityKind::AreaEffectCloud => {
+    #             entity.insert(AreaEffectCloudMetadataBundle::default());
+    #         }
+    #     }
+    # }
+    code.append(
+        'pub fn apply_default_metadata(entity: &mut bevy_ecs::world::EntityMut, kind: azalea_registry::EntityKind) {')
+    code.append('    match kind {')
+    for entity_id in burger_entity_data:
+        if entity_id.startswith('~'):
+            # not actually an entity
+            continue
+        struct_name: str = upper_first_letter(to_camel_case(entity_id))
+        code.append(
+            f'        azalea_registry::EntityKind::{struct_name} => {{')
+        code.append(
+            f'            entity.insert({struct_name}MetadataBundle::default());')
+        code.append('        },')
+    code.append('    }')
     code.append('}')
     code.append('')
 

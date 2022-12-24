@@ -367,6 +367,7 @@ dependencies = [
  "azalea-protocol-macros",
  "azalea-registry",
  "azalea-world",
+ "bevy_ecs",
  "byteorder",
  "bytes",
  "flate2",

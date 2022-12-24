@@ -61,6 +61,7 @@ impl<T: Registry> McBufWritable for OptionalRegistry<T> {
             registry_name = registry_name[:-5] + '_kind'
 
         registry_struct_name = to_camel_case(registry_name.split(':')[1])
+
         code.append(f'registry!({registry_struct_name}, {{')
         registry_entries = sorted(
             registry['entries'].items(), key=lambda x: x[1]['protocol_id'])

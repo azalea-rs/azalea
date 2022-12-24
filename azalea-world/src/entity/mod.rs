@@ -3,17 +3,21 @@ mod data;
 mod dimensions;
 pub mod metadata;
 
-use self::metadata::UpdateMetadataError;
+use self::{
+    attributes::{AttributeInstance, AttributeModifiers},
+    metadata::UpdateMetadataError,
+};
 use crate::WeakWorld;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, ChunkPos, Vec3, AABB};
 use bevy_ecs::{
+    bundle::Bundle,
     component::Component,
     world::{EntityMut, Mut},
 };
 pub use data::*;
 use derive_more::{Deref, DerefMut};
-pub use dimensions::*;
+pub use dimensions::EntityDimensions;
 use std::{
     fmt::{Debug, Display, Formatter},
     ops::Deref,
@@ -64,19 +68,18 @@ impl nohash_hasher::IsEnabled for EntityId {}
 ///
 /// If you do have access to a [`PartialEntityStorage`] though then just call
 /// [`PartialEntityStorage::insert`].
-///
-/// This doesn't return anything since you should be using the [`EntityId`] to
-/// get the entity data.
 pub(crate) fn new_entity<'w>(
     ecs: &'w mut bevy_ecs::world::World,
     id: EntityId,
     bundle: impl bevy_ecs::bundle::Bundle,
-) {
+) -> EntityMut<'w> {
     // bevy_ecs only returns None if the entity only exists with a different
     // generation, which shouldn't be possible here
     let mut entity = ecs
         .get_or_spawn(id.into())
         .expect("Entities should always be generation 0 if we're manually spawning from ids");
+    entity.insert(bundle);
+    entity
 }
 
 // impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
@@ -146,12 +149,12 @@ pub fn input_vector(physics: &mut Physics, speed: f32, acceleration: &Vec3) -> V
 
 /// Apply the given metadata items to the entity. Everything that isn't
 /// included in items will be left unchanged.
-pub fn update_metadatas(
+pub fn apply_metadata(
     ecs: bevy_ecs::world::World,
-    entity: bevy_ecs::world::EntityMut,
+    entity: &mut bevy_ecs::world::EntityMut,
     items: Vec<EntityDataItem>,
 ) -> Result<(), UpdateMetadataError> {
-    metadata::update_metadatas(entity, items)
+    metadata::apply_metadata(entity, items)
 }
 
 pub fn make_bounding_box(pos: &Position, physics: &Physics) -> AABB {
@@ -260,85 +263,73 @@ pub struct Physics {
     pub has_impulse: bool,
 }
 
-// impl EntityData {
-//     pub fn new(uuid: Uuid, pos: Vec3, metadata: EntityMetadata) -> Self {
-//         let dimensions = EntityDimensions {
-//             width: 0.6,
-//             height: 1.8,
-//         };
+/// A component NewType for [`azalea_registry::EntityKind`].
+#[derive(Component, Clone, Copy, Debug, PartialEq, Deref)]
+pub struct EntityKind(azalea_registry::EntityKind);
 
-//         Self {
-//             uuid,
-//             pos,
-//             last_pos: pos,
-//             delta: Vec3::default(),
+/// A bundle of components that every entity has. This doesn't contain metadata,
+/// that has to be added separately.
+#[derive(Bundle)]
+pub struct EntityBundle {
+    pub kind: EntityKind,
+    pub uuid: EntityUuid,
+    pub position: Position,
+    pub physics: Physics,
+    pub attributes: AttributeModifiers,
+}
 
-//             xxa: 0.,
-//             yya: 0.,
-//             zza: 0.,
+impl EntityBundle {
+    pub fn new(uuid: Uuid, pos: Vec3, kind: azalea_registry::EntityKind) -> Self {
+        let dimensions = EntityDimensions {
+            width: 0.6,
+            height: 1.8,
+        };
 
-//             x_rot: 0.,
-//             y_rot: 0.,
+        Self {
+            kind: EntityKind(kind),
+            uuid: EntityUuid(uuid),
+            position: Position(pos),
+            physics: Physics {
+                last_pos: pos,
+                delta: Vec3::default(),
 
-//             y_rot_last: 0.,
-//             x_rot_last: 0.,
+                xxa: 0.,
+                yya: 0.,
+                zza: 0.,
 
-//             on_ground: false,
-//             last_on_ground: false,
+                x_rot: 0.,
+                y_rot: 0.,
 
-//             // TODO: have this be based on the entity type
-//             bounding_box: dimensions.make_bounding_box(&pos),
-//             dimensions,
+                y_rot_last: 0.,
+                x_rot_last: 0.,
 
-//             has_impulse: false,
+                on_ground: false,
+                last_on_ground: false,
 
-//             jumping: false,
+                // TODO: have this be based on the entity type
+                bounding_box: dimensions.make_bounding_box(&pos),
+                dimensions,
 
-//             metadata,
+                has_impulse: false,
 
-//             attributes: AttributeModifiers {
-//                 // TODO: do the correct defaults for everything, some
-// entities have different                 // defaults
-//                 speed: AttributeInstance::new(0.1),
-//             },
-//         }
-//     }
+                jumping: false,
+            },
 
-//     /// Get the position of the entity in the world.
-//     #[inline]
-//     pub fn pos(&self) -> &Vec3 {
-//         &self.pos
-//     }
+            attributes: AttributeModifiers {
+                // TODO: do the correct defaults for everything, some
+                // entities have different defaults
+                speed: AttributeInstance::new(0.1),
+            },
+        }
+    }
+}
 
-//     /// Convert this &self into a (mutable) pointer.
-//     ///
-//     /// # Safety
-//     /// The entity MUST exist for at least as long as this pointer exists.
-//     pub unsafe fn as_ptr(&self) -> NonNull<EntityData> {
-//         // this is cursed
-//         NonNull::new_unchecked(self as *const EntityData as *mut EntityData)
-//     }
-
-//     /// Returns the type of entity this is.
-//     ///
-//     /// ```rust
-//     /// let entity = EntityData::new(
-//     ///     Uuid::nil(),
-//     ///     Vec3::default(),
-//     ///     EntityMetadata::Player(metadata::Player::default()),
-//     /// );
-//     /// assert_eq!(entity.kind(), EntityKind::Player);
-//     /// ```
-//     pub fn kind(&self) -> EntityKind {
-//         EntityKind::from(&self.metadata)
-//     }
-// }
-
-// impl<W: Deref<Target = WeakWorld>> Debug for Entity<'_, W> {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         f.debug_struct("Entity").field("id", &self.id).finish()
-//     }
-// }
+/// A bundle of the components that are always present for a player.
+#[derive(Bundle)]
+pub struct PlayerBundle {
+    pub entity: EntityBundle,
+    pub metadata: metadata::PlayerMetadataBundle,
+}
 
 #[cfg(test)]
 mod tests {

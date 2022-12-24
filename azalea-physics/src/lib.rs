@@ -4,11 +4,8 @@ pub mod collision;
 
 use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
-use azalea_world::{
-    entity::{Entity, EntityData},
-    WeakWorld,
-};
-use collision::{MovableEntity, MoverType};
+use azalea_world::WeakWorld;
+use collision::MoverType;
 use std::ops::Deref;
 
 pub trait HasPhysics {
@@ -210,11 +207,11 @@ fn block_jump_factor<D: Deref<Target = WeakWorld>>(entity: &Entity<D>) -> f32 {
 // public double getJumpBoostPower() {
 //     return this.hasEffect(MobEffects.JUMP) ? (double)(0.1F *
 // (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1)) : 0.0D; }
-fn jump_power<D: Deref<Target = WeakWorld>>(entity: &Entity<D>) -> f32 {
+fn jump_power<D: Deref<Target = WeakWorld>>() -> f32 {
     0.42 * block_jump_factor(entity)
 }
 
-fn jump_boost_power<D: Deref<Target = WeakWorld>>(_entity: &Entity<D>) -> f64 {
+fn jump_boost_power<D: Deref<Target = WeakWorld>>() -> f64 {
     // TODO: potion effects
     // if let Some(effects) = entity.effects() {
     //     if let Some(jump_effect) = effects.get(&Effect::Jump) {

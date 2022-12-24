@@ -76,12 +76,12 @@ pub struct CanDuplicate(pub bool);
 #[derive(Component)]
 pub struct Allay;
 impl Allay {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(Dancing(d.value.into_boolean()?));
             }
@@ -95,18 +95,24 @@ impl Allay {
 }
 
 #[derive(Bundle)]
-struct AllayBundle {
-    parent: AbstractCreatureBundle,
+pub struct AllayMetadataBundle {
+    _marker: Allay,
+    parent: AbstractCreatureMetadataBundle,
     dancing: Dancing,
     can_duplicate: CanDuplicate,
 }
-impl Default for AllayBundle {
+impl Default for AllayMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractCreatureBundle {
-                parent: AbstractInsentientBundle {
-                    parent: AbstractLivingBundle {
-                        parent: AbstractEntityBundle {
+            _marker: Allay,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
                             on_fire: OnFire(false),
                             shift_key_down: ShiftKeyDown(false),
                             sprinting: Sprinting(false),
@@ -151,12 +157,12 @@ pub struct Waiting(pub bool);
 #[derive(Component)]
 pub struct AreaEffectCloud;
 impl AreaEffectCloud {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(Radius(d.value.into_float()?));
             }
@@ -176,17 +182,20 @@ impl AreaEffectCloud {
 }
 
 #[derive(Bundle)]
-struct AreaEffectCloudBundle {
-    parent: AbstractEntityBundle,
+pub struct AreaEffectCloudMetadataBundle {
+    _marker: AreaEffectCloud,
+    parent: AbstractEntityMetadataBundle,
     radius: Radius,
     area_effect_cloud_color: AreaEffectCloudColor,
     waiting: Waiting,
     particle: Particle,
 }
-impl Default for AreaEffectCloudBundle {
+impl Default for AreaEffectCloudMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: AreaEffectCloud,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -233,12 +242,12 @@ pub struct RightLegPose(pub Rotations);
 #[derive(Component)]
 pub struct ArmorStand;
 impl ArmorStand {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=14 => AbstractLiving::update_metadata(entity, d)?,
+            0..=14 => AbstractLiving::apply_metadata(entity, d)?,
             15 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Small(bitfield & 0x1 != 0));
@@ -271,8 +280,9 @@ impl ArmorStand {
 }
 
 #[derive(Bundle)]
-struct ArmorStandBundle {
-    parent: AbstractLivingBundle,
+pub struct ArmorStandMetadataBundle {
+    _marker: ArmorStand,
+    parent: AbstractLivingMetadataBundle,
     small: Small,
     show_arms: ShowArms,
     no_base_plate: NoBasePlate,
@@ -284,11 +294,14 @@ struct ArmorStandBundle {
     left_leg_pose: LeftLegPose,
     right_leg_pose: RightLegPose,
 }
-impl Default for ArmorStandBundle {
+impl Default for ArmorStandMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractLivingBundle {
-                parent: AbstractEntityBundle {
+            _marker: ArmorStand,
+            parent: AbstractLivingMetadataBundle {
+                _marker: AbstractLiving,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
                     on_fire: OnFire(false),
                     shift_key_down: ShiftKeyDown(false),
                     sprinting: Sprinting(false),
@@ -340,12 +353,12 @@ pub struct ArrowEffectColor(pub i32);
 #[derive(Component)]
 pub struct Arrow;
 impl Arrow {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(ArrowCritArrow(bitfield & 0x1 != 0));
@@ -365,18 +378,21 @@ impl Arrow {
 }
 
 #[derive(Bundle)]
-struct ArrowBundle {
-    parent: AbstractEntityBundle,
+pub struct ArrowMetadataBundle {
+    _marker: Arrow,
+    parent: AbstractEntityMetadataBundle,
     arrow_crit_arrow: ArrowCritArrow,
     arrow_shot_from_crossbow: ArrowShotFromCrossbow,
     arrow_no_physics: ArrowNoPhysics,
     arrow_pierce_level: ArrowPierceLevel,
     arrow_effect_color: ArrowEffectColor,
 }
-impl Default for ArrowBundle {
+impl Default for ArrowMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: Arrow,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -412,12 +428,12 @@ pub struct AxolotlFromBucket(pub bool);
 #[derive(Component)]
 pub struct Axolotl;
 impl Axolotl {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(AxolotlVariant(d.value.into_int()?));
             }
@@ -434,21 +450,29 @@ impl Axolotl {
 }
 
 #[derive(Bundle)]
-struct AxolotlBundle {
-    parent: AbstractAnimalBundle,
+pub struct AxolotlMetadataBundle {
+    _marker: Axolotl,
+    parent: AbstractAnimalMetadataBundle,
     axolotl_variant: AxolotlVariant,
     playing_dead: PlayingDead,
     axolotl_from_bucket: AxolotlFromBucket,
 }
-impl Default for AxolotlBundle {
+impl Default for AxolotlMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Axolotl,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -493,12 +517,12 @@ pub struct Resting(pub bool);
 #[derive(Component)]
 pub struct Bat;
 impl Bat {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractInsentient::update_metadata(entity, d)?,
+            0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
             16 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Resting(bitfield & 0x1 != 0));
@@ -510,16 +534,21 @@ impl Bat {
 }
 
 #[derive(Bundle)]
-struct BatBundle {
-    parent: AbstractInsentientBundle,
+pub struct BatMetadataBundle {
+    _marker: Bat,
+    parent: AbstractInsentientMetadataBundle,
     resting: Resting,
 }
-impl Default for BatBundle {
+impl Default for BatMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractInsentientBundle {
-                parent: AbstractLivingBundle {
-                    parent: AbstractEntityBundle {
+            _marker: Bat,
+            parent: AbstractInsentientMetadataBundle {
+                _marker: AbstractInsentient,
+                parent: AbstractLivingMetadataBundle {
+                    _marker: AbstractLiving,
+                    parent: AbstractEntityMetadataBundle {
+                        _marker: AbstractEntity,
                         on_fire: OnFire(false),
                         shift_key_down: ShiftKeyDown(false),
                         sprinting: Sprinting(false),
@@ -564,12 +593,12 @@ pub struct BeeRemainingAngerTime(pub i32);
 #[derive(Component)]
 pub struct Bee;
 impl Bee {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(HasNectar(bitfield & 0x8 != 0));
@@ -586,22 +615,30 @@ impl Bee {
 }
 
 #[derive(Bundle)]
-struct BeeBundle {
-    parent: AbstractAnimalBundle,
+pub struct BeeMetadataBundle {
+    _marker: Bee,
+    parent: AbstractAnimalMetadataBundle,
     has_nectar: HasNectar,
     has_stung: HasStung,
     bee_rolling: BeeRolling,
     bee_remaining_anger_time: BeeRemainingAngerTime,
 }
-impl Default for BeeBundle {
+impl Default for BeeMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Bee,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -647,12 +684,12 @@ pub struct Charged(pub bool);
 #[derive(Component)]
 pub struct Blaze;
 impl Blaze {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Charged(bitfield & 0x1 != 0));
@@ -664,18 +701,25 @@ impl Blaze {
 }
 
 #[derive(Bundle)]
-struct BlazeBundle {
-    parent: AbstractMonsterBundle,
+pub struct BlazeMetadataBundle {
+    _marker: Blaze,
+    parent: AbstractMonsterMetadataBundle,
     charged: Charged,
 }
-impl Default for BlazeBundle {
+impl Default for BlazeMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Blaze,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -728,12 +772,12 @@ pub struct BubbleTime(pub i32);
 #[derive(Component)]
 pub struct Boat;
 impl Boat {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(BoatHurt(d.value.into_int()?));
             }
@@ -762,8 +806,9 @@ impl Boat {
 }
 
 #[derive(Bundle)]
-struct BoatBundle {
-    parent: AbstractEntityBundle,
+pub struct BoatMetadataBundle {
+    _marker: Boat,
+    parent: AbstractEntityMetadataBundle,
     boat_hurt: BoatHurt,
     boat_hurtdir: BoatHurtdir,
     boat_damage: BoatDamage,
@@ -772,10 +817,12 @@ struct BoatBundle {
     paddle_right: PaddleRight,
     bubble_time: BubbleTime,
 }
-impl Default for BoatBundle {
+impl Default for BoatMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: Boat,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -821,12 +868,12 @@ pub struct LastPoseChangeTick(pub i64);
 #[derive(Component)]
 pub struct Camel;
 impl Camel {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(CamelTamed(bitfield & 0x2 != 0));
@@ -851,8 +898,9 @@ impl Camel {
 }
 
 #[derive(Bundle)]
-struct CamelBundle {
-    parent: AbstractAnimalBundle,
+pub struct CamelMetadataBundle {
+    _marker: Camel,
+    parent: AbstractAnimalMetadataBundle,
     camel_tamed: CamelTamed,
     camel_eating: CamelEating,
     camel_standing: CamelStanding,
@@ -862,15 +910,22 @@ struct CamelBundle {
     dash: Dash,
     last_pose_change_tick: LastPoseChangeTick,
 }
-impl Default for CamelBundle {
+impl Default for CamelMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Camel,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -932,12 +987,12 @@ pub struct CatCollarColor(pub i32);
 #[derive(Component)]
 pub struct Cat;
 impl Cat {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => AbstractTameable::update_metadata(entity, d)?,
+            0..=18 => AbstractTameable::apply_metadata(entity, d)?,
             19 => {
                 entity.insert(CatVariant(d.value.into_cat_variant()?));
             }
@@ -957,23 +1012,32 @@ impl Cat {
 }
 
 #[derive(Bundle)]
-struct CatBundle {
-    parent: AbstractTameableBundle,
+pub struct CatMetadataBundle {
+    _marker: Cat,
+    parent: AbstractTameableMetadataBundle,
     cat_variant: CatVariant,
     is_lying: IsLying,
     relax_state_one: RelaxStateOne,
     cat_collar_color: CatCollarColor,
 }
-impl Default for CatBundle {
+impl Default for CatMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractTameableBundle {
-                parent: AbstractAnimalBundle {
-                    parent: AbstractAgeableBundle {
-                        parent: AbstractCreatureBundle {
-                            parent: AbstractInsentientBundle {
-                                parent: AbstractLivingBundle {
-                                    parent: AbstractEntityBundle {
+            _marker: Cat,
+            parent: AbstractTameableMetadataBundle {
+                _marker: AbstractTameable,
+                parent: AbstractAnimalMetadataBundle {
+                    _marker: AbstractAnimal,
+                    parent: AbstractAgeableMetadataBundle {
+                        _marker: AbstractAgeable,
+                        parent: AbstractCreatureMetadataBundle {
+                            _marker: AbstractCreature,
+                            parent: AbstractInsentientMetadataBundle {
+                                _marker: AbstractInsentient,
+                                parent: AbstractLivingMetadataBundle {
+                                    _marker: AbstractLiving,
+                                    parent: AbstractEntityMetadataBundle {
+                                        _marker: AbstractEntity,
                                         on_fire: OnFire(false),
                                         shift_key_down: ShiftKeyDown(false),
                                         sprinting: Sprinting(false),
@@ -1023,12 +1087,12 @@ pub struct Climbing(pub bool);
 #[derive(Component)]
 pub struct CaveSpider;
 impl CaveSpider {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => Spider::update_metadata(entity, d)?,
+            0..=16 => Spider::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -1036,18 +1100,26 @@ impl CaveSpider {
 }
 
 #[derive(Bundle)]
-struct CaveSpiderBundle {
-    parent: SpiderBundle,
+pub struct CaveSpiderMetadataBundle {
+    _marker: CaveSpider,
+    parent: SpiderMetadataBundle,
 }
-impl Default for CaveSpiderBundle {
+impl Default for CaveSpiderMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: SpiderBundle {
-                parent: AbstractMonsterBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: CaveSpider,
+            parent: SpiderMetadataBundle {
+                _marker: Spider,
+                parent: AbstractMonsterMetadataBundle {
+                    _marker: AbstractMonster,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -1087,12 +1159,12 @@ impl Default for CaveSpiderBundle {
 #[derive(Component)]
 pub struct ChestBoat;
 impl ChestBoat {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=14 => Boat::update_metadata(entity, d)?,
+            0..=14 => Boat::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -1100,14 +1172,18 @@ impl ChestBoat {
 }
 
 #[derive(Bundle)]
-struct ChestBoatBundle {
-    parent: BoatBundle,
+pub struct ChestBoatMetadataBundle {
+    _marker: ChestBoat,
+    parent: BoatMetadataBundle,
 }
-impl Default for ChestBoatBundle {
+impl Default for ChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: BoatBundle {
-                parent: AbstractEntityBundle {
+            _marker: ChestBoat,
+            parent: BoatMetadataBundle {
+                _marker: Boat,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
                     on_fire: OnFire(false),
                     shift_key_down: ShiftKeyDown(false),
                     sprinting: Sprinting(false),
@@ -1150,12 +1226,12 @@ pub struct CustomDisplay(pub bool);
 #[derive(Component)]
 pub struct ChestMinecart;
 impl ChestMinecart {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::update_metadata(entity, d)?,
+            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -1163,14 +1239,18 @@ impl ChestMinecart {
 }
 
 #[derive(Bundle)]
-struct ChestMinecartBundle {
-    parent: AbstractMinecartBundle,
+pub struct ChestMinecartMetadataBundle {
+    _marker: ChestMinecart,
+    parent: AbstractMinecartMetadataBundle,
 }
-impl Default for ChestMinecartBundle {
+impl Default for ChestMinecartMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMinecartBundle {
-                parent: AbstractEntityBundle {
+            _marker: ChestMinecart,
+            parent: AbstractMinecartMetadataBundle {
+                _marker: AbstractMinecart,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
                     on_fire: OnFire(false),
                     shift_key_down: ShiftKeyDown(false),
                     sprinting: Sprinting(false),
@@ -1200,12 +1280,12 @@ impl Default for ChestMinecartBundle {
 #[derive(Component)]
 pub struct Chicken;
 impl Chicken {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -1213,18 +1293,26 @@ impl Chicken {
 }
 
 #[derive(Bundle)]
-struct ChickenBundle {
-    parent: AbstractAnimalBundle,
+pub struct ChickenMetadataBundle {
+    _marker: Chicken,
+    parent: AbstractAnimalMetadataBundle,
 }
-impl Default for ChickenBundle {
+impl Default for ChickenMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Chicken,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -1266,12 +1354,12 @@ pub struct CodFromBucket(pub bool);
 #[derive(Component)]
 pub struct Cod;
 impl Cod {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(CodFromBucket(d.value.into_boolean()?));
             }
@@ -1282,17 +1370,23 @@ impl Cod {
 }
 
 #[derive(Bundle)]
-struct CodBundle {
-    parent: AbstractCreatureBundle,
+pub struct CodMetadataBundle {
+    _marker: Cod,
+    parent: AbstractCreatureMetadataBundle,
     cod_from_bucket: CodFromBucket,
 }
-impl Default for CodBundle {
+impl Default for CodMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractCreatureBundle {
-                parent: AbstractInsentientBundle {
-                    parent: AbstractLivingBundle {
-                        parent: AbstractEntityBundle {
+            _marker: Cod,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
                             on_fire: OnFire(false),
                             shift_key_down: ShiftKeyDown(false),
                             sprinting: Sprinting(false),
@@ -1334,12 +1428,12 @@ pub struct LastOutput(pub FormattedText);
 #[derive(Component)]
 pub struct CommandBlockMinecart;
 impl CommandBlockMinecart {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::update_metadata(entity, d)?,
+            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
             14 => {
                 entity.insert(CommandName(d.value.into_string()?));
             }
@@ -1353,16 +1447,20 @@ impl CommandBlockMinecart {
 }
 
 #[derive(Bundle)]
-struct CommandBlockMinecartBundle {
-    parent: AbstractMinecartBundle,
+pub struct CommandBlockMinecartMetadataBundle {
+    _marker: CommandBlockMinecart,
+    parent: AbstractMinecartMetadataBundle,
     command_name: CommandName,
     last_output: LastOutput,
 }
-impl Default for CommandBlockMinecartBundle {
+impl Default for CommandBlockMinecartMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMinecartBundle {
-                parent: AbstractEntityBundle {
+            _marker: CommandBlockMinecart,
+            parent: AbstractMinecartMetadataBundle {
+                _marker: AbstractMinecart,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
                     on_fire: OnFire(false),
                     shift_key_down: ShiftKeyDown(false),
                     sprinting: Sprinting(false),
@@ -1394,12 +1492,12 @@ impl Default for CommandBlockMinecartBundle {
 #[derive(Component)]
 pub struct Cow;
 impl Cow {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -1407,18 +1505,26 @@ impl Cow {
 }
 
 #[derive(Bundle)]
-struct CowBundle {
-    parent: AbstractAnimalBundle,
+pub struct CowMetadataBundle {
+    _marker: Cow,
+    parent: AbstractAnimalMetadataBundle,
 }
-impl Default for CowBundle {
+impl Default for CowMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Cow,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -1464,12 +1570,12 @@ pub struct IsIgnited(pub bool);
 #[derive(Component)]
 pub struct Creeper;
 impl Creeper {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(SwellDir(d.value.into_int()?));
             }
@@ -1486,20 +1592,27 @@ impl Creeper {
 }
 
 #[derive(Bundle)]
-struct CreeperBundle {
-    parent: AbstractMonsterBundle,
+pub struct CreeperMetadataBundle {
+    _marker: Creeper,
+    parent: AbstractMonsterMetadataBundle,
     swell_dir: SwellDir,
     is_powered: IsPowered,
     is_ignited: IsIgnited,
 }
-impl Default for CreeperBundle {
+impl Default for CreeperMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Creeper,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -1546,12 +1659,12 @@ pub struct MoistnessLevel(pub i32);
 #[derive(Component)]
 pub struct Dolphin;
 impl Dolphin {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(TreasurePos(d.value.into_block_pos()?));
             }
@@ -1568,19 +1681,25 @@ impl Dolphin {
 }
 
 #[derive(Bundle)]
-struct DolphinBundle {
-    parent: AbstractCreatureBundle,
+pub struct DolphinMetadataBundle {
+    _marker: Dolphin,
+    parent: AbstractCreatureMetadataBundle,
     treasure_pos: TreasurePos,
     got_fish: GotFish,
     moistness_level: MoistnessLevel,
 }
-impl Default for DolphinBundle {
+impl Default for DolphinMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractCreatureBundle {
-                parent: AbstractInsentientBundle {
-                    parent: AbstractLivingBundle {
-                        parent: AbstractEntityBundle {
+            _marker: Dolphin,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
                             on_fire: OnFire(false),
                             shift_key_down: ShiftKeyDown(false),
                             sprinting: Sprinting(false),
@@ -1634,12 +1753,12 @@ pub struct DonkeyChest(pub bool);
 #[derive(Component)]
 pub struct Donkey;
 impl Donkey {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(DonkeyTamed(bitfield & 0x2 != 0));
@@ -1661,8 +1780,9 @@ impl Donkey {
 }
 
 #[derive(Bundle)]
-struct DonkeyBundle {
-    parent: AbstractAnimalBundle,
+pub struct DonkeyMetadataBundle {
+    _marker: Donkey,
+    parent: AbstractAnimalMetadataBundle,
     donkey_tamed: DonkeyTamed,
     donkey_eating: DonkeyEating,
     donkey_standing: DonkeyStanding,
@@ -1671,15 +1791,22 @@ struct DonkeyBundle {
     donkey_owner_uuid: DonkeyOwnerUuid,
     donkey_chest: DonkeyChest,
 }
-impl Default for DonkeyBundle {
+impl Default for DonkeyMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Donkey,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -1726,12 +1853,12 @@ impl Default for DonkeyBundle {
 #[derive(Component)]
 pub struct DragonFireball;
 impl DragonFireball {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -1739,13 +1866,16 @@ impl DragonFireball {
 }
 
 #[derive(Bundle)]
-struct DragonFireballBundle {
-    parent: AbstractEntityBundle,
+pub struct DragonFireballMetadataBundle {
+    _marker: DragonFireball,
+    parent: AbstractEntityMetadataBundle,
 }
-impl Default for DragonFireballBundle {
+impl Default for DragonFireballMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: DragonFireball,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -1774,12 +1904,12 @@ pub struct DrownedConversion(pub bool);
 #[derive(Component)]
 pub struct Drowned;
 impl Drowned {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => Zombie::update_metadata(entity, d)?,
+            0..=18 => Zombie::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -1787,18 +1917,26 @@ impl Drowned {
 }
 
 #[derive(Bundle)]
-struct DrownedBundle {
-    parent: ZombieBundle,
+pub struct DrownedMetadataBundle {
+    _marker: Drowned,
+    parent: ZombieMetadataBundle,
 }
-impl Default for DrownedBundle {
+impl Default for DrownedMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: ZombieBundle {
-                parent: AbstractMonsterBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Drowned,
+            parent: ZombieMetadataBundle {
+                _marker: Zombie,
+                parent: AbstractMonsterMetadataBundle {
+                    _marker: AbstractMonster,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -1842,12 +1980,12 @@ pub struct EggItemStack(pub Slot);
 #[derive(Component)]
 pub struct Egg;
 impl Egg {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(EggItemStack(d.value.into_item_stack()?));
             }
@@ -1858,14 +1996,17 @@ impl Egg {
 }
 
 #[derive(Bundle)]
-struct EggBundle {
-    parent: AbstractEntityBundle,
+pub struct EggMetadataBundle {
+    _marker: Egg,
+    parent: AbstractEntityMetadataBundle,
     egg_item_stack: EggItemStack,
 }
-impl Default for EggBundle {
+impl Default for EggMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: Egg,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -1893,12 +2034,12 @@ pub struct AttackTarget(pub i32);
 #[derive(Component)]
 pub struct ElderGuardian;
 impl ElderGuardian {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=17 => Guardian::update_metadata(entity, d)?,
+            0..=17 => Guardian::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -1906,18 +2047,26 @@ impl ElderGuardian {
 }
 
 #[derive(Bundle)]
-struct ElderGuardianBundle {
-    parent: GuardianBundle,
+pub struct ElderGuardianMetadataBundle {
+    _marker: ElderGuardian,
+    parent: GuardianMetadataBundle,
 }
-impl Default for ElderGuardianBundle {
+impl Default for ElderGuardianMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: GuardianBundle {
-                parent: AbstractMonsterBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: ElderGuardian,
+            parent: GuardianMetadataBundle {
+                _marker: Guardian,
+                parent: AbstractMonsterMetadataBundle {
+                    _marker: AbstractMonster,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -1962,12 +2111,12 @@ pub struct ShowBottom(pub bool);
 #[derive(Component)]
 pub struct EndCrystal;
 impl EndCrystal {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(BeamTarget(d.value.into_optional_block_pos()?));
             }
@@ -1981,15 +2130,18 @@ impl EndCrystal {
 }
 
 #[derive(Bundle)]
-struct EndCrystalBundle {
-    parent: AbstractEntityBundle,
+pub struct EndCrystalMetadataBundle {
+    _marker: EndCrystal,
+    parent: AbstractEntityMetadataBundle,
     beam_target: BeamTarget,
     show_bottom: ShowBottom,
 }
-impl Default for EndCrystalBundle {
+impl Default for EndCrystalMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: EndCrystal,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -2016,12 +2168,12 @@ pub struct Phase(pub i32);
 #[derive(Component)]
 pub struct EnderDragon;
 impl EnderDragon {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractInsentient::update_metadata(entity, d)?,
+            0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(Phase(d.value.into_int()?));
             }
@@ -2032,16 +2184,21 @@ impl EnderDragon {
 }
 
 #[derive(Bundle)]
-struct EnderDragonBundle {
-    parent: AbstractInsentientBundle,
+pub struct EnderDragonMetadataBundle {
+    _marker: EnderDragon,
+    parent: AbstractInsentientMetadataBundle,
     phase: Phase,
 }
-impl Default for EnderDragonBundle {
+impl Default for EnderDragonMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractInsentientBundle {
-                parent: AbstractLivingBundle {
-                    parent: AbstractEntityBundle {
+            _marker: EnderDragon,
+            parent: AbstractInsentientMetadataBundle {
+                _marker: AbstractInsentient,
+                parent: AbstractLivingMetadataBundle {
+                    _marker: AbstractLiving,
+                    parent: AbstractEntityMetadataBundle {
+                        _marker: AbstractEntity,
                         on_fire: OnFire(false),
                         shift_key_down: ShiftKeyDown(false),
                         sprinting: Sprinting(false),
@@ -2080,12 +2237,12 @@ pub struct EnderPearlItemStack(pub Slot);
 #[derive(Component)]
 pub struct EnderPearl;
 impl EnderPearl {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(EnderPearlItemStack(d.value.into_item_stack()?));
             }
@@ -2096,14 +2253,17 @@ impl EnderPearl {
 }
 
 #[derive(Bundle)]
-struct EnderPearlBundle {
-    parent: AbstractEntityBundle,
+pub struct EnderPearlMetadataBundle {
+    _marker: EnderPearl,
+    parent: AbstractEntityMetadataBundle,
     ender_pearl_item_stack: EnderPearlItemStack,
 }
-impl Default for EnderPearlBundle {
+impl Default for EnderPearlMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: EnderPearl,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -2133,12 +2293,12 @@ pub struct StaredAt(pub bool);
 #[derive(Component)]
 pub struct Enderman;
 impl Enderman {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(CarryState(d.value.into_block_state()?));
             }
@@ -2155,20 +2315,27 @@ impl Enderman {
 }
 
 #[derive(Bundle)]
-struct EndermanBundle {
-    parent: AbstractMonsterBundle,
+pub struct EndermanMetadataBundle {
+    _marker: Enderman,
+    parent: AbstractMonsterMetadataBundle,
     carry_state: CarryState,
     creepy: Creepy,
     stared_at: StaredAt,
 }
-impl Default for EndermanBundle {
+impl Default for EndermanMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Enderman,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -2209,12 +2376,12 @@ impl Default for EndermanBundle {
 #[derive(Component)]
 pub struct Endermite;
 impl Endermite {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -2222,17 +2389,24 @@ impl Endermite {
 }
 
 #[derive(Bundle)]
-struct EndermiteBundle {
-    parent: AbstractMonsterBundle,
+pub struct EndermiteMetadataBundle {
+    _marker: Endermite,
+    parent: AbstractMonsterMetadataBundle,
 }
-impl Default for EndermiteBundle {
+impl Default for EndermiteMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Endermite,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -2274,12 +2448,12 @@ pub struct EvokerSpellCasting(pub u8);
 #[derive(Component)]
 pub struct Evoker;
 impl Evoker {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(EvokerIsCelebrating(d.value.into_boolean()?));
             }
@@ -2293,19 +2467,26 @@ impl Evoker {
 }
 
 #[derive(Bundle)]
-struct EvokerBundle {
-    parent: AbstractMonsterBundle,
+pub struct EvokerMetadataBundle {
+    _marker: Evoker,
+    parent: AbstractMonsterMetadataBundle,
     evoker_is_celebrating: EvokerIsCelebrating,
     evoker_spell_casting: EvokerSpellCasting,
 }
-impl Default for EvokerBundle {
+impl Default for EvokerMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Evoker,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -2345,12 +2526,12 @@ impl Default for EvokerBundle {
 #[derive(Component)]
 pub struct EvokerFangs;
 impl EvokerFangs {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -2358,13 +2539,16 @@ impl EvokerFangs {
 }
 
 #[derive(Bundle)]
-struct EvokerFangsBundle {
-    parent: AbstractEntityBundle,
+pub struct EvokerFangsMetadataBundle {
+    _marker: EvokerFangs,
+    parent: AbstractEntityMetadataBundle,
 }
-impl Default for EvokerFangsBundle {
+impl Default for EvokerFangsMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: EvokerFangs,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -2389,12 +2573,12 @@ pub struct ExperienceBottleItemStack(pub Slot);
 #[derive(Component)]
 pub struct ExperienceBottle;
 impl ExperienceBottle {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(ExperienceBottleItemStack(d.value.into_item_stack()?));
             }
@@ -2405,14 +2589,17 @@ impl ExperienceBottle {
 }
 
 #[derive(Bundle)]
-struct ExperienceBottleBundle {
-    parent: AbstractEntityBundle,
+pub struct ExperienceBottleMetadataBundle {
+    _marker: ExperienceBottle,
+    parent: AbstractEntityMetadataBundle,
     experience_bottle_item_stack: ExperienceBottleItemStack,
 }
-impl Default for ExperienceBottleBundle {
+impl Default for ExperienceBottleMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: ExperienceBottle,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -2436,12 +2623,12 @@ impl Default for ExperienceBottleBundle {
 #[derive(Component)]
 pub struct ExperienceOrb;
 impl ExperienceOrb {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -2449,13 +2636,16 @@ impl ExperienceOrb {
 }
 
 #[derive(Bundle)]
-struct ExperienceOrbBundle {
-    parent: AbstractEntityBundle,
+pub struct ExperienceOrbMetadataBundle {
+    _marker: ExperienceOrb,
+    parent: AbstractEntityMetadataBundle,
 }
-impl Default for ExperienceOrbBundle {
+impl Default for ExperienceOrbMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: ExperienceOrb,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -2480,12 +2670,12 @@ pub struct EyeOfEnderItemStack(pub Slot);
 #[derive(Component)]
 pub struct EyeOfEnder;
 impl EyeOfEnder {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(EyeOfEnderItemStack(d.value.into_item_stack()?));
             }
@@ -2496,14 +2686,17 @@ impl EyeOfEnder {
 }
 
 #[derive(Bundle)]
-struct EyeOfEnderBundle {
-    parent: AbstractEntityBundle,
+pub struct EyeOfEnderMetadataBundle {
+    _marker: EyeOfEnder,
+    parent: AbstractEntityMetadataBundle,
     eye_of_ender_item_stack: EyeOfEnderItemStack,
 }
-impl Default for EyeOfEnderBundle {
+impl Default for EyeOfEnderMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: EyeOfEnder,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -2529,12 +2722,12 @@ pub struct StartPos(pub BlockPos);
 #[derive(Component)]
 pub struct FallingBlock;
 impl FallingBlock {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(StartPos(d.value.into_block_pos()?));
             }
@@ -2545,14 +2738,17 @@ impl FallingBlock {
 }
 
 #[derive(Bundle)]
-struct FallingBlockBundle {
-    parent: AbstractEntityBundle,
+pub struct FallingBlockMetadataBundle {
+    _marker: FallingBlock,
+    parent: AbstractEntityMetadataBundle,
     start_pos: StartPos,
 }
-impl Default for FallingBlockBundle {
+impl Default for FallingBlockMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: FallingBlock,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -2578,12 +2774,12 @@ pub struct FireballItemStack(pub Slot);
 #[derive(Component)]
 pub struct Fireball;
 impl Fireball {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(FireballItemStack(d.value.into_item_stack()?));
             }
@@ -2594,14 +2790,17 @@ impl Fireball {
 }
 
 #[derive(Bundle)]
-struct FireballBundle {
-    parent: AbstractEntityBundle,
+pub struct FireballMetadataBundle {
+    _marker: Fireball,
+    parent: AbstractEntityMetadataBundle,
     fireball_item_stack: FireballItemStack,
 }
-impl Default for FireballBundle {
+impl Default for FireballMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: Fireball,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -2631,12 +2830,12 @@ pub struct ShotAtAngle(pub bool);
 #[derive(Component)]
 pub struct FireworkRocket;
 impl FireworkRocket {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(FireworksItem(d.value.into_item_stack()?));
             }
@@ -2653,16 +2852,19 @@ impl FireworkRocket {
 }
 
 #[derive(Bundle)]
-struct FireworkRocketBundle {
-    parent: AbstractEntityBundle,
+pub struct FireworkRocketMetadataBundle {
+    _marker: FireworkRocket,
+    parent: AbstractEntityMetadataBundle,
     fireworks_item: FireworksItem,
     attached_to_target: AttachedToTarget,
     shot_at_angle: ShotAtAngle,
 }
-impl Default for FireworkRocketBundle {
+impl Default for FireworkRocketMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: FireworkRocket,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -2692,12 +2894,12 @@ pub struct Biting(pub bool);
 #[derive(Component)]
 pub struct FishingBobber;
 impl FishingBobber {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(HookedEntity(d.value.into_int()?));
             }
@@ -2711,15 +2913,18 @@ impl FishingBobber {
 }
 
 #[derive(Bundle)]
-struct FishingBobberBundle {
-    parent: AbstractEntityBundle,
+pub struct FishingBobberMetadataBundle {
+    _marker: FishingBobber,
+    parent: AbstractEntityMetadataBundle,
     hooked_entity: HookedEntity,
     biting: Biting,
 }
-impl Default for FishingBobberBundle {
+impl Default for FishingBobberMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: FishingBobber,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -2762,12 +2967,12 @@ pub struct TrustedId1(pub Option<Uuid>);
 #[derive(Component)]
 pub struct Fox;
 impl Fox {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(FoxKind(d.value.into_int()?));
             }
@@ -2793,8 +2998,9 @@ impl Fox {
 }
 
 #[derive(Bundle)]
-struct FoxBundle {
-    parent: AbstractAnimalBundle,
+pub struct FoxMetadataBundle {
+    _marker: Fox,
+    parent: AbstractAnimalMetadataBundle,
     fox_kind: FoxKind,
     fox_sitting: FoxSitting,
     faceplanted: Faceplanted,
@@ -2805,15 +3011,22 @@ struct FoxBundle {
     trusted_id_0: TrustedId0,
     trusted_id_1: TrustedId1,
 }
-impl Default for FoxBundle {
+impl Default for FoxMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Fox,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -2866,12 +3079,12 @@ pub struct TongueTarget(pub OptionalUnsignedInt);
 #[derive(Component)]
 pub struct Frog;
 impl Frog {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(FrogVariant(d.value.into_frog_variant()?));
             }
@@ -2885,20 +3098,28 @@ impl Frog {
 }
 
 #[derive(Bundle)]
-struct FrogBundle {
-    parent: AbstractAnimalBundle,
+pub struct FrogMetadataBundle {
+    _marker: Frog,
+    parent: AbstractAnimalMetadataBundle,
     frog_variant: FrogVariant,
     tongue_target: TongueTarget,
 }
-impl Default for FrogBundle {
+impl Default for FrogMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Frog,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -2942,12 +3163,12 @@ pub struct Fuel(pub bool);
 #[derive(Component)]
 pub struct FurnaceMinecart;
 impl FurnaceMinecart {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::update_metadata(entity, d)?,
+            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
             14 => {
                 entity.insert(Fuel(d.value.into_boolean()?));
             }
@@ -2958,15 +3179,19 @@ impl FurnaceMinecart {
 }
 
 #[derive(Bundle)]
-struct FurnaceMinecartBundle {
-    parent: AbstractMinecartBundle,
+pub struct FurnaceMinecartMetadataBundle {
+    _marker: FurnaceMinecart,
+    parent: AbstractMinecartMetadataBundle,
     fuel: Fuel,
 }
-impl Default for FurnaceMinecartBundle {
+impl Default for FurnaceMinecartMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMinecartBundle {
-                parent: AbstractEntityBundle {
+            _marker: FurnaceMinecart,
+            parent: AbstractMinecartMetadataBundle {
+                _marker: AbstractMinecart,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
                     on_fire: OnFire(false),
                     shift_key_down: ShiftKeyDown(false),
                     sprinting: Sprinting(false),
@@ -2999,12 +3224,12 @@ pub struct IsCharging(pub bool);
 #[derive(Component)]
 pub struct Ghast;
 impl Ghast {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractInsentient::update_metadata(entity, d)?,
+            0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(IsCharging(d.value.into_boolean()?));
             }
@@ -3015,16 +3240,21 @@ impl Ghast {
 }
 
 #[derive(Bundle)]
-struct GhastBundle {
-    parent: AbstractInsentientBundle,
+pub struct GhastMetadataBundle {
+    _marker: Ghast,
+    parent: AbstractInsentientMetadataBundle,
     is_charging: IsCharging,
 }
-impl Default for GhastBundle {
+impl Default for GhastMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractInsentientBundle {
-                parent: AbstractLivingBundle {
-                    parent: AbstractEntityBundle {
+            _marker: Ghast,
+            parent: AbstractInsentientMetadataBundle {
+                _marker: AbstractInsentient,
+                parent: AbstractLivingMetadataBundle {
+                    _marker: AbstractLiving,
+                    parent: AbstractEntityMetadataBundle {
+                        _marker: AbstractEntity,
                         on_fire: OnFire(false),
                         shift_key_down: ShiftKeyDown(false),
                         sprinting: Sprinting(false),
@@ -3061,12 +3291,12 @@ impl Default for GhastBundle {
 #[derive(Component)]
 pub struct Giant;
 impl Giant {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -3074,17 +3304,24 @@ impl Giant {
 }
 
 #[derive(Bundle)]
-struct GiantBundle {
-    parent: AbstractMonsterBundle,
+pub struct GiantMetadataBundle {
+    _marker: Giant,
+    parent: AbstractMonsterMetadataBundle,
 }
-impl Default for GiantBundle {
+impl Default for GiantMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Giant,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -3126,12 +3363,12 @@ pub struct Rotation(pub i32);
 #[derive(Component)]
 pub struct GlowItemFrame;
 impl GlowItemFrame {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=9 => ItemFrame::update_metadata(entity, d)?,
+            0..=9 => ItemFrame::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -3139,14 +3376,18 @@ impl GlowItemFrame {
 }
 
 #[derive(Bundle)]
-struct GlowItemFrameBundle {
-    parent: ItemFrameBundle,
+pub struct GlowItemFrameMetadataBundle {
+    _marker: GlowItemFrame,
+    parent: ItemFrameMetadataBundle,
 }
-impl Default for GlowItemFrameBundle {
+impl Default for GlowItemFrameMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: ItemFrameBundle {
-                parent: AbstractEntityBundle {
+            _marker: GlowItemFrame,
+            parent: ItemFrameMetadataBundle {
+                _marker: ItemFrame,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
                     on_fire: OnFire(false),
                     shift_key_down: ShiftKeyDown(false),
                     sprinting: Sprinting(false),
@@ -3174,12 +3415,12 @@ pub struct DarkTicksRemaining(pub i32);
 #[derive(Component)]
 pub struct GlowSquid;
 impl GlowSquid {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => Squid::update_metadata(entity, d)?,
+            0..=15 => Squid::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(DarkTicksRemaining(d.value.into_int()?));
             }
@@ -3190,18 +3431,25 @@ impl GlowSquid {
 }
 
 #[derive(Bundle)]
-struct GlowSquidBundle {
-    parent: SquidBundle,
+pub struct GlowSquidMetadataBundle {
+    _marker: GlowSquid,
+    parent: SquidMetadataBundle,
     dark_ticks_remaining: DarkTicksRemaining,
 }
-impl Default for GlowSquidBundle {
+impl Default for GlowSquidMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: SquidBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: GlowSquid,
+            parent: SquidMetadataBundle {
+                _marker: Squid,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -3246,12 +3494,12 @@ pub struct HasRightHorn(pub bool);
 #[derive(Component)]
 pub struct Goat;
 impl Goat {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(IsScreamingGoat(d.value.into_boolean()?));
             }
@@ -3268,21 +3516,29 @@ impl Goat {
 }
 
 #[derive(Bundle)]
-struct GoatBundle {
-    parent: AbstractAnimalBundle,
+pub struct GoatMetadataBundle {
+    _marker: Goat,
+    parent: AbstractAnimalMetadataBundle,
     is_screaming_goat: IsScreamingGoat,
     has_left_horn: HasLeftHorn,
     has_right_horn: HasRightHorn,
 }
-impl Default for GoatBundle {
+impl Default for GoatMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Goat,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -3325,12 +3581,12 @@ impl Default for GoatBundle {
 #[derive(Component)]
 pub struct Guardian;
 impl Guardian {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(Moving(d.value.into_boolean()?));
             }
@@ -3344,19 +3600,26 @@ impl Guardian {
 }
 
 #[derive(Bundle)]
-struct GuardianBundle {
-    parent: AbstractMonsterBundle,
+pub struct GuardianMetadataBundle {
+    _marker: Guardian,
+    parent: AbstractMonsterMetadataBundle,
     moving: Moving,
     attack_target: AttackTarget,
 }
-impl Default for GuardianBundle {
+impl Default for GuardianMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Guardian,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -3398,12 +3661,12 @@ pub struct HoglinImmuneToZombification(pub bool);
 #[derive(Component)]
 pub struct Hoglin;
 impl Hoglin {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(HoglinImmuneToZombification(d.value.into_boolean()?));
             }
@@ -3414,19 +3677,27 @@ impl Hoglin {
 }
 
 #[derive(Bundle)]
-struct HoglinBundle {
-    parent: AbstractAnimalBundle,
+pub struct HoglinMetadataBundle {
+    _marker: Hoglin,
+    parent: AbstractAnimalMetadataBundle,
     hoglin_immune_to_zombification: HoglinImmuneToZombification,
 }
-impl Default for HoglinBundle {
+impl Default for HoglinMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Hoglin,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -3467,12 +3738,12 @@ impl Default for HoglinBundle {
 #[derive(Component)]
 pub struct HopperMinecart;
 impl HopperMinecart {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::update_metadata(entity, d)?,
+            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -3480,14 +3751,18 @@ impl HopperMinecart {
 }
 
 #[derive(Bundle)]
-struct HopperMinecartBundle {
-    parent: AbstractMinecartBundle,
+pub struct HopperMinecartMetadataBundle {
+    _marker: HopperMinecart,
+    parent: AbstractMinecartMetadataBundle,
 }
-impl Default for HopperMinecartBundle {
+impl Default for HopperMinecartMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMinecartBundle {
-                parent: AbstractEntityBundle {
+            _marker: HopperMinecart,
+            parent: AbstractMinecartMetadataBundle {
+                _marker: AbstractMinecart,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
                     on_fire: OnFire(false),
                     shift_key_down: ShiftKeyDown(false),
                     sprinting: Sprinting(false),
@@ -3531,12 +3806,12 @@ pub struct HorseTypeVariant(pub i32);
 #[derive(Component)]
 pub struct Horse;
 impl Horse {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(HorseTamed(bitfield & 0x2 != 0));
@@ -3558,8 +3833,9 @@ impl Horse {
 }
 
 #[derive(Bundle)]
-struct HorseBundle {
-    parent: AbstractAnimalBundle,
+pub struct HorseMetadataBundle {
+    _marker: Horse,
+    parent: AbstractAnimalMetadataBundle,
     horse_tamed: HorseTamed,
     horse_eating: HorseEating,
     horse_standing: HorseStanding,
@@ -3568,15 +3844,22 @@ struct HorseBundle {
     horse_owner_uuid: HorseOwnerUuid,
     horse_type_variant: HorseTypeVariant,
 }
-impl Default for HorseBundle {
+impl Default for HorseMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Horse,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -3623,12 +3906,12 @@ impl Default for HorseBundle {
 #[derive(Component)]
 pub struct Husk;
 impl Husk {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => Zombie::update_metadata(entity, d)?,
+            0..=18 => Zombie::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -3636,18 +3919,26 @@ impl Husk {
 }
 
 #[derive(Bundle)]
-struct HuskBundle {
-    parent: ZombieBundle,
+pub struct HuskMetadataBundle {
+    _marker: Husk,
+    parent: ZombieMetadataBundle,
 }
-impl Default for HuskBundle {
+impl Default for HuskMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: ZombieBundle {
-                parent: AbstractMonsterBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Husk,
+            parent: ZombieMetadataBundle {
+                _marker: Zombie,
+                parent: AbstractMonsterMetadataBundle {
+                    _marker: AbstractMonster,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -3693,12 +3984,12 @@ pub struct IllusionerSpellCasting(pub u8);
 #[derive(Component)]
 pub struct Illusioner;
 impl Illusioner {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(IllusionerIsCelebrating(d.value.into_boolean()?));
             }
@@ -3712,19 +4003,26 @@ impl Illusioner {
 }
 
 #[derive(Bundle)]
-struct IllusionerBundle {
-    parent: AbstractMonsterBundle,
+pub struct IllusionerMetadataBundle {
+    _marker: Illusioner,
+    parent: AbstractMonsterMetadataBundle,
     illusioner_is_celebrating: IllusionerIsCelebrating,
     illusioner_spell_casting: IllusionerSpellCasting,
 }
-impl Default for IllusionerBundle {
+impl Default for IllusionerMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Illusioner,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -3766,12 +4064,12 @@ pub struct PlayerCreated(pub bool);
 #[derive(Component)]
 pub struct IronGolem;
 impl IronGolem {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(PlayerCreated(bitfield & 0x1 != 0));
@@ -3783,17 +4081,23 @@ impl IronGolem {
 }
 
 #[derive(Bundle)]
-struct IronGolemBundle {
-    parent: AbstractCreatureBundle,
+pub struct IronGolemMetadataBundle {
+    _marker: IronGolem,
+    parent: AbstractCreatureMetadataBundle,
     player_created: PlayerCreated,
 }
-impl Default for IronGolemBundle {
+impl Default for IronGolemMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractCreatureBundle {
-                parent: AbstractInsentientBundle {
-                    parent: AbstractLivingBundle {
-                        parent: AbstractEntityBundle {
+            _marker: IronGolem,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
                             on_fire: OnFire(false),
                             shift_key_down: ShiftKeyDown(false),
                             sprinting: Sprinting(false),
@@ -3833,12 +4137,12 @@ pub struct ItemItem(pub Slot);
 #[derive(Component)]
 pub struct Item;
 impl Item {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(ItemItem(d.value.into_item_stack()?));
             }
@@ -3849,14 +4153,17 @@ impl Item {
 }
 
 #[derive(Bundle)]
-struct ItemBundle {
-    parent: AbstractEntityBundle,
+pub struct ItemMetadataBundle {
+    _marker: Item,
+    parent: AbstractEntityMetadataBundle,
     item_item: ItemItem,
 }
-impl Default for ItemBundle {
+impl Default for ItemMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: Item,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -3880,12 +4187,12 @@ impl Default for ItemBundle {
 #[derive(Component)]
 pub struct ItemFrame;
 impl ItemFrame {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(ItemFrameItem(d.value.into_item_stack()?));
             }
@@ -3899,15 +4206,18 @@ impl ItemFrame {
 }
 
 #[derive(Bundle)]
-struct ItemFrameBundle {
-    parent: AbstractEntityBundle,
+pub struct ItemFrameMetadataBundle {
+    _marker: ItemFrame,
+    parent: AbstractEntityMetadataBundle,
     item_frame_item: ItemFrameItem,
     rotation: Rotation,
 }
-impl Default for ItemFrameBundle {
+impl Default for ItemFrameMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: ItemFrame,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -3932,12 +4242,12 @@ impl Default for ItemFrameBundle {
 #[derive(Component)]
 pub struct LeashKnot;
 impl LeashKnot {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -3945,13 +4255,16 @@ impl LeashKnot {
 }
 
 #[derive(Bundle)]
-struct LeashKnotBundle {
-    parent: AbstractEntityBundle,
+pub struct LeashKnotMetadataBundle {
+    _marker: LeashKnot,
+    parent: AbstractEntityMetadataBundle,
 }
-impl Default for LeashKnotBundle {
+impl Default for LeashKnotMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: LeashKnot,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -3974,12 +4287,12 @@ impl Default for LeashKnotBundle {
 #[derive(Component)]
 pub struct LightningBolt;
 impl LightningBolt {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -3987,13 +4300,16 @@ impl LightningBolt {
 }
 
 #[derive(Bundle)]
-struct LightningBoltBundle {
-    parent: AbstractEntityBundle,
+pub struct LightningBoltMetadataBundle {
+    _marker: LightningBolt,
+    parent: AbstractEntityMetadataBundle,
 }
-impl Default for LightningBoltBundle {
+impl Default for LightningBoltMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: LightningBolt,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -4036,12 +4352,12 @@ pub struct LlamaVariant(pub i32);
 #[derive(Component)]
 pub struct Llama;
 impl Llama {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(LlamaTamed(bitfield & 0x2 != 0));
@@ -4072,8 +4388,9 @@ impl Llama {
 }
 
 #[derive(Bundle)]
-struct LlamaBundle {
-    parent: AbstractAnimalBundle,
+pub struct LlamaMetadataBundle {
+    _marker: Llama,
+    parent: AbstractAnimalMetadataBundle,
     llama_tamed: LlamaTamed,
     llama_eating: LlamaEating,
     llama_standing: LlamaStanding,
@@ -4085,15 +4402,22 @@ struct LlamaBundle {
     swag: Swag,
     llama_variant: LlamaVariant,
 }
-impl Default for LlamaBundle {
+impl Default for LlamaMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Llama,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -4143,12 +4467,12 @@ impl Default for LlamaBundle {
 #[derive(Component)]
 pub struct LlamaSpit;
 impl LlamaSpit {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -4156,13 +4480,16 @@ impl LlamaSpit {
 }
 
 #[derive(Bundle)]
-struct LlamaSpitBundle {
-    parent: AbstractEntityBundle,
+pub struct LlamaSpitMetadataBundle {
+    _marker: LlamaSpit,
+    parent: AbstractEntityMetadataBundle,
 }
-impl Default for LlamaSpitBundle {
+impl Default for LlamaSpitMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: LlamaSpit,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -4187,12 +4514,12 @@ pub struct SlimeSize(pub i32);
 #[derive(Component)]
 pub struct MagmaCube;
 impl MagmaCube {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => Slime::update_metadata(entity, d)?,
+            0..=16 => Slime::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -4200,16 +4527,22 @@ impl MagmaCube {
 }
 
 #[derive(Bundle)]
-struct MagmaCubeBundle {
-    parent: SlimeBundle,
+pub struct MagmaCubeMetadataBundle {
+    _marker: MagmaCube,
+    parent: SlimeMetadataBundle,
 }
-impl Default for MagmaCubeBundle {
+impl Default for MagmaCubeMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: SlimeBundle {
-                parent: AbstractInsentientBundle {
-                    parent: AbstractLivingBundle {
-                        parent: AbstractEntityBundle {
+            _marker: MagmaCube,
+            parent: SlimeMetadataBundle {
+                _marker: Slime,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
                             on_fire: OnFire(false),
                             shift_key_down: ShiftKeyDown(false),
                             sprinting: Sprinting(false),
@@ -4247,12 +4580,12 @@ impl Default for MagmaCubeBundle {
 #[derive(Component)]
 pub struct Marker;
 impl Marker {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -4260,13 +4593,16 @@ impl Marker {
 }
 
 #[derive(Bundle)]
-struct MarkerBundle {
-    parent: AbstractEntityBundle,
+pub struct MarkerMetadataBundle {
+    _marker: Marker,
+    parent: AbstractEntityMetadataBundle,
 }
-impl Default for MarkerBundle {
+impl Default for MarkerMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: Marker,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -4289,12 +4625,12 @@ impl Default for MarkerBundle {
 #[derive(Component)]
 pub struct Minecart;
 impl Minecart {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::update_metadata(entity, d)?,
+            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -4302,14 +4638,18 @@ impl Minecart {
 }
 
 #[derive(Bundle)]
-struct MinecartBundle {
-    parent: AbstractMinecartBundle,
+pub struct MinecartMetadataBundle {
+    _marker: Minecart,
+    parent: AbstractMinecartMetadataBundle,
 }
-impl Default for MinecartBundle {
+impl Default for MinecartMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMinecartBundle {
-                parent: AbstractEntityBundle {
+            _marker: Minecart,
+            parent: AbstractMinecartMetadataBundle {
+                _marker: AbstractMinecart,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
                     on_fire: OnFire(false),
                     shift_key_down: ShiftKeyDown(false),
                     sprinting: Sprinting(false),
@@ -4341,12 +4681,12 @@ pub struct MooshroomKind(pub String);
 #[derive(Component)]
 pub struct Mooshroom;
 impl Mooshroom {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => Cow::update_metadata(entity, d)?,
+            0..=16 => Cow::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(MooshroomKind(d.value.into_string()?));
             }
@@ -4357,20 +4697,29 @@ impl Mooshroom {
 }
 
 #[derive(Bundle)]
-struct MooshroomBundle {
-    parent: CowBundle,
+pub struct MooshroomMetadataBundle {
+    _marker: Mooshroom,
+    parent: CowMetadataBundle,
     mooshroom_kind: MooshroomKind,
 }
-impl Default for MooshroomBundle {
+impl Default for MooshroomMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: CowBundle {
-                parent: AbstractAnimalBundle {
-                    parent: AbstractAgeableBundle {
-                        parent: AbstractCreatureBundle {
-                            parent: AbstractInsentientBundle {
-                                parent: AbstractLivingBundle {
-                                    parent: AbstractEntityBundle {
+            _marker: Mooshroom,
+            parent: CowMetadataBundle {
+                _marker: Cow,
+                parent: AbstractAnimalMetadataBundle {
+                    _marker: AbstractAnimal,
+                    parent: AbstractAgeableMetadataBundle {
+                        _marker: AbstractAgeable,
+                        parent: AbstractCreatureMetadataBundle {
+                            _marker: AbstractCreature,
+                            parent: AbstractInsentientMetadataBundle {
+                                _marker: AbstractInsentient,
+                                parent: AbstractLivingMetadataBundle {
+                                    _marker: AbstractLiving,
+                                    parent: AbstractEntityMetadataBundle {
+                                        _marker: AbstractEntity,
                                         on_fire: OnFire(false),
                                         shift_key_down: ShiftKeyDown(false),
                                         sprinting: Sprinting(false),
@@ -4426,12 +4775,12 @@ pub struct MuleChest(pub bool);
 #[derive(Component)]
 pub struct Mule;
 impl Mule {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(MuleTamed(bitfield & 0x2 != 0));
@@ -4453,8 +4802,9 @@ impl Mule {
 }
 
 #[derive(Bundle)]
-struct MuleBundle {
-    parent: AbstractAnimalBundle,
+pub struct MuleMetadataBundle {
+    _marker: Mule,
+    parent: AbstractAnimalMetadataBundle,
     mule_tamed: MuleTamed,
     mule_eating: MuleEating,
     mule_standing: MuleStanding,
@@ -4463,15 +4813,22 @@ struct MuleBundle {
     mule_owner_uuid: MuleOwnerUuid,
     mule_chest: MuleChest,
 }
-impl Default for MuleBundle {
+impl Default for MuleMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Mule,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -4520,12 +4877,12 @@ pub struct Trusting(pub bool);
 #[derive(Component)]
 pub struct Ocelot;
 impl Ocelot {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(Trusting(d.value.into_boolean()?));
             }
@@ -4536,19 +4893,27 @@ impl Ocelot {
 }
 
 #[derive(Bundle)]
-struct OcelotBundle {
-    parent: AbstractAnimalBundle,
+pub struct OcelotMetadataBundle {
+    _marker: Ocelot,
+    parent: AbstractAnimalMetadataBundle,
     trusting: Trusting,
 }
-impl Default for OcelotBundle {
+impl Default for OcelotMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Ocelot,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -4591,12 +4956,12 @@ pub struct PaintingVariant(pub azalea_registry::PaintingVariant);
 #[derive(Component)]
 pub struct Painting;
 impl Painting {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(PaintingVariant(d.value.into_painting_variant()?));
             }
@@ -4607,14 +4972,17 @@ impl Painting {
 }
 
 #[derive(Bundle)]
-struct PaintingBundle {
-    parent: AbstractEntityBundle,
+pub struct PaintingMetadataBundle {
+    _marker: Painting,
+    parent: AbstractEntityMetadataBundle,
     painting_variant: PaintingVariant,
 }
-impl Default for PaintingBundle {
+impl Default for PaintingMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: Painting,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -4656,12 +5024,12 @@ pub struct PandaFlags(pub u8);
 #[derive(Component)]
 pub struct Panda;
 impl Panda {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(PandaUnhappyCounter(d.value.into_int()?));
             }
@@ -4691,8 +5059,9 @@ impl Panda {
 }
 
 #[derive(Bundle)]
-struct PandaBundle {
-    parent: AbstractAnimalBundle,
+pub struct PandaMetadataBundle {
+    _marker: Panda,
+    parent: AbstractAnimalMetadataBundle,
     panda_unhappy_counter: PandaUnhappyCounter,
     sneeze_counter: SneezeCounter,
     eat_counter: EatCounter,
@@ -4703,15 +5072,22 @@ struct PandaBundle {
     hidden_gene: HiddenGene,
     panda_flags: PandaFlags,
 }
-impl Default for PandaBundle {
+impl Default for PandaMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Panda,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -4762,12 +5138,12 @@ pub struct ParrotVariant(pub i32);
 #[derive(Component)]
 pub struct Parrot;
 impl Parrot {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => AbstractTameable::update_metadata(entity, d)?,
+            0..=18 => AbstractTameable::apply_metadata(entity, d)?,
             19 => {
                 entity.insert(ParrotVariant(d.value.into_int()?));
             }
@@ -4778,20 +5154,29 @@ impl Parrot {
 }
 
 #[derive(Bundle)]
-struct ParrotBundle {
-    parent: AbstractTameableBundle,
+pub struct ParrotMetadataBundle {
+    _marker: Parrot,
+    parent: AbstractTameableMetadataBundle,
     parrot_variant: ParrotVariant,
 }
-impl Default for ParrotBundle {
+impl Default for ParrotMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractTameableBundle {
-                parent: AbstractAnimalBundle {
-                    parent: AbstractAgeableBundle {
-                        parent: AbstractCreatureBundle {
-                            parent: AbstractInsentientBundle {
-                                parent: AbstractLivingBundle {
-                                    parent: AbstractEntityBundle {
+            _marker: Parrot,
+            parent: AbstractTameableMetadataBundle {
+                _marker: AbstractTameable,
+                parent: AbstractAnimalMetadataBundle {
+                    _marker: AbstractAnimal,
+                    parent: AbstractAgeableMetadataBundle {
+                        _marker: AbstractAgeable,
+                        parent: AbstractCreatureMetadataBundle {
+                            _marker: AbstractCreature,
+                            parent: AbstractInsentientMetadataBundle {
+                                _marker: AbstractInsentient,
+                                parent: AbstractLivingMetadataBundle {
+                                    _marker: AbstractLiving,
+                                    parent: AbstractEntityMetadataBundle {
+                                        _marker: AbstractEntity,
                                         on_fire: OnFire(false),
                                         shift_key_down: ShiftKeyDown(false),
                                         sprinting: Sprinting(false),
@@ -4838,12 +5223,12 @@ pub struct PhantomSize(pub i32);
 #[derive(Component)]
 pub struct Phantom;
 impl Phantom {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractInsentient::update_metadata(entity, d)?,
+            0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(PhantomSize(d.value.into_int()?));
             }
@@ -4854,16 +5239,21 @@ impl Phantom {
 }
 
 #[derive(Bundle)]
-struct PhantomBundle {
-    parent: AbstractInsentientBundle,
+pub struct PhantomMetadataBundle {
+    _marker: Phantom,
+    parent: AbstractInsentientMetadataBundle,
     phantom_size: PhantomSize,
 }
-impl Default for PhantomBundle {
+impl Default for PhantomMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractInsentientBundle {
-                parent: AbstractLivingBundle {
-                    parent: AbstractEntityBundle {
+            _marker: Phantom,
+            parent: AbstractInsentientMetadataBundle {
+                _marker: AbstractInsentient,
+                parent: AbstractLivingMetadataBundle {
+                    _marker: AbstractLiving,
+                    parent: AbstractEntityMetadataBundle {
+                        _marker: AbstractEntity,
                         on_fire: OnFire(false),
                         shift_key_down: ShiftKeyDown(false),
                         sprinting: Sprinting(false),
@@ -4904,12 +5294,12 @@ pub struct PigBoostTime(pub i32);
 #[derive(Component)]
 pub struct Pig;
 impl Pig {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(PigSaddle(d.value.into_boolean()?));
             }
@@ -4923,20 +5313,28 @@ impl Pig {
 }
 
 #[derive(Bundle)]
-struct PigBundle {
-    parent: AbstractAnimalBundle,
+pub struct PigMetadataBundle {
+    _marker: Pig,
+    parent: AbstractAnimalMetadataBundle,
     pig_saddle: PigSaddle,
     pig_boost_time: PigBoostTime,
 }
-impl Default for PigBundle {
+impl Default for PigMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Pig,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -4986,12 +5384,12 @@ pub struct IsDancing(pub bool);
 #[derive(Component)]
 pub struct Piglin;
 impl Piglin {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(PiglinImmuneToZombification(d.value.into_boolean()?));
             }
@@ -5011,21 +5409,28 @@ impl Piglin {
 }
 
 #[derive(Bundle)]
-struct PiglinBundle {
-    parent: AbstractMonsterBundle,
+pub struct PiglinMetadataBundle {
+    _marker: Piglin,
+    parent: AbstractMonsterMetadataBundle,
     piglin_immune_to_zombification: PiglinImmuneToZombification,
     piglin_baby: PiglinBaby,
     piglin_is_charging_crossbow: PiglinIsChargingCrossbow,
     is_dancing: IsDancing,
 }
-impl Default for PiglinBundle {
+impl Default for PiglinMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Piglin,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -5069,12 +5474,12 @@ pub struct PiglinBruteImmuneToZombification(pub bool);
 #[derive(Component)]
 pub struct PiglinBrute;
 impl PiglinBrute {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(PiglinBruteImmuneToZombification(d.value.into_boolean()?));
             }
@@ -5085,18 +5490,25 @@ impl PiglinBrute {
 }
 
 #[derive(Bundle)]
-struct PiglinBruteBundle {
-    parent: AbstractMonsterBundle,
+pub struct PiglinBruteMetadataBundle {
+    _marker: PiglinBrute,
+    parent: AbstractMonsterMetadataBundle,
     piglin_brute_immune_to_zombification: PiglinBruteImmuneToZombification,
 }
-impl Default for PiglinBruteBundle {
+impl Default for PiglinBruteMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: PiglinBrute,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -5139,12 +5551,12 @@ pub struct PillagerIsChargingCrossbow(pub bool);
 #[derive(Component)]
 pub struct Pillager;
 impl Pillager {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(PillagerIsCelebrating(d.value.into_boolean()?));
             }
@@ -5158,19 +5570,26 @@ impl Pillager {
 }
 
 #[derive(Bundle)]
-struct PillagerBundle {
-    parent: AbstractMonsterBundle,
+pub struct PillagerMetadataBundle {
+    _marker: Pillager,
+    parent: AbstractMonsterMetadataBundle,
     pillager_is_celebrating: PillagerIsCelebrating,
     pillager_is_charging_crossbow: PillagerIsChargingCrossbow,
 }
-impl Default for PillagerBundle {
+impl Default for PillagerMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Pillager,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -5222,12 +5641,12 @@ pub struct ShoulderRight(pub azalea_nbt::Tag);
 #[derive(Component)]
 pub struct Player;
 impl Player {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=14 => AbstractLiving::update_metadata(entity, d)?,
+            0..=14 => AbstractLiving::apply_metadata(entity, d)?,
             15 => {
                 entity.insert(PlayerAbsorption(d.value.into_float()?));
             }
@@ -5253,8 +5672,9 @@ impl Player {
 }
 
 #[derive(Bundle)]
-struct PlayerBundle {
-    parent: AbstractLivingBundle,
+pub struct PlayerMetadataBundle {
+    _marker: Player,
+    parent: AbstractLivingMetadataBundle,
     player_absorption: PlayerAbsorption,
     score: Score,
     player_mode_customisation: PlayerModeCustomisation,
@@ -5262,11 +5682,14 @@ struct PlayerBundle {
     shoulder_left: ShoulderLeft,
     shoulder_right: ShoulderRight,
 }
-impl Default for PlayerBundle {
+impl Default for PlayerMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractLivingBundle {
-                parent: AbstractEntityBundle {
+            _marker: Player,
+            parent: AbstractLivingMetadataBundle {
+                _marker: AbstractLiving,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
                     on_fire: OnFire(false),
                     shift_key_down: ShiftKeyDown(false),
                     sprinting: Sprinting(false),
@@ -5306,12 +5729,12 @@ pub struct PolarBearStanding(pub bool);
 #[derive(Component)]
 pub struct PolarBear;
 impl PolarBear {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(PolarBearStanding(d.value.into_boolean()?));
             }
@@ -5322,19 +5745,27 @@ impl PolarBear {
 }
 
 #[derive(Bundle)]
-struct PolarBearBundle {
-    parent: AbstractAnimalBundle,
+pub struct PolarBearMetadataBundle {
+    _marker: PolarBear,
+    parent: AbstractAnimalMetadataBundle,
     polar_bear_standing: PolarBearStanding,
 }
-impl Default for PolarBearBundle {
+impl Default for PolarBearMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: PolarBear,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -5377,12 +5808,12 @@ pub struct PotionItemStack(pub Slot);
 #[derive(Component)]
 pub struct Potion;
 impl Potion {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(PotionItemStack(d.value.into_item_stack()?));
             }
@@ -5393,14 +5824,17 @@ impl Potion {
 }
 
 #[derive(Bundle)]
-struct PotionBundle {
-    parent: AbstractEntityBundle,
+pub struct PotionMetadataBundle {
+    _marker: Potion,
+    parent: AbstractEntityMetadataBundle,
     potion_item_stack: PotionItemStack,
 }
-impl Default for PotionBundle {
+impl Default for PotionMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: Potion,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -5428,12 +5862,12 @@ pub struct PuffState(pub i32);
 #[derive(Component)]
 pub struct Pufferfish;
 impl Pufferfish {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(PufferfishFromBucket(d.value.into_boolean()?));
             }
@@ -5447,18 +5881,24 @@ impl Pufferfish {
 }
 
 #[derive(Bundle)]
-struct PufferfishBundle {
-    parent: AbstractCreatureBundle,
+pub struct PufferfishMetadataBundle {
+    _marker: Pufferfish,
+    parent: AbstractCreatureMetadataBundle,
     pufferfish_from_bucket: PufferfishFromBucket,
     puff_state: PuffState,
 }
-impl Default for PufferfishBundle {
+impl Default for PufferfishMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractCreatureBundle {
-                parent: AbstractInsentientBundle {
-                    parent: AbstractLivingBundle {
-                        parent: AbstractEntityBundle {
+            _marker: Pufferfish,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
                             on_fire: OnFire(false),
                             shift_key_down: ShiftKeyDown(false),
                             sprinting: Sprinting(false),
@@ -5499,12 +5939,12 @@ pub struct RabbitKind(pub i32);
 #[derive(Component)]
 pub struct Rabbit;
 impl Rabbit {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(RabbitKind(d.value.into_int()?));
             }
@@ -5515,19 +5955,27 @@ impl Rabbit {
 }
 
 #[derive(Bundle)]
-struct RabbitBundle {
-    parent: AbstractAnimalBundle,
+pub struct RabbitMetadataBundle {
+    _marker: Rabbit,
+    parent: AbstractAnimalMetadataBundle,
     rabbit_kind: RabbitKind,
 }
-impl Default for RabbitBundle {
+impl Default for RabbitMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Rabbit,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -5570,12 +6018,12 @@ pub struct RavagerIsCelebrating(pub bool);
 #[derive(Component)]
 pub struct Ravager;
 impl Ravager {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(RavagerIsCelebrating(d.value.into_boolean()?));
             }
@@ -5586,18 +6034,25 @@ impl Ravager {
 }
 
 #[derive(Bundle)]
-struct RavagerBundle {
-    parent: AbstractMonsterBundle,
+pub struct RavagerMetadataBundle {
+    _marker: Ravager,
+    parent: AbstractMonsterMetadataBundle,
     ravager_is_celebrating: RavagerIsCelebrating,
 }
-impl Default for RavagerBundle {
+impl Default for RavagerMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Ravager,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -5638,12 +6093,12 @@ pub struct SalmonFromBucket(pub bool);
 #[derive(Component)]
 pub struct Salmon;
 impl Salmon {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(SalmonFromBucket(d.value.into_boolean()?));
             }
@@ -5654,17 +6109,23 @@ impl Salmon {
 }
 
 #[derive(Bundle)]
-struct SalmonBundle {
-    parent: AbstractCreatureBundle,
+pub struct SalmonMetadataBundle {
+    _marker: Salmon,
+    parent: AbstractCreatureMetadataBundle,
     salmon_from_bucket: SalmonFromBucket,
 }
-impl Default for SalmonBundle {
+impl Default for SalmonMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractCreatureBundle {
-                parent: AbstractInsentientBundle {
-                    parent: AbstractLivingBundle {
-                        parent: AbstractEntityBundle {
+            _marker: Salmon,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
                             on_fire: OnFire(false),
                             shift_key_down: ShiftKeyDown(false),
                             sprinting: Sprinting(false),
@@ -5704,12 +6165,12 @@ pub struct Sheared(pub bool);
 #[derive(Component)]
 pub struct Sheep;
 impl Sheep {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Sheared(bitfield & 0x10 != 0));
@@ -5721,19 +6182,27 @@ impl Sheep {
 }
 
 #[derive(Bundle)]
-struct SheepBundle {
-    parent: AbstractAnimalBundle,
+pub struct SheepMetadataBundle {
+    _marker: Sheep,
+    parent: AbstractAnimalMetadataBundle,
     sheared: Sheared,
 }
-impl Default for SheepBundle {
+impl Default for SheepMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Sheep,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -5780,12 +6249,12 @@ pub struct ShulkerColor(pub u8);
 #[derive(Component)]
 pub struct Shulker;
 impl Shulker {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(AttachFace(d.value.into_direction()?));
             }
@@ -5802,19 +6271,25 @@ impl Shulker {
 }
 
 #[derive(Bundle)]
-struct ShulkerBundle {
-    parent: AbstractCreatureBundle,
+pub struct ShulkerMetadataBundle {
+    _marker: Shulker,
+    parent: AbstractCreatureMetadataBundle,
     attach_face: AttachFace,
     peek: Peek,
     shulker_color: ShulkerColor,
 }
-impl Default for ShulkerBundle {
+impl Default for ShulkerMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractCreatureBundle {
-                parent: AbstractInsentientBundle {
-                    parent: AbstractLivingBundle {
-                        parent: AbstractEntityBundle {
+            _marker: Shulker,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
                             on_fire: OnFire(false),
                             shift_key_down: ShiftKeyDown(false),
                             sprinting: Sprinting(false),
@@ -5854,12 +6329,12 @@ impl Default for ShulkerBundle {
 #[derive(Component)]
 pub struct ShulkerBullet;
 impl ShulkerBullet {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -5867,13 +6342,16 @@ impl ShulkerBullet {
 }
 
 #[derive(Bundle)]
-struct ShulkerBulletBundle {
-    parent: AbstractEntityBundle,
+pub struct ShulkerBulletMetadataBundle {
+    _marker: ShulkerBullet,
+    parent: AbstractEntityMetadataBundle,
 }
-impl Default for ShulkerBulletBundle {
+impl Default for ShulkerBulletMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: ShulkerBullet,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -5896,12 +6374,12 @@ impl Default for ShulkerBulletBundle {
 #[derive(Component)]
 pub struct Silverfish;
 impl Silverfish {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -5909,17 +6387,24 @@ impl Silverfish {
 }
 
 #[derive(Bundle)]
-struct SilverfishBundle {
-    parent: AbstractMonsterBundle,
+pub struct SilverfishMetadataBundle {
+    _marker: Silverfish,
+    parent: AbstractMonsterMetadataBundle,
 }
-impl Default for SilverfishBundle {
+impl Default for SilverfishMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Silverfish,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -5959,12 +6444,12 @@ pub struct StrayConversion(pub bool);
 #[derive(Component)]
 pub struct Skeleton;
 impl Skeleton {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(StrayConversion(d.value.into_boolean()?));
             }
@@ -5975,18 +6460,25 @@ impl Skeleton {
 }
 
 #[derive(Bundle)]
-struct SkeletonBundle {
-    parent: AbstractMonsterBundle,
+pub struct SkeletonMetadataBundle {
+    _marker: Skeleton,
+    parent: AbstractMonsterMetadataBundle,
     stray_conversion: StrayConversion,
 }
-impl Default for SkeletonBundle {
+impl Default for SkeletonMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Skeleton,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -6037,12 +6529,12 @@ pub struct SkeletonHorseOwnerUuid(pub Option<Uuid>);
 #[derive(Component)]
 pub struct SkeletonHorse;
 impl SkeletonHorse {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(SkeletonHorseTamed(bitfield & 0x2 != 0));
@@ -6061,8 +6553,9 @@ impl SkeletonHorse {
 }
 
 #[derive(Bundle)]
-struct SkeletonHorseBundle {
-    parent: AbstractAnimalBundle,
+pub struct SkeletonHorseMetadataBundle {
+    _marker: SkeletonHorse,
+    parent: AbstractAnimalMetadataBundle,
     skeleton_horse_tamed: SkeletonHorseTamed,
     skeleton_horse_eating: SkeletonHorseEating,
     skeleton_horse_standing: SkeletonHorseStanding,
@@ -6070,15 +6563,22 @@ struct SkeletonHorseBundle {
     skeleton_horse_saddled: SkeletonHorseSaddled,
     skeleton_horse_owner_uuid: SkeletonHorseOwnerUuid,
 }
-impl Default for SkeletonHorseBundle {
+impl Default for SkeletonHorseMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: SkeletonHorse,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -6124,12 +6624,12 @@ impl Default for SkeletonHorseBundle {
 #[derive(Component)]
 pub struct Slime;
 impl Slime {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractInsentient::update_metadata(entity, d)?,
+            0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(SlimeSize(d.value.into_int()?));
             }
@@ -6140,16 +6640,21 @@ impl Slime {
 }
 
 #[derive(Bundle)]
-struct SlimeBundle {
-    parent: AbstractInsentientBundle,
+pub struct SlimeMetadataBundle {
+    _marker: Slime,
+    parent: AbstractInsentientMetadataBundle,
     slime_size: SlimeSize,
 }
-impl Default for SlimeBundle {
+impl Default for SlimeMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractInsentientBundle {
-                parent: AbstractLivingBundle {
-                    parent: AbstractEntityBundle {
+            _marker: Slime,
+            parent: AbstractInsentientMetadataBundle {
+                _marker: AbstractInsentient,
+                parent: AbstractLivingMetadataBundle {
+                    _marker: AbstractLiving,
+                    parent: AbstractEntityMetadataBundle {
+                        _marker: AbstractEntity,
                         on_fire: OnFire(false),
                         shift_key_down: ShiftKeyDown(false),
                         sprinting: Sprinting(false),
@@ -6188,12 +6693,12 @@ pub struct SmallFireballItemStack(pub Slot);
 #[derive(Component)]
 pub struct SmallFireball;
 impl SmallFireball {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(SmallFireballItemStack(d.value.into_item_stack()?));
             }
@@ -6204,14 +6709,17 @@ impl SmallFireball {
 }
 
 #[derive(Bundle)]
-struct SmallFireballBundle {
-    parent: AbstractEntityBundle,
+pub struct SmallFireballMetadataBundle {
+    _marker: SmallFireball,
+    parent: AbstractEntityMetadataBundle,
     small_fireball_item_stack: SmallFireballItemStack,
 }
-impl Default for SmallFireballBundle {
+impl Default for SmallFireballMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: SmallFireball,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -6237,12 +6745,12 @@ pub struct HasPumpkin(pub bool);
 #[derive(Component)]
 pub struct SnowGolem;
 impl SnowGolem {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(HasPumpkin(bitfield & 0x10 != 0));
@@ -6254,17 +6762,23 @@ impl SnowGolem {
 }
 
 #[derive(Bundle)]
-struct SnowGolemBundle {
-    parent: AbstractCreatureBundle,
+pub struct SnowGolemMetadataBundle {
+    _marker: SnowGolem,
+    parent: AbstractCreatureMetadataBundle,
     has_pumpkin: HasPumpkin,
 }
-impl Default for SnowGolemBundle {
+impl Default for SnowGolemMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractCreatureBundle {
-                parent: AbstractInsentientBundle {
-                    parent: AbstractLivingBundle {
-                        parent: AbstractEntityBundle {
+            _marker: SnowGolem,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
                             on_fire: OnFire(false),
                             shift_key_down: ShiftKeyDown(false),
                             sprinting: Sprinting(false),
@@ -6304,12 +6818,12 @@ pub struct SnowballItemStack(pub Slot);
 #[derive(Component)]
 pub struct Snowball;
 impl Snowball {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(SnowballItemStack(d.value.into_item_stack()?));
             }
@@ -6320,14 +6834,17 @@ impl Snowball {
 }
 
 #[derive(Bundle)]
-struct SnowballBundle {
-    parent: AbstractEntityBundle,
+pub struct SnowballMetadataBundle {
+    _marker: Snowball,
+    parent: AbstractEntityMetadataBundle,
     snowball_item_stack: SnowballItemStack,
 }
-impl Default for SnowballBundle {
+impl Default for SnowballMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: Snowball,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -6351,12 +6868,12 @@ impl Default for SnowballBundle {
 #[derive(Component)]
 pub struct SpawnerMinecart;
 impl SpawnerMinecart {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::update_metadata(entity, d)?,
+            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -6364,14 +6881,18 @@ impl SpawnerMinecart {
 }
 
 #[derive(Bundle)]
-struct SpawnerMinecartBundle {
-    parent: AbstractMinecartBundle,
+pub struct SpawnerMinecartMetadataBundle {
+    _marker: SpawnerMinecart,
+    parent: AbstractMinecartMetadataBundle,
 }
-impl Default for SpawnerMinecartBundle {
+impl Default for SpawnerMinecartMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMinecartBundle {
-                parent: AbstractEntityBundle {
+            _marker: SpawnerMinecart,
+            parent: AbstractMinecartMetadataBundle {
+                _marker: AbstractMinecart,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
                     on_fire: OnFire(false),
                     shift_key_down: ShiftKeyDown(false),
                     sprinting: Sprinting(false),
@@ -6409,12 +6930,12 @@ pub struct SpectralArrowPierceLevel(pub u8);
 #[derive(Component)]
 pub struct SpectralArrow;
 impl SpectralArrow {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(SpectralArrowCritArrow(bitfield & 0x1 != 0));
@@ -6431,17 +6952,20 @@ impl SpectralArrow {
 }
 
 #[derive(Bundle)]
-struct SpectralArrowBundle {
-    parent: AbstractEntityBundle,
+pub struct SpectralArrowMetadataBundle {
+    _marker: SpectralArrow,
+    parent: AbstractEntityMetadataBundle,
     spectral_arrow_crit_arrow: SpectralArrowCritArrow,
     spectral_arrow_shot_from_crossbow: SpectralArrowShotFromCrossbow,
     spectral_arrow_no_physics: SpectralArrowNoPhysics,
     spectral_arrow_pierce_level: SpectralArrowPierceLevel,
 }
-impl Default for SpectralArrowBundle {
+impl Default for SpectralArrowMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: SpectralArrow,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -6468,12 +6992,12 @@ impl Default for SpectralArrowBundle {
 #[derive(Component)]
 pub struct Spider;
 impl Spider {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Climbing(bitfield & 0x1 != 0));
@@ -6485,18 +7009,25 @@ impl Spider {
 }
 
 #[derive(Bundle)]
-struct SpiderBundle {
-    parent: AbstractMonsterBundle,
+pub struct SpiderMetadataBundle {
+    _marker: Spider,
+    parent: AbstractMonsterMetadataBundle,
     climbing: Climbing,
 }
-impl Default for SpiderBundle {
+impl Default for SpiderMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Spider,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -6535,12 +7066,12 @@ impl Default for SpiderBundle {
 #[derive(Component)]
 pub struct Squid;
 impl Squid {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -6548,16 +7079,22 @@ impl Squid {
 }
 
 #[derive(Bundle)]
-struct SquidBundle {
-    parent: AbstractCreatureBundle,
+pub struct SquidMetadataBundle {
+    _marker: Squid,
+    parent: AbstractCreatureMetadataBundle,
 }
-impl Default for SquidBundle {
+impl Default for SquidMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractCreatureBundle {
-                parent: AbstractInsentientBundle {
-                    parent: AbstractLivingBundle {
-                        parent: AbstractEntityBundle {
+            _marker: Squid,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
                             on_fire: OnFire(false),
                             shift_key_down: ShiftKeyDown(false),
                             sprinting: Sprinting(false),
@@ -6594,12 +7131,12 @@ impl Default for SquidBundle {
 #[derive(Component)]
 pub struct Stray;
 impl Stray {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -6607,17 +7144,24 @@ impl Stray {
 }
 
 #[derive(Bundle)]
-struct StrayBundle {
-    parent: AbstractMonsterBundle,
+pub struct StrayMetadataBundle {
+    _marker: Stray,
+    parent: AbstractMonsterMetadataBundle,
 }
-impl Default for StrayBundle {
+impl Default for StrayMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Stray,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -6661,12 +7205,12 @@ pub struct StriderSaddle(pub bool);
 #[derive(Component)]
 pub struct Strider;
 impl Strider {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(StriderBoostTime(d.value.into_int()?));
             }
@@ -6683,21 +7227,29 @@ impl Strider {
 }
 
 #[derive(Bundle)]
-struct StriderBundle {
-    parent: AbstractAnimalBundle,
+pub struct StriderMetadataBundle {
+    _marker: Strider,
+    parent: AbstractAnimalMetadataBundle,
     strider_boost_time: StriderBoostTime,
     suffocating: Suffocating,
     strider_saddle: StriderSaddle,
 }
-impl Default for StriderBundle {
+impl Default for StriderMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Strider,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -6742,12 +7294,12 @@ pub struct TadpoleFromBucket(pub bool);
 #[derive(Component)]
 pub struct Tadpole;
 impl Tadpole {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(TadpoleFromBucket(d.value.into_boolean()?));
             }
@@ -6758,17 +7310,23 @@ impl Tadpole {
 }
 
 #[derive(Bundle)]
-struct TadpoleBundle {
-    parent: AbstractCreatureBundle,
+pub struct TadpoleMetadataBundle {
+    _marker: Tadpole,
+    parent: AbstractCreatureMetadataBundle,
     tadpole_from_bucket: TadpoleFromBucket,
 }
-impl Default for TadpoleBundle {
+impl Default for TadpoleMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractCreatureBundle {
-                parent: AbstractInsentientBundle {
-                    parent: AbstractLivingBundle {
-                        parent: AbstractEntityBundle {
+            _marker: Tadpole,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
                             on_fire: OnFire(false),
                             shift_key_down: ShiftKeyDown(false),
                             sprinting: Sprinting(false),
@@ -6808,12 +7366,12 @@ pub struct Fuse(pub i32);
 #[derive(Component)]
 pub struct Tnt;
 impl Tnt {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(Fuse(d.value.into_int()?));
             }
@@ -6824,14 +7382,17 @@ impl Tnt {
 }
 
 #[derive(Bundle)]
-struct TntBundle {
-    parent: AbstractEntityBundle,
+pub struct TntMetadataBundle {
+    _marker: Tnt,
+    parent: AbstractEntityMetadataBundle,
     fuse: Fuse,
 }
-impl Default for TntBundle {
+impl Default for TntMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: Tnt,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -6855,12 +7416,12 @@ impl Default for TntBundle {
 #[derive(Component)]
 pub struct TntMinecart;
 impl TntMinecart {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::update_metadata(entity, d)?,
+            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -6868,14 +7429,18 @@ impl TntMinecart {
 }
 
 #[derive(Bundle)]
-struct TntMinecartBundle {
-    parent: AbstractMinecartBundle,
+pub struct TntMinecartMetadataBundle {
+    _marker: TntMinecart,
+    parent: AbstractMinecartMetadataBundle,
 }
-impl Default for TntMinecartBundle {
+impl Default for TntMinecartMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMinecartBundle {
-                parent: AbstractEntityBundle {
+            _marker: TntMinecart,
+            parent: AbstractMinecartMetadataBundle {
+                _marker: AbstractMinecart,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
                     on_fire: OnFire(false),
                     shift_key_down: ShiftKeyDown(false),
                     sprinting: Sprinting(false),
@@ -6905,12 +7470,12 @@ impl Default for TntMinecartBundle {
 #[derive(Component)]
 pub struct TraderLlama;
 impl TraderLlama {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=22 => Llama::update_metadata(entity, d)?,
+            0..=22 => Llama::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -6918,19 +7483,28 @@ impl TraderLlama {
 }
 
 #[derive(Bundle)]
-struct TraderLlamaBundle {
-    parent: LlamaBundle,
+pub struct TraderLlamaMetadataBundle {
+    _marker: TraderLlama,
+    parent: LlamaMetadataBundle,
 }
-impl Default for TraderLlamaBundle {
+impl Default for TraderLlamaMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: LlamaBundle {
-                parent: AbstractAnimalBundle {
-                    parent: AbstractAgeableBundle {
-                        parent: AbstractCreatureBundle {
-                            parent: AbstractInsentientBundle {
-                                parent: AbstractLivingBundle {
-                                    parent: AbstractEntityBundle {
+            _marker: TraderLlama,
+            parent: LlamaMetadataBundle {
+                _marker: Llama,
+                parent: AbstractAnimalMetadataBundle {
+                    _marker: AbstractAnimal,
+                    parent: AbstractAgeableMetadataBundle {
+                        _marker: AbstractAgeable,
+                        parent: AbstractCreatureMetadataBundle {
+                            _marker: AbstractCreature,
+                            parent: AbstractInsentientMetadataBundle {
+                                _marker: AbstractInsentient,
+                                parent: AbstractLivingMetadataBundle {
+                                    _marker: AbstractLiving,
+                                    parent: AbstractEntityMetadataBundle {
+                                        _marker: AbstractEntity,
                                         on_fire: OnFire(false),
                                         shift_key_down: ShiftKeyDown(false),
                                         sprinting: Sprinting(false),
@@ -6993,12 +7567,12 @@ pub struct Foil(pub bool);
 #[derive(Component)]
 pub struct Trident;
 impl Trident {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(TridentCritArrow(bitfield & 0x1 != 0));
@@ -7021,8 +7595,9 @@ impl Trident {
 }
 
 #[derive(Bundle)]
-struct TridentBundle {
-    parent: AbstractEntityBundle,
+pub struct TridentMetadataBundle {
+    _marker: Trident,
+    parent: AbstractEntityMetadataBundle,
     trident_crit_arrow: TridentCritArrow,
     trident_shot_from_crossbow: TridentShotFromCrossbow,
     trident_no_physics: TridentNoPhysics,
@@ -7030,10 +7605,12 @@ struct TridentBundle {
     loyalty: Loyalty,
     foil: Foil,
 }
-impl Default for TridentBundle {
+impl Default for TridentMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: Trident,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -7066,12 +7643,12 @@ pub struct TropicalFishTypeVariant(pub i32);
 #[derive(Component)]
 pub struct TropicalFish;
 impl TropicalFish {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(TropicalFishFromBucket(d.value.into_boolean()?));
             }
@@ -7085,18 +7662,24 @@ impl TropicalFish {
 }
 
 #[derive(Bundle)]
-struct TropicalFishBundle {
-    parent: AbstractCreatureBundle,
+pub struct TropicalFishMetadataBundle {
+    _marker: TropicalFish,
+    parent: AbstractCreatureMetadataBundle,
     tropical_fish_from_bucket: TropicalFishFromBucket,
     tropical_fish_type_variant: TropicalFishTypeVariant,
 }
-impl Default for TropicalFishBundle {
+impl Default for TropicalFishMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractCreatureBundle {
-                parent: AbstractInsentientBundle {
-                    parent: AbstractLivingBundle {
-                        parent: AbstractEntityBundle {
+            _marker: TropicalFish,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
                             on_fire: OnFire(false),
                             shift_key_down: ShiftKeyDown(false),
                             sprinting: Sprinting(false),
@@ -7147,12 +7730,12 @@ pub struct Travelling(pub bool);
 #[derive(Component)]
 pub struct Turtle;
 impl Turtle {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(HomePos(d.value.into_block_pos()?));
             }
@@ -7178,8 +7761,9 @@ impl Turtle {
 }
 
 #[derive(Bundle)]
-struct TurtleBundle {
-    parent: AbstractAnimalBundle,
+pub struct TurtleMetadataBundle {
+    _marker: Turtle,
+    parent: AbstractAnimalMetadataBundle,
     home_pos: HomePos,
     has_egg: HasEgg,
     laying_egg: LayingEgg,
@@ -7187,15 +7771,22 @@ struct TurtleBundle {
     going_home: GoingHome,
     travelling: Travelling,
 }
-impl Default for TurtleBundle {
+impl Default for TurtleMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: Turtle,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -7243,12 +7834,12 @@ pub struct VexFlags(pub u8);
 #[derive(Component)]
 pub struct Vex;
 impl Vex {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(VexFlags(d.value.into_byte()?));
             }
@@ -7259,18 +7850,25 @@ impl Vex {
 }
 
 #[derive(Bundle)]
-struct VexBundle {
-    parent: AbstractMonsterBundle,
+pub struct VexMetadataBundle {
+    _marker: Vex,
+    parent: AbstractMonsterMetadataBundle,
     vex_flags: VexFlags,
 }
-impl Default for VexBundle {
+impl Default for VexMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Vex,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -7313,12 +7911,12 @@ pub struct VillagerVillagerData(pub VillagerData);
 #[derive(Component)]
 pub struct Villager;
 impl Villager {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAgeable::update_metadata(entity, d)?,
+            0..=16 => AbstractAgeable::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(VillagerUnhappyCounter(d.value.into_int()?));
             }
@@ -7332,19 +7930,26 @@ impl Villager {
 }
 
 #[derive(Bundle)]
-struct VillagerBundle {
-    parent: AbstractAgeableBundle,
+pub struct VillagerMetadataBundle {
+    _marker: Villager,
+    parent: AbstractAgeableMetadataBundle,
     villager_unhappy_counter: VillagerUnhappyCounter,
     villager_villager_data: VillagerVillagerData,
 }
-impl Default for VillagerBundle {
+impl Default for VillagerMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAgeableBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Villager,
+            parent: AbstractAgeableMetadataBundle {
+                _marker: AbstractAgeable,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -7391,12 +7996,12 @@ pub struct VindicatorIsCelebrating(pub bool);
 #[derive(Component)]
 pub struct Vindicator;
 impl Vindicator {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(VindicatorIsCelebrating(d.value.into_boolean()?));
             }
@@ -7407,18 +8012,25 @@ impl Vindicator {
 }
 
 #[derive(Bundle)]
-struct VindicatorBundle {
-    parent: AbstractMonsterBundle,
+pub struct VindicatorMetadataBundle {
+    _marker: Vindicator,
+    parent: AbstractMonsterMetadataBundle,
     vindicator_is_celebrating: VindicatorIsCelebrating,
 }
-impl Default for VindicatorBundle {
+impl Default for VindicatorMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Vindicator,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -7459,12 +8071,12 @@ pub struct WanderingTraderUnhappyCounter(pub i32);
 #[derive(Component)]
 pub struct WanderingTrader;
 impl WanderingTrader {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAgeable::update_metadata(entity, d)?,
+            0..=16 => AbstractAgeable::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(WanderingTraderUnhappyCounter(d.value.into_int()?));
             }
@@ -7475,18 +8087,25 @@ impl WanderingTrader {
 }
 
 #[derive(Bundle)]
-struct WanderingTraderBundle {
-    parent: AbstractAgeableBundle,
+pub struct WanderingTraderMetadataBundle {
+    _marker: WanderingTrader,
+    parent: AbstractAgeableMetadataBundle,
     wandering_trader_unhappy_counter: WanderingTraderUnhappyCounter,
 }
-impl Default for WanderingTraderBundle {
+impl Default for WanderingTraderMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAgeableBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: WanderingTrader,
+            parent: AbstractAgeableMetadataBundle {
+                _marker: AbstractAgeable,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -7528,12 +8147,12 @@ pub struct ClientAngerLevel(pub i32);
 #[derive(Component)]
 pub struct Warden;
 impl Warden {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(ClientAngerLevel(d.value.into_int()?));
             }
@@ -7544,18 +8163,25 @@ impl Warden {
 }
 
 #[derive(Bundle)]
-struct WardenBundle {
-    parent: AbstractMonsterBundle,
+pub struct WardenMetadataBundle {
+    _marker: Warden,
+    parent: AbstractMonsterMetadataBundle,
     client_anger_level: ClientAngerLevel,
 }
-impl Default for WardenBundle {
+impl Default for WardenMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Warden,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -7598,12 +8224,12 @@ pub struct WitchUsingItem(pub bool);
 #[derive(Component)]
 pub struct Witch;
 impl Witch {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(WitchIsCelebrating(d.value.into_boolean()?));
             }
@@ -7617,19 +8243,26 @@ impl Witch {
 }
 
 #[derive(Bundle)]
-struct WitchBundle {
-    parent: AbstractMonsterBundle,
+pub struct WitchMetadataBundle {
+    _marker: Witch,
+    parent: AbstractMonsterMetadataBundle,
     witch_is_celebrating: WitchIsCelebrating,
     witch_using_item: WitchUsingItem,
 }
-impl Default for WitchBundle {
+impl Default for WitchMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Witch,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -7677,12 +8310,12 @@ pub struct Inv(pub i32);
 #[derive(Component)]
 pub struct Wither;
 impl Wither {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(TargetA(d.value.into_int()?));
             }
@@ -7702,21 +8335,28 @@ impl Wither {
 }
 
 #[derive(Bundle)]
-struct WitherBundle {
-    parent: AbstractMonsterBundle,
+pub struct WitherMetadataBundle {
+    _marker: Wither,
+    parent: AbstractMonsterMetadataBundle,
     target_a: TargetA,
     target_b: TargetB,
     target_c: TargetC,
     inv: Inv,
 }
-impl Default for WitherBundle {
+impl Default for WitherMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Wither,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -7758,12 +8398,12 @@ impl Default for WitherBundle {
 #[derive(Component)]
 pub struct WitherSkeleton;
 impl WitherSkeleton {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -7771,17 +8411,24 @@ impl WitherSkeleton {
 }
 
 #[derive(Bundle)]
-struct WitherSkeletonBundle {
-    parent: AbstractMonsterBundle,
+pub struct WitherSkeletonMetadataBundle {
+    _marker: WitherSkeleton,
+    parent: AbstractMonsterMetadataBundle,
 }
-impl Default for WitherSkeletonBundle {
+impl Default for WitherSkeletonMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: WitherSkeleton,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -7821,12 +8468,12 @@ pub struct Dangerous(pub bool);
 #[derive(Component)]
 pub struct WitherSkull;
 impl WitherSkull {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(Dangerous(d.value.into_boolean()?));
             }
@@ -7837,14 +8484,17 @@ impl WitherSkull {
 }
 
 #[derive(Bundle)]
-struct WitherSkullBundle {
-    parent: AbstractEntityBundle,
+pub struct WitherSkullMetadataBundle {
+    _marker: WitherSkull,
+    parent: AbstractEntityMetadataBundle,
     dangerous: Dangerous,
 }
-impl Default for WitherSkullBundle {
+impl Default for WitherSkullMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: WitherSkull,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -7874,12 +8524,12 @@ pub struct WolfRemainingAngerTime(pub i32);
 #[derive(Component)]
 pub struct Wolf;
 impl Wolf {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => AbstractTameable::update_metadata(entity, d)?,
+            0..=18 => AbstractTameable::apply_metadata(entity, d)?,
             19 => {
                 entity.insert(WolfInterested(d.value.into_boolean()?));
             }
@@ -7896,22 +8546,31 @@ impl Wolf {
 }
 
 #[derive(Bundle)]
-struct WolfBundle {
-    parent: AbstractTameableBundle,
+pub struct WolfMetadataBundle {
+    _marker: Wolf,
+    parent: AbstractTameableMetadataBundle,
     wolf_interested: WolfInterested,
     wolf_collar_color: WolfCollarColor,
     wolf_remaining_anger_time: WolfRemainingAngerTime,
 }
-impl Default for WolfBundle {
+impl Default for WolfMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractTameableBundle {
-                parent: AbstractAnimalBundle {
-                    parent: AbstractAgeableBundle {
-                        parent: AbstractCreatureBundle {
-                            parent: AbstractInsentientBundle {
-                                parent: AbstractLivingBundle {
-                                    parent: AbstractEntityBundle {
+            _marker: Wolf,
+            parent: AbstractTameableMetadataBundle {
+                _marker: AbstractTameable,
+                parent: AbstractAnimalMetadataBundle {
+                    _marker: AbstractAnimal,
+                    parent: AbstractAgeableMetadataBundle {
+                        _marker: AbstractAgeable,
+                        parent: AbstractCreatureMetadataBundle {
+                            _marker: AbstractCreature,
+                            parent: AbstractInsentientMetadataBundle {
+                                _marker: AbstractInsentient,
+                                parent: AbstractLivingMetadataBundle {
+                                    _marker: AbstractLiving,
+                                    parent: AbstractEntityMetadataBundle {
+                                        _marker: AbstractEntity,
                                         on_fire: OnFire(false),
                                         shift_key_down: ShiftKeyDown(false),
                                         sprinting: Sprinting(false),
@@ -7960,12 +8619,12 @@ pub struct ZoglinBaby(pub bool);
 #[derive(Component)]
 pub struct Zoglin;
 impl Zoglin {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(ZoglinBaby(d.value.into_boolean()?));
             }
@@ -7976,18 +8635,25 @@ impl Zoglin {
 }
 
 #[derive(Bundle)]
-struct ZoglinBundle {
-    parent: AbstractMonsterBundle,
+pub struct ZoglinMetadataBundle {
+    _marker: Zoglin,
+    parent: AbstractMonsterMetadataBundle,
     zoglin_baby: ZoglinBaby,
 }
-impl Default for ZoglinBundle {
+impl Default for ZoglinMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Zoglin,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -8026,12 +8692,12 @@ impl Default for ZoglinBundle {
 #[derive(Component)]
 pub struct Zombie;
 impl Zombie {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractMonster::update_metadata(entity, d)?,
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(ZombieBaby(d.value.into_boolean()?));
             }
@@ -8048,20 +8714,27 @@ impl Zombie {
 }
 
 #[derive(Bundle)]
-struct ZombieBundle {
-    parent: AbstractMonsterBundle,
+pub struct ZombieMetadataBundle {
+    _marker: Zombie,
+    parent: AbstractMonsterMetadataBundle,
     zombie_baby: ZombieBaby,
     special_type: SpecialType,
     drowned_conversion: DrownedConversion,
 }
-impl Default for ZombieBundle {
+impl Default for ZombieMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractMonsterBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: Zombie,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -8114,12 +8787,12 @@ pub struct ZombieHorseOwnerUuid(pub Option<Uuid>);
 #[derive(Component)]
 pub struct ZombieHorse;
 impl ZombieHorse {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(ZombieHorseTamed(bitfield & 0x2 != 0));
@@ -8138,8 +8811,9 @@ impl ZombieHorse {
 }
 
 #[derive(Bundle)]
-struct ZombieHorseBundle {
-    parent: AbstractAnimalBundle,
+pub struct ZombieHorseMetadataBundle {
+    _marker: ZombieHorse,
+    parent: AbstractAnimalMetadataBundle,
     zombie_horse_tamed: ZombieHorseTamed,
     zombie_horse_eating: ZombieHorseEating,
     zombie_horse_standing: ZombieHorseStanding,
@@ -8147,15 +8821,22 @@ struct ZombieHorseBundle {
     zombie_horse_saddled: ZombieHorseSaddled,
     zombie_horse_owner_uuid: ZombieHorseOwnerUuid,
 }
-impl Default for ZombieHorseBundle {
+impl Default for ZombieHorseMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: ZombieHorse,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -8205,12 +8886,12 @@ pub struct ZombieVillagerVillagerData(pub VillagerData);
 #[derive(Component)]
 pub struct ZombieVillager;
 impl ZombieVillager {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => Zombie::update_metadata(entity, d)?,
+            0..=18 => Zombie::apply_metadata(entity, d)?,
             19 => {
                 entity.insert(Converting(d.value.into_boolean()?));
             }
@@ -8224,20 +8905,28 @@ impl ZombieVillager {
 }
 
 #[derive(Bundle)]
-struct ZombieVillagerBundle {
-    parent: ZombieBundle,
+pub struct ZombieVillagerMetadataBundle {
+    _marker: ZombieVillager,
+    parent: ZombieMetadataBundle,
     converting: Converting,
     zombie_villager_villager_data: ZombieVillagerVillagerData,
 }
-impl Default for ZombieVillagerBundle {
+impl Default for ZombieVillagerMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: ZombieBundle {
-                parent: AbstractMonsterBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: ZombieVillager,
+            parent: ZombieMetadataBundle {
+                _marker: Zombie,
+                parent: AbstractMonsterMetadataBundle {
+                    _marker: AbstractMonster,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -8285,12 +8974,12 @@ impl Default for ZombieVillagerBundle {
 #[derive(Component)]
 pub struct ZombifiedPiglin;
 impl ZombifiedPiglin {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => Zombie::update_metadata(entity, d)?,
+            0..=18 => Zombie::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -8298,18 +8987,26 @@ impl ZombifiedPiglin {
 }
 
 #[derive(Bundle)]
-struct ZombifiedPiglinBundle {
-    parent: ZombieBundle,
+pub struct ZombifiedPiglinMetadataBundle {
+    _marker: ZombifiedPiglin,
+    parent: ZombieMetadataBundle,
 }
-impl Default for ZombifiedPiglinBundle {
+impl Default for ZombifiedPiglinMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: ZombieBundle {
-                parent: AbstractMonsterBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: ZombifiedPiglin,
+            parent: ZombieMetadataBundle {
+                _marker: Zombie,
+                parent: AbstractMonsterMetadataBundle {
+                    _marker: AbstractMonster,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -8351,12 +9048,12 @@ impl Default for ZombifiedPiglinBundle {
 #[derive(Component)]
 pub struct AbstractAgeable;
 impl AbstractAgeable {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
                 entity.insert(AbstractAgeableBaby(d.value.into_boolean()?));
             }
@@ -8367,17 +9064,23 @@ impl AbstractAgeable {
 }
 
 #[derive(Bundle)]
-struct AbstractAgeableBundle {
-    parent: AbstractCreatureBundle,
+pub struct AbstractAgeableMetadataBundle {
+    _marker: AbstractAgeable,
+    parent: AbstractCreatureMetadataBundle,
     abstract_ageable_baby: AbstractAgeableBaby,
 }
-impl Default for AbstractAgeableBundle {
+impl Default for AbstractAgeableMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractCreatureBundle {
-                parent: AbstractInsentientBundle {
-                    parent: AbstractLivingBundle {
-                        parent: AbstractEntityBundle {
+            _marker: AbstractAgeable,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
                             on_fire: OnFire(false),
                             shift_key_down: ShiftKeyDown(false),
                             sprinting: Sprinting(false),
@@ -8415,12 +9118,12 @@ impl Default for AbstractAgeableBundle {
 #[derive(Component)]
 pub struct AbstractAnimal;
 impl AbstractAnimal {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAgeable::update_metadata(entity, d)?,
+            0..=16 => AbstractAgeable::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -8428,17 +9131,24 @@ impl AbstractAnimal {
 }
 
 #[derive(Bundle)]
-struct AbstractAnimalBundle {
-    parent: AbstractAgeableBundle,
+pub struct AbstractAnimalMetadataBundle {
+    _marker: AbstractAnimal,
+    parent: AbstractAgeableMetadataBundle,
 }
-impl Default for AbstractAnimalBundle {
+impl Default for AbstractAnimalMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAgeableBundle {
-                parent: AbstractCreatureBundle {
-                    parent: AbstractInsentientBundle {
-                        parent: AbstractLivingBundle {
-                            parent: AbstractEntityBundle {
+            _marker: AbstractAnimal,
+            parent: AbstractAgeableMetadataBundle {
+                _marker: AbstractAgeable,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
                                 on_fire: OnFire(false),
                                 shift_key_down: ShiftKeyDown(false),
                                 sprinting: Sprinting(false),
@@ -8477,12 +9187,12 @@ impl Default for AbstractAnimalBundle {
 #[derive(Component)]
 pub struct AbstractCreature;
 impl AbstractCreature {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractInsentient::update_metadata(entity, d)?,
+            0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -8490,15 +9200,20 @@ impl AbstractCreature {
 }
 
 #[derive(Bundle)]
-struct AbstractCreatureBundle {
-    parent: AbstractInsentientBundle,
+pub struct AbstractCreatureMetadataBundle {
+    _marker: AbstractCreature,
+    parent: AbstractInsentientMetadataBundle,
 }
-impl Default for AbstractCreatureBundle {
+impl Default for AbstractCreatureMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractInsentientBundle {
-                parent: AbstractLivingBundle {
-                    parent: AbstractEntityBundle {
+            _marker: AbstractCreature,
+            parent: AbstractInsentientMetadataBundle {
+                _marker: AbstractInsentient,
+                parent: AbstractLivingMetadataBundle {
+                    _marker: AbstractLiving,
+                    parent: AbstractEntityMetadataBundle {
+                        _marker: AbstractEntity,
                         on_fire: OnFire(false),
                         shift_key_down: ShiftKeyDown(false),
                         sprinting: Sprinting(false),
@@ -8534,7 +9249,7 @@ impl Default for AbstractCreatureBundle {
 #[derive(Component)]
 pub struct AbstractEntity;
 impl AbstractEntity {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8577,7 +9292,8 @@ impl AbstractEntity {
 }
 
 #[derive(Bundle)]
-struct AbstractEntityBundle {
+pub struct AbstractEntityMetadataBundle {
+    _marker: AbstractEntity,
     on_fire: OnFire,
     shift_key_down: ShiftKeyDown,
     sprinting: Sprinting,
@@ -8593,9 +9309,10 @@ struct AbstractEntityBundle {
     pose: Pose,
     ticks_frozen: TicksFrozen,
 }
-impl Default for AbstractEntityBundle {
+impl Default for AbstractEntityMetadataBundle {
     fn default() -> Self {
         Self {
+            _marker: AbstractEntity,
             on_fire: OnFire(false),
             shift_key_down: ShiftKeyDown(false),
             sprinting: Sprinting(false),
@@ -8617,12 +9334,12 @@ impl Default for AbstractEntityBundle {
 #[derive(Component)]
 pub struct AbstractInsentient;
 impl AbstractInsentient {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=14 => AbstractLiving::update_metadata(entity, d)?,
+            0..=14 => AbstractLiving::apply_metadata(entity, d)?,
             15 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(NoAi(bitfield & 0x1 != 0));
@@ -8636,17 +9353,21 @@ impl AbstractInsentient {
 }
 
 #[derive(Bundle)]
-struct AbstractInsentientBundle {
-    parent: AbstractLivingBundle,
+pub struct AbstractInsentientMetadataBundle {
+    _marker: AbstractInsentient,
+    parent: AbstractLivingMetadataBundle,
     no_ai: NoAi,
     left_handed: LeftHanded,
     aggressive: Aggressive,
 }
-impl Default for AbstractInsentientBundle {
+impl Default for AbstractInsentientMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractLivingBundle {
-                parent: AbstractEntityBundle {
+            _marker: AbstractInsentient,
+            parent: AbstractLivingMetadataBundle {
+                _marker: AbstractLiving,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
                     on_fire: OnFire(false),
                     shift_key_down: ShiftKeyDown(false),
                     sprinting: Sprinting(false),
@@ -8681,12 +9402,12 @@ impl Default for AbstractInsentientBundle {
 #[derive(Component)]
 pub struct AbstractLiving;
 impl AbstractLiving {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(AutoSpinAttack(bitfield & 0x4 != 0));
@@ -8717,8 +9438,9 @@ impl AbstractLiving {
 }
 
 #[derive(Bundle)]
-struct AbstractLivingBundle {
-    parent: AbstractEntityBundle,
+pub struct AbstractLivingMetadataBundle {
+    _marker: AbstractLiving,
+    parent: AbstractEntityMetadataBundle,
     auto_spin_attack: AutoSpinAttack,
     abstract_living_using_item: AbstractLivingUsingItem,
     health: Health,
@@ -8728,10 +9450,12 @@ struct AbstractLivingBundle {
     stinger_count: StingerCount,
     sleeping_pos: SleepingPos,
 }
-impl Default for AbstractLivingBundle {
+impl Default for AbstractLivingMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: AbstractLiving,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -8762,12 +9486,12 @@ impl Default for AbstractLivingBundle {
 #[derive(Component)]
 pub struct AbstractMinecart;
 impl AbstractMinecart {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=7 => AbstractEntity::update_metadata(entity, d)?,
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(AbstractMinecartHurt(d.value.into_int()?));
             }
@@ -8793,8 +9517,9 @@ impl AbstractMinecart {
 }
 
 #[derive(Bundle)]
-struct AbstractMinecartBundle {
-    parent: AbstractEntityBundle,
+pub struct AbstractMinecartMetadataBundle {
+    _marker: AbstractMinecart,
+    parent: AbstractEntityMetadataBundle,
     abstract_minecart_hurt: AbstractMinecartHurt,
     abstract_minecart_hurtdir: AbstractMinecartHurtdir,
     abstract_minecart_damage: AbstractMinecartDamage,
@@ -8802,10 +9527,12 @@ struct AbstractMinecartBundle {
     display_offset: DisplayOffset,
     custom_display: CustomDisplay,
 }
-impl Default for AbstractMinecartBundle {
+impl Default for AbstractMinecartMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractEntityBundle {
+            _marker: AbstractMinecart,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
                 on_fire: OnFire(false),
                 shift_key_down: ShiftKeyDown(false),
                 sprinting: Sprinting(false),
@@ -8834,12 +9561,12 @@ impl Default for AbstractMinecartBundle {
 #[derive(Component)]
 pub struct AbstractMonster;
 impl AbstractMonster {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=15 => AbstractCreature::update_metadata(entity, d)?,
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -8847,16 +9574,22 @@ impl AbstractMonster {
 }
 
 #[derive(Bundle)]
-struct AbstractMonsterBundle {
-    parent: AbstractCreatureBundle,
+pub struct AbstractMonsterMetadataBundle {
+    _marker: AbstractMonster,
+    parent: AbstractCreatureMetadataBundle,
 }
-impl Default for AbstractMonsterBundle {
+impl Default for AbstractMonsterMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractCreatureBundle {
-                parent: AbstractInsentientBundle {
-                    parent: AbstractLivingBundle {
-                        parent: AbstractEntityBundle {
+            _marker: AbstractMonster,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
                             on_fire: OnFire(false),
                             shift_key_down: ShiftKeyDown(false),
                             sprinting: Sprinting(false),
@@ -8893,12 +9626,12 @@ impl Default for AbstractMonsterBundle {
 #[derive(Component)]
 pub struct AbstractTameable;
 impl AbstractTameable {
-    pub fn update_metadata(
+    pub fn apply_metadata(
         entity: &mut bevy_ecs::world::EntityMut,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::update_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Tame(bitfield & 0x4 != 0));
@@ -8914,21 +9647,29 @@ impl AbstractTameable {
 }
 
 #[derive(Bundle)]
-struct AbstractTameableBundle {
-    parent: AbstractAnimalBundle,
+pub struct AbstractTameableMetadataBundle {
+    _marker: AbstractTameable,
+    parent: AbstractAnimalMetadataBundle,
     tame: Tame,
     in_sitting_pose: InSittingPose,
     owneruuid: Owneruuid,
 }
-impl Default for AbstractTameableBundle {
+impl Default for AbstractTameableMetadataBundle {
     fn default() -> Self {
         Self {
-            parent: AbstractAnimalBundle {
-                parent: AbstractAgeableBundle {
-                    parent: AbstractCreatureBundle {
-                        parent: AbstractInsentientBundle {
-                            parent: AbstractLivingBundle {
-                                parent: AbstractEntityBundle {
+            _marker: AbstractTameable,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
                                     on_fire: OnFire(false),
                                     shift_key_down: ShiftKeyDown(false),
                                     sprinting: Sprinting(false),
@@ -8968,723 +9709,972 @@ impl Default for AbstractTameableBundle {
     }
 }
 
-pub fn update_metadatas(
-    mut entity: bevy_ecs::world::EntityMut,
+pub fn apply_metadata(
+    entity: &mut bevy_ecs::world::EntityMut,
     items: Vec<EntityDataItem>,
 ) -> Result<(), UpdateMetadataError> {
-    if entity.contains::<Allay>() {
-        for d in items {
-            Allay::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<AreaEffectCloud>() {
-        for d in items {
-            AreaEffectCloud::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<ArmorStand>() {
-        for d in items {
-            ArmorStand::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Arrow>() {
-        for d in items {
-            Arrow::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Axolotl>() {
-        for d in items {
-            Axolotl::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Bat>() {
-        for d in items {
-            Bat::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Bee>() {
-        for d in items {
-            Bee::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Blaze>() {
-        for d in items {
-            Blaze::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Boat>() {
-        for d in items {
-            Boat::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Camel>() {
-        for d in items {
-            Camel::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Cat>() {
-        for d in items {
-            Cat::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<CaveSpider>() {
-        for d in items {
-            CaveSpider::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<ChestBoat>() {
-        for d in items {
-            ChestBoat::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<ChestMinecart>() {
-        for d in items {
-            ChestMinecart::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Chicken>() {
-        for d in items {
-            Chicken::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Cod>() {
-        for d in items {
-            Cod::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<CommandBlockMinecart>() {
-        for d in items {
-            CommandBlockMinecart::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Cow>() {
-        for d in items {
-            Cow::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Creeper>() {
-        for d in items {
-            Creeper::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Dolphin>() {
-        for d in items {
-            Dolphin::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Donkey>() {
-        for d in items {
-            Donkey::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<DragonFireball>() {
-        for d in items {
-            DragonFireball::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Drowned>() {
-        for d in items {
-            Drowned::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Egg>() {
-        for d in items {
-            Egg::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<ElderGuardian>() {
-        for d in items {
-            ElderGuardian::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<EndCrystal>() {
-        for d in items {
-            EndCrystal::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<EnderDragon>() {
-        for d in items {
-            EnderDragon::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<EnderPearl>() {
-        for d in items {
-            EnderPearl::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Enderman>() {
-        for d in items {
-            Enderman::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Endermite>() {
-        for d in items {
-            Endermite::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Evoker>() {
-        for d in items {
-            Evoker::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<EvokerFangs>() {
-        for d in items {
-            EvokerFangs::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<ExperienceBottle>() {
-        for d in items {
-            ExperienceBottle::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<ExperienceOrb>() {
-        for d in items {
-            ExperienceOrb::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<EyeOfEnder>() {
-        for d in items {
-            EyeOfEnder::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<FallingBlock>() {
-        for d in items {
-            FallingBlock::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Fireball>() {
-        for d in items {
-            Fireball::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<FireworkRocket>() {
-        for d in items {
-            FireworkRocket::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<FishingBobber>() {
-        for d in items {
-            FishingBobber::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Fox>() {
-        for d in items {
-            Fox::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Frog>() {
-        for d in items {
-            Frog::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<FurnaceMinecart>() {
-        for d in items {
-            FurnaceMinecart::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Ghast>() {
-        for d in items {
-            Ghast::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Giant>() {
-        for d in items {
-            Giant::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<GlowItemFrame>() {
-        for d in items {
-            GlowItemFrame::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<GlowSquid>() {
-        for d in items {
-            GlowSquid::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Goat>() {
-        for d in items {
-            Goat::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Guardian>() {
-        for d in items {
-            Guardian::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Hoglin>() {
-        for d in items {
-            Hoglin::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<HopperMinecart>() {
-        for d in items {
-            HopperMinecart::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Horse>() {
-        for d in items {
-            Horse::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Husk>() {
-        for d in items {
-            Husk::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Illusioner>() {
-        for d in items {
-            Illusioner::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<IronGolem>() {
-        for d in items {
-            IronGolem::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Item>() {
-        for d in items {
-            Item::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<ItemFrame>() {
-        for d in items {
-            ItemFrame::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<LeashKnot>() {
-        for d in items {
-            LeashKnot::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<LightningBolt>() {
-        for d in items {
-            LightningBolt::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Llama>() {
-        for d in items {
-            Llama::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<LlamaSpit>() {
-        for d in items {
-            LlamaSpit::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<MagmaCube>() {
-        for d in items {
-            MagmaCube::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Marker>() {
-        for d in items {
-            Marker::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Minecart>() {
-        for d in items {
-            Minecart::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Mooshroom>() {
-        for d in items {
-            Mooshroom::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Mule>() {
-        for d in items {
-            Mule::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Ocelot>() {
-        for d in items {
-            Ocelot::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Painting>() {
-        for d in items {
-            Painting::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Panda>() {
-        for d in items {
-            Panda::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Parrot>() {
-        for d in items {
-            Parrot::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Phantom>() {
-        for d in items {
-            Phantom::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Pig>() {
-        for d in items {
-            Pig::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Piglin>() {
-        for d in items {
-            Piglin::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<PiglinBrute>() {
-        for d in items {
-            PiglinBrute::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Pillager>() {
-        for d in items {
-            Pillager::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Player>() {
-        for d in items {
-            Player::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<PolarBear>() {
-        for d in items {
-            PolarBear::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Potion>() {
-        for d in items {
-            Potion::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Pufferfish>() {
-        for d in items {
-            Pufferfish::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Rabbit>() {
-        for d in items {
-            Rabbit::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Ravager>() {
-        for d in items {
-            Ravager::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Salmon>() {
-        for d in items {
-            Salmon::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Sheep>() {
-        for d in items {
-            Sheep::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Shulker>() {
-        for d in items {
-            Shulker::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<ShulkerBullet>() {
-        for d in items {
-            ShulkerBullet::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Silverfish>() {
-        for d in items {
-            Silverfish::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Skeleton>() {
-        for d in items {
-            Skeleton::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<SkeletonHorse>() {
-        for d in items {
-            SkeletonHorse::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Slime>() {
-        for d in items {
-            Slime::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<SmallFireball>() {
-        for d in items {
-            SmallFireball::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<SnowGolem>() {
-        for d in items {
-            SnowGolem::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Snowball>() {
-        for d in items {
-            Snowball::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<SpawnerMinecart>() {
-        for d in items {
-            SpawnerMinecart::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<SpectralArrow>() {
-        for d in items {
-            SpectralArrow::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Spider>() {
-        for d in items {
-            Spider::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Squid>() {
-        for d in items {
-            Squid::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Stray>() {
-        for d in items {
-            Stray::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Strider>() {
-        for d in items {
-            Strider::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Tadpole>() {
-        for d in items {
-            Tadpole::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Tnt>() {
-        for d in items {
-            Tnt::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<TntMinecart>() {
-        for d in items {
-            TntMinecart::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<TraderLlama>() {
-        for d in items {
-            TraderLlama::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Trident>() {
-        for d in items {
-            Trident::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<TropicalFish>() {
-        for d in items {
-            TropicalFish::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Turtle>() {
-        for d in items {
-            Turtle::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Vex>() {
-        for d in items {
-            Vex::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Villager>() {
-        for d in items {
-            Villager::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Vindicator>() {
-        for d in items {
-            Vindicator::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<WanderingTrader>() {
-        for d in items {
-            WanderingTrader::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Warden>() {
-        for d in items {
-            Warden::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Witch>() {
-        for d in items {
-            Witch::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Wither>() {
-        for d in items {
-            Wither::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<WitherSkeleton>() {
-        for d in items {
-            WitherSkeleton::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<WitherSkull>() {
-        for d in items {
-            WitherSkull::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Wolf>() {
-        for d in items {
-            Wolf::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Zoglin>() {
-        for d in items {
-            Zoglin::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<Zombie>() {
-        for d in items {
-            Zombie::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<ZombieHorse>() {
-        for d in items {
-            ZombieHorse::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<ZombieVillager>() {
-        for d in items {
-            ZombieVillager::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
-    }
-    if entity.contains::<ZombifiedPiglin>() {
-        for d in items {
-            ZombifiedPiglin::update_metadata(&mut entity, d)?;
-        }
-        return Ok(());
+    let entity_kind = entity.get::<super::EntityKind>().unwrap();
+    match **entity_kind {
+        azalea_registry::EntityKind::Allay => {
+            for d in items {
+                Allay::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::AreaEffectCloud => {
+            for d in items {
+                AreaEffectCloud::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ArmorStand => {
+            for d in items {
+                ArmorStand::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Arrow => {
+            for d in items {
+                Arrow::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Axolotl => {
+            for d in items {
+                Axolotl::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Bat => {
+            for d in items {
+                Bat::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Bee => {
+            for d in items {
+                Bee::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Blaze => {
+            for d in items {
+                Blaze::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Boat => {
+            for d in items {
+                Boat::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Camel => {
+            for d in items {
+                Camel::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Cat => {
+            for d in items {
+                Cat::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::CaveSpider => {
+            for d in items {
+                CaveSpider::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ChestBoat => {
+            for d in items {
+                ChestBoat::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ChestMinecart => {
+            for d in items {
+                ChestMinecart::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Chicken => {
+            for d in items {
+                Chicken::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Cod => {
+            for d in items {
+                Cod::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::CommandBlockMinecart => {
+            for d in items {
+                CommandBlockMinecart::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Cow => {
+            for d in items {
+                Cow::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Creeper => {
+            for d in items {
+                Creeper::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Dolphin => {
+            for d in items {
+                Dolphin::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Donkey => {
+            for d in items {
+                Donkey::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::DragonFireball => {
+            for d in items {
+                DragonFireball::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Drowned => {
+            for d in items {
+                Drowned::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Egg => {
+            for d in items {
+                Egg::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ElderGuardian => {
+            for d in items {
+                ElderGuardian::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::EndCrystal => {
+            for d in items {
+                EndCrystal::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::EnderDragon => {
+            for d in items {
+                EnderDragon::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::EnderPearl => {
+            for d in items {
+                EnderPearl::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Enderman => {
+            for d in items {
+                Enderman::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Endermite => {
+            for d in items {
+                Endermite::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Evoker => {
+            for d in items {
+                Evoker::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::EvokerFangs => {
+            for d in items {
+                EvokerFangs::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ExperienceBottle => {
+            for d in items {
+                ExperienceBottle::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ExperienceOrb => {
+            for d in items {
+                ExperienceOrb::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::EyeOfEnder => {
+            for d in items {
+                EyeOfEnder::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::FallingBlock => {
+            for d in items {
+                FallingBlock::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Fireball => {
+            for d in items {
+                Fireball::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::FireworkRocket => {
+            for d in items {
+                FireworkRocket::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::FishingBobber => {
+            for d in items {
+                FishingBobber::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Fox => {
+            for d in items {
+                Fox::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Frog => {
+            for d in items {
+                Frog::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::FurnaceMinecart => {
+            for d in items {
+                FurnaceMinecart::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Ghast => {
+            for d in items {
+                Ghast::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Giant => {
+            for d in items {
+                Giant::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::GlowItemFrame => {
+            for d in items {
+                GlowItemFrame::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::GlowSquid => {
+            for d in items {
+                GlowSquid::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Goat => {
+            for d in items {
+                Goat::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Guardian => {
+            for d in items {
+                Guardian::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Hoglin => {
+            for d in items {
+                Hoglin::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::HopperMinecart => {
+            for d in items {
+                HopperMinecart::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Horse => {
+            for d in items {
+                Horse::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Husk => {
+            for d in items {
+                Husk::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Illusioner => {
+            for d in items {
+                Illusioner::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::IronGolem => {
+            for d in items {
+                IronGolem::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Item => {
+            for d in items {
+                Item::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ItemFrame => {
+            for d in items {
+                ItemFrame::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::LeashKnot => {
+            for d in items {
+                LeashKnot::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::LightningBolt => {
+            for d in items {
+                LightningBolt::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Llama => {
+            for d in items {
+                Llama::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::LlamaSpit => {
+            for d in items {
+                LlamaSpit::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::MagmaCube => {
+            for d in items {
+                MagmaCube::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Marker => {
+            for d in items {
+                Marker::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Minecart => {
+            for d in items {
+                Minecart::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Mooshroom => {
+            for d in items {
+                Mooshroom::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Mule => {
+            for d in items {
+                Mule::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Ocelot => {
+            for d in items {
+                Ocelot::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Painting => {
+            for d in items {
+                Painting::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Panda => {
+            for d in items {
+                Panda::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Parrot => {
+            for d in items {
+                Parrot::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Phantom => {
+            for d in items {
+                Phantom::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Pig => {
+            for d in items {
+                Pig::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Piglin => {
+            for d in items {
+                Piglin::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::PiglinBrute => {
+            for d in items {
+                PiglinBrute::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Pillager => {
+            for d in items {
+                Pillager::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Player => {
+            for d in items {
+                Player::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::PolarBear => {
+            for d in items {
+                PolarBear::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Potion => {
+            for d in items {
+                Potion::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Pufferfish => {
+            for d in items {
+                Pufferfish::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Rabbit => {
+            for d in items {
+                Rabbit::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Ravager => {
+            for d in items {
+                Ravager::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Salmon => {
+            for d in items {
+                Salmon::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Sheep => {
+            for d in items {
+                Sheep::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Shulker => {
+            for d in items {
+                Shulker::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ShulkerBullet => {
+            for d in items {
+                ShulkerBullet::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Silverfish => {
+            for d in items {
+                Silverfish::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Skeleton => {
+            for d in items {
+                Skeleton::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::SkeletonHorse => {
+            for d in items {
+                SkeletonHorse::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Slime => {
+            for d in items {
+                Slime::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::SmallFireball => {
+            for d in items {
+                SmallFireball::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::SnowGolem => {
+            for d in items {
+                SnowGolem::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Snowball => {
+            for d in items {
+                Snowball::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::SpawnerMinecart => {
+            for d in items {
+                SpawnerMinecart::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::SpectralArrow => {
+            for d in items {
+                SpectralArrow::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Spider => {
+            for d in items {
+                Spider::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Squid => {
+            for d in items {
+                Squid::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Stray => {
+            for d in items {
+                Stray::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Strider => {
+            for d in items {
+                Strider::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Tadpole => {
+            for d in items {
+                Tadpole::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Tnt => {
+            for d in items {
+                Tnt::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::TntMinecart => {
+            for d in items {
+                TntMinecart::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::TraderLlama => {
+            for d in items {
+                TraderLlama::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Trident => {
+            for d in items {
+                Trident::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::TropicalFish => {
+            for d in items {
+                TropicalFish::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Turtle => {
+            for d in items {
+                Turtle::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Vex => {
+            for d in items {
+                Vex::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Villager => {
+            for d in items {
+                Villager::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Vindicator => {
+            for d in items {
+                Vindicator::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::WanderingTrader => {
+            for d in items {
+                WanderingTrader::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Warden => {
+            for d in items {
+                Warden::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Witch => {
+            for d in items {
+                Witch::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Wither => {
+            for d in items {
+                Wither::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::WitherSkeleton => {
+            for d in items {
+                WitherSkeleton::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::WitherSkull => {
+            for d in items {
+                WitherSkull::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Wolf => {
+            for d in items {
+                Wolf::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Zoglin => {
+            for d in items {
+                Zoglin::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Zombie => {
+            for d in items {
+                Zombie::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ZombieHorse => {
+            for d in items {
+                ZombieHorse::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ZombieVillager => {
+            for d in items {
+                ZombieVillager::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ZombifiedPiglin => {
+            for d in items {
+                ZombifiedPiglin::apply_metadata(entity, d)?;
+            }
+        }
     }
     Ok(())
+}
+
+pub fn apply_default_metadata(
+    entity: &mut bevy_ecs::world::EntityMut,
+    kind: azalea_registry::EntityKind,
+) {
+    match kind {
+        azalea_registry::EntityKind::Allay => {
+            entity.insert(AllayMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::AreaEffectCloud => {
+            entity.insert(AreaEffectCloudMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ArmorStand => {
+            entity.insert(ArmorStandMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Arrow => {
+            entity.insert(ArrowMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Axolotl => {
+            entity.insert(AxolotlMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Bat => {
+            entity.insert(BatMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Bee => {
+            entity.insert(BeeMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Blaze => {
+            entity.insert(BlazeMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Boat => {
+            entity.insert(BoatMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Camel => {
+            entity.insert(CamelMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Cat => {
+            entity.insert(CatMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::CaveSpider => {
+            entity.insert(CaveSpiderMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ChestBoat => {
+            entity.insert(ChestBoatMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ChestMinecart => {
+            entity.insert(ChestMinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Chicken => {
+            entity.insert(ChickenMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Cod => {
+            entity.insert(CodMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::CommandBlockMinecart => {
+            entity.insert(CommandBlockMinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Cow => {
+            entity.insert(CowMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Creeper => {
+            entity.insert(CreeperMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Dolphin => {
+            entity.insert(DolphinMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Donkey => {
+            entity.insert(DonkeyMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::DragonFireball => {
+            entity.insert(DragonFireballMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Drowned => {
+            entity.insert(DrownedMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Egg => {
+            entity.insert(EggMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ElderGuardian => {
+            entity.insert(ElderGuardianMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::EndCrystal => {
+            entity.insert(EndCrystalMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::EnderDragon => {
+            entity.insert(EnderDragonMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::EnderPearl => {
+            entity.insert(EnderPearlMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Enderman => {
+            entity.insert(EndermanMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Endermite => {
+            entity.insert(EndermiteMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Evoker => {
+            entity.insert(EvokerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::EvokerFangs => {
+            entity.insert(EvokerFangsMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ExperienceBottle => {
+            entity.insert(ExperienceBottleMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ExperienceOrb => {
+            entity.insert(ExperienceOrbMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::EyeOfEnder => {
+            entity.insert(EyeOfEnderMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::FallingBlock => {
+            entity.insert(FallingBlockMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Fireball => {
+            entity.insert(FireballMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::FireworkRocket => {
+            entity.insert(FireworkRocketMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::FishingBobber => {
+            entity.insert(FishingBobberMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Fox => {
+            entity.insert(FoxMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Frog => {
+            entity.insert(FrogMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::FurnaceMinecart => {
+            entity.insert(FurnaceMinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Ghast => {
+            entity.insert(GhastMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Giant => {
+            entity.insert(GiantMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::GlowItemFrame => {
+            entity.insert(GlowItemFrameMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::GlowSquid => {
+            entity.insert(GlowSquidMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Goat => {
+            entity.insert(GoatMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Guardian => {
+            entity.insert(GuardianMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Hoglin => {
+            entity.insert(HoglinMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::HopperMinecart => {
+            entity.insert(HopperMinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Horse => {
+            entity.insert(HorseMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Husk => {
+            entity.insert(HuskMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Illusioner => {
+            entity.insert(IllusionerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::IronGolem => {
+            entity.insert(IronGolemMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Item => {
+            entity.insert(ItemMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ItemFrame => {
+            entity.insert(ItemFrameMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::LeashKnot => {
+            entity.insert(LeashKnotMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::LightningBolt => {
+            entity.insert(LightningBoltMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Llama => {
+            entity.insert(LlamaMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::LlamaSpit => {
+            entity.insert(LlamaSpitMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::MagmaCube => {
+            entity.insert(MagmaCubeMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Marker => {
+            entity.insert(MarkerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Minecart => {
+            entity.insert(MinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Mooshroom => {
+            entity.insert(MooshroomMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Mule => {
+            entity.insert(MuleMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Ocelot => {
+            entity.insert(OcelotMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Painting => {
+            entity.insert(PaintingMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Panda => {
+            entity.insert(PandaMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Parrot => {
+            entity.insert(ParrotMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Phantom => {
+            entity.insert(PhantomMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Pig => {
+            entity.insert(PigMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Piglin => {
+            entity.insert(PiglinMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::PiglinBrute => {
+            entity.insert(PiglinBruteMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Pillager => {
+            entity.insert(PillagerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Player => {
+            entity.insert(PlayerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::PolarBear => {
+            entity.insert(PolarBearMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Potion => {
+            entity.insert(PotionMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Pufferfish => {
+            entity.insert(PufferfishMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Rabbit => {
+            entity.insert(RabbitMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Ravager => {
+            entity.insert(RavagerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Salmon => {
+            entity.insert(SalmonMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Sheep => {
+            entity.insert(SheepMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Shulker => {
+            entity.insert(ShulkerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ShulkerBullet => {
+            entity.insert(ShulkerBulletMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Silverfish => {
+            entity.insert(SilverfishMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Skeleton => {
+            entity.insert(SkeletonMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::SkeletonHorse => {
+            entity.insert(SkeletonHorseMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Slime => {
+            entity.insert(SlimeMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::SmallFireball => {
+            entity.insert(SmallFireballMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::SnowGolem => {
+            entity.insert(SnowGolemMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Snowball => {
+            entity.insert(SnowballMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::SpawnerMinecart => {
+            entity.insert(SpawnerMinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::SpectralArrow => {
+            entity.insert(SpectralArrowMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Spider => {
+            entity.insert(SpiderMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Squid => {
+            entity.insert(SquidMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Stray => {
+            entity.insert(StrayMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Strider => {
+            entity.insert(StriderMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Tadpole => {
+            entity.insert(TadpoleMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Tnt => {
+            entity.insert(TntMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::TntMinecart => {
+            entity.insert(TntMinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::TraderLlama => {
+            entity.insert(TraderLlamaMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Trident => {
+            entity.insert(TridentMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::TropicalFish => {
+            entity.insert(TropicalFishMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Turtle => {
+            entity.insert(TurtleMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Vex => {
+            entity.insert(VexMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Villager => {
+            entity.insert(VillagerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Vindicator => {
+            entity.insert(VindicatorMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::WanderingTrader => {
+            entity.insert(WanderingTraderMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Warden => {
+            entity.insert(WardenMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Witch => {
+            entity.insert(WitchMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Wither => {
+            entity.insert(WitherMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::WitherSkeleton => {
+            entity.insert(WitherSkeletonMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::WitherSkull => {
+            entity.insert(WitherSkullMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Wolf => {
+            entity.insert(WolfMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Zoglin => {
+            entity.insert(ZoglinMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Zombie => {
+            entity.insert(ZombieMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ZombieHorse => {
+            entity.insert(ZombieHorseMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ZombieVillager => {
+            entity.insert(ZombieVillagerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ZombifiedPiglin => {
+            entity.insert(ZombifiedPiglinMetadataBundle::default());
+        }
+    }
 }
