@@ -40,14 +40,12 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
     code.append('''// This file is generated from codegen/lib/code/entity.py.
 // Don't change it manually!
 
-#![allow(clippy::clone_on_copy, clippy::derivable_impls)]
-use super::{
-    EntityDataValue, OptionalUnsignedInt, Pose, Rotations, VillagerData, EntityDataItem,
-};
+use super::{EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Rotations, VillagerData};
 use azalea_block::BlockState;
 use azalea_chat::FormattedText;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
 use bevy_ecs::{bundle::Bundle, component::Component};
+use derive_more::{Deref, DerefMut};
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -162,14 +160,14 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 metadata_type_data = metadata_types[type_id]
                 rust_type = metadata_type_data['type']
 
-                code.append(f'#[derive(Component)]')
+                code.append(f'#[derive(Component, Deref, DerefMut)]')
                 code.append(f'pub struct {struct_name}(pub {rust_type});')
             else:
                 # if it's a bitfield just make a struct for each bit
                 for mask, name in name_or_bitfield.items():
                     name = maybe_rename_field(name, index)
                     struct_name = upper_first_letter(to_camel_case(name))
-                    code.append(f'#[derive(Component)]')
+                    code.append(f'#[derive(Component, Deref, DerefMut)]')
                     code.append(f'pub struct {struct_name}(pub bool);')
 
         # add the entity struct and Bundle struct

@@ -4,154 +4,191 @@ pub mod collision;
 
 use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
-use azalea_world::WeakWorld;
-use collision::MoverType;
+use azalea_world::{
+    entity::{self, EntityId},
+    WeakWorld,
+};
+use collision::{move_colliding, MoverType};
 use std::ops::Deref;
 
-pub trait HasPhysics {
-    fn travel(&mut self, acceleration: &Vec3);
-    fn ai_step(&mut self);
+/// Move the entity with the given acceleration while handling friction,
+/// gravity, collisions, and some other stuff.
+fn travel(
+    entity_id: EntityId,
+    world: &WeakWorld,
+    physics: &mut entity::Physics,
+    position: &mut entity::Position,
+    attributes: &entity::Attributes,
+    acceleration: &Vec3,
+) {
+    // if !self.is_effective_ai() && !self.is_controlled_by_local_instance() {
+    //     // this.calculateEntityAnimation(this, this instanceof FlyingAnimal);
+    //     return;
+    // }
 
-    fn jump_from_ground(&mut self);
-}
+    let gravity: f64 = 0.08;
 
-impl<D: Deref<Target = WeakWorld>> HasPhysics for Entity<'_, D> {
-    /// Move the entity with the given acceleration while handling friction,
-    /// gravity, collisions, and some other stuff.
-    fn travel(&mut self, acceleration: &Vec3) {
-        // if !self.is_effective_ai() && !self.is_controlled_by_local_instance() {
-        //     // this.calculateEntityAnimation(this, this instanceof FlyingAnimal);
-        //     return;
-        // }
+    // TODO: slow falling effect
+    // let is_falling = self.delta.y <= 0.;
 
-        let gravity: f64 = 0.08;
+    // TODO: fluids
 
-        // TODO: slow falling effect
-        // let is_falling = self.delta.y <= 0.;
+    // TODO: elytra
 
-        // TODO: fluids
+    let block_pos_below = get_block_pos_below_that_affects_movement(position);
 
-        // TODO: elytra
+    let block_state_below = world
+        .get_block_state(&block_pos_below)
+        .unwrap_or(BlockState::Air);
+    let block_below: Box<dyn Block> = block_state_below.into();
+    let block_friction = block_below.behavior().friction;
 
-        let block_pos_below = get_block_pos_below_that_affects_movement(self);
+    let inertia = if physics.on_ground {
+        block_friction * 0.91
+    } else {
+        0.91
+    };
 
-        let block_state_below = self
-            .world
-            .get_block_state(&block_pos_below)
-            .unwrap_or(BlockState::Air);
-        let block_below: Box<dyn Block> = block_state_below.into();
-        let block_friction = block_below.behavior().friction;
+    // this applies the current delta
+    let mut movement = handle_relative_friction_and_calculate_movement(
+        acceleration,
+        block_friction,
+        entity_id,
+        world,
+        physics,
+        position,
+        attributes,
+    );
 
-        let inertia = if self.on_ground {
-            block_friction * 0.91
-        } else {
-            0.91
+    movement.y -= gravity;
+
+    // if (this.shouldDiscardFriction()) {
+    //     this.setDeltaMovement(movement.x, yMovement, movement.z);
+    // } else {
+    //     this.setDeltaMovement(movement.x * (double)inertia, yMovement *
+    // 0.9800000190734863D, movement.z * (double)inertia); }
+
+    // if should_discard_friction(self) {
+    if false {
+        physics.delta = movement;
+    } else {
+        physics.delta = Vec3 {
+            x: movement.x * inertia as f64,
+            y: movement.y * 0.98f64,
+            z: movement.z * inertia as f64,
         };
-
-        // this applies the current delta
-        let mut movement =
-            handle_relative_friction_and_calculate_movement(self, acceleration, block_friction);
-
-        movement.y -= gravity;
-
-        // if (this.shouldDiscardFriction()) {
-        //     this.setDeltaMovement(movement.x, yMovement, movement.z);
-        // } else {
-        //     this.setDeltaMovement(movement.x * (double)inertia, yMovement *
-        // 0.9800000190734863D, movement.z * (double)inertia); }
-
-        // if should_discard_friction(self) {
-        if false {
-            self.delta = movement;
-        } else {
-            self.delta = Vec3 {
-                x: movement.x * inertia as f64,
-                y: movement.y * 0.98f64,
-                z: movement.z * inertia as f64,
-            };
-        }
-    }
-
-    /// applies air resistance, calls self.travel(), and some other random
-    /// stuff.
-    fn ai_step(&mut self) {
-        // vanilla does movement interpolation here, doesn't really matter much for a
-        // bot though
-
-        if self.delta.x.abs() < 0.003 {
-            self.delta.x = 0.;
-        }
-        if self.delta.y.abs() < 0.003 {
-            self.delta.y = 0.;
-        }
-        if self.delta.z.abs() < 0.003 {
-            self.delta.z = 0.;
-        }
-
-        if self.jumping {
-            // TODO: jumping in liquids and jump delay
-
-            if self.on_ground {
-                self.jump_from_ground();
-            }
-        }
-
-        self.xxa *= 0.98;
-        self.zza *= 0.98;
-
-        self.travel(&Vec3 {
-            x: self.xxa as f64,
-            y: self.yya as f64,
-            z: self.zza as f64,
-        });
-        // freezing
-        // pushEntities
-        // drowning damage
-    }
-
-    fn jump_from_ground(&mut self) {
-        let jump_power: f64 = jump_power(self) as f64 + jump_boost_power(self);
-        let old_delta_movement = self.delta;
-        self.delta = Vec3 {
-            x: old_delta_movement.x,
-            y: jump_power,
-            z: old_delta_movement.z,
-        };
-        if self.metadata.sprinting {
-            let y_rot = self.y_rot * 0.017453292;
-            self.delta += Vec3 {
-                x: (-f32::sin(y_rot) * 0.2) as f64,
-                y: 0.,
-                z: (f32::cos(y_rot) * 0.2) as f64,
-            };
-        }
-
-        self.has_impulse = true;
     }
 }
 
-fn get_block_pos_below_that_affects_movement(entity: &EntityData) -> BlockPos {
+/// applies air resistance, calls self.travel(), and some other random
+/// stuff.
+fn ai_step(
+    entity_id: EntityId,
+    world: &WeakWorld,
+    physics: &mut entity::Physics,
+    position: &mut entity::Position,
+    sprinting: &entity::metadata::Sprinting,
+    attributes: &entity::Attributes,
+) {
+    // vanilla does movement interpolation here, doesn't really matter much for a
+    // bot though
+
+    if physics.delta.x.abs() < 0.003 {
+        physics.delta.x = 0.;
+    }
+    if physics.delta.y.abs() < 0.003 {
+        physics.delta.y = 0.;
+    }
+    if physics.delta.z.abs() < 0.003 {
+        physics.delta.z = 0.;
+    }
+
+    if physics.jumping {
+        // TODO: jumping in liquids and jump delay
+
+        if physics.on_ground {
+            jump_from_ground(world, physics, position, sprinting);
+        }
+    }
+
+    physics.xxa *= 0.98;
+    physics.zza *= 0.98;
+
+    travel(
+        entity_id,
+        world,
+        physics,
+        position,
+        attributes,
+        &Vec3 {
+            x: physics.xxa as f64,
+            y: physics.yya as f64,
+            z: physics.zza as f64,
+        },
+    );
+    // freezing
+    // pushEntities
+    // drowning damage
+}
+
+fn jump_from_ground(
+    world: &WeakWorld,
+    physics: &mut entity::Physics,
+    position: &entity::Position,
+    sprinting: &entity::metadata::Sprinting,
+) {
+    let jump_power: f64 = jump_power(world, position) as f64 + jump_boost_power();
+    let old_delta_movement = physics.delta;
+    physics.delta = Vec3 {
+        x: old_delta_movement.x,
+        y: jump_power,
+        z: old_delta_movement.z,
+    };
+    if **sprinting {
+        let y_rot = physics.y_rot * 0.017453292;
+        physics.delta += Vec3 {
+            x: (-f32::sin(y_rot) * 0.2) as f64,
+            y: 0.,
+            z: (f32::cos(y_rot) * 0.2) as f64,
+        };
+    }
+
+    physics.has_impulse = true;
+}
+
+fn get_block_pos_below_that_affects_movement(position: &entity::Position) -> BlockPos {
     BlockPos::new(
-        entity.pos().x.floor() as i32,
+        position.x.floor() as i32,
         // TODO: this uses bounding_box.min_y instead of position.y
-        (entity.pos().y - 0.5f64).floor() as i32,
-        entity.pos().z.floor() as i32,
+        (position.y - 0.5f64).floor() as i32,
+        position.z.floor() as i32,
     )
 }
 
-fn handle_relative_friction_and_calculate_movement<D: Deref<Target = WeakWorld>>(
-    entity: &mut Entity<D>,
+fn handle_relative_friction_and_calculate_movement(
     acceleration: &Vec3,
     block_friction: f32,
+    entity_id: EntityId,
+    world: &WeakWorld,
+    physics: &mut entity::Physics,
+    position: &mut entity::Position,
+    attributes: &entity::Attributes,
 ) -> Vec3 {
-    entity.move_relative(
-        get_friction_influenced_speed(&*entity, block_friction),
+    entity::move_relative(
+        physics,
+        get_friction_influenced_speed(physics, attributes, block_friction),
         acceleration,
     );
     // entity.delta = entity.handle_on_climbable(entity.delta);
-    entity
-        .move_colliding(&MoverType::Own, &entity.delta.clone())
-        .expect("Entity should exist.");
+    move_colliding(
+        &MoverType::Own,
+        &physics.delta.clone(),
+        entity_id,
+        world,
+        position,
+        physics,
+    )
+    .expect("Entity should exist.");
     // let delta_movement = entity.delta;
     // ladders
     //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable()
@@ -160,16 +197,20 @@ fn handle_relative_friction_and_calculate_movement<D: Deref<Target = WeakWorld>>
     // Vec3(var3.x, 0.2D, var3.z);   }
     // TODO: powdered snow
 
-    entity.delta
+    physics.delta
 }
 
 // private float getFrictionInfluencedSpeed(float friction) {
 //     return this.onGround ? this.getSpeed() * (0.21600002F / (friction *
 // friction * friction)) : this.flyingSpeed; }
-fn get_friction_influenced_speed(entity: &EntityData, friction: f32) -> f32 {
+fn get_friction_influenced_speed(
+    physics: &entity::Physics,
+    attributes: &entity::Attributes,
+    friction: f32,
+) -> f32 {
     // TODO: have speed & flying_speed fields in entity
-    if entity.on_ground {
-        let speed: f32 = entity.attributes.speed.calculate() as f32;
+    if physics.on_ground {
+        let speed: f32 = attributes.speed.calculate() as f32;
         speed * (0.216f32 / (friction * friction * friction))
     } else {
         // entity.flying_speed
@@ -179,11 +220,9 @@ fn get_friction_influenced_speed(entity: &EntityData, friction: f32) -> f32 {
 
 /// Returns the what the entity's jump should be multiplied by based on the
 /// block they're standing on.
-fn block_jump_factor<D: Deref<Target = WeakWorld>>(entity: &Entity<D>) -> f32 {
-    let block_at_pos = entity.world.get_block_state(&entity.pos().into());
-    let block_below = entity
-        .world
-        .get_block_state(&get_block_pos_below_that_affects_movement(entity));
+fn block_jump_factor(world: &WeakWorld, position: &entity::Position) -> f32 {
+    let block_at_pos = world.get_block_state(&position.into());
+    let block_below = world.get_block_state(&get_block_pos_below_that_affects_movement(position));
 
     let block_at_pos_jump_factor = if let Some(block) = block_at_pos {
         Box::<dyn Block>::from(block).behavior().jump_factor
@@ -207,11 +246,11 @@ fn block_jump_factor<D: Deref<Target = WeakWorld>>(entity: &Entity<D>) -> f32 {
 // public double getJumpBoostPower() {
 //     return this.hasEffect(MobEffects.JUMP) ? (double)(0.1F *
 // (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1)) : 0.0D; }
-fn jump_power<D: Deref<Target = WeakWorld>>() -> f32 {
-    0.42 * block_jump_factor(entity)
+fn jump_power(world: &WeakWorld, position: &entity::Position) -> f32 {
+    0.42 * block_jump_factor(world, position)
 }
 
-fn jump_boost_power<D: Deref<Target = WeakWorld>>() -> f64 {
+fn jump_boost_power() -> f64 {
     // TODO: potion effects
     // if let Some(effects) = entity.effects() {
     //     if let Some(jump_effect) = effects.get(&Effect::Jump) {

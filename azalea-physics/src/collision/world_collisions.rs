@@ -1,34 +1,17 @@
+use super::Shapes;
 use crate::collision::{BlockWithShape, VoxelShape, AABB};
 use azalea_block::BlockState;
 use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType, EPSILON};
-use azalea_world::entity::EntityData;
-use azalea_world::{Chunk, WeakWorld};
+use azalea_world::{entity::EntityId, Chunk, WeakWorld};
 use parking_lot::RwLock;
 use std::sync::Arc;
 
-use super::Shapes;
-
-pub trait CollisionGetter {
-    fn get_block_collisions<'a>(
-        &'a self,
-        entity: Option<&EntityData>,
-        aabb: AABB,
-    ) -> BlockCollisions<'a>;
-}
-
-impl CollisionGetter for WeakWorld {
-    fn get_block_collisions<'a>(
-        &'a self,
-        entity: Option<&EntityData>,
-        aabb: AABB,
-    ) -> BlockCollisions<'a> {
-        BlockCollisions::new(self, entity, aabb)
-    }
+pub fn get_block_collisions<'a>(world: &'a WeakWorld, aabb: AABB) -> BlockCollisions<'a> {
+    BlockCollisions::new(world, aabb)
 }
 
 pub struct BlockCollisions<'a> {
     pub world: &'a WeakWorld,
-    // context: CollisionContext,
     pub aabb: AABB,
     pub entity_shape: VoxelShape,
     pub cursor: Cursor3d,
@@ -36,8 +19,7 @@ pub struct BlockCollisions<'a> {
 }
 
 impl<'a> BlockCollisions<'a> {
-    // TODO: the entity is stored in the context
-    pub fn new(world: &'a WeakWorld, _entity: Option<&EntityData>, aabb: AABB) -> Self {
+    pub fn new(world: &'a WeakWorld, aabb: AABB) -> Self {
         let origin_x = (aabb.min_x - EPSILON) as i32 - 1;
         let origin_y = (aabb.min_y - EPSILON) as i32 - 1;
         let origin_z = (aabb.min_z - EPSILON) as i32 - 1;

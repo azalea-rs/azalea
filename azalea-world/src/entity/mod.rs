@@ -3,18 +3,12 @@ mod data;
 mod dimensions;
 pub mod metadata;
 
-use self::{
-    attributes::{AttributeInstance, AttributeModifiers},
-    metadata::UpdateMetadataError,
-};
+use self::{attributes::AttributeInstance, metadata::UpdateMetadataError};
 use crate::WeakWorld;
+pub use attributes::Attributes;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, ChunkPos, Vec3, AABB};
-use bevy_ecs::{
-    bundle::Bundle,
-    component::Component,
-    world::{EntityMut, Mut},
-};
+use bevy_ecs::{bundle::Bundle, component::Component, world::EntityMut};
 pub use data::*;
 use derive_more::{Deref, DerefMut};
 pub use dimensions::EntityDimensions;
@@ -162,12 +156,8 @@ pub fn make_bounding_box(pos: &Position, physics: &Physics) -> AABB {
 }
 
 /// Get the position of the block below the entity, but a little lower.
-pub fn on_pos_legacy<W: Deref<Target = WeakWorld>>(
-    world: &W,
-    pos: &Position,
-    physics: &Physics,
-) -> BlockPos {
-    on_pos(world, pos, physics, 0.2)
+pub fn on_pos_legacy(world: &WeakWorld, position: &Position, physics: &Physics) -> BlockPos {
+    on_pos(world, position, physics, 0.2)
 }
 
 // int x = Mth.floor(this.position.x);
@@ -182,12 +172,7 @@ pub fn on_pos_legacy<W: Deref<Target = WeakWorld>>(
 //    }
 // }
 // return var5;
-pub fn on_pos<W: Deref<Target = WeakWorld>>(
-    world: &W,
-    pos: &Position,
-    physics: &Physics,
-    offset: f32,
-) -> BlockPos {
+pub fn on_pos(world: &WeakWorld, pos: &Position, physics: &Physics, offset: f32) -> BlockPos {
     let x = pos.x.floor() as i32;
     let y = (pos.y - offset as f64).floor() as i32;
     let z = pos.z.floor() as i32;
@@ -223,6 +208,11 @@ pub struct Position(Vec3);
 impl From<&Position> for ChunkPos {
     fn from(value: &Position) -> Self {
         ChunkPos::from(&value.0)
+    }
+}
+impl From<&Position> for BlockPos {
+    fn from(value: &Position) -> Self {
+        BlockPos::from(&value.0)
     }
 }
 
@@ -275,7 +265,7 @@ pub struct EntityBundle {
     pub uuid: EntityUuid,
     pub position: Position,
     pub physics: Physics,
-    pub attributes: AttributeModifiers,
+    pub attributes: Attributes,
 }
 
 impl EntityBundle {
@@ -315,7 +305,7 @@ impl EntityBundle {
                 jumping: false,
             },
 
-            attributes: AttributeModifiers {
+            attributes: Attributes {
                 // TODO: do the correct defaults for everything, some
                 // entities have different defaults
                 speed: AttributeInstance::new(0.1),

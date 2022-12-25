@@ -168,6 +168,11 @@ impl WeakWorld {
         self.entity_storage.write().query::<Q>()
     }
 
+    /// Set an entity's position in the world.
+    ///
+    /// Note that this will access the [`Position`] and [`Physics`] components,
+    /// so if you already references to those components, you should use
+    /// [`Self::set_entity_pos_from_refs`] instead.
     pub fn set_entity_pos(
         &self,
         entity_id: EntityId,
@@ -179,10 +184,22 @@ impl WeakWorld {
             .get_mut(&mut entity_storage.ecs, entity_id.into())
             .unwrap();
 
-        let old_chunk = ChunkPos::from(pos.as_ref());
+        self.set_entity_pos_from_refs(entity_id, new_pos, pos.into_inner(), physics.into_inner())
+    }
+
+    /// Set an entity's position in the world when we already have references
+    /// to the [`Position`] and [`Physics`] components.
+    pub fn set_entity_pos_from_refs(
+        &self,
+        entity_id: EntityId,
+        new_pos: Vec3,
+        pos: &mut Position,
+        physics: &mut Physics,
+    ) -> Result<(), MoveEntityError> {
+        let old_chunk = ChunkPos::from(&*pos);
         let new_chunk = ChunkPos::from(&new_pos);
         // this is fine because we update the chunk below
-        unsafe { move_unchecked(pos.into_inner(), physics.into_inner(), new_pos) };
+        unsafe { move_unchecked(pos, physics, new_pos) };
         if old_chunk != new_chunk {
             self.entity_storage
                 .write()

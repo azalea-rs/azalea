@@ -11,7 +11,7 @@ use thiserror::Error;
 use uuid::{uuid, Uuid};
 
 #[derive(Clone, Debug, Component)]
-pub struct AttributeModifiers {
+pub struct Attributes {
     pub speed: AttributeInstance,
 }
 
