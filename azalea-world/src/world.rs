@@ -165,7 +165,7 @@ impl WeakWorld {
     }
 
     pub fn query_entities<Q: WorldQuery>(&self) -> QueryState<Q, ()> {
-        self.entity_storage.write().query::<Q>()
+        self.entity_storage.write().query_to_state::<Q>()
     }
 
     /// Set an entity's position in the world.
@@ -179,10 +179,8 @@ impl WeakWorld {
         new_pos: Vec3,
     ) -> Result<(), MoveEntityError> {
         let mut entity_storage = self.entity_storage.write();
-        let mut query = entity_storage.query::<(&mut Position, &mut Physics)>();
-        let (pos, physics) = query
-            .get_mut(&mut entity_storage.ecs, entity_id.into())
-            .unwrap();
+        let (pos, physics) =
+            entity_storage.query_entity_mut::<(&mut Position, &mut Physics)>(entity_id);
 
         self.set_entity_pos_from_refs(entity_id, new_pos, pos.into_inner(), physics.into_inner())
     }

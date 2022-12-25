@@ -29,7 +29,11 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{
-    entity::{metadata, Entity, EntityData, EntityMetadata},
+    entity::{
+        self,
+        metadata::{self, PlayerMetadataBundle},
+        EntityId,
+    },
     PartialWorld, WeakWorld, WeakWorldContainer,
 };
 use log::{debug, error, info, trace, warn};
@@ -40,6 +44,7 @@ use std::{
     collections::HashMap,
     fmt::Debug,
     io::{self, Cursor},
+    ops::DerefMut,
     sync::Arc,
 };
 use thiserror::Error;
@@ -90,7 +95,7 @@ pub struct Client {
     pub profile: GameProfile,
     pub read_conn: Arc<tokio::sync::Mutex<ReadConnection<ClientboundGamePacket>>>,
     pub write_conn: Arc<tokio::sync::Mutex<WriteConnection<ServerboundGamePacket>>>,
-    pub entity_id: Arc<RwLock<u32>>,
+    pub entity_id: Arc<RwLock<EntityId>>,
     /// The world that this client has access to. This supports shared worlds.
     pub world: Arc<RwLock<PartialWorld>>,
     /// A container of world names to worlds. If we're not using a shared world
@@ -179,7 +184,7 @@ impl Client {
             read_conn,
             write_conn,
             // default our id to 0, it'll be set later
-            entity_id: Arc::new(RwLock::new(0)),
+            entity_id: Arc::new(RwLock::new(EntityId(0))),
             world: Arc::new(RwLock::new(PartialWorld::default())),
             world_container: world_container
                 .unwrap_or_else(|| Arc::new(RwLock::new(WeakWorldContainer::new()))),
@@ -523,18 +528,27 @@ impl Client {
                     *world_lock = PartialWorld::new(
                         client.client_information.read().view_distance.into(),
                         weak_world,
-                        Some(p.player_id),
+                        Some(EntityId(p.player_id)),
                     );
 
-                    let entity = EntityData::new(
-                        client.profile.uuid,
-                        Vec3::default(),
-                        EntityMetadata::Player(metadata::Player::default()),
-                    );
-                    // make it so other entities don't update this entity in a shared world
-                    world_lock.add_entity(p.player_id, entity);
+                    let player_bundle = entity::PlayerBundle {
+                        entity: entity::EntityBundle::new(
+                            client.profile.uuid,
+                            Vec3::default(),
+                            azalea_registry::EntityKind::Player,
+                        ),
+                        metadata: PlayerMetadataBundle::default(),
+                    };
+                    // let entity = EntityData::new(
+                    //     client.profile.uuid,
+                    //     Vec3::default(),
+                    //     EntityMetadata::Player(metadata::Player::default()),
+                    // );
+                    // the first argument makes it so other entities don't update this entity in a
+                    // shared world
+                    world_lock.add_entity(EntityId(p.player_id), player_bundle);
 
-                    *client.entity_id.write() = p.player_id;
+                    *client.entity_id.write() = EntityId(p.player_id);
                 }
 
                 // send the client information that we have set
@@ -600,54 +614,59 @@ impl Client {
 
                 let (new_pos, y_rot, x_rot) = {
                     let player_entity_id = *client.entity_id.read();
+                    let mut world_lock = client.world();
+                    // let mut player_entity = world_lock.entity_mut(player_entity_id).unwrap();
+                    let (physics, position) =
+                        world_lock
+                            .entity_storage
+                            .read()
+                            .query_entity_mut::<(&mut entity::Physics, &entity::Position)>(
+                                player_entity_id,
+                            );
 
-                    let mut world_lock = client.world.write();
-
-                    let mut player_entity = world_lock.entity_mut(player_entity_id).unwrap();
-
-                    let delta_movement = player_entity.delta;
+                    let delta_movement = physics.delta;
 
                     let is_x_relative = p.relative_arguments.x;
                     let is_y_relative = p.relative_arguments.y;
                     let is_z_relative = p.relative_arguments.z;
 
                     let (delta_x, new_pos_x) = if is_x_relative {
-                        player_entity.last_pos.x += p.x;
-                        (delta_movement.x, player_entity.pos().x + p.x)
+                        physics.last_pos.x += p.x;
+                        (delta_movement.x, position.x + p.x)
                     } else {
-                        player_entity.last_pos.x = p.x;
+                        physics.last_pos.x = p.x;
                         (0.0, p.x)
                     };
                     let (delta_y, new_pos_y) = if is_y_relative {
-                        player_entity.last_pos.y += p.y;
-                        (delta_movement.y, player_entity.pos().y + p.y)
+                        physics.last_pos.y += p.y;
+                        (delta_movement.y, position.y + p.y)
                     } else {
-                        player_entity.last_pos.y = p.y;
+                        physics.last_pos.y = p.y;
                         (0.0, p.y)
                     };
                     let (delta_z, new_pos_z) = if is_z_relative {
-                        player_entity.last_pos.z += p.z;
-                        (delta_movement.z, player_entity.pos().z + p.z)
+                        physics.last_pos.z += p.z;
+                        (delta_movement.z, position.z + p.z)
                     } else {
-                        player_entity.last_pos.z = p.z;
+                        physics.last_pos.z = p.z;
                         (0.0, p.z)
                     };
 
                     let mut y_rot = p.y_rot;
                     let mut x_rot = p.x_rot;
                     if p.relative_arguments.x_rot {
-                        x_rot += player_entity.x_rot;
+                        x_rot += physics.x_rot;
                     }
                     if p.relative_arguments.y_rot {
-                        y_rot += player_entity.y_rot;
+                        y_rot += physics.y_rot;
                     }
 
-                    player_entity.delta = Vec3 {
+                    physics.delta = Vec3 {
                         x: delta_x,
                         y: delta_y,
                         z: delta_z,
                     };
-                    player_entity.set_rotation(y_rot, x_rot);
+                    entity::set_rotation(physics.deref_mut(), y_rot, x_rot);
                     // TODO: minecraft sets "xo", "yo", and "zo" here but idk what that means
                     // so investigate that ig
                     let new_pos = Vec3 {
@@ -783,8 +802,12 @@ impl Client {
             }
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {:?}", p);
-                let entity = EntityData::from(p);
-                client.world.write().add_entity(p.id, entity);
+                // let entity = EntityData::from(p);
+                let bundle = p.as_entity_bundle();
+                let world = client.world();
+                world.add_entity(p.id, bundle);
+                let entity = world.entity_storage.write().ecs_entity(p.id);
+                p.apply_metadata(entity);
             }
             ClientboundGamePacket::SetEntityData(p) => {
                 debug!("Got set entity data packet {:?}", p);
@@ -1049,19 +1072,19 @@ impl Client {
         self.world.read().shared.clone()
     }
 
-    /// Returns the entity associated to the player.
-    pub fn entity(&self) -> Entity<Arc<WeakWorld>> {
-        let entity_id = *self.entity_id.read();
+    // /// Returns the entity associated to the player.
+    // pub fn entity(&self) -> Entity<Arc<WeakWorld>> {
+    //     let entity_id = *self.entity_id.read();
 
-        let world = self.world();
-        let entity_data = world
-            .entity_storage
-            .read()
-            .get_by_id(entity_id)
-            .expect("Player entity should be in the given world");
-        let entity_ptr = unsafe { entity_data.as_ptr() };
-        Entity::new(world, entity_id, entity_ptr)
-    }
+    //     let world = self.world();
+    //     let entity_data = world
+    //         .entity_storage
+    //         .read()
+    //         .get_by_id(entity_id)
+    //         .expect("Player entity should be in the given world");
+    //     let entity_ptr = unsafe { entity_data.as_ptr() };
+    //     Entity::new(world, entity_id, entity_ptr)
+    // }
 
     /// Returns whether we have a received the login packet yet.
     pub fn logged_in(&self) -> bool {

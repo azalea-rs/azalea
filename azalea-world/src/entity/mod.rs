@@ -254,6 +254,9 @@ pub struct Physics {
 }
 
 /// A component NewType for [`azalea_registry::EntityKind`].
+///
+/// Most of the time, you should be using `azalea_registry::EntityKind`
+/// instead.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Deref)]
 pub struct EntityKind(azalea_registry::EntityKind);
 

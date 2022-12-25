@@ -133,7 +133,7 @@ impl PartialEntityStorage {
         if self.loaded_entity_ids.remove(&id) {
             let mut shared = self.shared.write();
 
-            let mut query = shared.query::<(&Position, &EntityUuid)>();
+            let mut query = shared.query_to_state::<(&Position, &EntityUuid)>();
             let (pos, uuid) = query.get(&mut shared.ecs, id.into()).expect(
                 "If the entity was being loaded by this storage, it must be in the shared
                 storage.",
@@ -210,7 +210,7 @@ impl PartialEntityStorage {
     /// shared storage, unless there are no other references to them.
     pub fn clear_chunk(&mut self, chunk: &ChunkPos) {
         let mut shared = self.shared.write();
-        let mut query = shared.query::<&EntityUuid>();
+        let mut query = shared.query_to_state::<&EntityUuid>();
 
         if let Some(entities) = shared.ids_by_chunk.get(chunk).cloned() {
             for &id in entities.iter() {
@@ -296,7 +296,9 @@ impl WeakEntityStorage {
         }
     }
 
-    pub fn query<Q: WorldQuery>(&mut self) -> QueryState<Q, ()> {
+    /// Query the ecs to get a [`QueryState`]. You should probably use
+    /// [`Self::query_entity`] or [`Self::query_entity_mut`] instead.
+    pub fn query_to_state<Q: WorldQuery>(&mut self) -> QueryState<Q, ()> {
         self.ecs.query::<Q>()
     }
 
@@ -332,6 +334,29 @@ impl WeakEntityStorage {
             .entry(*new_chunk)
             .or_default()
             .insert(entity_id);
+    }
+
+    /// This can only be called for read-only queries, see
+    /// [`Self::query_entity_mut`] for write-queries.
+    pub fn query_entity<'w, Q: WorldQuery>(
+        &'w mut self,
+        entity_id: EntityId,
+    ) -> bevy_ecs::query::ROQueryItem<'w, Q> {
+        let mut query = self.query_to_state::<Q>();
+        query.get(&self.ecs, entity_id.into()).unwrap()
+    }
+
+    pub fn query_entity_mut<'w, Q: WorldQuery>(&'w mut self, entity_id: EntityId) -> Q::Item<'w> {
+        let mut query = self.query_to_state::<Q>();
+        query.get_mut(&mut self.ecs, entity_id.into()).unwrap()
+    }
+
+    /// Returns an [`EntityMut`] for the given entity ID.
+    ///
+    /// You only need this if you're going to be adding new components to the
+    /// entity. Otherwise, use [`Self::query_entity_mut`].
+    pub fn ecs_entity_mut(&mut self, entity_id: EntityId) -> EntityMut {
+        self.ecs.get_entity_mut(entity_id.into()).unwrap()
     }
 }
 

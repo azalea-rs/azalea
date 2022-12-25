@@ -41,12 +41,11 @@ pub struct ClientboundAddEntityPacket {
 // }
 
 impl ClientboundAddEntityPacket {
-    fn as_bundle(&self) -> EntityBundle {
+    pub fn as_entity_bundle(&self) -> EntityBundle {
         EntityBundle::new(self.uuid, self.position, self.entity_type)
     }
 
-    pub fn apply_to_entity(&self, entity: &mut bevy_ecs::world::EntityMut) {
+    pub fn apply_metadata(&self, entity: &mut bevy_ecs::world::EntityMut) {
         apply_default_metadata(entity, self.entity_type);
-        entity.insert(self.as_bundle());
     }
 }
