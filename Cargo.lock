@@ -278,6 +278,7 @@ dependencies = [
  "azalea-protocol",
  "azalea-registry",
  "azalea-world",
+ "bevy_ecs",
  "log",
  "nohash-hasher",
  "once_cell",

@@ -614,15 +614,13 @@ impl Client {
 
                 let (new_pos, y_rot, x_rot) = {
                     let player_entity_id = *client.entity_id.read();
-                    let mut world_lock = client.world();
-                    // let mut player_entity = world_lock.entity_mut(player_entity_id).unwrap();
-                    let (physics, position) =
-                        world_lock
-                            .entity_storage
-                            .read()
-                            .query_entity_mut::<(&mut entity::Physics, &entity::Position)>(
-                                player_entity_id,
-                            );
+                    let mut world = client.world();
+                    // let mut player_entity = world.entity_mut(player_entity_id).unwrap();
+                    let mut entities = world.entities.write();
+                    let (mut physics, mut position) =
+                        entities.query_entity_mut::<(&mut entity::Physics, &mut entity::Position)>(
+                            player_entity_id,
+                        );
 
                     let delta_movement = physics.delta;
 
@@ -674,8 +672,13 @@ impl Client {
                         y: new_pos_y,
                         z: new_pos_z,
                     };
-                    world_lock
-                        .set_entity_pos(player_entity_id, new_pos)
+                    world
+                        .set_entity_pos_from_refs(
+                            player_entity_id,
+                            new_pos,
+                            position.into_inner(),
+                            physics.into_inner(),
+                        )
                         .expect("The player entity should always exist");
 
                     (new_pos, y_rot, x_rot)
@@ -773,12 +776,7 @@ impl Client {
                 // world, since we check that the chunk isn't currently owned
                 // by this client.
                 let shared_has_chunk = client.world.read().get_chunk(&pos).is_some();
-                let this_client_has_chunk = client
-                    .world
-                    .read()
-                    .chunk_storage
-                    .limited_get(&pos)
-                    .is_some();
+                let this_client_has_chunk = client.world.read().chunks.limited_get(&pos).is_some();
                 if shared_has_chunk && !this_client_has_chunk {
                     trace!(
                         "Skipping parsing chunk {:?} because we already know about it",
@@ -802,18 +800,22 @@ impl Client {
             }
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {:?}", p);
-                // let entity = EntityData::from(p);
                 let bundle = p.as_entity_bundle();
-                let world = client.world();
-                world.add_entity(p.id, bundle);
-                let entity = world.entity_storage.write().ecs_entity(p.id);
-                p.apply_metadata(entity);
+                let mut world = client.world.write();
+                world.add_entity(EntityId(p.id), bundle);
+                // the bundle doesn't include the default entity metadata so we add that
+                // separately
+                let mut entities = world.entities.shared.write();
+                let mut entity = entities.ecs_entity_mut(EntityId(p.id)).unwrap();
+                p.apply_metadata(&mut entity);
             }
             ClientboundGamePacket::SetEntityData(p) => {
                 debug!("Got set entity data packet {:?}", p);
-                let mut world = client.world.write();
-                if let Some(mut entity) = world.entity_mut(p.id) {
-                    entity.apply_metadata(&p.packed_items.0);
+                let world = client.world.write();
+                let mut entities = world.entities.shared.write();
+                let entity = entities.ecs_entity_mut(EntityId(p.id));
+                if let Some(mut entity) = entity {
+                    entity::metadata::apply_metadata(&mut entity, p.packed_items.0.clone());
                 } else {
                     // warn!("Server sent an entity data packet for an entity id
                     // ({}) that we don't know about", p.id);
@@ -830,8 +832,11 @@ impl Client {
             }
             ClientboundGamePacket::AddPlayer(p) => {
                 debug!("Got add player packet {:?}", p);
-                let entity = EntityData::from(p);
-                client.world.write().add_entity(p.id, entity);
+                let bundle = p.as_player_bundle();
+                let mut world = client.world.write();
+                world.add_entity(EntityId(p.id), bundle);
+                // the default metadata was already included in the bundle for
+                // us
             }
             ClientboundGamePacket::InitializeBorder(p) => {
                 debug!("Got initialize border packet {:?}", p);
@@ -860,9 +865,9 @@ impl Client {
                 debug!("Got set experience packet {:?}", p);
             }
             ClientboundGamePacket::TeleportEntity(p) => {
-                let mut world_lock = client.world.write();
-                let _ = world_lock.set_entity_pos(
-                    p.id,
+                let mut world = client.world.write();
+                let _ = world.set_entity_pos(
+                    EntityId(p.id),
                     Vec3 {
                         x: p.x,
                         y: p.y,
@@ -877,14 +882,12 @@ impl Client {
                 // debug!("Got rotate head packet {:?}", p);
             }
             ClientboundGamePacket::MoveEntityPos(p) => {
-                let mut world_lock = client.world.write();
-
-                let _ = world_lock.move_entity_with_delta(p.entity_id, &p.delta);
+                let mut world = client.world.write();
+                let _ = world.move_entity_with_delta(EntityId(p.entity_id), &p.delta);
             }
             ClientboundGamePacket::MoveEntityPosRot(p) => {
-                let mut world_lock = client.world.write();
-
-                let _ = world_lock.move_entity_with_delta(p.entity_id, &p.delta);
+                let mut world = client.world.write();
+                let _ = world.move_entity_with_delta(EntityId(p.entity_id), &p.delta);
             }
             ClientboundGamePacket::MoveEntityRot(_p) => {
                 // debug!("Got move entity rot packet {:?}", p);
@@ -972,7 +975,7 @@ impl Client {
             ClientboundGamePacket::PlayerCombatEnter(_) => {}
             ClientboundGamePacket::PlayerCombatKill(p) => {
                 debug!("Got player kill packet {:?}", p);
-                if *client.entity_id.read() == p.player_id {
+                if *client.entity_id.read() == EntityId(p.player_id) {
                     // we can't define a variable here with client.dead.lock()
                     // because of https://github.com/rust-lang/rust/issues/57478
                     if !*client.dead.lock() {
@@ -1084,6 +1087,16 @@ impl Client {
     //         .expect("Player entity should be in the given world");
     //     let entity_ptr = unsafe { entity_data.as_ptr() };
     //     Entity::new(world, entity_id, entity_ptr)
+    // }
+
+    // pub fn query_entity<'w, Q: bevy_ecs::query::WorldQuery>(
+    //     &'w self,
+    // ) -> bevy_ecs::query::ROQueryItem<'w, Q> {
+    //     let e = parking_lot::RwLockReadGuard::map(
+    //         self.world().entity_storage.read(),
+    //         |entity_storage| entity_storage.query_entity::<'w,
+    // Q>(*self.entity_id.read()),     );
+    //     e
     // }
 
     /// Returns whether we have a received the login packet yet.

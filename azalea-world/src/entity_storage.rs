@@ -355,8 +355,8 @@ impl WeakEntityStorage {
     ///
     /// You only need this if you're going to be adding new components to the
     /// entity. Otherwise, use [`Self::query_entity_mut`].
-    pub fn ecs_entity_mut(&mut self, entity_id: EntityId) -> EntityMut {
-        self.ecs.get_entity_mut(entity_id.into()).unwrap()
+    pub fn ecs_entity_mut(&mut self, entity_id: EntityId) -> Option<EntityMut> {
+        self.ecs.get_entity_mut(entity_id.into())
     }
 }
 

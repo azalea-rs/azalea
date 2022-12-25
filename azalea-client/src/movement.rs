@@ -2,8 +2,7 @@ use std::backtrace::Backtrace;
 
 use crate::Client;
 use azalea_core::Vec3;
-use azalea_physics::collision::{MovableEntity, MoverType};
-use azalea_physics::HasPhysics;
+use azalea_physics::collision::MoverType;
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
@@ -11,7 +10,7 @@ use azalea_protocol::packets::game::{
     serverbound_move_player_rot_packet::ServerboundMovePlayerRotPacket,
     serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
 };
-use azalea_world::MoveEntityError;
+use azalea_world::{entity, MoveEntityError};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -35,22 +34,29 @@ impl From<MoveEntityError> for MovePlayerError {
 impl Client {
     /// This gets called automatically every tick.
     pub(crate) async fn send_position(&mut self) -> Result<(), MovePlayerError> {
+        self.send_sprinting_if_needed().await?;
+
         let packet = {
-            self.send_sprinting_if_needed().await?;
             // TODO: the camera being able to be controlled by other entities isn't
             // implemented yet if !self.is_controlled_camera() { return };
 
             let mut physics_state = self.physics_state.lock();
 
-            let player_entity = self.entity();
-            let player_pos = player_entity.pos();
-            let player_old_pos = player_entity.last_pos;
+            // i don't like this
+            let entity_storage_lock = self.world().entities.clone();
+            let mut entity_storage = entity_storage_lock.write();
+            let (player_pos, mut physics) = entity_storage
+                .query_entity_mut::<(&entity::Position, &mut entity::Physics)>(
+                    *self.entity_id.read(),
+                );
+
+            let player_old_pos = physics.last_pos;
 
             let x_delta = player_pos.x - player_old_pos.x;
             let y_delta = player_pos.y - player_old_pos.y;
             let z_delta = player_pos.z - player_old_pos.z;
-            let y_rot_delta = (player_entity.y_rot - player_entity.y_rot_last) as f64;
-            let x_rot_delta = (player_entity.x_rot - player_entity.x_rot_last) as f64;
+            let y_rot_delta = (physics.y_rot - physics.y_rot_last) as f64;
+            let x_rot_delta = (physics.x_rot - physics.x_rot_last) as f64;
 
             physics_state.position_remainder += 1;
 
@@ -70,9 +76,9 @@ impl Client {
                         x: player_pos.x,
                         y: player_pos.y,
                         z: player_pos.z,
-                        x_rot: player_entity.x_rot,
-                        y_rot: player_entity.y_rot,
-                        on_ground: player_entity.on_ground,
+                        x_rot: physics.x_rot,
+                        y_rot: physics.y_rot,
+                        on_ground: physics.on_ground,
                     }
                     .get(),
                 )
@@ -82,23 +88,23 @@ impl Client {
                         x: player_pos.x,
                         y: player_pos.y,
                         z: player_pos.z,
-                        on_ground: player_entity.on_ground,
+                        on_ground: physics.on_ground,
                     }
                     .get(),
                 )
             } else if sending_rotation {
                 Some(
                     ServerboundMovePlayerRotPacket {
-                        x_rot: player_entity.x_rot,
-                        y_rot: player_entity.y_rot,
-                        on_ground: player_entity.on_ground,
+                        x_rot: physics.x_rot,
+                        y_rot: physics.y_rot,
+                        on_ground: physics.on_ground,
                     }
                     .get(),
                 )
-            } else if player_entity.last_on_ground != player_entity.on_ground {
+            } else if physics.last_on_ground != physics.on_ground {
                 Some(
                     ServerboundMovePlayerStatusOnlyPacket {
-                        on_ground: player_entity.on_ground,
+                        on_ground: physics.on_ground,
                     }
                     .get(),
                 )
@@ -106,19 +112,16 @@ impl Client {
                 None
             };
 
-            drop(player_entity);
-            let mut player_entity = self.entity();
-
             if sending_position {
-                player_entity.last_pos = *player_entity.pos();
+                physics.last_pos = **player_pos;
                 physics_state.position_remainder = 0;
             }
             if sending_rotation {
-                player_entity.y_rot_last = player_entity.y_rot;
-                player_entity.x_rot_last = player_entity.x_rot;
+                physics.y_rot_last = physics.y_rot;
+                physics.x_rot_last = physics.x_rot;
             }
 
-            player_entity.last_on_ground = player_entity.on_ground;
+            physics.last_on_ground = physics.on_ground;
             // minecraft checks for autojump here, but also autojump is bad so
 
             packet
@@ -140,10 +143,10 @@ impl Client {
             } else {
                 azalea_protocol::packets::game::serverbound_player_command_packet::Action::StopSprinting
             };
-            let player_entity_id = self.entity().id;
+            let player_entity_id = *self.entity_id.read();
             self.write_packet(
                 ServerboundPlayerCommandPacket {
-                    id: player_entity_id,
+                    id: *player_entity_id,
                     action: sprinting_action,
                     data: 0,
                 }

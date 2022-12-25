@@ -1,16 +1,12 @@
 use crate::{
-    entity::{move_unchecked, EcsEntityId, EntityId, Physics, Position},
+    entity::{move_unchecked, EntityId, Physics, Position},
     Chunk, MoveEntityError, PartialChunkStorage, PartialEntityStorage, WeakChunkStorage,
     WeakEntityStorage,
 };
 use azalea_block::BlockState;
 use azalea_buf::BufReadError;
 use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
-use bevy_ecs::{
-    query::{QueryEntityError, QueryState, ReadOnlyWorldQuery, WorldQuery},
-    system::Query,
-    world::EntityMut,
-};
+use bevy_ecs::query::{QueryState, WorldQuery};
 use parking_lot::RwLock;
 use std::{backtrace::Backtrace, fmt::Debug};
 use std::{fmt::Formatter, io::Cursor, sync::Arc};
@@ -29,16 +25,16 @@ pub struct PartialWorld {
     // dropped, we don't need to do anything with it
     pub shared: Arc<WeakWorld>,
 
-    pub chunk_storage: PartialChunkStorage,
-    pub entity_storage: PartialEntityStorage,
+    pub chunks: PartialChunkStorage,
+    pub entities: PartialEntityStorage,
 }
 
 /// A world where the chunks are stored as weak pointers. This is used for
 /// shared worlds.
 #[derive(Default, Debug)]
 pub struct WeakWorld {
-    pub chunk_storage: Arc<RwLock<WeakChunkStorage>>,
-    pub entity_storage: Arc<RwLock<WeakEntityStorage>>,
+    pub chunks: Arc<RwLock<WeakChunkStorage>>,
+    pub entities: Arc<RwLock<WeakEntityStorage>>,
 }
 
 impl PartialWorld {
@@ -49,11 +45,8 @@ impl PartialWorld {
     ) -> Self {
         PartialWorld {
             shared: shared.clone(),
-            chunk_storage: PartialChunkStorage::new(chunk_radius, shared.chunk_storage.clone()),
-            entity_storage: PartialEntityStorage::new(
-                shared.entity_storage.clone(),
-                owner_entity_id,
-            ),
+            chunks: PartialChunkStorage::new(chunk_radius, shared.chunks.clone()),
+            entities: PartialEntityStorage::new(shared.entities.clone(), owner_entity_id),
         }
     }
 
@@ -62,25 +55,25 @@ impl PartialWorld {
         pos: &ChunkPos,
         data: &mut Cursor<&[u8]>,
     ) -> Result<(), BufReadError> {
-        self.chunk_storage.replace_with_packet_data(pos, data)
+        self.chunks.replace_with_packet_data(pos, data)
     }
 
     pub fn get_chunk(&self, pos: &ChunkPos) -> Option<Arc<RwLock<Chunk>>> {
-        self.chunk_storage.get(pos)
+        self.chunks.get(pos)
     }
 
     pub fn set_chunk(&mut self, pos: &ChunkPos, chunk: Option<Chunk>) -> Result<(), BufReadError> {
-        self.chunk_storage
+        self.chunks
             .set(pos, chunk.map(|c| Arc::new(RwLock::new(c))));
         Ok(())
     }
 
     pub fn update_view_center(&mut self, pos: &ChunkPos) {
-        self.chunk_storage.view_center = *pos;
+        self.chunks.view_center = *pos;
     }
 
     pub fn set_block_state(&mut self, pos: &BlockPos, state: BlockState) -> Option<BlockState> {
-        self.chunk_storage.set_block_state(pos, state)
+        self.chunks.set_block_state(pos, state)
     }
 
     /// Whether we're allowed to update the entity with the given ID.
@@ -89,8 +82,7 @@ impl PartialWorld {
     /// cause the update tracker to get out of sync.
     fn maybe_update_entity(&mut self, id: EntityId) -> bool {
         // no entity for you (we're processing this entity somewhere else)
-        if Some(id) != self.entity_storage.owner_entity_id && !self.entity_storage.maybe_update(id)
-        {
+        if Some(id) != self.entities.owner_entity_id && !self.entities.maybe_update(id) {
             false
         } else {
             true
@@ -110,7 +102,7 @@ impl PartialWorld {
     }
 
     pub fn add_entity(&mut self, id: EntityId, bundle: impl bevy_ecs::prelude::Bundle) {
-        self.entity_storage.insert(id, bundle);
+        self.entities.insert(id, bundle);
     }
 
     pub fn set_entity_pos(
@@ -132,7 +124,7 @@ impl PartialWorld {
     ) -> Result<(), MoveEntityError> {
         let mut query = self.shared.query_entities::<&Position>();
         let pos = **query
-            .get(&self.shared.entity_storage.read().ecs, entity_id.into())
+            .get(&self.shared.entities.read().ecs, entity_id.into())
             .map_err(|_| MoveEntityError::EntityDoesNotExist(Backtrace::capture()))?;
 
         let new_pos = pos.with_delta(delta);
@@ -144,28 +136,28 @@ impl PartialWorld {
 impl WeakWorld {
     pub fn new(height: u32, min_y: i32) -> Self {
         WeakWorld {
-            chunk_storage: Arc::new(RwLock::new(WeakChunkStorage::new(height, min_y))),
-            entity_storage: Arc::new(RwLock::new(WeakEntityStorage::new())),
+            chunks: Arc::new(RwLock::new(WeakChunkStorage::new(height, min_y))),
+            entities: Arc::new(RwLock::new(WeakEntityStorage::new())),
         }
     }
 
     /// Read the total height of the world. You can add this to [`Self::min_y`]
     /// to get the highest possible y coordinate a block can be placed at.
     pub fn height(&self) -> u32 {
-        self.chunk_storage.read().height
+        self.chunks.read().height
     }
 
     /// Get the lowest possible y coordinate a block can be placed at.
     pub fn min_y(&self) -> i32 {
-        self.chunk_storage.read().min_y
+        self.chunks.read().min_y
     }
 
     pub fn id_by_uuid(&self, uuid: &Uuid) -> Option<EntityId> {
-        self.entity_storage.read().id_by_uuid(uuid).copied()
+        self.entities.read().id_by_uuid(uuid).copied()
     }
 
     pub fn query_entities<Q: WorldQuery>(&self) -> QueryState<Q, ()> {
-        self.entity_storage.write().query_to_state::<Q>()
+        self.entities.write().query_to_state::<Q>()
     }
 
     /// Set an entity's position in the world.
@@ -178,7 +170,7 @@ impl WeakWorld {
         entity_id: EntityId,
         new_pos: Vec3,
     ) -> Result<(), MoveEntityError> {
-        let mut entity_storage = self.entity_storage.write();
+        let mut entity_storage = self.entities.write();
         let (pos, physics) =
             entity_storage.query_entity_mut::<(&mut Position, &mut Physics)>(entity_id);
 
@@ -199,7 +191,7 @@ impl WeakWorld {
         // this is fine because we update the chunk below
         unsafe { move_unchecked(pos, physics, new_pos) };
         if old_chunk != new_chunk {
-            self.entity_storage
+            self.entities
                 .write()
                 .update_entity_chunk(entity_id, &old_chunk, &new_chunk);
         }
@@ -207,19 +199,19 @@ impl WeakWorld {
     }
 
     pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
-        self.chunk_storage.read().get_block_state(pos)
+        self.chunks.read().get_block_state(pos)
     }
 
     pub fn get_chunk(&self, pos: &ChunkPos) -> Option<Arc<RwLock<Chunk>>> {
-        self.chunk_storage.read().get(pos)
+        self.chunks.read().get(pos)
     }
 }
 
 impl Debug for PartialWorld {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("World")
-            .field("chunk_storage", &self.chunk_storage)
-            .field("entity_storage", &self.entity_storage)
+            .field("chunk_storage", &self.chunks)
+            .field("entity_storage", &self.entities)
             .field("shared", &self.shared)
             .finish()
     }
@@ -231,11 +223,11 @@ impl Default for PartialWorld {
         let entity_storage = PartialEntityStorage::default();
         Self {
             shared: Arc::new(WeakWorld {
-                chunk_storage: chunk_storage.shared.clone(),
-                entity_storage: entity_storage.shared.clone(),
+                chunks: chunk_storage.shared.clone(),
+                entities: entity_storage.shared.clone(),
             }),
-            chunk_storage,
-            entity_storage,
+            chunks: chunk_storage,
+            entities: entity_storage,
         }
     }
 }

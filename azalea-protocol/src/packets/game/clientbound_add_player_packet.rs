@@ -18,9 +18,9 @@ pub struct ClientboundAddPlayerPacket {
 }
 
 impl ClientboundAddPlayerPacket {
-    fn as_bundle(p: &ClientboundAddPlayerPacket) -> PlayerBundle {
+    pub fn as_player_bundle(&self) -> PlayerBundle {
         PlayerBundle {
-            entity: EntityBundle::new(p.uuid, p.position, EntityKind::Player),
+            entity: EntityBundle::new(self.uuid, self.position, EntityKind::Player),
             metadata: PlayerMetadataBundle::default(),
         }
     }
