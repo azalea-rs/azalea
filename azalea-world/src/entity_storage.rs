@@ -63,7 +63,7 @@ pub struct PartialEntityStorage {
 #[derive(Default)]
 pub struct WeakEntityStorage {
     /// The ECS world that actually contains the entities.
-    pub(crate) ecs: bevy_ecs::world::World,
+    pub ecs: bevy_ecs::world::World,
 
     /// The number of `PartialWorld`s that have this entity loaded.
     /// (this is reference counting)

@@ -36,6 +36,10 @@ use azalea_world::{
     },
     PartialWorld, WeakWorld, WeakWorldContainer,
 };
+use bevy_ecs::{
+    schedule::{Schedule, StageLabel, SystemStage},
+    system::{Query, SystemParam, SystemState},
+};
 use log::{debug, error, info, trace, warn};
 use parking_lot::{Mutex, RwLock};
 use std::{
@@ -613,12 +617,12 @@ impl Client {
                 debug!("Got player position packet {:?}", p);
 
                 let (new_pos, y_rot, x_rot) = {
-                    let player_entity_id = *client.entity_id.read();
-                    let mut world = client.world();
+                    let player_entity_id = *client.entity();
+                    let world = client.world();
                     // let mut player_entity = world.entity_mut(player_entity_id).unwrap();
                     let mut entities = world.entities.write();
-                    let (mut physics, mut position) =
-                        entities.query_entity_mut::<(&mut entity::Physics, &mut entity::Position)>(
+                    let (mut physics, position) = entities
+                        .query_entity_mut::<(&mut entity::Physics, &mut entity::Position)>(
                             player_entity_id,
                         );
 
@@ -975,7 +979,7 @@ impl Client {
             ClientboundGamePacket::PlayerCombatEnter(_) => {}
             ClientboundGamePacket::PlayerCombatKill(p) => {
                 debug!("Got player kill packet {:?}", p);
-                if *client.entity_id.read() == EntityId(p.player_id) {
+                if client.entity() == EntityId(p.player_id) {
                     // we can't define a variable here with client.dead.lock()
                     // because of https://github.com/rust-lang/rust/issues/57478
                     if !*client.dead.lock() {
@@ -1029,40 +1033,40 @@ impl Client {
         // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
         game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
         loop {
+            if !client.in_loaded_chunk() {
+                continue;
+            }
             game_tick_interval.tick().await;
-            Self::game_tick(&mut client, &tx).await;
+
+            tx.send(Event::Tick)
+                .await
+                .expect("Sending tick event should never fail");
+            // schedule.run_once(&mut client.world().entities.read().ecs);
+            let world = client.world();
+            let mut ecs = &mut world.entities.write().ecs;
+            client.send_position(
+                SystemState::<
+                    Query<(
+                        &entity::Position,
+                        &mut entity::Physics,
+                        &entity::metadata::Sprinting,
+                    )>,
+                >::new(&mut ecs)
+                .get_mut(&mut ecs),
+            );
         }
     }
 
-    /// Runs every 50 milliseconds.
-    async fn game_tick(client: &mut Client, tx: &Sender<Event>) {
-        // return if there's no chunk at the player's position
+    /// Whether our player is in a loaded chunk
+    fn in_loaded_chunk(&self) -> bool {
+        let world = self.world();
+        let entities = world.entities.read();
 
-        {
-            let world_lock = client.world();
-            let player_entity_id = *client.entity_id.read();
-            let player_entity = world_lock.entity(player_entity_id);
-            let Some(player_entity) = player_entity else {
-                return;
-            };
-            let player_chunk_pos: ChunkPos = player_entity.pos().into();
-            if world_lock.get_chunk(&player_chunk_pos).is_none() {
-                return;
-            }
-        }
+        let player_entity_id = self.entity();
+        let position = entities.query_entity::<&entity::Position>(player_entity_id);
 
-        tx.send(Event::Tick)
-            .await
-            .expect("Sending tick event should never fail");
-
-        // TODO: if we're a passenger, send the required packets
-
-        if let Err(e) = client.send_position().await {
-            warn!("Error sending position: {:?}", e);
-        }
-        client.ai_step();
-
-        // TODO: minecraft does ambient sounds here
+        let player_chunk_pos = ChunkPos::from(position);
+        world.get_chunk(&player_chunk_pos).is_some()
     }
 
     /// Get a reference to our (potentially shared) world.
@@ -1075,29 +1079,17 @@ impl Client {
         self.world.read().shared.clone()
     }
 
-    // /// Returns the entity associated to the player.
-    // pub fn entity(&self) -> Entity<Arc<WeakWorld>> {
-    //     let entity_id = *self.entity_id.read();
+    pub fn entity(&self) -> EntityId {
+        *self.entity_id.read()
+    }
 
-    //     let world = self.world();
-    //     let entity_data = world
-    //         .entity_storage
-    //         .read()
-    //         .get_by_id(entity_id)
-    //         .expect("Player entity should be in the given world");
-    //     let entity_ptr = unsafe { entity_data.as_ptr() };
-    //     Entity::new(world, entity_id, entity_ptr)
-    // }
-
-    // pub fn query_entity<'w, Q: bevy_ecs::query::WorldQuery>(
-    //     &'w self,
-    // ) -> bevy_ecs::query::ROQueryItem<'w, Q> {
-    //     let e = parking_lot::RwLockReadGuard::map(
-    //         self.world().entity_storage.read(),
-    //         |entity_storage| entity_storage.query_entity::<'w,
-    // Q>(*self.entity_id.read()),     );
-    //     e
-    // }
+    pub fn query<'w, 's, Param: SystemParam>(
+        &'w self,
+    ) -> <Param::Fetch as bevy_ecs::system::SystemParamFetch<'w, 's>>::Item {
+        let world = self.world();
+        let mut ecs = &mut world.entities.write().ecs;
+        SystemState::<Param>::new(ecs).get_mut(ecs)
+    }
 
     /// Returns whether we have a received the login packet yet.
     pub fn logged_in(&self) -> bool {
@@ -1142,12 +1134,6 @@ impl Client {
         }
 
         Ok(())
-    }
-
-    /// Get your player entity's metadata. You can use this to get your health,
-    /// xp score, and other useful information.
-    pub fn metadata(&self) -> metadata::Player {
-        self.entity().metadata.clone().into_player().unwrap()
     }
 }
 

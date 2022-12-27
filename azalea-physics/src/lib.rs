@@ -82,7 +82,7 @@ fn travel(
 
 /// applies air resistance, calls self.travel(), and some other random
 /// stuff.
-fn ai_step(
+pub fn ai_step(
     entity_id: EntityId,
     world: &WeakWorld,
     physics: &mut entity::Physics,

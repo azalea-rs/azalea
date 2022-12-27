@@ -1,8 +1,8 @@
 use std::backtrace::Backtrace;
 
-use crate::Client;
+use crate::{Client, PhysicsState};
 use azalea_core::Vec3;
-use azalea_physics::collision::MoverType;
+use azalea_physics::collision::{move_colliding, MoverType};
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
@@ -11,6 +11,7 @@ use azalea_protocol::packets::game::{
     serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
 };
 use azalea_world::{entity, MoveEntityError};
+use bevy_ecs::system::Query;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -33,14 +34,25 @@ impl From<MoveEntityError> for MovePlayerError {
 
 impl Client {
     /// This gets called automatically every tick.
-    pub(crate) async fn send_position(&mut self) -> Result<(), MovePlayerError> {
-        self.send_sprinting_if_needed().await?;
+    pub(crate) fn send_position(
+        &mut self,
+        mut query: Query<(
+            &entity::Position,
+            &mut entity::Physics,
+            &entity::metadata::Sprinting,
+        )>,
+    ) -> Result<(), MovePlayerError> {
+        let (player_pos, mut physics, sprinting) = query
+            .get_mut((*self.entity_id.read()).into())
+            .expect("Player should always be in world");
+
+        let mut physics_state = self.physics_state.lock();
+
+        self.send_sprinting_if_needed(sprinting, &mut physics_state)?;
 
         let packet = {
             // TODO: the camera being able to be controlled by other entities isn't
             // implemented yet if !self.is_controlled_camera() { return };
-
-            let mut physics_state = self.physics_state.lock();
 
             // i don't like this
             let entity_storage_lock = self.world().entities.clone();
@@ -128,32 +140,36 @@ impl Client {
         };
 
         if let Some(packet) = packet {
-            self.write_packet(packet).await?;
+            tokio::spawn(self.write_packet(packet));
         }
 
         Ok(())
     }
 
-    async fn send_sprinting_if_needed(&mut self) -> Result<(), MovePlayerError> {
-        let is_sprinting = self.entity().metadata.sprinting;
-        let was_sprinting = self.physics_state.lock().was_sprinting;
-        if is_sprinting != was_sprinting {
-            let sprinting_action = if is_sprinting {
+    fn send_sprinting_if_needed(
+        &mut self,
+        sprinting: &entity::metadata::Sprinting,
+        physics_state: &mut PhysicsState,
+    ) -> Result<(), MovePlayerError> {
+        let was_sprinting = physics_state.was_sprinting;
+        if **sprinting != was_sprinting {
+            let sprinting_action = if **sprinting {
                 azalea_protocol::packets::game::serverbound_player_command_packet::Action::StartSprinting
             } else {
                 azalea_protocol::packets::game::serverbound_player_command_packet::Action::StopSprinting
             };
             let player_entity_id = *self.entity_id.read();
-            self.write_packet(
-                ServerboundPlayerCommandPacket {
-                    id: *player_entity_id,
-                    action: sprinting_action,
-                    data: 0,
-                }
-                .get(),
-            )
-            .await?;
-            self.physics_state.lock().was_sprinting = is_sprinting;
+            tokio::spawn(
+                self.write_packet(
+                    ServerboundPlayerCommandPacket {
+                        id: *player_entity_id,
+                        action: sprinting_action,
+                        data: 0,
+                    }
+                    .get(),
+                ),
+            );
+            physics_state.was_sprinting = **sprinting;
         }
 
         Ok(())
@@ -170,36 +186,27 @@ impl Client {
         Ok(())
     }
 
-    pub async fn move_entity(&mut self, movement: &Vec3) -> Result<(), MovePlayerError> {
-        let mut world_lock = self.world.write();
-        let player_entity_id = *self.entity_id.read();
-
-        let mut entity = world_lock
-            .entity_mut(player_entity_id)
-            .ok_or(MovePlayerError::PlayerNotInWorld(Backtrace::capture()))?;
-        log::trace!(
-            "move entity bounding box: {} {:?}",
-            entity.id,
-            entity.bounding_box
-        );
-
-        entity.move_colliding(&MoverType::Own, movement)?;
-
-        Ok(())
-    }
-
     /// Makes the bot do one physics tick. Note that this is already handled
     /// automatically by the client.
-    pub fn ai_step(&mut self) {
+    pub fn ai_step(
+        &mut self,
+        query: Query<(
+            &mut entity::Physics,
+            &mut entity::Position,
+            &mut entity::metadata::Sprinting,
+            &entity::Attributes,
+        )>,
+    ) {
         self.tick_controls(None);
+
+        let (mut physics, mut position, mut sprinting, attributes) =
+            query.get_mut((*self.entity_id.read()).into()).unwrap();
 
         // server ai step
         {
-            let mut player_entity = self.entity();
-
             let physics_state = self.physics_state.lock();
-            player_entity.xxa = physics_state.left_impulse;
-            player_entity.zza = physics_state.forward_impulse;
+            physics.xxa = physics_state.left_impulse;
+            physics.zza = physics_state.forward_impulse;
         }
 
         // TODO: food data and abilities
@@ -225,8 +232,14 @@ impl Client {
             self.set_sprinting(true);
         }
 
-        let mut player_entity = self.entity();
-        player_entity.ai_step();
+        azalea_physics::ai_step(
+            *self.entity_id.read(),
+            &self.world(),
+            &mut physics,
+            &mut position,
+            &sprinting,
+            attributes,
+        );
     }
 
     /// Update the impulse from self.move_direction. The multipler is used for
@@ -345,6 +358,7 @@ impl Client {
     /// recommended.
     pub fn set_jumping(&mut self, jumping: bool) {
         let mut player_entity = self.entity();
+        let physics = self.query::<Query<&entity::Physics>>();
         player_entity.jumping = jumping;
     }
 
