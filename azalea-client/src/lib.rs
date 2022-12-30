@@ -14,13 +14,14 @@ mod account;
 mod chat;
 mod client;
 mod get_mc_dir;
+mod local_player;
 mod movement;
 pub mod ping;
 mod player;
 mod plugins;
 
 pub use account::Account;
-pub use client::{ChatPacket, Client, ClientInformation, Event, JoinError, PhysicsState};
+pub use client::{ChatPacket, ClientInformation, Event, JoinError, LocalPlayer, PhysicsState};
 pub use movement::{SprintDirection, WalkDirection};
 pub use player::PlayerInfo;
 pub use plugins::{Plugin, PluginState, PluginStates, Plugins};

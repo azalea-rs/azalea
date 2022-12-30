@@ -1,13 +1,14 @@
 use crate::{
-    entity::{move_unchecked, EntityId, Physics, Position},
-    Chunk, MoveEntityError, PartialChunkStorage, PartialEntityStorage, WeakChunkStorage,
-    WeakEntityStorage,
+    entity::{self, move_unchecked, EntityId},
+    Chunk, MoveEntityError, PartialChunkStorage, PartialEntityInfos, WeakChunkStorage,
+    WeakEntityInfos,
 };
 use azalea_block::BlockState;
 use azalea_buf::BufReadError;
 use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
 use bevy_ecs::query::{QueryState, WorldQuery};
-use parking_lot::RwLock;
+use log::warn;
+use parking_lot::{Mutex, RwLock};
 use std::{backtrace::Backtrace, fmt::Debug};
 use std::{fmt::Formatter, io::Cursor, sync::Arc};
 use uuid::Uuid;
@@ -26,15 +27,7 @@ pub struct PartialWorld {
     pub shared: Arc<WeakWorld>,
 
     pub chunks: PartialChunkStorage,
-    pub entities: PartialEntityStorage,
-}
-
-/// A world where the chunks are stored as weak pointers. This is used for
-/// shared worlds.
-#[derive(Default, Debug)]
-pub struct WeakWorld {
-    pub chunks: Arc<RwLock<WeakChunkStorage>>,
-    pub entities: Arc<RwLock<WeakEntityStorage>>,
+    pub entity_infos: PartialEntityInfos,
 }
 
 impl PartialWorld {
@@ -46,7 +39,7 @@ impl PartialWorld {
         PartialWorld {
             shared: shared.clone(),
             chunks: PartialChunkStorage::new(chunk_radius, shared.chunks.clone()),
-            entities: PartialEntityStorage::new(shared.entities.clone(), owner_entity_id),
+            entity_infos: PartialEntityInfos::new(shared.entity_infos.clone(), owner_entity_id),
         }
     }
 
@@ -82,7 +75,7 @@ impl PartialWorld {
     /// cause the update tracker to get out of sync.
     fn maybe_update_entity(&mut self, id: EntityId) -> bool {
         // no entity for you (we're processing this entity somewhere else)
-        if Some(id) != self.entities.owner_entity_id && !self.entities.maybe_update(id) {
+        if Some(id) != self.entity_infos.owner_entity_id && !self.entity_infos.maybe_update(id) {
             false
         } else {
             true
@@ -101,17 +94,19 @@ impl PartialWorld {
         }
     }
 
-    pub fn add_entity(&mut self, id: EntityId, bundle: impl bevy_ecs::prelude::Bundle) {
-        self.entities.insert(id, bundle);
-    }
-
     pub fn set_entity_pos(
         &mut self,
         entity_id: EntityId,
         new_pos: Vec3,
+        pos: &mut entity::Position,
+        physics: &mut entity::Physics,
     ) -> Result<(), MoveEntityError> {
         if self.maybe_update_entity(entity_id) {
-            self.shared.set_entity_pos(entity_id, new_pos)
+            self.shared
+                .entity_infos
+                .write()
+                .set_entity_pos(entity_id, new_pos, pos, physics);
+            Ok(())
         } else {
             Err(MoveEntityError::EntityDoesNotExist(Backtrace::capture()))
         }
@@ -122,22 +117,125 @@ impl PartialWorld {
         entity_id: EntityId,
         delta: &PositionDelta8,
     ) -> Result<(), MoveEntityError> {
-        let mut query = self.shared.query_entities::<&Position>();
-        let pos = **query
-            .get(&self.shared.entities.read().ecs, entity_id.into())
+        let global_ecs_lock = self.shared.global_ecs.clone();
+        let mut ecs = global_ecs_lock.lock();
+        let mut query = ecs.query::<(&mut entity::Position, &mut entity::Physics)>();
+        let (mut pos, mut physics) = query
+            .get_mut(&mut ecs, entity_id.into())
             .map_err(|_| MoveEntityError::EntityDoesNotExist(Backtrace::capture()))?;
 
         let new_pos = pos.with_delta(delta);
 
-        self.set_entity_pos(entity_id, new_pos)
+        self.set_entity_pos(entity_id, new_pos, &mut pos, &mut physics)
+    }
+
+    /// Add an entity to the storage.
+    #[inline]
+    pub fn add_entity(&mut self, id: EntityId, bundle: impl bevy_ecs::bundle::Bundle) {
+        // if the entity is already in the shared world, we don't need to do
+        // anything
+        if self.shared.contains_entity(id) {
+            return;
+        }
+
+        let mut ecs = self.shared.global_ecs.lock();
+        entity::new_entity(&mut ecs, id, bundle);
+
+        let mut query = ecs.query::<(&entity::EntityUuid, &entity::Position)>();
+        let (&uuid, &pos) = query.get(&mut ecs, id.into()).unwrap();
+
+        let partial_entity_infos = &mut self.entity_infos;
+        let mut shared_entity_infos = self.shared.entity_infos.write();
+
+        // add the entity to the indexes
+        shared_entity_infos
+            .ids_by_chunk
+            .entry(ChunkPos::from(&pos))
+            .or_default()
+            .insert(id);
+        shared_entity_infos.id_by_uuid.insert(*uuid, id);
+        partial_entity_infos.loaded_entity_ids.insert(id);
+        // set our updates_received to the shared updates_received, unless it's
+        // not there in which case set both to 1
+        if let Some(&shared_updates_received) = shared_entity_infos.updates_received.get(&id) {
+            // 0 means we're never tracking updates for this entity
+            if shared_updates_received != 0 || Some(id) == partial_entity_infos.owner_entity_id {
+                partial_entity_infos.updates_received.insert(id, 1);
+            }
+        } else {
+            shared_entity_infos.updates_received.insert(id, 1);
+            partial_entity_infos.updates_received.insert(id, 1);
+        }
+    }
+
+    /// Remove an entity from this storage by its id. It will only be removed
+    /// from the shared storage if there are no other references to it.
+    #[inline]
+    pub fn remove_entity_by_id(&mut self, id: EntityId) {
+        let partial_entity_infos = &mut self.entity_infos;
+        let mut shared_entity_infos = self.shared.entity_infos.write();
+
+        if partial_entity_infos.loaded_entity_ids.remove(&id) {
+            let mut ecs = self.shared.global_ecs.lock();
+
+            let mut query = ecs.query::<(&entity::EntityUuid, &entity::Position)>();
+            let (uuid, pos) = query.get(&mut ecs, id.into()).expect(
+                "If the entity was being loaded by this storage, it must be in the shared
+                    storage.",
+            );
+            let chunk = ChunkPos::from(pos);
+            let uuid = **uuid;
+
+            // TODO: is this line actually necessary? test if it doesn't immediately
+            // panic/deadlock without this line
+            drop(query);
+
+            partial_entity_infos.updates_received.remove(&id);
+            shared_entity_infos.remove_entity_if_unused(id, uuid, chunk);
+        } else {
+            warn!("Tried to remove entity with id {id} but it was not found.")
+        }
+    }
+
+    /// Clear all entities in a chunk. This will not clear them from the
+    /// shared storage, unless there are no other references to them.
+    pub fn clear_entities_in_chunk(&mut self, chunk: &ChunkPos) {
+        let partial_entity_infos = &mut self.entity_infos;
+        let mut shared_entity_infos = self.shared.entity_infos.write();
+
+        let mut ecs = self.shared.global_ecs.lock();
+
+        let mut query = ecs.query::<&entity::EntityUuid>();
+        if let Some(entities) = shared_entity_infos.ids_by_chunk.get(chunk).cloned() {
+            for &id in &entities {
+                if partial_entity_infos.loaded_entity_ids.remove(&id) {
+                    let uuid = **query.get(&ecs, id.into()).unwrap();
+                    // maybe remove it from the storage
+                    shared_entity_infos.remove_entity_if_unused(id, uuid, *chunk);
+                }
+            }
+        }
     }
 }
 
+/// A world where the chunks are stored as weak pointers. This is used for
+/// shared worlds.
+#[derive(Default, Debug)]
+pub struct WeakWorld {
+    pub chunks: Arc<RwLock<WeakChunkStorage>>,
+    pub(crate) entity_infos: Arc<RwLock<WeakEntityInfos>>,
+
+    /// A reference to the ECS world that contains all of the entities in all of
+    /// the worlds.
+    pub(crate) global_ecs: Arc<Mutex<bevy_ecs::world::World>>,
+}
+
 impl WeakWorld {
-    pub fn new(height: u32, min_y: i32) -> Self {
+    pub fn new(height: u32, min_y: i32, global_ecs: Arc<Mutex<bevy_ecs::world::World>>) -> Self {
         WeakWorld {
             chunks: Arc::new(RwLock::new(WeakChunkStorage::new(height, min_y))),
-            entities: Arc::new(RwLock::new(WeakEntityStorage::new())),
+            entity_infos: Arc::new(RwLock::new(WeakEntityInfos::new())),
+            global_ecs,
         }
     }
 
@@ -152,50 +250,12 @@ impl WeakWorld {
         self.chunks.read().min_y
     }
 
+    pub fn contains_entity(&self, id: EntityId) -> bool {
+        self.entity_infos.read().contains_entity(id)
+    }
+
     pub fn id_by_uuid(&self, uuid: &Uuid) -> Option<EntityId> {
-        self.entities.read().id_by_uuid(uuid).copied()
-    }
-
-    pub fn query_entities<Q: WorldQuery>(&self) -> QueryState<Q, ()> {
-        self.entities.write().query_to_state::<Q>()
-    }
-
-    /// Set an entity's position in the world.
-    ///
-    /// Note that this will access the [`Position`] and [`Physics`] components,
-    /// so if you already references to those components, you should use
-    /// [`Self::set_entity_pos_from_refs`] instead.
-    pub fn set_entity_pos(
-        &self,
-        entity_id: EntityId,
-        new_pos: Vec3,
-    ) -> Result<(), MoveEntityError> {
-        let mut entity_storage = self.entities.write();
-        let (pos, physics) =
-            entity_storage.query_entity_mut::<(&mut Position, &mut Physics)>(entity_id);
-
-        self.set_entity_pos_from_refs(entity_id, new_pos, pos.into_inner(), physics.into_inner())
-    }
-
-    /// Set an entity's position in the world when we already have references
-    /// to the [`Position`] and [`Physics`] components.
-    pub fn set_entity_pos_from_refs(
-        &self,
-        entity_id: EntityId,
-        new_pos: Vec3,
-        pos: &mut Position,
-        physics: &mut Physics,
-    ) -> Result<(), MoveEntityError> {
-        let old_chunk = ChunkPos::from(&*pos);
-        let new_chunk = ChunkPos::from(&new_pos);
-        // this is fine because we update the chunk below
-        unsafe { move_unchecked(pos, physics, new_pos) };
-        if old_chunk != new_chunk {
-            self.entities
-                .write()
-                .update_entity_chunk(entity_id, &old_chunk, &new_chunk);
-        }
-        Ok(())
+        self.entity_infos.read().id_by_uuid(uuid).copied()
     }
 
     pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
@@ -205,29 +265,44 @@ impl WeakWorld {
     pub fn get_chunk(&self, pos: &ChunkPos) -> Option<Arc<RwLock<Chunk>>> {
         self.chunks.read().get(pos)
     }
+
+    pub fn set_entity_pos(
+        &self,
+        entity_id: EntityId,
+        new_pos: Vec3,
+        pos: &mut entity::Position,
+        physics: &mut entity::Physics,
+    ) {
+        self.entity_infos
+            .write()
+            .set_entity_pos(entity_id, new_pos, pos, physics);
+    }
 }
 
 impl Debug for PartialWorld {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("World")
             .field("chunk_storage", &self.chunks)
-            .field("entity_storage", &self.entities)
+            .field("entity_storage", &self.entity_infos)
             .field("shared", &self.shared)
             .finish()
     }
 }
 
 impl Default for PartialWorld {
+    /// Creates a completely self-contained `PartialWorld`. This is only for
+    /// testing and shouldn't be used in actual code!
     fn default() -> Self {
         let chunk_storage = PartialChunkStorage::default();
-        let entity_storage = PartialEntityStorage::default();
+        let entity_storage = PartialEntityInfos::default();
         Self {
             shared: Arc::new(WeakWorld {
                 chunks: chunk_storage.shared.clone(),
-                entities: entity_storage.shared.clone(),
+                entity_infos: entity_storage.shared.clone(),
+                global_ecs: Arc::new(Mutex::new(bevy_ecs::world::World::default())),
             }),
             chunks: chunk_storage,
-            entities: entity_storage,
+            entity_infos: entity_storage,
         }
     }
 }

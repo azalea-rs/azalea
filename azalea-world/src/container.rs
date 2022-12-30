@@ -1,6 +1,8 @@
 use crate::WeakWorld;
 use azalea_core::ResourceLocation;
+use bevy_ecs::system::Resource;
 use log::error;
+use parking_lot::Mutex;
 use std::{
     collections::HashMap,
     sync::{Arc, Weak},
@@ -8,15 +10,19 @@ use std::{
 
 /// A container of [`WeakWorld`]s. Worlds are stored as a Weak pointer here, so
 /// if no clients are using a world it will be forgotten.
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct WeakWorldContainer {
     pub worlds: HashMap<ResourceLocation, Weak<WeakWorld>>,
+
+    /// The ECS world that contains all of the entities in all of the worlds.
+    pub ecs: Arc<Mutex<bevy_ecs::world::World>>,
 }
 
 impl WeakWorldContainer {
     pub fn new() -> Self {
         WeakWorldContainer {
             worlds: HashMap::new(),
+            ecs: Arc::new(Mutex::new(bevy_ecs::world::World::new())),
         }
     }
 
@@ -46,7 +52,7 @@ impl WeakWorldContainer {
             }
             existing
         } else {
-            let world = Arc::new(WeakWorld::new(height, min_y));
+            let world = Arc::new(WeakWorld::new(height, min_y, self.ecs.clone()));
             self.worlds.insert(name, Arc::downgrade(&world));
             world
         }

@@ -12,10 +12,7 @@ use bevy_ecs::{bundle::Bundle, component::Component, world::EntityMut};
 pub use data::*;
 use derive_more::{Deref, DerefMut};
 pub use dimensions::EntityDimensions;
-use std::{
-    fmt::{Debug, Display, Formatter},
-    ops::Deref,
-};
+use std::fmt::{Debug, Display, Formatter};
 use uuid::Uuid;
 
 /// An entity ID that's used by ECS library.
@@ -29,6 +26,11 @@ impl From<EntityId> for EcsEntityId {
     // but we don't care about the generation
     fn from(id: EntityId) -> Self {
         Self::from_raw(*id)
+    }
+}
+impl From<EcsEntityId> for EntityId {
+    fn from(id: EcsEntityId) -> Self {
+        Self(id.index())
     }
 }
 impl Debug for EntityId {

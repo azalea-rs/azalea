@@ -1,6 +1,6 @@
 //! Implementations of chat-related features.
 
-use crate::Client;
+use crate::LocalPlayer;
 use azalea_chat::FormattedText;
 use azalea_protocol::packets::game::{
     clientbound_player_chat_packet::ClientboundPlayerChatPacket,
@@ -89,7 +89,7 @@ impl ChatPacket {
     }
 }
 
-impl Client {
+impl LocalPlayer {
     /// Sends chat message to the server. This only sends the chat packet and
     /// not the command packet. The [`Client::chat`] function handles checking
     /// whether the message is a command and using the proper packet for you,

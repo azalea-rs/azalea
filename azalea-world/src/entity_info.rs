@@ -1,5 +1,5 @@
-use crate::entity::{new_entity, EcsEntityId, EntityId, EntityUuid, Position};
-use azalea_core::ChunkPos;
+use crate::entity::{self, new_entity, EcsEntityId, EntityId, EntityUuid, Position};
+use azalea_core::{ChunkPos, Vec3};
 use bevy_ecs::{
     query::{QueryEntityError, QueryState, ReadOnlyWorldQuery, WorldQuery},
     world::{EntityMut, EntityRef},
@@ -39,8 +39,8 @@ use uuid::Uuid;
 ///
 /// You can access the shared storage with `world.shared.read()`.
 #[derive(Debug, Default)]
-pub struct PartialEntityStorage {
-    pub shared: Arc<RwLock<WeakEntityStorage>>,
+pub struct PartialEntityInfos {
+    pub shared: Arc<RwLock<WeakEntityInfos>>,
 
     /// The entity id of the player that owns this partial world. This will
     /// make [`PartialWorld::entity_mut`] pretend the entity doesn't exist so
@@ -55,30 +55,25 @@ pub struct PartialEntityStorage {
     /// update entities twice on accident.
     pub updates_received: IntMap<EntityId, u32>,
     /// A set of all the entity ids in render distance.
-    loaded_entity_ids: IntSet<EntityId>,
+    pub(crate) loaded_entity_ids: IntSet<EntityId>,
 }
 
-/// Weakly store entities in a world. If the entities aren't being referenced
-/// by anything else (like an [`PartialEntityStorage`]), they'll be forgotten.
 #[derive(Default)]
-pub struct WeakEntityStorage {
-    /// The ECS world that actually contains the entities.
-    pub ecs: bevy_ecs::world::World,
-
+pub struct WeakEntityInfos {
     /// The number of `PartialWorld`s that have this entity loaded.
     /// (this is reference counting)
-    entity_reference_count: IntMap<EntityId, usize>,
+    pub(crate) entity_reference_count: IntMap<EntityId, usize>,
     /// An index of all the entity ids we know are in a chunk
-    ids_by_chunk: HashMap<ChunkPos, IntSet<EntityId>>,
+    pub(crate) ids_by_chunk: HashMap<ChunkPos, IntSet<EntityId>>,
     /// An index of entity ids by their UUIDs
-    id_by_uuid: HashMap<Uuid, EntityId>,
+    pub(crate) id_by_uuid: HashMap<Uuid, EntityId>,
 
     /// The canonical number of updates we've gotten for every entity.
     pub updates_received: IntMap<EntityId, u32>,
 }
 
-impl PartialEntityStorage {
-    pub fn new(shared: Arc<RwLock<WeakEntityStorage>>, owner_entity_id: Option<EntityId>) -> Self {
+impl PartialEntityInfos {
+    pub fn new(shared: Arc<RwLock<WeakEntityInfos>>, owner_entity_id: Option<EntityId>) -> Self {
         if let Some(owner_entity_id) = owner_entity_id {
             shared.write().updates_received.insert(owner_entity_id, 0);
         }
@@ -87,68 +82,6 @@ impl PartialEntityStorage {
             owner_entity_id,
             updates_received: IntMap::default(),
             loaded_entity_ids: IntSet::default(),
-        }
-    }
-
-    /// Add an entity to the storage.
-    #[inline]
-    pub fn insert(&mut self, id: EntityId, bundle: impl bevy_ecs::bundle::Bundle) {
-        let mut shared = self.shared.write();
-        // if the entity is already in the shared world, we don't need to do
-        // anything
-        if shared.contains_id(id) {
-            return;
-        }
-
-        new_entity(&mut shared.ecs, id, bundle);
-
-        let mut query = shared.ecs.query::<(&EntityUuid, &Position)>();
-        let (&uuid, &pos) = query.get(&mut shared.ecs, id.into()).unwrap();
-
-        // add the entity to the indexes
-        shared
-            .ids_by_chunk
-            .entry(ChunkPos::from(&pos))
-            .or_default()
-            .insert(id);
-        shared.id_by_uuid.insert(*uuid, id);
-        self.loaded_entity_ids.insert(id);
-        // set our updates_received to the shared updates_received, unless it's
-        // not there in which case set both to 1
-        if let Some(&shared_updates_received) = shared.updates_received.get(&id) {
-            // 0 means we're never tracking updates for this entity
-            if shared_updates_received != 0 || Some(id) == self.owner_entity_id {
-                self.updates_received.insert(id, 1);
-            }
-        } else {
-            shared.updates_received.insert(id, 1);
-            self.updates_received.insert(id, 1);
-        }
-    }
-
-    /// Remove an entity from this storage by its id. It will only be removed
-    /// from the shared storage if there are no other references to it.
-    #[inline]
-    pub fn remove_by_id(&mut self, id: EntityId) {
-        if self.loaded_entity_ids.remove(&id) {
-            let mut shared = self.shared.write();
-
-            let mut query = shared.query_to_state::<(&Position, &EntityUuid)>();
-            let (pos, uuid) = query.get(&mut shared.ecs, id.into()).expect(
-                "If the entity was being loaded by this storage, it must be in the shared
-                storage.",
-            );
-            let chunk = ChunkPos::from(pos);
-            let uuid = **uuid;
-
-            // TODO: is this line actually necessary? test if it doesn't immediately
-            // panic/deadlock without this line
-            drop(query);
-
-            self.updates_received.remove(&id);
-            shared.remove_entity_if_unused(id, uuid, chunk);
-        } else {
-            warn!("Tried to remove entity with id {id} but it was not found.")
         }
     }
 
@@ -206,23 +139,6 @@ impl PartialEntityStorage {
         self.limited_get_by_id(entity_id.0)
     }
 
-    /// Clear all entities in a chunk. This will not clear them from the
-    /// shared storage, unless there are no other references to them.
-    pub fn clear_chunk(&mut self, chunk: &ChunkPos) {
-        let mut shared = self.shared.write();
-        let mut query = shared.query_to_state::<&EntityUuid>();
-
-        if let Some(entities) = shared.ids_by_chunk.get(chunk).cloned() {
-            for &id in entities.iter() {
-                if self.loaded_entity_ids.remove(&id) {
-                    let uuid = **query.get(&shared.ecs, id.into()).unwrap();
-                    // maybe remove it from the storage
-                    shared.remove_entity_if_unused(id, uuid, *chunk);
-                }
-            }
-        }
-    }
-
     /// Move an entity from its old chunk to a new chunk.
     #[inline]
     pub fn update_entity_chunk(
@@ -241,10 +157,9 @@ impl PartialEntityStorage {
 /// reference to nothing.
 static EMPTY_ENTITY_ID_INTSET: Lazy<IntSet<EntityId>> = Lazy::new(|| IntSet::default());
 
-impl WeakEntityStorage {
+impl WeakEntityInfos {
     pub fn new() -> Self {
         Self {
-            ecs: bevy_ecs::world::World::new(),
             entity_reference_count: IntMap::default(),
             ids_by_chunk: HashMap::default(),
             id_by_uuid: HashMap::default(),
@@ -296,16 +211,10 @@ impl WeakEntityStorage {
         }
     }
 
-    /// Query the ecs to get a [`QueryState`]. You should probably use
-    /// [`Self::query_entity`] or [`Self::query_entity_mut`] instead.
-    pub fn query_to_state<Q: WorldQuery>(&mut self) -> QueryState<Q, ()> {
-        self.ecs.query::<Q>()
-    }
-
     /// Whether the entity with the given id is in the shared storage.
     #[inline]
-    pub fn contains_id(&self, id: EntityId) -> bool {
-        self.ecs.get_entity(id.into()).is_some()
+    pub fn contains_entity(&self, id: EntityId) -> bool {
+        self.entity_reference_count.contains_key(&id)
     }
 
     /// Returns a set of entities in the given chunk.
@@ -336,31 +245,26 @@ impl WeakEntityStorage {
             .insert(entity_id);
     }
 
-    /// This can only be called for read-only queries, see
-    /// [`Self::query_entity_mut`] for write-queries.
-    pub fn query_entity<'w, Q: WorldQuery>(
-        &'w mut self,
+    /// Set an entity's position in the world when we already have references
+    /// to the [`Position`] and [`Physics`] components.
+    pub fn set_entity_pos(
+        &mut self,
         entity_id: EntityId,
-    ) -> bevy_ecs::query::ROQueryItem<'w, Q> {
-        let mut query = self.query_to_state::<Q>();
-        query.get(&self.ecs, entity_id.into()).unwrap()
-    }
-
-    pub fn query_entity_mut<'w, Q: WorldQuery>(&'w mut self, entity_id: EntityId) -> Q::Item<'w> {
-        let mut query = self.query_to_state::<Q>();
-        query.get_mut(&mut self.ecs, entity_id.into()).unwrap()
-    }
-
-    /// Returns an [`EntityMut`] for the given entity ID.
-    ///
-    /// You only need this if you're going to be adding new components to the
-    /// entity. Otherwise, use [`Self::query_entity_mut`].
-    pub fn ecs_entity_mut(&mut self, entity_id: EntityId) -> Option<EntityMut> {
-        self.ecs.get_entity_mut(entity_id.into())
+        new_pos: Vec3,
+        pos: &mut entity::Position,
+        physics: &mut entity::Physics,
+    ) {
+        let old_chunk = ChunkPos::from(&*pos);
+        let new_chunk = ChunkPos::from(&new_pos);
+        // this is fine because we update the chunk below
+        unsafe { entity::move_unchecked(pos, physics, new_pos) };
+        if old_chunk != new_chunk {
+            self.update_entity_chunk(entity_id, &old_chunk, &new_chunk);
+        }
     }
 }
 
-impl Debug for WeakEntityStorage {
+impl Debug for WeakEntityInfos {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("WeakEntityStorage")
             // .field("ecs", &self.ecs)
@@ -381,7 +285,7 @@ mod tests {
 
     #[test]
     fn test_store_entity() {
-        let mut storage = PartialEntityStorage::default();
+        let mut storage = PartialEntityInfos::default();
         assert!(storage.limited_get_by_id(0).is_none());
         assert!(storage.shared.read().get_by_id(0).is_none());
 

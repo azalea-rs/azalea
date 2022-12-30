@@ -115,7 +115,7 @@ pub fn move_colliding(
             }
         };
 
-        world.set_entity_pos_from_refs(entity_id, new_pos, position, physics)?;
+        world.set_entity_pos(entity_id, new_pos, position, physics);
     }
 
     let x_collision = movement.x != collide_result.x;

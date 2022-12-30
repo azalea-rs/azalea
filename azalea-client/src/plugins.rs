@@ -1,4 +1,4 @@
-use crate::{Client, Event};
+use crate::{Event, LocalPlayer};
 use async_trait::async_trait;
 use nohash_hasher::NoHashHasher;
 use std::{
@@ -81,7 +81,7 @@ impl IntoIterator for PluginStates {
 /// fields must be atomic. Unique `PluginState`s are built from [`Plugin`]s.
 #[async_trait]
 pub trait PluginState: Send + Sync + PluginStateClone + Any + 'static {
-    async fn handle(self: Box<Self>, event: Event, bot: Client);
+    async fn handle(self: Box<Self>, event: Event, bot: LocalPlayer);
 }
 
 /// Plugins can keep their own personal state, listen to [`Event`]s, and add

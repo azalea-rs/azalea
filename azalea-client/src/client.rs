@@ -1,5 +1,7 @@
 pub use crate::chat::ChatPacket;
-use crate::{movement::WalkDirection, plugins::PluginStates, Account, PlayerInfo};
+use crate::{
+    local_player::LocalPlayer, movement::WalkDirection, plugins::PluginStates, Account, PlayerInfo,
+};
 use azalea_auth::{game_profile::GameProfile, sessionserver::SessionServerError};
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
@@ -34,11 +36,13 @@ use azalea_world::{
         metadata::{self, PlayerMetadataBundle},
         EntityId,
     },
-    PartialWorld, WeakWorld, WeakWorldContainer,
+    PartialChunkStorage, PartialWorld, WeakWorld, WeakWorldContainer,
 };
 use bevy_ecs::{
-    schedule::{Schedule, StageLabel, SystemStage},
-    system::{Query, SystemParam, SystemState},
+    prelude::Component,
+    query::{QueryState, WorldQuery},
+    schedule::{Schedule, Stage, StageLabel, SystemStage},
+    system::{Query, SystemState},
 };
 use log::{debug, error, info, trace, warn};
 use parking_lot::{Mutex, RwLock};
@@ -48,7 +52,6 @@ use std::{
     collections::HashMap,
     fmt::Debug,
     io::{self, Cursor},
-    ops::DerefMut,
     sync::Arc,
 };
 use thiserror::Error;
@@ -93,45 +96,21 @@ pub enum Event {
     Death(Option<Arc<ClientboundPlayerCombatKillPacket>>),
 }
 
-/// A player that you control that is currently in a Minecraft server.
-#[derive(Clone)]
 pub struct Client {
     pub profile: GameProfile,
-    pub read_conn: Arc<tokio::sync::Mutex<ReadConnection<ClientboundGamePacket>>>,
-    pub write_conn: Arc<tokio::sync::Mutex<WriteConnection<ServerboundGamePacket>>>,
     pub entity_id: Arc<RwLock<EntityId>>,
-    /// The world that this client has access to. This supports shared worlds.
-    pub world: Arc<RwLock<PartialWorld>>,
     /// A container of world names to worlds. If we're not using a shared world
     /// (i.e. not a swarm), then this will only contain data about the world
     /// we're currently in.
     world_container: Arc<RwLock<WeakWorldContainer>>,
-    pub world_name: Arc<RwLock<Option<ResourceLocation>>>,
-    pub physics_state: Arc<Mutex<PhysicsState>>,
-    pub client_information: Arc<RwLock<ClientInformation>>,
-    pub dead: Arc<Mutex<bool>>,
+    /// The world that this client is in.
+    pub world: Arc<RwLock<PartialWorld>>,
+
     /// Plugins are a way for other crates to add custom functionality to the
     /// client and keep state. If you're not making a plugin and you're using
     /// the `azalea` crate. you can ignore this field.
     pub plugins: Arc<PluginStates>,
-    /// A map of player uuids to their information in the tab list
-    pub players: Arc<RwLock<HashMap<Uuid, PlayerInfo>>>,
     tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
-}
-
-#[derive(Default)]
-pub struct PhysicsState {
-    /// Minecraft only sends a movement packet either after 20 ticks or if the
-    /// player moved enough. This is that tick counter.
-    pub position_remainder: u32,
-    pub was_sprinting: bool,
-    // Whether we're going to try to start sprinting this tick. Equivalent to
-    // holding down ctrl for a tick.
-    pub trying_to_sprint: bool,
-
-    pub move_direction: WalkDirection,
-    pub forward_impulse: f32,
-    pub left_impulse: f32,
 }
 
 /// Whether we should ignore errors when decoding packets.
@@ -156,50 +135,25 @@ pub enum JoinError {
     Auth(#[from] azalea_auth::AuthError),
 }
 
-#[derive(Error, Debug)]
-pub enum HandleError {
-    #[error("{0}")]
-    Poison(String),
-    #[error(transparent)]
-    Io(#[from] io::Error),
-    #[error(transparent)]
-    Other(#[from] anyhow::Error),
-    #[error("{0}")]
-    Send(#[from] mpsc::error::SendError<Event>),
-}
-
 impl Client {
     /// Create a new client from the given GameProfile, Connection, and World.
     /// You should only use this if you want to change these fields from the
     /// defaults, otherwise use [`Client::join`].
     pub fn new(
         profile: GameProfile,
-        conn: Connection<ClientboundGamePacket, ServerboundGamePacket>,
         world_container: Option<Arc<RwLock<WeakWorldContainer>>>,
     ) -> Self {
-        let (read_conn, write_conn) = conn.into_split();
-        let (read_conn, write_conn) = (
-            Arc::new(tokio::sync::Mutex::new(read_conn)),
-            Arc::new(tokio::sync::Mutex::new(write_conn)),
-        );
-
         Self {
             profile,
-            read_conn,
-            write_conn,
             // default our id to 0, it'll be set later
             entity_id: Arc::new(RwLock::new(EntityId(0))),
             world: Arc::new(RwLock::new(PartialWorld::default())),
             world_container: world_container
                 .unwrap_or_else(|| Arc::new(RwLock::new(WeakWorldContainer::new()))),
             world_name: Arc::new(RwLock::new(None)),
-            physics_state: Arc::new(Mutex::new(PhysicsState::default())),
-            client_information: Arc::new(RwLock::new(ClientInformation::default())),
-            dead: Arc::new(Mutex::new(false)),
             // The plugins can be modified by the user by replacing the plugins
             // field right after this. No Mutex so the user doesn't need to .lock().
             plugins: Arc::new(PluginStates::default()),
-            players: Arc::new(RwLock::new(HashMap::new())),
             tasks: Arc::new(Mutex::new(Vec::new())),
         }
     }
@@ -238,15 +192,16 @@ impl Client {
         // received a bit later instead of the instant they were fired.
         // That bug especially causes issues with the pathfinder.
         let (tx, rx) = mpsc::channel(1);
+        tx.send(Event::Init).await.expect("Failed to send event");
 
         // we got the GameConnection, so the server is now connected :)
-        let client = Client::new(game_profile, conn, None);
-
-        tx.send(Event::Init).await.expect("Failed to send event");
+        let client = Client::new(game_profile.clone(), None);
+        let local_player =
+            crate::local_player::LocalPlayer::new(game_profile, conn, client.world.clone(), tx);
 
         // just start up the game loop and we're ready!
 
-        client.start_tasks(tx);
+        client.start_tasks();
 
         Ok((client, rx))
     }
@@ -371,13 +326,12 @@ impl Client {
 
     /// Write a packet directly to the server.
     pub async fn write_packet(&self, packet: ServerboundGamePacket) -> Result<(), std::io::Error> {
-        self.write_conn.lock().await.write(packet).await?;
-        Ok(())
+        self.local_player_mut().write_packet(packet).await
     }
 
     /// Disconnect this client from the server, ending all tasks.
     pub async fn disconnect(&self) -> Result<(), std::io::Error> {
-        if let Err(e) = self.write_conn.lock().await.shutdown().await {
+        if let Err(e) = self.local_player_mut().write_conn.shutdown().await {
             warn!(
                 "Error shutting down connection, but it might be fine: {}",
                 e
@@ -390,9 +344,16 @@ impl Client {
         Ok(())
     }
 
+    pub fn local_player(&self) -> &LocalPlayer {
+        self.query::<&LocalPlayer>()
+    }
+    pub fn local_player_mut(&self) -> &mut LocalPlayer {
+        self.query::<&mut LocalPlayer>().into_inner()
+    }
+
     /// Start the protocol and game tick loop.
     #[doc(hidden)]
-    pub fn start_tasks(&self, tx: Sender<Event>) {
+    pub fn start_tasks(&self) {
         // if you get an error right here that means you're doing something with locks
         // wrong read the error to see where the issue is
         // you might be able to just drop the lock or put it in its own scope to fix
@@ -402,14 +363,19 @@ impl Client {
             self.clone(),
             tx.clone(),
         )));
-        tasks.push(tokio::spawn(Client::game_tick_loop(self.clone(), tx)));
+        let ecs = self.world_container.clone().read().ecs;
+        tasks.push(tokio::spawn(Client::game_tick_loop(ecs.clone())));
     }
 
-    async fn protocol_loop(client: Client, tx: Sender<Event>) {
+    async fn protocol_loop(local_player: LocalPlayer, tx: Sender<Event>) {
         loop {
-            let r = client.read_conn.lock().await.read().await;
+            let r = local_player.read_conn.lock().await.read().await;
             match r {
-                Ok(packet) => match Self::handle(&packet, &client, &tx).await {
+                Ok(packet) => {
+                    match {
+                        LocalPlayer::send_event(Event::Packet(packet.clone()), &tx);
+                        LocalPlayer::handle_packet(&packet, &client, &tx)
+                    } {
                     Ok(_) => {}
                     Err(e) => {
                         error!("Error handling packet: {}", e);
@@ -446,627 +412,29 @@ impl Client {
         }
     }
 
-    async fn handle(
-        packet: &ClientboundGamePacket,
-        client: &Client,
-        tx: &Sender<Event>,
-    ) -> Result<(), HandleError> {
-        let packet = Arc::new(packet.clone());
-        tx.send(Event::Packet(packet.clone())).await?;
-        match &*packet {
-            ClientboundGamePacket::Login(p) => {
-                debug!("Got login packet");
-
-                {
-                    // // write p into login.txt
-                    // std::io::Write::write_all(
-                    //     &mut std::fs::File::create("login.txt").unwrap(),
-                    //     format!("{:#?}", p).as_bytes(),
-                    // )
-                    // .unwrap();
-
-                    // TODO: have registry_holder be a struct because this sucks rn
-                    // best way would be to add serde support to azalea-nbt
-
-                    let registry_holder = p
-                        .registry_holder
-                        .as_compound()
-                        .expect("Registry holder is not a compound")
-                        .get("")
-                        .expect("No \"\" tag")
-                        .as_compound()
-                        .expect("\"\" tag is not a compound");
-                    let dimension_types = registry_holder
-                        .get("minecraft:dimension_type")
-                        .expect("No dimension_type tag")
-                        .as_compound()
-                        .expect("dimension_type is not a compound")
-                        .get("value")
-                        .expect("No dimension_type value")
-                        .as_list()
-                        .expect("dimension_type value is not a list");
-                    let dimension_type = dimension_types
-                        .iter()
-                        .find(|t| {
-                            t.as_compound()
-                                .expect("dimension_type value is not a compound")
-                                .get("name")
-                                .expect("No name tag")
-                                .as_string()
-                                .expect("name is not a string")
-                                == p.dimension_type.to_string()
-                        })
-                        .unwrap_or_else(|| {
-                            panic!("No dimension_type with name {}", p.dimension_type)
-                        })
-                        .as_compound()
-                        .unwrap()
-                        .get("element")
-                        .expect("No element tag")
-                        .as_compound()
-                        .expect("element is not a compound");
-                    let height = (*dimension_type
-                        .get("height")
-                        .expect("No height tag")
-                        .as_int()
-                        .expect("height tag is not an int"))
-                    .try_into()
-                    .expect("height is not a u32");
-                    let min_y = *dimension_type
-                        .get("min_y")
-                        .expect("No min_y tag")
-                        .as_int()
-                        .expect("min_y tag is not an int");
-
-                    let world_name = p.dimension.clone();
-
-                    *client.world_name.write() = Some(world_name.clone());
-                    // add this world to the world_container (or don't if it's already there)
-                    let weak_world = client
-                        .world_container
-                        .write()
-                        .insert(world_name, height, min_y);
-                    // set the loaded_world to an empty world
-                    // (when we add chunks or entities those will be in the world_container)
-                    let mut world_lock = client.world.write();
-                    *world_lock = PartialWorld::new(
-                        client.client_information.read().view_distance.into(),
-                        weak_world,
-                        Some(EntityId(p.player_id)),
-                    );
-
-                    let player_bundle = entity::PlayerBundle {
-                        entity: entity::EntityBundle::new(
-                            client.profile.uuid,
-                            Vec3::default(),
-                            azalea_registry::EntityKind::Player,
-                        ),
-                        metadata: PlayerMetadataBundle::default(),
-                    };
-                    // let entity = EntityData::new(
-                    //     client.profile.uuid,
-                    //     Vec3::default(),
-                    //     EntityMetadata::Player(metadata::Player::default()),
-                    // );
-                    // the first argument makes it so other entities don't update this entity in a
-                    // shared world
-                    world_lock.add_entity(EntityId(p.player_id), player_bundle);
-
-                    *client.entity_id.write() = EntityId(p.player_id);
-                }
-
-                // send the client information that we have set
-                let client_information_packet: ClientInformation =
-                    client.client_information.read().clone();
-                log::debug!(
-                    "Sending client information because login: {:?}",
-                    client_information_packet
-                );
-                client.write_packet(client_information_packet.get()).await?;
-
-                // brand
-                client
-                    .write_packet(
-                        ServerboundCustomPayloadPacket {
-                            identifier: ResourceLocation::new("brand").unwrap(),
-                            // they don't have to know :)
-                            data: "vanilla".into(),
-                        }
-                        .get(),
-                    )
-                    .await?;
-
-                tx.send(Event::Login).await?;
-            }
-            ClientboundGamePacket::SetChunkCacheRadius(p) => {
-                debug!("Got set chunk cache radius packet {:?}", p);
-            }
-            ClientboundGamePacket::CustomPayload(p) => {
-                debug!("Got custom payload packet {:?}", p);
-            }
-            ClientboundGamePacket::ChangeDifficulty(p) => {
-                debug!("Got difficulty packet {:?}", p);
-            }
-            ClientboundGamePacket::Commands(_p) => {
-                debug!("Got declare commands packet");
-            }
-            ClientboundGamePacket::PlayerAbilities(p) => {
-                debug!("Got player abilities packet {:?}", p);
-            }
-            ClientboundGamePacket::SetCarriedItem(p) => {
-                debug!("Got set carried item packet {:?}", p);
-            }
-            ClientboundGamePacket::UpdateTags(_p) => {
-                debug!("Got update tags packet");
-            }
-            ClientboundGamePacket::Disconnect(p) => {
-                debug!("Got disconnect packet {:?}", p);
-                client.disconnect().await?;
-            }
-            ClientboundGamePacket::UpdateRecipes(_p) => {
-                debug!("Got update recipes packet");
-            }
-            ClientboundGamePacket::EntityEvent(_p) => {
-                // debug!("Got entity event packet {:?}", p);
-            }
-            ClientboundGamePacket::Recipe(_p) => {
-                debug!("Got recipe packet");
-            }
-            ClientboundGamePacket::PlayerPosition(p) => {
-                // TODO: reply with teleport confirm
-                debug!("Got player position packet {:?}", p);
-
-                let (new_pos, y_rot, x_rot) = {
-                    let player_entity_id = *client.entity();
-                    let world = client.world();
-                    // let mut player_entity = world.entity_mut(player_entity_id).unwrap();
-                    let mut entities = world.entities.write();
-                    let (mut physics, position) = entities
-                        .query_entity_mut::<(&mut entity::Physics, &mut entity::Position)>(
-                            player_entity_id,
-                        );
-
-                    let delta_movement = physics.delta;
-
-                    let is_x_relative = p.relative_arguments.x;
-                    let is_y_relative = p.relative_arguments.y;
-                    let is_z_relative = p.relative_arguments.z;
-
-                    let (delta_x, new_pos_x) = if is_x_relative {
-                        physics.last_pos.x += p.x;
-                        (delta_movement.x, position.x + p.x)
-                    } else {
-                        physics.last_pos.x = p.x;
-                        (0.0, p.x)
-                    };
-                    let (delta_y, new_pos_y) = if is_y_relative {
-                        physics.last_pos.y += p.y;
-                        (delta_movement.y, position.y + p.y)
-                    } else {
-                        physics.last_pos.y = p.y;
-                        (0.0, p.y)
-                    };
-                    let (delta_z, new_pos_z) = if is_z_relative {
-                        physics.last_pos.z += p.z;
-                        (delta_movement.z, position.z + p.z)
-                    } else {
-                        physics.last_pos.z = p.z;
-                        (0.0, p.z)
-                    };
-
-                    let mut y_rot = p.y_rot;
-                    let mut x_rot = p.x_rot;
-                    if p.relative_arguments.x_rot {
-                        x_rot += physics.x_rot;
-                    }
-                    if p.relative_arguments.y_rot {
-                        y_rot += physics.y_rot;
-                    }
-
-                    physics.delta = Vec3 {
-                        x: delta_x,
-                        y: delta_y,
-                        z: delta_z,
-                    };
-                    entity::set_rotation(physics.deref_mut(), y_rot, x_rot);
-                    // TODO: minecraft sets "xo", "yo", and "zo" here but idk what that means
-                    // so investigate that ig
-                    let new_pos = Vec3 {
-                        x: new_pos_x,
-                        y: new_pos_y,
-                        z: new_pos_z,
-                    };
-                    world
-                        .set_entity_pos_from_refs(
-                            player_entity_id,
-                            new_pos,
-                            position.into_inner(),
-                            physics.into_inner(),
-                        )
-                        .expect("The player entity should always exist");
-
-                    (new_pos, y_rot, x_rot)
-                };
-
-                client
-                    .write_packet(ServerboundAcceptTeleportationPacket { id: p.id }.get())
-                    .await?;
-                client
-                    .write_packet(
-                        ServerboundMovePlayerPosRotPacket {
-                            x: new_pos.x,
-                            y: new_pos.y,
-                            z: new_pos.z,
-                            y_rot,
-                            x_rot,
-                            // this is always false
-                            on_ground: false,
-                        }
-                        .get(),
-                    )
-                    .await?;
-            }
-            ClientboundGamePacket::PlayerInfoUpdate(p) => {
-                debug!("Got player info packet {:?}", p);
-                let mut events = Vec::new();
-                {
-                    let mut players_lock = client.players.write();
-                    for updated_info in &p.entries {
-                        // add the new player maybe
-                        if p.actions.add_player {
-                            let player_info = PlayerInfo {
-                                profile: updated_info.profile.clone(),
-                                uuid: updated_info.profile.uuid,
-                                gamemode: updated_info.game_mode,
-                                latency: updated_info.latency,
-                                display_name: updated_info.display_name.clone(),
-                            };
-                            players_lock.insert(updated_info.profile.uuid, player_info.clone());
-                            events.push(Event::AddPlayer(player_info));
-                        } else if let Some(info) = players_lock.get_mut(&updated_info.profile.uuid)
-                        {
-                            // `else if` because the block for add_player above
-                            // already sets all the fields
-                            if p.actions.update_game_mode {
-                                info.gamemode = updated_info.game_mode;
-                            }
-                            if p.actions.update_latency {
-                                info.latency = updated_info.latency;
-                            }
-                            if p.actions.update_display_name {
-                                info.display_name = updated_info.display_name.clone();
-                            }
-                            events.push(Event::UpdatePlayer(info.clone()));
-                        } else {
-                            warn!(
-                                "Ignoring PlayerInfoUpdate for unknown player {}",
-                                updated_info.profile.uuid
-                            );
-                        }
-                    }
-                }
-                for event in events {
-                    tx.send(event).await?;
-                }
-            }
-            ClientboundGamePacket::PlayerInfoRemove(p) => {
-                let mut events = Vec::new();
-                {
-                    let mut players_lock = client.players.write();
-                    for uuid in &p.profile_ids {
-                        if let Some(info) = players_lock.remove(uuid) {
-                            events.push(Event::RemovePlayer(info));
-                        }
-                    }
-                }
-                for event in events {
-                    tx.send(event).await?;
-                }
-            }
-            ClientboundGamePacket::SetChunkCacheCenter(p) => {
-                debug!("Got chunk cache center packet {:?}", p);
-                client
-                    .world
-                    .write()
-                    .update_view_center(&ChunkPos::new(p.x, p.z));
-            }
-            ClientboundGamePacket::LevelChunkWithLight(p) => {
-                // debug!("Got chunk with light packet {} {}", p.x, p.z);
-                let pos = ChunkPos::new(p.x, p.z);
-
-                // OPTIMIZATION: if we already know about the chunk from the
-                // shared world (and not ourselves), then we don't need to
-                // parse it again. This is only used when we have a shared
-                // world, since we check that the chunk isn't currently owned
-                // by this client.
-                let shared_has_chunk = client.world.read().get_chunk(&pos).is_some();
-                let this_client_has_chunk = client.world.read().chunks.limited_get(&pos).is_some();
-                if shared_has_chunk && !this_client_has_chunk {
-                    trace!(
-                        "Skipping parsing chunk {:?} because we already know about it",
-                        pos
-                    );
-                    return Ok(());
-                }
-
-                // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
-                // debug("chunk {:?}")
-                if let Err(e) = client
-                    .world
-                    .write()
-                    .replace_with_packet_data(&pos, &mut Cursor::new(&p.chunk_data.data))
-                {
-                    error!("Couldn't set chunk data: {}", e);
-                }
-            }
-            ClientboundGamePacket::LightUpdate(_p) => {
-                // debug!("Got light update packet {:?}", p);
-            }
-            ClientboundGamePacket::AddEntity(p) => {
-                debug!("Got add entity packet {:?}", p);
-                let bundle = p.as_entity_bundle();
-                let mut world = client.world.write();
-                world.add_entity(EntityId(p.id), bundle);
-                // the bundle doesn't include the default entity metadata so we add that
-                // separately
-                let mut entities = world.entities.shared.write();
-                let mut entity = entities.ecs_entity_mut(EntityId(p.id)).unwrap();
-                p.apply_metadata(&mut entity);
-            }
-            ClientboundGamePacket::SetEntityData(p) => {
-                debug!("Got set entity data packet {:?}", p);
-                let world = client.world.write();
-                let mut entities = world.entities.shared.write();
-                let entity = entities.ecs_entity_mut(EntityId(p.id));
-                if let Some(mut entity) = entity {
-                    entity::metadata::apply_metadata(&mut entity, p.packed_items.0.clone());
-                } else {
-                    // warn!("Server sent an entity data packet for an entity id
-                    // ({}) that we don't know about", p.id);
-                }
-            }
-            ClientboundGamePacket::UpdateAttributes(_p) => {
-                // debug!("Got update attributes packet {:?}", p);
-            }
-            ClientboundGamePacket::SetEntityMotion(_p) => {
-                // debug!("Got entity velocity packet {:?}", p);
-            }
-            ClientboundGamePacket::SetEntityLink(p) => {
-                debug!("Got set entity link packet {:?}", p);
-            }
-            ClientboundGamePacket::AddPlayer(p) => {
-                debug!("Got add player packet {:?}", p);
-                let bundle = p.as_player_bundle();
-                let mut world = client.world.write();
-                world.add_entity(EntityId(p.id), bundle);
-                // the default metadata was already included in the bundle for
-                // us
-            }
-            ClientboundGamePacket::InitializeBorder(p) => {
-                debug!("Got initialize border packet {:?}", p);
-            }
-            ClientboundGamePacket::SetTime(p) => {
-                debug!("Got set time packet {:?}", p);
-            }
-            ClientboundGamePacket::SetDefaultSpawnPosition(p) => {
-                debug!("Got set default spawn position packet {:?}", p);
-            }
-            ClientboundGamePacket::ContainerSetContent(p) => {
-                debug!("Got container set content packet {:?}", p);
-            }
-            ClientboundGamePacket::SetHealth(p) => {
-                debug!("Got set health packet {:?}", p);
-                if p.health == 0.0 {
-                    // we can't define a variable here with client.dead.lock()
-                    // because of https://github.com/rust-lang/rust/issues/57478
-                    if !*client.dead.lock() {
-                        *client.dead.lock() = true;
-                        tx.send(Event::Death(None)).await?;
-                    }
-                }
-            }
-            ClientboundGamePacket::SetExperience(p) => {
-                debug!("Got set experience packet {:?}", p);
-            }
-            ClientboundGamePacket::TeleportEntity(p) => {
-                let mut world = client.world.write();
-                let _ = world.set_entity_pos(
-                    EntityId(p.id),
-                    Vec3 {
-                        x: p.x,
-                        y: p.y,
-                        z: p.z,
-                    },
-                );
-            }
-            ClientboundGamePacket::UpdateAdvancements(p) => {
-                debug!("Got update advancements packet {:?}", p);
-            }
-            ClientboundGamePacket::RotateHead(_p) => {
-                // debug!("Got rotate head packet {:?}", p);
-            }
-            ClientboundGamePacket::MoveEntityPos(p) => {
-                let mut world = client.world.write();
-                let _ = world.move_entity_with_delta(EntityId(p.entity_id), &p.delta);
-            }
-            ClientboundGamePacket::MoveEntityPosRot(p) => {
-                let mut world = client.world.write();
-                let _ = world.move_entity_with_delta(EntityId(p.entity_id), &p.delta);
-            }
-            ClientboundGamePacket::MoveEntityRot(_p) => {
-                // debug!("Got move entity rot packet {:?}", p);
-            }
-            ClientboundGamePacket::KeepAlive(p) => {
-                debug!("Got keep alive packet {:?}", p);
-                client
-                    .write_packet(ServerboundKeepAlivePacket { id: p.id }.get())
-                    .await?;
-            }
-            ClientboundGamePacket::RemoveEntities(p) => {
-                debug!("Got remove entities packet {:?}", p);
-            }
-            ClientboundGamePacket::PlayerChat(p) => {
-                debug!("Got player chat packet {:?}", p);
-                tx.send(Event::Chat(ChatPacket::Player(Arc::new(p.clone()))))
-                    .await?;
-            }
-            ClientboundGamePacket::SystemChat(p) => {
-                debug!("Got system chat packet {:?}", p);
-                tx.send(Event::Chat(ChatPacket::System(Arc::new(p.clone()))))
-                    .await?;
-            }
-            ClientboundGamePacket::Sound(_p) => {
-                // debug!("Got sound packet {:?}", p);
-            }
-            ClientboundGamePacket::LevelEvent(p) => {
-                debug!("Got level event packet {:?}", p);
-            }
-            ClientboundGamePacket::BlockUpdate(p) => {
-                debug!("Got block update packet {:?}", p);
-                let mut world = client.world.write();
-                world.set_block_state(&p.pos, p.block_state);
-            }
-            ClientboundGamePacket::Animate(p) => {
-                debug!("Got animate packet {:?}", p);
-            }
-            ClientboundGamePacket::SectionBlocksUpdate(p) => {
-                debug!("Got section blocks update packet {:?}", p);
-                let mut world = client.world.write();
-                for state in &p.states {
-                    world.set_block_state(&(p.section_pos + state.pos.clone()), state.state);
-                }
-            }
-            ClientboundGamePacket::GameEvent(p) => {
-                debug!("Got game event packet {:?}", p);
-            }
-            ClientboundGamePacket::LevelParticles(p) => {
-                debug!("Got level particles packet {:?}", p);
-            }
-            ClientboundGamePacket::ServerData(p) => {
-                debug!("Got server data packet {:?}", p);
-            }
-            ClientboundGamePacket::SetEquipment(p) => {
-                debug!("Got set equipment packet {:?}", p);
-            }
-            ClientboundGamePacket::UpdateMobEffect(p) => {
-                debug!("Got update mob effect packet {:?}", p);
-            }
-            ClientboundGamePacket::AddExperienceOrb(_) => {}
-            ClientboundGamePacket::AwardStats(_) => {}
-            ClientboundGamePacket::BlockChangedAck(_) => {}
-            ClientboundGamePacket::BlockDestruction(_) => {}
-            ClientboundGamePacket::BlockEntityData(_) => {}
-            ClientboundGamePacket::BlockEvent(_) => {}
-            ClientboundGamePacket::BossEvent(_) => {}
-            ClientboundGamePacket::CommandSuggestions(_) => {}
-            ClientboundGamePacket::ContainerSetData(_) => {}
-            ClientboundGamePacket::ContainerSetSlot(_) => {}
-            ClientboundGamePacket::Cooldown(_) => {}
-            ClientboundGamePacket::CustomChatCompletions(_) => {}
-            ClientboundGamePacket::DeleteChat(_) => {}
-            ClientboundGamePacket::Explode(_) => {}
-            ClientboundGamePacket::ForgetLevelChunk(_) => {}
-            ClientboundGamePacket::HorseScreenOpen(_) => {}
-            ClientboundGamePacket::MapItemData(_) => {}
-            ClientboundGamePacket::MerchantOffers(_) => {}
-            ClientboundGamePacket::MoveVehicle(_) => {}
-            ClientboundGamePacket::OpenBook(_) => {}
-            ClientboundGamePacket::OpenScreen(_) => {}
-            ClientboundGamePacket::OpenSignEditor(_) => {}
-            ClientboundGamePacket::Ping(_) => {}
-            ClientboundGamePacket::PlaceGhostRecipe(_) => {}
-            ClientboundGamePacket::PlayerCombatEnd(_) => {}
-            ClientboundGamePacket::PlayerCombatEnter(_) => {}
-            ClientboundGamePacket::PlayerCombatKill(p) => {
-                debug!("Got player kill packet {:?}", p);
-                if client.entity() == EntityId(p.player_id) {
-                    // we can't define a variable here with client.dead.lock()
-                    // because of https://github.com/rust-lang/rust/issues/57478
-                    if !*client.dead.lock() {
-                        *client.dead.lock() = true;
-                        tx.send(Event::Death(Some(Arc::new(p.clone())))).await?;
-                    }
-                }
-            }
-            ClientboundGamePacket::PlayerLookAt(_) => {}
-            ClientboundGamePacket::RemoveMobEffect(_) => {}
-            ClientboundGamePacket::ResourcePack(_) => {}
-            ClientboundGamePacket::Respawn(p) => {
-                debug!("Got respawn packet {:?}", p);
-                // Sets clients dead state to false.
-                let mut dead_lock = client.dead.lock();
-                *dead_lock = false;
-            }
-            ClientboundGamePacket::SelectAdvancementsTab(_) => {}
-            ClientboundGamePacket::SetActionBarText(_) => {}
-            ClientboundGamePacket::SetBorderCenter(_) => {}
-            ClientboundGamePacket::SetBorderLerpSize(_) => {}
-            ClientboundGamePacket::SetBorderSize(_) => {}
-            ClientboundGamePacket::SetBorderWarningDelay(_) => {}
-            ClientboundGamePacket::SetBorderWarningDistance(_) => {}
-            ClientboundGamePacket::SetCamera(_) => {}
-            ClientboundGamePacket::SetDisplayObjective(_) => {}
-            ClientboundGamePacket::SetObjective(_) => {}
-            ClientboundGamePacket::SetPassengers(_) => {}
-            ClientboundGamePacket::SetPlayerTeam(_) => {}
-            ClientboundGamePacket::SetScore(_) => {}
-            ClientboundGamePacket::SetSimulationDistance(_) => {}
-            ClientboundGamePacket::SetSubtitleText(_) => {}
-            ClientboundGamePacket::SetTitleText(_) => {}
-            ClientboundGamePacket::SetTitlesAnimation(_) => {}
-            ClientboundGamePacket::SoundEntity(_) => {}
-            ClientboundGamePacket::StopSound(_) => {}
-            ClientboundGamePacket::TabList(_) => {}
-            ClientboundGamePacket::TagQuery(_) => {}
-            ClientboundGamePacket::TakeItemEntity(_) => {}
-            ClientboundGamePacket::DisguisedChat(_) => {}
-            ClientboundGamePacket::UpdateEnabledFeatures(_) => {}
-            ClientboundGamePacket::ContainerClose(_) => {}
-        }
-
-        Ok(())
-    }
-
-    /// Runs game_tick every 50 milliseconds.
-    async fn game_tick_loop(mut client: Client, tx: Sender<Event>) {
+    /// Start the game tick loop for every client in the shared world. This
+    /// should only be run once per shared world!
+    async fn game_tick_loop(ecs: Arc<Mutex<bevy_ecs::world::World>>) {
         let mut game_tick_interval = time::interval(time::Duration::from_millis(50));
         // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
         game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
+
+        let mut schedule = Schedule::default();
+        #[derive(StageLabel)]
+        pub struct Tick;
+        schedule.add_stage(
+            Tick,
+            SystemStage::single_threaded()
+                .with_system(LocalPlayer::update_in_loaded_chunk)
+                .with_system(LocalPlayer::send_position)
+                .with_system(LocalPlayer::ai_step),
+        );
+
         loop {
-            if !client.in_loaded_chunk() {
-                continue;
-            }
             game_tick_interval.tick().await;
 
-            tx.send(Event::Tick)
-                .await
-                .expect("Sending tick event should never fail");
-            // schedule.run_once(&mut client.world().entities.read().ecs);
-            let world = client.world();
-            let mut ecs = &mut world.entities.write().ecs;
-            client.send_position(
-                SystemState::<
-                    Query<(
-                        &entity::Position,
-                        &mut entity::Physics,
-                        &entity::metadata::Sprinting,
-                    )>,
-                >::new(&mut ecs)
-                .get_mut(&mut ecs),
-            );
+            schedule.run(&mut ecs.lock());
         }
-    }
-
-    /// Whether our player is in a loaded chunk
-    fn in_loaded_chunk(&self) -> bool {
-        let world = self.world();
-        let entities = world.entities.read();
-
-        let player_entity_id = self.entity();
-        let position = entities.query_entity::<&entity::Position>(player_entity_id);
-
-        let player_chunk_pos = ChunkPos::from(position);
-        world.get_chunk(&player_chunk_pos).is_some()
     }
 
     /// Get a reference to our (potentially shared) world.
@@ -1083,12 +451,12 @@ impl Client {
         *self.entity_id.read()
     }
 
-    pub fn query<'w, 's, Param: SystemParam>(
-        &'w self,
-    ) -> <Param::Fetch as bevy_ecs::system::SystemParamFetch<'w, 's>>::Item {
-        let world = self.world();
-        let mut ecs = &mut world.entities.write().ecs;
-        SystemState::<Param>::new(ecs).get_mut(ecs)
+    /// Query data of our player's entity.
+    pub fn query<'w, 's, Q: WorldQuery>(&'w self) -> <Q as WorldQuery>::Item<'_> {
+        let mut ecs = &mut self.world_container.write().ecs.lock();
+        QueryState::<Q>::new(ecs)
+            .get_mut(ecs, self.entity().into())
+            .expect("Player entity should always exist when being queried")
     }
 
     /// Returns whether we have a received the login packet yet.
@@ -1117,15 +485,11 @@ impl Client {
         client_information: ServerboundClientInformationPacket,
     ) -> Result<(), std::io::Error> {
         {
-            let mut client_information_lock = self.client_information.write();
-            *client_information_lock = client_information;
+            self.local_player_mut().client_information = client_information;
         }
 
         if self.logged_in() {
-            let client_information_packet = {
-                let client_information = self.client_information.read();
-                client_information.clone().get()
-            };
+            let client_information_packet = self.local_player().client_information.clone().get();
             log::debug!(
                 "Sending client information (already logged in): {:?}",
                 client_information_packet
@@ -1134,11 +498,5 @@ impl Client {
         }
 
         Ok(())
-    }
-}
-
-impl<T> From<std::sync::PoisonError<T>> for HandleError {
-    fn from(e: std::sync::PoisonError<T>) -> Self {
-        HandleError::Poison(e.to_string())
     }
 }
