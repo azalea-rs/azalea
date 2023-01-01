@@ -6,7 +6,7 @@ use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
 use azalea_world::{
     entity::{self, EntityId},
-    WeakWorld,
+    World,
 };
 use collision::{move_colliding, MoverType};
 use std::ops::Deref;
@@ -15,7 +15,7 @@ use std::ops::Deref;
 /// gravity, collisions, and some other stuff.
 fn travel(
     entity_id: EntityId,
-    world: &WeakWorld,
+    world: &World,
     physics: &mut entity::Physics,
     position: &mut entity::Position,
     attributes: &entity::Attributes,
@@ -84,7 +84,7 @@ fn travel(
 /// stuff.
 pub fn ai_step(
     entity_id: EntityId,
-    world: &WeakWorld,
+    world: &World,
     physics: &mut entity::Physics,
     position: &mut entity::Position,
     sprinting: &entity::metadata::Sprinting,
@@ -132,7 +132,7 @@ pub fn ai_step(
 }
 
 fn jump_from_ground(
-    world: &WeakWorld,
+    world: &World,
     physics: &mut entity::Physics,
     position: &entity::Position,
     sprinting: &entity::metadata::Sprinting,
@@ -169,7 +169,7 @@ fn handle_relative_friction_and_calculate_movement(
     acceleration: &Vec3,
     block_friction: f32,
     entity_id: EntityId,
-    world: &WeakWorld,
+    world: &World,
     physics: &mut entity::Physics,
     position: &mut entity::Position,
     attributes: &entity::Attributes,
@@ -220,7 +220,7 @@ fn get_friction_influenced_speed(
 
 /// Returns the what the entity's jump should be multiplied by based on the
 /// block they're standing on.
-fn block_jump_factor(world: &WeakWorld, position: &entity::Position) -> f32 {
+fn block_jump_factor(world: &World, position: &entity::Position) -> f32 {
     let block_at_pos = world.get_block_state(&position.into());
     let block_below = world.get_block_state(&get_block_pos_below_that_affects_movement(position));
 
@@ -246,7 +246,7 @@ fn block_jump_factor(world: &WeakWorld, position: &entity::Position) -> f32 {
 // public double getJumpBoostPower() {
 //     return this.hasEffect(MobEffects.JUMP) ? (double)(0.1F *
 // (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1)) : 0.0D; }
-fn jump_power(world: &WeakWorld, position: &entity::Position) -> f32 {
+fn jump_power(world: &World, position: &entity::Position) -> f32 {
     0.42 * block_jump_factor(world, position)
 }
 

@@ -2,16 +2,16 @@ use super::Shapes;
 use crate::collision::{BlockWithShape, VoxelShape, AABB};
 use azalea_block::BlockState;
 use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType, EPSILON};
-use azalea_world::{entity::EntityId, Chunk, WeakWorld};
+use azalea_world::{entity::EntityId, Chunk, World};
 use parking_lot::RwLock;
 use std::sync::Arc;
 
-pub fn get_block_collisions<'a>(world: &'a WeakWorld, aabb: AABB) -> BlockCollisions<'a> {
+pub fn get_block_collisions<'a>(world: &'a World, aabb: AABB) -> BlockCollisions<'a> {
     BlockCollisions::new(world, aabb)
 }
 
 pub struct BlockCollisions<'a> {
-    pub world: &'a WeakWorld,
+    pub world: &'a World,
     pub aabb: AABB,
     pub entity_shape: VoxelShape,
     pub cursor: Cursor3d,
@@ -19,7 +19,7 @@ pub struct BlockCollisions<'a> {
 }
 
 impl<'a> BlockCollisions<'a> {
-    pub fn new(world: &'a WeakWorld, aabb: AABB) -> Self {
+    pub fn new(world: &'a World, aabb: AABB) -> Self {
         let origin_x = (aabb.min_x - EPSILON) as i32 - 1;
         let origin_y = (aabb.min_y - EPSILON) as i32 - 1;
         let origin_z = (aabb.min_z - EPSILON) as i32 - 1;

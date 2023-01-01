@@ -4,111 +4,48 @@ mod dimensions;
 pub mod metadata;
 
 use self::{attributes::AttributeInstance, metadata::UpdateMetadataError};
-use crate::WeakWorld;
 pub use attributes::Attributes;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, ChunkPos, Vec3, AABB};
-use bevy_ecs::{bundle::Bundle, component::Component, world::EntityMut};
+use bevy_ecs::{
+    bundle::Bundle, component::Component, query::Changed, system::Query, world::EntityMut,
+};
 pub use data::*;
 use derive_more::{Deref, DerefMut};
 pub use dimensions::EntityDimensions;
 use std::fmt::{Debug, Display, Formatter};
 use uuid::Uuid;
 
-/// An entity ID that's used by ECS library.
-pub type EcsEntityId = bevy_ecs::entity::Entity;
+/// A lightweight identifier of an entity.
+///
+/// Don't rely on the index of this being the same as a Minecraft entity id!
+/// (unless you're implementin a server, in which case you can decide your
+/// entity ids however you want)
+///
+/// If you want to refer to a Minecraft entity id, use [`MinecraftEntityId`].
+pub type Entity = bevy_ecs::entity::Entity;
 
-/// The unique 32-bit unsigned id of an entity.
-#[derive(Deref, Eq, PartialEq, DerefMut, Copy, Clone)]
-pub struct EntityId(pub u32);
-impl From<EntityId> for EcsEntityId {
-    // bevy_ecs `Entity`s also store the "generation" which adds another 32 bits,
-    // but we don't care about the generation
-    fn from(id: EntityId) -> Self {
-        Self::from_raw(*id)
-    }
-}
-impl From<EcsEntityId> for EntityId {
-    fn from(id: EcsEntityId) -> Self {
-        Self(id.index())
-    }
-}
-impl Debug for EntityId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "EntityId({})", **self)
-    }
-}
-impl Display for EntityId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", **self)
-    }
-}
-impl std::hash::Hash for EntityId {
+/// An entity ID used by Minecraft. These are not guaranteed to be unique in
+/// shared worlds, that's what [`Entity`] is for.
+#[derive(Component, Copy, Clone, Debug, PartialEq, Eq, Deref, DerefMut)]
+pub struct MinecraftEntityId(pub u32);
+impl std::hash::Hash for MinecraftEntityId {
     fn hash<H: std::hash::Hasher>(&self, hasher: &mut H) {
         hasher.write_u32(self.0)
     }
 }
-impl nohash_hasher::IsEnabled for EntityId {}
-
-// /// A mutable reference to an entity in a world.
-// pub struct Entity<'w, W = &'w WeakWorld> {
-//     /// The [`WeakWorld`] this entity is in.
-//     pub world: W,
-//     /// The incrementing numerical id of the entity.
-//     pub id: u32,
-//     /// The ECS data for the entity.
-//     pub data: bevy_ecs::world::EntityMut<'w>,
-// }
-
-/// Create an entity if you only have a [`bevy_ecs::world::World`].
-///
-/// If you do have access to a [`PartialEntityStorage`] though then just call
-/// [`PartialEntityStorage::insert`].
-pub(crate) fn new_entity<'w>(
-    ecs: &'w mut bevy_ecs::world::World,
-    id: EntityId,
-    bundle: impl bevy_ecs::bundle::Bundle,
-) -> EntityMut<'w> {
-    // bevy_ecs only returns None if the entity only exists with a different
-    // generation, which shouldn't be possible here
-    let mut entity = ecs
-        .get_or_spawn(id.into())
-        .expect("Entities should always be generation 0 if we're manually spawning from ids");
-    entity.insert(bundle);
-    entity
-}
-
-// impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
-//     /// Create an Entity when we already know its id and data.
-//     pub(crate) fn new(world: D, id: u32, bundle: impl
-// bevy_ecs::bundle::Bundle) -> Self {         let ecs =
-// world.entity_storage.write().ecs;         let data = new_entity(&mut ecs, id,
-// bundle);         Self { world, id, data }
-//     }
-// }
-
-// impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
-//     // todo: write more here and add an example too
-//     /// Get data from the entity.
-//     pub fn get<T: bevy_ecs::component::Component>(&self) -> Option<&T> {
-//         self.data.get()
-//     }
-//     pub fn get_mut<T: bevy_ecs::component::Component>(
-//         &mut self,
-//     ) -> Option<bevy_ecs::world::Mut<T>> {
-//         self.data.get_mut()
-//     }
-// }
+impl nohash_hasher::IsEnabled for MinecraftEntityId {}
 
 /// Sets the position of the entity. This doesn't update the cache in
 /// azalea-world, and should only be used within azalea-world!
 ///
 /// # Safety
 /// Cached position in the world must be updated.
-pub unsafe fn move_unchecked(pos: &mut Position, physics: &mut Physics, new_pos: Vec3) {
-    *pos = Position(new_pos);
-    let bounding_box = make_bounding_box(&pos, &physics);
-    physics.bounding_box = bounding_box;
+pub fn update_bounding_box(query: Query<(&mut Position, &Physics), Changed<Position>>) {
+    for (mut position, physics) in query.iter_mut() {
+        let bounding_box = physics.dimensions.make_bounding_box(&position);
+        physics.bounding_box = bounding_box;
+    }
 }
 
 pub fn set_rotation(physics: &mut Physics, y_rot: f32, x_rot: f32) {
@@ -158,7 +95,7 @@ pub fn make_bounding_box(pos: &Position, physics: &Physics) -> AABB {
 }
 
 /// Get the position of the block below the entity, but a little lower.
-pub fn on_pos_legacy(world: &WeakWorld, position: &Position, physics: &Physics) -> BlockPos {
+pub fn on_pos_legacy(world: &World, position: &Position, physics: &Physics) -> BlockPos {
     on_pos(world, position, physics, 0.2)
 }
 
@@ -174,7 +111,7 @@ pub fn on_pos_legacy(world: &WeakWorld, position: &Position, physics: &Physics) 
 //    }
 // }
 // return var5;
-pub fn on_pos(world: &WeakWorld, pos: &Position, physics: &Physics, offset: f32) -> BlockPos {
+pub fn on_pos(world: &World, pos: &Position, physics: &Physics, offset: f32) -> BlockPos {
     let x = pos.x.floor() as i32;
     let y = (pos.y - offset as f64).floor() as i32;
     let z = pos.z.floor() as i32;
@@ -207,14 +144,38 @@ pub struct EntityUuid(Uuid);
 /// world.move_entity
 #[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
 pub struct Position(Vec3);
-impl From<&Position> for ChunkPos {
-    fn from(value: &Position) -> Self {
+impl From<Position> for ChunkPos {
+    fn from(value: Position) -> Self {
         ChunkPos::from(&value.0)
     }
 }
-impl From<&Position> for BlockPos {
-    fn from(value: &Position) -> Self {
+impl From<Position> for BlockPos {
+    fn from(value: Position) -> Self {
         BlockPos::from(&value.0)
+    }
+}
+
+/// The position of the entity last tick.
+#[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
+pub struct LastPosition(Vec3);
+impl From<LastPosition> for ChunkPos {
+    fn from(value: LastPosition) -> Self {
+        ChunkPos::from(&value.0)
+    }
+}
+impl From<LastPosition> for BlockPos {
+    fn from(value: LastPosition) -> Self {
+        BlockPos::from(&value.0)
+    }
+}
+
+/// Set the [`LastPosition`] component to the current [`Position`] component.
+/// This should happen at the end of every tick.
+pub fn update_last_position(
+    mut query: Query<(&mut Position, &mut LastPosition), Changed<Position>>,
+) {
+    for (mut position, mut last_position) in query.iter_mut() {
+        *last_position = LastPosition(**position);
     }
 }
 
@@ -222,8 +183,6 @@ impl From<&Position> for BlockPos {
 /// bounding box.
 #[derive(Debug, Component)]
 pub struct Physics {
-    /// The position of the entity last tick.
-    pub last_pos: Vec3,
     pub delta: Vec3,
 
     /// X acceleration.
@@ -269,6 +228,7 @@ pub struct EntityBundle {
     pub kind: EntityKind,
     pub uuid: EntityUuid,
     pub position: Position,
+    pub last_position: LastPosition,
     pub physics: Physics,
     pub attributes: Attributes,
 }
@@ -284,8 +244,8 @@ impl EntityBundle {
             kind: EntityKind(kind),
             uuid: EntityUuid(uuid),
             position: Position(pos),
+            last_position: Position(pos),
             physics: Physics {
-                last_pos: pos,
                 delta: Vec3::default(),
 
                 xxa: 0.,
@@ -326,24 +286,24 @@ pub struct PlayerBundle {
     pub metadata: metadata::PlayerMetadataBundle,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::PartialWorld;
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use crate::PartialWorld;
 
-    #[test]
-    fn from_mut_entity_to_ref_entity() {
-        let mut world = PartialWorld::default();
-        let uuid = Uuid::from_u128(100);
-        world.add_entity(
-            0,
-            EntityData::new(
-                uuid,
-                Vec3::default(),
-                EntityMetadata::Player(metadata::Player::default()),
-            ),
-        );
-        let entity: Entity = world.entity_mut(0).unwrap();
-        assert_eq!(entity.uuid, uuid);
-    }
-}
+//     #[test]
+//     fn from_mut_entity_to_ref_entity() {
+//         let mut world = PartialWorld::default();
+//         let uuid = Uuid::from_u128(100);
+//         world.add_entity(
+//             0,
+//             EntityData::new(
+//                 uuid,
+//                 Vec3::default(),
+//                 EntityMetadata::Player(metadata::Player::default()),
+//             ),
+//         );
+//         let entity: Entity = world.entity_mut(0).unwrap();
+//         assert_eq!(entity.uuid, uuid);
+//     }
+// }

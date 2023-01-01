@@ -1,12 +1,10 @@
 use crate::{
-    entity::{self, move_unchecked, EntityId},
-    Chunk, MoveEntityError, PartialChunkStorage, PartialEntityInfos, WeakChunkStorage,
-    WeakEntityInfos,
+    entity::{self, Entity, MinecraftEntityId},
+    Chunk, EntityInfos, MoveEntityError, PartialChunkStorage, PartialEntityInfos, WeakChunkStorage,
 };
 use azalea_block::BlockState;
 use azalea_buf::BufReadError;
 use azalea_core::{BlockPos, ChunkPos, PositionDelta8, Vec3};
-use bevy_ecs::query::{QueryState, WorldQuery};
 use log::warn;
 use parking_lot::{Mutex, RwLock};
 use std::{backtrace::Backtrace, fmt::Debug};
@@ -24,7 +22,7 @@ use uuid::Uuid;
 pub struct PartialWorld {
     // we just need to keep a strong reference to `shared` so it doesn't get
     // dropped, we don't need to do anything with it
-    pub shared: Arc<WeakWorld>,
+    pub shared: Arc<World>,
 
     pub chunks: PartialChunkStorage,
     pub entity_infos: PartialEntityInfos,
@@ -33,13 +31,14 @@ pub struct PartialWorld {
 impl PartialWorld {
     pub fn new(
         chunk_radius: u32,
-        shared: Arc<WeakWorld>,
-        owner_entity_id: Option<EntityId>,
+        shared: Arc<World>,
+        owner_entity: Option<Entity>,
+        entity_infos: &mut EntityInfos,
     ) -> Self {
         PartialWorld {
             shared: shared.clone(),
             chunks: PartialChunkStorage::new(chunk_radius, shared.chunks.clone()),
-            entity_infos: PartialEntityInfos::new(shared.entity_infos.clone(), owner_entity_id),
+            entity_infos: PartialEntityInfos::new(owner_entity, entity_infos),
         }
     }
 
@@ -73,9 +72,11 @@ impl PartialWorld {
     ///
     /// Only call this if you're actually updating the entity, otherwise it'll
     /// cause the update tracker to get out of sync.
-    fn maybe_update_entity(&mut self, id: EntityId) -> bool {
+    fn maybe_update_entity(&mut self, entity: Entity, entity_infos: &mut EntityInfos) -> bool {
         // no entity for you (we're processing this entity somewhere else)
-        if Some(id) != self.entity_infos.owner_entity_id && !self.entity_infos.maybe_update(id) {
+        if Some(entity) != self.entity_infos.owner_entity
+            && !self.entity_infos.maybe_update(id, entity_infos)
+        {
             false
         } else {
             true
@@ -218,66 +219,59 @@ impl PartialWorld {
     }
 }
 
-/// A world where the chunks are stored as weak pointers. This is used for
-/// shared worlds.
-#[derive(Default, Debug)]
-pub struct WeakWorld {
-    pub chunks: Arc<RwLock<WeakChunkStorage>>,
-    pub(crate) entity_infos: Arc<RwLock<WeakEntityInfos>>,
+// /// A world where the chunks are stored as weak pointers. This is used for
+// /// shared worlds.
+// #[derive(Default, Debug)]
+// pub struct World {
+//     pub chunks: Arc<RwLock<WeakChunkStorage>>,
+// }
 
-    /// A reference to the ECS world that contains all of the entities in all of
-    /// the worlds.
-    pub(crate) global_ecs: Arc<Mutex<bevy_ecs::world::World>>,
-}
+// impl World {
+//     pub fn new(height: u32, min_y: i32) -> Self {
+//         World {
+//             chunks: Arc::new(RwLock::new(WeakChunkStorage::new(height,
+// min_y))),         }
+//     }
 
-impl WeakWorld {
-    pub fn new(height: u32, min_y: i32, global_ecs: Arc<Mutex<bevy_ecs::world::World>>) -> Self {
-        WeakWorld {
-            chunks: Arc::new(RwLock::new(WeakChunkStorage::new(height, min_y))),
-            entity_infos: Arc::new(RwLock::new(WeakEntityInfos::new())),
-            global_ecs,
-        }
-    }
+//     /// Read the total height of the world. You can add this to
+// [`Self::min_y`]     /// to get the highest possible y coordinate a block can
+// be placed at.     pub fn height(&self) -> u32 {
+//         self.chunks.read().height
+//     }
 
-    /// Read the total height of the world. You can add this to [`Self::min_y`]
-    /// to get the highest possible y coordinate a block can be placed at.
-    pub fn height(&self) -> u32 {
-        self.chunks.read().height
-    }
+//     /// Get the lowest possible y coordinate a block can be placed at.
+//     pub fn min_y(&self) -> i32 {
+//         self.chunks.read().min_y
+//     }
 
-    /// Get the lowest possible y coordinate a block can be placed at.
-    pub fn min_y(&self) -> i32 {
-        self.chunks.read().min_y
-    }
+//     pub fn contains_entity(&self, id: EntityId) -> bool {
+//         self.entity_infos.read().contains_entity(id)
+//     }
 
-    pub fn contains_entity(&self, id: EntityId) -> bool {
-        self.entity_infos.read().contains_entity(id)
-    }
+//     pub fn id_by_uuid(&self, uuid: &Uuid) -> Option<EntityId> {
+//         self.entity_infos.read().id_by_uuid(uuid).copied()
+//     }
 
-    pub fn id_by_uuid(&self, uuid: &Uuid) -> Option<EntityId> {
-        self.entity_infos.read().id_by_uuid(uuid).copied()
-    }
+//     pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
+//         self.chunks.read().get_block_state(pos)
+//     }
 
-    pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
-        self.chunks.read().get_block_state(pos)
-    }
+//     pub fn get_chunk(&self, pos: &ChunkPos) -> Option<Arc<RwLock<Chunk>>> {
+//         self.chunks.read().get(pos)
+//     }
 
-    pub fn get_chunk(&self, pos: &ChunkPos) -> Option<Arc<RwLock<Chunk>>> {
-        self.chunks.read().get(pos)
-    }
-
-    pub fn set_entity_pos(
-        &self,
-        entity_id: EntityId,
-        new_pos: Vec3,
-        pos: &mut entity::Position,
-        physics: &mut entity::Physics,
-    ) {
-        self.entity_infos
-            .write()
-            .set_entity_pos(entity_id, new_pos, pos, physics);
-    }
-}
+//     pub fn set_entity_pos(
+//         &self,
+//         entity_id: EntityId,
+//         new_pos: Vec3,
+//         pos: &mut entity::Position,
+//         physics: &mut entity::Physics,
+//     ) {
+//         self.entity_infos
+//             .write()
+//             .set_entity_pos(entity_id, new_pos, pos, physics);
+//     }
+// }
 
 impl Debug for PartialWorld {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -296,7 +290,7 @@ impl Default for PartialWorld {
         let chunk_storage = PartialChunkStorage::default();
         let entity_storage = PartialEntityInfos::default();
         Self {
-            shared: Arc::new(WeakWorld {
+            shared: Arc::new(World {
                 chunks: chunk_storage.shared.clone(),
                 entity_infos: entity_storage.shared.clone(),
                 global_ecs: Arc::new(Mutex::new(bevy_ecs::world::World::default())),

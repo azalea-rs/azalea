@@ -15,6 +15,7 @@ azalea-chat = {path = "../azalea-chat", version = "^0.5.0"}
 azalea-core = {path = "../azalea-core", version = "^0.5.0", features = ["bevy_ecs"]}
 azalea-nbt = {path = "../azalea-nbt", version = "^0.5.0"}
 azalea-registry = {path = "../azalea-registry", version = "^0.5.0"}
+bevy_app = { version = "0.9.1", default-features = false }
 bevy_ecs = {version = "0.9.1", default-features = false}
 derive_more = {version = "0.99.17", features = ["deref", "deref_mut"]}
 enum-as-inner = "0.5.1"

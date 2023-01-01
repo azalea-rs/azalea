@@ -422,6 +422,7 @@ dependencies = [
  "azalea-core",
  "azalea-nbt",
  "azalea-registry",
+ "bevy_app",
  "bevy_ecs",
  "derive_more",
  "enum-as-inner",
@@ -453,6 +454,31 @@ name = "base64"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
+
+[[package]]
+name = "bevy_app"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "536e4d0018347478545ed8b6cb6e57b9279ee984868e81b7c0e78e0fb3222e42"
+dependencies = [
+ "bevy_derive",
+ "bevy_ecs",
+ "bevy_utils",
+ "downcast-rs",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
+name = "bevy_derive"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7baf73c58d41c353c6fd08e6764a2e7420c9f19e8227b391c50981db6d0282a6"
+dependencies = [
+ "bevy_macro_utils",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "bevy_ecs"
