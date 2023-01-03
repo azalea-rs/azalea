@@ -1,30 +1,19 @@
 use std::{collections::HashMap, io, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
-use azalea_core::{ChunkPos, ResourceLocation, Vec3};
-use azalea_protocol::{
-    connect::{Connection, ReadConnection, WriteConnection},
-    packets::game::{
-        serverbound_keep_alive_packet::ServerboundKeepAlivePacket, ClientboundGamePacket,
-        ServerboundGamePacket,
-    },
-};
+use azalea_core::{ChunkPos, ResourceLocation};
+use azalea_protocol::{connect::WriteConnection, packets::game::ServerboundGamePacket};
 use azalea_world::{
-    entity::{self, metadata::PlayerMetadataBundle, Entity, EntityId},
-    EntityInfos, PartialWorld, World, WorldContainer,
+    entity::{self, Entity},
+    EntityInfos, PartialWorld, World,
 };
-use bevy_ecs::{
-    component::Component,
-    event::EventReader,
-    system::{Query, Res, ResMut},
-};
-use log::debug;
+use bevy_ecs::{component::Component, system::Query};
 use parking_lot::RwLock;
 use thiserror::Error;
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
-use crate::{ChatPacket, ClientInformation, Event, PlayerInfo, WalkDirection};
+use crate::{ClientInformation, Event, PlayerInfo, WalkDirection};
 
 /// A player that you control that is currently in a Minecraft server.
 #[derive(Component)]
@@ -44,7 +33,7 @@ pub struct LocalPlayer {
     pub world: Arc<RwLock<World>>,
     pub world_name: Option<ResourceLocation>,
 
-    pub tx: mpsc::Sender<Event>,
+    pub tx: mpsc::UnboundedSender<Event>,
 }
 
 #[derive(Default)]
@@ -78,7 +67,7 @@ impl LocalPlayer {
         write_conn: WriteConnection<ServerboundGamePacket>,
         world: Arc<RwLock<World>>,
         entity_infos: &mut EntityInfos,
-        tx: mpsc::Sender<Event>,
+        tx: mpsc::UnboundedSender<Event>,
     ) -> Self {
         let client_information = ClientInformation::default();
 
@@ -117,40 +106,35 @@ impl LocalPlayer {
     pub fn write_packet(&mut self, packet: ServerboundGamePacket) {
         tokio::spawn(self.write_packet_async(packet));
     }
+}
 
-    /// Update the [`LocalPlayerInLoadedChunk`] component for all
-    /// [`LocalPlayer`]s.
-    fn update_in_loaded_chunk(
-        mut commands: bevy_ecs::system::Commands,
-        query: Query<(entity::EcsEntityId, &LocalPlayer, &entity::Position)>,
-    ) {
-        for (ecs_entity_id, local_player, position) in &query {
-            let player_chunk_pos = ChunkPos::from(position);
-            let in_loaded_chunk = local_player
-                .world
-                .read()
-                .get_chunk(&player_chunk_pos)
-                .is_some();
-            if in_loaded_chunk {
-                commands
-                    .entity(ecs_entity_id)
-                    .insert(LocalPlayerInLoadedChunk);
-            } else {
-                commands
-                    .entity(ecs_entity_id)
-                    .remove::<LocalPlayerInLoadedChunk>();
-            }
-        }
+pub fn send_tick_event(query: Query<&LocalPlayer>) {
+    for local_player in &query {
+        local_player.tx.send(Event::Tick).unwrap();
     }
+}
 
-    pub(crate) fn send_event(event: Event, tx: &mpsc::Sender<Event>) {
-        tokio::spawn(tx.send(event));
-    }
-
-    fn send_tick_event(query: Query<&LocalPlayer>) {
-        for local_player in &query {
-            let tx = local_player.tx.clone();
-            Self::send_event(Event::Tick, &tx);
+/// Update the [`LocalPlayerInLoadedChunk`] component for all [`LocalPlayer`]s.
+pub fn update_in_loaded_chunk(
+    mut commands: bevy_ecs::system::Commands,
+    query: Query<(Entity, &LocalPlayer, &entity::Position)>,
+) {
+    for (ecs_entity_id, local_player, position) in &query {
+        let player_chunk_pos = ChunkPos::from(position);
+        let in_loaded_chunk = local_player
+            .world
+            .read()
+            .chunks
+            .get(&player_chunk_pos)
+            .is_some();
+        if in_loaded_chunk {
+            commands
+                .entity(ecs_entity_id)
+                .insert(LocalPlayerInLoadedChunk);
+        } else {
+            commands
+                .entity(ecs_entity_id)
+                .remove::<LocalPlayerInLoadedChunk>();
         }
     }
 }

@@ -22,7 +22,7 @@ mod player;
 mod plugins;
 
 pub use account::Account;
-pub use client::{ChatPacket, ClientInformation, Event, JoinError, LocalPlayer, PhysicsState};
+pub use client::{ChatPacket, ClientInformation, Event, JoinError};
 pub use movement::{SprintDirection, WalkDirection};
 pub use player::PlayerInfo;
 pub use plugins::{Plugin, PluginState, PluginStates, Plugins};

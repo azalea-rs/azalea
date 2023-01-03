@@ -1,6 +1,5 @@
 use crate::client::Client;
 use crate::local_player::{LocalPlayer, LocalPlayerInLoadedChunk, PhysicsState};
-use azalea_core::Vec3;
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
@@ -39,13 +38,15 @@ impl Client {
     /// If you're making a realistic client, calling this function every tick is
     /// recommended.
     pub fn set_jumping(&mut self, jumping: bool) {
-        let physics = self.query::<&mut entity::Physics>();
+        let ecs = self.ecs.lock();
+        let mut physics = self.query::<&mut entity::Physics>(&ecs).into_inner();
         physics.jumping = jumping;
     }
 
     /// Returns whether the player will try to jump next tick.
     pub fn jumping(&self) -> bool {
-        let physics = self.query::<&mut entity::Physics>();
+        let ecs = self.ecs.lock();
+        let physics = self.query::<&mut entity::Physics>(&ecs).into_inner();
         physics.jumping
     }
 
@@ -54,7 +55,8 @@ impl Client {
     /// f3 screen.
     /// `y_rot` goes from -180 to 180, and `x_rot` goes from -90 to 90.
     pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
-        let mut physics = self.query::<&mut entity::Physics>();
+        let ecs = self.ecs.lock();
+        let mut physics = self.query::<&mut entity::Physics>(&ecs);
 
         entity::set_rotation(&mut physics, y_rot, x_rot);
     }
@@ -65,22 +67,19 @@ pub(crate) fn send_position(
         (
             Entity,
             &MinecraftEntityId,
-            &LocalPlayer,
+            &mut LocalPlayer,
             &entity::Position,
-            &entity::LastSentPosition,
+            &mut entity::LastSentPosition,
             &mut entity::Physics,
             &entity::metadata::Sprinting,
         ),
         &LocalPlayerInLoadedChunk,
     >,
 ) {
-    for (entity, id, local_player, position, last_sent_position, physics, sprinting) in &query {
-        local_player.send_sprinting_if_needed(
-            entity.into(),
-            id,
-            sprinting,
-            &mut local_player.physics_state,
-        );
+    for (entity, id, mut local_player, position, mut last_sent_position, mut physics, sprinting) in
+        query.iter_mut()
+    {
+        local_player.send_sprinting_if_needed(entity.into(), id, sprinting);
 
         let packet = {
             // TODO: the camera being able to be controlled by other entities isn't
@@ -173,9 +172,8 @@ impl LocalPlayer {
         entity: Entity,
         id: &MinecraftEntityId,
         sprinting: &entity::metadata::Sprinting,
-        physics_state: &mut PhysicsState,
     ) {
-        let was_sprinting = physics_state.was_sprinting;
+        let was_sprinting = self.physics_state.was_sprinting;
         if **sprinting != was_sprinting {
             let sprinting_action = if **sprinting {
                 azalea_protocol::packets::game::serverbound_player_command_packet::Action::StartSprinting
@@ -190,14 +188,14 @@ impl LocalPlayer {
                 }
                 .get(),
             );
-            physics_state.was_sprinting = **sprinting;
+            self.physics_state.was_sprinting = **sprinting;
         }
     }
 
     /// Makes the bot do one physics tick. Note that this is already handled
     /// automatically by the client.
     pub fn ai_step(
-        query: Query<
+        mut query: Query<
             (
                 Entity,
                 &mut LocalPlayer,
@@ -216,7 +214,7 @@ impl LocalPlayer {
             mut position,
             mut sprinting,
             mut attributes,
-        ) in &mut query
+        ) in query.iter_mut()
         {
             let physics_state = &mut local_player.physics_state;
 

@@ -1,24 +1,19 @@
 pub use crate::chat::ChatPacket;
 use crate::{
-    local_player::LocalPlayer,
-    movement::{send_position, WalkDirection},
+    local_player::{send_tick_event, update_in_loaded_chunk, LocalPlayer},
+    movement::send_position,
     packet_handling,
     plugins::PluginStates,
     Account, PlayerInfo,
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::SessionServerError};
-use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
-    connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
+    connect::{Connection, ConnectionError},
     packets::{
         game::{
             clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
-            serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
             serverbound_client_information_packet::ServerboundClientInformationPacket,
-            serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
-            serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
-            serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
             ClientboundGamePacket, ServerboundGamePacket,
         },
         handshake::{
@@ -32,45 +27,31 @@ use azalea_protocol::{
         },
         ConnectionProtocol, PROTOCOL_VERSION,
     },
-    read::ReadPacketError,
     resolver, ServerAddress,
 };
-use azalea_world::{
-    entity::{
-        self,
-        metadata::{self, PlayerMetadataBundle},
-        Entity,
-    },
-    EntityInfos, PartialChunkStorage, PartialWorld, World, WorldContainer,
-};
+use azalea_world::{entity::Entity, EntityInfos, PartialWorld, World, WorldContainer};
 use bevy_app::App;
 use bevy_ecs::{
-    prelude::Component,
     query::{QueryState, WorldQuery},
-    schedule::{IntoSystemDescriptor, Schedule, Stage, StageLabel, SystemStage},
-    system::{Query, SystemState},
+    schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
 };
-use futures::{stream::FuturesUnordered, StreamExt};
 use iyes_loopless::prelude::*;
-use log::{debug, error, info, trace, warn};
-use parking_lot::{Mutex, RwLock};
+use log::{debug, error, warn};
+use parking_lot::{Mutex, MutexGuard, RwLock};
 use std::{
-    any,
-    backtrace::Backtrace,
-    collections::HashMap,
     fmt::Debug,
-    io::{self, Cursor},
-    ops::DerefMut,
+    io::{self},
+    marker::PhantomData,
+    ops::{Deref, DerefMut},
     sync::Arc,
     time::Duration,
 };
 use thiserror::Error;
 use tokio::{
-    sync::mpsc::{self, Receiver, Sender},
+    sync::mpsc::{self, Receiver},
     task::JoinHandle,
     time::{self},
 };
-use uuid::Uuid;
 
 pub type ClientInformation = ServerboundClientInformationPacket;
 
@@ -202,7 +183,7 @@ impl Client {
     pub async fn join(
         account: &Account,
         address: impl TryInto<ServerAddress>,
-    ) -> Result<(Self, Receiver<Event>), JoinError> {
+    ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
         let resolved_address = resolver::resolve_address(&address).await?;
 
@@ -213,8 +194,8 @@ impl Client {
         // The buffer has to be 1 to avoid a bug where if it lags events are
         // received a bit later instead of the instant they were fired.
         // That bug especially causes issues with the pathfinder.
-        let (tx, rx) = mpsc::channel(1);
-        tx.send(Event::Init).await.expect("Failed to send event");
+        let (tx, rx) = mpsc::unbounded_channel();
+        tx.send(Event::Init).unwrap();
 
         // An event that causes the schedule to run. This is only used internally.
         let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
@@ -228,7 +209,7 @@ impl Client {
         let entity = entity_mut.id();
 
         // we got the GameConnection, so the server is now connected :)
-        let client = Client::new(game_profile.clone(), None, entity, ecs_lock);
+        let client = Client::new(game_profile.clone(), None, entity, ecs_lock.clone());
 
         let world = client.world();
 
@@ -247,7 +228,7 @@ impl Client {
             run_schedule_sender,
         };
 
-        tokio::spawn(packet_receiver.read_task(read_conn));
+        tokio::spawn(packet_receiver.clone().read_task(read_conn));
 
         ecs.entity_mut(entity)
             .insert((local_player, packet_receiver));
@@ -377,12 +358,19 @@ impl Client {
 
     /// Write a packet directly to the server.
     pub async fn write_packet(&self, packet: ServerboundGamePacket) -> Result<(), std::io::Error> {
-        self.local_player_mut().write_packet_async(packet).await
+        self.local_player_mut(&self.ecs.lock())
+            .write_packet_async(packet)
+            .await
     }
 
     /// Disconnect this client from the server, ending all tasks.
     pub async fn disconnect(&self) -> Result<(), std::io::Error> {
-        if let Err(e) = self.local_player_mut().write_conn.shutdown().await {
+        if let Err(e) = self
+            .local_player_mut(&self.ecs.lock())
+            .write_conn
+            .shutdown()
+            .await
+        {
             warn!(
                 "Error shutting down connection, but it might be fine: {}",
                 e
@@ -395,11 +383,14 @@ impl Client {
         Ok(())
     }
 
-    pub fn local_player(&self) -> &LocalPlayer {
-        self.query::<&LocalPlayer>()
+    pub fn local_player(&self, ecs: &bevy_ecs::world::World) -> &LocalPlayer {
+        self.query::<&LocalPlayer>(ecs)
     }
-    pub fn local_player_mut(&self) -> &mut LocalPlayer {
-        self.query::<&mut LocalPlayer>().into_inner()
+    pub fn local_player_mut(
+        &self,
+        ecs: &bevy_ecs::world::World,
+    ) -> bevy_ecs::world::Mut<LocalPlayer> {
+        self.query::<&mut LocalPlayer>(ecs)
     }
 
     /// Get a reference to our (potentially shared) world.
@@ -410,25 +401,18 @@ impl Client {
     /// superset of the client's world.
     pub fn world(&self) -> Arc<RwLock<World>> {
         let world_name = self
-            .local_player()
+            .local_player(&self.ecs.lock())
             .world_name
+            .as_ref()
             .expect("World name must be known if we're doing Client::world");
         let world_container = self.world_container.read();
         world_container.get(&world_name).unwrap()
     }
 
-    /// Query data of our player's entity.
-    pub fn query<'w, 's, Q: WorldQuery>(&'w self) -> <Q as WorldQuery>::Item<'_> {
-        let mut ecs = &mut self.ecs.lock();
-        QueryState::<Q>::new(ecs)
-            .get_mut(ecs, self.entity)
-            .expect("Player entity should always exist when being queried")
-    }
-
     /// Returns whether we have a received the login packet yet.
     pub fn logged_in(&self) -> bool {
         // the login packet tells us the world name
-        self.local_player().world_name.is_some()
+        self.local_player(&self.ecs.lock()).world_name.is_some()
     }
 
     /// Tell the server we changed our game options (i.e. render distance, main
@@ -451,11 +435,15 @@ impl Client {
         client_information: ServerboundClientInformationPacket,
     ) -> Result<(), std::io::Error> {
         {
-            self.local_player_mut().client_information = client_information;
+            self.local_player_mut(&self.ecs.lock()).client_information = client_information;
         }
 
         if self.logged_in() {
-            let client_information_packet = self.local_player().client_information.clone().get();
+            let client_information_packet = self
+                .local_player(&self.ecs.lock())
+                .client_information
+                .clone()
+                .get();
             log::debug!(
                 "Sending client information (already logged in): {:?}",
                 client_information_packet
@@ -464,6 +452,16 @@ impl Client {
         }
 
         Ok(())
+    }
+
+    /// Query data of our player's entity.
+    pub fn query<'w, Q: WorldQuery>(
+        &self,
+        ecs: &'w bevy_ecs::world::World,
+    ) -> <Q as WorldQuery>::Item<'w> {
+        ecs.query::<Q>()
+            .get_mut(&mut ecs, self.entity)
+            .expect("Player entity should always exist when being queried")
     }
 }
 
@@ -477,18 +475,20 @@ pub async fn start_ecs(
     // you might be able to just drop the lock or put it in its own scope to fix
 
     let mut app = App::new();
-
-    app.add_fixed_timestep(Duration::from_millis(50), "tick");
-
-    app.add_fixed_timestep_system("tick", 0, send_position);
-    // .add_system(LocalPlayer::update_in_loaded_chunk)
-    //     .add_system(send_position)
-    //     .add_system(LocalPlayer::ai_step);
-
-    app.add_system(packet_handling::handle_packets.label("handle_packets"));
-
-    // should happen last
-    app.add_system(packet_handling::clear_packets.after("handle_packets"));
+    app.add_fixed_timestep(Duration::from_millis(50), "tick")
+        .add_fixed_timestep_system_set(
+            "tick",
+            0,
+            SystemSet::new()
+                .with_system(send_position)
+                .with_system(update_in_loaded_chunk)
+                .with_system(send_position)
+                .with_system(LocalPlayer::ai_step)
+                .with_system(send_tick_event),
+        )
+        .add_system(packet_handling::handle_packets.label("handle_packets"))
+        // should happen last
+        .add_system(packet_handling::clear_packets.after("handle_packets"));
 
     // all resources should have been added by now so we can take the ecs from the
     // app

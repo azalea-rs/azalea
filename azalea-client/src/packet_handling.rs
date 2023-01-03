@@ -598,7 +598,7 @@ pub fn handle_packet(entity: Entity, packet: &ClientboundGamePacket) {
 
 /// A system that clears all packets in the clientbound packet events.
 pub fn clear_packets(mut query: Query<&mut PacketReceiver>) {
-    for mut packets in query.iter_mut() {
+    for packets in query.iter_mut() {
         packets.packets.lock().clear();
     }
 }
@@ -606,7 +606,7 @@ pub fn clear_packets(mut query: Query<&mut PacketReceiver>) {
 impl PacketReceiver {
     /// Loop that reads from the connection and adds the packets to the queue +
     /// runs the schedule.
-    pub async fn read_task(&self, mut read_conn: ReadConnection<ClientboundGamePacket>) {
+    pub async fn read_task(self, mut read_conn: ReadConnection<ClientboundGamePacket>) {
         while let Ok(packet) = read_conn.read().await {
             self.packets.lock().push(packet);
             // tell the client to run all the systems

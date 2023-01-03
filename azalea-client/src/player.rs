@@ -1,7 +1,6 @@
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::FormattedText;
 use azalea_core::GameType;
-use azalea_world::PartialWorld;
 use uuid::Uuid;
 
 /// A player in the tab list.
