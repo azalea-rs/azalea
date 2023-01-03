@@ -2,7 +2,7 @@ use super::Shapes;
 use crate::collision::{BlockWithShape, VoxelShape, AABB};
 use azalea_block::BlockState;
 use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType, EPSILON};
-use azalea_world::{entity::EntityId, Chunk, World};
+use azalea_world::{Chunk, World};
 use parking_lot::RwLock;
 use std::sync::Arc;
 
@@ -57,7 +57,7 @@ impl<'a> BlockCollisions<'a> {
         //    return var7;
         // }
 
-        self.world.get_chunk(&chunk_pos)
+        self.world.chunks.get(&chunk_pos)
     }
 }
 
@@ -79,7 +79,7 @@ impl<'a> Iterator for BlockCollisions<'a> {
             let pos = item.pos;
             let block_state: BlockState = chunk
                 .read()
-                .get(&(&pos).into(), self.world.min_y())
+                .get(&(&pos).into(), self.world.chunks.min_y)
                 .unwrap_or(BlockState::Air);
 
             // TODO: continue if self.only_suffocating_blocks and the block is not

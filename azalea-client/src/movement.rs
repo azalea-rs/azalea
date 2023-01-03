@@ -1,5 +1,5 @@
-use crate::client::{Client, LocalPlayerInLoadedChunk};
-use crate::{LocalPlayer, PhysicsState};
+use crate::client::Client;
+use crate::local_player::{LocalPlayer, LocalPlayerInLoadedChunk, PhysicsState};
 use azalea_core::Vec3;
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
@@ -8,7 +8,7 @@ use azalea_protocol::packets::game::{
     serverbound_move_player_rot_packet::ServerboundMovePlayerRotPacket,
     serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
 };
-use azalea_world::entity::EcsEntityId;
+use azalea_world::entity::{Entity, MinecraftEntityId};
 use azalea_world::{entity, MoveEntityError};
 use bevy_ecs::system::Query;
 use std::backtrace::Backtrace;
@@ -60,117 +60,118 @@ impl Client {
     }
 }
 
-impl LocalPlayer {
-    /// This gets called automatically every tick.
-    pub(crate) fn send_position(
-        mut query: Query<
-            (
-                EcsEntityId,
-                &LocalPlayer,
-                &entity::Position,
-                &mut entity::Physics,
-                &entity::metadata::Sprinting,
-            ),
-            &LocalPlayerInLoadedChunk,
-        >,
-    ) {
-        for (entity, local_player, position, physics, sprinting) in &query {
-            local_player.send_sprinting_if_needed(
-                entity.into(),
-                sprinting,
-                &mut local_player.physics_state,
-            );
+pub(crate) fn send_position(
+    mut query: Query<
+        (
+            Entity,
+            &MinecraftEntityId,
+            &LocalPlayer,
+            &entity::Position,
+            &entity::LastSentPosition,
+            &mut entity::Physics,
+            &entity::metadata::Sprinting,
+        ),
+        &LocalPlayerInLoadedChunk,
+    >,
+) {
+    for (entity, id, local_player, position, last_sent_position, physics, sprinting) in &query {
+        local_player.send_sprinting_if_needed(
+            entity.into(),
+            id,
+            sprinting,
+            &mut local_player.physics_state,
+        );
 
-            let packet = {
-                // TODO: the camera being able to be controlled by other entities isn't
-                // implemented yet if !self.is_controlled_camera() { return };
+        let packet = {
+            // TODO: the camera being able to be controlled by other entities isn't
+            // implemented yet if !self.is_controlled_camera() { return };
 
-                let old_position = physics.last_pos;
+            let x_delta = position.x - last_sent_position.x;
+            let y_delta = position.y - last_sent_position.y;
+            let z_delta = position.z - last_sent_position.z;
+            let y_rot_delta = (physics.y_rot - physics.y_rot_last) as f64;
+            let x_rot_delta = (physics.x_rot - physics.x_rot_last) as f64;
 
-                let x_delta = position.x - old_position.x;
-                let y_delta = position.y - old_position.y;
-                let z_delta = position.z - old_position.z;
-                let y_rot_delta = (physics.y_rot - physics.y_rot_last) as f64;
-                let x_rot_delta = (physics.x_rot - physics.x_rot_last) as f64;
+            local_player.physics_state.position_remainder += 1;
 
-                local_player.physics_state.position_remainder += 1;
+            // boolean sendingPosition = Mth.lengthSquared(xDelta, yDelta, zDelta) >
+            // Mth.square(2.0E-4D) || this.positionReminder >= 20;
+            let sending_position = ((x_delta.powi(2) + y_delta.powi(2) + z_delta.powi(2))
+                > 2.0e-4f64.powi(2))
+                || local_player.physics_state.position_remainder >= 20;
+            let sending_rotation = y_rot_delta != 0.0 || x_rot_delta != 0.0;
 
-                // boolean sendingPosition = Mth.lengthSquared(xDelta, yDelta, zDelta) >
-                // Mth.square(2.0E-4D) || this.positionReminder >= 20;
-                let sending_position = ((x_delta.powi(2) + y_delta.powi(2) + z_delta.powi(2))
-                    > 2.0e-4f64.powi(2))
-                    || local_player.physics_state.position_remainder >= 20;
-                let sending_rotation = y_rot_delta != 0.0 || x_rot_delta != 0.0;
-
-                // if self.is_passenger() {
-                //   TODO: posrot packet for being a passenger
-                // }
-                let packet = if sending_position && sending_rotation {
-                    Some(
-                        ServerboundMovePlayerPosRotPacket {
-                            x: position.x,
-                            y: position.y,
-                            z: position.z,
-                            x_rot: physics.x_rot,
-                            y_rot: physics.y_rot,
-                            on_ground: physics.on_ground,
-                        }
-                        .get(),
-                    )
-                } else if sending_position {
-                    Some(
-                        ServerboundMovePlayerPosPacket {
-                            x: position.x,
-                            y: position.y,
-                            z: position.z,
-                            on_ground: physics.on_ground,
-                        }
-                        .get(),
-                    )
-                } else if sending_rotation {
-                    Some(
-                        ServerboundMovePlayerRotPacket {
-                            x_rot: physics.x_rot,
-                            y_rot: physics.y_rot,
-                            on_ground: physics.on_ground,
-                        }
-                        .get(),
-                    )
-                } else if physics.last_on_ground != physics.on_ground {
-                    Some(
-                        ServerboundMovePlayerStatusOnlyPacket {
-                            on_ground: physics.on_ground,
-                        }
-                        .get(),
-                    )
-                } else {
-                    None
-                };
-
-                if sending_position {
-                    physics.last_pos = **position;
-                    local_player.physics_state.position_remainder = 0;
-                }
-                if sending_rotation {
-                    physics.y_rot_last = physics.y_rot;
-                    physics.x_rot_last = physics.x_rot;
-                }
-
-                physics.last_on_ground = physics.on_ground;
-                // minecraft checks for autojump here, but also autojump is bad so
-
-                packet
+            // if self.is_passenger() {
+            //   TODO: posrot packet for being a passenger
+            // }
+            let packet = if sending_position && sending_rotation {
+                Some(
+                    ServerboundMovePlayerPosRotPacket {
+                        x: position.x,
+                        y: position.y,
+                        z: position.z,
+                        x_rot: physics.x_rot,
+                        y_rot: physics.y_rot,
+                        on_ground: physics.on_ground,
+                    }
+                    .get(),
+                )
+            } else if sending_position {
+                Some(
+                    ServerboundMovePlayerPosPacket {
+                        x: position.x,
+                        y: position.y,
+                        z: position.z,
+                        on_ground: physics.on_ground,
+                    }
+                    .get(),
+                )
+            } else if sending_rotation {
+                Some(
+                    ServerboundMovePlayerRotPacket {
+                        x_rot: physics.x_rot,
+                        y_rot: physics.y_rot,
+                        on_ground: physics.on_ground,
+                    }
+                    .get(),
+                )
+            } else if physics.last_on_ground != physics.on_ground {
+                Some(
+                    ServerboundMovePlayerStatusOnlyPacket {
+                        on_ground: physics.on_ground,
+                    }
+                    .get(),
+                )
+            } else {
+                None
             };
 
-            if let Some(packet) = packet {
-                tokio::spawn(local_player.write_packet(packet));
+            if sending_position {
+                **last_sent_position = **position;
+                local_player.physics_state.position_remainder = 0;
             }
+            if sending_rotation {
+                physics.y_rot_last = physics.y_rot;
+                physics.x_rot_last = physics.x_rot;
+            }
+
+            physics.last_on_ground = physics.on_ground;
+            // minecraft checks for autojump here, but also autojump is bad so
+
+            packet
+        };
+
+        if let Some(packet) = packet {
+            local_player.write_packet(packet);
         }
     }
+}
 
+impl LocalPlayer {
     fn send_sprinting_if_needed(
         &mut self,
-        entity: entity::EntityId,
+        entity: Entity,
+        id: &MinecraftEntityId,
         sprinting: &entity::metadata::Sprinting,
         physics_state: &mut PhysicsState,
     ) {
@@ -181,15 +182,13 @@ impl LocalPlayer {
             } else {
                 azalea_protocol::packets::game::serverbound_player_command_packet::Action::StopSprinting
             };
-            tokio::spawn(
-                self.write_packet(
-                    ServerboundPlayerCommandPacket {
-                        id: *entity,
-                        action: sprinting_action,
-                        data: 0,
-                    }
-                    .get(),
-                ),
+            self.write_packet(
+                ServerboundPlayerCommandPacket {
+                    id: **id,
+                    action: sprinting_action,
+                    data: 0,
+                }
+                .get(),
             );
             physics_state.was_sprinting = **sprinting;
         }
@@ -200,7 +199,7 @@ impl LocalPlayer {
     pub fn ai_step(
         query: Query<
             (
-                EcsEntityId,
+                Entity,
                 &mut LocalPlayer,
                 &mut entity::Physics,
                 &mut entity::Position,
@@ -251,8 +250,7 @@ impl LocalPlayer {
             }
 
             azalea_physics::ai_step(
-                ecs_entity_id.into(),
-                &local_player.world.read().shared,
+                &local_player.world.read(),
                 &mut physics,
                 &mut position,
                 &sprinting,

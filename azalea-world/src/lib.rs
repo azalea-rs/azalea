@@ -13,7 +13,7 @@ mod world;
 use std::backtrace::Backtrace;
 
 pub use bit_storage::BitStorage;
-pub use chunk_storage::{Chunk, ChunkStorage, PartialChunkStorage, WeakChunkStorage};
+pub use chunk_storage::{Chunk, ChunkStorage, PartialChunkStorage};
 pub use container::*;
 pub use entity_info::{EntityInfos, PartialEntityInfos};
 use thiserror::Error;

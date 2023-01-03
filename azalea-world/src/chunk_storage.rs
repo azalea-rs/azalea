@@ -15,13 +15,8 @@ use std::{
 const SECTION_HEIGHT: u32 = 16;
 
 /// An efficient storage of chunks for a client that has a limited render
-/// distance. This has support for using a shared [`WeakChunkStorage`]. If you
-/// have an infinite render distance (like a server), you should use
-/// [`ChunkStorage`] instead.
+/// distance. This has support for using a shared [`ChunkStorage`].
 pub struct PartialChunkStorage {
-    /// Chunk storage that can be shared by clients.
-    pub shared: Arc<RwLock<WeakChunkStorage>>,
-
     pub view_center: ChunkPos,
     chunk_radius: u32,
     view_range: u32,
@@ -33,23 +28,16 @@ pub struct PartialChunkStorage {
 /// actively being used somewhere else they'll be forgotten. This is used for
 /// shared worlds.
 #[derive(Debug)]
-pub struct WeakChunkStorage {
+pub struct ChunkStorage {
     pub height: u32,
     pub min_y: i32,
     pub chunks: HashMap<ChunkPos, Weak<RwLock<Chunk>>>,
 }
 
-/// A storage of potentially infinite chunks in a world. Chunks are stored as
-/// an `Arc<Mutex>` so they can be shared across threads.
-pub struct ChunkStorage {
-    pub height: u32,
-    pub min_y: i32,
-    pub chunks: HashMap<ChunkPos, Arc<RwLock<Chunk>>>,
-}
-
 /// A single chunk in a world (16*?*16 blocks). This only contains the blocks
 /// and biomes. You can derive the height of the chunk from the number of
-/// sections, but you need a [`ChunkStorage`] to get the minimum Y coordinate.
+/// sections, but you need a [`ChunkStorage`] to get the minimum Y
+/// coordinate.
 #[derive(Debug)]
 pub struct Chunk {
     pub sections: Vec<Section>,
@@ -82,22 +70,14 @@ impl Default for Chunk {
 }
 
 impl PartialChunkStorage {
-    pub fn new(chunk_radius: u32, shared: Arc<RwLock<WeakChunkStorage>>) -> Self {
+    pub fn new(chunk_radius: u32) -> Self {
         let view_range = chunk_radius * 2 + 1;
         PartialChunkStorage {
-            shared,
             view_center: ChunkPos::new(0, 0),
             chunk_radius,
             view_range,
             chunks: vec![None; (view_range * view_range) as usize],
         }
-    }
-
-    pub fn min_y(&self) -> i32 {
-        self.shared.read().min_y
-    }
-    pub fn height(&self) -> u32 {
-        self.shared.read().height
     }
 
     fn get_index(&self, chunk_pos: &ChunkPos) -> usize {
@@ -110,20 +90,28 @@ impl PartialChunkStorage {
             && (chunk_pos.z - self.view_center.z).unsigned_abs() <= self.chunk_radius
     }
 
-    pub fn set_block_state(&self, pos: &BlockPos, state: BlockState) -> Option<BlockState> {
-        if pos.y < self.min_y() || pos.y >= (self.min_y() + self.height() as i32) {
+    pub fn set_block_state(
+        &self,
+        pos: &BlockPos,
+        state: BlockState,
+        chunk_storage: &mut ChunkStorage,
+    ) -> Option<BlockState> {
+        if pos.y < chunk_storage.min_y
+            || pos.y >= (chunk_storage.min_y + chunk_storage.height as i32)
+        {
             return None;
         }
         let chunk_pos = ChunkPos::from(pos);
-        let chunk = self.get(&chunk_pos)?;
-        let mut chunk = chunk.write();
-        Some(chunk.get_and_set(&ChunkBlockPos::from(pos), state, self.min_y()))
+        let chunk_lock = chunk_storage.get(&chunk_pos)?;
+        let mut chunk = chunk_lock.write();
+        Some(chunk.get_and_set(&ChunkBlockPos::from(pos), state, chunk_storage.min_y))
     }
 
     pub fn replace_with_packet_data(
         &mut self,
         pos: &ChunkPos,
         data: &mut Cursor<&[u8]>,
+        chunk_storage: &mut ChunkStorage,
     ) -> Result<(), BufReadError> {
         debug!("Replacing chunk at {:?}", pos);
         if !self.in_range(pos) {
@@ -137,11 +125,11 @@ impl PartialChunkStorage {
 
         let chunk = Arc::new(RwLock::new(Chunk::read_with_dimension_height(
             data,
-            self.height(),
+            chunk_storage.height,
         )?));
 
         trace!("Loaded chunk {:?}", pos);
-        self.set(pos, Some(chunk));
+        self.set(pos, Some(chunk), chunk_storage);
 
         Ok(())
     }
@@ -172,26 +160,19 @@ impl PartialChunkStorage {
         Some(&mut self.chunks[index])
     }
 
-    /// Get a chunk,
-    pub fn get(&self, pos: &ChunkPos) -> Option<Arc<RwLock<Chunk>>> {
-        self.shared
-            .read()
-            .chunks
-            .get(pos)
-            .and_then(|chunk| chunk.upgrade())
-    }
-
     /// Set a chunk in the shared storage and reference it from the limited
     /// storage.
     ///
     /// # Panics
     /// If the chunk is not in the render distance.
-    pub fn set(&mut self, pos: &ChunkPos, chunk: Option<Arc<RwLock<Chunk>>>) {
+    pub fn set(
+        &mut self,
+        pos: &ChunkPos,
+        chunk: Option<Arc<RwLock<Chunk>>>,
+        chunk_storage: &mut ChunkStorage,
+    ) {
         if let Some(chunk) = &chunk {
-            self.shared
-                .write()
-                .chunks
-                .insert(*pos, Arc::downgrade(chunk));
+            chunk_storage.chunks.insert(*pos, Arc::downgrade(chunk));
         } else {
             // don't remove it from the shared storage, since it'll be removed
             // automatically if this was the last reference
@@ -201,9 +182,9 @@ impl PartialChunkStorage {
         }
     }
 }
-impl WeakChunkStorage {
+impl ChunkStorage {
     pub fn new(height: u32, min_y: i32) -> Self {
-        WeakChunkStorage {
+        ChunkStorage {
             height,
             min_y,
             chunks: HashMap::new(),
@@ -295,12 +276,10 @@ impl McBufWritable for Chunk {
 
 impl Debug for PartialChunkStorage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ChunkStorage")
+        f.debug_struct("PartialChunkStorage")
             .field("view_center", &self.view_center)
             .field("chunk_radius", &self.chunk_radius)
             .field("view_range", &self.view_range)
-            .field("height", &self.height())
-            .field("min_y", &self.min_y())
             // .field("chunks", &self.chunks)
             .field("chunks", &format_args!("{} items", self.chunks.len()))
             .finish()
@@ -373,10 +352,10 @@ impl Section {
 
 impl Default for PartialChunkStorage {
     fn default() -> Self {
-        Self::new(8, Arc::new(RwLock::new(WeakChunkStorage::default())))
+        Self::new(8)
     }
 }
-impl Default for WeakChunkStorage {
+impl Default for ChunkStorage {
     fn default() -> Self {
         Self::new(384, -64)
     }
@@ -408,34 +387,26 @@ mod tests {
 
     #[test]
     fn test_out_of_bounds_y() {
-        let mut chunk_storage = PartialChunkStorage::default();
-        chunk_storage.set(
+        let mut chunk_storage = ChunkStorage::default();
+        let mut partial_chunk_storage = PartialChunkStorage::default();
+        partial_chunk_storage.set(
             &ChunkPos { x: 0, z: 0 },
             Some(Arc::new(RwLock::new(Chunk::default()))),
+            &mut chunk_storage,
         );
         assert!(chunk_storage
-            .shared
-            .read()
             .get_block_state(&BlockPos { x: 0, y: 319, z: 0 })
             .is_some());
         assert!(chunk_storage
-            .shared
-            .read()
             .get_block_state(&BlockPos { x: 0, y: 320, z: 0 })
             .is_none());
         assert!(chunk_storage
-            .shared
-            .read()
             .get_block_state(&BlockPos { x: 0, y: 338, z: 0 })
             .is_none());
         assert!(chunk_storage
-            .shared
-            .read()
             .get_block_state(&BlockPos { x: 0, y: -64, z: 0 })
             .is_some());
         assert!(chunk_storage
-            .shared
-            .read()
             .get_block_state(&BlockPos { x: 0, y: -65, z: 0 })
             .is_none());
     }

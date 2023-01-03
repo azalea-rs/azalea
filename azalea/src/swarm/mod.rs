@@ -10,7 +10,7 @@ use azalea_protocol::{
     resolver::{self, ResolverError},
     ServerAddress,
 };
-use azalea_world::WeakWorldContainer;
+use azalea_world::WorldContainer;
 use futures::future::join_all;
 use log::error;
 use parking_lot::{Mutex, RwLock};
@@ -52,7 +52,7 @@ pub struct Swarm<S> {
 
     resolved_address: SocketAddr,
     address: ServerAddress,
-    pub worlds: Arc<RwLock<WeakWorldContainer>>,
+    pub worlds: Arc<RwLock<WorldContainer>>,
     /// Plugins that are set for new bots
     plugins: Plugins,
 
@@ -228,7 +228,7 @@ pub async fn start_swarm<
     // resolve the address
     let resolved_address = resolver::resolve_address(&address).await?;
 
-    let world_container = Arc::new(RwLock::new(WeakWorldContainer::default()));
+    let world_container = Arc::new(RwLock::new(WorldContainer::default()));
 
     let mut plugins = options.plugins;
     let swarm_plugins = options.swarm_plugins;

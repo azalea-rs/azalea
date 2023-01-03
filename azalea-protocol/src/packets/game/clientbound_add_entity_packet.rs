@@ -1,5 +1,5 @@
 use azalea_buf::McBuf;
-use azalea_core::Vec3;
+use azalea_core::{ResourceLocation, Vec3};
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::entity::{
     metadata::{apply_default_metadata, PlayerMetadataBundle, UpdateMetadataError},
@@ -41,8 +41,11 @@ pub struct ClientboundAddEntityPacket {
 // }
 
 impl ClientboundAddEntityPacket {
-    pub fn as_entity_bundle(&self) -> EntityBundle {
-        EntityBundle::new(self.uuid, self.position, self.entity_type)
+    /// Make the entity into a bundle that can be inserted into the ECS. You
+    /// must apply the metadata after inserting the bundle with
+    /// [`Self::apply_metadata`].
+    pub fn as_entity_bundle(&self, world_name: ResourceLocation) -> EntityBundle {
+        EntityBundle::new(self.uuid, self.position, self.entity_type, world_name)
     }
 
     pub fn apply_metadata(&self, entity: &mut bevy_ecs::world::EntityMut) {

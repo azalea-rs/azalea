@@ -3,17 +3,17 @@ mod data;
 mod dimensions;
 pub mod metadata;
 
+use crate::ChunkStorage;
+
 use self::{attributes::AttributeInstance, metadata::UpdateMetadataError};
 pub use attributes::Attributes;
 use azalea_block::BlockState;
-use azalea_core::{BlockPos, ChunkPos, Vec3, AABB};
-use bevy_ecs::{
-    bundle::Bundle, component::Component, query::Changed, system::Query, world::EntityMut,
-};
+use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3, AABB};
+use bevy_ecs::{bundle::Bundle, component::Component, query::Changed, system::Query};
 pub use data::*;
 use derive_more::{Deref, DerefMut};
 pub use dimensions::EntityDimensions;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::Debug;
 use uuid::Uuid;
 
 /// A lightweight identifier of an entity.
@@ -41,8 +41,8 @@ impl nohash_hasher::IsEnabled for MinecraftEntityId {}
 ///
 /// # Safety
 /// Cached position in the world must be updated.
-pub fn update_bounding_box(query: Query<(&mut Position, &Physics), Changed<Position>>) {
-    for (mut position, physics) in query.iter_mut() {
+pub fn update_bounding_box(mut query: Query<(&Position, &mut Physics), Changed<Position>>) {
+    for (position, mut physics) in query.iter_mut() {
         let bounding_box = physics.dimensions.make_bounding_box(&position);
         physics.bounding_box = bounding_box;
     }
@@ -95,8 +95,12 @@ pub fn make_bounding_box(pos: &Position, physics: &Physics) -> AABB {
 }
 
 /// Get the position of the block below the entity, but a little lower.
-pub fn on_pos_legacy(world: &World, position: &Position, physics: &Physics) -> BlockPos {
-    on_pos(world, position, physics, 0.2)
+pub fn on_pos_legacy(
+    chunk_storage: &ChunkStorage,
+    position: &Position,
+    physics: &Physics,
+) -> BlockPos {
+    on_pos(0.2, chunk_storage, position, physics)
 }
 
 // int x = Mth.floor(this.position.x);
@@ -111,7 +115,12 @@ pub fn on_pos_legacy(world: &World, position: &Position, physics: &Physics) -> B
 //    }
 // }
 // return var5;
-pub fn on_pos(world: &World, pos: &Position, physics: &Physics, offset: f32) -> BlockPos {
+pub fn on_pos(
+    offset: f32,
+    chunk_storage: &ChunkStorage,
+    pos: &Position,
+    physics: &Physics,
+) -> BlockPos {
     let x = pos.x.floor() as i32;
     let y = (pos.y - offset as f64).floor() as i32;
     let z = pos.z.floor() as i32;
@@ -119,10 +128,10 @@ pub fn on_pos(world: &World, pos: &Position, physics: &Physics, offset: f32) -> 
 
     // TODO: check if block below is a fence, wall, or fence gate
     let block_pos = pos.down(1);
-    let block_state = world.get_block_state(&block_pos);
+    let block_state = chunk_storage.get_block_state(&block_pos);
     if block_state == Some(BlockState::Air) {
         let block_pos_below = block_pos.down(1);
-        let block_state_below = world.get_block_state(&block_pos_below);
+        let block_state_below = chunk_storage.get_block_state(&block_pos_below);
         if let Some(_block_state_below) = block_state_below {
             // if block_state_below.is_fence()
             //     || block_state_below.is_wall()
@@ -154,30 +163,45 @@ impl From<Position> for BlockPos {
         BlockPos::from(&value.0)
     }
 }
+impl From<&Position> for ChunkPos {
+    fn from(value: &Position) -> Self {
+        ChunkPos::from(value.0)
+    }
+}
+impl From<&Position> for BlockPos {
+    fn from(value: &Position) -> Self {
+        BlockPos::from(value.0)
+    }
+}
 
-/// The position of the entity last tick.
+/// The last position of the entity that was sent to the network.
 #[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
-pub struct LastPosition(Vec3);
-impl From<LastPosition> for ChunkPos {
-    fn from(value: LastPosition) -> Self {
+pub struct LastSentPosition(Vec3);
+impl From<LastSentPosition> for ChunkPos {
+    fn from(value: LastSentPosition) -> Self {
         ChunkPos::from(&value.0)
     }
 }
-impl From<LastPosition> for BlockPos {
-    fn from(value: LastPosition) -> Self {
+impl From<LastSentPosition> for BlockPos {
+    fn from(value: LastSentPosition) -> Self {
         BlockPos::from(&value.0)
     }
 }
-
-/// Set the [`LastPosition`] component to the current [`Position`] component.
-/// This should happen at the end of every tick.
-pub fn update_last_position(
-    mut query: Query<(&mut Position, &mut LastPosition), Changed<Position>>,
-) {
-    for (mut position, mut last_position) in query.iter_mut() {
-        *last_position = LastPosition(**position);
+impl From<&LastSentPosition> for ChunkPos {
+    fn from(value: &LastSentPosition) -> Self {
+        ChunkPos::from(value.0)
     }
 }
+impl From<&LastSentPosition> for BlockPos {
+    fn from(value: &LastSentPosition) -> Self {
+        BlockPos::from(value.0)
+    }
+}
+
+/// The name of the world the entity is in. If two entities share the same world
+/// name, we assume they're in the same world.
+#[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
+pub struct WorldName(ResourceLocation);
 
 /// The physics data relating to the entity, such as position, velocity, and
 /// bounding box.
@@ -227,14 +251,20 @@ pub struct EntityKind(azalea_registry::EntityKind);
 pub struct EntityBundle {
     pub kind: EntityKind,
     pub uuid: EntityUuid,
+    pub world_name: WorldName,
     pub position: Position,
-    pub last_position: LastPosition,
+    pub last_sent_position: LastSentPosition,
     pub physics: Physics,
     pub attributes: Attributes,
 }
 
 impl EntityBundle {
-    pub fn new(uuid: Uuid, pos: Vec3, kind: azalea_registry::EntityKind) -> Self {
+    pub fn new(
+        uuid: Uuid,
+        pos: Vec3,
+        kind: azalea_registry::EntityKind,
+        world_name: ResourceLocation,
+    ) -> Self {
         let dimensions = EntityDimensions {
             width: 0.6,
             height: 1.8,
@@ -243,8 +273,9 @@ impl EntityBundle {
         Self {
             kind: EntityKind(kind),
             uuid: EntityUuid(uuid),
+            world_name: WorldName(world_name),
             position: Position(pos),
-            last_position: Position(pos),
+            last_sent_position: LastSentPosition(pos),
             physics: Physics {
                 delta: Vec3::default(),
 

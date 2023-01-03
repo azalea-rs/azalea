@@ -1,5 +1,5 @@
 use azalea_buf::McBuf;
-use azalea_core::Vec3;
+use azalea_core::{ResourceLocation, Vec3};
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::EntityKind;
 use azalea_world::entity::{metadata::PlayerMetadataBundle, EntityBundle, PlayerBundle};
@@ -18,9 +18,9 @@ pub struct ClientboundAddPlayerPacket {
 }
 
 impl ClientboundAddPlayerPacket {
-    pub fn as_player_bundle(&self) -> PlayerBundle {
+    pub fn as_player_bundle(&self, world_name: ResourceLocation) -> PlayerBundle {
         PlayerBundle {
-            entity: EntityBundle::new(self.uuid, self.position, EntityKind::Player),
+            entity: EntityBundle::new(self.uuid, self.position, EntityKind::Player, world_name),
             metadata: PlayerMetadataBundle::default(),
         }
     }

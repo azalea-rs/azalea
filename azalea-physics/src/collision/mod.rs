@@ -6,13 +6,12 @@ mod world_collisions;
 
 use azalea_core::{Axis, Vec3, AABB, EPSILON};
 use azalea_world::{
-    entity::{self, EntityId},
+    entity::{self},
     MoveEntityError, World,
 };
 pub use blocks::BlockWithShape;
 pub use discrete_voxel_shape::*;
 pub use shape::*;
-use std::ops::Deref;
 
 use self::world_collisions::get_block_collisions;
 
@@ -74,7 +73,6 @@ fn collide(movement: &Vec3, world: &World, physics: &entity::Physics) -> Vec3 {
 pub fn move_colliding(
     _mover_type: &MoverType,
     movement: &Vec3,
-    entity_id: EntityId,
     world: &World,
     position: &mut entity::Position,
     physics: &mut entity::Physics,
@@ -100,7 +98,7 @@ pub fn move_colliding(
 
     // movement = this.maybeBackOffFromEdge(movement, moverType);
 
-    let collide_result = { collide(movement, world, physics) };
+    let collide_result = collide(movement, world, physics);
 
     let move_distance = collide_result.length_sqr();
 
@@ -115,7 +113,7 @@ pub fn move_colliding(
             }
         };
 
-        world.set_entity_pos(entity_id, new_pos, position, physics);
+        **position = new_pos;
     }
 
     let x_collision = movement.x != collide_result.x;
@@ -127,7 +125,7 @@ pub fn move_colliding(
 
     // TODO: minecraft checks for a "minor" horizontal collision here
 
-    let _block_pos_below = entity::on_pos_legacy(world, position, physics);
+    let _block_pos_below = entity::on_pos_legacy(&world.chunks, position, physics);
     // let _block_state_below = self
     //     .world
     //     .get_block_state(&block_pos_below)

@@ -1,20 +1,21 @@
-use crate::entity::{self, Entity, EntityUuid, MinecraftEntityId, Position};
-use azalea_core::{ChunkPos, ResourceLocation, Vec3};
+use crate::{
+    entity::{self, update_bounding_box, Entity, MinecraftEntityId},
+    MaybeRemovedEntity, World, WorldContainer,
+};
+use azalea_core::ChunkPos;
 use bevy_app::{App, CoreStage, Plugin};
 use bevy_ecs::{
-    query::{Changed, QueryEntityError, QueryState, ReadOnlyWorldQuery, WorldQuery},
+    query::Changed,
     schedule::SystemSet,
-    system::{Query, ResMut, Resource},
-    world::{EntityMut, EntityRef},
+    system::{Query, Res, ResMut, Resource},
 };
 use log::warn;
 use nohash_hasher::{IntMap, IntSet};
 use once_cell::sync::Lazy;
-use parking_lot::{Mutex, RwLock};
 use std::{
     collections::{HashMap, HashSet},
     fmt::Debug,
-    sync::{Arc, Weak},
+    ops::DerefMut,
 };
 use uuid::Uuid;
 
@@ -23,8 +24,11 @@ pub struct EntityPlugin;
 impl Plugin for EntityPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set_to_stage(
-            CoreStage::Last,
-            SystemSet::new().with_system(update_entity_chunk_positions),
+            CoreStage::PostUpdate,
+            SystemSet::new()
+                .with_system(update_entity_chunk_positions)
+                .with_system(remove_despawned_entities_from_indexes)
+                .with_system(update_bounding_box),
         );
     }
 }
@@ -115,21 +119,25 @@ impl PartialEntityInfos {
     /// we WILL update it if it's true. Don't call this unless you actually
     /// got an entity update that all other clients within render distance
     /// will get too.
-    pub fn maybe_update(&mut self, id: MinecraftEntityId, entity_infos: &mut EntityInfos) -> bool {
-        let this_client_updates_received = self.updates_received.get(&id).copied();
+    pub fn maybe_update(
+        &mut self,
+        entity: Entity,
+        id: &MinecraftEntityId,
+        entity_infos: &mut EntityInfos,
+    ) -> bool {
+        if Some(entity) == self.owner_entity {
+            // the owner of the entity is always allowed to update it
+            return true;
+        };
 
-        let entity = entity_infos
-            .minecraft_entity_ids_to_azalea_entities
-            .get(&id)
-            .expect("entity should be in minecraft_entity_ids_to_azalea_entities")
-            .clone();
+        let this_client_updates_received = self.updates_received.get(&id).copied();
 
         let shared_updates_received = entity_infos.updates_received.get(&entity).copied();
 
         let can_update = this_client_updates_received == shared_updates_received;
         if can_update {
             let new_updates_received = this_client_updates_received.unwrap_or(0) + 1;
-            self.updates_received.insert(id, new_updates_received);
+            self.updates_received.insert(*id, new_updates_received);
             entity_infos
                 .updates_received
                 .insert(entity, new_updates_received);
@@ -139,10 +147,6 @@ impl PartialEntityInfos {
         }
     }
 }
-
-/// This is useful so functions that return an IntSet of entity ids can return a
-/// reference to nothing.
-static EMPTY_ENTITY_ID_INTSET: Lazy<HashSet<Entity>> = Lazy::new(|| HashSet::default());
 
 // TODO: optimization: switch out the `HashMap<Entity, _>`s for `IntMap`s
 
@@ -154,9 +158,6 @@ pub struct EntityInfos {
     /// The number of `PartialWorld`s that have this entity loaded.
     /// (this is reference counting)
     pub(crate) entity_reference_count: HashMap<Entity, usize>,
-    /// An index of all the entities we know are in a chunk
-    pub(crate) entities_by_world_name_and_chunk:
-        HashMap<ResourceLocation, HashMap<ChunkPos, HashSet<Entity>>>,
     /// An index of entities by their UUIDs
     pub(crate) entity_by_uuid: HashMap<Uuid, Entity>,
 
@@ -171,7 +172,6 @@ impl EntityInfos {
     pub fn new() -> Self {
         Self {
             entity_reference_count: HashMap::default(),
-            entities_by_world_name_and_chunk: HashMap::default(),
             entity_by_uuid: HashMap::default(),
             updates_received: HashMap::default(),
 
@@ -185,7 +185,13 @@ impl EntityInfos {
     /// storage if there's no more references to it.
     ///
     /// Returns whether the entity was removed.
-    pub fn remove_entity_if_unused(&mut self, entity: Entity, uuid: Uuid, chunk: ChunkPos) -> bool {
+    pub fn remove_entity_if_unused(
+        &mut self,
+        entity: Entity,
+        uuid: Uuid,
+        chunk: ChunkPos,
+        world: &mut World,
+    ) -> bool {
         if let Some(count) = self.entity_reference_count.get_mut(&entity) {
             *count -= 1;
             if *count == 0 {
@@ -196,7 +202,7 @@ impl EntityInfos {
             warn!("Tried to remove entity but it was not found.");
             return false;
         }
-        if self.entities_by_chunk.remove(&chunk).is_none() {
+        if world.entities_by_chunk.remove(&chunk).is_none() {
             warn!("Tried to remove entity from chunk {chunk:?} but it was not found.");
         }
         if self.entity_by_uuid.remove(&uuid).is_none() {
@@ -210,29 +216,12 @@ impl EntityInfos {
         true
     }
 
-    /// Remove a chunk from the storage if the entities in it have no strong
-    /// references left.
-    pub fn remove_chunk_if_unused(&mut self, chunk: &ChunkPos) {
-        if let Some(entities) = self.entities_by_chunk.get(chunk) {
-            if entities.is_empty() {
-                self.entities_by_chunk.remove(chunk);
-            }
-        }
-    }
-
     /// Whether the entity is in the shared storage. To check if a Minecraft
     /// entity ID is in the storage, you'll have to use
     /// [`PartialEntityInfo::limited_contains_id`].
     #[inline]
     pub fn contains_entity(&self, id: Entity) -> bool {
         self.entity_reference_count.contains_key(&id)
-    }
-
-    /// Returns a set of entities in the given chunk.
-    pub fn entities_in_chunk<F>(&self, chunk: &ChunkPos) -> &HashSet<Entity> {
-        self.entities_by_chunk
-            .get(chunk)
-            .unwrap_or(&EMPTY_ENTITY_ID_INTSET)
     }
 
     pub fn entity_by_uuid(&self, uuid: &Uuid) -> Option<&Entity> {
@@ -242,31 +231,68 @@ impl EntityInfos {
 
 /// Update the chunk position indexes in [`EntityInfos`].
 fn update_entity_chunk_positions(
-    query: Query<
+    mut query: Query<
         (
             Entity,
             &entity::Position,
-            &mut entity::LastPosition,
-            &mut entity::Physics,
+            &mut entity::LastSentPosition,
+            &entity::WorldName,
         ),
         Changed<entity::Position>,
     >,
-    entity_infos: ResMut<EntityInfos>,
+    world_container: Res<WorldContainer>,
 ) {
-    for (entity, pos, last_pos, mut physics) in query.iter_mut() {
+    for (entity, pos, last_pos, world_name) in query.iter_mut() {
+        let world_lock = world_container.get(&**world_name).unwrap();
+        let mut world = world_lock.write();
+
         let old_chunk = ChunkPos::from(*last_pos);
         let new_chunk = ChunkPos::from(*pos);
 
         if old_chunk != new_chunk {
             // move the entity from the old chunk to the new one
-            if let Some(entities) = entity_infos.entities_by_chunk.get_mut(&old_chunk) {
+            if let Some(entities) = world.entities_by_chunk.get_mut(&old_chunk) {
                 entities.remove(&entity);
             }
-            entity_infos
+            world
                 .entities_by_chunk
                 .entry(new_chunk)
                 .or_default()
                 .insert(entity);
+        }
+    }
+}
+
+pub fn remove_despawned_entities_from_indexes(
+    mut entity_infos: ResMut<EntityInfos>,
+    world_container: Res<WorldContainer>,
+    query: Query<
+        (
+            Entity,
+            &entity::EntityUuid,
+            &entity::Position,
+            &entity::WorldName,
+        ),
+        &MaybeRemovedEntity,
+    >,
+) {
+    for (entity, uuid, position, world_name) in &query {
+        let world = world_container.get(world_name).unwrap();
+        entity_infos.remove_entity_if_unused(
+            entity,
+            **uuid,
+            (*position).into(),
+            world.write().deref_mut(),
+        );
+    }
+}
+
+/// Remove a chunk from the storage if the entities in it have no strong
+/// references left.
+pub fn remove_chunk_if_unused(world: &mut World, chunk: &ChunkPos) {
+    if let Some(entities) = world.entities_by_chunk.get(chunk) {
+        if entities.is_empty() {
+            world.entities_by_chunk.remove(chunk);
         }
     }
 }

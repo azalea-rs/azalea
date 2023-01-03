@@ -5,16 +5,14 @@ pub mod collision;
 use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
 use azalea_world::{
-    entity::{self, EntityId},
+    entity::{self},
     World,
 };
 use collision::{move_colliding, MoverType};
-use std::ops::Deref;
 
 /// Move the entity with the given acceleration while handling friction,
 /// gravity, collisions, and some other stuff.
 fn travel(
-    entity_id: EntityId,
     world: &World,
     physics: &mut entity::Physics,
     position: &mut entity::Position,
@@ -38,6 +36,7 @@ fn travel(
     let block_pos_below = get_block_pos_below_that_affects_movement(position);
 
     let block_state_below = world
+        .chunks
         .get_block_state(&block_pos_below)
         .unwrap_or(BlockState::Air);
     let block_below: Box<dyn Block> = block_state_below.into();
@@ -53,7 +52,6 @@ fn travel(
     let mut movement = handle_relative_friction_and_calculate_movement(
         acceleration,
         block_friction,
-        entity_id,
         world,
         physics,
         position,
@@ -83,7 +81,6 @@ fn travel(
 /// applies air resistance, calls self.travel(), and some other random
 /// stuff.
 pub fn ai_step(
-    entity_id: EntityId,
     world: &World,
     physics: &mut entity::Physics,
     position: &mut entity::Position,
@@ -115,7 +112,6 @@ pub fn ai_step(
     physics.zza *= 0.98;
 
     travel(
-        entity_id,
         world,
         physics,
         position,
@@ -168,7 +164,6 @@ fn get_block_pos_below_that_affects_movement(position: &entity::Position) -> Blo
 fn handle_relative_friction_and_calculate_movement(
     acceleration: &Vec3,
     block_friction: f32,
-    entity_id: EntityId,
     world: &World,
     physics: &mut entity::Physics,
     position: &mut entity::Position,
@@ -183,7 +178,6 @@ fn handle_relative_friction_and_calculate_movement(
     move_colliding(
         &MoverType::Own,
         &physics.delta.clone(),
-        entity_id,
         world,
         position,
         physics,
@@ -221,8 +215,10 @@ fn get_friction_influenced_speed(
 /// Returns the what the entity's jump should be multiplied by based on the
 /// block they're standing on.
 fn block_jump_factor(world: &World, position: &entity::Position) -> f32 {
-    let block_at_pos = world.get_block_state(&position.into());
-    let block_below = world.get_block_state(&get_block_pos_below_that_affects_movement(position));
+    let block_at_pos = world.chunks.get_block_state(&position.into());
+    let block_below = world
+        .chunks
+        .get_block_state(&get_block_pos_below_that_affects_movement(position));
 
     let block_at_pos_jump_factor = if let Some(block) = block_at_pos {
         Box::<dyn Block>::from(block).behavior().jump_factor

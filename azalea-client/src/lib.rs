@@ -16,6 +16,7 @@ mod client;
 mod get_mc_dir;
 mod local_player;
 mod movement;
+pub mod packet_handling;
 pub mod ping;
 mod player;
 mod plugins;

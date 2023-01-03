@@ -10,8 +10,8 @@ use azalea_protocol::{
     },
 };
 use azalea_world::{
-    entity::{self, metadata::PlayerMetadataBundle, EntityId},
-    PartialWorld, WeakWorldContainer,
+    entity::{self, metadata::PlayerMetadataBundle, Entity, EntityId},
+    EntityInfos, PartialWorld, World, WorldContainer,
 };
 use bevy_ecs::{
     component::Component,
@@ -32,6 +32,7 @@ pub struct LocalPlayer {
     pub profile: GameProfile,
 
     pub write_conn: WriteConnection<ServerboundGamePacket>,
+
     // pub world: Arc<RwLock<PartialWorld>>,
     pub physics_state: PhysicsState,
     pub client_information: ClientInformation,
@@ -39,7 +40,8 @@ pub struct LocalPlayer {
     /// A map of player uuids to their information in the tab list
     pub players: HashMap<Uuid, PlayerInfo>,
 
-    pub world: Arc<RwLock<PartialWorld>>,
+    pub partial_world: Arc<RwLock<PartialWorld>>,
+    pub world: Arc<RwLock<World>>,
     pub world_name: Option<ResourceLocation>,
 
     pub tx: mpsc::Sender<Event>,
@@ -66,28 +68,39 @@ pub struct PhysicsState {
 pub struct LocalPlayerInLoadedChunk;
 
 impl LocalPlayer {
-    /// Create a new client from the given GameProfile, Connection, and World.
+    /// Create a new `LocalPlayer`.
+    ///
     /// You should only use this if you want to change these fields from the
     /// defaults, otherwise use [`Client::join`].
     pub fn new(
+        entity: Entity,
         profile: GameProfile,
         write_conn: WriteConnection<ServerboundGamePacket>,
-        world: Arc<RwLock<PartialWorld>>,
+        world: Arc<RwLock<World>>,
+        entity_infos: &mut EntityInfos,
         tx: mpsc::Sender<Event>,
     ) -> Self {
+        let client_information = ClientInformation::default();
+
         LocalPlayer {
             profile,
+
             write_conn,
+
             physics_state: PhysicsState::default(),
             client_information: ClientInformation::default(),
             dead: false,
             players: HashMap::new(),
 
             world,
-            world_name: Arc::new(RwLock::new(None)),
+            partial_world: Arc::new(RwLock::new(PartialWorld::new(
+                client_information.view_distance.into(),
+                Some(entity),
+                entity_infos,
+            ))),
+            world_name: None,
 
             tx,
-            world_name: None,
         }
     }
 
