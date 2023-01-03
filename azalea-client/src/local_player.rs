@@ -20,7 +20,7 @@ use crate::{ClientInformation, Event, PlayerInfo, WalkDirection};
 pub struct LocalPlayer {
     pub profile: GameProfile,
 
-    pub write_conn: WriteConnection<ServerboundGamePacket>,
+    pub packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
 
     // pub world: Arc<RwLock<PartialWorld>>,
     pub physics_state: PhysicsState,
@@ -64,7 +64,7 @@ impl LocalPlayer {
     pub fn new(
         entity: Entity,
         profile: GameProfile,
-        write_conn: WriteConnection<ServerboundGamePacket>,
+        packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
         world: Arc<RwLock<World>>,
         entity_infos: &mut EntityInfos,
         tx: mpsc::UnboundedSender<Event>,
@@ -74,7 +74,7 @@ impl LocalPlayer {
         LocalPlayer {
             profile,
 
-            write_conn,
+            packet_writer,
 
             physics_state: PhysicsState::default(),
             client_information: ClientInformation::default(),
@@ -93,18 +93,9 @@ impl LocalPlayer {
         }
     }
 
-    /// Write a packet directly to the server.
-    pub async fn write_packet_async(
-        &mut self,
-        packet: ServerboundGamePacket,
-    ) -> Result<(), std::io::Error> {
-        self.write_conn.write(packet).await?;
-        Ok(())
-    }
-
     /// Spawn a task to write a packet directly to the server.
     pub fn write_packet(&mut self, packet: ServerboundGamePacket) {
-        tokio::spawn(self.write_packet_async(packet));
+        self.packet_writer.send(packet);
     }
 }
 

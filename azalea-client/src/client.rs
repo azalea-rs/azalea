@@ -213,10 +213,12 @@ impl Client {
 
         let world = client.world();
 
+        let (packet_writer_sender, packet_writer_receiver) = mpsc::unbounded_channel();
+
         let local_player = crate::local_player::LocalPlayer::new(
             entity,
             game_profile,
-            write_conn,
+            packet_writer_sender,
             world.clone(),
             ecs.resource_mut::<EntityInfos>().deref_mut(),
             tx,
@@ -228,7 +230,14 @@ impl Client {
             run_schedule_sender,
         };
 
-        tokio::spawn(packet_receiver.clone().read_task(read_conn));
+        let read_packets_task = tokio::spawn(packet_receiver.clone().read_task(read_conn));
+        let write_packets_task = tokio::spawn(
+            packet_receiver
+                .clone()
+                .write_task(write_conn, packet_writer_receiver),
+        );
+        client.tasks.lock().push(read_packets_task);
+        client.tasks.lock().push(write_packets_task);
 
         ecs.entity_mut(entity)
             .insert((local_player, packet_receiver));
@@ -357,25 +366,15 @@ impl Client {
     }
 
     /// Write a packet directly to the server.
-    pub async fn write_packet(&self, packet: ServerboundGamePacket) -> Result<(), std::io::Error> {
-        self.local_player_mut(&self.ecs.lock())
-            .write_packet_async(packet)
-            .await
+    pub fn write_packet(&self, packet: ServerboundGamePacket) {
+        self.local_player_mut(&self.ecs.lock()).write_packet(packet)
     }
 
-    /// Disconnect this client from the server, ending all tasks.
+    /// Disconnect this client from the server by ending all tasks.
+    ///
+    /// The OwnedReadHalf for the TCP connection is in one of the tasks, so it
+    /// automatically closes the connection when that's dropped.
     pub async fn disconnect(&self) -> Result<(), std::io::Error> {
-        if let Err(e) = self
-            .local_player_mut(&self.ecs.lock())
-            .write_conn
-            .shutdown()
-            .await
-        {
-            warn!(
-                "Error shutting down connection, but it might be fine: {}",
-                e
-            );
-        }
         let tasks = self.tasks.lock();
         for task in tasks.iter() {
             task.abort();
@@ -448,7 +447,7 @@ impl Client {
                 "Sending client information (already logged in): {:?}",
                 client_information_packet
             );
-            self.write_packet(client_information_packet).await?;
+            self.write_packet(client_information_packet);
         }
 
         Ok(())

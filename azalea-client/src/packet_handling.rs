@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use azalea_protocol::{connect::ReadConnection, packets::game::ClientboundGamePacket};
+use azalea_protocol::{
+    connect::{ReadConnection, WriteConnection},
+    packets::game::{ClientboundGamePacket, ServerboundGamePacket},
+};
 use bevy_ecs::{component::Component, prelude::Entity, query::Changed, system::Query};
 use parking_lot::Mutex;
 use tokio::sync::mpsc;
@@ -129,7 +132,7 @@ pub fn handle_packet(entity: Entity, packet: &ClientboundGamePacket) {
     //             "Sending client information because login: {:?}",
     //             client_information_packet
     //         );
-    //         client.write_packet(client_information_packet.get()).await?;
+    //         client.write_packet(client_information_packet.get());
 
     //         // brand
     //         client
@@ -611,6 +614,19 @@ impl PacketReceiver {
             self.packets.lock().push(packet);
             // tell the client to run all the systems
             self.run_schedule_sender.send(());
+        }
+    }
+
+    /// Consume the [`ServerboundGamePacket`] queue and actually write the
+    /// packets to the server. It's like this so writing packets doesn't need to
+    /// be awaited.
+    pub async fn write_task(
+        self,
+        mut write_conn: WriteConnection<ServerboundGamePacket>,
+        mut write_receiver: mpsc::UnboundedReceiver<ServerboundGamePacket>,
+    ) {
+        while let Some(packet) = write_receiver.recv().await {
+            write_conn.write(packet);
         }
     }
 }

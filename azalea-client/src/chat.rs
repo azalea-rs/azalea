@@ -95,7 +95,7 @@ impl Client {
     /// not the command packet. The [`Client::chat`] function handles checking
     /// whether the message is a command and using the proper packet for you,
     /// so you should use that instead.
-    pub async fn send_chat_packet(&self, message: &str) -> Result<(), std::io::Error> {
+    pub fn send_chat_packet(&self, message: &str) {
         // TODO: chat signing
         // let signature = sign_message();
         let packet = ServerboundChatPacket {
@@ -111,12 +111,11 @@ impl Client {
             last_seen_messages: LastSeenMessagesUpdate::default(),
         }
         .get();
-        self.write_packet(packet).await
     }
 
     /// Send a command packet to the server. The `command` argument should not
     /// include the slash at the front.
-    pub async fn send_command_packet(&self, command: &str) -> Result<(), std::io::Error> {
+    pub fn send_command_packet(&self, command: &str) {
         // TODO: chat signing
         let packet = ServerboundChatCommandPacket {
             command: command.to_string(),
@@ -131,7 +130,7 @@ impl Client {
             last_seen_messages: LastSeenMessagesUpdate::default(),
         }
         .get();
-        self.write_packet(packet).await
+        self.write_packet(packet);
     }
 
     /// Send a message in chat.
@@ -143,11 +142,11 @@ impl Client {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn chat(&self, message: &str) -> Result<(), std::io::Error> {
+    pub async fn chat(&self, message: &str) {
         if let Some(command) = message.strip_prefix('/') {
-            self.send_command_packet(command).await
+            self.send_command_packet(command);
         } else {
-            self.send_chat_packet(message).await
+            self.send_chat_packet(message);
         }
     }
 }
