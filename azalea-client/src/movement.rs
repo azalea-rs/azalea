@@ -38,15 +38,15 @@ impl Client {
     /// If you're making a realistic client, calling this function every tick is
     /// recommended.
     pub fn set_jumping(&mut self, jumping: bool) {
-        let ecs = self.ecs.lock();
-        let mut physics = self.query::<&mut entity::Physics>(&ecs).into_inner();
+        let mut ecs = self.ecs.lock();
+        let mut physics = self.query::<&mut entity::Physics>(&mut ecs).into_inner();
         physics.jumping = jumping;
     }
 
     /// Returns whether the player will try to jump next tick.
     pub fn jumping(&self) -> bool {
-        let ecs = self.ecs.lock();
-        let physics = self.query::<&mut entity::Physics>(&ecs).into_inner();
+        let mut ecs = self.ecs.lock();
+        let physics = self.query::<&mut entity::Physics>(&mut ecs);
         physics.jumping
     }
 
@@ -55,8 +55,8 @@ impl Client {
     /// f3 screen.
     /// `y_rot` goes from -180 to 180, and `x_rot` goes from -90 to 90.
     pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
-        let ecs = self.ecs.lock();
-        let mut physics = self.query::<&mut entity::Physics>(&ecs);
+        let mut ecs = self.ecs.lock();
+        let mut physics = self.query::<&mut entity::Physics>(&mut ecs);
 
         entity::set_rotation(&mut physics, y_rot, x_rot);
     }

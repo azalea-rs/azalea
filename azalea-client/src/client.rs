@@ -32,7 +32,7 @@ use azalea_protocol::{
 use azalea_world::{entity::Entity, EntityInfos, PartialWorld, World, WorldContainer};
 use bevy_app::App;
 use bevy_ecs::{
-    query::{QueryState, WorldQuery},
+    query::{QueryState, ROQueryItem, WorldQuery},
     schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
 };
 use iyes_loopless::prelude::*;
@@ -367,7 +367,8 @@ impl Client {
 
     /// Write a packet directly to the server.
     pub fn write_packet(&self, packet: ServerboundGamePacket) {
-        self.local_player_mut(&self.ecs.lock()).write_packet(packet)
+        self.local_player_mut(&mut self.ecs.lock())
+            .write_packet(packet)
     }
 
     /// Disconnect this client from the server by ending all tasks.
@@ -382,13 +383,13 @@ impl Client {
         Ok(())
     }
 
-    pub fn local_player(&self, ecs: &bevy_ecs::world::World) -> &LocalPlayer {
+    pub fn local_player<'a>(&'a self, ecs: &'a mut bevy_ecs::world::World) -> &'a LocalPlayer {
         self.query::<&LocalPlayer>(ecs)
     }
-    pub fn local_player_mut(
-        &self,
-        ecs: &bevy_ecs::world::World,
-    ) -> bevy_ecs::world::Mut<LocalPlayer> {
+    pub fn local_player_mut<'a>(
+        &'a self,
+        ecs: &'a mut bevy_ecs::world::World,
+    ) -> bevy_ecs::world::Mut<'a, LocalPlayer> {
         self.query::<&mut LocalPlayer>(ecs)
     }
 
@@ -399,8 +400,9 @@ impl Client {
     /// If the client using a shared world, then the shared world will be a
     /// superset of the client's world.
     pub fn world(&self) -> Arc<RwLock<World>> {
+        let mut ecs = self.ecs.lock();
         let world_name = self
-            .local_player(&self.ecs.lock())
+            .local_player(&mut ecs)
             .world_name
             .as_ref()
             .expect("World name must be known if we're doing Client::world");
@@ -411,7 +413,7 @@ impl Client {
     /// Returns whether we have a received the login packet yet.
     pub fn logged_in(&self) -> bool {
         // the login packet tells us the world name
-        self.local_player(&self.ecs.lock()).world_name.is_some()
+        self.local_player(&mut self.ecs.lock()).world_name.is_some()
     }
 
     /// Tell the server we changed our game options (i.e. render distance, main
@@ -434,12 +436,13 @@ impl Client {
         client_information: ServerboundClientInformationPacket,
     ) -> Result<(), std::io::Error> {
         {
-            self.local_player_mut(&self.ecs.lock()).client_information = client_information;
+            self.local_player_mut(&mut self.ecs.lock())
+                .client_information = client_information;
         }
 
         if self.logged_in() {
             let client_information_packet = self
-                .local_player(&self.ecs.lock())
+                .local_player(&mut self.ecs.lock())
                 .client_information
                 .clone()
                 .get();
@@ -456,10 +459,10 @@ impl Client {
     /// Query data of our player's entity.
     pub fn query<'w, Q: WorldQuery>(
         &self,
-        ecs: &'w bevy_ecs::world::World,
+        ecs: &'w mut bevy_ecs::world::World,
     ) -> <Q as WorldQuery>::Item<'w> {
         ecs.query::<Q>()
-            .get_mut(&mut ecs, self.entity)
+            .get_mut(ecs, self.entity)
             .expect("Player entity should always exist when being queried")
     }
 }

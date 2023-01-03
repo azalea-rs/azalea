@@ -5,7 +5,7 @@ use azalea_world::World;
 
 /// whether this block is passable
 fn is_block_passable(pos: &BlockPos, world: &World) -> bool {
-    if let Some(block) = world.get_block_state(pos) {
+    if let Some(block) = world.chunks.get_block_state(pos) {
         block.shape() == &collision::empty_shape()
     } else {
         false
@@ -14,7 +14,7 @@ fn is_block_passable(pos: &BlockPos, world: &World) -> bool {
 
 /// whether this block has a solid hitbox (i.e. we can stand on it)
 fn is_block_solid(pos: &BlockPos, world: &World) -> bool {
-    if let Some(block) = world.get_block_state(pos) {
+    if let Some(block) = world.chunks.get_block_state(pos) {
         block.shape() == &collision::block_shape()
     } else {
         false
