@@ -2,7 +2,7 @@
 // Don't change it manually!
 
 #![allow(clippy::clone_on_copy, clippy::derivable_impls)]
-use super::{EntityDataValue, OptionalUnsignedInt, Pose, Rotations, VillagerData};
+use super::{EntityDataValue, Pose, Rotations, VillagerData};
 use azalea_block::BlockState;
 use azalea_chat::Component;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
@@ -114,7 +114,7 @@ impl Default for AreaEffectCloud {
     fn default() -> Self {
         Self {
             abstract_entity: Default::default(),
-            radius: 3.0,
+            radius: 0.5,
             color: 0,
             waiting: false,
             particle: Default::default(),
@@ -727,119 +727,6 @@ impl Deref for Boat {
 impl DerefMut for Boat {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Camel {
-    pub abstract_animal: AbstractAnimal,
-    pub tamed: bool,
-    pub eating: bool,
-    pub standing: bool,
-    pub bred: bool,
-    pub saddled: bool,
-    pub owner_uuid: Option<Uuid>,
-    pub dash: bool,
-    pub last_pose_change_tick: i64,
-}
-
-impl Camel {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tamed = bitfield & 0x2 != 0;
-        let eating = bitfield & 0x10 != 0;
-        let standing = bitfield & 0x20 != 0;
-        let bred = bitfield & 0x8 != 0;
-        let saddled = bitfield & 0x4 != 0;
-        let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-        let dash = metadata.pop_front()?.into_boolean().ok()?;
-        let last_pose_change_tick = metadata.pop_front()?.into_long().ok()?;
-        Some(Self {
-            abstract_animal,
-            tamed,
-            eating,
-            standing,
-            bred,
-            saddled,
-            owner_uuid,
-            dash,
-            last_pose_change_tick,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        let mut bitfield = 0u8;
-        if self.tamed {
-            bitfield &= 0x2;
-        }
-        if self.eating {
-            bitfield &= 0x10;
-        }
-        if self.standing {
-            bitfield &= 0x20;
-        }
-        if self.bred {
-            bitfield &= 0x8;
-        }
-        if self.saddled {
-            bitfield &= 0x4;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::OptionalUuid(self.owner_uuid.clone()));
-        metadata.push(EntityDataValue::Boolean(self.dash.clone()));
-        metadata.push(EntityDataValue::Long(self.last_pose_change_tick.clone()));
-        metadata
-    }
-}
-
-impl Default for Camel {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            tamed: false,
-            eating: false,
-            standing: false,
-            bred: false,
-            saddled: false,
-            owner_uuid: None,
-            dash: false,
-            last_pose_change_tick: -52,
-        }
-    }
-}
-
-impl Camel {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => {
-                let bitfield = value.into_byte().ok()?;
-                self.tamed = bitfield & 0x2 != 0;
-                self.eating = bitfield & 0x10 != 0;
-                self.standing = bitfield & 0x20 != 0;
-                self.bred = bitfield & 0x8 != 0;
-                self.saddled = bitfield & 0x4 != 0;
-            }
-            18 => self.owner_uuid = value.into_optional_uuid().ok()?,
-            19 => self.dash = value.into_boolean().ok()?,
-            20 => self.last_pose_change_tick = value.into_long().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Camel {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Camel {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
     }
 }
 
@@ -1846,7 +1733,7 @@ impl DerefMut for EnderPearl {
 #[derive(Debug, Clone)]
 pub struct Enderman {
     pub abstract_monster: AbstractMonster,
-    pub carry_state: BlockState,
+    pub carry_state: Option<BlockState>,
     pub creepy: bool,
     pub stared_at: bool,
 }
@@ -1854,7 +1741,7 @@ pub struct Enderman {
 impl Enderman {
     pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
         let abstract_monster = AbstractMonster::read(metadata)?;
-        let carry_state = metadata.pop_front()?.into_block_state().ok()?;
+        let carry_state = metadata.pop_front()?.into_optional_block_state().ok()?;
         let creepy = metadata.pop_front()?.into_boolean().ok()?;
         let stared_at = metadata.pop_front()?.into_boolean().ok()?;
         Some(Self {
@@ -1868,7 +1755,9 @@ impl Enderman {
     pub fn write(&self) -> Vec<EntityDataValue> {
         let mut metadata = Vec::new();
         metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::BlockState(self.carry_state.clone()));
+        metadata.push(EntityDataValue::OptionalBlockState(
+            self.carry_state.clone(),
+        ));
         metadata.push(EntityDataValue::Boolean(self.creepy.clone()));
         metadata.push(EntityDataValue::Boolean(self.stared_at.clone()));
         metadata
@@ -1879,7 +1768,7 @@ impl Default for Enderman {
     fn default() -> Self {
         Self {
             abstract_monster: Default::default(),
-            carry_state: BlockState::Air,
+            carry_state: None,
             creepy: false,
             stared_at: false,
         }
@@ -1890,7 +1779,7 @@ impl Enderman {
     pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
         match index {
             0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.carry_state = value.into_block_state().ok()?,
+            16 => self.carry_state = value.into_optional_block_state().ok()?,
             17 => self.creepy = value.into_boolean().ok()?,
             18 => self.stared_at = value.into_boolean().ok()?,
             _ => {}
@@ -2324,7 +2213,7 @@ impl DerefMut for Fireball {
 pub struct FireworkRocket {
     pub abstract_entity: AbstractEntity,
     pub fireworks_item: Slot,
-    pub attached_to_target: OptionalUnsignedInt,
+    pub attached_to_target: Option<u32>,
     pub shot_at_angle: bool,
 }
 
@@ -2359,7 +2248,7 @@ impl Default for FireworkRocket {
         Self {
             abstract_entity: Default::default(),
             fireworks_item: Slot::Empty,
-            attached_to_target: OptionalUnsignedInt(None),
+            attached_to_target: None,
             shot_at_angle: false,
         }
     }
@@ -2575,7 +2464,7 @@ impl DerefMut for Fox {
 pub struct Frog {
     pub abstract_animal: AbstractAnimal,
     pub variant: azalea_registry::FrogVariant,
-    pub tongue_target: OptionalUnsignedInt,
+    pub tongue_target: Option<u32>,
 }
 
 impl Frog {
@@ -2606,7 +2495,7 @@ impl Default for Frog {
         Self {
             abstract_animal: Default::default(),
             variant: azalea_registry::FrogVariant::Temperate,
-            tongue_target: OptionalUnsignedInt(None),
+            tongue_target: None,
         }
     }
 }
@@ -6532,11 +6421,7 @@ impl Default for Villager {
         Self {
             abstract_ageable: Default::default(),
             unhappy_counter: 0,
-            villager_data: VillagerData {
-                kind: azalea_registry::VillagerType::Plains,
-                profession: azalea_registry::VillagerProfession::None,
-                level: 0,
-            },
+            villager_data: Default::default(),
         }
     }
 }
@@ -7284,11 +7169,7 @@ impl Default for ZombieVillager {
         Self {
             zombie: Default::default(),
             converting: false,
-            villager_data: VillagerData {
-                kind: azalea_registry::VillagerType::Plains,
-                profession: azalea_registry::VillagerProfession::None,
-                level: 0,
-            },
+            villager_data: Default::default(),
         }
     }
 }
@@ -8039,7 +7920,6 @@ pub enum EntityMetadata {
     Bee(Bee),
     Blaze(Blaze),
     Boat(Boat),
-    Camel(Camel),
     Cat(Cat),
     CaveSpider(CaveSpider),
     ChestBoat(ChestBoat),
@@ -8167,7 +8047,6 @@ impl From<azalea_registry::EntityType> for EntityMetadata {
             azalea_registry::EntityType::Bee => EntityMetadata::Bee(Bee::default()),
             azalea_registry::EntityType::Blaze => EntityMetadata::Blaze(Blaze::default()),
             azalea_registry::EntityType::Boat => EntityMetadata::Boat(Boat::default()),
-            azalea_registry::EntityType::Camel => EntityMetadata::Camel(Camel::default()),
             azalea_registry::EntityType::Cat => EntityMetadata::Cat(Cat::default()),
             azalea_registry::EntityType::CaveSpider => {
                 EntityMetadata::CaveSpider(CaveSpider::default())
@@ -8391,7 +8270,6 @@ impl EntityMetadata {
             EntityMetadata::Bee(entity) => entity.set_index(index, value),
             EntityMetadata::Blaze(entity) => entity.set_index(index, value),
             EntityMetadata::Boat(entity) => entity.set_index(index, value),
-            EntityMetadata::Camel(entity) => entity.set_index(index, value),
             EntityMetadata::Cat(entity) => entity.set_index(index, value),
             EntityMetadata::CaveSpider(entity) => entity.set_index(index, value),
             EntityMetadata::ChestBoat(entity) => entity.set_index(index, value),
@@ -8518,7 +8396,6 @@ impl Deref for EntityMetadata {
             EntityMetadata::Bee(entity) => entity,
             EntityMetadata::Blaze(entity) => entity,
             EntityMetadata::Boat(entity) => entity,
-            EntityMetadata::Camel(entity) => entity,
             EntityMetadata::Cat(entity) => entity,
             EntityMetadata::CaveSpider(entity) => entity,
             EntityMetadata::ChestBoat(entity) => entity,
@@ -8643,7 +8520,6 @@ impl DerefMut for EntityMetadata {
             EntityMetadata::Bee(entity) => entity,
             EntityMetadata::Blaze(entity) => entity,
             EntityMetadata::Boat(entity) => entity,
-            EntityMetadata::Camel(entity) => entity,
             EntityMetadata::Cat(entity) => entity,
             EntityMetadata::CaveSpider(entity) => entity,
             EntityMetadata::ChestBoat(entity) => entity,

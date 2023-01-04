@@ -7,9 +7,9 @@ pub struct SaltSignaturePair {
     pub signature: Vec<u8>,
 }
 
-#[derive(Clone, Debug, PartialEq, McBuf)]
+#[derive(Clone, Debug, Default, McBuf, PartialEq)]
 pub struct MessageSignature {
-    pub bytes: [u8; 256],
+    pub bytes: Vec<u8>,
 }
 
 #[derive(Clone, Debug, McBuf, PartialEq)]

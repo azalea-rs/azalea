@@ -247,10 +247,9 @@ def burger_instruction_to_code(instructions: list[dict], index: int, generated_p
         # figure out what kind of iterator it is
         loop_instructions = next_next_instruction['instructions']
         if len(loop_instructions) == 2:
-            entry_type_rs, is_var, value_uses, extra_code = burger_type_to_rust_type(
+            entry_type_rs, is_var, uses, extra_code = burger_type_to_rust_type(
                 loop_instructions[1]['type'], None, loop_instructions[1], mappings, obfuscated_class_name)
             field_type_rs = f'Vec<{entry_type_rs}>'
-            uses.update(value_uses)
         elif len(loop_instructions) == 3:
             is_map = loop_instructions[0]['type'].startswith(
                 'Map.Entry<')

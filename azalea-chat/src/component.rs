@@ -5,7 +5,6 @@ use crate::{
     translatable_component::{StringOrComponent, TranslatableComponent},
 };
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use log::debug;
 use once_cell::sync::Lazy;
 use serde::{de, Deserialize, Deserializer, Serialize};
 use std::{
@@ -269,7 +268,6 @@ impl<'de> Deserialize<'de> for Component {
 impl McBufReadable for Component {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let string = String::read_from(buf)?;
-        debug!("Component string: {}", string);
         let json: serde_json::Value = serde_json::from_str(string.as_str())?;
         let component = Component::deserialize(json)?;
         Ok(component)

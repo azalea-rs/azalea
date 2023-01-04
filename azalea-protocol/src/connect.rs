@@ -52,7 +52,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///         login::{
 ///             ClientboundLoginPacket,
 ///             serverbound_hello_packet::ServerboundHelloPacket,
-///             serverbound_key_packet::ServerboundKeyPacket
+///             serverbound_key_packet::{ServerboundKeyPacket, NonceOrSaltSignature}
 ///         },
 ///         handshake::client_intention_packet::ClientIntentionPacket
 ///     }
@@ -80,7 +80,8 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///     // login
 ///     conn.write(
 ///         ServerboundHelloPacket {
-///             name: "bot".to_string(),
+///             username: "bot".to_string(),
+///             public_key: None,
 ///             profile_id: None,
 ///         }
 ///         .get(),
@@ -95,8 +96,8 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///
 ///                 conn.write(
 ///                     ServerboundKeyPacket {
+///                         nonce_or_salt_signature: NonceOrSaltSignature::Nonce(e.encrypted_nonce),
 ///                         key_bytes: e.encrypted_public_key,
-///                         encrypted_challenge: e.encrypted_nonce,
 ///                     }
 ///                     .get(),
 ///                 )
@@ -130,7 +131,7 @@ where
     R: ProtocolPacket + Debug,
 {
     /// Read a packet from the stream.
-    pub async fn read(&mut self) -> Result<R, Box<ReadPacketError>> {
+    pub async fn read(&mut self) -> Result<R, ReadPacketError> {
         read_packet::<R, _>(
             &mut self.read_stream,
             &mut self.buffer,
@@ -178,7 +179,7 @@ where
     W: ProtocolPacket + Debug,
 {
     /// Read a packet from the other side of the connection.
-    pub async fn read(&mut self) -> Result<R, Box<ReadPacketError>> {
+    pub async fn read(&mut self) -> Result<R, ReadPacketError> {
         self.reader.read().await
     }
 
@@ -279,7 +280,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// use azalea_protocol::connect::Connection;
     /// use azalea_protocol::packets::login::{
     ///     ClientboundLoginPacket,
-    ///     serverbound_key_packet::ServerboundKeyPacket
+    ///     serverbound_key_packet::{ServerboundKeyPacket, NonceOrSaltSignature}
     /// };
     /// use uuid::Uuid;
     /// # use azalea_protocol::ServerAddress;
@@ -310,8 +311,8 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///         ).await?;
     ///         conn.write(
     ///             ServerboundKeyPacket {
+    ///                 nonce_or_salt_signature: NonceOrSaltSignature::Nonce(e.encrypted_nonce),
     ///                 key_bytes: e.encrypted_public_key,
-    ///                 encrypted_challenge: e.encrypted_nonce,
     ///             }.get()
     ///         ).await?;
     ///         conn.set_encryption_key(e.secret_key);

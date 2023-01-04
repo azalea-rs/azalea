@@ -9,10 +9,8 @@ import lib.utils
 
 version_id = lib.code.version.get_version_id()
 
-shape_datas = lib.extract.get_pixlyzer_data(
-    version_id, 'shapes')
-pixlyzer_block_datas = lib.extract.get_pixlyzer_data(
-    version_id, 'blocks')
+shape_datas = lib.extract.get_generator_mod_data(
+    version_id, 'blockCollisionShapes')
 
 mappings = lib.download.get_mappings_for_version(version_id)
 block_states_burger = lib.extract.get_block_states_burger(version_id)
@@ -23,7 +21,7 @@ lib.code.blocks.generate_blocks(
     block_states_burger, block_states_report, ordered_blocks, mappings)
 
 lib.code.shapes.generate_block_shapes(
-    pixlyzer_block_datas, shape_datas['shapes'], shape_datas['aabbs'], block_states_report, block_states_burger, mappings)
+    shape_datas['blocks'], shape_datas['shapes'], block_states_report, block_states_burger, mappings)
 
 lib.code.utils.fmt()
 

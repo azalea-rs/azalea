@@ -42,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
     let mut accounts = Vec::new();
     let mut states = Vec::new();
 
-    for i in 0..1 {
+    for i in 0..7 {
         accounts.push(Account::offline(&format!("bot{}", i)));
         states.push(State::default());
     }

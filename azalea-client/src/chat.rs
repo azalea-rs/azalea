@@ -2,11 +2,12 @@
 
 use crate::Client;
 use azalea_chat::Component;
+use azalea_crypto::MessageSignature;
 use azalea_protocol::packets::game::{
-    clientbound_player_chat_packet::ClientboundPlayerChatPacket,
+    clientbound_player_chat_packet::{ClientboundPlayerChatPacket, LastSeenMessagesUpdate},
     clientbound_system_chat_packet::ClientboundSystemChatPacket,
     serverbound_chat_command_packet::ServerboundChatCommandPacket,
-    serverbound_chat_packet::{LastSeenMessagesUpdate, ServerboundChatPacket},
+    serverbound_chat_packet::ServerboundChatPacket,
 };
 use std::{
     sync::Arc,
@@ -32,7 +33,7 @@ impl ChatPacket {
     pub fn message(&self) -> Component {
         match self {
             ChatPacket::System(p) => p.content.clone(),
-            ChatPacket::Player(p) => p.message(),
+            ChatPacket::Player(p) => p.message(false),
         }
     }
 
@@ -46,7 +47,7 @@ impl ChatPacket {
                 // If it's a player chat packet, then the sender and content
                 // are already split for us.
                 Some(p.chat_type.name.to_string()),
-                p.body.content.clone(),
+                p.message.content(false).to_string(),
             ),
             ChatPacket::System(p) => {
                 let message = p.content.to_string();
@@ -96,7 +97,7 @@ impl Client {
     /// so you should use that instead.
     pub async fn send_chat_packet(&self, message: &str) -> Result<(), std::io::Error> {
         // TODO: chat signing
-        // let signature = sign_message();
+        let signature = sign_message();
         let packet = ServerboundChatPacket {
             message: message.to_string(),
             timestamp: SystemTime::now()
@@ -106,7 +107,8 @@ impl Client {
                 .try_into()
                 .expect("Instant should fit into a u64"),
             salt: azalea_crypto::make_salt(),
-            signature: None,
+            signature,
+            signed_preview: false,
             last_seen_messages: LastSeenMessagesUpdate::default(),
         }
         .get();
@@ -127,6 +129,7 @@ impl Client {
                 .expect("Instant should fit into a u64"),
             salt: azalea_crypto::make_salt(),
             argument_signatures: vec![],
+            signed_preview: false,
             last_seen_messages: LastSeenMessagesUpdate::default(),
         }
         .get();
@@ -149,10 +152,14 @@ impl Client {
             self.send_chat_packet(message).await
         }
     }
+
+    // will be used for when the server tells the client about a chat preview
+    // with custom formatting
+    // pub fn acknowledge_preview(&self, message: &str) {}
 }
 
 // TODO
 // MessageSigner, ChatMessageContent, LastSeenMessages
-// fn sign_message() -> MessageSignature {
-//     MessageSignature::default()
-// }
+fn sign_message() -> MessageSignature {
+    MessageSignature::default()
+}

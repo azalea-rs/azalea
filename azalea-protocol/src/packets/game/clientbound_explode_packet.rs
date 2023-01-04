@@ -1,14 +1,13 @@
-use std::io::{Cursor, Write};
-
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_core::BlockPos;
 use azalea_protocol_macros::ClientboundGamePacket;
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundExplodePacket {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
     pub power: f32,
     pub to_blow: Vec<BlockPos>,
     pub knockback_x: f32,
@@ -18,9 +17,9 @@ pub struct ClientboundExplodePacket {
 
 impl McBufReadable for ClientboundExplodePacket {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let x = f64::read_from(buf)?;
-        let y = f64::read_from(buf)?;
-        let z = f64::read_from(buf)?;
+        let x = f32::read_from(buf)?;
+        let y = f32::read_from(buf)?;
+        let z = f32::read_from(buf)?;
         let power = f32::read_from(buf)?;
 
         let x_floor = x.floor() as i32;

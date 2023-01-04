@@ -9,7 +9,6 @@ use bytes::BytesMut;
 use flate2::read::ZlibDecoder;
 use futures::StreamExt;
 use log::{log_enabled, trace};
-use std::backtrace::Backtrace;
 use std::{
     fmt::Debug,
     io::{Cursor, Read},
@@ -20,11 +19,10 @@ use tokio_util::codec::{BytesCodec, FramedRead};
 
 #[derive(Error, Debug)]
 pub enum ReadPacketError {
-    #[error("Error reading packet {packet_name} (id {packet_id}): {source}")]
+    #[error("Error reading packet {packet_name} ({packet_id}): {source}")]
     Parse {
         packet_id: u32,
         packet_name: String,
-        backtrace: Box<Backtrace>,
         source: BufReadError,
     },
     #[error("Unknown packet id {id} in state {state_name}")]
@@ -86,7 +84,7 @@ fn parse_frame(buffer: &mut BytesMut) -> Result<BytesMut, FrameSplitterError> {
     let length = match u32::var_read_from(&mut buffer_copy) {
         Ok(length) => length as usize,
         Err(err) => match err {
-            BufReadError::Io { source } => return Err(FrameSplitterError::Io { source }),
+            BufReadError::Io(io_err) => return Err(FrameSplitterError::Io { source: io_err }),
             _ => return Err(err.into()),
         },
     };
@@ -128,7 +126,7 @@ fn frame_splitter(buffer: &mut BytesMut) -> Result<Option<Vec<u8>>, FrameSplitte
 
 fn packet_decoder<P: ProtocolPacket + Debug>(
     stream: &mut Cursor<&[u8]>,
-) -> Result<P, Box<ReadPacketError>> {
+) -> Result<P, ReadPacketError> {
     // Packet ID
     let packet_id =
         u32::var_read_from(stream).map_err(|e| ReadPacketError::ReadPacketId { source: e })?;
@@ -209,13 +207,13 @@ pub async fn read_packet<'a, P: ProtocolPacket + Debug, R>(
     buffer: &mut BytesMut,
     compression_threshold: Option<u32>,
     cipher: &mut Option<Aes128CfbDec>,
-) -> Result<P, Box<ReadPacketError>>
+) -> Result<P, ReadPacketError>
 where
     R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
 {
     let mut framed = FramedRead::new(stream, BytesCodec::new());
     let mut buf = loop {
-        if let Some(buf) = frame_splitter(buffer).map_err(ReadPacketError::from)? {
+        if let Some(buf) = frame_splitter(buffer)? {
             // we got a full packet!!
             break buf;
         } else {
@@ -224,7 +222,7 @@ where
 
         // if we were given a cipher, decrypt the packet
         if let Some(message) = framed.next().await {
-            let mut bytes = message.map_err(ReadPacketError::from)?;
+            let mut bytes = message?;
 
             if let Some(cipher) = cipher {
                 azalea_crypto::decrypt_packet(cipher, &mut bytes);
@@ -232,13 +230,12 @@ where
 
             buffer.extend_from_slice(&bytes);
         } else {
-            return Err(Box::new(ReadPacketError::ConnectionClosed));
+            return Err(ReadPacketError::ConnectionClosed);
         };
     };
 
     if let Some(compression_threshold) = compression_threshold {
-        buf = compression_decoder(&mut Cursor::new(&buf[..]), compression_threshold)
-            .map_err(ReadPacketError::from)?;
+        buf = compression_decoder(&mut Cursor::new(&buf[..]), compression_threshold)?;
     }
 
     if log_enabled!(log::Level::Trace) {

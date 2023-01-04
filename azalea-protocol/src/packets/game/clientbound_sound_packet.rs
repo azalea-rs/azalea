@@ -1,10 +1,9 @@
 use azalea_buf::McBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::OptionalRegistry;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSoundPacket {
-    pub sound: OptionalRegistry<azalea_registry::SoundEvent>,
+    pub sound: azalea_registry::SoundEvent,
     pub source: SoundSource,
     pub x: i32,
     pub y: i32,

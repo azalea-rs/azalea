@@ -11,7 +11,7 @@ mappings = lib.download.get_mappings_for_version(version_id)
 burger_data = lib.extract.get_burger_data_for_version(version_id)
 
 burger_packets_data = burger_data[0]['packets']['packet']
-packet_id, direction, state = int(sys.argv[1], 0), sys.argv[2], sys.argv[3]
+packet_id, direction, state = int(sys.argv[1]), sys.argv[2], sys.argv[3]
 print(
     f'Generating code for packet id: {packet_id} with direction {direction} and state {state}')
 lib.code.packet.generate_packet(burger_packets_data, mappings,

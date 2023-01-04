@@ -2,7 +2,7 @@ use azalea_buf::McBuf;
 use std::collections::HashMap;
 use uuid::Uuid;
 
-#[derive(McBuf, Debug, Clone, Default)]
+#[derive(McBuf, Debug, Clone)]
 pub struct GameProfile {
     pub uuid: Uuid,
     pub name: String,

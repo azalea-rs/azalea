@@ -20,27 +20,17 @@ pub struct Recipe {
 pub struct ShapelessRecipe {
     /// Used to group similar recipes together in the recipe book.
     /// Tag is present in recipe JSON
-    pub group: String,
-    pub category: CraftingBookCategory,
-    pub ingredients: Vec<Ingredient>,
-    pub result: Slot,
+    group: String,
+    ingredients: Vec<Ingredient>,
+    result: Slot,
 }
 #[derive(Clone, Debug)]
 pub struct ShapedRecipe {
-    pub width: usize,
-    pub height: usize,
-    pub group: String,
-    pub category: CraftingBookCategory,
-    pub ingredients: Vec<Ingredient>,
-    pub result: Slot,
-}
-
-#[derive(Clone, Debug, Copy, McBuf)]
-pub enum CraftingBookCategory {
-    Building = 0,
-    Redstone,
-    Equipment,
-    Misc,
+    width: usize,
+    height: usize,
+    group: String,
+    ingredients: Vec<Ingredient>,
+    result: Slot,
 }
 
 impl McBufWritable for ShapedRecipe {
@@ -48,7 +38,6 @@ impl McBufWritable for ShapedRecipe {
         (self.width as u32).var_write_into(buf)?;
         (self.height as u32).var_write_into(buf)?;
         self.group.write_into(buf)?;
-        self.category.write_into(buf)?;
         for ingredient in &self.ingredients {
             ingredient.write_into(buf)?;
         }
@@ -62,7 +51,6 @@ impl McBufReadable for ShapedRecipe {
         let width = u32::var_read_from(buf)?.try_into().unwrap();
         let height = u32::var_read_from(buf)?.try_into().unwrap();
         let group = String::read_from(buf)?;
-        let category = CraftingBookCategory::read_from(buf)?;
         let mut ingredients = Vec::with_capacity(width * height);
         for _ in 0..width * height {
             ingredients.push(Ingredient::read_from(buf)?);
@@ -73,7 +61,6 @@ impl McBufReadable for ShapedRecipe {
             width,
             height,
             group,
-            category,
             ingredients,
             result,
         })
@@ -82,55 +69,49 @@ impl McBufReadable for ShapedRecipe {
 
 #[derive(Clone, Debug, McBuf)]
 pub struct CookingRecipe {
-    pub group: String,
-    pub category: CraftingBookCategory,
-    pub ingredient: Ingredient,
-    pub result: Slot,
-    pub experience: f32,
+    group: String,
+    ingredient: Ingredient,
+    result: Slot,
+    experience: f32,
     #[var]
-    pub cooking_time: u32,
+    cooking_time: u32,
 }
 #[derive(Clone, Debug, McBuf)]
-pub struct StoneCutterRecipe {
-    pub group: String,
-    pub ingredient: Ingredient,
-    pub result: Slot,
+pub struct StoneCuttingRecipe {
+    group: String,
+    ingredient: Ingredient,
+    result: Slot,
 }
 #[derive(Clone, Debug, McBuf)]
 pub struct SmithingRecipe {
-    pub base: Ingredient,
-    pub addition: Ingredient,
-    pub result: Slot,
+    base: Ingredient,
+    addition: Ingredient,
+    result: Slot,
 }
 
-#[derive(Clone, Debug, McBuf)]
-pub struct SimpleRecipe {
-    pub category: CraftingBookCategory,
-}
-
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug)]
 pub enum RecipeData {
     CraftingShapeless(ShapelessRecipe),
     CraftingShaped(ShapedRecipe),
-    CraftingSpecialArmorDye(SimpleRecipe),
-    CraftingSpecialBookCloning(SimpleRecipe),
-    CraftingSpecialMapCloning(SimpleRecipe),
-    CraftingSpecialMapExtending(SimpleRecipe),
-    CraftingSpecialFireworkRocket(SimpleRecipe),
-    CraftingSpecialFireworkStar(SimpleRecipe),
-    CraftingSpecialFireworkStarFade(SimpleRecipe),
-    CraftingSpecialRepairItem(SimpleRecipe),
-    CraftingSpecialTippedArrow(SimpleRecipe),
-    CraftingSpecialBannerDuplicate(SimpleRecipe),
-    CraftingSpecialBannerAddPattern(SimpleRecipe),
-    CraftingSpecialShieldDecoration(SimpleRecipe),
-    CraftingSpecialShulkerBoxColoring(SimpleRecipe),
-    CraftingSpecialSuspiciousStew(SimpleRecipe),
+    CraftingSpecialArmorDye,
+    CraftingSpecialBookCloning,
+    CraftingSpecialMapCloning,
+    CraftingSpecialMapExtending,
+    CraftingSpecialFireworkRocket,
+    CraftingSpecialFireworkStar,
+    CraftingSpecialFireworkStarFade,
+    CraftingSpecialRepairItem,
+    CraftingSpecialTippedArrow,
+    CraftingSpecialBannerDuplicate,
+    CraftingSpecialBannerAddPattern,
+    CraftingSpecialShieldDecoration,
+    CraftingSpecialShulkerBoxColoring,
+    CraftingSpecialSuspiciousStew,
     Smelting(CookingRecipe),
     Blasting(CookingRecipe),
     Smoking(CookingRecipe),
     CampfireCooking(CookingRecipe),
-    Stonecutting(StoneCutterRecipe),
+    Stonecutting(StoneCuttingRecipe),
     Smithing(SmithingRecipe),
 }
 
@@ -141,52 +122,148 @@ pub struct Ingredient {
 
 impl McBufWritable for Recipe {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let resource_location = match &self.data {
-            RecipeData::CraftingShapeless(_) => "minecraft:crafting_shapeless",
-            RecipeData::CraftingShaped(_) => "minecraft:crafting_shaped",
-            RecipeData::CraftingSpecialArmorDye(_) => "minecraft:crafting_special_armordye",
-            RecipeData::CraftingSpecialBookCloning(_) => "minecraft:crafting_special_bookcloning",
-            RecipeData::CraftingSpecialMapCloning(_) => "minecraft:crafting_special_mapcloning",
-            RecipeData::CraftingSpecialMapExtending(_) => "minecraft:crafting_special_mapextending",
-            RecipeData::CraftingSpecialFireworkRocket(_) => {
-                "minecraft:crafting_special_firework_rocket"
+        match &self.data {
+            RecipeData::CraftingShapeless(recipe) => {
+                ResourceLocation::new("minecraft:crafting_shapeless")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
             }
-            RecipeData::CraftingSpecialFireworkStar(_) => {
-                "minecraft:crafting_special_firework_star"
+            RecipeData::CraftingShaped(recipe) => {
+                ResourceLocation::new("minecraft:crafting_shaped")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
             }
-
-            RecipeData::CraftingSpecialFireworkStarFade(_) => {
-                "minecraft:crafting_special_firework_star_fade"
+            RecipeData::CraftingSpecialArmorDye => {
+                ResourceLocation::new("minecraft:crafting_special_armordye")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
             }
-            RecipeData::CraftingSpecialRepairItem(_) => "minecraft:crafting_special_repairitem",
-            RecipeData::CraftingSpecialTippedArrow(_) => "minecraft:crafting_special_tippedarrow",
-            RecipeData::CraftingSpecialBannerDuplicate(_) => {
-                "minecraft:crafting_special_bannerduplicate"
+            RecipeData::CraftingSpecialBookCloning => {
+                ResourceLocation::new("minecraft:crafting_special_bookcloning")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
             }
-            RecipeData::CraftingSpecialBannerAddPattern(_) => {
-                "minecraft:crafting_special_banneraddpattern"
+            RecipeData::CraftingSpecialMapCloning => {
+                ResourceLocation::new("minecraft:crafting_special_mapcloning")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
             }
-            RecipeData::CraftingSpecialShieldDecoration(_) => {
-                "minecraft:crafting_special_shielddecoration"
+            RecipeData::CraftingSpecialMapExtending => {
+                ResourceLocation::new("minecraft:crafting_special_mapextending")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
             }
-            RecipeData::CraftingSpecialShulkerBoxColoring(_) => {
-                "minecraft:crafting_special_shulkerboxcoloring"
+            RecipeData::CraftingSpecialFireworkRocket => {
+                ResourceLocation::new("minecraft:crafting_special_firework_rocket")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
             }
-            RecipeData::CraftingSpecialSuspiciousStew(_) => {
-                "minecraft:crafting_special_suspiciousstew"
+            RecipeData::CraftingSpecialFireworkStar => {
+                ResourceLocation::new("minecraft:crafting_special_firework_star")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
             }
-            RecipeData::Smelting(_) => "minecraft:smelting",
-            RecipeData::Blasting(_) => "minecraft:blasting",
-            RecipeData::Smoking(_) => "minecraft:smoking",
-            RecipeData::CampfireCooking(_) => "minecraft:campfire_cooking",
-            RecipeData::Stonecutting(_) => "minecraft:stonecutting",
-            RecipeData::Smithing(_) => "minecraft:smithing",
+            RecipeData::CraftingSpecialFireworkStarFade => {
+                ResourceLocation::new("minecraft:crafting_special_firework_star_fade")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialRepairItem => {
+                ResourceLocation::new("minecraft:crafting_special_repairitem")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialTippedArrow => {
+                ResourceLocation::new("minecraft:crafting_special_tippedarrow")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialBannerDuplicate => {
+                ResourceLocation::new("minecraft:crafting_special_bannerduplicate")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialBannerAddPattern => {
+                ResourceLocation::new("minecraft:crafting_special_banneraddpattern")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialShieldDecoration => {
+                ResourceLocation::new("minecraft:crafting_special_shielddecoration")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialShulkerBoxColoring => {
+                ResourceLocation::new("minecraft:crafting_special_shulkerboxcoloring")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::CraftingSpecialSuspiciousStew => {
+                ResourceLocation::new("minecraft:crafting_special_suspiciousstew")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+            }
+            RecipeData::Smelting(recipe) => {
+                ResourceLocation::new("minecraft:smelting")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
+            }
+            RecipeData::Blasting(recipe) => {
+                ResourceLocation::new("minecraft:blasting")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
+            }
+            RecipeData::Smoking(recipe) => {
+                ResourceLocation::new("minecraft:smoking")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
+            }
+            RecipeData::CampfireCooking(recipe) => {
+                ResourceLocation::new("minecraft:campfire_cooking")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
+            }
+            RecipeData::Stonecutting(recipe) => {
+                ResourceLocation::new("minecraft:stonecutting")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
+            }
+            RecipeData::Smithing(recipe) => {
+                ResourceLocation::new("minecraft:smithing")
+                    .unwrap()
+                    .write_into(buf)?;
+                self.identifier.write_into(buf)?;
+                recipe.write_into(buf)?;
+            }
         };
-        ResourceLocation::new(resource_location)
-            .unwrap()
-            .write_into(buf)?;
-        self.identifier.write_into(buf)?;
-        self.data.write_without_id(buf)?;
         Ok(())
     }
 }
@@ -198,70 +275,83 @@ impl McBufReadable for Recipe {
 
         // rust doesn't let us match ResourceLocation so we have to do a big
         // if-else chain :(
-        let data = match recipe_type.to_string().as_str() {
-            "minecraft:crafting_shapeless" => {
-                RecipeData::CraftingShapeless(ShapelessRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_shaped" => {
-                RecipeData::CraftingShaped(ShapedRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_armordye" => {
-                RecipeData::CraftingSpecialArmorDye(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_bookcloning" => {
-                RecipeData::CraftingSpecialBookCloning(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_mapcloning" => {
-                RecipeData::CraftingSpecialMapCloning(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_mapextending" => {
-                RecipeData::CraftingSpecialMapExtending(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_firework_rocket" => {
-                RecipeData::CraftingSpecialFireworkRocket(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_firework_star" => {
-                RecipeData::CraftingSpecialFireworkStar(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_firework_star_fade" => {
-                RecipeData::CraftingSpecialFireworkStarFade(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_repairitem" => {
-                RecipeData::CraftingSpecialRepairItem(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_tippedarrow" => {
-                RecipeData::CraftingSpecialTippedArrow(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_bannerduplicate" => {
-                RecipeData::CraftingSpecialBannerDuplicate(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_banneraddpattern" => {
-                RecipeData::CraftingSpecialBannerAddPattern(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_shielddecoration" => {
-                RecipeData::CraftingSpecialShieldDecoration(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_shulkerboxcoloring" => {
-                RecipeData::CraftingSpecialShulkerBoxColoring(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_suspiciousstew" => {
-                RecipeData::CraftingSpecialSuspiciousStew(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:smelting" => RecipeData::Smelting(CookingRecipe::read_from(buf)?),
-            "minecraft:blasting" => RecipeData::Blasting(CookingRecipe::read_from(buf)?),
-            "minecraft:smoking" => RecipeData::Smoking(CookingRecipe::read_from(buf)?),
-            "minecraft:campfire_cooking" => {
-                RecipeData::CampfireCooking(CookingRecipe::read_from(buf)?)
-            }
-            "minecraft:stonecutting" => {
-                RecipeData::Stonecutting(StoneCutterRecipe::read_from(buf)?)
-            }
-            "minecraft:smithing" => RecipeData::Smithing(SmithingRecipe::read_from(buf)?),
-            _ => {
-                return Err(BufReadError::UnexpectedStringEnumVariant {
-                    id: recipe_type.to_string(),
-                });
-            }
+        let data = if recipe_type == ResourceLocation::new("minecraft:crafting_shapeless").unwrap()
+        {
+            RecipeData::CraftingShapeless(ShapelessRecipe::read_from(buf)?)
+        } else if recipe_type == ResourceLocation::new("minecraft:crafting_shaped").unwrap() {
+            RecipeData::CraftingShaped(ShapedRecipe::read_from(buf)?)
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_armordye").unwrap()
+        {
+            RecipeData::CraftingSpecialArmorDye
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_bookcloning").unwrap()
+        {
+            RecipeData::CraftingSpecialBookCloning
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_mapcloning").unwrap()
+        {
+            RecipeData::CraftingSpecialMapCloning
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_mapextending").unwrap()
+        {
+            RecipeData::CraftingSpecialMapExtending
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_firework_rocket").unwrap()
+        {
+            RecipeData::CraftingSpecialFireworkRocket
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_firework_star").unwrap()
+        {
+            RecipeData::CraftingSpecialFireworkStar
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_firework_star_fade").unwrap()
+        {
+            RecipeData::CraftingSpecialFireworkStarFade
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_repairitem").unwrap()
+        {
+            RecipeData::CraftingSpecialRepairItem
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_tippedarrow").unwrap()
+        {
+            RecipeData::CraftingSpecialTippedArrow
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_bannerduplicate").unwrap()
+        {
+            RecipeData::CraftingSpecialBannerDuplicate
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_banneraddpattern").unwrap()
+        {
+            RecipeData::CraftingSpecialBannerAddPattern
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_shielddecoration").unwrap()
+        {
+            RecipeData::CraftingSpecialShieldDecoration
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_shulkerboxcoloring").unwrap()
+        {
+            RecipeData::CraftingSpecialShulkerBoxColoring
+        } else if recipe_type
+            == ResourceLocation::new("minecraft:crafting_special_suspiciousstew").unwrap()
+        {
+            RecipeData::CraftingSpecialSuspiciousStew
+        } else if recipe_type == ResourceLocation::new("minecraft:smelting").unwrap() {
+            RecipeData::Smelting(CookingRecipe::read_from(buf)?)
+        } else if recipe_type == ResourceLocation::new("minecraft:blasting").unwrap() {
+            RecipeData::Blasting(CookingRecipe::read_from(buf)?)
+        } else if recipe_type == ResourceLocation::new("minecraft:smoking").unwrap() {
+            RecipeData::Smoking(CookingRecipe::read_from(buf)?)
+        } else if recipe_type == ResourceLocation::new("minecraft:campfire_cooking").unwrap() {
+            RecipeData::CampfireCooking(CookingRecipe::read_from(buf)?)
+        } else if recipe_type == ResourceLocation::new("minecraft:stonecutting").unwrap() {
+            RecipeData::Stonecutting(StoneCuttingRecipe::read_from(buf)?)
+        } else if recipe_type == ResourceLocation::new("minecraft:smithing").unwrap() {
+            RecipeData::Smithing(SmithingRecipe::read_from(buf)?)
+        } else {
+            return Err(BufReadError::UnexpectedStringEnumVariant {
+                id: recipe_type.to_string(),
+            });
         };
 
         let recipe = Recipe { identifier, data };

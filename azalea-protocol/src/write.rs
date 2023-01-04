@@ -4,7 +4,6 @@ use crate::{packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSED_LENGTH};
 use async_compression::tokio::bufread::ZlibEncoder;
 use azalea_buf::McBufVarWritable;
 use azalea_crypto::Aes128CfbEnc;
-use log::trace;
 use std::fmt::Debug;
 use thiserror::Error;
 use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
@@ -82,7 +81,6 @@ where
     P: ProtocolPacket + Debug,
     W: AsyncWrite + Unpin + Send,
 {
-    trace!("Sending packet: {:?}", packet);
     let mut buf = packet_encoder(packet).unwrap();
     if let Some(threshold) = compression_threshold {
         buf = compression_encoder(&buf, threshold).await.unwrap();
