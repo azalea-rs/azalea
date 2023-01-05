@@ -1,7 +1,7 @@
 pub use crate::chat::ChatPacket;
 use crate::{
     local_player::{send_tick_event, update_in_loaded_chunk, LocalPlayer},
-    movement::send_position,
+    movement::{local_player_ai_step, send_position},
     packet_handling,
     plugins::PluginStates,
     Account, PlayerInfo,
@@ -200,7 +200,7 @@ impl Client {
         // An event that causes the schedule to run. This is only used internally.
         let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
 
-        let ecs_lock = start_ecs(run_schedule_receiver).await;
+        let ecs_lock = start_ecs(run_schedule_receiver, run_schedule_sender.clone()).await;
 
         let mut ecs = ecs_lock.lock();
         ecs.init_resource::<EntityInfos>();
@@ -227,7 +227,7 @@ impl Client {
         // start receiving packets
         let packet_receiver = packet_handling::PacketReceiver {
             packets: Arc::new(Mutex::new(Vec::new())),
-            run_schedule_sender,
+            run_schedule_sender: run_schedule_sender.clone(),
         };
 
         let read_packets_task = tokio::spawn(packet_receiver.clone().read_task(read_conn));
@@ -471,6 +471,7 @@ impl Client {
 #[doc(hidden)]
 pub async fn start_ecs(
     run_schedule_receiver: mpsc::UnboundedReceiver<()>,
+    run_schedule_sender: mpsc::UnboundedSender<()>,
 ) -> Arc<Mutex<bevy_ecs::world::World>> {
     // if you get an error right here that means you're doing something with locks
     // wrong read the error to see where the issue is
@@ -484,8 +485,7 @@ pub async fn start_ecs(
             SystemSet::new()
                 .with_system(send_position)
                 .with_system(update_in_loaded_chunk)
-                .with_system(send_position)
-                .with_system(LocalPlayer::ai_step)
+                .with_system(local_player_ai_step)
                 .with_system(send_tick_event),
         )
         .add_system(packet_handling::handle_packets.label("handle_packets"))
@@ -496,15 +496,12 @@ pub async fn start_ecs(
     // app
     let ecs = Arc::new(Mutex::new(app.world));
 
-    let mut game_tick_interval = time::interval(time::Duration::from_millis(50));
-    // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
-    game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
-
     tokio::spawn(run_schedule_loop(
         ecs.clone(),
         app.schedule,
         run_schedule_receiver,
     ));
+    tokio::spawn(tick_run_schedule_loop(run_schedule_sender));
 
     ecs
 }
@@ -518,5 +515,21 @@ async fn run_schedule_loop(
         // whenever we get an event from run_schedule_receiver, run the schedule
         run_schedule_receiver.recv().await;
         schedule.run(&mut ecs.lock());
+    }
+}
+
+/// Send an event to run the schedule every 50 milliseconds. It will stop when
+/// the receiver is dropped.
+pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::UnboundedSender<()>) {
+    let mut game_tick_interval = time::interval(time::Duration::from_millis(50));
+    // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
+    game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
+
+    loop {
+        game_tick_interval.tick().await;
+        if run_schedule_sender.send(()).is_err() {
+            // the sender is closed so end the task
+            return;
+        }
     }
 }

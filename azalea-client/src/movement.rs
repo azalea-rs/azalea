@@ -192,71 +192,6 @@ impl LocalPlayer {
         }
     }
 
-    /// Makes the bot do one physics tick. Note that this is already handled
-    /// automatically by the client.
-    pub fn ai_step(
-        mut query: Query<
-            (
-                Entity,
-                &mut LocalPlayer,
-                &mut entity::Physics,
-                &mut entity::Position,
-                &mut entity::metadata::Sprinting,
-                &mut entity::Attributes,
-            ),
-            &LocalPlayerInLoadedChunk,
-        >,
-    ) {
-        for (
-            ecs_entity_id,
-            mut local_player,
-            mut physics,
-            mut position,
-            mut sprinting,
-            mut attributes,
-        ) in query.iter_mut()
-        {
-            let physics_state = &mut local_player.physics_state;
-
-            Self::tick_controls(None, physics_state);
-
-            // server ai step
-            physics.xxa = physics_state.left_impulse;
-            physics.zza = physics_state.forward_impulse;
-
-            // TODO: food data and abilities
-            // let has_enough_food_to_sprint = self.food_data().food_level ||
-            // self.abilities().may_fly;
-            let has_enough_food_to_sprint = true;
-
-            // TODO: double tapping w to sprint i think
-
-            let trying_to_sprint = physics_state.trying_to_sprint;
-
-            if !**sprinting
-                && (
-                    // !self.is_in_water()
-                    // || self.is_underwater() &&
-                    Self::has_enough_impulse_to_start_sprinting(physics_state)
-                    && has_enough_food_to_sprint
-                    // && !self.using_item()
-                    // && !self.has_effect(MobEffects.BLINDNESS)
-                    && trying_to_sprint
-                )
-            {
-                Self::set_sprinting(true, &mut sprinting, &mut attributes);
-            }
-
-            azalea_physics::ai_step(
-                &local_player.world.read(),
-                &mut physics,
-                &mut position,
-                &sprinting,
-                &attributes,
-            )
-        }
-    }
-
     /// Update the impulse from self.move_direction. The multipler is used for
     /// sneaking.
     pub(crate) fn tick_controls(multiplier: Option<f32>, physics_state: &mut PhysicsState) {
@@ -368,6 +303,71 @@ impl LocalPlayer {
         // } else {
         physics_state.forward_impulse > 0.8
         // }
+    }
+}
+
+/// Makes the bot do one physics tick. Note that this is already handled
+/// automatically by the client.
+pub fn local_player_ai_step(
+    mut query: Query<
+        (
+            Entity,
+            &mut LocalPlayer,
+            &mut entity::Physics,
+            &mut entity::Position,
+            &mut entity::metadata::Sprinting,
+            &mut entity::Attributes,
+        ),
+        &LocalPlayerInLoadedChunk,
+    >,
+) {
+    for (
+        ecs_entity_id,
+        mut local_player,
+        mut physics,
+        mut position,
+        mut sprinting,
+        mut attributes,
+    ) in query.iter_mut()
+    {
+        let physics_state = &mut local_player.physics_state;
+
+        LocalPlayer::tick_controls(None, physics_state);
+
+        // server ai step
+        physics.xxa = physics_state.left_impulse;
+        physics.zza = physics_state.forward_impulse;
+
+        // TODO: food data and abilities
+        // let has_enough_food_to_sprint = self.food_data().food_level ||
+        // self.abilities().may_fly;
+        let has_enough_food_to_sprint = true;
+
+        // TODO: double tapping w to sprint i think
+
+        let trying_to_sprint = physics_state.trying_to_sprint;
+
+        if !**sprinting
+            && (
+                // !self.is_in_water()
+                // || self.is_underwater() &&
+                LocalPlayer::has_enough_impulse_to_start_sprinting(physics_state)
+                    && has_enough_food_to_sprint
+                    // && !self.using_item()
+                    // && !self.has_effect(MobEffects.BLINDNESS)
+                    && trying_to_sprint
+            )
+        {
+            LocalPlayer::set_sprinting(true, &mut sprinting, &mut attributes);
+        }
+
+        azalea_physics::ai_step(
+            &local_player.world.read(),
+            &mut physics,
+            &mut position,
+            &sprinting,
+            &attributes,
+        )
     }
 }
 

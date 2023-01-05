@@ -95,7 +95,9 @@ impl LocalPlayer {
 
     /// Spawn a task to write a packet directly to the server.
     pub fn write_packet(&mut self, packet: ServerboundGamePacket) {
-        self.packet_writer.send(packet);
+        self.packet_writer
+            .send(packet)
+            .expect("write_packet shouldn't be able to be called if the connection is closed");
     }
 }
 
