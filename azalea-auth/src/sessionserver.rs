@@ -18,6 +18,8 @@ pub enum SessionServerError {
     InvalidSession,
     #[error("Unknown sessionserver error: {0}")]
     Unknown(String),
+    #[error("Forbidden operation (expired session?)")]
+    ForbiddenOperation,
     #[error("Unexpected response from sessionserver (status code {status_code}): {body}")]
     UnexpectedResponse { status_code: u16, body: String },
 }
@@ -71,6 +73,7 @@ pub async fn join(
                     Err(SessionServerError::AuthServersUnreachable)
                 }
                 "InvalidCredentialsException" => Err(SessionServerError::InvalidSession),
+                "ForbiddenOperationException" => Err(SessionServerError::ForbiddenOperation),
                 _ => Err(SessionServerError::Unknown(forbidden.error)),
             }
         }
