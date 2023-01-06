@@ -78,6 +78,8 @@ pub async fn join(
             }
         }
         status_code => {
+            // log the headers
+            log::debug!("Error headers: {:#?}", res.headers());
             let body = res.text().await?;
             Err(SessionServerError::UnexpectedResponse {
                 status_code: status_code.as_u16(),
