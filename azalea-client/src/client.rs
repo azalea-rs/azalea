@@ -327,8 +327,11 @@ impl Client {
                                 // both times, give up
                                 return Err(e.into());
                             }
-                            if matches!(e, SessionServerError::InvalidSession | ForbiddenOperation)
-                            {
+                            if matches!(
+                                e,
+                                SessionServerError::InvalidSession
+                                    | SessionServerError::ForbiddenOperation
+                            ) {
                                 // uh oh, we got an invalid session and have
                                 // to reauthenticate now
                                 account.refresh().await?;
