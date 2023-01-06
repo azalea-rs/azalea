@@ -145,6 +145,8 @@ pub enum JoinError {
     InvalidAddress,
     #[error("Couldn't refresh access token: {0}")]
     Auth(#[from] azalea_auth::AuthError),
+    #[error("{0}")]
+    Disconnect(String),
 }
 
 #[derive(Error, Debug)]
@@ -346,6 +348,7 @@ impl Client {
                 }
                 ClientboundLoginPacket::LoginDisconnect(p) => {
                     debug!("Got disconnect {:?}", p);
+                    return Err(JoinError::Disconnect(p.reason.to_ansi()));
                 }
                 ClientboundLoginPacket::CustomQuery(p) => {
                     debug!("Got custom query {:?}", p);
