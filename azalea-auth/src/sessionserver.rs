@@ -18,6 +18,8 @@ pub enum SessionServerError {
     InvalidSession,
     #[error("Unknown sessionserver error: {0}")]
     Unknown(String),
+    #[error("Forbidden operation (expired session?)")]
+    ForbiddenOperation,
     #[error("Unexpected response from sessionserver (status code {status_code}): {body}")]
     UnexpectedResponse { status_code: u16, body: String },
 }
@@ -71,10 +73,13 @@ pub async fn join(
                     Err(SessionServerError::AuthServersUnreachable)
                 }
                 "InvalidCredentialsException" => Err(SessionServerError::InvalidSession),
+                "ForbiddenOperationException" => Err(SessionServerError::ForbiddenOperation),
                 _ => Err(SessionServerError::Unknown(forbidden.error)),
             }
         }
         status_code => {
+            // log the headers
+            log::debug!("Error headers: {:#?}", res.headers());
             let body = res.text().await?;
             Err(SessionServerError::UnexpectedResponse {
                 status_code: status_code.as_u16(),
