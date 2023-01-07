@@ -1,6 +1,7 @@
 pub use crate::chat::ChatPacket;
 use crate::{movement::WalkDirection, plugins::PluginStates, Account, PlayerInfo};
 use azalea_auth::{game_profile::GameProfile, sessionserver::SessionServerError};
+use azalea_chat::Component;
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{Connection, ConnectionError, ReadConnection, WriteConnection},
@@ -145,6 +146,8 @@ pub enum JoinError {
     InvalidAddress,
     #[error("Couldn't refresh access token: {0}")]
     Auth(#[from] azalea_auth::AuthError),
+    #[error("Disconnected: {reason}")]
+    Disconnect { reason: Component },
 }
 
 #[derive(Error, Debug)]
@@ -346,6 +349,7 @@ impl Client {
                 }
                 ClientboundLoginPacket::LoginDisconnect(p) => {
                     debug!("Got disconnect {:?}", p);
+                    return Err(JoinError::Disconnect { reason: p.reason });
                 }
                 ClientboundLoginPacket::CustomQuery(p) => {
                     debug!("Got custom query {:?}", p);
