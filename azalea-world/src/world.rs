@@ -95,11 +95,6 @@ impl PartialWorld {
     }
 }
 
-pub unsafe fn move_entity_with_delta(delta: &PositionDelta8, position: &mut entity::Position) {
-    let new_pos = position.with_delta(delta);
-    **position = new_pos;
-}
-
 /// A component marker signifying that the entity may have been removed from the
 /// world, but we're not entirely sure.
 #[derive(Component)]

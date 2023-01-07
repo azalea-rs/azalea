@@ -149,8 +149,9 @@ pub fn on_pos(
 pub struct EntityUuid(Uuid);
 
 /// The position of the entity right now.
-/// This can be changed with unsafe_move, but the correct way is with
-/// world.move_entity
+///
+/// You are free to change this; there's systems that update the indexes
+/// automatically.
 #[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
 pub struct Position(Vec3);
 impl From<Position> for ChunkPos {

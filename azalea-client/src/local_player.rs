@@ -1,4 +1,9 @@
-use std::{collections::HashMap, io, sync::Arc};
+use std::{
+    collections::HashMap,
+    io,
+    ops::{Deref, DerefMut},
+    sync::Arc,
+};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, ResourceLocation};
@@ -8,6 +13,7 @@ use azalea_world::{
     EntityInfos, PartialWorld, World,
 };
 use bevy_ecs::{component::Component, system::Query};
+use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
 use thiserror::Error;
 use tokio::sync::mpsc;
@@ -25,7 +31,6 @@ pub struct LocalPlayer {
     // pub world: Arc<RwLock<PartialWorld>>,
     pub physics_state: PhysicsState,
     pub client_information: ClientInformation,
-    pub dead: bool,
     /// A map of player uuids to their information in the tab list
     pub players: HashMap<Uuid, PlayerInfo>,
 
@@ -35,6 +40,10 @@ pub struct LocalPlayer {
 
     pub tx: mpsc::UnboundedSender<Event>,
 }
+
+/// Present if the player can be dead.
+#[derive(Component, Copy, Clone, Default, Deref, DerefMut)]
+pub struct Dead(bool);
 
 #[derive(Default)]
 pub struct PhysicsState {

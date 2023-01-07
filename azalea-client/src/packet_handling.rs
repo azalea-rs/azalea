@@ -4,10 +4,13 @@ use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
     packets::game::{ClientboundGamePacket, ServerboundGamePacket},
 };
+use azalea_world::{entity::{MinecraftEntityId, Position}, EntityInfos};
 use bevy_ecs::{component::Component, prelude::Entity, query::Changed, system::Query};
 use log::{error, debug};
 use parking_lot::Mutex;
 use tokio::sync::mpsc;
+
+use crate::{local_player::{Dead, LocalPlayer}, Event};
 
 /// Something that receives packets from the server.
 #[derive(Component, Clone)]
@@ -24,12 +27,12 @@ pub fn handle_packets(
 
     for (entity, packet_events) in query.iter_mut(ecs) {
         for packet in packet_events.packets.lock().iter() {
-            handle_packet(entity, packet);
+            handle_packet(ecs, entity, packet);
         }
     }
 }
 
-pub fn handle_packet(entity: Entity, packet: &ClientboundGamePacket) {
+pub fn handle_packet(ecs: &mut bevy_ecs::world::World, entity: Entity, packet: &ClientboundGamePacket) {
     match packet {
         ClientboundGamePacket::Login(p) => {
             debug!("Got login packet");
@@ -458,13 +461,18 @@ pub fn handle_packet(entity: Entity, packet: &ClientboundGamePacket) {
             // debug!("Got rotate head packet {:?}", p);
         }
         ClientboundGamePacket::MoveEntityPos(p) => {
-            let mut world = client.world.write();
-            let _ = world.move_entity_with_delta(EntityId(p.entity_id),
-    &p.delta);     }
+            let mut local_player = ecs.query::<&mut LocalPlayer>().get_mut(ecs, entity).unwrap();
+            let mut partial_entity_infos = local_player.partial_world.write().entity_infos;
+            let entity = partial_entity_infos.entity_by_id(p.entity_id);
+            let mut position = ecs.query::<&mut Position>().get_mut(ecs, entity).unwrap();
+            **position = position.with_delta(&p.delta);
+        },
         ClientboundGamePacket::MoveEntityPosRot(p) => {
-            let mut world = client.world.write();
-            let _ = world.move_entity_with_delta(EntityId(p.entity_id),
-    &p.delta);     }
+            let entity_infos = ecs.resource::<EntityInfos>();
+            let entity = entity_infos.entity_by_id(p.entity_id);
+            let mut position = ecs.query::<&mut Position>().get_mut(ecs, entity).unwrap();
+            **position += p.delta;
+        }
         ClientboundGamePacket::MoveEntityRot(_p) => {
             // debug!("Got move entity rot packet {:?}", p);
         }
@@ -551,13 +559,11 @@ pub fn handle_packet(entity: Entity, packet: &ClientboundGamePacket) {
         ClientboundGamePacket::PlayerCombatEnter(_) => {}
         ClientboundGamePacket::PlayerCombatKill(p) => {
             debug!("Got player kill packet {:?}", p);
-            let entity_id = 
-            if client.entity() == EntityId(p.player_id) {
-                // we can't define a variable here with client.dead.lock()
-                // because of https://github.com/rust-lang/rust/issues/57478
-                if !*client.dead.lock() {
-                    *client.dead.lock() = true;
-                    tx.send(Event::Death(Some(Arc::new(p.clone())))).await?;
+            let (entity_id, mut dead, mut local_player) = ecs.query::<(&MinecraftEntityId, &mut Dead, &mut LocalPlayer)>().get(ecs, entity).unwrap();
+            if **entity_id == p.player_id {
+                if !**dead {
+                    **dead = true;
+                    local_player.tx.send(Event::Death(Some(Arc::new(p.clone()))));
                 }
             }
         }
@@ -567,8 +573,8 @@ pub fn handle_packet(entity: Entity, packet: &ClientboundGamePacket) {
         ClientboundGamePacket::Respawn(p) => {
             debug!("Got respawn packet {:?}", p);
             // Sets clients dead state to false.
-            let mut dead_lock = client.dead.lock();
-            *dead_lock = false;
+            let mut dead = ecs.query::<&mut Dead>().get(ecs, entity).unwrap();
+            **dead = false;
         }
         ClientboundGamePacket::SelectAdvancementsTab(_) => {}
         ClientboundGamePacket::SetActionBarText(_) => {}

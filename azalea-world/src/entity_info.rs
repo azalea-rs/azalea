@@ -11,12 +11,7 @@ use bevy_ecs::{
 };
 use log::warn;
 use nohash_hasher::{IntMap, IntSet};
-use once_cell::sync::Lazy;
-use std::{
-    collections::{HashMap, HashSet},
-    fmt::Debug,
-    ops::DerefMut,
-};
+use std::{collections::HashMap, fmt::Debug, ops::DerefMut};
 use uuid::Uuid;
 
 /// Plugin handling some basic entity functionality.
@@ -74,6 +69,9 @@ pub struct PartialEntityInfos {
     pub updates_received: IntMap<MinecraftEntityId, u32>,
     /// A set of all the entity ids in render distance.
     pub(crate) loaded_entity_ids: IntSet<MinecraftEntityId>,
+
+    /// A map of Minecraft entity ids to Azalea ECS entities.
+    pub(crate) entity_by_id: IntMap<u32, Entity>,
 }
 
 impl PartialEntityInfos {
@@ -85,33 +83,22 @@ impl PartialEntityInfos {
             owner_entity,
             updates_received: IntMap::default(),
             loaded_entity_ids: IntSet::default(),
+            entity_by_id: IntMap::default(),
         }
     }
 
-    /// Whether the entity with the given id is being loaded by this storage.
-    /// If you want to check whether the entity is in the shared storage, use
-    /// [`WeakEntityStorage::contains_id`].
+    /// Whether the entity with the given protocol ID is being loaded by this
+    /// storage.
     #[inline]
-    pub fn limited_contains_id(&self, id: MinecraftEntityId) -> bool {
+    pub fn contains_id(&self, id: MinecraftEntityId) -> bool {
         self.loaded_entity_ids.contains(&id)
     }
 
     /// Get an [`Entity`] from the given [`MinecraftEntityId`] (which is just a
     /// u32 internally) if the entity is being loaded by this storage.
     #[inline]
-    pub fn limited_get_by_id(
-        &self,
-        id: MinecraftEntityId,
-        entity_infos: &mut EntityInfos,
-    ) -> Option<Entity> {
-        if self.limited_contains_id(id) {
-            entity_infos
-                .minecraft_entity_ids_to_azalea_entities
-                .get(&id)
-                .copied()
-        } else {
-            None
-        }
+    pub fn get_by_id(&self, id: MinecraftEntityId) -> Option<Entity> {
+        self.entity_by_id.get(&id).copied()
     }
 
     /// Returns whether we're allowed to update this entity (to prevent two
@@ -163,9 +150,6 @@ pub struct EntityInfos {
 
     /// The canonical number of updates we've gotten for every entity.
     pub updates_received: HashMap<Entity, u32>,
-
-    /// The map of Minecraft entity ids to Azalea ECS entities.
-    pub minecraft_entity_ids_to_azalea_entities: HashMap<u32, Entity>,
 }
 
 impl EntityInfos {
@@ -174,8 +158,6 @@ impl EntityInfos {
             entity_reference_count: HashMap::default(),
             entity_by_uuid: HashMap::default(),
             updates_received: HashMap::default(),
-
-            minecraft_entity_ids_to_azalea_entities: HashMap::default(),
         }
     }
 
@@ -224,6 +206,14 @@ impl EntityInfos {
         self.entity_reference_count.contains_key(&id)
     }
 
+    /// Get an [`Entity`] by its UUID.
+    ///
+    /// If you want to get an entity by its protocol ID, use
+    /// [`PartialEntityInfos::entity_by_id`].
+    ///
+    /// Also note that if you're using a shared world (i.e. a client swarm),
+    /// this function might return the wrong entity if there's multiple
+    /// entities with the same uuid in different worlds.
     pub fn entity_by_uuid(&self, uuid: &Uuid) -> Option<&Entity> {
         self.entity_by_uuid.get(uuid)
     }

@@ -280,6 +280,7 @@ dependencies = [
  "azalea-world",
  "bevy_app",
  "bevy_ecs",
+ "derive_more",
  "futures",
  "iyes_loopless",
  "log",
