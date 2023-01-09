@@ -5,14 +5,22 @@ pub mod metadata;
 
 use crate::ChunkStorage;
 
-use self::{attributes::AttributeInstance, metadata::UpdateMetadataError};
+use self::{
+    attributes::AttributeInstance,
+    metadata::{Health, UpdateMetadataError},
+};
 pub use attributes::Attributes;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3, AABB};
-use bevy_ecs::{bundle::Bundle, component::Component, query::Changed, system::Query};
+use bevy_ecs::{
+    bundle::Bundle,
+    component::Component,
+    query::{Changed, Without},
+    system::{Commands, Query},
+};
 pub use data::*;
 use derive_more::{Deref, DerefMut};
-pub use dimensions::EntityDimensions;
+pub use dimensions::{update_bounding_box, EntityDimensions};
 use std::fmt::Debug;
 use uuid::Uuid;
 
@@ -35,18 +43,6 @@ impl std::hash::Hash for MinecraftEntityId {
     }
 }
 impl nohash_hasher::IsEnabled for MinecraftEntityId {}
-
-/// Sets the position of the entity. This doesn't update the cache in
-/// azalea-world, and should only be used within azalea-world!
-///
-/// # Safety
-/// Cached position in the world must be updated.
-pub fn update_bounding_box(mut query: Query<(&Position, &mut Physics), Changed<Position>>) {
-    for (position, mut physics) in query.iter_mut() {
-        let bounding_box = physics.dimensions.make_bounding_box(&position);
-        physics.bounding_box = bounding_box;
-    }
-}
 
 pub fn set_rotation(physics: &mut Physics, y_rot: f32, x_rot: f32) {
     physics.y_rot = y_rot % 360.0;
@@ -80,27 +76,9 @@ pub fn input_vector(physics: &mut Physics, speed: f32, acceleration: &Vec3) -> V
     }
 }
 
-/// Apply the given metadata items to the entity. Everything that isn't
-/// included in items will be left unchanged.
-pub fn apply_metadata(
-    ecs: bevy_ecs::world::World,
-    entity: &mut bevy_ecs::world::EntityMut,
-    items: Vec<EntityDataItem>,
-) -> Result<(), UpdateMetadataError> {
-    metadata::apply_metadata(entity, items)
-}
-
-pub fn make_bounding_box(pos: &Position, physics: &Physics) -> AABB {
-    physics.dimensions.make_bounding_box(&pos)
-}
-
 /// Get the position of the block below the entity, but a little lower.
-pub fn on_pos_legacy(
-    chunk_storage: &ChunkStorage,
-    position: &Position,
-    physics: &Physics,
-) -> BlockPos {
-    on_pos(0.2, chunk_storage, position, physics)
+pub fn on_pos_legacy(chunk_storage: &ChunkStorage, position: &Position) -> BlockPos {
+    on_pos(0.2, chunk_storage, position)
 }
 
 // int x = Mth.floor(this.position.x);
@@ -115,12 +93,7 @@ pub fn on_pos_legacy(
 //    }
 // }
 // return var5;
-pub fn on_pos(
-    offset: f32,
-    chunk_storage: &ChunkStorage,
-    pos: &Position,
-    physics: &Physics,
-) -> BlockPos {
+pub fn on_pos(offset: f32, chunk_storage: &ChunkStorage, pos: &Position) -> BlockPos {
     let x = pos.x.floor() as i32;
     let y = (pos.y - offset as f64).floor() as i32;
     let z = pos.z.floor() as i32;
@@ -145,6 +118,8 @@ pub fn on_pos(
     pos
 }
 
+/// The Minecraft UUID of the entity. For players, this is their actual player
+/// UUID, and for other entities it's just random.
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct EntityUuid(Uuid);
 
@@ -239,6 +214,27 @@ pub struct Physics {
     pub has_impulse: bool,
 }
 
+/// Marker component for entities that are dead.
+///
+/// "Dead" means that the entity has 0 health.
+#[derive(Component, Copy, Clone, Default)]
+pub struct Dead;
+
+/// System that adds the [`Dead`] marker component if an entity's health is set
+/// to 0 (or less than 0). This will be present if an entity is doing the death
+/// animation.
+///
+/// Entities that are dead can not be revived.
+/// TODO: fact check this in-game by setting an entity's health to 0 and then
+/// not 0
+pub fn add_dead(mut commands: Commands, query: Query<(Entity, &Health), Changed<Health>>) {
+    for (entity, health) in query.iter() {
+        if **health <= 0.0 {
+            commands.entity(entity).insert(Dead);
+        }
+    }
+}
+
 /// A component NewType for [`azalea_registry::EntityKind`].
 ///
 /// Most of the time, you should be using `azalea_registry::EntityKind`
@@ -266,6 +262,7 @@ impl EntityBundle {
         kind: azalea_registry::EntityKind,
         world_name: ResourceLocation,
     ) -> Self {
+        // TODO: get correct entity dimensions by having them codegened somewhere
         let dimensions = EntityDimensions {
             width: 0.6,
             height: 1.8,

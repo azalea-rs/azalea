@@ -9,14 +9,14 @@ use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, ResourceLocation};
 use azalea_protocol::{connect::WriteConnection, packets::game::ServerboundGamePacket};
 use azalea_world::{
-    entity::{self, Entity},
-    EntityInfos, PartialWorld, World,
+    entity::{self, Dead, Entity},
+    EntityInfos, PartialWorld, World, WorldContainer,
 };
-use bevy_ecs::{component::Component, system::Query};
+use bevy_ecs::{component::Component, query::Added, system::Query};
 use derive_more::{Deref, DerefMut};
-use parking_lot::RwLock;
+use parking_lot::{Mutex, RwLock};
 use thiserror::Error;
-use tokio::sync::mpsc;
+use tokio::{sync::mpsc, task::JoinHandle};
 use uuid::Uuid;
 
 use crate::{ClientInformation, Event, PlayerInfo, WalkDirection};
@@ -34,16 +34,20 @@ pub struct LocalPlayer {
     /// A map of player uuids to their information in the tab list
     pub players: HashMap<Uuid, PlayerInfo>,
 
+    /// The partial world is the world this client currently has loaded. It has
+    /// a limited render distance.
     pub partial_world: Arc<RwLock<PartialWorld>>,
+    /// The world is the combined [`PartialWorld`]s of all clients in the same
+    /// world. (Only relevant if you're using a shared world, i.e. a swarm)
     pub world: Arc<RwLock<World>>,
     pub world_name: Option<ResourceLocation>,
 
     pub tx: mpsc::UnboundedSender<Event>,
-}
 
-/// Present if the player can be dead.
-#[derive(Component, Copy, Clone, Default, Deref, DerefMut)]
-pub struct Dead(bool);
+    /// A list of async tasks that are running and will stop running when this
+    /// LocalPlayer is dropped or disconnected with [`Self::disconnect`]
+    pub(crate) tasks: Vec<JoinHandle<()>>,
+}
 
 #[derive(Default)]
 pub struct PhysicsState {
@@ -87,7 +91,6 @@ impl LocalPlayer {
 
             physics_state: PhysicsState::default(),
             client_information: ClientInformation::default(),
-            dead: false,
             players: HashMap::new(),
 
             world,
@@ -99,6 +102,8 @@ impl LocalPlayer {
             world_name: None,
 
             tx,
+
+            tasks: Vec::new(),
         }
     }
 
@@ -107,6 +112,16 @@ impl LocalPlayer {
         self.packet_writer
             .send(packet)
             .expect("write_packet shouldn't be able to be called if the connection is closed");
+    }
+
+    /// Disconnect this client from the server by ending all tasks.
+    ///
+    /// The OwnedReadHalf for the TCP connection is in one of the tasks, so it
+    /// automatically closes the connection when that's dropped.
+    pub fn disconnect(&self) {
+        for task in self.tasks.iter() {
+            task.abort();
+        }
     }
 }
 
@@ -138,6 +153,13 @@ pub fn update_in_loaded_chunk(
                 .entity(ecs_entity_id)
                 .remove::<LocalPlayerInLoadedChunk>();
         }
+    }
+}
+
+/// Send the "Death" event for [`LocalPlayer`]s that died with no reason.
+pub fn death_event(query: Query<&LocalPlayer, Added<Dead>>) {
+    for local_player in &query {
+        local_player.tx.send(Event::Death(None));
     }
 }
 

@@ -1,10 +1,7 @@
 use azalea_buf::McBuf;
 use azalea_core::{ResourceLocation, Vec3};
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_world::entity::{
-    metadata::{apply_default_metadata, PlayerMetadataBundle, UpdateMetadataError},
-    EntityBundle,
-};
+use azalea_world::entity::{metadata::apply_default_metadata, EntityBundle};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
@@ -48,6 +45,7 @@ impl ClientboundAddEntityPacket {
         EntityBundle::new(self.uuid, self.position, self.entity_type, world_name)
     }
 
+    /// Apply the default metadata for the given entity.
     pub fn apply_metadata(&self, entity: &mut bevy_ecs::world::EntityMut) {
         apply_default_metadata(entity, self.entity_type);
     }

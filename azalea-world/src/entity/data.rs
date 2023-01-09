@@ -6,13 +6,14 @@ use azalea_buf::{McBuf, McBufReadable, McBufWritable};
 use azalea_chat::FormattedText;
 use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot};
 use bevy_ecs::component::Component;
+use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
 use nohash_hasher::IntSet;
 use std::io::{Cursor, Write};
 use uuid::Uuid;
 
-#[derive(Clone, Debug)]
-pub struct EntityMetadataItems(pub Vec<EntityDataItem>);
+#[derive(Clone, Debug, Deref)]
+pub struct EntityMetadataItems(Vec<EntityDataItem>);
 
 #[derive(Clone, Debug)]
 pub struct EntityDataItem {

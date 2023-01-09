@@ -1,16 +1,54 @@
-use std::sync::Arc;
+use std::{io::Cursor, sync::Arc};
 
+use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
-    packets::game::{ClientboundGamePacket, ServerboundGamePacket},
+    packets::game::{
+        serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
+        serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
+        serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
+        serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
+        ClientboundGamePacket, ServerboundGamePacket,
+    },
 };
-use azalea_world::{entity::{MinecraftEntityId, Position}, EntityInfos};
-use bevy_ecs::{component::Component, prelude::Entity, query::Changed, system::Query};
-use log::{error, debug};
+use azalea_world::{
+    entity::{
+        metadata::{apply_metadata, Health, PlayerMetadataBundle},
+        set_rotation, Dead, EntityBundle, LastSentPosition, MinecraftEntityId, Physics,
+        PlayerBundle, Position,
+    },
+    EntityInfos, PartialWorld, WorldContainer,
+};
+use bevy_app::{App, Plugin};
+use bevy_ecs::{
+    component::Component,
+    prelude::Entity,
+    query::Changed,
+    schedule::{IntoSystemDescriptor, SystemSet},
+    system::{Commands, Query, ResMut},
+};
+use iyes_loopless::prelude::*;
+use log::{debug, error, trace, warn};
 use parking_lot::Mutex;
 use tokio::sync::mpsc;
 
-use crate::{local_player::{Dead, LocalPlayer}, Event};
+use crate::{local_player::LocalPlayer, ChatPacket, ClientInformation, Event, PlayerInfo};
+
+pub struct PacketHandlerPlugin;
+// .add_system(packet_handling::handle_packets.label("packet"))
+// // should happen last
+// .add_system(packet_handling::clear_packets.after("packet"));
+impl Plugin for PacketHandlerPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_system_set(
+            SystemSet::new()
+                .with_system(handle_packets.label("packet"))
+                .with_system(handle_login_packet.after("packet"))
+                // should happen last
+                .with_system(clear_packets.after("packet")),
+        );
+    }
+}
 
 /// Something that receives packets from the server.
 #[derive(Component, Clone)]
@@ -19,135 +57,34 @@ pub struct PacketReceiver {
     pub run_schedule_sender: mpsc::UnboundedSender<()>,
 }
 
-pub fn handle_packets(
-    ecs: &mut bevy_ecs::world::World,
-    // ecs: &mut bevy_ecs::world::World,
-) {
+fn handle_packets(ecs: &mut bevy_ecs::world::World) {
     let mut query = ecs.query_filtered::<(Entity, &PacketReceiver), Changed<PacketReceiver>>();
 
-    for (entity, packet_events) in query.iter_mut(ecs) {
-        for packet in packet_events.packets.lock().iter() {
-            handle_packet(ecs, entity, packet);
+    let mut players_and_packets = Vec::new();
+    for (player_entity, packet_events) in query.iter(ecs) {
+        let packets = packet_events.packets.lock();
+        if !packets.is_empty() {
+            players_and_packets.push((player_entity, packets.clone()));
+        }
+    }
+    for (player_entity, packets) in players_and_packets {
+        for packet in &packets {
+            handle_packet(ecs, player_entity, packet);
         }
     }
 }
 
-pub fn handle_packet(ecs: &mut bevy_ecs::world::World, entity: Entity, packet: &ClientboundGamePacket) {
+// TODO: i want to make it so each packet handler gets its own system (so it's
+// not as annoying to query stuff) but idk how to make it good
+
+fn handle_packet(
+    ecs: &mut bevy_ecs::world::World,
+    player_entity: Entity,
+    packet: &ClientboundGamePacket,
+) {
     match packet {
         ClientboundGamePacket::Login(p) => {
-            debug!("Got login packet");
-
-            {
-                // // write p into login.txt
-                // std::io::Write::write_all(
-                //     &mut std::fs::File::create("login.txt").unwrap(),
-                //     format!("{:#?}", p).as_bytes(),
-                // )
-                // .unwrap();
-
-                // TODO: have registry_holder be a struct because this sucks rn
-                             // best way would be to add serde support to azalea-nbt
-
-                let registry_holder = p
-                    .registry_holder
-                    .as_compound()
-                    .expect("Registry holder is not a compound")
-                    .get("")
-                    .expect("No \"\" tag")
-                    .as_compound()
-                    .expect("\"\" tag is not a compound");
-                let dimension_types = registry_holder
-                    .get("minecraft:dimension_type")
-                    .expect("No dimension_type tag")
-                    .as_compound()
-                    .expect("dimension_type is not a compound")
-                    .get("value")
-                    .expect("No dimension_type value")
-                    .as_list()
-                    .expect("dimension_type value is not a list");
-                let dimension_type = dimension_types
-                    .iter()
-                    .find(|t| {
-                        t.as_compound()
-                            .expect("dimension_type value is not a compound")
-                            .get("name")
-                            .expect("No name tag")
-                            .as_string()
-                            .expect("name is not a string")
-                            == p.dimension_type.to_string()
-                    })
-                    .unwrap_or_else(|| panic!("No dimension_type with name {}", p.dimension_type))                 .as_compound()
-                    .unwrap()
-                    .get("element")
-                    .expect("No element tag")
-                    .as_compound()
-                    .expect("element is not a compound");
-                let height = (*dimension_type
-                    .get("height")
-                    .expect("No height tag")
-                    .as_int()
-                    .expect("height tag is not an int"))
-                .try_into()
-                .expect("height is not a u32");
-                let min_y = *dimension_type
-                    .get("min_y")
-                    .expect("No min_y tag")
-                    .as_int()
-                    .expect("min_y tag is not an int");
-
-                let world_name = p.dimension.clone();
-
-                local_player.world_name = Some(world_name.clone());
-                // add this world to the world_container (or don't if it's already there)
-                let weak_world = world_container.insert(world_name, height, min_y);
-                             // set the loaded_world to an empty world
-                                          // (when we add chunks or entities those will be in the world_container)
-                                          let mut world_lock = local_player.world.write();             *world_lock =    PartialWorld::new(
-    local_player.client_information.view_distance.into(),
-    weak_world,                 Some(EntityId(p.player_id)),
-                );
-
-                let player_bundle = entity::PlayerBundle {
-                    entity: entity::EntityBundle::new(
-                        local_player.profile.uuid,
-                        Vec3::default(),
-                        azalea_registry::EntityKind::Player,
-                    ),
-                    metadata: PlayerMetadataBundle::default(),
-                };
-                // let entity = EntityData::new(
-                //     client.profile.uuid,
-                //     Vec3::default(),
-                //     EntityMetadata::Player(metadata::Player::default()),
-                // );
-                // the first argument makes it so other entities don't update this entity in a shared world
-                world_lock.add_entity(EntityId(p.player_id), player_bundle);
-
-                *client.entity_id.write() = EntityId(p.player_id);
-            }
-
-            // send the client information that we have set
-            let client_information_packet: ClientInformation =
-                client.local_player().client_information.clone();
-            log::debug!(
-                "Sending client information because login: {:?}",
-                client_information_packet
-            );
-            client.write_packet(client_information_packet.get());
-
-            // brand
-            client
-                .write_packet(
-                    ServerboundCustomPayloadPacket {
-                        identifier: ResourceLocation::new("brand").unwrap(),
-                        // they don't have to know :)
-                        data: "vanilla".into(),
-                    }
-                    .get(),
-                )
-                .await?;
-
-            tx.send(Event::Login).await?;
+            // handled by the handle_login_packet system
         }
         ClientboundGamePacket::SetChunkCacheRadius(p) => {
             debug!("Got set chunk cache radius packet {:?}", p);
@@ -172,7 +109,13 @@ pub fn handle_packet(ecs: &mut bevy_ecs::world::World, entity: Entity, packet: &
         }
         ClientboundGamePacket::Disconnect(p) => {
             debug!("Got disconnect packet {:?}", p);
-            client.disconnect().await?;
+
+            let (mut local_player,) = ecs
+                .query::<(&mut LocalPlayer,)>()
+                .get_mut(ecs, player_entity)
+                .unwrap();
+
+            local_player.disconnect();
         }
         ClientboundGamePacket::UpdateRecipes(_p) => {
             debug!("Got update recipes packet");
@@ -187,185 +130,188 @@ pub fn handle_packet(ecs: &mut bevy_ecs::world::World, entity: Entity, packet: &
             // TODO: reply with teleport confirm
             debug!("Got player position packet {:?}", p);
 
-            let (new_pos, y_rot, x_rot) = {
-                let player_entity_id = *client.entity();
-                let world = client.world();
-                // let mut player_entity =
-    world.entity_mut(player_entity_id).unwrap();             let (mut
-    physics, position) =                 client.query::<(&mut
-    entity::Physics, &mut entity::Position)>();
+            let (mut local_player, mut physics, mut position, mut last_sent_position) = ecs
+                .query::<(
+                    &mut LocalPlayer,
+                    &mut Physics,
+                    &mut Position,
+                    &mut LastSentPosition,
+                )>()
+                .get_mut(ecs, player_entity)
+                .unwrap();
 
-                let delta_movement = physics.delta;
+            let delta_movement = physics.delta;
 
-                let is_x_relative = p.relative_arguments.x;
-                let is_y_relative = p.relative_arguments.y;
-                let is_z_relative = p.relative_arguments.z;
+            let is_x_relative = p.relative_arguments.x;
+            let is_y_relative = p.relative_arguments.y;
+            let is_z_relative = p.relative_arguments.z;
 
-                let (delta_x, new_pos_x) = if is_x_relative {
-                    physics.last_pos.x += p.x;
-                    (delta_movement.x, position.x + p.x)
-                } else {
-                    physics.last_pos.x = p.x;
-                    (0.0, p.x)
-                };
-                let (delta_y, new_pos_y) = if is_y_relative {
-                    physics.last_pos.y += p.y;
-                    (delta_movement.y, position.y + p.y)
-                } else {
-                    physics.last_pos.y = p.y;
-                    (0.0, p.y)
-                };
-                let (delta_z, new_pos_z) = if is_z_relative {
-                    physics.last_pos.z += p.z;
-                    (delta_movement.z, position.z + p.z)
-                } else {
-                    physics.last_pos.z = p.z;
-                    (0.0, p.z)
-                };
-
-                let mut y_rot = p.y_rot;
-                let mut x_rot = p.x_rot;
-                if p.relative_arguments.x_rot {
-                    x_rot += physics.x_rot;
-                }
-                if p.relative_arguments.y_rot {
-                    y_rot += physics.y_rot;
-                }
-
-                physics.delta = Vec3 {
-                    x: delta_x,
-                    y: delta_y,
-                    z: delta_z,
-                };
-                entity::set_rotation(physics.into_inner(), y_rot, x_rot);
-                // TODO: minecraft sets "xo", "yo", and "zo" here but idk
-    what that means             // so investigate that ig
-                let new_pos = Vec3 {
-                    x: new_pos_x,
-                    y: new_pos_y,
-                    z: new_pos_z,
-                };
-                world
-                    .set_entity_pos(
-                        player_entity_id,
-                        new_pos,
-                        position.into_inner(),
-                        physics.into_inner(),
-                    )
-                    .expect("The player entity should always exist");
-
-                (new_pos, y_rot, x_rot)
+            let (delta_x, new_pos_x) = if is_x_relative {
+                last_sent_position.x += p.x;
+                (delta_movement.x, position.x + p.x)
+            } else {
+                last_sent_position.x = p.x;
+                (0.0, p.x)
+            };
+            let (delta_y, new_pos_y) = if is_y_relative {
+                last_sent_position.y += p.y;
+                (delta_movement.y, position.y + p.y)
+            } else {
+                last_sent_position.y = p.y;
+                (0.0, p.y)
+            };
+            let (delta_z, new_pos_z) = if is_z_relative {
+                last_sent_position.z += p.z;
+                (delta_movement.z, position.z + p.z)
+            } else {
+                last_sent_position.z = p.z;
+                (0.0, p.z)
             };
 
-            client
-                .write_packet(ServerboundAcceptTeleportationPacket { id: p.id
-    }.get())             .await?;
-            client
-                .write_packet(
-                    ServerboundMovePlayerPosRotPacket {
-                        x: new_pos.x,
-                        y: new_pos.y,
-                        z: new_pos.z,
-                        y_rot,
-                        x_rot,
-                        // this is always false
-                        on_ground: false,
-                    }
-                    .get(),
-                )
-                .await?;
+            let mut y_rot = p.y_rot;
+            let mut x_rot = p.x_rot;
+            if p.relative_arguments.x_rot {
+                x_rot += physics.x_rot;
+            }
+            if p.relative_arguments.y_rot {
+                y_rot += physics.y_rot;
+            }
+
+            physics.delta = Vec3 {
+                x: delta_x,
+                y: delta_y,
+                z: delta_z,
+            };
+            // we call a function instead of setting the fields ourself since the function
+            // makes sure the rotations stay in their ranges
+            set_rotation(physics.into_inner(), y_rot, x_rot);
+            // TODO: minecraft sets "xo", "yo", and "zo" here but idk what that means
+            // so investigate that ig
+            let new_pos = Vec3 {
+                x: new_pos_x,
+                y: new_pos_y,
+                z: new_pos_z,
+            };
+
+            **position = new_pos;
+
+            local_player.write_packet(ServerboundAcceptTeleportationPacket { id: p.id }.get());
+            local_player.write_packet(
+                ServerboundMovePlayerPosRotPacket {
+                    x: new_pos.x,
+                    y: new_pos.y,
+                    z: new_pos.z,
+                    y_rot,
+                    x_rot,
+                    // this is always false
+                    on_ground: false,
+                }
+                .get(),
+            );
         }
         ClientboundGamePacket::PlayerInfoUpdate(p) => {
             debug!("Got player info packet {:?}", p);
-            let mut events = Vec::new();
-            {
-                let mut players_lock = client.players.write();
-                for updated_info in &p.entries {
-                    // add the new player maybe
-                    if p.actions.add_player {
-                        let player_info = PlayerInfo {
-                            profile: updated_info.profile.clone(),
-                            uuid: updated_info.profile.uuid,
-                            gamemode: updated_info.game_mode,
-                            latency: updated_info.latency,
-                            display_name: updated_info.display_name.clone(),
-                        };
-                        players_lock.insert(updated_info.profile.uuid,
-    player_info.clone());
-    events.push(Event::AddPlayer(player_info));                 } else if
-    let Some(info) = players_lock.get_mut(&updated_info.profile.uuid) {
-                        // `else if` because the block for add_player above
-                        // already sets all the fields
-                        if p.actions.update_game_mode {
-                            info.gamemode = updated_info.game_mode;
-                        }
-                        if p.actions.update_latency {
-                            info.latency = updated_info.latency;
-                        }
-                        if p.actions.update_display_name {
-                            info.display_name =
-    updated_info.display_name.clone();                     }
-                        events.push(Event::UpdatePlayer(info.clone()));
-                    } else {
-                        warn!(
-                            "Ignoring PlayerInfoUpdate for unknown player
-    {}",                         updated_info.profile.uuid
-                        );
+
+            let mut local_player = ecs
+                .query::<&mut LocalPlayer>()
+                .get_mut(ecs, player_entity)
+                .unwrap();
+
+            for updated_info in &p.entries {
+                // add the new player maybe
+                if p.actions.add_player {
+                    let player_info = PlayerInfo {
+                        profile: updated_info.profile.clone(),
+                        uuid: updated_info.profile.uuid,
+                        gamemode: updated_info.game_mode,
+                        latency: updated_info.latency,
+                        display_name: updated_info.display_name.clone(),
+                    };
+                    local_player
+                        .players
+                        .insert(updated_info.profile.uuid, player_info.clone());
+                    local_player.tx.send(Event::AddPlayer(player_info));
+                } else if let Some(info) = local_player.players.get_mut(&updated_info.profile.uuid)
+                {
+                    // `else if` because the block for add_player above
+                    // already sets all the fields
+                    if p.actions.update_game_mode {
+                        info.gamemode = updated_info.game_mode;
                     }
+                    if p.actions.update_latency {
+                        info.latency = updated_info.latency;
+                    }
+                    if p.actions.update_display_name {
+                        info.display_name = updated_info.display_name.clone();
+                    }
+                    let info = info.clone();
+                    local_player.tx.send(Event::UpdatePlayer(info));
+                } else {
+                    warn!(
+                        "Ignoring PlayerInfoUpdate for unknown player {}",
+                        updated_info.profile.uuid
+                    );
                 }
-            }
-            for event in events {
-                tx.send(event).await?;
             }
         }
         ClientboundGamePacket::PlayerInfoRemove(p) => {
-            let mut events = Vec::new();
-            {
-                let mut players_lock = client.players.write();
-                for uuid in &p.profile_ids {
-                    if let Some(info) = players_lock.remove(uuid) {
-                        events.push(Event::RemovePlayer(info));
-                    }
+            let mut local_player = ecs
+                .query::<&mut LocalPlayer>()
+                .get_mut(ecs, player_entity)
+                .unwrap();
+
+            for uuid in &p.profile_ids {
+                if let Some(info) = local_player.players.remove(uuid) {
+                    local_player.tx.send(Event::RemovePlayer(info));
                 }
-            }
-            for event in events {
-                tx.send(event).await?;
             }
         }
         ClientboundGamePacket::SetChunkCacheCenter(p) => {
             debug!("Got chunk cache center packet {:?}", p);
-            client
-                .world
-                .write()
-                .update_view_center(&ChunkPos::new(p.x, p.z));
+
+            let mut local_player = ecs
+                .query::<&mut LocalPlayer>()
+                .get(ecs, player_entity)
+                .unwrap();
+            let mut partial_world = local_player.partial_world.write();
+
+            partial_world.chunks.view_center = ChunkPos::new(p.x, p.z);
         }
         ClientboundGamePacket::LevelChunkWithLight(p) => {
             // debug!("Got chunk with light packet {} {}", p.x, p.z);
             let pos = ChunkPos::new(p.x, p.z);
+
+            let mut local_player = ecs
+                .query::<&mut LocalPlayer>()
+                .get(ecs, player_entity)
+                .unwrap();
+            let world = local_player.world.read();
+            let partial_world = local_player.partial_world.read();
 
             // OPTIMIZATION: if we already know about the chunk from the
             // shared world (and not ourselves), then we don't need to
             // parse it again. This is only used when we have a shared
             // world, since we check that the chunk isn't currently owned
             // by this client.
-            let shared_has_chunk =
-    client.world.read().get_chunk(&pos).is_some();         let
-    this_client_has_chunk =
-    client.world.read().chunks.limited_get(&pos).is_some();         if
-    shared_has_chunk && !this_client_has_chunk {             trace!(
-                    "Skipping parsing chunk {:?} because we already know
-    about it",                 pos
+            let shared_has_chunk = world.chunks.get(&pos).is_some();
+            let this_client_has_chunk = partial_world.chunks.limited_get(&pos).is_some();
+            if shared_has_chunk && !this_client_has_chunk {
+                trace!(
+                    "Skipping parsing chunk {:?} because we already know about it",
+                    pos
                 );
-                return Ok(());
+                return;
             }
 
-            // let chunk = Chunk::read_with_world_height(&mut p.chunk_data);
-            // debug("chunk {:?}")
-            if let Err(e) = client
-                .world
-                .write()
-                .replace_with_packet_data(&pos, &mut
-    Cursor::new(&p.chunk_data.data))         {
+            // ok we're sure we're going to mutate the world, so get exclusive write access
+            let mut partial_world = local_player.partial_world.write();
+            let mut world = local_player.world.write();
+
+            if let Err(e) = partial_world.chunks.replace_with_packet_data(
+                &pos,
+                &mut Cursor::new(&p.chunk_data.data),
+                &mut world.chunks,
+            ) {
                 error!("Couldn't set chunk data: {}", e);
             }
         }
@@ -374,27 +320,36 @@ pub fn handle_packet(ecs: &mut bevy_ecs::world::World, entity: Entity, packet: &
         }
         ClientboundGamePacket::AddEntity(p) => {
             debug!("Got add entity packet {:?}", p);
-            let bundle = p.as_entity_bundle();
-            let mut world = client.world.write();
-            world.add_entity(EntityId(p.id), bundle);
-            // the bundle doesn't include the default entity metadata so we
-    add that         // separately
-            let mut entities = world.entity_infos.shared.write();
-            let mut entity =
-    entities.ecs_entity_mut(EntityId(p.id)).unwrap();
-            p.apply_metadata(&mut entity);
+
+            let local_player = ecs.query::<&LocalPlayer>().get(ecs, player_entity).unwrap();
+            if let Some(world_name) = &local_player.world_name {
+                let bundle = p.as_entity_bundle(world_name.clone());
+                let mut entity_mut = ecs.spawn((MinecraftEntityId(p.id), bundle));
+                // the bundle doesn't include the default entity metadata so we add that
+                // separately
+                p.apply_metadata(&mut entity_mut);
+            } else {
+                warn!("got add player packet but we haven't gotten a login packet yet");
+            }
         }
         ClientboundGamePacket::SetEntityData(p) => {
             debug!("Got set entity data packet {:?}", p);
-            let world = client.world.write();
-            let mut entities = world.entity_infos.shared.write();
-            let entity = entities.ecs_entity_mut(EntityId(p.id));
-            if let Some(mut entity) = entity {
-                entity::metadata::apply_metadata(&mut entity,
-    p.packed_items.0.clone());         } else {
-                // warn!("Server sent an entity data packet for an
-                // entity id ({}) that we don't
-                // know about", p.id);
+
+            let local_player = ecs
+                .query::<&mut LocalPlayer>()
+                .get(ecs, player_entity)
+                .unwrap();
+            let partial_world = local_player.partial_world.write();
+            let entity = partial_world
+                .entity_infos
+                .get_by_id(MinecraftEntityId(p.id));
+            drop(partial_world);
+
+            if let Some(entity) = entity {
+                let mut entity_mut = ecs.entity_mut(entity);
+                apply_metadata(&mut entity_mut, (*p.packed_items).clone());
+            } else {
+                warn!("Server sent an entity data packet for an entity id ({}) that we don't know about", p.id);
             }
         }
         ClientboundGamePacket::UpdateAttributes(_p) => {
@@ -408,11 +363,17 @@ pub fn handle_packet(ecs: &mut bevy_ecs::world::World, entity: Entity, packet: &
         }
         ClientboundGamePacket::AddPlayer(p) => {
             debug!("Got add player packet {:?}", p);
-            let bundle = p.as_player_bundle();
-            let mut world = client.world.write();
-            world.add_entity(EntityId(p.id), bundle);
-            // the default metadata was already included in the bundle
-            // for us
+
+            let local_player = ecs
+                .query::<&mut LocalPlayer>()
+                .get(ecs, player_entity)
+                .unwrap();
+            if let Some(world_name) = &local_player.world_name {
+                let bundle = p.as_player_bundle(world_name.clone());
+                ecs.spawn((MinecraftEntityId(p.id), bundle));
+            } else {
+                warn!("got add player packet but we haven't gotten a login packet yet");
+            }
         }
         ClientboundGamePacket::InitializeBorder(p) => {
             debug!("Got initialize border packet {:?}", p);
@@ -428,31 +389,35 @@ pub fn handle_packet(ecs: &mut bevy_ecs::world::World, entity: Entity, packet: &
         }
         ClientboundGamePacket::SetHealth(p) => {
             debug!("Got set health packet {:?}", p);
-            if p.health == 0.0 {
-                // we can't define a variable here with client.dead.lock()
-                // because of https://github.com/rust-lang/rust/issues/57478
-                if !*client.dead.lock() {
-                    *client.dead.lock() = true;
-                    tx.send(Event::Death(None)).await?;
-                }
-            }
+
+            let mut health = ecs
+                .query::<&mut Health>()
+                .get_mut(ecs, player_entity)
+                .unwrap();
+            **health = p.health;
+
+            // the `Dead` component is added by `update_dead` in azalea-world
+            // and then the `dead_event` system fires the Death event.
         }
         ClientboundGamePacket::SetExperience(p) => {
             debug!("Got set experience packet {:?}", p);
         }
         ClientboundGamePacket::TeleportEntity(p) => {
-            let mut world = client.world.write();
-            let (pos, physics) = self.query::<(&entity::Position,
-    &entity::Physics)>();         let _ = world.set_entity_pos(
-                EntityId(p.id),
-                Vec3 {
-                    x: p.x,
-                    y: p.y,
-                    z: p.z,
-                },
-                pos,
-                physics,
-            );
+            let local_player = ecs
+                .query::<&mut LocalPlayer>()
+                .get(ecs, player_entity)
+                .unwrap();
+            let partial_world = local_player.partial_world.read();
+            let partial_entity_infos = &partial_world.entity_infos;
+            let entity = partial_entity_infos.get_by_id(MinecraftEntityId(p.id));
+            drop(partial_world);
+
+            if let Some(entity) = entity {
+                let mut position = ecs.query::<&mut Position>().get_mut(ecs, entity).unwrap();
+                **position = p.position;
+            } else {
+                warn!("Got teleport entity packet for unknown entity id {}", p.id);
+            }
         }
         ClientboundGamePacket::UpdateAdvancements(p) => {
             debug!("Got update advancements packet {:?}", p);
@@ -461,39 +426,84 @@ pub fn handle_packet(ecs: &mut bevy_ecs::world::World, entity: Entity, packet: &
             // debug!("Got rotate head packet {:?}", p);
         }
         ClientboundGamePacket::MoveEntityPos(p) => {
-            let mut local_player = ecs.query::<&mut LocalPlayer>().get_mut(ecs, entity).unwrap();
-            let mut partial_entity_infos = local_player.partial_world.write().entity_infos;
-            let entity = partial_entity_infos.entity_by_id(p.entity_id);
-            let mut position = ecs.query::<&mut Position>().get_mut(ecs, entity).unwrap();
-            **position = position.with_delta(&p.delta);
-        },
+            let local_player = ecs
+                .query::<&mut LocalPlayer>()
+                .get(ecs, player_entity)
+                .unwrap();
+            let partial_world = local_player.partial_world.read();
+            let partial_entity_infos = &partial_world.entity_infos;
+            let entity = partial_entity_infos.get_by_id(MinecraftEntityId(p.entity_id));
+            drop(partial_world);
+
+            if let Some(entity) = entity {
+                let mut position = ecs.query::<&mut Position>().get_mut(ecs, entity).unwrap();
+                **position = position.with_delta(&p.delta);
+            } else {
+                warn!(
+                    "Got move entity pos packet for unknown entity id {}",
+                    p.entity_id
+                );
+            }
+        }
         ClientboundGamePacket::MoveEntityPosRot(p) => {
-            let entity_infos = ecs.resource::<EntityInfos>();
-            let entity = entity_infos.entity_by_id(p.entity_id);
-            let mut position = ecs.query::<&mut Position>().get_mut(ecs, entity).unwrap();
-            **position += p.delta;
+            let local_player = ecs
+                .query::<&mut LocalPlayer>()
+                .get(ecs, player_entity)
+                .unwrap();
+            let partial_world = local_player.partial_world.read();
+            let partial_entity_infos = &partial_world.entity_infos;
+            let entity = partial_entity_infos.get_by_id(MinecraftEntityId(p.entity_id));
+            drop(partial_world);
+
+            if let Some(entity) = entity {
+                let mut position = ecs.query::<&mut Position>().get_mut(ecs, entity).unwrap();
+                **position = position.with_delta(&p.delta);
+            } else {
+                warn!(
+                    "Got move entity pos rot packet for unknown entity id {}",
+                    p.entity_id
+                );
+            }
         }
         ClientboundGamePacket::MoveEntityRot(_p) => {
             // debug!("Got move entity rot packet {:?}", p);
         }
         ClientboundGamePacket::KeepAlive(p) => {
             debug!("Got keep alive packet {:?}", p);
-            client
-                .write_packet(ServerboundKeepAlivePacket { id: p.id }.get())
-                .await?;
+
+            let mut local_player = ecs
+                .query::<&mut LocalPlayer>()
+                .get_mut(ecs, player_entity)
+                .unwrap();
+
+            local_player.write_packet(ServerboundKeepAlivePacket { id: p.id }.get());
         }
         ClientboundGamePacket::RemoveEntities(p) => {
             debug!("Got remove entities packet {:?}", p);
         }
         ClientboundGamePacket::PlayerChat(p) => {
             debug!("Got player chat packet {:?}", p);
-            tx.send(Event::Chat(ChatPacket::Player(Arc::new(p.clone()))))
-                .await?;
+
+            let mut local_player = ecs
+                .query::<&mut LocalPlayer>()
+                .get(ecs, player_entity)
+                .unwrap();
+
+            local_player
+                .tx
+                .send(Event::Chat(ChatPacket::Player(Arc::new(p.clone()))));
         }
         ClientboundGamePacket::SystemChat(p) => {
             debug!("Got system chat packet {:?}", p);
-            tx.send(Event::Chat(ChatPacket::System(Arc::new(p.clone()))))
-                .await?;
+
+            let mut local_player = ecs
+                .query::<&mut LocalPlayer>()
+                .get(ecs, player_entity)
+                .unwrap();
+
+            local_player
+                .tx
+                .send(Event::Chat(ChatPacket::System(Arc::new(p.clone()))));
         }
         ClientboundGamePacket::Sound(_p) => {
             // debug!("Got sound packet {:?}", p);
@@ -503,18 +513,31 @@ pub fn handle_packet(ecs: &mut bevy_ecs::world::World, entity: Entity, packet: &
         }
         ClientboundGamePacket::BlockUpdate(p) => {
             debug!("Got block update packet {:?}", p);
-            let mut world = client.world.write();
-            world.set_block_state(&p.pos, p.block_state);
+
+            let mut local_player = ecs
+                .query::<&mut LocalPlayer>()
+                .get(ecs, player_entity)
+                .unwrap();
+            let mut world = local_player.world.write();
+
+            world.chunks.set_block_state(&p.pos, p.block_state);
         }
         ClientboundGamePacket::Animate(p) => {
             debug!("Got animate packet {:?}", p);
         }
         ClientboundGamePacket::SectionBlocksUpdate(p) => {
             debug!("Got section blocks update packet {:?}", p);
-            let mut world = client.world.write();
+            let mut local_player = ecs
+                .query::<&mut LocalPlayer>()
+                .get(ecs, player_entity)
+                .unwrap();
+            let mut world = local_player.world.write();
+
             for state in &p.states {
-                world.set_block_state(&(p.section_pos + state.pos.clone()),
-    state.state);         }
+                world
+                    .chunks
+                    .set_block_state(&(p.section_pos + state.pos.clone()), state.state);
+            }
         }
         ClientboundGamePacket::GameEvent(p) => {
             debug!("Got game event packet {:?}", p);
@@ -559,11 +582,22 @@ pub fn handle_packet(ecs: &mut bevy_ecs::world::World, entity: Entity, packet: &
         ClientboundGamePacket::PlayerCombatEnter(_) => {}
         ClientboundGamePacket::PlayerCombatKill(p) => {
             debug!("Got player kill packet {:?}", p);
-            let (entity_id, mut dead, mut local_player) = ecs.query::<(&MinecraftEntityId, &mut Dead, &mut LocalPlayer)>().get(ecs, entity).unwrap();
-            if **entity_id == p.player_id {
-                if !**dead {
-                    **dead = true;
-                    local_player.tx.send(Event::Death(Some(Arc::new(p.clone()))));
+            let (&entity_id, dead) = ecs
+                .query::<(&MinecraftEntityId, Option<&Dead>)>()
+                .get(ecs, player_entity)
+                .unwrap();
+
+            if *entity_id == p.player_id {
+                if dead.is_none() {
+                    ecs.entity_mut(player_entity).insert(Dead);
+
+                    let local_player = ecs
+                        .query::<&mut LocalPlayer>()
+                        .get_mut(ecs, player_entity)
+                        .unwrap();
+                    local_player
+                        .tx
+                        .send(Event::Death(Some(Arc::new(p.clone()))));
                 }
             }
         }
@@ -572,9 +606,8 @@ pub fn handle_packet(ecs: &mut bevy_ecs::world::World, entity: Entity, packet: &
         ClientboundGamePacket::ResourcePack(_) => {}
         ClientboundGamePacket::Respawn(p) => {
             debug!("Got respawn packet {:?}", p);
-            // Sets clients dead state to false.
-            let mut dead = ecs.query::<&mut Dead>().get(ecs, entity).unwrap();
-            **dead = false;
+            // Remove the Dead marker component from the player.
+            ecs.entity_mut(player_entity).remove::<Dead>();
         }
         ClientboundGamePacket::SelectAdvancementsTab(_) => {}
         ClientboundGamePacket::SetActionBarText(_) => {}
@@ -604,8 +637,132 @@ pub fn handle_packet(ecs: &mut bevy_ecs::world::World, entity: Entity, packet: &
     }
 }
 
+// this is probably inefficient since it has to iterate over every packet even
+// if it's not the right one
+fn handle_login_packet(
+    mut commands: Commands,
+    mut query: Query<(Entity, &PacketReceiver, &mut LocalPlayer), Changed<PacketReceiver>>,
+    mut world_container: ResMut<WorldContainer>,
+    mut entity_infos: ResMut<EntityInfos>,
+) {
+    for (player_entity, packet_events, mut local_player) in query.iter_mut() {
+        for packet in packet_events.packets.lock().iter() {
+            if let ClientboundGamePacket::Login(p) = packet {
+                debug!("Got login packet");
+
+                {
+                    // TODO: have registry_holder be a struct because this sucks rn
+                    // best way would be to add serde support to azalea-nbt
+
+                    let registry_holder = p
+                        .registry_holder
+                        .as_compound()
+                        .expect("Registry holder is not a compound")
+                        .get("")
+                        .expect("No \"\" tag")
+                        .as_compound()
+                        .expect("\"\" tag is not a compound");
+                    let dimension_types = registry_holder
+                        .get("minecraft:dimension_type")
+                        .expect("No dimension_type tag")
+                        .as_compound()
+                        .expect("dimension_type is not a compound")
+                        .get("value")
+                        .expect("No dimension_type value")
+                        .as_list()
+                        .expect("dimension_type value is not a list");
+                    let dimension_type = dimension_types
+                        .iter()
+                        .find(|t| {
+                            t.as_compound()
+                                .expect("dimension_type value is not a compound")
+                                .get("name")
+                                .expect("No name tag")
+                                .as_string()
+                                .expect("name is not a string")
+                                == p.dimension_type.to_string()
+                        })
+                        .unwrap_or_else(|| {
+                            panic!("No dimension_type with name {}", p.dimension_type)
+                        })
+                        .as_compound()
+                        .unwrap()
+                        .get("element")
+                        .expect("No element tag")
+                        .as_compound()
+                        .expect("element is not a compound");
+                    let height = (*dimension_type
+                        .get("height")
+                        .expect("No height tag")
+                        .as_int()
+                        .expect("height tag is not an int"))
+                    .try_into()
+                    .expect("height is not a u32");
+                    let min_y = *dimension_type
+                        .get("min_y")
+                        .expect("No min_y tag")
+                        .as_int()
+                        .expect("min_y tag is not an int");
+
+                    let world_name = p.dimension.clone();
+
+                    local_player.world_name = Some(world_name.clone());
+                    // add this world to the world_container (or don't if it's already there)
+                    let weak_world = world_container.insert(world_name.clone(), height, min_y);
+                    // set the partial_world to an empty world
+                    // (when we add chunks or entities those will be in the world_container)
+                    let mut partial_world_lock = local_player.partial_world.write();
+
+                    *partial_world_lock = PartialWorld::new(
+                        local_player.client_information.view_distance.into(),
+                        // this argument makes it so other clients don't update this player entity
+                        // in a shared world
+                        Some(player_entity),
+                        &mut entity_infos,
+                    );
+
+                    let player_bundle = PlayerBundle {
+                        entity: EntityBundle::new(
+                            local_player.profile.uuid,
+                            Vec3::default(),
+                            azalea_registry::EntityKind::Player,
+                            world_name,
+                        ),
+                        metadata: PlayerMetadataBundle::default(),
+                    };
+                    // insert our components into the ecs :)
+                    commands
+                        .entity(player_entity)
+                        .insert((MinecraftEntityId(p.player_id), player_bundle));
+                }
+
+                // send the client information that we have set
+                let client_information_packet: ClientInformation =
+                    local_player.client_information.clone();
+                log::debug!(
+                    "Sending client information because login: {:?}",
+                    client_information_packet
+                );
+                local_player.write_packet(client_information_packet.get());
+
+                // brand
+                local_player.write_packet(
+                    ServerboundCustomPayloadPacket {
+                        identifier: ResourceLocation::new("brand").unwrap(),
+                        // they don't have to know :)
+                        data: "vanilla".into(),
+                    }
+                    .get(),
+                );
+
+                local_player.tx.send(Event::Login);
+            }
+        }
+    }
+}
+
 /// A system that clears all packets in the clientbound packet events.
-pub fn clear_packets(mut query: Query<&mut PacketReceiver>) {
+fn clear_packets(mut query: Query<&mut PacketReceiver>) {
     for packets in query.iter_mut() {
         packets.packets.lock().clear();
     }

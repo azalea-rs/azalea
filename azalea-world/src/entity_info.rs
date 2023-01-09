@@ -1,5 +1,5 @@
 use crate::{
-    entity::{self, update_bounding_box, Entity, MinecraftEntityId},
+    entity::{self, add_dead, update_bounding_box, Entity, MinecraftEntityId},
     MaybeRemovedEntity, World, WorldContainer,
 };
 use azalea_core::ChunkPos;
@@ -18,12 +18,15 @@ use uuid::Uuid;
 pub struct EntityPlugin;
 impl Plugin for EntityPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set_to_stage(
-            CoreStage::PostUpdate,
+        // Since it's PostUpdate, these will run after every tick or packet
+        app.add_system_set(
             SystemSet::new()
+                .after("tick")
+                .after("packet")
                 .with_system(update_entity_chunk_positions)
                 .with_system(remove_despawned_entities_from_indexes)
-                .with_system(update_bounding_box),
+                .with_system(update_bounding_box)
+                .with_system(add_dead),
         );
     }
 }

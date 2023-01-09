@@ -17,6 +17,8 @@ const SECTION_HEIGHT: u32 = 16;
 /// An efficient storage of chunks for a client that has a limited render
 /// distance. This has support for using a shared [`ChunkStorage`].
 pub struct PartialChunkStorage {
+    /// The center of the view, i.e. the chunk the player is currently in. You
+    /// can safely modify this.
     pub view_center: ChunkPos,
     chunk_radius: u32,
     view_range: u32,
@@ -135,7 +137,7 @@ impl PartialChunkStorage {
     }
 
     /// Get a [`Chunk`] within render distance, or `None` if it's not loaded.
-    /// Use [`PartialChunkStorage::get`] to get a chunk from the shared storage.
+    /// Use [`ChunkStorage::get`] to get a chunk from the shared storage.
     pub fn limited_get(&self, pos: &ChunkPos) -> Option<&Arc<RwLock<Chunk>>> {
         if !self.in_range(pos) {
             warn!(
@@ -149,7 +151,7 @@ impl PartialChunkStorage {
         self.chunks[index].as_ref()
     }
     /// Get a mutable reference to a [`Chunk`] within render distance, or
-    /// `None` if it's not loaded. Use [`PartialChunkStorage::get`] to get
+    /// `None` if it's not loaded. Use [`ChunkStorage::get`] to get
     /// a chunk from the shared storage.
     pub fn limited_get_mut(&mut self, pos: &ChunkPos) -> Option<&mut Option<Arc<RwLock<Chunk>>>> {
         if !self.in_range(pos) {

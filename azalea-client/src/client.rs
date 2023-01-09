@@ -1,6 +1,6 @@
 pub use crate::chat::ChatPacket;
 use crate::{
-    local_player::{send_tick_event, update_in_loaded_chunk, LocalPlayer},
+    local_player::{death_event, send_tick_event, update_in_loaded_chunk, LocalPlayer},
     movement::{local_player_ai_step, send_position},
     packet_handling,
     plugins::PluginStates,
@@ -93,10 +93,6 @@ pub struct Client {
     pub profile: GameProfile,
     /// The entity for this client in the ECS.
     pub entity: Entity,
-    /// A container of world names to worlds. If we're not using a shared world
-    /// (i.e. not a swarm), then this will only contain data about the world
-    /// we're currently in.
-    world_container: Arc<RwLock<WorldContainer>>,
     /// The world that this client is in.
     pub world: Arc<RwLock<PartialWorld>>,
 
@@ -104,7 +100,6 @@ pub struct Client {
     /// client and keep state. If you're not making a plugin and you're using
     /// the `azalea` crate. you can ignore this field.
     pub plugins: Arc<PluginStates>,
-    tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
 
     /// The entity component system. You probably don't need to access this
     /// directly. Note that if you're using a shared world (i.e. a swarm), this
@@ -140,7 +135,6 @@ impl Client {
     /// defaults, otherwise use [`Client::join`].
     pub fn new(
         profile: GameProfile,
-        world_container: Option<Arc<RwLock<WorldContainer>>>,
         entity: Entity,
         ecs: Arc<Mutex<bevy_ecs::world::World>>,
     ) -> Self {
@@ -149,12 +143,9 @@ impl Client {
             // default our id to 0, it'll be set later
             entity,
             world: Arc::new(RwLock::new(PartialWorld::default())),
-            world_container: world_container
-                .unwrap_or_else(|| Arc::new(RwLock::new(WorldContainer::new()))),
             // The plugins can be modified by the user by replacing the plugins
             // field right after this. No Mutex so the user doesn't need to .lock().
             plugins: Arc::new(PluginStates::default()),
-            tasks: Arc::new(Mutex::new(Vec::new())),
 
             ecs,
         }
@@ -209,13 +200,13 @@ impl Client {
         let entity = entity_mut.id();
 
         // we got the GameConnection, so the server is now connected :)
-        let client = Client::new(game_profile.clone(), None, entity, ecs_lock.clone());
+        let client = Client::new(game_profile.clone(), entity, ecs_lock.clone());
 
         let world = client.world();
 
         let (packet_writer_sender, packet_writer_receiver) = mpsc::unbounded_channel();
 
-        let local_player = crate::local_player::LocalPlayer::new(
+        let mut local_player = crate::local_player::LocalPlayer::new(
             entity,
             game_profile,
             packet_writer_sender,
@@ -236,8 +227,8 @@ impl Client {
                 .clone()
                 .write_task(write_conn, packet_writer_receiver),
         );
-        client.tasks.lock().push(read_packets_task);
-        client.tasks.lock().push(write_packets_task);
+        local_player.tasks.push(read_packets_task);
+        local_player.tasks.push(write_packets_task);
 
         ecs.entity_mut(entity)
             .insert((local_player, packet_receiver));
@@ -379,12 +370,8 @@ impl Client {
     ///
     /// The OwnedReadHalf for the TCP connection is in one of the tasks, so it
     /// automatically closes the connection when that's dropped.
-    pub async fn disconnect(&self) -> Result<(), std::io::Error> {
-        let tasks = self.tasks.lock();
-        for task in tasks.iter() {
-            task.abort();
-        }
-        Ok(())
+    pub fn disconnect(&self) {
+        self.local_player_mut(&mut self.ecs.lock()).disconnect();
     }
 
     pub fn local_player<'a>(&'a self, ecs: &'a mut bevy_ecs::world::World) -> &'a LocalPlayer {
@@ -405,12 +392,17 @@ impl Client {
     /// superset of the client's world.
     pub fn world(&self) -> Arc<RwLock<World>> {
         let mut ecs = self.ecs.lock();
-        let world_name = self
-            .local_player(&mut ecs)
-            .world_name
-            .as_ref()
-            .expect("World name must be known if we're doing Client::world");
-        let world_container = self.world_container.read();
+
+        let world_name = {
+            let local_player = self.local_player(&mut ecs);
+            local_player
+                .world_name
+                .as_ref()
+                .expect("World name must be known if we're doing Client::world")
+                .clone()
+        };
+
+        let world_container = ecs.resource::<WorldContainer>();
         world_container.get(&world_name).unwrap()
     }
 
@@ -491,10 +483,12 @@ pub async fn start_ecs(
                 .with_system(update_in_loaded_chunk)
                 .with_system(local_player_ai_step)
                 .with_system(send_tick_event),
-        )
-        .add_system(packet_handling::handle_packets.label("handle_packets"))
-        // should happen last
-        .add_system(packet_handling::clear_packets.after("handle_packets"));
+        );
+
+    // fire the Death event when the player dies.
+    app.add_system(death_event.after("tick").after("packet"));
+
+    app.init_resource::<WorldContainer>();
 
     // all resources should have been added by now so we can take the ecs from the
     // app
