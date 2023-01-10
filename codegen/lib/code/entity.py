@@ -37,7 +37,9 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
     ]
 
     code = []
-    code.append('''// This file is generated from codegen/lib/code/entity.py.
+    code.append('''#![allow(clippy::single_match)]
+
+// This file is generated from codegen/lib/code/entity.py.
 // Don't change it manually!
 
 use super::{EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Rotations, VillagerData};

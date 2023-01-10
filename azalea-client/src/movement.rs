@@ -7,7 +7,7 @@ use azalea_protocol::packets::game::{
     serverbound_move_player_rot_packet::ServerboundMovePlayerRotPacket,
     serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
 };
-use azalea_world::entity::{Entity, MinecraftEntityId};
+use azalea_world::entity::MinecraftEntityId;
 use azalea_world::{entity, MoveEntityError};
 use bevy_ecs::system::Query;
 use std::backtrace::Backtrace;
@@ -65,7 +65,6 @@ impl Client {
 pub(crate) fn send_position(
     mut query: Query<
         (
-            Entity,
             &MinecraftEntityId,
             &mut LocalPlayer,
             &entity::Position,
@@ -76,10 +75,10 @@ pub(crate) fn send_position(
         &LocalPlayerInLoadedChunk,
     >,
 ) {
-    for (entity, id, mut local_player, position, mut last_sent_position, mut physics, sprinting) in
+    for (id, mut local_player, position, mut last_sent_position, mut physics, sprinting) in
         query.iter_mut()
     {
-        local_player.send_sprinting_if_needed(entity.into(), id, sprinting);
+        local_player.send_sprinting_if_needed(id, sprinting);
 
         let packet = {
             // TODO: the camera being able to be controlled by other entities isn't
@@ -169,7 +168,6 @@ pub(crate) fn send_position(
 impl LocalPlayer {
     fn send_sprinting_if_needed(
         &mut self,
-        entity: Entity,
         id: &MinecraftEntityId,
         sprinting: &entity::metadata::Sprinting,
     ) {
@@ -311,7 +309,6 @@ impl LocalPlayer {
 pub fn local_player_ai_step(
     mut query: Query<
         (
-            Entity,
             &mut LocalPlayer,
             &mut entity::Physics,
             &mut entity::Position,
@@ -321,14 +318,8 @@ pub fn local_player_ai_step(
         &LocalPlayerInLoadedChunk,
     >,
 ) {
-    for (
-        ecs_entity_id,
-        mut local_player,
-        mut physics,
-        mut position,
-        mut sprinting,
-        mut attributes,
-    ) in query.iter_mut()
+    for (mut local_player, mut physics, mut position, mut sprinting, mut attributes) in
+        query.iter_mut()
     {
         let physics_state = &mut local_player.physics_state;
 

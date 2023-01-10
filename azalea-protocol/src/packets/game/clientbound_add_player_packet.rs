@@ -2,7 +2,7 @@ use azalea_buf::McBuf;
 use azalea_core::{ResourceLocation, Vec3};
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::EntityKind;
-use azalea_world::entity::{metadata::PlayerMetadataBundle, Dead, EntityBundle, PlayerBundle};
+use azalea_world::entity::{metadata::PlayerMetadataBundle, EntityBundle, PlayerBundle};
 use uuid::Uuid;
 
 /// This packet is sent by the server when a player comes into visible range,

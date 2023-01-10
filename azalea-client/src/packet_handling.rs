@@ -27,7 +27,6 @@ use bevy_ecs::{
     schedule::{IntoSystemDescriptor, SystemSet},
     system::{Commands, Query, ResMut},
 };
-use iyes_loopless::prelude::*;
 use log::{debug, error, trace, warn};
 use parking_lot::Mutex;
 use tokio::sync::mpsc;
@@ -83,7 +82,7 @@ fn handle_packet(
     packet: &ClientboundGamePacket,
 ) {
     match packet {
-        ClientboundGamePacket::Login(p) => {
+        ClientboundGamePacket::Login(_p) => {
             // handled by the handle_login_packet system
         }
         ClientboundGamePacket::SetChunkCacheRadius(p) => {
@@ -110,8 +109,8 @@ fn handle_packet(
         ClientboundGamePacket::Disconnect(p) => {
             debug!("Got disconnect packet {:?}", p);
 
-            let (mut local_player,) = ecs
-                .query::<(&mut LocalPlayer,)>()
+            let local_player = ecs
+                .query::<&mut LocalPlayer>()
                 .get_mut(ecs, player_entity)
                 .unwrap();
 
@@ -230,7 +229,7 @@ fn handle_packet(
                     local_player
                         .players
                         .insert(updated_info.profile.uuid, player_info.clone());
-                    local_player.tx.send(Event::AddPlayer(player_info));
+                    local_player.tx.send(Event::AddPlayer(player_info)).unwrap();
                 } else if let Some(info) = local_player.players.get_mut(&updated_info.profile.uuid)
                 {
                     // `else if` because the block for add_player above
@@ -245,7 +244,7 @@ fn handle_packet(
                         info.display_name = updated_info.display_name.clone();
                     }
                     let info = info.clone();
-                    local_player.tx.send(Event::UpdatePlayer(info));
+                    local_player.tx.send(Event::UpdatePlayer(info)).unwrap();
                 } else {
                     warn!(
                         "Ignoring PlayerInfoUpdate for unknown player {}",
@@ -262,17 +261,14 @@ fn handle_packet(
 
             for uuid in &p.profile_ids {
                 if let Some(info) = local_player.players.remove(uuid) {
-                    local_player.tx.send(Event::RemovePlayer(info));
+                    local_player.tx.send(Event::RemovePlayer(info)).unwrap();
                 }
             }
         }
         ClientboundGamePacket::SetChunkCacheCenter(p) => {
             debug!("Got chunk cache center packet {:?}", p);
 
-            let mut local_player = ecs
-                .query::<&mut LocalPlayer>()
-                .get(ecs, player_entity)
-                .unwrap();
+            let local_player = ecs.query::<&LocalPlayer>().get(ecs, player_entity).unwrap();
             let mut partial_world = local_player.partial_world.write();
 
             partial_world.chunks.view_center = ChunkPos::new(p.x, p.z);
@@ -281,10 +277,7 @@ fn handle_packet(
             // debug!("Got chunk with light packet {} {}", p.x, p.z);
             let pos = ChunkPos::new(p.x, p.z);
 
-            let mut local_player = ecs
-                .query::<&mut LocalPlayer>()
-                .get(ecs, player_entity)
-                .unwrap();
+            let local_player = ecs.query::<&LocalPlayer>().get(ecs, player_entity).unwrap();
             let world = local_player.world.read();
             let partial_world = local_player.partial_world.read();
 
@@ -347,7 +340,9 @@ fn handle_packet(
 
             if let Some(entity) = entity {
                 let mut entity_mut = ecs.entity_mut(entity);
-                apply_metadata(&mut entity_mut, (*p.packed_items).clone());
+                if let Err(e) = apply_metadata(&mut entity_mut, (*p.packed_items).clone()) {
+                    warn!("{e}");
+                }
             } else {
                 warn!("Server sent an entity data packet for an entity id ({}) that we don't know about", p.id);
             }
@@ -484,26 +479,22 @@ fn handle_packet(
         ClientboundGamePacket::PlayerChat(p) => {
             debug!("Got player chat packet {:?}", p);
 
-            let mut local_player = ecs
-                .query::<&mut LocalPlayer>()
-                .get(ecs, player_entity)
-                .unwrap();
+            let local_player = ecs.query::<&LocalPlayer>().get(ecs, player_entity).unwrap();
 
             local_player
                 .tx
-                .send(Event::Chat(ChatPacket::Player(Arc::new(p.clone()))));
+                .send(Event::Chat(ChatPacket::Player(Arc::new(p.clone()))))
+                .unwrap();
         }
         ClientboundGamePacket::SystemChat(p) => {
             debug!("Got system chat packet {:?}", p);
 
-            let mut local_player = ecs
-                .query::<&mut LocalPlayer>()
-                .get(ecs, player_entity)
-                .unwrap();
+            let local_player = ecs.query::<&LocalPlayer>().get(ecs, player_entity).unwrap();
 
             local_player
                 .tx
-                .send(Event::Chat(ChatPacket::System(Arc::new(p.clone()))));
+                .send(Event::Chat(ChatPacket::System(Arc::new(p.clone()))))
+                .unwrap();
         }
         ClientboundGamePacket::Sound(_p) => {
             // debug!("Got sound packet {:?}", p);
@@ -514,11 +505,8 @@ fn handle_packet(
         ClientboundGamePacket::BlockUpdate(p) => {
             debug!("Got block update packet {:?}", p);
 
-            let mut local_player = ecs
-                .query::<&mut LocalPlayer>()
-                .get(ecs, player_entity)
-                .unwrap();
-            let mut world = local_player.world.write();
+            let local_player = ecs.query::<&LocalPlayer>().get(ecs, player_entity).unwrap();
+            let world = local_player.world.write();
 
             world.chunks.set_block_state(&p.pos, p.block_state);
         }
@@ -527,11 +515,8 @@ fn handle_packet(
         }
         ClientboundGamePacket::SectionBlocksUpdate(p) => {
             debug!("Got section blocks update packet {:?}", p);
-            let mut local_player = ecs
-                .query::<&mut LocalPlayer>()
-                .get(ecs, player_entity)
-                .unwrap();
-            let mut world = local_player.world.write();
+            let local_player = ecs.query::<&LocalPlayer>().get(ecs, player_entity).unwrap();
+            let world = local_player.world.write();
 
             for state in &p.states {
                 world
@@ -587,18 +572,17 @@ fn handle_packet(
                 .get(ecs, player_entity)
                 .unwrap();
 
-            if *entity_id == p.player_id {
-                if dead.is_none() {
-                    ecs.entity_mut(player_entity).insert(Dead);
+            if *entity_id == p.player_id && dead.is_none() {
+                ecs.entity_mut(player_entity).insert(Dead);
 
-                    let local_player = ecs
-                        .query::<&mut LocalPlayer>()
-                        .get_mut(ecs, player_entity)
-                        .unwrap();
-                    local_player
-                        .tx
-                        .send(Event::Death(Some(Arc::new(p.clone()))));
-                }
+                let local_player = ecs
+                    .query::<&mut LocalPlayer>()
+                    .get_mut(ecs, player_entity)
+                    .unwrap();
+                local_player
+                    .tx
+                    .send(Event::Death(Some(Arc::new(p.clone()))))
+                    .unwrap();
             }
         }
         ClientboundGamePacket::PlayerLookAt(_) => {}
@@ -711,15 +695,15 @@ fn handle_login_packet(
                     let weak_world = world_container.insert(world_name.clone(), height, min_y);
                     // set the partial_world to an empty world
                     // (when we add chunks or entities those will be in the world_container)
-                    let mut partial_world_lock = local_player.partial_world.write();
 
-                    *partial_world_lock = PartialWorld::new(
+                    *local_player.partial_world.write() = PartialWorld::new(
                         local_player.client_information.view_distance.into(),
                         // this argument makes it so other clients don't update this player entity
                         // in a shared world
                         Some(player_entity),
                         &mut entity_infos,
                     );
+                    local_player.world = weak_world;
 
                     let player_bundle = PlayerBundle {
                         entity: EntityBundle::new(
@@ -755,7 +739,7 @@ fn handle_login_packet(
                     .get(),
                 );
 
-                local_player.tx.send(Event::Login);
+                local_player.tx.send(Event::Login).unwrap();
             }
         }
     }

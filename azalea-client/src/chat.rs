@@ -111,6 +111,7 @@ impl Client {
             last_seen_messages: LastSeenMessagesUpdate::default(),
         }
         .get();
+        self.write_packet(packet);
     }
 
     /// Send a command packet to the server. The `command` argument should not

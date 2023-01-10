@@ -3,7 +3,7 @@ use crate::{
     MaybeRemovedEntity, World, WorldContainer,
 };
 use azalea_core::ChunkPos;
-use bevy_app::{App, CoreStage, Plugin};
+use bevy_app::{App, Plugin};
 use bevy_ecs::{
     query::Changed,
     schedule::SystemSet,
@@ -120,7 +120,7 @@ impl PartialEntityInfos {
             return true;
         };
 
-        let this_client_updates_received = self.updates_received.get(&id).copied();
+        let this_client_updates_received = self.updates_received.get(id).copied();
 
         let shared_updates_received = entity_infos.updates_received.get(&entity).copied();
 
@@ -187,8 +187,17 @@ impl EntityInfos {
             warn!("Tried to remove entity but it was not found.");
             return false;
         }
-        if world.entities_by_chunk.remove(&chunk).is_none() {
-            warn!("Tried to remove entity from chunk {chunk:?} but it was not found.");
+        if let Some(entities_in_chunk) = world.entities_by_chunk.get_mut(&chunk) {
+            if entities_in_chunk.remove(&entity) {
+                // remove the chunk if there's no entities in it anymore
+                if entities_in_chunk.is_empty() {
+                    world.entities_by_chunk.remove(&chunk);
+                }
+            } else {
+                warn!("Tried to remove entity from chunk {chunk:?} but the entity was not there.");
+            }
+        } else {
+            warn!("Tried to remove entity from chunk {chunk:?} but the chunk was not found.");
         }
         if self.entity_by_uuid.remove(&uuid).is_none() {
             warn!("Tried to remove entity from uuid {uuid:?} but it was not found.");
@@ -236,7 +245,7 @@ fn update_entity_chunk_positions(
     world_container: Res<WorldContainer>,
 ) {
     for (entity, pos, last_pos, world_name) in query.iter_mut() {
-        let world_lock = world_container.get(&**world_name).unwrap();
+        let world_lock = world_container.get(world_name).unwrap();
         let mut world = world_lock.write();
 
         let old_chunk = ChunkPos::from(*last_pos);
@@ -277,16 +286,6 @@ pub fn remove_despawned_entities_from_indexes(
             (*position).into(),
             world.write().deref_mut(),
         );
-    }
-}
-
-/// Remove a chunk from the storage if the entities in it have no strong
-/// references left.
-pub fn remove_chunk_if_unused(world: &mut World, chunk: &ChunkPos) {
-    if let Some(entities) = world.entities_by_chunk.get(chunk) {
-        if entities.is_empty() {
-            world.entities_by_chunk.remove(chunk);
-        }
     }
 }
 

@@ -1,3 +1,5 @@
+#![allow(clippy::derive_hash_xor_eq)]
+
 pub mod attributes;
 mod data;
 mod dimensions;
@@ -5,17 +7,14 @@ pub mod metadata;
 
 use crate::ChunkStorage;
 
-use self::{
-    attributes::AttributeInstance,
-    metadata::{Health, UpdateMetadataError},
-};
+use self::{attributes::AttributeInstance, metadata::Health};
 pub use attributes::Attributes;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3, AABB};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
-    query::{Changed, Without},
+    query::Changed,
     system::{Commands, Query},
 };
 pub use data::*;
@@ -43,7 +42,6 @@ impl std::hash::Hash for MinecraftEntityId {
     }
 }
 impl nohash_hasher::IsEnabled for MinecraftEntityId {}
-
 pub fn set_rotation(physics: &mut Physics, y_rot: f32, x_rot: f32) {
     physics.y_rot = y_rot % 360.0;
     physics.x_rot = x_rot.clamp(-90.0, 90.0) % 360.0;

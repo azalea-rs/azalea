@@ -32,11 +32,7 @@ impl EntityDimensions {
 /// Cached position in the world must be updated.
 pub fn update_bounding_box(mut query: Query<(&Position, &mut Physics), Changed<Position>>) {
     for (position, mut physics) in query.iter_mut() {
-        let bounding_box = physics.dimensions.make_bounding_box(&position);
+        let bounding_box = physics.dimensions.make_bounding_box(position);
         physics.bounding_box = bounding_box;
     }
-}
-
-pub fn make_bounding_box(pos: &Position, physics: &Physics) -> AABB {
-    physics.dimensions.make_bounding_box(&pos)
 }

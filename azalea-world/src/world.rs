@@ -1,9 +1,8 @@
 use crate::{
     entity::{self, Entity, MinecraftEntityId, WorldName},
-    Chunk, ChunkStorage, EntityInfos, MoveEntityError, PartialChunkStorage, PartialEntityInfos,
-    WorldContainer,
+    ChunkStorage, EntityInfos, PartialChunkStorage, PartialEntityInfos, WorldContainer,
 };
-use azalea_core::{ChunkPos, PositionDelta8};
+use azalea_core::ChunkPos;
 use bevy_ecs::{
     component::Component,
     system::{Commands, Query},
@@ -116,7 +115,7 @@ pub fn clear_entities_in_chunk(
     if let Some(entities) = world.entities_by_chunk.get(chunk).cloned() {
         for &entity in &entities {
             let id = query.get(entity).unwrap();
-            if partial_entity_infos.loaded_entity_ids.remove(&id) {
+            if partial_entity_infos.loaded_entity_ids.remove(id) {
                 // maybe remove it from the storage
                 commands.entity(entity).insert(MaybeRemovedEntity);
             }

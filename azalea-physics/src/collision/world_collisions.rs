@@ -6,7 +6,7 @@ use azalea_world::{Chunk, World};
 use parking_lot::RwLock;
 use std::sync::Arc;
 
-pub fn get_block_collisions<'a>(world: &'a World, aabb: AABB) -> BlockCollisions<'a> {
+pub fn get_block_collisions(world: &World, aabb: AABB) -> BlockCollisions<'_> {
     BlockCollisions::new(world, aabb)
 }
 

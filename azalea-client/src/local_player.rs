@@ -1,20 +1,14 @@
-use std::{
-    collections::HashMap,
-    io,
-    ops::{Deref, DerefMut},
-    sync::Arc,
-};
+use std::{collections::HashMap, io, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, ResourceLocation};
-use azalea_protocol::{connect::WriteConnection, packets::game::ServerboundGamePacket};
+use azalea_protocol::packets::game::ServerboundGamePacket;
 use azalea_world::{
     entity::{self, Dead, Entity},
-    EntityInfos, PartialWorld, World, WorldContainer,
+    EntityInfos, PartialWorld, World,
 };
 use bevy_ecs::{component::Component, query::Added, system::Query};
-use derive_more::{Deref, DerefMut};
-use parking_lot::{Mutex, RwLock};
+use parking_lot::RwLock;
 use thiserror::Error;
 use tokio::{sync::mpsc, task::JoinHandle};
 use uuid::Uuid;
@@ -136,7 +130,7 @@ pub fn update_in_loaded_chunk(
     mut commands: bevy_ecs::system::Commands,
     query: Query<(Entity, &LocalPlayer, &entity::Position)>,
 ) {
-    for (ecs_entity_id, local_player, position) in &query {
+    for (entity, local_player, position) in &query {
         let player_chunk_pos = ChunkPos::from(position);
         let in_loaded_chunk = local_player
             .world
@@ -145,13 +139,9 @@ pub fn update_in_loaded_chunk(
             .get(&player_chunk_pos)
             .is_some();
         if in_loaded_chunk {
-            commands
-                .entity(ecs_entity_id)
-                .insert(LocalPlayerInLoadedChunk);
+            commands.entity(entity).insert(LocalPlayerInLoadedChunk);
         } else {
-            commands
-                .entity(ecs_entity_id)
-                .remove::<LocalPlayerInLoadedChunk>();
+            commands.entity(entity).remove::<LocalPlayerInLoadedChunk>();
         }
     }
 }
@@ -159,7 +149,7 @@ pub fn update_in_loaded_chunk(
 /// Send the "Death" event for [`LocalPlayer`]s that died with no reason.
 pub fn death_event(query: Query<&LocalPlayer, Added<Dead>>) {
     for local_player in &query {
-        local_player.tx.send(Event::Death(None));
+        local_player.tx.send(Event::Death(None)).unwrap();
     }
 }
 

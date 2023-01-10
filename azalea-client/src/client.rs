@@ -32,26 +32,15 @@ use azalea_protocol::{
 use azalea_world::{entity::Entity, EntityInfos, PartialWorld, World, WorldContainer};
 use bevy_app::App;
 use bevy_ecs::{
-    query::{QueryState, ROQueryItem, WorldQuery},
+    query::WorldQuery,
     schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
 };
 use iyes_loopless::prelude::*;
-use log::{debug, error, warn};
-use parking_lot::{Mutex, MutexGuard, RwLock};
-use std::{
-    fmt::Debug,
-    io::{self},
-    marker::PhantomData,
-    ops::{Deref, DerefMut},
-    sync::Arc,
-    time::Duration,
-};
+use log::{debug, error};
+use parking_lot::{Mutex, RwLock};
+use std::{fmt::Debug, io, ops::DerefMut, sync::Arc, time::Duration};
 use thiserror::Error;
-use tokio::{
-    sync::mpsc::{self, Receiver},
-    task::JoinHandle,
-    time::{self},
-};
+use tokio::{sync::mpsc, time};
 
 pub type ClientInformation = ServerboundClientInformationPacket;
 
@@ -106,9 +95,6 @@ pub struct Client {
     /// will contain all entities in all worlds.
     pub ecs: Arc<Mutex<bevy_ecs::world::World>>,
 }
-
-/// Whether we should ignore errors when decoding packets.
-const IGNORE_ERRORS: bool = !cfg!(debug_assertions);
 
 /// An error that happened while joining the server.
 #[derive(Error, Debug)]
@@ -210,7 +196,7 @@ impl Client {
             entity,
             game_profile,
             packet_writer_sender,
-            world.clone(),
+            world,
             ecs.resource_mut::<EntityInfos>().deref_mut(),
             tx,
         );
