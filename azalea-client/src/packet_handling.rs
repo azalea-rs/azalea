@@ -54,12 +54,14 @@ pub struct PacketReceiver {
 
 fn handle_packets(
     mut commands: Commands,
+
     query: Query<(Entity, &PacketReceiver), Changed<PacketReceiver>>,
     local_player_query: Query<&LocalPlayer>,
     entity_kind_query: Query<&EntityKind>,
     mut mut_local_player_query: Query<&mut LocalPlayer>,
     mut mut_health_query: Query<&mut Health>,
     mut mut_position_query: Query<&mut Position>,
+    
     combat_kill_query: Query<(&MinecraftEntityId, Option<&Dead>)>,
     mut position_query: Query<(
         &mut LocalPlayer,
@@ -67,6 +69,7 @@ fn handle_packets(
         &mut Position,
         &mut LastSentPosition,
     )>,
+
     mut world_container: ResMut<WorldContainer>,
     mut entity_infos: ResMut<EntityInfos>,
 ) {

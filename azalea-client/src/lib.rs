@@ -22,16 +22,7 @@ mod player;
 mod plugins;
 
 pub use account::Account;
-pub use client::{ChatPacket, ClientInformation, Event, JoinError};
+pub use client::{ChatPacket, Client, ClientInformation, Event, JoinError};
 pub use movement::{SprintDirection, WalkDirection};
 pub use player::PlayerInfo;
 pub use plugins::{Plugin, PluginState, PluginStates, Plugins};
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}

@@ -79,6 +79,12 @@ pub enum Event {
 /// Client has the things that a user interacting with the library will want.
 /// Things that a player in the world will want to know are in [`LocalPlayer`].
 pub struct Client {
+    /// The [`GameProfile`] for our client. This contains your username, UUID,
+    /// and skin data.
+    ///
+    /// This is immutable; the server cannot change it. To get the username and
+    /// skin the server chose for you, get your player from
+    /// [`Self::players`].
     pub profile: GameProfile,
     /// The entity for this client in the ECS.
     pub entity: Entity,

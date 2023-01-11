@@ -5,7 +5,6 @@ use crate::{prelude::*, SprintDirection, WalkDirection};
 use crate::{Client, Event};
 use async_trait::async_trait;
 use azalea_core::{BlockPos, CardinalDirection};
-use azalea_world::entity::EntityData;
 use log::{debug, error};
 use mtdstarlite::Edge;
 pub use mtdstarlite::MTDStarLite;
