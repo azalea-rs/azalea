@@ -183,7 +183,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
 
         # impl Allay {
         #     pub fn apply_metadata(
-        #         entity: &mut bevy_ecs::world::EntityMut,
+        #         entity: &mut bevy_ecs::system::EntityCommands,
         #         d: EntityDataItem,
         #     ) -> Result<(), UpdateMetadataError> {
         #         match d.index {
@@ -196,7 +196,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
         # }
         code.append(f'impl {struct_name} {{')
         code.append(
-            f'    pub fn apply_metadata(entity: &mut bevy_ecs::world::EntityMut, d: EntityDataItem) -> Result<(), UpdateMetadataError> {{')
+            f'    pub fn apply_metadata(entity: &mut bevy_ecs::system::EntityCommands, d: EntityDataItem) -> Result<(), UpdateMetadataError> {{')
         code.append(f'        match d.index {{')
 
         parent_last_index = -1
@@ -400,7 +400,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
 
     # and now make the main apply_metadata
     # pub fn apply_metadata(
-    #     entity: &mut bevy_ecs::world::EntityMut,
+    #     entity: &mut bevy_ecs::system::EntityCommands,
     #     items: Vec<EntityDataItem>,
     # ) -> Result<(), UpdateMetadataError> {
     #     if entity.contains::<Allay>() {
@@ -413,10 +413,12 @@ impl From<EntityDataValue> for UpdateMetadataError {
     #     Ok(())
     # }
     code.append(
-        f'pub fn apply_metadata(entity: &mut bevy_ecs::world::EntityMut, items: Vec<EntityDataItem>) -> Result<(), UpdateMetadataError> {{')
-    code.append(
-        '    let entity_kind = entity.get::<super::EntityKind>().unwrap();')
-    code.append('    match **entity_kind {')
+        f'''pub fn apply_metadata(
+    entity: &mut bevy_ecs::system::EntityCommands,
+    entity_kind: azalea_registry::EntityKind,
+    items: Vec<EntityDataItem>,
+) -> Result<(), UpdateMetadataError> {{
+    match entity_kind {{''')
     for entity_id in burger_entity_data:
         if entity_id.startswith('~'):
             # not actually an entity
@@ -434,7 +436,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     code.append('}')
     code.append('')
 
-    # pub fn apply_default_metadata(entity: &mut bevy_ecs::world::EntityMut, kind: azalea_registry::EntityKind) {
+    # pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kind: azalea_registry::EntityKind) {
     #     match kind {
     #         azalea_registry::EntityKind::AreaEffectCloud => {
     #             entity.insert(AreaEffectCloudMetadataBundle::default());
@@ -442,7 +444,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     #     }
     # }
     code.append(
-        'pub fn apply_default_metadata(entity: &mut bevy_ecs::world::EntityMut, kind: azalea_registry::EntityKind) {')
+        'pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kind: azalea_registry::EntityKind) {')
     code.append('    match kind {')
     for entity_id in burger_entity_data:
         if entity_id.startswith('~'):

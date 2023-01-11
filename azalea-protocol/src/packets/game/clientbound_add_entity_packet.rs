@@ -46,7 +46,7 @@ impl ClientboundAddEntityPacket {
     }
 
     /// Apply the default metadata for the given entity.
-    pub fn apply_metadata(&self, entity: &mut bevy_ecs::world::EntityMut) {
+    pub fn apply_metadata(&self, entity: &mut bevy_ecs::system::EntityCommands) {
         apply_default_metadata(entity, self.entity_type);
     }
 }
