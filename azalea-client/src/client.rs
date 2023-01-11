@@ -504,7 +504,9 @@ async fn run_schedule_loop(
     loop {
         // whenever we get an event from run_schedule_receiver, run the schedule
         run_schedule_receiver.recv().await;
+        println!("run_schedule_loop tick");
         schedule.run(&mut ecs.lock());
+        println!("run_schedule_loop ticked");
     }
 }
 
@@ -515,9 +517,13 @@ pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::UnboundedSender<(
     // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
     game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
 
+    println!("tick_run_schedule_loop started");
+
     loop {
         game_tick_interval.tick().await;
-        if run_schedule_sender.send(()).is_err() {
+        println!("tick_run_schedule_loop tick");
+        if let Err(e) = run_schedule_sender.send(()) {
+            println!("tick_run_schedule_loop error: {}", e);
             // the sender is closed so end the task
             return;
         }

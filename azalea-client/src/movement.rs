@@ -318,6 +318,7 @@ pub fn local_player_ai_step(
         &LocalPlayerInLoadedChunk,
     >,
 ) {
+    println!("local_player_ai_step");
     for (mut local_player, mut physics, mut position, mut sprinting, mut attributes) in
         query.iter_mut()
     {
