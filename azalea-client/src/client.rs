@@ -194,15 +194,15 @@ impl Client {
         // we got the GameConnection, so the server is now connected :)
         let client = Client::new(game_profile.clone(), entity, ecs_lock.clone());
 
-        let world = client.world();
-
         let (packet_writer_sender, packet_writer_receiver) = mpsc::unbounded_channel();
 
         let mut local_player = crate::local_player::LocalPlayer::new(
             entity,
             game_profile,
             packet_writer_sender,
-            world,
+            // default to an empty world, it'll be set correctly later when we
+            // get the login packet
+            Arc::new(RwLock::new(World::default())),
             ecs.resource_mut::<EntityInfos>().deref_mut(),
             tx,
         );
