@@ -432,7 +432,7 @@ where
     /// }
     /// ```
     fn into_iter(self) -> Self::IntoIter {
-        self.bot_datas.lock().clone().into_iter()
+        self.bot_datas.clone().lock().into_iter()
     }
 }
 

@@ -7,7 +7,8 @@ use azalea_protocol::packets::game::{
     serverbound_move_player_rot_packet::ServerboundMovePlayerRotPacket,
     serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
 };
-use azalea_world::entity::MinecraftEntityId;
+use azalea_world::entity::metadata::Sprinting;
+use azalea_world::entity::{Attributes, MinecraftEntityId};
 use azalea_world::{entity, MoveEntityError};
 use bevy_ecs::system::Query;
 use std::backtrace::Backtrace;
@@ -39,7 +40,7 @@ impl Client {
     /// recommended.
     pub fn set_jumping(&mut self, jumping: bool) {
         let mut ecs = self.ecs.lock();
-        let mut physics = self.query::<&mut entity::Physics>(&mut ecs).into_inner();
+        let mut physics = self.query::<&mut entity::Physics>(&mut ecs);
         physics.jumping = jumping;
     }
 
@@ -67,6 +68,7 @@ pub(crate) fn send_position(
         (
             &MinecraftEntityId,
             &mut LocalPlayer,
+            &mut PhysicsState,
             &entity::Position,
             &mut entity::LastSentPosition,
             &mut entity::Physics,
@@ -75,10 +77,17 @@ pub(crate) fn send_position(
         &LocalPlayerInLoadedChunk,
     >,
 ) {
-    for (id, mut local_player, position, mut last_sent_position, mut physics, sprinting) in
-        query.iter_mut()
+    for (
+        id,
+        mut local_player,
+        mut physics_state,
+        position,
+        mut last_sent_position,
+        mut physics,
+        sprinting,
+    ) in query.iter_mut()
     {
-        local_player.send_sprinting_if_needed(id, sprinting);
+        local_player.send_sprinting_if_needed(id, sprinting, &mut physics_state);
 
         let packet = {
             // TODO: the camera being able to be controlled by other entities isn't
@@ -90,13 +99,13 @@ pub(crate) fn send_position(
             let y_rot_delta = (physics.y_rot - physics.y_rot_last) as f64;
             let x_rot_delta = (physics.x_rot - physics.x_rot_last) as f64;
 
-            local_player.physics_state.position_remainder += 1;
+            physics_state.position_remainder += 1;
 
             // boolean sendingPosition = Mth.lengthSquared(xDelta, yDelta, zDelta) >
             // Mth.square(2.0E-4D) || this.positionReminder >= 20;
             let sending_position = ((x_delta.powi(2) + y_delta.powi(2) + z_delta.powi(2))
                 > 2.0e-4f64.powi(2))
-                || local_player.physics_state.position_remainder >= 20;
+                || physics_state.position_remainder >= 20;
             let sending_rotation = y_rot_delta != 0.0 || x_rot_delta != 0.0;
 
             // if self.is_passenger() {
@@ -146,7 +155,7 @@ pub(crate) fn send_position(
 
             if sending_position {
                 **last_sent_position = **position;
-                local_player.physics_state.position_remainder = 0;
+                physics_state.position_remainder = 0;
             }
             if sending_rotation {
                 physics.y_rot_last = physics.y_rot;
@@ -170,8 +179,9 @@ impl LocalPlayer {
         &mut self,
         id: &MinecraftEntityId,
         sprinting: &entity::metadata::Sprinting,
+        physics_state: &mut PhysicsState,
     ) {
-        let was_sprinting = self.physics_state.was_sprinting;
+        let was_sprinting = physics_state.was_sprinting;
         if **sprinting != was_sprinting {
             let sprinting_action = if **sprinting {
                 azalea_protocol::packets::game::serverbound_player_command_packet::Action::StartSprinting
@@ -186,7 +196,7 @@ impl LocalPlayer {
                 }
                 .get(),
             );
-            self.physics_state.was_sprinting = **sprinting;
+            physics_state.was_sprinting = **sprinting;
         }
     }
 
@@ -224,84 +234,6 @@ impl LocalPlayer {
             physics_state.left_impulse *= multiplier;
         }
     }
-
-    /// Start walking in the given direction. To sprint, use
-    /// [`Client::sprint`]. To stop walking, call walk with
-    /// `WalkDirection::None`.
-    ///
-    /// # Examples
-    ///
-    /// Walk for 1 second
-    /// ```rust,no_run
-    /// # use azalea_client::{Client, WalkDirection};
-    /// # use std::time::Duration;
-    /// # async fn example(mut bot: Client) {
-    /// bot.walk(WalkDirection::Forward);
-    /// tokio::time::sleep(Duration::from_secs(1)).await;
-    /// bot.walk(WalkDirection::None);
-    /// # }
-    /// ```
-    pub fn walk(
-        direction: WalkDirection,
-        physics_state: &mut PhysicsState,
-        sprinting: &mut entity::metadata::Sprinting,
-        attributes: &mut entity::Attributes,
-    ) {
-        physics_state.move_direction = direction;
-
-        Self::set_sprinting(false, sprinting, attributes);
-    }
-
-    /// Start sprinting in the given direction. To stop moving, call
-    /// [`Client::walk(WalkDirection::None)`]
-    ///
-    /// # Examples
-    ///
-    /// Sprint for 1 second
-    /// ```rust,no_run
-    /// # use azalea_client::{Client, WalkDirection, SprintDirection};
-    /// # use std::time::Duration;
-    /// # async fn example(mut bot: Client) {
-    /// bot.sprint(SprintDirection::Forward);
-    /// tokio::time::sleep(Duration::from_secs(1)).await;
-    /// bot.walk(WalkDirection::None);
-    /// # }
-    /// ```
-    pub fn sprint(&mut self, direction: SprintDirection, physics_state: &mut PhysicsState) {
-        physics_state.move_direction = WalkDirection::from(direction);
-        physics_state.trying_to_sprint = true;
-    }
-
-    /// Change whether we're sprinting by adding an attribute modifier to the
-    /// player. You should use the [`walk`] and [`sprint`] methods instead.
-    /// Returns if the operation was successful.
-    fn set_sprinting(
-        sprinting: bool,
-        currently_sprinting: &mut entity::metadata::Sprinting,
-        attributes: &mut entity::Attributes,
-    ) -> bool {
-        **currently_sprinting = sprinting;
-        if sprinting {
-            attributes
-                .speed
-                .insert(entity::attributes::sprinting_modifier())
-                .is_ok()
-        } else {
-            attributes
-                .speed
-                .remove(&entity::attributes::sprinting_modifier().uuid)
-                .is_none()
-        }
-    }
-
-    // Whether the player is moving fast enough to be able to start sprinting.
-    fn has_enough_impulse_to_start_sprinting(physics_state: &PhysicsState) -> bool {
-        // if self.underwater() {
-        //     self.has_forward_impulse()
-        // } else {
-        physics_state.forward_impulse > 0.8
-        // }
-    }
 }
 
 /// Makes the bot do one physics tick. Note that this is already handled
@@ -310,6 +242,7 @@ pub fn local_player_ai_step(
     mut query: Query<
         (
             &mut LocalPlayer,
+            &mut PhysicsState,
             &mut entity::Physics,
             &mut entity::Position,
             &mut entity::metadata::Sprinting,
@@ -319,12 +252,16 @@ pub fn local_player_ai_step(
     >,
 ) {
     println!("local_player_ai_step");
-    for (mut local_player, mut physics, mut position, mut sprinting, mut attributes) in
-        query.iter_mut()
+    for (
+        local_player,
+        mut physics_state,
+        mut physics,
+        mut position,
+        mut sprinting,
+        mut attributes,
+    ) in query.iter_mut()
     {
-        let physics_state = &mut local_player.physics_state;
-
-        LocalPlayer::tick_controls(None, physics_state);
+        LocalPlayer::tick_controls(None, &mut physics_state);
 
         // server ai step
         physics.xxa = physics_state.left_impulse;
@@ -343,14 +280,14 @@ pub fn local_player_ai_step(
             && (
                 // !self.is_in_water()
                 // || self.is_underwater() &&
-                LocalPlayer::has_enough_impulse_to_start_sprinting(physics_state)
+                has_enough_impulse_to_start_sprinting(&physics_state)
                     && has_enough_food_to_sprint
                     // && !self.using_item()
                     // && !self.has_effect(MobEffects.BLINDNESS)
                     && trying_to_sprint
             )
         {
-            LocalPlayer::set_sprinting(true, &mut sprinting, &mut attributes);
+            set_sprinting(true, &mut sprinting, &mut attributes);
         }
 
         azalea_physics::ai_step(
@@ -361,6 +298,107 @@ pub fn local_player_ai_step(
             &attributes,
         )
     }
+}
+
+impl Client {
+    /// Start walking in the given direction. To sprint, use
+    /// [`Client::sprint`]. To stop walking, call walk with
+    /// `WalkDirection::None`.
+    ///
+    /// # Examples
+    ///
+    /// Walk for 1 second
+    /// ```rust,no_run
+    /// # use azalea_client::{Client, WalkDirection};
+    /// # use std::time::Duration;
+    /// # async fn example(mut bot: Client) {
+    /// bot.walk(WalkDirection::Forward);
+    /// tokio::time::sleep(Duration::from_secs(1)).await;
+    /// bot.walk(WalkDirection::None);
+    /// # }
+    /// ```
+    pub fn walk(&mut self, direction: WalkDirection) {
+        let mut ecs = self.ecs.lock();
+        let (mut physics_state, mut sprinting, mut attributes) =
+            self.query::<(&mut PhysicsState, &mut Sprinting, &mut Attributes)>(&mut ecs);
+        walk(
+            direction,
+            &mut physics_state,
+            &mut sprinting,
+            &mut attributes,
+        )
+    }
+
+    /// Start sprinting in the given direction. To stop moving, call
+    /// [`Client::walk(WalkDirection::None)`]
+    ///
+    /// # Examples
+    ///
+    /// Sprint for 1 second
+    /// ```rust,no_run
+    /// # use azalea_client::{Client, WalkDirection, SprintDirection};
+    /// # use std::time::Duration;
+    /// # async fn example(mut bot: Client) {
+    /// bot.sprint(SprintDirection::Forward);
+    /// tokio::time::sleep(Duration::from_secs(1)).await;
+    /// bot.walk(WalkDirection::None);
+    /// # }
+    /// ```
+    pub fn sprint(&mut self, direction: SprintDirection) {
+        let mut ecs = self.ecs.lock();
+        let mut physics_state = self.query::<&mut PhysicsState>(&mut ecs);
+        sprint(direction, &mut physics_state);
+    }
+}
+
+/// Start walking in the given direction. To sprint, use
+/// [`Client::sprint`]. To stop walking, call walk with
+/// `WalkDirection::None`.
+pub fn walk(
+    direction: WalkDirection,
+    physics_state: &mut PhysicsState,
+    sprinting: &mut entity::metadata::Sprinting,
+    attributes: &mut entity::Attributes,
+) {
+    physics_state.move_direction = direction;
+    set_sprinting(false, sprinting, attributes);
+}
+
+/// Start sprinting in the given direction.
+pub fn sprint(direction: SprintDirection, physics_state: &mut PhysicsState) {
+    physics_state.move_direction = WalkDirection::from(direction);
+    physics_state.trying_to_sprint = true;
+}
+
+/// Change whether we're sprinting by adding an attribute modifier to the
+/// player. You should use the [`walk`] and [`sprint`] methods instead.
+/// Returns if the operation was successful.
+fn set_sprinting(
+    sprinting: bool,
+    currently_sprinting: &mut entity::metadata::Sprinting,
+    attributes: &mut entity::Attributes,
+) -> bool {
+    **currently_sprinting = sprinting;
+    if sprinting {
+        attributes
+            .speed
+            .insert(entity::attributes::sprinting_modifier())
+            .is_ok()
+    } else {
+        attributes
+            .speed
+            .remove(&entity::attributes::sprinting_modifier().uuid)
+            .is_none()
+    }
+}
+
+// Whether the player is moving fast enough to be able to start sprinting.
+fn has_enough_impulse_to_start_sprinting(physics_state: &PhysicsState) -> bool {
+    // if self.underwater() {
+    //     self.has_forward_impulse()
+    // } else {
+    physics_state.forward_impulse > 0.8
+    // }
 }
 
 #[derive(Clone, Copy, Debug, Default)]

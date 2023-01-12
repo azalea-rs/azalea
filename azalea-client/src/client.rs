@@ -1,6 +1,6 @@
 pub use crate::chat::ChatPacket;
 use crate::{
-    local_player::{death_event, send_tick_event, update_in_loaded_chunk, LocalPlayer},
+    local_player::{death_event, send_tick_event, update_in_loaded_chunk, LocalPlayer, PhysicsState},
     movement::{local_player_ai_step, send_position},
     packet_handling,
     plugins::PluginStates,
@@ -223,7 +223,7 @@ impl Client {
         local_player.tasks.push(write_packets_task);
 
         ecs.entity_mut(entity)
-            .insert((local_player, packet_receiver));
+            .insert((local_player, packet_receiver, PhysicsState::default()));
 
         // just start up the game loop and we're ready!
 

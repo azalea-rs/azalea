@@ -61,7 +61,7 @@ fn handle_packets(
     mut mut_local_player_query: Query<&mut LocalPlayer>,
     mut mut_health_query: Query<&mut Health>,
     mut mut_position_query: Query<&mut Position>,
-    
+
     combat_kill_query: Query<(&MinecraftEntityId, Option<&Dead>)>,
     mut position_query: Query<(
         &mut LocalPlayer,
@@ -279,7 +279,7 @@ fn handle_packets(
                     // we call a function instead of setting the fields ourself since the
                     // function makes sure the rotations stay in their
                     // ranges
-                    set_rotation(physics.into_inner(), y_rot, x_rot);
+                    set_rotation(&mut physics, y_rot, x_rot);
                     // TODO: minecraft sets "xo", "yo", and "zo" here but idk what that means
                     // so investigate that ig
                     let new_pos = Vec3 {

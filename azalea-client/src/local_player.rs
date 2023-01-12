@@ -22,8 +22,6 @@ pub struct LocalPlayer {
 
     pub packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
 
-    // pub world: Arc<RwLock<PartialWorld>>,
-    pub physics_state: PhysicsState,
     pub client_information: ClientInformation,
     /// A map of player uuids to their information in the tab list
     pub players: HashMap<Uuid, PlayerInfo>,
@@ -43,7 +41,9 @@ pub struct LocalPlayer {
     pub(crate) tasks: Vec<JoinHandle<()>>,
 }
 
-#[derive(Default)]
+/// Component for entities that can move and sprint. Usually only in
+/// [`LocalPlayer`] entities.
+#[derive(Default, Component)]
 pub struct PhysicsState {
     /// Minecraft only sends a movement packet either after 20 ticks or if the
     /// player moved enough. This is that tick counter.
@@ -83,7 +83,6 @@ impl LocalPlayer {
 
             packet_writer,
 
-            physics_state: PhysicsState::default(),
             client_information: ClientInformation::default(),
             players: HashMap::new(),
 
