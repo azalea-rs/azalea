@@ -15,7 +15,7 @@ use std::backtrace::Backtrace;
 pub use bit_storage::BitStorage;
 pub use chunk_storage::{Chunk, ChunkStorage, PartialChunkStorage};
 pub use container::*;
-pub use entity_info::{EntityInfos, PartialEntityInfos};
+pub use entity_info::{EntityInfos, PartialEntityInfos, EntityPlugin};
 use thiserror::Error;
 pub use world::*;
 

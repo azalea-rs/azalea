@@ -1,8 +1,10 @@
 pub use crate::chat::ChatPacket;
 use crate::{
-    local_player::{death_event, send_tick_event, update_in_loaded_chunk, LocalPlayer, PhysicsState},
+    local_player::{
+        death_event, send_tick_event, update_in_loaded_chunk, LocalPlayer, PhysicsState,
+    },
     movement::{local_player_ai_step, send_position},
-    packet_handling,
+    packet_handling::{self, PacketHandlerPlugin},
     plugins::PluginStates,
     Account, PlayerInfo,
 };
@@ -29,7 +31,9 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use azalea_world::{entity::Entity, EntityInfos, PartialWorld, World, WorldContainer};
+use azalea_world::{
+    entity::Entity, EntityInfos, EntityPlugin, PartialWorld, World, WorldContainer,
+};
 use bevy_app::App;
 use bevy_ecs::{
     query::WorldQuery,
@@ -479,6 +483,8 @@ pub async fn start_ecs(
 
     // fire the Death event when the player dies.
     app.add_system(death_event.after("tick").after("packet"));
+    app.add_plugin(PacketHandlerPlugin);
+    app.add_plugin(EntityPlugin);
 
     app.init_resource::<WorldContainer>();
 
@@ -504,9 +510,7 @@ async fn run_schedule_loop(
     loop {
         // whenever we get an event from run_schedule_receiver, run the schedule
         run_schedule_receiver.recv().await;
-        println!("run_schedule_loop tick");
         schedule.run(&mut ecs.lock());
-        println!("run_schedule_loop ticked");
     }
 }
 
@@ -521,7 +525,6 @@ pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::UnboundedSender<(
 
     loop {
         game_tick_interval.tick().await;
-        println!("tick_run_schedule_loop tick");
         if let Err(e) = run_schedule_sender.send(()) {
             println!("tick_run_schedule_loop error: {}", e);
             // the sender is closed so end the task
