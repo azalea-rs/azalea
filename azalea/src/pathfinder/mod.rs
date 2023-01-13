@@ -25,10 +25,9 @@ impl bevy_app::Plugin for Plugin {
         app.add_fixed_timestep_system_set(
             "tick",
             0,
-            SystemSet::new()
-                .with_system(tick_execute_path)
-                .with_system(goto_listener),
-        );
+            SystemSet::new().with_system(tick_execute_path),
+        )
+        .add_system(goto_listener);
     }
 }
 

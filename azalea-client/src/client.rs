@@ -163,8 +163,8 @@ impl Client {
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let account = Account::offline("bot");
     ///     let (client, rx) = Client::join(&account, "localhost").await?;
-    ///     client.chat("Hello, world!").await?;
-    ///     client.disconnect().await?;
+    ///     client.chat("Hello, world!");
+    ///     client.disconnect();
     ///     Ok(())
     /// }
     /// ```
@@ -483,7 +483,6 @@ impl Client {
     }
 }
 
-/// Start the protocol and game tick loop.
 #[doc(hidden)]
 pub fn start_ecs(
     run_schedule_receiver: mpsc::UnboundedReceiver<()>,

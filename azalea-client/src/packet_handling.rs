@@ -25,7 +25,7 @@ use bevy_ecs::{
     prelude::Entity,
     query::Changed,
     schedule::{IntoSystemDescriptor, SystemSet},
-    system::{Commands, Query, ResMut},
+    system::{Commands, Query, Res, ResMut, SystemState},
 };
 use log::{debug, error, trace, warn};
 use parking_lot::Mutex;
@@ -41,9 +41,22 @@ impl Plugin for PacketHandlerPlugin {
             SystemSet::new()
                 .with_system(handle_packets.label("packet"))
                 .with_system(clear_packets.after("packet")),
-        );
+        )
+        .add_event::<AddPlayerEvent>()
+        .add_event::<RemovePlayerEvent>()
+        .add_event::<UpdatePlayerEvent>();
     }
 }
+
+/// A player joined the game (or more specifically, was added to the tab
+/// list).
+pub struct AddPlayerEvent(PlayerInfo);
+/// A player left the game (or maybe is still in the game and was just
+/// removed from the tab list).
+pub struct RemovePlayerEvent(PlayerInfo);
+/// A player was updated in the tab list (gamemode, display
+/// name, or latency changed).
+pub struct UpdatePlayerEvent(PlayerInfo);
 
 /// Something that receives packets from the server.
 #[derive(Component, Clone)]
@@ -52,35 +65,37 @@ pub struct PacketReceiver {
     pub run_schedule_sender: mpsc::UnboundedSender<()>,
 }
 
-fn handle_packets(
-    mut commands: Commands,
+fn handle_packets(ecs: &mut bevy_ecs::world::World) {
+    let mut events_owned = Vec::new();
 
-    query: Query<(Entity, &PacketReceiver), Changed<PacketReceiver>>,
-    local_player_query: Query<&LocalPlayer>,
-    entity_kind_query: Query<&EntityKind>,
-    mut mut_local_player_query: Query<&mut LocalPlayer>,
-    mut mut_health_query: Query<&mut Health>,
-    mut mut_position_query: Query<&mut Position>,
+    {
+        let mut system_state: SystemState<
+            Query<(Entity, &PacketReceiver), Changed<PacketReceiver>>,
+        > = SystemState::new(ecs);
+        let query = system_state.get(ecs);
+        for (player_entity, packet_events) in &query {
+            let packets = packet_events.packets.lock();
+            if !packets.is_empty() {
+                events_owned.push((player_entity, packets.clone()));
+            }
+        }
+    }
 
-    combat_kill_query: Query<(&MinecraftEntityId, Option<&Dead>)>,
-    mut position_query: Query<(
-        &mut LocalPlayer,
-        &mut Physics,
-        &mut Position,
-        &mut LastSentPosition,
-    )>,
-
-    mut world_container: ResMut<WorldContainer>,
-    mut entity_infos: ResMut<EntityInfos>,
-) {
-    for (player_entity, packet_events) in &query {
-        let packets = packet_events.packets.lock();
-
+    for (player_entity, packets) in events_owned {
         for packet in packets.iter() {
             match packet {
                 ClientboundGamePacket::Login(p) => {
                     debug!("Got login packet");
-                    let mut local_player = mut_local_player_query.get_mut(player_entity).unwrap();
+
+                    let mut system_state: SystemState<(
+                        Commands,
+                        Query<&mut LocalPlayer>,
+                        ResMut<WorldContainer>,
+                        ResMut<EntityInfos>,
+                    )> = SystemState::new(ecs);
+                    let (mut commands, mut query, mut world_container, mut entity_infos) =
+                        system_state.get_mut(ecs);
+                    let mut local_player = query.get_mut(player_entity).unwrap();
 
                     {
                         // TODO: have registry_holder be a struct because this sucks rn
@@ -191,6 +206,8 @@ fn handle_packets(
                     );
 
                     local_player.tx.send(Event::Login).unwrap();
+
+                    system_state.apply(ecs);
                 }
                 ClientboundGamePacket::SetChunkCacheRadius(p) => {
                     debug!("Got set chunk cache radius packet {:?}", p);
@@ -215,7 +232,9 @@ fn handle_packets(
                 }
                 ClientboundGamePacket::Disconnect(p) => {
                     debug!("Got disconnect packet {:?}", p);
-                    let local_player = local_player_query.get(player_entity).unwrap();
+                    let mut system_state: SystemState<Query<&LocalPlayer>> = SystemState::new(ecs);
+                    let query = system_state.get(ecs);
+                    let local_player = query.get(player_entity).unwrap();
                     local_player.disconnect();
                 }
                 ClientboundGamePacket::UpdateRecipes(_p) => {
@@ -231,8 +250,17 @@ fn handle_packets(
                     // TODO: reply with teleport confirm
                     debug!("Got player position packet {:?}", p);
 
+                    let mut system_state: SystemState<
+                        Query<(
+                            &mut LocalPlayer,
+                            &mut Physics,
+                            &mut Position,
+                            &mut LastSentPosition,
+                        )>,
+                    > = SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
                     let (mut local_player, mut physics, mut position, mut last_sent_position) =
-                        position_query.get_mut(player_entity).unwrap();
+                        query.get_mut(player_entity).unwrap();
 
                     let delta_movement = physics.delta;
 
@@ -308,7 +336,10 @@ fn handle_packets(
                 ClientboundGamePacket::PlayerInfoUpdate(p) => {
                     debug!("Got player info packet {:?}", p);
 
-                    let mut local_player = mut_local_player_query.get_mut(player_entity).unwrap();
+                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
+                        SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
+                    let mut local_player = query.get_mut(player_entity).unwrap();
 
                     for updated_info in &p.entries {
                         // add the new player maybe
@@ -349,7 +380,10 @@ fn handle_packets(
                     }
                 }
                 ClientboundGamePacket::PlayerInfoRemove(p) => {
-                    let mut local_player = mut_local_player_query.get_mut(player_entity).unwrap();
+                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
+                        SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
+                    let mut local_player = query.get_mut(player_entity).unwrap();
 
                     for uuid in &p.profile_ids {
                         if let Some(info) = local_player.players.remove(uuid) {
@@ -360,7 +394,10 @@ fn handle_packets(
                 ClientboundGamePacket::SetChunkCacheCenter(p) => {
                     debug!("Got chunk cache center packet {:?}", p);
 
-                    let local_player = local_player_query.get(player_entity).unwrap();
+                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
+                        SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
+                    let mut local_player = query.get_mut(player_entity).unwrap();
                     let mut partial_world = local_player.partial_world.write();
 
                     partial_world.chunks.view_center = ChunkPos::new(p.x, p.z);
@@ -369,7 +406,11 @@ fn handle_packets(
                     // debug!("Got chunk with light packet {} {}", p.x, p.z);
                     let pos = ChunkPos::new(p.x, p.z);
 
-                    let local_player = local_player_query.get(player_entity).unwrap();
+                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
+                        SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
+                    let mut local_player = query.get_mut(player_entity).unwrap();
+
                     let world = local_player.world.read();
                     let partial_world = local_player.partial_world.read();
 
@@ -407,7 +448,11 @@ fn handle_packets(
                 ClientboundGamePacket::AddEntity(p) => {
                     debug!("Got add entity packet {:?}", p);
 
-                    let local_player = local_player_query.get(player_entity).unwrap();
+                    let mut system_state: SystemState<(Commands, Query<&mut LocalPlayer>)> =
+                        SystemState::new(ecs);
+                    let (mut commands, mut query) = system_state.get_mut(ecs);
+                    let mut local_player = query.get_mut(player_entity).unwrap();
+
                     if let Some(world_name) = &local_player.world_name {
                         let bundle = p.as_entity_bundle(world_name.clone());
                         let mut entity_commands = commands.spawn((MinecraftEntityId(p.id), bundle));
@@ -421,7 +466,13 @@ fn handle_packets(
                 ClientboundGamePacket::SetEntityData(p) => {
                     debug!("Got set entity data packet {:?}", p);
 
-                    let local_player = local_player_query.get(player_entity).unwrap();
+                    let mut system_state: SystemState<(
+                        Commands,
+                        Query<(&mut LocalPlayer, &EntityKind)>,
+                    )> = SystemState::new(ecs);
+                    let (mut commands, mut query) = system_state.get_mut(ecs);
+                    let (mut local_player, entity_kind) = query.get_mut(player_entity).unwrap();
+
                     let partial_world = local_player.partial_world.write();
                     let entity = partial_world
                         .entity_infos
@@ -429,9 +480,6 @@ fn handle_packets(
                     drop(partial_world);
 
                     if let Some(entity) = entity {
-                        let entity_kind = entity_kind_query
-                            .get(entity)
-                            .expect("EntityKind should always be present");
                         let mut entity_commands = commands.entity(entity);
                         if let Err(e) = apply_metadata(
                             &mut entity_commands,
@@ -456,7 +504,13 @@ fn handle_packets(
                 ClientboundGamePacket::AddPlayer(p) => {
                     debug!("Got add player packet {:?}", p);
 
-                    let local_player = local_player_query.get(player_entity).unwrap();
+                    let mut system_state: SystemState<(
+                        Commands,
+                        Query<(&mut LocalPlayer, &EntityKind)>,
+                    )> = SystemState::new(ecs);
+                    let (mut commands, mut query) = system_state.get_mut(ecs);
+                    let (mut local_player, entity_kind) = query.get_mut(player_entity).unwrap();
+
                     if let Some(world_name) = &local_player.world_name {
                         let bundle = p.as_player_bundle(world_name.clone());
                         commands.spawn((MinecraftEntityId(p.id), bundle));
@@ -479,25 +533,31 @@ fn handle_packets(
                 ClientboundGamePacket::SetHealth(p) => {
                     debug!("Got set health packet {:?}", p);
 
-                    let mut health = mut_health_query.get_mut(player_entity).unwrap();
+                    let mut system_state: SystemState<Query<&mut Health>> = SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
+                    let mut health = query.get_mut(player_entity).unwrap();
+
                     **health = p.health;
 
-                    // the `Dead` component is added by `update_dead` in
-                    // azalea-world and then the
-                    // `dead_event` system fires the Death event.
+                    // the `Dead` component is added by the `update_dead` system
+                    // in azalea-world and then the `dead_event` system fires
+                    // the Death event.
                 }
                 ClientboundGamePacket::SetExperience(p) => {
                     debug!("Got set experience packet {:?}", p);
                 }
                 ClientboundGamePacket::TeleportEntity(p) => {
-                    let local_player = local_player_query.get(player_entity).unwrap();
+                    let mut system_state: SystemState<Query<(&mut LocalPlayer, &mut Position)>> =
+                        SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
+                    let (mut local_player, mut position) = query.get_mut(player_entity).unwrap();
+
                     let partial_world = local_player.partial_world.read();
                     let partial_entity_infos = &partial_world.entity_infos;
                     let entity = partial_entity_infos.get_by_id(MinecraftEntityId(p.id));
                     drop(partial_world);
 
                     if let Some(entity) = entity {
-                        let mut position = mut_position_query.get_mut(entity).unwrap();
                         **position = p.position;
                     } else {
                         warn!("Got teleport entity packet for unknown entity id {}", p.id);
@@ -510,14 +570,17 @@ fn handle_packets(
                     // debug!("Got rotate head packet {:?}", p);
                 }
                 ClientboundGamePacket::MoveEntityPos(p) => {
-                    let local_player = local_player_query.get(player_entity).unwrap();
+                    let mut system_state: SystemState<Query<(&mut LocalPlayer, &mut Position)>> =
+                        SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
+                    let (mut local_player, mut position) = query.get_mut(player_entity).unwrap();
+
                     let partial_world = local_player.partial_world.read();
                     let partial_entity_infos = &partial_world.entity_infos;
                     let entity = partial_entity_infos.get_by_id(MinecraftEntityId(p.entity_id));
                     drop(partial_world);
 
                     if let Some(entity) = entity {
-                        let mut position = mut_position_query.get_mut(entity).unwrap();
                         **position = position.with_delta(&p.delta);
                     } else {
                         warn!(
@@ -527,14 +590,17 @@ fn handle_packets(
                     }
                 }
                 ClientboundGamePacket::MoveEntityPosRot(p) => {
-                    let local_player = local_player_query.get(player_entity).unwrap();
+                    let mut system_state: SystemState<Query<(&mut LocalPlayer, &mut Position)>> =
+                        SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
+                    let (mut local_player, mut position) = query.get_mut(player_entity).unwrap();
+
                     let partial_world = local_player.partial_world.read();
                     let partial_entity_infos = &partial_world.entity_infos;
                     let entity = partial_entity_infos.get_by_id(MinecraftEntityId(p.entity_id));
                     drop(partial_world);
 
                     if let Some(entity) = entity {
-                        let mut position = mut_position_query.get_mut(entity).unwrap();
                         **position = position.with_delta(&p.delta);
                     } else {
                         warn!(
@@ -549,7 +615,12 @@ fn handle_packets(
                 ClientboundGamePacket::KeepAlive(p) => {
                     debug!("Got keep alive packet {:?}", p);
 
-                    let mut local_player = mut_local_player_query.get_mut(player_entity).unwrap();
+                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
+                        SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
+                    let mut local_player = query.get_mut(player_entity).unwrap();
+
+                    let mut local_player = query.get_mut(player_entity).unwrap();
                     local_player.write_packet(ServerboundKeepAlivePacket { id: p.id }.get());
                 }
                 ClientboundGamePacket::RemoveEntities(p) => {
@@ -558,7 +629,10 @@ fn handle_packets(
                 ClientboundGamePacket::PlayerChat(p) => {
                     debug!("Got player chat packet {:?}", p);
 
-                    let local_player = local_player_query.get(player_entity).unwrap();
+                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
+                        SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
+                    let local_player = query.get_mut(player_entity).unwrap();
 
                     local_player
                         .tx
@@ -568,7 +642,10 @@ fn handle_packets(
                 ClientboundGamePacket::SystemChat(p) => {
                     debug!("Got system chat packet {:?}", p);
 
-                    let local_player = local_player_query.get(player_entity).unwrap();
+                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
+                        SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
+                    let local_player = query.get_mut(player_entity).unwrap();
 
                     local_player
                         .tx
@@ -584,7 +661,11 @@ fn handle_packets(
                 ClientboundGamePacket::BlockUpdate(p) => {
                     debug!("Got block update packet {:?}", p);
 
-                    let local_player = local_player_query.get(player_entity).unwrap();
+                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
+                        SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
+                    let local_player = query.get_mut(player_entity).unwrap();
+
                     let world = local_player.world.write();
 
                     world.chunks.set_block_state(&p.pos, p.block_state);
@@ -594,7 +675,11 @@ fn handle_packets(
                 }
                 ClientboundGamePacket::SectionBlocksUpdate(p) => {
                     debug!("Got section blocks update packet {:?}", p);
-                    let local_player = local_player_query.get(player_entity).unwrap();
+                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
+                        SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
+                    let local_player = query.get_mut(player_entity).unwrap();
+
                     let world = local_player.world.write();
 
                     for state in &p.states {
@@ -646,12 +731,17 @@ fn handle_packets(
                 ClientboundGamePacket::PlayerCombatEnter(_) => {}
                 ClientboundGamePacket::PlayerCombatKill(p) => {
                     debug!("Got player kill packet {:?}", p);
-                    let (&entity_id, dead) = combat_kill_query.get(player_entity).unwrap();
 
-                    if *entity_id == p.player_id && dead.is_none() {
+                    let mut system_state: SystemState<(
+                        Commands,
+                        Query<(&mut LocalPlayer, &MinecraftEntityId, Option<&Dead>)>,
+                    )> = SystemState::new(ecs);
+                    let (mut commands, mut query) = system_state.get_mut(ecs);
+                    let (local_player, entity_id, dead) = query.get_mut(player_entity).unwrap();
+
+                    if **entity_id == p.player_id && dead.is_none() {
                         commands.entity(player_entity).insert(Dead);
 
-                        let local_player = local_player_query.get(player_entity).unwrap();
                         local_player
                             .tx
                             .send(Event::Death(Some(Arc::new(p.clone()))))
@@ -663,6 +753,10 @@ fn handle_packets(
                 ClientboundGamePacket::ResourcePack(_) => {}
                 ClientboundGamePacket::Respawn(p) => {
                     debug!("Got respawn packet {:?}", p);
+
+                    let mut system_state: SystemState<Commands> = SystemState::new(ecs);
+                    let mut commands = system_state.get(ecs);
+
                     // Remove the Dead marker component from the player.
                     commands.entity(player_entity).remove::<Dead>();
                 }
