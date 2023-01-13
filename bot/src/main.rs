@@ -1,3 +1,4 @@
+use azalea::entity::metadata::Player;
 use azalea::pathfinder::BlockPosGoal;
 // use azalea::ClientInformation;
 use azalea::{prelude::*, BlockPos, Swarm, SwarmEvent, WalkDirection};
@@ -79,20 +80,24 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
             // .await?;
         }
         Event::Login => {
-            bot.chat("Hello world").await?;
+            bot.chat("Hello world");
         }
         Event::Chat(m) => {
             if m.content() == bot.profile.name {
-                bot.chat("Bye").await?;
+                bot.chat("Bye");
                 tokio::time::sleep(Duration::from_millis(50)).await;
-                bot.disconnect().await?;
+                bot.disconnect();
             }
             let Some(sender) = m.username() else {
                 return Ok(())
             };
+            let mut ecs = bot.ecs.lock();
             let entity = bot
-                .world()
-                .entity_by(|e| e.kind() == azalea::EntityKind::Player && e.name() == Some(sender));
+                .ecs
+                .lock()
+                .query::<&Player>()
+                .iter(&mut ecs)
+                .find(|e| e.name() == Some(sender));
             // let entity = None;
             if let Some(entity) = entity {
                 if m.content() == "goto" {
@@ -119,7 +124,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
         Event::Death(_) => {
             bot.write_packet(ServerboundClientCommandPacket {
                 action: azalea_protocol::packets::game::serverbound_client_command_packet::Action::PerformRespawn,
-            }.get()).await?;
+            }.get());
         }
         _ => {}
     }
@@ -144,7 +149,7 @@ async fn swarm_handle(
                 for (name, world) in &swarm.worlds.read().worlds {
                     println!("world name: {}", name);
                     if let Some(w) = world.upgrade() {
-                        for chunk_pos in w.chunks.read().chunks.values() {
+                        for chunk_pos in w.read().chunks.chunks.values() {
                             println!("chunk: {:?}", chunk_pos);
                         }
                     } else {
@@ -154,7 +159,7 @@ async fn swarm_handle(
             }
             if m.message().to_string() == "<py5> hi" {
                 for (bot, _) in swarm {
-                    bot.chat("hello").await?;
+                    bot.chat("hello");
                 }
             }
         }

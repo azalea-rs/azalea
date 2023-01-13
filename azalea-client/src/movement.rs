@@ -8,8 +8,10 @@ use azalea_protocol::packets::game::{
     serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
 };
 use azalea_world::entity::metadata::Sprinting;
-use azalea_world::entity::{Attributes, MinecraftEntityId};
+use azalea_world::entity::{Attributes, Entity, Jumping, MinecraftEntityId};
 use azalea_world::{entity, MoveEntityError};
+use bevy_ecs::event::EventReader;
+use bevy_ecs::prelude::With;
 use bevy_ecs::system::Query;
 use std::backtrace::Backtrace;
 use thiserror::Error;
@@ -40,15 +42,15 @@ impl Client {
     /// recommended.
     pub fn set_jumping(&mut self, jumping: bool) {
         let mut ecs = self.ecs.lock();
-        let mut physics = self.query::<&mut entity::Physics>(&mut ecs);
-        physics.jumping = jumping;
+        let mut jumping_mut = self.query::<&mut Jumping>(&mut ecs);
+        **jumping_mut = jumping;
     }
 
     /// Returns whether the player will try to jump next tick.
     pub fn jumping(&self) -> bool {
         let mut ecs = self.ecs.lock();
-        let physics = self.query::<&mut entity::Physics>(&mut ecs);
-        physics.jumping
+        let jumping_ref = self.query::<&Jumping>(&mut ecs);
+        **jumping_ref
     }
 
     /// Sets your rotation. `y_rot` is yaw (looking to the side), `x_rot` is
@@ -248,7 +250,7 @@ pub fn local_player_ai_step(
             &mut entity::metadata::Sprinting,
             &mut entity::Attributes,
         ),
-        &LocalPlayerInLoadedChunk,
+        With<LocalPlayerInLoadedChunk>,
     >,
 ) {
     println!("local_player_ai_step");
@@ -289,14 +291,6 @@ pub fn local_player_ai_step(
         {
             set_sprinting(true, &mut sprinting, &mut attributes);
         }
-
-        azalea_physics::ai_step(
-            &local_player.world.read(),
-            &mut physics,
-            &mut position,
-            &sprinting,
-            &attributes,
-        )
     }
 }
 
@@ -319,14 +313,10 @@ impl Client {
     /// ```
     pub fn walk(&mut self, direction: WalkDirection) {
         let mut ecs = self.ecs.lock();
-        let (mut physics_state, mut sprinting, mut attributes) =
-            self.query::<(&mut PhysicsState, &mut Sprinting, &mut Attributes)>(&mut ecs);
-        walk(
+        ecs.send_event(StartWalkEvent {
+            entity: self.entity,
             direction,
-            &mut physics_state,
-            &mut sprinting,
-            &mut attributes,
-        )
+        });
     }
 
     /// Start sprinting in the given direction. To stop moving, call
@@ -346,28 +336,49 @@ impl Client {
     /// ```
     pub fn sprint(&mut self, direction: SprintDirection) {
         let mut ecs = self.ecs.lock();
-        let mut physics_state = self.query::<&mut PhysicsState>(&mut ecs);
-        sprint(direction, &mut physics_state);
+        ecs.send_event(StartSprintEvent {
+            entity: self.entity,
+            direction,
+        });
     }
+}
+
+pub struct StartWalkEvent {
+    pub entity: Entity,
+    pub direction: WalkDirection,
 }
 
 /// Start walking in the given direction. To sprint, use
 /// [`Client::sprint`]. To stop walking, call walk with
 /// `WalkDirection::None`.
-pub fn walk(
-    direction: WalkDirection,
-    physics_state: &mut PhysicsState,
-    sprinting: &mut entity::metadata::Sprinting,
-    attributes: &mut entity::Attributes,
+pub fn walk_listener(
+    mut events: EventReader<StartWalkEvent>,
+    mut query: Query<(&mut PhysicsState, &mut Sprinting, &mut Attributes)>,
 ) {
-    physics_state.move_direction = direction;
-    set_sprinting(false, sprinting, attributes);
+    for event in events.iter() {
+        if let Ok((mut physics_state, mut sprinting, mut attributes)) = query.get_mut(event.entity)
+        {
+            physics_state.move_direction = event.direction;
+            set_sprinting(false, &mut sprinting, &mut attributes);
+        }
+    }
 }
 
+pub struct StartSprintEvent {
+    pub entity: Entity,
+    pub direction: SprintDirection,
+}
 /// Start sprinting in the given direction.
-pub fn sprint(direction: SprintDirection, physics_state: &mut PhysicsState) {
-    physics_state.move_direction = WalkDirection::from(direction);
-    physics_state.trying_to_sprint = true;
+pub fn sprint_listener(
+    mut query: Query<&mut PhysicsState>,
+    mut events: EventReader<StartSprintEvent>,
+) {
+    for event in events.iter() {
+        if let Ok(mut physics_state) = query.get_mut(event.entity) {
+            physics_state.move_direction = WalkDirection::from(event.direction);
+            physics_state.trying_to_sprint = true;
+        }
+    }
 }
 
 /// Change whether we're sprinting by adding an attribute modifier to the
@@ -375,8 +386,8 @@ pub fn sprint(direction: SprintDirection, physics_state: &mut PhysicsState) {
 /// Returns if the operation was successful.
 fn set_sprinting(
     sprinting: bool,
-    currently_sprinting: &mut entity::metadata::Sprinting,
-    attributes: &mut entity::Attributes,
+    currently_sprinting: &mut Sprinting,
+    attributes: &mut Attributes,
 ) -> bool {
     **currently_sprinting = sprinting;
     if sprinting {

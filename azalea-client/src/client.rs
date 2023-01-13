@@ -3,7 +3,7 @@ use crate::{
     local_player::{
         death_event, send_tick_event, update_in_loaded_chunk, LocalPlayer, PhysicsState,
     },
-    movement::{local_player_ai_step, send_position},
+    movement::{local_player_ai_step, send_position, sprint_listener, walk_listener},
     packet_handling::{self, PacketHandlerPlugin},
     plugins::PluginStates,
     Account, PlayerInfo,
@@ -42,7 +42,7 @@ use bevy_ecs::{
 use iyes_loopless::prelude::*;
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
-use std::{fmt::Debug, io, ops::DerefMut, sync::Arc, time::Duration};
+use std::{fmt::Debug, io, net::SocketAddr, ops::DerefMut, sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::{sync::mpsc, time};
 
@@ -82,6 +82,7 @@ pub enum Event {
 
 /// Client has the things that a user interacting with the library will want.
 /// Things that a player in the world will want to know are in [`LocalPlayer`].
+#[derive(Clone)]
 pub struct Client {
     /// The [`GameProfile`] for our client. This contains your username, UUID,
     /// and skin data.
@@ -174,8 +175,36 @@ impl Client {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
         let resolved_address = resolver::resolve_address(&address).await?;
 
-        let conn = Connection::new(&resolved_address).await?;
-        let (conn, game_profile) = Self::handshake(conn, account, &address).await?;
+        // An event that causes the schedule to run. This is only used internally.
+        let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
+        let ecs_lock = start_ecs(run_schedule_receiver, run_schedule_sender.clone());
+
+        {
+            let mut ecs = ecs_lock.lock();
+            ecs.init_resource::<EntityInfos>();
+        }
+
+        Self::start_client(
+            ecs_lock,
+            account,
+            &address,
+            &resolved_address,
+            run_schedule_sender,
+        )
+        .await
+    }
+
+    /// Create a [`Client`] when you already have the ECS made with
+    /// [`start_ecs`]. You'd usually want to use [`Self::join`] instead.
+    pub async fn start_client(
+        ecs_lock: Arc<Mutex<bevy_ecs::world::World>>,
+        account: &Account,
+        address: &ServerAddress,
+        resolved_address: &SocketAddr,
+        run_schedule_sender: mpsc::UnboundedSender<()>,
+    ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
+        let conn = Connection::new(resolved_address).await?;
+        let (conn, game_profile) = Self::handshake(conn, account, address).await?;
         let (read_conn, write_conn) = conn.into_split();
 
         // The buffer has to be 1 to avoid a bug where if it lags events are
@@ -184,14 +213,9 @@ impl Client {
         let (tx, rx) = mpsc::unbounded_channel();
         tx.send(Event::Init).unwrap();
 
-        // An event that causes the schedule to run. This is only used internally.
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
-
-        let ecs_lock = start_ecs(run_schedule_receiver, run_schedule_sender.clone()).await;
-
         let mut ecs = ecs_lock.lock();
-        ecs.init_resource::<EntityInfos>();
 
+        // Make the ecs entity for this client
         let entity_mut = ecs.spawn_empty();
         let entity = entity_mut.id();
 
@@ -448,20 +472,20 @@ impl Client {
         Ok(())
     }
 
-    /// Query data of our player's entity.
+    /// A convenience function for getting components of our player's entity.
     pub fn query<'w, Q: WorldQuery>(
         &self,
         ecs: &'w mut bevy_ecs::world::World,
     ) -> <Q as WorldQuery>::Item<'w> {
         ecs.query::<Q>()
             .get_mut(ecs, self.entity)
-            .expect("Player entity should always exist when being queried")
+            .expect("Our client is missing a required component.")
     }
 }
 
 /// Start the protocol and game tick loop.
 #[doc(hidden)]
-pub async fn start_ecs(
+pub fn start_ecs(
     run_schedule_receiver: mpsc::UnboundedReceiver<()>,
     run_schedule_sender: mpsc::UnboundedSender<()>,
 ) -> Arc<Mutex<bevy_ecs::world::World>> {
@@ -470,16 +494,22 @@ pub async fn start_ecs(
     // you might be able to just drop the lock or put it in its own scope to fix
 
     let mut app = App::new();
-    app.add_fixed_timestep(Duration::from_millis(50), "tick")
-        .add_fixed_timestep_system_set(
-            "tick",
-            0,
-            SystemSet::new()
-                .with_system(send_position)
-                .with_system(update_in_loaded_chunk)
-                .with_system(local_player_ai_step)
-                .with_system(send_tick_event),
-        );
+    app.add_fixed_timestep(Duration::from_millis(50), "tick");
+    app.add_fixed_timestep_system_set(
+        "tick",
+        0,
+        SystemSet::new()
+            .with_system(send_position)
+            .with_system(update_in_loaded_chunk)
+            .with_system(sprint_listener.label("sprint_listener").before("travel"))
+            .with_system(walk_listener.label("walk_listener").before("travel"))
+            .with_system(
+                local_player_ai_step
+                    .before("ai_step")
+                    .after("sprint_listener"),
+            )
+            .with_system(send_tick_event),
+    );
 
     // fire the Death event when the player dies.
     app.add_system(death_event.after("tick").after("packet"));

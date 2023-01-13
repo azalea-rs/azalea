@@ -1,7 +1,7 @@
-use crate::{bot, pathfinder, HandleFn};
+use crate::HandleFn;
 use azalea_client::{Account, Client, Plugins};
 use azalea_protocol::ServerAddress;
-use std::{future::Future, sync::Arc};
+use std::future::Future;
 use thiserror::Error;
 
 /// A helper macro that generates a [`Plugins`] struct from a list of objects
@@ -112,14 +112,9 @@ pub async fn start<
         Err(_) => return Err(StartError::InvalidAddress),
     };
 
-    let (mut bot, mut rx) = Client::join(&options.account, address).await?;
+    let (bot, mut rx) = Client::join(&options.account, address).await?;
 
-    let mut plugins = options.plugins;
-    // DEFAULT PLUGINS
-    plugins.add(bot::Plugin);
-    plugins.add(pathfinder::Plugin);
-
-    bot.plugins = Arc::new(plugins.build());
+    let plugins = options.plugins;
 
     let state = options.state;
 

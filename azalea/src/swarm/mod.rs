@@ -3,10 +3,10 @@ mod chat;
 mod plugins;
 
 pub use self::plugins::*;
-use crate::{bot, HandleFn};
-use azalea_client::{Account, ChatPacket, Client, Event, JoinError, Plugins};
+use crate::HandleFn;
+use azalea_client::{start_ecs, Account, ChatPacket, Client, Event, JoinError, Plugins};
 use azalea_protocol::{
-    connect::{Connection, ConnectionError},
+    connect::ConnectionError,
     resolver::{self, ResolverError},
     ServerAddress,
 };
@@ -53,11 +53,14 @@ pub struct Swarm<S> {
     resolved_address: SocketAddr,
     address: ServerAddress,
     pub worlds: Arc<RwLock<WorldContainer>>,
+    pub ecs_lock: Arc<Mutex<bevy_ecs::world::World>>,
     /// Plugins that are set for new bots
     plugins: Plugins,
 
     bots_tx: UnboundedSender<(Option<Event>, (Client, S))>,
     swarm_tx: UnboundedSender<SwarmEvent>,
+
+    run_schedule_sender: UnboundedSender<()>,
 }
 
 /// An event about something that doesn't have to do with a single bot.
@@ -230,17 +233,14 @@ pub async fn start_swarm<
 
     let world_container = Arc::new(RwLock::new(WorldContainer::default()));
 
-    let mut plugins = options.plugins;
-    let swarm_plugins = options.swarm_plugins;
-
-    // DEFAULT CLIENT PLUGINS
-    plugins.add(bot::Plugin);
-    plugins.add(crate::pathfinder::Plugin);
-    // DEFAULT SWARM PLUGINS
+    let plugins = options.plugins;
 
     // we can't modify the swarm plugins after this
     let (bots_tx, mut bots_rx) = mpsc::unbounded_channel();
     let (swarm_tx, mut swarm_rx) = mpsc::unbounded_channel();
+
+    let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
+    let ecs_lock = start_ecs(run_schedule_receiver, run_schedule_sender.clone());
 
     let mut swarm = Swarm {
         bot_datas: Arc::new(Mutex::new(Vec::new())),
@@ -253,6 +253,9 @@ pub async fn start_swarm<
         bots_tx,
 
         swarm_tx: swarm_tx.clone(),
+
+        ecs_lock,
+        run_schedule_sender,
     };
 
     {
@@ -263,8 +266,6 @@ pub async fn start_swarm<
             tx: chat_tx,
         });
     }
-
-    let swarm_plugins = swarm_plugins.build();
 
     let mut swarm_clone = swarm.clone();
     let join_task = tokio::spawn(async move {
@@ -294,14 +295,10 @@ pub async fn start_swarm<
     let swarm_state = options.swarm_state;
     let mut internal_state = InternalSwarmState::default();
 
-    // Watch swarm_rx and send those events to the plugins and swarm_handle.
+    // Watch swarm_rx and send those events to the swarm_handle.
     let swarm_clone = swarm.clone();
-    let swarm_plugins_clone = swarm_plugins.clone();
     tokio::spawn(async move {
         while let Some(event) = swarm_rx.recv().await {
-            for plugin in swarm_plugins_clone.clone().into_iter() {
-                tokio::spawn(plugin.handle(event.clone(), swarm_clone.clone()));
-            }
             tokio::spawn((options.swarm_handle)(
                 swarm_clone.clone(),
                 event,
@@ -312,14 +309,8 @@ pub async fn start_swarm<
 
     // bot events
     while let Some((Some(event), (bot, state))) = bots_rx.recv().await {
-        // bot event handling
-        let cloned_plugins = (*bot.plugins).clone();
-        for plugin in cloned_plugins.into_iter() {
-            tokio::spawn(plugin.handle(event.clone(), bot.clone()));
-        }
-
-        // swarm event handling
         // remove this #[allow] when more checks are added
+        // TODO: actually it'd be better to just have this in a system
         #[allow(clippy::single_match)]
         match &event {
             Event::Login => {
@@ -330,7 +321,6 @@ pub async fn start_swarm<
             }
             _ => {}
         }
-
         tokio::spawn((options.handle)(bot, event, state));
     }
 
@@ -346,17 +336,19 @@ where
     /// Add a new account to the swarm. You can remove it later by calling
     /// [`Client::disconnect`].
     pub async fn add(&mut self, account: &Account, state: S) -> Result<Client, JoinError> {
-        let conn = Connection::new(&self.resolved_address).await?;
-        let (conn, game_profile) = Client::handshake(conn, account, &self.address.clone()).await?;
-
         // tx is moved to the bot so it can send us events
         // rx is used to receive events from the bot
-        let (tx, mut rx) = mpsc::channel(1);
-        let mut bot = Client::new(game_profile, conn, Some(self.worlds.clone()));
-        tx.send(Event::Init).await.expect("Failed to send event");
-        bot.start_tasks(tx);
-
-        bot.plugins = Arc::new(self.plugins.clone().build());
+        // An event that causes the schedule to run. This is only used internally.
+        // let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
+        // let ecs_lock = start_ecs(run_schedule_receiver, run_schedule_sender.clone());
+        let (bot, mut rx) = Client::start_client(
+            self.ecs_lock.clone(),
+            account,
+            &self.address,
+            &self.resolved_address,
+            self.run_schedule_sender.clone(),
+        )
+        .await?;
 
         let cloned_bots_tx = self.bots_tx.clone();
         let cloned_bot = bot.clone();
@@ -432,7 +424,7 @@ where
     /// }
     /// ```
     fn into_iter(self) -> Self::IntoIter {
-        self.bot_datas.clone().lock().into_iter()
+        self.bot_datas.lock().clone().into_iter()
     }
 }
 

@@ -177,6 +177,13 @@ impl From<&LastSentPosition> for BlockPos {
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
 pub struct WorldName(ResourceLocation);
 
+/// A component for entities that can jump.
+///
+/// If this is true, the entity will try to jump every tick. (It's equivalent to
+/// the space key being held in vanilla.)
+#[derive(Debug, Component, Deref, DerefMut)]
+pub struct Jumping(bool);
+
 /// The physics data relating to the entity, such as position, velocity, and
 /// bounding box.
 #[derive(Debug, Component)]
@@ -204,10 +211,6 @@ pub struct Physics {
     /// The bounding box of the entity. This is more than just width and height,
     /// unlike dimensions.
     pub bounding_box: AABB,
-
-    /// Whether the entity will try to jump every tick
-    /// (equivalent to the space key being held down in vanilla).
-    pub jumping: bool,
 
     pub has_impulse: bool,
 }
@@ -251,6 +254,7 @@ pub struct EntityBundle {
     pub last_sent_position: LastSentPosition,
     pub physics: Physics,
     pub attributes: Attributes,
+    pub jumping: Jumping,
 }
 
 impl EntityBundle {
@@ -293,8 +297,6 @@ impl EntityBundle {
                 dimensions,
 
                 has_impulse: false,
-
-                jumping: false,
             },
 
             attributes: Attributes {
@@ -302,6 +304,8 @@ impl EntityBundle {
                 // entities have different defaults
                 speed: AttributeInstance::new(0.1),
             },
+
+            jumping: Jumping(false),
         }
     }
 }

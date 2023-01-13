@@ -19,6 +19,7 @@ bevy_app = { version = "0.9.1", default-features = false }
 bevy_ecs = {version = "0.9.1", default-features = false}
 derive_more = {version = "0.99.17", features = ["deref", "deref_mut"]}
 enum-as-inner = "0.5.1"
+iyes_loopless = "0.9.1"
 log = "0.4.17"
 nohash-hasher = "0.2.0"
 once_cell = "1.16.0"

@@ -18,7 +18,6 @@ use uuid::Uuid;
 pub struct EntityPlugin;
 impl Plugin for EntityPlugin {
     fn build(&self, app: &mut App) {
-        // Since it's PostUpdate, these will run after every tick or packet
         app.add_system_set(
             SystemSet::new()
                 .after("tick")
