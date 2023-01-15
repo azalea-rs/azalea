@@ -12,6 +12,7 @@ use std::{
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
 };
+use uuid::Uuid;
 
 /// A chat packet, either a system message or a chat message.
 #[derive(Debug, Clone, PartialEq)]
@@ -70,6 +71,15 @@ impl ChatPacket {
     /// will be None.
     pub fn username(&self) -> Option<String> {
         self.split_sender_and_content().0
+    }
+
+    /// Get the UUID of the sender of the message. If it's not a
+    /// player-sent chat message, this will be None.
+    pub fn uuid(&self) -> Option<Uuid> {
+        match self {
+            ChatPacket::System(_) => return None,
+            ChatPacket::Player(m) => return Some(m.sender),
+        }
     }
 
     /// Get the content part of the message as a string. This does not preserve
