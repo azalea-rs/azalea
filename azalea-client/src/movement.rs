@@ -253,7 +253,6 @@ pub fn local_player_ai_step(
         With<LocalPlayerInLoadedChunk>,
     >,
 ) {
-    println!("local_player_ai_step");
     for (
         local_player,
         mut physics_state,

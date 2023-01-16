@@ -9,11 +9,12 @@ use azalea_world::{
         metadata::Sprinting, move_relative, Attributes, Entity, Jumping, Physics, Position,
         WorldName,
     },
-    World, WorldContainer,
+    Local, World, WorldContainer,
 };
 use bevy_app::Plugin;
 use bevy_ecs::{
     event::{EventReader, EventWriter},
+    query::With,
     schedule::IntoSystemDescriptor,
     system::Res,
 };
@@ -119,7 +120,8 @@ fn travel(
 /// stuff.
 pub fn ai_step(
     mut query: Query<
-        (Entity, &mut Physics, &Jumping),
+        (Entity, &mut Physics, Option<&Jumping>),
+        With<Local>,
         // TODO: ai_step should only run for players in loaded chunks
         // With<LocalPlayerInLoadedChunk> maybe there should be an InLoadedChunk/InUnloadedChunk
         // component?
@@ -140,11 +142,13 @@ pub fn ai_step(
             physics.delta.z = 0.;
         }
 
-        if **jumping {
-            // TODO: jumping in liquids and jump delay
+        if let Some(jumping) = jumping {
+            if **jumping {
+                // TODO: jumping in liquids and jump delay
 
-            if physics.on_ground {
-                force_jump_events.send(ForceJumpEvent(entity));
+                if physics.on_ground {
+                    force_jump_events.send(ForceJumpEvent(entity));
+                }
             }
         }
 

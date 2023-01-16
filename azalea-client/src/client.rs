@@ -6,10 +6,11 @@ use crate::{
     movement::{local_player_ai_step, send_position, sprint_listener, walk_listener},
     packet_handling::{self, PacketHandlerPlugin},
     plugins::PluginStates,
-    Account, PlayerInfo,
+    Account, PlayerInfo, StartSprintEvent, StartWalkEvent,
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::SessionServerError};
+use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
@@ -39,6 +40,7 @@ use bevy_ecs::{
     query::WorldQuery,
     schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
 };
+use bevy_time::TimePlugin;
 use iyes_loopless::prelude::*;
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
@@ -496,6 +498,10 @@ pub fn start_ecs(
     // you might be able to just drop the lock or put it in its own scope to fix
 
     let mut app = App::new();
+
+    app.add_event::<StartWalkEvent>()
+        .add_event::<StartSprintEvent>();
+
     app.add_fixed_timestep(Duration::from_millis(50), "tick");
     app.add_fixed_timestep_system_set(
         "tick",
@@ -517,6 +523,8 @@ pub fn start_ecs(
     app.add_system(death_event.after("tick").after("packet"));
     app.add_plugin(PacketHandlerPlugin);
     app.add_plugin(EntityPlugin);
+    app.add_plugin(PhysicsPlugin);
+    app.add_plugin(TimePlugin); // from bevy_time
 
     app.init_resource::<WorldContainer>();
 

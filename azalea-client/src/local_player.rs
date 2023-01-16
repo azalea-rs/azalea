@@ -128,7 +128,6 @@ pub fn update_in_loaded_chunk(
     mut commands: bevy_ecs::system::Commands,
     query: Query<(Entity, &LocalPlayer, &entity::Position)>,
 ) {
-    println!("update_in_loaded_chunk");
     for (entity, local_player, position) in &query {
         let player_chunk_pos = ChunkPos::from(position);
         let in_loaded_chunk = local_player
