@@ -284,6 +284,7 @@ dependencies = [
  "bevy_app",
  "bevy_ecs",
  "derive_more",
+ "env_logger",
  "futures",
  "iyes_loopless",
  "log",

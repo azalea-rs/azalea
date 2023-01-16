@@ -1,17 +1,31 @@
 use crate::{
-    entity::{self, add_dead, update_bounding_box, Entity, MinecraftEntityId},
-    MaybeRemovedEntity, World, WorldContainer,
+    deduplicate_entities,
+    entity::{
+        self, add_dead, update_bounding_box, Entity, EntityUuid, MinecraftEntityId, Position,
+        WorldName,
+    },
+    update_entity_by_id_index, update_uuid_index, PartialWorld, World, WorldContainer,
 };
 use azalea_core::ChunkPos;
 use bevy_app::{App, Plugin};
 use bevy_ecs::{
-    query::Changed,
-    schedule::SystemSet,
-    system::{Query, Res, ResMut, Resource},
+    prelude::Component,
+    query::{Added, Changed, With, Without},
+    schedule::{IntoSystemDescriptor, SystemSet},
+    system::{Command, Commands, Query, Res, ResMut, Resource},
+    world::EntityMut,
 };
-use log::warn;
+use derive_more::{Deref, DerefMut};
+use iyes_loopless::prelude::*;
+use log::{debug, trace, warn};
 use nohash_hasher::{IntMap, IntSet};
-use std::{collections::HashMap, fmt::Debug, ops::DerefMut};
+use parking_lot::RwLock;
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::Debug,
+    ops::DerefMut,
+    sync::Arc,
+};
 use uuid::Uuid;
 
 /// Plugin handling some basic entity functionality.
@@ -25,8 +39,24 @@ impl Plugin for EntityPlugin {
                 .with_system(update_entity_chunk_positions)
                 .with_system(remove_despawned_entities_from_indexes)
                 .with_system(update_bounding_box)
-                .with_system(add_dead),
+                .with_system(add_dead)
+                .with_system(add_updates_received.label("add_updates_received"))
+                .with_system(
+                    deduplicate_entities
+                        .after("add_reference_count")
+                        .label("deduplicate_entities"),
+                )
+                .with_system(update_uuid_index.after("deduplicate_entities"))
+                .with_system(debug_detect_updates_received_on_local_entities)
+                .with_system(update_entity_by_id_index)
+                .with_system(debug_new_entity),
         );
+    }
+}
+
+fn debug_new_entity(query: Query<Entity, Added<MinecraftEntityId>>) {
+    for entity in query.iter() {
+        debug!("new entity: {:?}", entity);
     }
 }
 
@@ -69,70 +99,69 @@ pub struct PartialEntityInfos {
     /// This is used for shared worlds (i.e. swarms), to make sure we don't
     /// update entities twice on accident.
     pub updates_received: IntMap<MinecraftEntityId, u32>,
-    /// A set of all the entity ids in render distance.
-    pub(crate) loaded_entity_ids: IntSet<MinecraftEntityId>,
-
-    /// A map of Minecraft entity ids to Azalea ECS entities.
-    pub(crate) entity_by_id: IntMap<u32, Entity>,
 }
 
 impl PartialEntityInfos {
-    pub fn new(owner_entity: Option<Entity>, entity_infos: &mut EntityInfos) -> Self {
-        if let Some(owner_entity) = owner_entity {
-            entity_infos.updates_received.insert(owner_entity, 0);
-        }
+    pub fn new(owner_entity: Option<Entity>) -> Self {
         Self {
             owner_entity,
             updates_received: IntMap::default(),
-            loaded_entity_ids: IntSet::default(),
-            entity_by_id: IntMap::default(),
         }
     }
+}
 
-    /// Whether the entity with the given protocol ID is being loaded by this
-    /// storage.
-    #[inline]
-    pub fn contains_id(&self, id: MinecraftEntityId) -> bool {
-        self.loaded_entity_ids.contains(&id)
-    }
+/// A [`Command`] that applies a "relative update" to an entity, which means
+/// this update won't be run multiple times by different clients in the same
+/// world.
+///
+/// This is used to avoid a bug where when there's multiple clients in the same
+/// world and an entity sends a relative move packet to all clients, its
+/// position gets desynced since the relative move is applied multiple times.
+///
+/// Don't use this unless you actually got an entity update packet that all
+/// other clients within render distance will get too. You usually don't need
+/// this when the change isn't relative either.
+pub struct RelativeEntityUpdate {
+    pub entity: Entity,
+    pub partial_world: Arc<RwLock<PartialWorld>>,
+    // a function that takes the entity and updates it
+    pub update: Box<dyn FnOnce(&mut EntityMut) + Send + Sync>,
+}
+impl Command for RelativeEntityUpdate {
+    fn write(self, world: &mut bevy_ecs::world::World) {
+        let partial_entity_infos = &mut self.partial_world.write().entity_infos;
 
-    /// Get an [`Entity`] from the given [`MinecraftEntityId`] (which is just a
-    /// u32 internally) if the entity is being loaded by this storage.
-    #[inline]
-    pub fn get_by_id(&self, id: MinecraftEntityId) -> Option<Entity> {
-        self.entity_by_id.get(&id).copied()
-    }
+        let mut entity = world.entity_mut(self.entity);
 
-    /// Returns whether we're allowed to update this entity (to prevent two
-    /// clients in a shared world updating it twice), and acknowleges that
-    /// we WILL update it if it's true. Don't call this unless you actually
-    /// got an entity update that all other clients within render distance
-    /// will get too.
-    pub fn maybe_update(
-        &mut self,
-        entity: Entity,
-        id: &MinecraftEntityId,
-        entity_infos: &mut EntityInfos,
-    ) -> bool {
-        if Some(entity) == self.owner_entity {
-            // the owner of the entity is always allowed to update it
-            return true;
+        if Some(self.entity) == partial_entity_infos.owner_entity {
+            // if the entity owns this partial world, it's always allowed to update itself
+            (self.update)(&mut entity);
+            return;
         };
 
-        let this_client_updates_received = self.updates_received.get(id).copied();
+        let entity_id = *entity.get::<MinecraftEntityId>().unwrap();
 
-        let shared_updates_received = entity_infos.updates_received.get(&entity).copied();
+        let Some(updates_received) = entity.get_mut::<UpdatesReceived>() else {
+            // a client tried to update another client, which isn't allowed
+            return;
+        };
 
-        let can_update = this_client_updates_received == shared_updates_received;
+        let this_client_updates_received = partial_entity_infos
+            .updates_received
+            .get(&entity_id)
+            .copied();
+
+        let can_update = this_client_updates_received == Some(**updates_received);
         if can_update {
             let new_updates_received = this_client_updates_received.unwrap_or(0) + 1;
-            self.updates_received.insert(*id, new_updates_received);
-            entity_infos
+            partial_entity_infos
                 .updates_received
-                .insert(entity, new_updates_received);
-            true
-        } else {
-            false
+                .insert(entity_id, new_updates_received);
+
+            **entity.get_mut::<UpdatesReceived>().unwrap() = new_updates_received;
+
+            let mut entity = world.entity_mut(self.entity);
+            (self.update)(&mut entity);
         }
     }
 }
@@ -142,91 +171,15 @@ impl PartialEntityInfos {
 /// Things that are shared between all the partial worlds.
 #[derive(Resource, Default)]
 pub struct EntityInfos {
-    // in WeakEntityInfos, we have to use [`Entity`] since there *is* a chance of collision if
-    // we'd have used Minecraft entity IDs
-    /// The number of `PartialWorld`s that have this entity loaded.
-    /// (this is reference counting)
-    pub(crate) entity_reference_count: HashMap<Entity, usize>,
     /// An index of entities by their UUIDs
     pub(crate) entity_by_uuid: HashMap<Uuid, Entity>,
-
-    /// The canonical number of updates we've gotten for every entity.
-    pub updates_received: HashMap<Entity, u32>,
 }
 
 impl EntityInfos {
     pub fn new() -> Self {
         Self {
-            entity_reference_count: HashMap::default(),
             entity_by_uuid: HashMap::default(),
-            updates_received: HashMap::default(),
         }
-    }
-
-    /// Call this if a [`PartialEntityStorage`] just removed an entity.
-    ///
-    /// It'll decrease the reference count and remove the entity from the
-    /// storage if there's no more references to it.
-    ///
-    /// Returns whether the entity was removed.
-    pub fn remove_entity_if_unused(
-        &mut self,
-        entity: Entity,
-        uuid: Uuid,
-        chunk: ChunkPos,
-        world: &mut World,
-    ) -> bool {
-        if let Some(count) = self.entity_reference_count.get_mut(&entity) {
-            *count -= 1;
-            if *count == 0 {
-                self.entity_reference_count.remove(&entity);
-                return true;
-            }
-        } else {
-            warn!("Tried to remove entity but it was not found.");
-            return false;
-        }
-        if let Some(entities_in_chunk) = world.entities_by_chunk.get_mut(&chunk) {
-            if entities_in_chunk.remove(&entity) {
-                // remove the chunk if there's no entities in it anymore
-                if entities_in_chunk.is_empty() {
-                    world.entities_by_chunk.remove(&chunk);
-                }
-            } else {
-                warn!("Tried to remove entity from chunk {chunk:?} but the entity was not there.");
-            }
-        } else {
-            warn!("Tried to remove entity from chunk {chunk:?} but the chunk was not found.");
-        }
-        if self.entity_by_uuid.remove(&uuid).is_none() {
-            warn!("Tried to remove entity from uuid {uuid:?} but it was not found.");
-        }
-        if self.updates_received.remove(&entity).is_none() {
-            // if this happens it means we weren't tracking the updates_received for the
-            // client (bad)
-            warn!("Tried to remove entity from updates_received but it was not found.");
-        }
-        true
-    }
-
-    /// Whether the entity is in the shared storage. To check if a Minecraft
-    /// entity ID is in the storage, you'll have to use
-    /// [`PartialEntityInfo::limited_contains_id`].
-    #[inline]
-    pub fn contains_entity(&self, id: Entity) -> bool {
-        self.entity_reference_count.contains_key(&id)
-    }
-
-    /// Get an [`Entity`] by its UUID.
-    ///
-    /// If you want to get an entity by its protocol ID, use
-    /// [`PartialEntityInfos::entity_by_id`].
-    ///
-    /// Also note that if you're using a shared world (i.e. a client swarm),
-    /// this function might return the wrong entity if there's multiple
-    /// entities with the same uuid in different worlds.
-    pub fn entity_by_uuid(&self, uuid: &Uuid) -> Option<&Entity> {
-        self.entity_by_uuid.get(uuid)
     }
 }
 
@@ -263,28 +216,89 @@ fn update_entity_chunk_positions(
         }
     }
 }
+/// A component that lists all the local player entities that have this entity
+/// loaded. If this is empty, the entity will be removed from the ECS.
+#[derive(Component, Clone, Deref, DerefMut)]
+pub struct LoadedBy(pub HashSet<Entity>);
 
-pub fn remove_despawned_entities_from_indexes(
-    mut entity_infos: ResMut<EntityInfos>,
-    world_container: Res<WorldContainer>,
+/// A component that counts the number of times this entity has been modified.
+/// This is used for making sure two clients don't do the same relative update
+/// on an entity.
+///
+/// If an entity is local (i.e. it's a client/localplayer), this component
+/// should NOT be present in the entity.
+#[derive(Component, Debug, Deref, DerefMut)]
+pub struct UpdatesReceived(u32);
+
+pub fn add_updates_received(
+    mut commands: Commands,
     query: Query<
+        Entity,
         (
-            Entity,
-            &entity::EntityUuid,
-            &entity::Position,
-            &entity::WorldName,
+            Changed<MinecraftEntityId>,
+            (Without<UpdatesReceived>, Without<Local>),
         ),
-        &MaybeRemovedEntity,
     >,
 ) {
-    for (entity, uuid, position, world_name) in &query {
-        let world = world_container.get(world_name).unwrap();
-        entity_infos.remove_entity_if_unused(
-            entity,
-            **uuid,
-            (*position).into(),
-            world.write().deref_mut(),
-        );
+    for entity in query.iter() {
+        // entities always start with 1 update received
+        commands.entity(entity).insert(UpdatesReceived(1));
+    }
+}
+
+/// A marker component that signifies that this entity is "local" and shouldn't
+/// be updated by other clients.
+#[derive(Component)]
+pub struct Local;
+
+/// The [`UpdatesReceived`] component should never be on [`Local`] entities.
+/// This warns if an entity has both components.
+fn debug_detect_updates_received_on_local_entities(
+    query: Query<Entity, (With<Local>, With<UpdatesReceived>)>,
+) {
+    for entity in &query {
+        warn!("Entity {:?} has both Local and UpdatesReceived", entity);
+    }
+}
+
+/// Despawn entities that aren't being loaded by anything.
+fn remove_despawned_entities_from_indexes(
+    mut commands: Commands,
+    mut entity_infos: ResMut<EntityInfos>,
+    world_container: Res<WorldContainer>,
+    query: Query<(Entity, &EntityUuid, &Position, &WorldName, &LoadedBy), Changed<LoadedBy>>,
+) {
+    for (entity, uuid, position, world_name, loaded_by) in &query {
+        let world_lock = world_container.get(world_name).unwrap();
+        let mut world = world_lock.write();
+
+        // if the entity has no references left, despawn it
+        if !loaded_by.is_empty() {
+            continue;
+        }
+
+        // remove the entity from the chunk index
+        let chunk = ChunkPos::from(*position);
+        if let Some(entities_in_chunk) = world.entities_by_chunk.get_mut(&chunk) {
+            if entities_in_chunk.remove(&entity) {
+                // remove the chunk if there's no entities in it anymore
+                if entities_in_chunk.is_empty() {
+                    world.entities_by_chunk.remove(&chunk);
+                }
+            } else {
+                warn!("Tried to remove entity from chunk {chunk:?} but the entity was not there.");
+            }
+        } else {
+            warn!("Tried to remove entity from chunk {chunk:?} but the chunk was not found.");
+        }
+        // remove it from the uuid index
+        if entity_infos.entity_by_uuid.remove(&*uuid).is_none() {
+            warn!("Tried to remove entity {entity:?} from the uuid index but it was not there.");
+        }
+        // and now remove the entity from the ecs
+        commands.entity(entity).despawn();
+        debug!("Despawned entity {entity:?} because it was not loaded by anything.");
+        return;
     }
 }
 

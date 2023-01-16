@@ -8,6 +8,7 @@ use azalea_world::{
     EntityInfos, PartialWorld, World,
 };
 use bevy_ecs::{component::Component, query::Added, system::Query};
+use log::warn;
 use parking_lot::RwLock;
 use thiserror::Error;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -73,7 +74,6 @@ impl LocalPlayer {
         profile: GameProfile,
         packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
         world: Arc<RwLock<World>>,
-        entity_infos: &mut EntityInfos,
         tx: mpsc::UnboundedSender<Event>,
     ) -> Self {
         let client_information = ClientInformation::default();
@@ -90,7 +90,6 @@ impl LocalPlayer {
             partial_world: Arc::new(RwLock::new(PartialWorld::new(
                 client_information.view_distance.into(),
                 Some(entity),
-                entity_infos,
             ))),
             world_name: None,
 
@@ -129,6 +128,7 @@ pub fn update_in_loaded_chunk(
     mut commands: bevy_ecs::system::Commands,
     query: Query<(Entity, &LocalPlayer, &entity::Position)>,
 ) {
+    println!("update_in_loaded_chunk");
     for (entity, local_player, position) in &query {
         let player_chunk_pos = ChunkPos::from(position);
         let in_loaded_chunk = local_player

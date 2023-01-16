@@ -1,6 +1,7 @@
 use azalea_core::ResourceLocation;
 use bevy_ecs::system::Resource;
 use log::error;
+use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 use std::{
     collections::HashMap,
@@ -68,6 +69,7 @@ impl WorldContainer {
             let world = Arc::new(RwLock::new(World {
                 chunks: ChunkStorage::new(height, min_y),
                 entities_by_chunk: HashMap::new(),
+                entity_by_id: IntMap::default(),
             }));
             self.worlds.insert(name, Arc::downgrade(&world));
             world

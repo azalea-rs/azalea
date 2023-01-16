@@ -1,17 +1,24 @@
 use crate::{
-    entity::{self, Entity, MinecraftEntityId, WorldName},
+    entity::{self, Entity, EntityUuid, MinecraftEntityId, Position, WorldName},
+    entity_info::LoadedBy,
     ChunkStorage, EntityInfos, PartialChunkStorage, PartialEntityInfos, WorldContainer,
 };
 use azalea_core::ChunkPos;
 use bevy_ecs::{
     component::Component,
-    system::{Commands, Query},
+    prelude::Bundle,
+    query::{Changed, Without},
+    system::{Commands, Query, Res, ResMut},
 };
-use std::fmt::Formatter;
+use derive_more::{Deref, DerefMut};
+use log::{debug, error, info, warn};
+use nohash_hasher::IntMap;
+use parking_lot::RwLock;
 use std::{
     collections::{HashMap, HashSet},
     fmt::Debug,
 };
+use std::{fmt::Formatter, sync::Arc};
 
 /// PartialWorlds are usually owned by clients, and hold strong references to
 /// chunks and entities in [`WeakWorld`]s.
@@ -29,99 +36,111 @@ pub struct PartialWorld {
 }
 
 impl PartialWorld {
-    pub fn new(
-        chunk_radius: u32,
-        owner_entity: Option<Entity>,
-        entity_infos: &mut EntityInfos,
-    ) -> Self {
+    pub fn new(chunk_radius: u32, owner_entity: Option<Entity>) -> Self {
         PartialWorld {
             chunks: PartialChunkStorage::new(chunk_radius),
-            entity_infos: PartialEntityInfos::new(owner_entity, entity_infos),
+            entity_infos: PartialEntityInfos::new(owner_entity),
         }
     }
+}
 
-    /// Add an entity to the storage.
-    #[inline]
-    pub fn add_entity(
-        &mut self,
-        commands: &mut Commands,
-        bundle: impl bevy_ecs::bundle::Bundle,
-        entity_infos: &mut EntityInfos,
-        world: &mut World,
-        query: Query<(&entity::Position, &MinecraftEntityId, &entity::EntityUuid)>,
-        id_query: Query<&MinecraftEntityId>,
-    ) {
-        let mut entity_commands = commands.spawn(bundle);
-        let entity = entity_commands.id();
-        let (position, &id, uuid) = query.get(entity).unwrap();
-        let chunk_pos = ChunkPos::from(*position);
+/// Remove new entities that have the same id as an existing entity, and
+/// increase the reference counts.
+///
+/// This is the reason why spawning entities into the ECS when you get a spawn
+/// entity packet is okay. This system will make sure the new entity gets
+/// combined into the old one.
+pub fn deduplicate_entities(
+    mut commands: Commands,
+    mut query: Query<
+        (Entity, &MinecraftEntityId, &WorldName, &mut Position),
+        Changed<MinecraftEntityId>,
+    >,
+    mut id_query: Query<&MinecraftEntityId>,
+    mut loaded_by_query: Query<&mut LoadedBy>,
+    mut entity_infos: ResMut<EntityInfos>,
+    mut world_container: ResMut<WorldContainer>,
+) {
+    // if this entity already exists, remove it
+    for (entity, id, world_name, mut position) in query.iter_mut() {
+        let entity_chunk = ChunkPos::from(*position);
+        if let Some(world_lock) = world_container.get(world_name) {
+            let world = world_lock.write();
+            if let Some(entities_in_chunk) = world.entities_by_chunk.get(&entity_chunk) {
+                for other_entity in entities_in_chunk {
+                    // if it's the same entity, skip it
+                    if other_entity == &entity {
+                        continue;
+                    }
 
-        // check every entity in this entitys chunk to make sure it doesn't already
-        // exist there
-        if let Some(entities_in_chunk) = world.entities_by_chunk.get(&chunk_pos) {
-            for entity in entities_in_chunk {
-                if id_query.get(*entity).unwrap() == &id {
-                    // the entity is already in the world, so remove that extra entity we just made
-                    entity_commands.despawn();
-                    return;
+                    let other_entity_id = id_query
+                        .get(*other_entity)
+                        .expect("Entities should always have ids");
+                    if other_entity_id == id {
+                        // this entity already exists!!! remove the one we just added but increase
+                        // the reference count
+                        let new_loaded_by = loaded_by_query
+                            .get(entity)
+                            .expect("Entities should always have the LoadedBy component")
+                            .clone();
+                        let mut other_loaded_by = loaded_by_query
+                            .get_mut(*other_entity)
+                            .expect("Entities should always have the LoadedBy component");
+                        // merge them
+                        other_loaded_by.extend(new_loaded_by.iter());
+                        commands.entity(entity).despawn();
+                        info!(
+                            "Entity with id {id:?} already existed in the world, overwriting it with entity {entity:?}",
+                            id = id,
+                            entity = entity,
+                        );
+                        break;
+                    }
                 }
             }
-        }
-
-        let partial_entity_infos = &mut self.entity_infos;
-        partial_entity_infos.loaded_entity_ids.insert(id);
-
-        // add the entity to the indexes
-        world
-            .entities_by_chunk
-            .entry(chunk_pos)
-            .or_default()
-            .insert(entity);
-        entity_infos.entity_by_uuid.insert(**uuid, entity);
-        // set our updates_received to the shared updates_received, unless it's
-        // not there in which case set both to 1
-        if let Some(&shared_updates_received) = entity_infos.updates_received.get(&entity) {
-            // 0 means we're never tracking updates for this entity
-            if shared_updates_received != 0 || Some(entity) == partial_entity_infos.owner_entity {
-                partial_entity_infos
-                    .updates_received
-                    .insert(id, shared_updates_received);
-            }
         } else {
-            entity_infos.updates_received.insert(entity, 1);
-            partial_entity_infos.updates_received.insert(id, 1);
+            error!("Entity was inserted into a world that doesn't exist.")
         }
     }
 }
 
-/// A component marker signifying that the entity may have been removed from the
-/// world, but we're not entirely sure.
-#[derive(Component)]
-pub struct MaybeRemovedEntity;
-
-/// Clear all entities in a chunk. This will not clear them from the
-/// shared storage unless there are no other references to them.
-pub fn clear_entities_in_chunk(
-    commands: &mut Commands,
-    partial_entity_infos: &mut PartialEntityInfos,
-    chunk: &ChunkPos,
-    world_container: &WorldContainer,
-    world_name: &WorldName,
-    query: Query<&MinecraftEntityId>,
+pub fn update_uuid_index(
+    mut entity_infos: ResMut<EntityInfos>,
+    query: Query<(Entity, &EntityUuid), Changed<EntityUuid>>,
 ) {
-    let world_lock = world_container.get(world_name).unwrap();
-    let world = world_lock.read();
-
-    if let Some(entities) = world.entities_by_chunk.get(chunk).cloned() {
-        for &entity in &entities {
-            let id = query.get(entity).unwrap();
-            if partial_entity_infos.loaded_entity_ids.remove(id) {
-                // maybe remove it from the storage
-                commands.entity(entity).insert(MaybeRemovedEntity);
-            }
+    for (entity, &uuid) in query.iter() {
+        if let Some(old_entity) = entity_infos.entity_by_uuid.insert(*uuid, entity) {
+            warn!(
+                "Entity with UUID {uuid:?} ({old_entity:?}) already existed in the world, overwriting it with entity {entity:?}",
+                uuid = *uuid,
+            );
         }
     }
 }
+
+// /// Clear all entities in a chunk. This will not clear them from the
+// /// shared storage unless there are no other references to them.
+// pub fn clear_entities_in_chunk(
+//     mut commands: Commands,
+//     partial_entity_infos: &mut PartialEntityInfos,
+//     chunk: &ChunkPos,
+//     world_container: &WorldContainer,
+//     world_name: &WorldName,
+//     mut query: Query<(&MinecraftEntityId, &mut ReferenceCount)>,
+// ) {
+//     let world_lock = world_container.get(world_name).unwrap();
+//     let world = world_lock.read();
+
+//     if let Some(entities) = world.entities_by_chunk.get(chunk).cloned() {
+//         for &entity in &entities {
+//             let (id, mut reference_count) = query.get_mut(entity).unwrap();
+//             if partial_entity_infos.loaded_entity_ids.remove(id) {
+//                 // decrease the reference count
+//                 **reference_count -= 1;
+//             }
+//         }
+//     }
+// }
 
 /// A world where the chunks are stored as weak pointers. This is used for
 /// shared worlds.
@@ -131,6 +150,16 @@ pub struct World {
 
     /// An index of all the entities we know are in the chunks of the world
     pub entities_by_chunk: HashMap<ChunkPos, HashSet<Entity>>,
+
+    /// An index of Minecraft entity IDs to Azalea ECS entities.
+    pub entity_by_id: IntMap<MinecraftEntityId, Entity>,
+}
+
+impl World {
+    /// Get an ECS [`Entity`] from a Minecraft entity ID.
+    pub fn entity_by_id(&self, entity_id: &MinecraftEntityId) -> Option<Entity> {
+        self.entity_by_id.get(entity_id).copied()
+    }
 }
 
 impl Debug for PartialWorld {
@@ -152,5 +181,18 @@ impl Default for PartialWorld {
             chunks: chunk_storage,
             entity_infos: entity_storage,
         }
+    }
+}
+
+/// System to keep the entity_by_id index up-to-date.
+pub fn update_entity_by_id_index(
+    mut query: Query<(Entity, &MinecraftEntityId, &WorldName), Changed<MinecraftEntityId>>,
+    world_container: Res<WorldContainer>,
+) {
+    for (entity, id, world_name) in query.iter_mut() {
+        let world_lock = world_container.get(world_name).unwrap();
+        let mut world = world_lock.write();
+        world.entity_by_id.insert(*id, entity);
+        debug!("Added {entity:?} to {world_name:?} with {id:?}.");
     }
 }

@@ -1,4 +1,4 @@
-use std::{io::Cursor, sync::Arc};
+use std::{collections::HashSet, io::Cursor, sync::Arc};
 
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
@@ -17,7 +17,7 @@ use azalea_world::{
         set_rotation, Dead, EntityBundle, EntityKind, LastSentPosition, MinecraftEntityId, Physics,
         PlayerBundle, Position,
     },
-    EntityInfos, PartialWorld, WorldContainer,
+    EntityInfos, LoadedBy, PartialWorld, RelativeEntityUpdate, WorldContainer,
 };
 use bevy_app::{App, Plugin};
 use bevy_ecs::{
@@ -62,7 +62,7 @@ pub struct UpdatePlayerEvent(PlayerInfo);
 #[derive(Component, Clone)]
 pub struct PacketReceiver {
     pub packets: Arc<Mutex<Vec<ClientboundGamePacket>>>,
-    pub run_schedule_sender: mpsc::UnboundedSender<()>,
+    pub run_schedule_sender: mpsc::Sender<()>,
 }
 
 fn handle_packets(ecs: &mut bevy_ecs::world::World) {
@@ -167,7 +167,6 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                             // player entity
                             // in a shared world
                             Some(player_entity),
-                            &mut entity_infos,
                         );
                         local_player.world = weak_world;
 
@@ -403,24 +402,26 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                     partial_world.chunks.view_center = ChunkPos::new(p.x, p.z);
                 }
                 ClientboundGamePacket::LevelChunkWithLight(p) => {
-                    // debug!("Got chunk with light packet {} {}", p.x, p.z);
+                    debug!("Got chunk with light packet {} {}", p.x, p.z);
                     let pos = ChunkPos::new(p.x, p.z);
 
                     let mut system_state: SystemState<Query<&mut LocalPlayer>> =
                         SystemState::new(ecs);
                     let mut query = system_state.get_mut(ecs);
-                    let mut local_player = query.get_mut(player_entity).unwrap();
-
-                    let world = local_player.world.read();
-                    let partial_world = local_player.partial_world.read();
+                    let local_player = query.get_mut(player_entity).unwrap();
 
                     // OPTIMIZATION: if we already know about the chunk from the
                     // shared world (and not ourselves), then we don't need to
                     // parse it again. This is only used when we have a shared
                     // world, since we check that the chunk isn't currently owned
                     // by this client.
-                    let shared_has_chunk = world.chunks.get(&pos).is_some();
-                    let this_client_has_chunk = partial_world.chunks.limited_get(&pos).is_some();
+                    let shared_has_chunk = local_player.world.read().chunks.get(&pos).is_some();
+                    let this_client_has_chunk = local_player
+                        .partial_world
+                        .read()
+                        .chunks
+                        .limited_get(&pos)
+                        .is_some();
                     if shared_has_chunk && !this_client_has_chunk {
                         trace!(
                             "Skipping parsing chunk {:?} because we already know about it",
@@ -431,8 +432,8 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
 
                     // ok we're sure we're going to mutate the world, so get exclusive write
                     // access
-                    let mut partial_world = local_player.partial_world.write();
                     let mut world = local_player.world.write();
+                    let mut partial_world = local_player.partial_world.write();
 
                     if let Err(e) = partial_world.chunks.replace_with_packet_data(
                         &pos,
@@ -455,31 +456,37 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
 
                     if let Some(world_name) = &local_player.world_name {
                         let bundle = p.as_entity_bundle(world_name.clone());
-                        let mut entity_commands = commands.spawn((MinecraftEntityId(p.id), bundle));
+                        let mut entity_commands = commands.spawn((
+                            MinecraftEntityId(p.id),
+                            LoadedBy(HashSet::from([player_entity])),
+                            bundle,
+                        ));
                         // the bundle doesn't include the default entity metadata so we add that
                         // separately
                         p.apply_metadata(&mut entity_commands);
                     } else {
                         warn!("got add player packet but we haven't gotten a login packet yet");
                     }
+
+                    system_state.apply(ecs);
                 }
                 ClientboundGamePacket::SetEntityData(p) => {
                     debug!("Got set entity data packet {:?}", p);
 
                     let mut system_state: SystemState<(
                         Commands,
-                        Query<(&mut LocalPlayer, &EntityKind)>,
+                        Query<&mut LocalPlayer>,
+                        Query<&EntityKind>,
                     )> = SystemState::new(ecs);
-                    let (mut commands, mut query) = system_state.get_mut(ecs);
-                    let (mut local_player, entity_kind) = query.get_mut(player_entity).unwrap();
+                    let (mut commands, mut query, entity_kind_query) = system_state.get_mut(ecs);
+                    let local_player = query.get_mut(player_entity).unwrap();
 
-                    let partial_world = local_player.partial_world.write();
-                    let entity = partial_world
-                        .entity_infos
-                        .get_by_id(MinecraftEntityId(p.id));
-                    drop(partial_world);
+                    let world = local_player.world.read();
+                    let entity = world.entity_by_id(&MinecraftEntityId(p.id));
+                    drop(world);
 
                     if let Some(entity) = entity {
+                        let entity_kind = entity_kind_query.get(entity).unwrap();
                         let mut entity_commands = commands.entity(entity);
                         if let Err(e) = apply_metadata(
                             &mut entity_commands,
@@ -491,6 +498,8 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                     } else {
                         warn!("Server sent an entity data packet for an entity id ({}) that we don't know about", p.id);
                     }
+
+                    system_state.apply(ecs);
                 }
                 ClientboundGamePacket::UpdateAttributes(_p) => {
                     // debug!("Got update attributes packet {:?}", p);
@@ -513,10 +522,17 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
 
                     if let Some(world_name) = &local_player.world_name {
                         let bundle = p.as_player_bundle(world_name.clone());
-                        commands.spawn((MinecraftEntityId(p.id), bundle));
+                        let spawned = commands.spawn((
+                            MinecraftEntityId(p.id),
+                            LoadedBy(HashSet::from([player_entity])),
+                            bundle,
+                        ));
+                        println!("spawned player entity: {:?}", spawned.id());
                     } else {
                         warn!("got add player packet but we haven't gotten a login packet yet");
                     }
+
+                    system_state.apply(ecs);
                 }
                 ClientboundGamePacket::InitializeBorder(p) => {
                     debug!("Got initialize border packet {:?}", p);
@@ -547,18 +563,25 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                     debug!("Got set experience packet {:?}", p);
                 }
                 ClientboundGamePacket::TeleportEntity(p) => {
-                    let mut system_state: SystemState<Query<(&mut LocalPlayer, &mut Position)>> =
+                    let mut system_state: SystemState<(Commands, Query<&mut LocalPlayer>)> =
                         SystemState::new(ecs);
-                    let mut query = system_state.get_mut(ecs);
-                    let (mut local_player, mut position) = query.get_mut(player_entity).unwrap();
+                    let (mut commands, mut query) = system_state.get_mut(ecs);
+                    let local_player = query.get_mut(player_entity).unwrap();
 
-                    let partial_world = local_player.partial_world.read();
-                    let partial_entity_infos = &partial_world.entity_infos;
-                    let entity = partial_entity_infos.get_by_id(MinecraftEntityId(p.id));
-                    drop(partial_world);
+                    let world = local_player.world.read();
+                    let entity = world.entity_by_id(&MinecraftEntityId(p.id));
+                    drop(world);
 
                     if let Some(entity) = entity {
-                        **position = p.position;
+                        let mut new_position = p.position.clone();
+                        commands.add(RelativeEntityUpdate {
+                            entity,
+                            partial_world: local_player.partial_world.clone(),
+                            update: Box::new(move |entity| {
+                                let mut position = entity.get_mut::<Position>().unwrap();
+                                **position = new_position
+                            }),
+                        });
                     } else {
                         warn!("Got teleport entity packet for unknown entity id {}", p.id);
                     }
@@ -570,45 +593,64 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                     // debug!("Got rotate head packet {:?}", p);
                 }
                 ClientboundGamePacket::MoveEntityPos(p) => {
-                    let mut system_state: SystemState<Query<(&mut LocalPlayer, &mut Position)>> =
+                    let mut system_state: SystemState<(Commands, Query<&mut LocalPlayer>)> =
                         SystemState::new(ecs);
-                    let mut query = system_state.get_mut(ecs);
-                    let (mut local_player, mut position) = query.get_mut(player_entity).unwrap();
+                    let (mut commands, mut query) = system_state.get_mut(ecs);
+                    let local_player = query.get_mut(player_entity).unwrap();
 
-                    let partial_world = local_player.partial_world.read();
-                    let partial_entity_infos = &partial_world.entity_infos;
-                    let entity = partial_entity_infos.get_by_id(MinecraftEntityId(p.entity_id));
-                    drop(partial_world);
+                    let world = local_player.world.read();
+                    let entity = world.entity_by_id(&MinecraftEntityId(p.entity_id));
+                    drop(world);
 
                     if let Some(entity) = entity {
-                        **position = position.with_delta(&p.delta);
+                        let delta = p.delta.clone();
+                        commands.add(RelativeEntityUpdate {
+                            entity,
+                            partial_world: local_player.partial_world.clone(),
+                            update: Box::new(move |entity| {
+                                let mut position = entity.get_mut::<Position>().unwrap();
+                                **position = position.with_delta(&delta)
+                            }),
+                        });
                     } else {
                         warn!(
                             "Got move entity pos packet for unknown entity id {}",
                             p.entity_id
                         );
                     }
+
+                    system_state.apply(ecs);
                 }
                 ClientboundGamePacket::MoveEntityPosRot(p) => {
-                    let mut system_state: SystemState<Query<(&mut LocalPlayer, &mut Position)>> =
+                    let mut system_state: SystemState<(Commands, Query<&mut LocalPlayer>)> =
                         SystemState::new(ecs);
-                    let mut query = system_state.get_mut(ecs);
-                    let (mut local_player, mut position) = query.get_mut(player_entity).unwrap();
+                    let (mut commands, mut query) = system_state.get_mut(ecs);
+                    let local_player = query.get_mut(player_entity).unwrap();
 
-                    let partial_world = local_player.partial_world.read();
-                    let partial_entity_infos = &partial_world.entity_infos;
-                    let entity = partial_entity_infos.get_by_id(MinecraftEntityId(p.entity_id));
-                    drop(partial_world);
+                    let world = local_player.world.read();
+                    let entity = world.entity_by_id(&MinecraftEntityId(p.entity_id));
+                    drop(world);
 
                     if let Some(entity) = entity {
-                        **position = position.with_delta(&p.delta);
+                        let delta = p.delta.clone();
+                        commands.add(RelativeEntityUpdate {
+                            entity,
+                            partial_world: local_player.partial_world.clone(),
+                            update: Box::new(move |entity| {
+                                let mut position = entity.get_mut::<Position>().unwrap();
+                                **position = position.with_delta(&delta)
+                            }),
+                        });
                     } else {
                         warn!(
                             "Got move entity pos rot packet for unknown entity id {}",
                             p.entity_id
                         );
                     }
+
+                    system_state.apply(ecs);
                 }
+
                 ClientboundGamePacket::MoveEntityRot(_p) => {
                     // debug!("Got move entity rot packet {:?}", p);
                 }
@@ -618,7 +660,6 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                     let mut system_state: SystemState<Query<&mut LocalPlayer>> =
                         SystemState::new(ecs);
                     let mut query = system_state.get_mut(ecs);
-                    let mut local_player = query.get_mut(player_entity).unwrap();
 
                     let mut local_player = query.get_mut(player_entity).unwrap();
                     local_player.write_packet(ServerboundKeepAlivePacket { id: p.id }.get());
@@ -747,6 +788,8 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                             .send(Event::Death(Some(Arc::new(p.clone()))))
                             .unwrap();
                     }
+
+                    system_state.apply(ecs);
                 }
                 ClientboundGamePacket::PlayerLookAt(_) => {}
                 ClientboundGamePacket::RemoveMobEffect(_) => {}
@@ -759,6 +802,8 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
 
                     // Remove the Dead marker component from the player.
                     commands.entity(player_entity).remove::<Dead>();
+
+                    system_state.apply(ecs);
                 }
                 ClientboundGamePacket::SelectAdvancementsTab(_) => {}
                 ClientboundGamePacket::SetActionBarText(_) => {}
@@ -804,7 +849,7 @@ impl PacketReceiver {
         while let Ok(packet) = read_conn.read().await {
             self.packets.lock().push(packet);
             // tell the client to run all the systems
-            self.run_schedule_sender.send(()).unwrap();
+            self.run_schedule_sender.send(()).await.unwrap();
         }
     }
 

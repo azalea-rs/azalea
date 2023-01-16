@@ -32,7 +32,7 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{
-    entity::Entity, EntityInfos, EntityPlugin, PartialWorld, World, WorldContainer,
+    entity::Entity, EntityInfos, EntityPlugin, Local, PartialWorld, World, WorldContainer,
 };
 use bevy_app::App;
 use bevy_ecs::{
@@ -176,7 +176,7 @@ impl Client {
         let resolved_address = resolver::resolve_address(&address).await?;
 
         // An event that causes the schedule to run. This is only used internally.
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
+        let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
         let ecs_lock = start_ecs(run_schedule_receiver, run_schedule_sender.clone());
 
         {
@@ -201,7 +201,7 @@ impl Client {
         account: &Account,
         address: &ServerAddress,
         resolved_address: &SocketAddr,
-        run_schedule_sender: mpsc::UnboundedSender<()>,
+        run_schedule_sender: mpsc::Sender<()>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let conn = Connection::new(resolved_address).await?;
         let (conn, game_profile) = Self::handshake(conn, account, address).await?;
@@ -231,7 +231,6 @@ impl Client {
             // default to an empty world, it'll be set correctly later when we
             // get the login packet
             Arc::new(RwLock::new(World::default())),
-            ecs.resource_mut::<EntityInfos>().deref_mut(),
             tx,
         );
 
@@ -250,8 +249,12 @@ impl Client {
         local_player.tasks.push(read_packets_task);
         local_player.tasks.push(write_packets_task);
 
-        ecs.entity_mut(entity)
-            .insert((local_player, packet_receiver, PhysicsState::default()));
+        ecs.entity_mut(entity).insert((
+            local_player,
+            packet_receiver,
+            PhysicsState::default(),
+            Local,
+        ));
 
         // just start up the game loop and we're ready!
 
@@ -485,8 +488,8 @@ impl Client {
 
 #[doc(hidden)]
 pub fn start_ecs(
-    run_schedule_receiver: mpsc::UnboundedReceiver<()>,
-    run_schedule_sender: mpsc::UnboundedSender<()>,
+    run_schedule_receiver: mpsc::Receiver<()>,
+    run_schedule_sender: mpsc::Sender<()>,
 ) -> Arc<Mutex<bevy_ecs::world::World>> {
     // if you get an error right here that means you're doing something with locks
     // wrong read the error to see where the issue is
@@ -534,7 +537,7 @@ pub fn start_ecs(
 async fn run_schedule_loop(
     ecs: Arc<Mutex<bevy_ecs::world::World>>,
     mut schedule: Schedule,
-    mut run_schedule_receiver: mpsc::UnboundedReceiver<()>,
+    mut run_schedule_receiver: mpsc::Receiver<()>,
 ) {
     loop {
         // whenever we get an event from run_schedule_receiver, run the schedule
@@ -545,7 +548,7 @@ async fn run_schedule_loop(
 
 /// Send an event to run the schedule every 50 milliseconds. It will stop when
 /// the receiver is dropped.
-pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::UnboundedSender<()>) {
+pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::Sender<()>) {
     let mut game_tick_interval = time::interval(time::Duration::from_millis(50));
     // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
     game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
@@ -554,7 +557,7 @@ pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::UnboundedSender<(
 
     loop {
         game_tick_interval.tick().await;
-        if let Err(e) = run_schedule_sender.send(()) {
+        if let Err(e) = run_schedule_sender.send(()).await {
             println!("tick_run_schedule_loop error: {}", e);
             // the sender is closed so end the task
             return;
