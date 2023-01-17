@@ -4,6 +4,8 @@ use serde_json::json;
 use thiserror::Error;
 use uuid::Uuid;
 
+use crate::game_profile::GameProfile;
+
 #[derive(Debug, Error)]
 pub enum SessionServerError {
     #[error("Error sending HTTP request to sessionserver: {0}")]
@@ -87,4 +89,50 @@ pub async fn join(
             })
         }
     }
+}
+
+/// Ask Mojang's servers if the player joining is authenticated.
+/// Included in the reply is the player's skin and cape.
+/// The IP field is optional and equivalent to enabling
+/// 'prevent-proxy-connections' in server.properties
+pub async fn serverside_auth(
+    username: &String,
+    public_key: &[u8],
+    private_key: &[u8; 16],
+    ip: Option<&String>,
+) -> Result<GameProfile, SessionServerError> {
+    let hash = azalea_crypto::hex_digest(&azalea_crypto::digest_data(
+        "".as_bytes(),
+        public_key,
+        private_key,
+    ));
+
+    let mut url = format!("https://sessionserver.mojang.com/session/minecraft/hasJoined?username={username}&serverId={hash}");
+    if let Some(ip) = ip {
+        url = format!("{url}&ip={ip}");
+    }
+
+    let res = reqwest::get(url).await?;
+    match res.status() {
+        reqwest::StatusCode::OK => {}
+        reqwest::StatusCode::NO_CONTENT => {
+            return Err(SessionServerError::InvalidSession);
+        }
+        reqwest::StatusCode::FORBIDDEN => {
+            return Err(SessionServerError::Unknown(
+                res.json::<ForbiddenError>().await?.error,
+            ))
+        }
+        status_code => {
+            // log the headers
+            log::debug!("Error headers: {:#?}", res.headers());
+            let body = res.text().await?;
+            return Err(SessionServerError::UnexpectedResponse {
+                status_code: status_code.as_u16(),
+                body,
+            });
+        }
+    };
+
+    Ok(res.json::<GameProfile>().await?)
 }
