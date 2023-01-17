@@ -46,12 +46,16 @@ async fn swarm_handle(
 ) -> anyhow::Result<()> {
     match event {
         SwarmEvent::Tick => {
-            // choose an arbitrary player within render distance to target
-            if let Some(target) = swarm.worlds.read().entity_by(|_: &Player| true) {
+            if let Some(target_entity) =
+                swarm.entity_by::<Player>(|name: &Name| name == "Herobrine")
+            {
+                let target_bounding_box =
+                    swarm.map_entity(target_entity, |bb: &BoundingBox| bb.clone());
+
                 for (bot, bot_state) in swarm {
-                    bot.tick_goto_goal(pathfinder::Goals::Reach(target.bounding_box));
+                    bot.tick_goto_goal(pathfinder::Goals::Reach(target_bounding_box));
                     // if target.bounding_box.distance(bot.eyes) < bot.reach_distance() {
-                    if azalea::entities::can_reach(bot.entity(), target.bounding_box) {
+                    if azalea::entities::can_reach(bot.entity(), target_bounding_box) {
                         bot.swing();
                     }
                     if !bot.using_held_item() && bot.hunger() <= 17 {

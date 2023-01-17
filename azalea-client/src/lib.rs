@@ -13,6 +13,7 @@
 mod account;
 mod chat;
 mod client;
+mod entity_query;
 mod get_mc_dir;
 mod local_player;
 mod movement;
@@ -22,6 +23,7 @@ mod player;
 mod plugins;
 
 pub use account::Account;
+pub use bevy_ecs as ecs;
 pub use client::{start_ecs, ChatPacket, Client, ClientInformation, Event, JoinError};
 pub use local_player::LocalPlayer;
 pub use movement::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};

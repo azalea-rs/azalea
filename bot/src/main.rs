@@ -1,3 +1,4 @@
+use azalea::ecs::query::With;
 use azalea::entity::metadata::Player;
 use azalea::pathfinder::BlockPosGoal;
 // use azalea::ClientInformation;
@@ -92,13 +93,14 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                 return Ok(())
             };
             let mut ecs = bot.ecs.lock();
-            let entity = bot
-                .ecs
-                .lock()
-                .query::<&Player>()
-                .iter(&mut ecs)
-                .find(|e| e.name() == Some(sender));
-            // let entity = None;
+            // let entity = bot
+            //     .ecs
+            //     .lock()
+            //     .query::<&Player>()
+            //     .iter(&mut ecs)
+            //     .find(|e| e.name() == Some(sender));
+            // let entity = bot.entity_by::<With<Player>>(|name: &Name| name == sender);
+            let entity = bot.entity_by(|name: &Name| name == sender);
             if let Some(entity) = entity {
                 if m.content() == "goto" {
                     let target_pos_vec3 = entity.pos();
@@ -108,7 +110,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     let target_pos_vec3 = entity.pos();
                     let target_pos: BlockPos = target_pos_vec3.into();
                     println!("target_pos: {:?}", target_pos);
-                    bot.look_at(&target_pos.center());
+                    bot.look_at(target_pos.center());
                 } else if m.content() == "jump" {
                     bot.set_jumping(true);
                 } else if m.content() == "walk" {

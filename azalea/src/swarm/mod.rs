@@ -16,7 +16,7 @@ use log::error;
 use parking_lot::{Mutex, RwLock};
 use std::{future::Future, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
-use tokio::sync::mpsc::{self, UnboundedSender};
+use tokio::sync::mpsc;
 
 /// A helper macro that generates a [`SwarmPlugins`] struct from a list of
 /// objects that implement [`SwarmPlugin`].
@@ -57,10 +57,10 @@ pub struct Swarm<S> {
     /// Plugins that are set for new bots
     plugins: Plugins,
 
-    bots_tx: UnboundedSender<(Option<Event>, (Client, S))>,
-    swarm_tx: UnboundedSender<SwarmEvent>,
+    bots_tx: mpsc::UnboundedSender<(Option<Event>, (Client, S))>,
+    swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
 
-    run_schedule_sender: UnboundedSender<()>,
+    run_schedule_sender: mpsc::Sender<()>,
 }
 
 /// An event about something that doesn't have to do with a single bot.
@@ -239,7 +239,7 @@ pub async fn start_swarm<
     let (bots_tx, mut bots_rx) = mpsc::unbounded_channel();
     let (swarm_tx, mut swarm_rx) = mpsc::unbounded_channel();
 
-    let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
+    let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
     let ecs_lock = start_ecs(run_schedule_receiver, run_schedule_sender.clone());
 
     let mut swarm = Swarm {

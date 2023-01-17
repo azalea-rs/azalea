@@ -37,13 +37,14 @@ use azalea_world::{
 };
 use bevy_app::App;
 use bevy_ecs::{
-    query::WorldQuery,
+    query::{ReadOnlyWorldQuery, WorldQuery},
     schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
+    world::EntityRef,
 };
 use bevy_time::TimePlugin;
 use iyes_loopless::prelude::*;
 use log::{debug, error};
-use parking_lot::{Mutex, RwLock};
+use parking_lot::{Mutex, MutexGuard, RwLock};
 use std::{fmt::Debug, io, net::SocketAddr, ops::DerefMut, sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::{sync::mpsc, time};
@@ -475,16 +476,6 @@ impl Client {
         }
 
         Ok(())
-    }
-
-    /// A convenience function for getting components of our player's entity.
-    pub fn query<'w, Q: WorldQuery>(
-        &self,
-        ecs: &'w mut bevy_ecs::world::World,
-    ) -> <Q as WorldQuery>::Item<'w> {
-        ecs.query::<Q>()
-            .get_mut(ecs, self.entity)
-            .expect("Our client is missing a required component.")
     }
 }
 
