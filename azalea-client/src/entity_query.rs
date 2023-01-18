@@ -14,37 +14,37 @@ impl Client {
             .expect("Our client is missing a required component.")
     }
 
-    /// Return a lightweight [`Entity`] for the entity that matches the given
-    /// predicate function.
-    ///
-    /// You can then use [`Self::map_entity`] to get components from this
-    /// entity.
-    pub fn entity_by<'a, F: ReadOnlyWorldQuery, Q: ReadOnlyWorldQuery>(
-        &mut self,
-        mut predicate: impl EntityPredicate<'a, Q>,
-    ) -> Option<Entity> {
-        let mut ecs = self.ecs.lock();
-        let mut query = ecs.query_filtered::<(Entity, Q), F>();
-        let entity = query
-            .iter_mut(&mut ecs)
-            .find(|(_, q)| predicate.matches(q))
-            .map(|(entity, _)| entity);
-        entity
-    }
+    // /// Return a lightweight [`Entity`] for the entity that matches the given
+    // /// predicate function.
+    // ///
+    // /// You can then use [`Self::map_entity`] to get components from this
+    // /// entity.
+    // pub fn entity_by<'a, F: ReadOnlyWorldQuery, Q: ReadOnlyWorldQuery>(
+    //     &mut self,
+    //     mut predicate: impl EntityPredicate<'a, Q>,
+    // ) -> Option<Entity> {
+    //     let mut ecs = self.ecs.lock();
+    //     let mut query = ecs.query_filtered::<(Entity, Q), F>();
+    //     let entity = query
+    //         .iter_mut(&mut ecs)
+    //         .find(|(_, q)| predicate.matches(q))
+    //         .map(|(entity, _)| entity);
+    //     entity
+    // }
 }
 
 pub trait EntityPredicate<'a, Q: ReadOnlyWorldQuery> {
     fn matches(&self, components: &<Q as WorldQuery>::Item<'a>) -> bool;
 }
-impl<'a, F, Q> EntityPredicate<'a, Q> for F
-where
-    F: Fn(Q) -> bool,
-    Q: ReadOnlyWorldQuery,
-{
-    fn matches(&self, query: &<Q as WorldQuery>::Item<'a>) -> bool {
-        (self)(query)
-    }
-}
+// impl<'a, F, Q> EntityPredicate<'a, Q> for F
+// where
+//     F: Fn(Q) -> bool,
+//     Q: ReadOnlyWorldQuery,
+// {
+//     fn matches(&self, query: &<Q as WorldQuery>::Item<'a>) -> bool {
+//         (self)(query)
+//     }
+// }
 // impl<'a, F, Q1, Q2> EntityPredicate<'a, (Q1, Q2)> for F
 // where
 //     F: Fn(Q1, Q2) -> bool,

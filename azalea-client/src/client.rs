@@ -10,6 +10,7 @@ use crate::{
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::SessionServerError};
+use azalea_chat::FormattedText;
 use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
@@ -127,6 +128,8 @@ pub enum JoinError {
     InvalidAddress,
     #[error("Couldn't refresh access token: {0}")]
     Auth(#[from] azalea_auth::AuthError),
+    #[error("Disconnected: {reason}")]
+    Disconnect { reason: FormattedText },
 }
 
 impl Client {
@@ -368,6 +371,7 @@ impl Client {
                 }
                 ClientboundLoginPacket::LoginDisconnect(p) => {
                     debug!("Got disconnect {:?}", p);
+                    return Err(JoinError::Disconnect { reason: p.reason });
                 }
                 ClientboundLoginPacket::CustomQuery(p) => {
                     debug!("Got custom query {:?}", p);
