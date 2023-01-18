@@ -18,7 +18,7 @@ use std::marker::PhantomData;
 use std::net::SocketAddr;
 use thiserror::Error;
 use tokio::io::AsyncWriteExt;
-use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError};
 use tokio::net::TcpStream;
 use uuid::Uuid;
 
@@ -447,5 +447,10 @@ where
                 _writing: PhantomData,
             },
         }
+    }
+
+    /// Convert from a `Connection` into a `TcpStream`. Useful for servers.
+    pub fn unwrap(self) -> Result<TcpStream, ReuniteError> {
+        self.reader.read_stream.reunite(self.writer.write_stream)
     }
 }

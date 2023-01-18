@@ -125,7 +125,7 @@ impl<'de> Deserialize<'de> for GameProfile {
             }
         }
 
-        const FIELDS: &'static [&'static str] = &["id", "name", "properties"];
+        const FIELDS: &[&str] = &["id", "name", "properties"];
         deserializer.deserialize_struct("GameProfile", FIELDS, GameProfileVisitor)
     }
 }
