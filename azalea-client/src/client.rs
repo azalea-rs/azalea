@@ -1000,6 +1000,8 @@ impl Client {
             ClientboundGamePacket::DisguisedChat(_) => {}
             ClientboundGamePacket::UpdateEnabledFeatures(_) => {}
             ClientboundGamePacket::ContainerClose(_) => {}
+            ClientboundGamePacket::Bundle(_) => {}
+            ClientboundGamePacket::HurtAnimation(_) => {}
         }
 
         Ok(())
