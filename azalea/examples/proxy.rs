@@ -22,6 +22,7 @@ use azalea_protocol::{
 };
 use futures::FutureExt;
 use log::{error, info, warn};
+use once_cell::sync::Lazy;
 use std::error::Error;
 use tokio::{
     io::{self, AsyncWriteExt},
@@ -29,12 +30,34 @@ use tokio::{
 };
 use tracing::Level;
 
+const LISTEN_ADDR: &str = "127.0.0.1:25566";
+const PROXY_ADDR: &str = "127.0.0.1:25565";
+
+const PROXY_DESC: &str = "An Azalea Minecraft Proxy";
+
+// String must be formatted like "data:image/png;base64,<data>"
+const PROXY_FAVICON: Lazy<Option<String>> = Lazy::new(|| None);
+
+const PROXY_VERSION: Lazy<Version> = Lazy::new(|| Version {
+    name: String::from("1.19.3"),
+    protocol: 761,
+});
+
+const PROXY_PLAYERS: Players = Players {
+    max: 1,
+    online: 0,
+    sample: Vec::new(),
+};
+
+const PROXY_PREVIEWS_CHAT: Option<bool> = Some(false);
+const PROXY_SECURE_CHAT: Option<bool> = Some(false);
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
     // Bind to an address and port
-    let listener = TcpListener::bind("127.0.0.1:25566").await?;
+    let listener = TcpListener::bind(LISTEN_ADDR).await?;
     loop {
         // When a connection is made, pass it off to another thread
         let (stream, _) = listener.accept().await?;
@@ -54,16 +77,18 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
     let intent = match conn.read().await {
         Err(e) => {
             let e = e.into();
-            error!("{e}");
+            error!("Error during intent: {e}");
             return Err(e);
         }
-        Ok(p) => match p {
-            ServerboundHandshakePacket::ClientIntention(i) => {
+        Ok(packet) => match packet {
+            ServerboundHandshakePacket::ClientIntention(packet) => {
                 info!(
                     "New connection: {0}, Version {1}, {2:?}",
-                    ip, i.protocol_version, i.intention
+                    ip.ip(),
+                    packet.protocol_version,
+                    packet.intention
                 );
-                i
+                packet
             }
         },
     };
@@ -79,19 +104,12 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                         ServerboundStatusPacket::StatusRequest(_) => {
                             conn.write(
                                 ClientboundStatusResponsePacket {
-                                    description: String::from("An Azalea Minecraft Proxy").into(),
-                                    favicon: None,
-                                    players: Players {
-                                        max: 1,
-                                        online: 0,
-                                        sample: Vec::new(),
-                                    },
-                                    version: Version {
-                                        name: String::from("1.19.3"),
-                                        protocol: 761,
-                                    },
-                                    previews_chat: Some(false),
-                                    enforces_secure_chat: Some(false),
+                                    description: PROXY_DESC.into(),
+                                    favicon: PROXY_FAVICON.clone(),
+                                    players: PROXY_PLAYERS.clone(),
+                                    version: PROXY_VERSION.clone(),
+                                    previews_chat: PROXY_PREVIEWS_CHAT,
+                                    enforces_secure_chat: PROXY_SECURE_CHAT,
                                 }
                                 .get(),
                             )
@@ -130,19 +148,11 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                                 "".to_string()
                             };
                             info!("Player {0} logging in with uuid:{id}", hello.name);
-                            tokio::spawn(
-                                transfer(
-                                    conn.unwrap()?,
-                                    "127.0.0.1:25565".to_string(),
-                                    intent,
-                                    hello,
-                                )
-                                .map(|r| {
-                                    if let Err(e) = r {
-                                        error!("Failed to transfer; error={e}");
-                                    }
-                                }),
-                            );
+                            tokio::spawn(transfer(conn.unwrap()?, intent, hello).map(|r| {
+                                if let Err(e) = r {
+                                    error!("Failed to transfer; error={e}");
+                                }
+                            }));
                             break;
                         }
                         _ => {}
@@ -170,11 +180,10 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
 
 async fn transfer(
     mut inbound: TcpStream,
-    proxy_addr: String,
     intent: ClientIntentionPacket,
     hello: ServerboundHelloPacket,
 ) -> Result<(), Box<dyn Error>> {
-    let outbound = TcpStream::connect(proxy_addr).await?;
+    let outbound = TcpStream::connect(PROXY_ADDR).await?;
     let name = hello.name.clone();
     outbound.set_nodelay(true)?;
 
