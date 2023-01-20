@@ -1,5 +1,8 @@
+#![feature(type_alias_impl_trait)]
+
 use azalea::ecs::query::With;
 use azalea::entity::metadata::Player;
+use azalea::entity::Position;
 use azalea::pathfinder::BlockPosGoal;
 // use azalea::ClientInformation;
 use azalea::{prelude::*, BlockPos, Swarm, SwarmEvent, WalkDirection};
@@ -92,7 +95,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
             let Some(sender) = m.username() else {
                 return Ok(())
             };
-            let mut ecs = bot.ecs.lock();
+            // let mut ecs = bot.ecs.lock();
             // let entity = bot
             //     .ecs
             //     .lock()
@@ -100,27 +103,28 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
             //     .iter(&mut ecs)
             //     .find(|e| e.name() == Some(sender));
             // let entity = bot.entity_by::<With<Player>>(|name: &Name| name == sender);
-            let entity = bot.entity_by(|name: &Name| name == sender);
+            // let entity = bot.entity_by(|name: &Name| name == sender);
+            let entity = bot.entity_by::<With<Player>, (&Position,)>(|pos: &&Position| true);
             if let Some(entity) = entity {
-                if m.content() == "goto" {
-                    let target_pos_vec3 = entity.pos();
-                    let target_pos: BlockPos = target_pos_vec3.into();
-                    bot.goto(BlockPosGoal::from(target_pos));
-                } else if m.content() == "look" {
-                    let target_pos_vec3 = entity.pos();
-                    let target_pos: BlockPos = target_pos_vec3.into();
-                    println!("target_pos: {:?}", target_pos);
-                    bot.look_at(target_pos.center());
-                } else if m.content() == "jump" {
-                    bot.set_jumping(true);
-                } else if m.content() == "walk" {
-                    bot.walk(WalkDirection::Forward);
-                } else if m.content() == "stop" {
-                    bot.set_jumping(false);
-                    bot.walk(WalkDirection::None);
-                } else if m.content() == "lag" {
-                    std::thread::sleep(Duration::from_millis(1000));
-                }
+                // if m.content() == "goto" {
+                //     let target_pos_vec3 = entity.pos();
+                //     let target_pos: BlockPos = target_pos_vec3.into();
+                //     bot.goto(BlockPosGoal::from(target_pos));
+                // } else if m.content() == "look" {
+                //     let target_pos_vec3 = entity.pos();
+                //     let target_pos: BlockPos = target_pos_vec3.into();
+                //     println!("target_pos: {:?}", target_pos);
+                //     bot.look_at(target_pos.center());
+                // } else if m.content() == "jump" {
+                //     bot.set_jumping(true);
+                // } else if m.content() == "walk" {
+                //     bot.walk(WalkDirection::Forward);
+                // } else if m.content() == "stop" {
+                //     bot.set_jumping(false);
+                //     bot.walk(WalkDirection::None);
+                // } else if m.content() == "lag" {
+                //     std::thread::sleep(Duration::from_millis(1000));
+                // }
             }
         }
         Event::Death(_) => {

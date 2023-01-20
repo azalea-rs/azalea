@@ -1,5 +1,11 @@
+use std::sync::Arc;
+
 use azalea_world::entity::Entity;
-use bevy_ecs::query::{ReadOnlyWorldQuery, WorldQuery};
+use bevy_ecs::{
+    prelude::Component,
+    query::{QueryItem, ROQueryItem, ReadOnlyWorldQuery, WorldQuery},
+};
+use parking_lot::Mutex;
 
 use crate::Client;
 
@@ -14,44 +20,51 @@ impl Client {
             .expect("Our client is missing a required component.")
     }
 
-    // /// Return a lightweight [`Entity`] for the entity that matches the given
-    // /// predicate function.
-    // ///
-    // /// You can then use [`Self::map_entity`] to get components from this
-    // /// entity.
-    // pub fn entity_by<'a, F: ReadOnlyWorldQuery, Q: ReadOnlyWorldQuery>(
-    //     &mut self,
-    //     mut predicate: impl EntityPredicate<'a, Q>,
-    // ) -> Option<Entity> {
-    //     let mut ecs = self.ecs.lock();
-    //     let mut query = ecs.query_filtered::<(Entity, Q), F>();
-    //     let entity = query
-    //         .iter_mut(&mut ecs)
-    //         .find(|(_, q)| predicate.matches(q))
-    //         .map(|(entity, _)| entity);
-    //     entity
-    // }
+    /// Return a lightweight [`Entity`] for the entity that matches the given
+    /// predicate function.
+    ///
+    /// You can then use [`Self::map_entity`] to get components from this
+    /// entity.
+    pub fn entity_by<F: ReadOnlyWorldQuery, Q: ReadOnlyWorldQuery>(
+        &mut self,
+        predicate: impl EntityPredicate<Q, F>,
+    ) -> Option<Entity> {
+        predicate.find(self.ecs.clone())
+    }
 }
 
-pub trait EntityPredicate<'a, Q: ReadOnlyWorldQuery> {
-    fn matches(&self, components: &<Q as WorldQuery>::Item<'a>) -> bool;
+pub trait EntityPredicate<Q: ReadOnlyWorldQuery, Filter: ReadOnlyWorldQuery> {
+    fn find(&self, ecs_lock: Arc<Mutex<bevy_ecs::world::World>>) -> Option<Entity>;
 }
-// impl<'a, F, Q> EntityPredicate<'a, Q> for F
-// where
-//     F: Fn(Q) -> bool,
-//     Q: ReadOnlyWorldQuery,
-// {
-//     fn matches(&self, query: &<Q as WorldQuery>::Item<'a>) -> bool {
-//         (self)(query)
-//     }
-// }
+impl<'a, F, Q, Filter> EntityPredicate<(Q,), Filter> for F
+where
+    F: Fn(&ROQueryItem<Q>) -> bool,
+    Q: ReadOnlyWorldQuery,
+    Filter: ReadOnlyWorldQuery,
+{
+    fn find(&self, ecs_lock: Arc<Mutex<bevy_ecs::world::World>>) -> Option<Entity> {
+        let mut ecs = ecs_lock.lock();
+        let mut query = ecs.query_filtered::<(Entity, Q), Filter>();
+        let entity = query.iter(&ecs).find(|(_, q)| (self)(q)).map(|(e, _)| e);
+
+        entity.clone()
+    }
+}
+
 // impl<'a, F, Q1, Q2> EntityPredicate<'a, (Q1, Q2)> for F
 // where
-//     F: Fn(Q1, Q2) -> bool,
-//     Q1: WorldQuery<Item<'a> = Q1>,
-//     Q2: WorldQuery<Item<'a> = Q2>,
+//     F: Fn(&<Q1 as WorldQuery>::Item<'_>, &<Q2 as WorldQuery>::Item<'_>) ->
+// bool,     Q1: ReadOnlyWorldQuery,
+//     Q2: ReadOnlyWorldQuery,
 // {
-//     fn matches(&self, query: <(Q1, Q2) as WorldQuery>::Item<'_>) -> bool {
-//         (self)(query.0, query.1)
+//     fn find(&self, ecs: &mut bevy_ecs::world::World) -> Option<Entity> {
+//         // (self)(query)
+//         let mut query = ecs.query_filtered::<(Entity, Q1, Q2), ()>();
+//         let entity = query
+//             .iter(ecs)
+//             .find(|(_, q1, q2)| (self)(q1, q2))
+//             .map(|(e, _, _)| e);
+
+//         entity
 //     }
 // }
