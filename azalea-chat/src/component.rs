@@ -4,6 +4,7 @@ use crate::{
     text_component::TextComponent,
     translatable_component::{StringOrComponent, TranslatableComponent},
 };
+#[cfg(feature = "azalea-buf")]
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use log::debug;
 use once_cell::sync::Lazy;
@@ -266,6 +267,7 @@ impl<'de> Deserialize<'de> for Component {
     }
 }
 
+#[cfg(feature = "azalea-buf")]
 impl McBufReadable for Component {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let string = String::read_from(buf)?;
@@ -276,6 +278,7 @@ impl McBufReadable for Component {
     }
 }
 
+#[cfg(feature = "azalea-buf")]
 impl McBufWritable for Component {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let json = serde_json::to_string(self).unwrap();
