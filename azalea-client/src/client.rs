@@ -1,7 +1,7 @@
 pub use crate::chat::ChatPacket;
 use crate::{
     local_player::{
-        death_event, send_tick_event, update_in_loaded_chunk, LocalPlayer, PhysicsState,
+        death_event, send_tick_event, update_in_loaded_chunk, LocalPlayer, PhysicsState, GameProfileComponent,
     },
     movement::{local_player_ai_step, send_position, sprint_listener, walk_listener},
     packet_handling::{self, PacketHandlerPlugin},
@@ -232,7 +232,6 @@ impl Client {
 
         let mut local_player = crate::local_player::LocalPlayer::new(
             entity,
-            game_profile,
             packet_writer_sender,
             // default to an empty world, it'll be set correctly later when we
             // get the login packet
@@ -258,6 +257,7 @@ impl Client {
         ecs.entity_mut(entity).insert((
             local_player,
             packet_receiver,
+            GameProfileComponent(game_profile),
             PhysicsState::default(),
             Local,
         ));

@@ -8,6 +8,7 @@ use azalea_world::{
     EntityInfos, PartialWorld, World,
 };
 use bevy_ecs::{component::Component, query::Added, system::Query};
+use derive_more::{Deref, DerefMut};
 use log::warn;
 use parking_lot::RwLock;
 use thiserror::Error;
@@ -19,8 +20,6 @@ use crate::{ClientInformation, Event, PlayerInfo, WalkDirection};
 /// A player that you control that is currently in a Minecraft server.
 #[derive(Component)]
 pub struct LocalPlayer {
-    pub profile: GameProfile,
-
     pub packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
 
     pub client_information: ClientInformation,
@@ -59,6 +58,14 @@ pub struct PhysicsState {
     pub left_impulse: f32,
 }
 
+/// A component only present in players that contains the [`GameProfile`] (which
+/// you can use to get a player's name).
+///
+/// Note that it's possible for this to be missing in a player if the server
+/// never sent the player info for them (though this is uncommon).
+#[derive(Component, Clone, Debug, Deref, DerefMut)]
+pub struct GameProfileComponent(pub GameProfile);
+
 /// Marks a [`LocalPlayer`] that's in a loaded chunk. This is updated at the
 /// beginning of every tick.
 #[derive(Component)]
@@ -71,7 +78,6 @@ impl LocalPlayer {
     /// defaults, otherwise use [`Client::join`].
     pub fn new(
         entity: Entity,
-        profile: GameProfile,
         packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
         world: Arc<RwLock<World>>,
         tx: mpsc::UnboundedSender<Event>,
@@ -79,8 +85,6 @@ impl LocalPlayer {
         let client_information = ClientInformation::default();
 
         LocalPlayer {
-            profile,
-
             packet_writer,
 
             client_information: ClientInformation::default(),

@@ -25,11 +25,33 @@ impl Client {
     ///
     /// You can then use [`Self::map_entity`] to get components from this
     /// entity.
+    ///
+    /// # Example
+    /// Note that this will very likely change in the future.
+    /// ```
+    /// let entity = bot.entity_by::<With<Player>, (&GameProfileComponent,)>(
+    ///     |profile: &&GameProfileComponent| profile.name == sender,
+    /// );
+    /// if let Some(entity) = entity {
+    ///     let position = bot.entity_components::<Position>(entity);
+    /// }
+    /// ```
     pub fn entity_by<F: ReadOnlyWorldQuery, Q: ReadOnlyWorldQuery>(
         &mut self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Option<Entity> {
         predicate.find(self.ecs.clone())
+    }
+
+    /// Get a component from an entity. Note that this will return an owned type
+    /// (i.e. not a reference) so it may be expensive for larger types.
+    pub fn entity_components<Q: Component + Clone>(&mut self, entity: Entity) -> Q {
+        let mut ecs = self.ecs.lock();
+        let mut q = ecs.query::<&Q>();
+        let components = q
+            .get(&ecs, entity)
+            .expect("Entity components must be present in Client::entity)components.");
+        components.clone()
     }
 }
 

@@ -31,7 +31,10 @@ use log::{debug, error, trace, warn};
 use parking_lot::Mutex;
 use tokio::sync::mpsc;
 
-use crate::{local_player::LocalPlayer, ChatPacket, ClientInformation, Event, PlayerInfo};
+use crate::{
+    local_player::{GameProfileComponent, LocalPlayer},
+    ChatPacket, ClientInformation, Event, PlayerInfo,
+};
 
 pub struct PacketHandlerPlugin;
 
@@ -89,13 +92,13 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
 
                     let mut system_state: SystemState<(
                         Commands,
-                        Query<&mut LocalPlayer>,
+                        Query<(&mut LocalPlayer, &GameProfileComponent)>,
                         ResMut<WorldContainer>,
                         ResMut<EntityInfos>,
                     )> = SystemState::new(ecs);
                     let (mut commands, mut query, mut world_container, mut entity_infos) =
                         system_state.get_mut(ecs);
-                    let mut local_player = query.get_mut(player_entity).unwrap();
+                    let (mut local_player, game_profile) = query.get_mut(player_entity).unwrap();
 
                     {
                         // TODO: have registry_holder be a struct because this sucks rn
@@ -172,7 +175,7 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
 
                         let player_bundle = PlayerBundle {
                             entity: EntityBundle::new(
-                                local_player.profile.uuid,
+                                game_profile.uuid,
                                 Vec3::default(),
                                 azalea_registry::EntityKind::Player,
                                 world_name,
@@ -527,6 +530,7 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                             LoadedBy(HashSet::from([player_entity])),
                             bundle,
                         ));
+
                         println!("spawned player entity: {:?}", spawned.id());
                     } else {
                         warn!("got add player packet but we haven't gotten a login packet yet");

@@ -26,7 +26,7 @@ mod plugins;
 pub use account::Account;
 pub use bevy_ecs as ecs;
 pub use client::{start_ecs, ChatPacket, Client, ClientInformation, Event, JoinError};
-pub use local_player::LocalPlayer;
+pub use local_player::{GameProfileComponent, LocalPlayer};
 pub use movement::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
 pub use player::PlayerInfo;
 pub use plugins::{Plugin, PluginState, PluginStates, Plugins};

@@ -153,7 +153,7 @@ impl Client {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn chat(&self, message: &str) {
+    pub fn chat(&self, message: &str) {
         if let Some(command) = message.strip_prefix('/') {
             self.send_command_packet(command);
         } else {
