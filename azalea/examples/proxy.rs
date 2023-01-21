@@ -75,11 +75,6 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
     // This specifies whether the client is pinging
     // the server or is going to join the game.
     let intent = match conn.read().await {
-        Err(e) => {
-            let e = e.into();
-            error!("Error during intent: {e}");
-            return Err(e);
-        }
         Ok(packet) => match packet {
             ServerboundHandshakePacket::ClientIntention(packet) => {
                 info!(
@@ -91,6 +86,11 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                 packet
             }
         },
+        Err(e) => {
+            let e = e.into();
+            warn!("Error during intent: {e}");
+            return Err(e);
+        }
     };
 
     match intent.intention {
@@ -118,6 +118,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                         ServerboundStatusPacket::PingRequest(p) => {
                             conn.write(ClientboundPongResponsePacket { time: p.time }.get())
                                 .await?;
+                            break;
                         }
                     },
                     Err(e) => match *e {
@@ -125,7 +126,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                             break;
                         }
                         e => {
-                            error!("Error during status: {e}");
+                            warn!("Error during status: {e}");
                             return Err(e.into());
                         }
                     },
@@ -142,17 +143,22 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                 match conn.read().await {
                     Ok(p) => match p {
                         ServerboundLoginPacket::Hello(hello) => {
-                            let id = if let Some(id) = hello.profile_id {
-                                id.to_string()
-                            } else {
-                                "".to_string()
-                            };
-                            info!("Player {0} logging in with uuid:{id}", hello.name);
+                            info!(
+                                "Player \'{0}\' logging in with uuid: {1}",
+                                hello.name,
+                                if let Some(id) = hello.profile_id {
+                                    id.to_string()
+                                } else {
+                                    "".to_string()
+                                }
+                            );
+
                             tokio::spawn(transfer(conn.unwrap()?, intent, hello).map(|r| {
                                 if let Err(e) = r {
-                                    error!("Failed to transfer; error={e}");
+                                    error!("Failed to proxy: {e}");
                                 }
                             }));
+
                             break;
                         }
                         _ => {}
@@ -162,7 +168,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                             break;
                         }
                         e => {
-                            error!("Error during login: {e}");
+                            warn!("Error during login: {e}");
                             return Err(e.into());
                         }
                     },
@@ -170,8 +176,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
             }
         }
         _ => {
-            warn!("Client provided weird intent {intent:?}, closing connection");
-            return Ok(());
+            warn!("Client provided weird intent: {:?}", intent.intention);
         }
     }
 
