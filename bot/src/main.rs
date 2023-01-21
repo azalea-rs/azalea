@@ -53,23 +53,13 @@ async fn main() -> anyhow::Result<()> {
     }
 
     loop {
-        let e = azalea::start_swarm(azalea::SwarmOptions {
-            accounts: accounts.clone(),
-            address: "localhost",
-
-            states: states.clone(),
-            swarm_state: SwarmState::default(),
-
-            plugins: plugins![],
-            swarm_plugins: swarm_plugins![],
-
-            handle,
-            swarm_handle,
-
-            join_delay: Some(Duration::from_millis(1000)),
-            // join_delay: None,
-        })
-        .await;
+        let e = azalea::SwarmBuilder::new()
+            .add_accounts(accounts.clone())
+            .set_handler(handle)
+            .swarm_handle(swarm_handle)
+            .join_delay(Some(Duration::from_millis(1000)))
+            .start("localhost")
+            .await;
         println!("{e:?}");
     }
 }

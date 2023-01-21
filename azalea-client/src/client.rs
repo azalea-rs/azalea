@@ -1,7 +1,8 @@
 pub use crate::chat::ChatPacket;
 use crate::{
     local_player::{
-        death_event, send_tick_event, update_in_loaded_chunk, LocalPlayer, PhysicsState, GameProfileComponent,
+        death_event, send_tick_event, update_in_loaded_chunk, GameProfileComponent, LocalPlayer,
+        PhysicsState,
     },
     movement::{local_player_ai_step, send_position, sprint_listener, walk_listener},
     packet_handling::{self, PacketHandlerPlugin},
@@ -183,7 +184,7 @@ impl Client {
 
         // An event that causes the schedule to run. This is only used internally.
         let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
-        let ecs_lock = start_ecs(run_schedule_receiver, run_schedule_sender.clone());
+        let (ecs_lock, _app) = start_ecs(run_schedule_receiver, run_schedule_sender.clone());
 
         {
             let mut ecs = ecs_lock.lock();
@@ -487,7 +488,7 @@ impl Client {
 pub fn start_ecs(
     run_schedule_receiver: mpsc::Receiver<()>,
     run_schedule_sender: mpsc::Sender<()>,
-) -> Arc<Mutex<bevy_ecs::world::World>> {
+) -> (Arc<Mutex<bevy_ecs::world::World>>, App) {
     // if you get an error right here that means you're doing something with locks
     // wrong read the error to see where the issue is
     // you might be able to just drop the lock or put it in its own scope to fix
@@ -534,7 +535,7 @@ pub fn start_ecs(
     ));
     tokio::spawn(tick_run_schedule_loop(run_schedule_sender));
 
-    ecs
+    (ecs, app)
 }
 
 async fn run_schedule_loop(

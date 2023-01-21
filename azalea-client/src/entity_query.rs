@@ -3,7 +3,7 @@ use std::sync::Arc;
 use azalea_world::entity::Entity;
 use bevy_ecs::{
     prelude::Component,
-    query::{QueryItem, ROQueryItem, ReadOnlyWorldQuery, WorldQuery},
+    query::{ROQueryItem, ReadOnlyWorldQuery, WorldQuery},
 };
 use parking_lot::Mutex;
 

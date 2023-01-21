@@ -21,7 +21,6 @@ mod movement;
 pub mod packet_handling;
 pub mod ping;
 mod player;
-mod plugins;
 
 pub use account::Account;
 pub use bevy_ecs as ecs;
@@ -29,4 +28,3 @@ pub use client::{start_ecs, ChatPacket, Client, ClientInformation, Event, JoinEr
 pub use local_player::{GameProfileComponent, LocalPlayer};
 pub use movement::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
 pub use player::PlayerInfo;
-pub use plugins::{Plugin, PluginState, PluginStates, Plugins};

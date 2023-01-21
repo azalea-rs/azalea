@@ -166,8 +166,6 @@ impl Command for RelativeEntityUpdate {
     }
 }
 
-// TODO: optimization: switch out the `HashMap<Entity, _>`s for `IntMap`s
-
 /// Things that are shared between all the partial worlds.
 #[derive(Resource, Default)]
 pub struct EntityInfos {

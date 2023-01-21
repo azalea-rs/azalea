@@ -85,9 +85,10 @@ pub mod prelude;
 mod start;
 mod swarm;
 
-pub use azalea_block::*;
+pub use azalea_block as blocks;
 pub use azalea_client::*;
 pub use azalea_core::{BlockPos, Vec3};
+pub use azalea_protocol as protocol;
 pub use azalea_registry::EntityKind;
 pub use azalea_world::{entity, World};
 pub use start::{start, Options};
