@@ -144,8 +144,9 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                     Ok(p) => match p {
                         ServerboundLoginPacket::Hello(hello) => {
                             info!(
-                                "Player \'{0}\' logging in with uuid: {1}",
+                                "Player \'{0}\' from {1} logging in with uuid: {2}",
                                 hello.name,
+                                ip.ip(),
                                 if let Some(id) = hello.profile_id {
                                     id.to_string()
                                 } else {
@@ -219,7 +220,7 @@ async fn transfer(
     };
 
     tokio::try_join!(client_to_server, server_to_client)?;
-    info!("Player {name} left the game");
+    info!("Player \'{name}\' left the game");
 
     Ok(())
 }
