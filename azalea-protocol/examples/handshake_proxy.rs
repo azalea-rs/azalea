@@ -31,7 +31,7 @@ use tokio::{
 use tracing::Level;
 
 const LISTEN_ADDR: &str = "127.0.0.1:25566";
-const PROXY_ADDR: &str = "173.205.80.60:25565";
+const PROXY_ADDR: &str = "127.0.0.1:25565";
 
 const PROXY_DESC: &str = "An Azalea Minecraft Proxy";
 
