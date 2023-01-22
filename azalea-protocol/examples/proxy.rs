@@ -16,7 +16,7 @@ use azalea_protocol::{
             },
             ServerboundStatusPacket,
         },
-        ConnectionProtocol,
+        ConnectionProtocol, PROTOCOL_VERSION,
     },
     read::ReadPacketError,
 };
@@ -36,11 +36,11 @@ const PROXY_ADDR: &str = "127.0.0.1:25565";
 const PROXY_DESC: &str = "An Azalea Minecraft Proxy";
 
 // String must be formatted like "data:image/png;base64,<data>"
-const PROXY_FAVICON: Lazy<Option<String>> = Lazy::new(|| None);
+static PROXY_FAVICON: Lazy<Option<String>> = Lazy::new(|| None);
 
-const PROXY_VERSION: Lazy<Version> = Lazy::new(|| Version {
+static PROXY_VERSION: Lazy<Version> = Lazy::new(|| Version {
     name: String::from("1.19.3"),
-    protocol: 761,
+    protocol: PROTOCOL_VERSION as i32,
 });
 
 const PROXY_PLAYERS: Players = Players {
@@ -141,8 +141,8 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
             let mut conn = conn.login();
             loop {
                 match conn.read().await {
-                    Ok(p) => match p {
-                        ServerboundLoginPacket::Hello(hello) => {
+                    Ok(p) => {
+                        if let ServerboundLoginPacket::Hello(hello) = p {
                             info!(
                                 "Player \'{0}\' from {1} logging in with uuid: {2}",
                                 hello.name,
@@ -162,8 +162,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
 
                             break;
                         }
-                        _ => {}
-                    },
+                    }
                     Err(e) => match *e {
                         ReadPacketError::ConnectionClosed => {
                             break;

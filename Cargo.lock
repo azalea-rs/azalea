@@ -126,13 +126,10 @@ dependencies = [
  "log",
  "nohash-hasher",
  "num-traits",
- "once_cell",
  "parking_lot",
  "priority-queue",
  "thiserror",
  "tokio",
- "tracing",
- "tracing-subscriber",
  "uuid",
 ]
 
@@ -151,6 +148,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio",
+ "url",
  "uuid",
 ]
 
@@ -303,6 +301,7 @@ dependencies = [
 name = "azalea-protocol"
 version = "0.5.0"
 dependencies = [
+ "anyhow",
  "async-compression",
  "async-recursion",
  "azalea-auth",
@@ -322,11 +321,14 @@ dependencies = [
  "futures",
  "futures-util",
  "log",
+ "once_cell",
  "serde",
  "serde_json",
  "thiserror",
  "tokio",
  "tokio-util",
+ "tracing",
+ "tracing-subscriber",
  "trust-dns-resolver",
  "uuid",
 ]

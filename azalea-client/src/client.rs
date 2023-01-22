@@ -1,6 +1,6 @@
 pub use crate::chat::ChatPacket;
 use crate::{movement::WalkDirection, plugins::PluginStates, Account, PlayerInfo};
-use azalea_auth::{game_profile::GameProfile, sessionserver::SessionServerError};
+use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::Component;
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
@@ -141,7 +141,7 @@ pub enum JoinError {
     #[error("{0}")]
     Io(#[from] io::Error),
     #[error("{0}")]
-    SessionServer(#[from] azalea_auth::sessionserver::SessionServerError),
+    SessionServer(#[from] azalea_auth::sessionserver::ClientSessionServerError),
     #[error("The given address could not be parsed into a ServerAddress")]
     InvalidAddress,
     #[error("Couldn't refresh access token: {0}")]
@@ -315,8 +315,8 @@ impl Client {
                             }
                             if matches!(
                                 e,
-                                SessionServerError::InvalidSession
-                                    | SessionServerError::ForbiddenOperation
+                                ClientSessionServerError::InvalidSession
+                                    | ClientSessionServerError::ForbiddenOperation
                             ) {
                                 // uh oh, we got an invalid session and have
                                 // to reauthenticate now

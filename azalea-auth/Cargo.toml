@@ -20,7 +20,8 @@ serde_json = "1.0.86"
 thiserror = "1.0.37"
 tokio = {version = "1.23.1", features = ["fs"]}
 uuid = {version = "^1.1.2", features = ["serde"]}
+url = "^2.3.1"
 
 [dev-dependencies]
-env_logger = "0.9.1"
+env_logger = "0.9.3"
 tokio = {version = "1.23.1", features = ["full"]}

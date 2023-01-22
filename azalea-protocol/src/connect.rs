@@ -9,7 +9,7 @@ use crate::packets::ProtocolPacket;
 use crate::read::{read_packet, ReadPacketError};
 use crate::write::write_packet;
 use azalea_auth::game_profile::GameProfile;
-use azalea_auth::sessionserver::SessionServerError;
+use azalea_auth::sessionserver::{ClientSessionServerError, ServerSessionServerError};
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use bytes::BytesMut;
 use log::{error, info};
@@ -328,7 +328,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         uuid: &Uuid,
         private_key: [u8; 16],
         packet: &ClientboundHelloPacket,
-    ) -> Result<(), SessionServerError> {
+    ) -> Result<(), ClientSessionServerError> {
         azalea_auth::sessionserver::join(
             access_token,
             &packet.public_key,
@@ -355,19 +355,19 @@ impl Connection<ServerboundHandshakePacket, ClientboundHandshakePacket> {
 }
 
 impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
-    // /// Set our compression threshold, i.e. the maximum size that a packet is
-    // /// allowed to be without getting compressed. If you set it to less than 0
-    // /// then compression gets disabled.
-    // pub fn set_compression_threshold(&mut self, threshold: i32) {
-    //     // if you pass a threshold of less than 0, compression is disabled
-    //     if threshold >= 0 {
-    //         self.reader.compression_threshold = Some(threshold as u32);
-    //         self.writer.compression_threshold = Some(threshold as u32);
-    //     } else {
-    //         self.reader.compression_threshold = None;
-    //         self.writer.compression_threshold = None;
-    //     }
-    // }
+    /// Set our compression threshold, i.e. the maximum size that a packet is
+    /// allowed to be without getting compressed. If you set it to less than 0
+    /// then compression gets disabled.
+    pub fn set_compression_threshold(&mut self, threshold: i32) {
+        // if you pass a threshold of less than 0, compression is disabled
+        if threshold >= 0 {
+            self.reader.compression_threshold = Some(threshold as u32);
+            self.writer.compression_threshold = Some(threshold as u32);
+        } else {
+            self.reader.compression_threshold = None;
+            self.writer.compression_threshold = None;
+        }
+    }
 
     /// Set the encryption key that is used to encrypt and decrypt packets. It's
     /// the same for both reading and writing.
@@ -388,11 +388,11 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
     /// packet.
     pub async fn authenticate(
         &self,
-        username: &String,
+        username: &str,
         public_key: &[u8],
         private_key: &[u8; 16],
-        ip: Option<&String>,
-    ) -> Result<GameProfile, SessionServerError> {
+        ip: Option<&str>,
+    ) -> Result<GameProfile, ServerSessionServerError> {
         azalea_auth::sessionserver::serverside_auth(username, public_key, private_key, ip).await
     }
 }
