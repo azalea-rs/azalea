@@ -15,6 +15,7 @@ mod account;
 mod chat;
 mod client;
 mod entity_query;
+mod events;
 mod get_mc_dir;
 mod local_player;
 mod movement;
@@ -24,7 +25,8 @@ mod player;
 
 pub use account::Account;
 pub use bevy_ecs as ecs;
-pub use client::{start_ecs, ChatPacket, Client, ClientInformation, Event, JoinError};
+pub use client::{init_ecs_app, start_ecs, ChatPacket, Client, ClientInformation, JoinError};
+pub use events::Event;
 pub use local_player::{GameProfileComponent, LocalPlayer};
 pub use movement::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
 pub use player::PlayerInfo;

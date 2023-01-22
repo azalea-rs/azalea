@@ -1,12 +1,11 @@
 pub use crate::chat::ChatPacket;
 use crate::{
+    events::{Event, LocalPlayerEvents},
     local_player::{
-        death_event, send_tick_event, update_in_loaded_chunk, GameProfileComponent, LocalPlayer,
-        PhysicsState,
+        death_event, update_in_loaded_chunk, GameProfileComponent, LocalPlayer, PhysicsState,
     },
     movement::{local_player_ai_step, send_position, sprint_listener, walk_listener},
     packet_handling::{self, PacketHandlerPlugin},
-    plugins::PluginStates,
     Account, PlayerInfo, StartSprintEvent, StartWalkEvent,
 };
 
@@ -38,52 +37,16 @@ use azalea_world::{
     entity::Entity, EntityInfos, EntityPlugin, Local, PartialWorld, World, WorldContainer,
 };
 use bevy_app::App;
-use bevy_ecs::{
-    query::{ReadOnlyWorldQuery, WorldQuery},
-    schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
-    world::EntityRef,
-};
+use bevy_ecs::schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet};
 use bevy_time::TimePlugin;
 use iyes_loopless::prelude::*;
 use log::{debug, error};
-use parking_lot::{Mutex, MutexGuard, RwLock};
-use std::{fmt::Debug, io, net::SocketAddr, ops::DerefMut, sync::Arc, time::Duration};
+use parking_lot::{Mutex, RwLock};
+use std::{fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::{sync::mpsc, time};
 
 pub type ClientInformation = ServerboundClientInformationPacket;
-
-/// Something that happened in-game, such as a tick passing or chat message
-/// being sent.
-///
-/// Note: Events are sent before they're processed, so for example game ticks
-/// happen at the beginning of a tick before anything has happened.
-#[derive(Debug, Clone)]
-pub enum Event {
-    /// Happens right after the bot switches into the Game state, but before
-    /// it's actually spawned. This can be useful for setting the client
-    /// information with `Client::set_client_information`, so the packet
-    /// doesn't have to be sent twice.
-    Init,
-    /// The client is now in the world. Fired when we receive a login packet.
-    Login,
-    /// A chat message was sent in the game chat.
-    Chat(ChatPacket),
-    /// Happens 20 times per second, but only when the world is loaded.
-    Tick,
-    Packet(Arc<ClientboundGamePacket>),
-    /// A player joined the game (or more specifically, was added to the tab
-    /// list).
-    AddPlayer(PlayerInfo),
-    /// A player left the game (or maybe is still in the game and was just
-    /// removed from the tab list).
-    RemovePlayer(PlayerInfo),
-    /// A player was updated in the tab list (gamemode, display
-    /// name, or latency changed).
-    UpdatePlayer(PlayerInfo),
-    /// The client player died in-game.
-    Death(Option<Arc<ClientboundPlayerCombatKillPacket>>),
-}
 
 /// Client has the things that a user interacting with the library will want.
 /// Things that a player in the world will want to know are in [`LocalPlayer`].
@@ -100,11 +63,6 @@ pub struct Client {
     pub entity: Entity,
     /// The world that this client is in.
     pub world: Arc<RwLock<PartialWorld>>,
-
-    /// Plugins are a way for other crates to add custom functionality to the
-    /// client and keep state. If you're not making a plugin and you're using
-    /// the `azalea` crate. you can ignore this field.
-    pub plugins: Arc<PluginStates>,
 
     /// The entity component system. You probably don't need to access this
     /// directly. Note that if you're using a shared world (i.e. a swarm), this
@@ -147,9 +105,6 @@ impl Client {
             // default our id to 0, it'll be set later
             entity,
             world: Arc::new(RwLock::new(PartialWorld::default())),
-            // The plugins can be modified by the user by replacing the plugins
-            // field right after this. No Mutex so the user doesn't need to .lock().
-            plugins: Arc::new(PluginStates::default()),
 
             ecs,
         }
@@ -184,12 +139,8 @@ impl Client {
 
         // An event that causes the schedule to run. This is only used internally.
         let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
-        let (ecs_lock, _app) = start_ecs(run_schedule_receiver, run_schedule_sender.clone());
-
-        {
-            let mut ecs = ecs_lock.lock();
-            ecs.init_resource::<EntityInfos>();
-        }
+        let app = init_ecs_app();
+        let ecs_lock = start_ecs(app, run_schedule_receiver, run_schedule_sender.clone());
 
         Self::start_client(
             ecs_lock,
@@ -237,7 +188,6 @@ impl Client {
             // default to an empty world, it'll be set correctly later when we
             // get the login packet
             Arc::new(RwLock::new(World::default())),
-            tx,
         );
 
         // start receiving packets
@@ -261,6 +211,7 @@ impl Client {
             GameProfileComponent(game_profile),
             PhysicsState::default(),
             Local,
+            LocalPlayerEvents(tx),
         ));
 
         // just start up the game loop and we're ready!
@@ -484,11 +435,16 @@ impl Client {
     }
 }
 
+/// Create the [`App`]. This won't actually run anything yet.
+///
+/// Note that you usually only need this if you're creating a client manually,
+/// otherwise use [`Client::join`].
+///
+/// Use [`start_ecs`] to actually start running the app and then
+/// [`Client::start_client`] to add a client to the ECS and make it join a
+/// server.
 #[doc(hidden)]
-pub fn start_ecs(
-    run_schedule_receiver: mpsc::Receiver<()>,
-    run_schedule_sender: mpsc::Sender<()>,
-) -> (Arc<Mutex<bevy_ecs::world::World>>, App) {
+pub fn init_ecs_app() -> App {
     // if you get an error right here that means you're doing something with locks
     // wrong read the error to see where the issue is
     // you might be able to just drop the lock or put it in its own scope to fix
@@ -511,8 +467,7 @@ pub fn start_ecs(
                 local_player_ai_step
                     .before("ai_step")
                     .after("sprint_listener"),
-            )
-            .with_system(send_tick_event),
+            ),
     );
 
     // fire the Death event when the player dies.
@@ -523,7 +478,19 @@ pub fn start_ecs(
     app.add_plugin(TimePlugin); // from bevy_time
 
     app.init_resource::<WorldContainer>();
+    app.init_resource::<EntityInfos>();
 
+    app
+}
+
+/// Start running the ECS loop! You must create your `App` from [`init_ecs_app`]
+/// first.
+#[doc(hidden)]
+pub fn start_ecs(
+    app: App,
+    run_schedule_receiver: mpsc::Receiver<()>,
+    run_schedule_sender: mpsc::Sender<()>,
+) -> Arc<Mutex<bevy_ecs::world::World>> {
     // all resources should have been added by now so we can take the ecs from the
     // app
     let ecs = Arc::new(Mutex::new(app.world));
@@ -535,7 +502,7 @@ pub fn start_ecs(
     ));
     tokio::spawn(tick_run_schedule_loop(run_schedule_sender));
 
-    (ecs, app)
+    ecs
 }
 
 async fn run_schedule_loop(

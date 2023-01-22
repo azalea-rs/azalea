@@ -5,17 +5,16 @@ use azalea_core::{ChunkPos, ResourceLocation};
 use azalea_protocol::packets::game::ServerboundGamePacket;
 use azalea_world::{
     entity::{self, Dead, Entity},
-    EntityInfos, PartialWorld, World,
+    PartialWorld, World,
 };
 use bevy_ecs::{component::Component, query::Added, system::Query};
 use derive_more::{Deref, DerefMut};
-use log::warn;
 use parking_lot::RwLock;
 use thiserror::Error;
 use tokio::{sync::mpsc, task::JoinHandle};
 use uuid::Uuid;
 
-use crate::{ClientInformation, Event, PlayerInfo, WalkDirection};
+use crate::{events::{Event, LocalPlayerEvents}, ClientInformation, PlayerInfo, WalkDirection};
 
 /// A player that you control that is currently in a Minecraft server.
 #[derive(Component)]
@@ -33,8 +32,6 @@ pub struct LocalPlayer {
     /// world. (Only relevant if you're using a shared world, i.e. a swarm)
     pub world: Arc<RwLock<World>>,
     pub world_name: Option<ResourceLocation>,
-
-    pub tx: mpsc::UnboundedSender<Event>,
 
     /// A list of async tasks that are running and will stop running when this
     /// LocalPlayer is dropped or disconnected with [`Self::disconnect`]
@@ -80,7 +77,6 @@ impl LocalPlayer {
         entity: Entity,
         packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
         world: Arc<RwLock<World>>,
-        tx: mpsc::UnboundedSender<Event>,
     ) -> Self {
         let client_information = ClientInformation::default();
 
@@ -96,8 +92,6 @@ impl LocalPlayer {
                 Some(entity),
             ))),
             world_name: None,
-
-            tx,
 
             tasks: Vec::new(),
         }
@@ -118,12 +112,6 @@ impl LocalPlayer {
         for task in self.tasks.iter() {
             task.abort();
         }
-    }
-}
-
-pub fn send_tick_event(query: Query<&LocalPlayer>) {
-    for local_player in &query {
-        local_player.tx.send(Event::Tick).unwrap();
     }
 }
 
@@ -149,9 +137,9 @@ pub fn update_in_loaded_chunk(
 }
 
 /// Send the "Death" event for [`LocalPlayer`]s that died with no reason.
-pub fn death_event(query: Query<&LocalPlayer, Added<Dead>>) {
-    for local_player in &query {
-        local_player.tx.send(Event::Death(None)).unwrap();
+pub fn death_event(query: Query<&LocalPlayerEvents, Added<Dead>>) {
+    for local_player_events in &query {
+        local_player_events.send(Event::Death(None)).unwrap();
     }
 }
 

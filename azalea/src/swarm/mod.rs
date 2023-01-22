@@ -1,16 +1,16 @@
 /// Swarms are a way to conveniently control many bots.
 mod chat;
-mod plugins;
 
-pub use self::plugins::*;
 use crate::HandleFn;
-use azalea_client::{start_ecs, Account, ChatPacket, Client, Event, JoinError};
+use azalea_client::{init_ecs_app, start_ecs, Account, ChatPacket, Client, Event, JoinError};
 use azalea_protocol::{
     connect::ConnectionError,
     resolver::{self, ResolverError},
     ServerAddress,
 };
 use azalea_world::WorldContainer;
+use bevy_app::Plugin;
+use bevy_ecs::system::Resource;
 use futures::future::join_all;
 use log::error;
 use parking_lot::{Mutex, RwLock};
@@ -27,25 +27,23 @@ use tokio::sync::mpsc;
 /// It's used to make the [`Swarm::add`] function work.
 ///
 /// [`azalea::start_swarm`]: fn.start_swarm.html
-#[derive(Clone)]
-pub struct Swarm<S> {
-    bot_datas: Arc<Mutex<Vec<(Client, S)>>>,
-
+#[derive(Clone, Resource)]
+pub struct Swarm {
+    pub ecs: Arc<Mutex<bevy_ecs::world::World>>,
+    // bot_datas: Arc<Mutex<Vec<(Client, S)>>>,
     resolved_address: SocketAddr,
     address: ServerAddress,
     pub world_container: Arc<RwLock<WorldContainer>>,
     pub ecs_lock: Arc<Mutex<bevy_ecs::world::World>>,
-    /// Plugins that are set for new bots
-    plugins: Plugins,
 
-    bots_tx: mpsc::UnboundedSender<(Option<Event>, (Client, S))>,
+    bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
     swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
 
     run_schedule_sender: mpsc::Sender<()>,
 }
 
 /// Create a new [`Swarm`].
-pub struct SwarmBuilder<S, SS, A, Fut, SwarmFut>
+pub struct SwarmBuilder<S, SS, Fut, SwarmFut>
 where
     Fut: Future<Output = Result<(), anyhow::Error>>,
     SwarmFut: Future<Output = Result<(), anyhow::Error>>,
@@ -61,10 +59,10 @@ where
     /// The state for the overall swarm.
     swarm_state: SS,
     /// The function that's called every time a bot receives an [`Event`].
-    handler: HandleFn<Fut, S>,
+    handler: Option<HandleFn<Fut, S>>,
     /// The function that's called every time the swarm receives a
     /// [`SwarmEvent`].
-    swarm_handler: SwarmHandleFn<SwarmFut, S, SS>,
+    swarm_handler: Option<SwarmHandleFn<SwarmFut, SS>>,
 
     /// How long we should wait between each bot joining the server. Set to
     /// None to have every bot connect at the same time. None is different than
@@ -72,19 +70,25 @@ where
     /// the previous one to be ready.
     join_delay: Option<std::time::Duration>,
 }
-impl SwarmBuilder<S>
+impl<S, SS, Fut, SwarmFut> SwarmBuilder<S, SS, Fut, SwarmFut>
 where
+    Fut: Future<Output = Result<(), anyhow::Error>>,
+    SwarmFut: Future<Output = Result<(), anyhow::Error>>,
     S: Default + Send + Sync + Clone + 'static,
     SS: Default + Send + Sync + Clone + 'static,
 {
     /// Start creating the swarm.
     pub fn new() -> Self {
         Self {
+            // we create the app here so plugins can add onto it.
+            // the schedules won't run until [`Self::start`] is called.
+            app: init_ecs_app(),
+
             accounts: Vec::new(),
             states: Vec::new(),
             swarm_state: SS::default(),
-            handler: |_, _, _| {},
-            swarm_handler: |_, _, _| {},
+            handler: None,
+            swarm_handler: None,
             join_delay: None,
         }
     }
@@ -104,30 +108,42 @@ where
     ///
     /// This will make the state for this client be the default, use
     /// [`Self::add_account_with_state`] to avoid that.
-    pub fn add_account(&mut self, account: Vec<Account>) {
+    pub fn add_account(&mut self, account: Account) {
         self.accounts.push(account);
         self.states.push(S::default());
     }
     /// Add an account with a custom initial state. Use just
     /// [`Self::add_account`] to use the Default implementation for the state.
-    pub fn add_account_with_state(&mut self, account: Vec<Account>, state: S) {
-        self.accounts.push(accounts);
+    pub fn add_account_with_state(&mut self, account: Account, state: S) {
+        self.accounts.push(account);
         self.states.push(state);
     }
 
     /// Set the function that's called every time a bot receives an [`Event`].
     /// This is the way to handle normal per-bot events.
+    ///
+    /// You can only have one client handler, calling this again will replace
+    /// the old client handler function (you can have a client handler and swarm
+    /// handler separately though).
     pub fn set_handler(&mut self, handler: HandleFn<Fut, S>) {
-        self.handler = handler;
+        self.handler = Some(handler);
     }
     /// Set the function that's called every time the swarm receives a
     /// [`SwarmEvent`]. This is the way to handle global swarm events.
-    pub fn set_swarm_handler(&mut self, handler: SwarmHandleFn<SwarmFut, S, SS>) {
-        self.swarm_handler = handler;
+    ///
+    /// You can only have one swarm handler, calling this again will replace
+    /// the old swarm handler function (you can have a client handler and swarm
+    /// handler separately though).
+    pub fn set_swarm_handler(&mut self, handler: SwarmHandleFn<SwarmFut, SS>) {
+        self.swarm_handler = Some(handler);
     }
 
     /// TODO: write plugin docs probably here
-    fn add_plugin(&mut self) {}
+    /// 
+    /// notes: ECS entities might not be Minecraft entities, filter by MinecraftEntityId to make sure
+    fn add_plugin<T: Plugin>(&mut self, plugin: T) {
+        self.app.add_plugin(plugin);
+    }
 
     /// Build this `SwarmBuilder` into an actual [`Swarm`] and join the given
     /// server.
@@ -136,15 +152,15 @@ where
     /// that implements `TryInto<ServerAddress>`.
     ///
     /// [`ServerAddress`]: azalea_protocol::ServerAddress
-    pub async fn start(self, address: TryInto<ServerAddress>) {
+    pub async fn start(self, address: impl TryInto<ServerAddress>)  -> Result<(), SwarmStartError>{
         assert_eq!(
-            options.accounts.len(),
-            options.states.len(),
+            self.accounts.len(),
+            self.states.len(),
             "There must be exactly one state per bot."
         );
 
         // convert the TryInto<ServerAddress> into a ServerAddress
-        let address: ServerAddress = match options.address.try_into() {
+        let address: ServerAddress = match address.try_into() {
             Ok(address) => address,
             Err(_) => return Err(SwarmStartError::InvalidAddress),
         };
@@ -154,22 +170,18 @@ where
 
         let world_container = Arc::new(RwLock::new(WorldContainer::default()));
 
-        let plugins = options.plugins;
-
         // we can't modify the swarm plugins after this
         let (bots_tx, mut bots_rx) = mpsc::unbounded_channel();
         let (swarm_tx, mut swarm_rx) = mpsc::unbounded_channel();
 
         let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
-        let ecs_lock = start_ecs(run_schedule_receiver, run_schedule_sender.clone());
+        let ecs_lock = start_ecs(self.app, run_schedule_receiver, run_schedule_sender.clone());
 
         let mut swarm = Swarm {
-            bot_datas: Arc::new(Mutex::new(Vec::new())),
-
+            // bot_datas: Arc::new(Mutex::new(Vec::new())),
             resolved_address,
             address,
             world_container,
-            plugins,
 
             bots_tx,
 
@@ -178,21 +190,15 @@ where
             ecs_lock,
             run_schedule_sender,
         };
+        self.app.insert_resource(swarm.clone());
 
-        {
-            // the chat plugin is hacky and needs the swarm to be passed like this
-            let (chat_swarm_state, chat_tx) = chat::SwarmState::new(swarm.clone());
-            swarm.plugins.add(chat::Plugin {
-                swarm_state: chat_swarm_state,
-                tx: chat_tx,
-            });
-        }
+        swarm.plugins.add(chat::Plugin);
 
         let mut swarm_clone = swarm.clone();
         let join_task = tokio::spawn(async move {
-            if let Some(join_delay) = options.join_delay {
+            if let Some(join_delay) = self.join_delay {
                 // if there's a join delay, then join one by one
-                for (account, state) in options.accounts.iter().zip(options.states) {
+                for (account, state) in self.accounts.iter().zip(self.states) {
                     swarm_clone
                         .add_with_exponential_backoff(account, state.clone())
                         .await;
@@ -200,7 +206,7 @@ where
                 }
             } else {
                 let swarm_borrow = &swarm_clone;
-                join_all(options.accounts.iter().zip(options.states).map(
+                join_all(self.accounts.iter().zip(self.states).map(
                     async move |(account, state)| -> Result<(), JoinError> {
                         swarm_borrow
                             .clone()
@@ -213,14 +219,14 @@ where
             }
         });
 
-        let swarm_state = options.swarm_state;
+        let swarm_state = self.swarm_state;
         let mut internal_state = InternalSwarmState::default();
 
         // Watch swarm_rx and send those events to the swarm_handle.
         let swarm_clone = swarm.clone();
         tokio::spawn(async move {
             while let Some(event) = swarm_rx.recv().await {
-                tokio::spawn((options.swarm_handle)(
+                tokio::spawn((self.swarm_handle)(
                     swarm_clone.clone(),
                     event,
                     swarm_state.clone(),
@@ -242,7 +248,7 @@ where
                 }
                 _ => {}
             }
-            tokio::spawn((options.handle)(bot, event, state));
+            tokio::spawn((self.handle)(bot, event, state));
         }
 
         join_task.abort();
@@ -268,7 +274,7 @@ pub enum SwarmEvent {
     Chat(ChatPacket),
 }
 
-pub type SwarmHandleFn<Fut, S, SS> = fn(Swarm<S>, SwarmEvent, SS) -> Fut;
+pub type SwarmHandleFn<Fut, SS> = fn(Swarm, SwarmEvent, SS) -> Fut;
 
 #[derive(Error, Debug)]
 pub enum SwarmStartError {
@@ -363,13 +369,10 @@ pub enum SwarmStartError {
 // ) -> Result<(), SwarmStartError> {
 // }
 
-impl<S> Swarm<S>
-where
-    S: Send + Sync + Clone + 'static,
-{
+impl Swarm {
     /// Add a new account to the swarm. You can remove it later by calling
     /// [`Client::disconnect`].
-    pub async fn add(&mut self, account: &Account, state: S) -> Result<Client, JoinError> {
+    pub async fn add<S: Clone>(&mut self, account: &Account, state: S) -> Result<Client, JoinError> {
         // tx is moved to the bot so it can send us events
         // rx is used to receive events from the bot
         // An event that causes the schedule to run. This is only used internally.
@@ -388,7 +391,6 @@ where
         let cloned_bot = bot.clone();
         let cloned_state = state.clone();
         let owned_account = account.clone();
-        let bot_datas = self.bot_datas.clone();
         let swarm_tx = self.swarm_tx.clone();
         // send the init event immediately so it's the first thing we get
         swarm_tx.send(SwarmEvent::Init).unwrap();
@@ -402,20 +404,11 @@ where
                     error!("Error sending event to swarm: {e}");
                 }
             }
-            // the bot disconnected, so we remove it from the swarm
-            let mut bot_datas = bot_datas.lock();
-            let index = bot_datas
-                .iter()
-                .position(|(b, _)| b.profile.uuid == cloned_bot.profile.uuid)
-                .expect("bot disconnected but not found in swarm");
-            bot_datas.remove(index);
-
             swarm_tx
                 .send(SwarmEvent::Disconnect(owned_account))
                 .unwrap();
         });
 
-        self.bot_datas.lock().push((bot.clone(), state.clone()));
 
         Ok(bot)
     }
@@ -443,7 +436,7 @@ where
     }
 }
 
-impl<S> IntoIterator for Swarm<S>
+impl IntoIterator for Swarm
 where
     S: Send + Sync + Clone + 'static,
 {
@@ -458,7 +451,8 @@ where
     /// }
     /// ```
     fn into_iter(self) -> Self::IntoIter {
-        self.bot_datas.lock().clone().into_iter()
+        self.
+        // self.bot_datas.lock().clone().into_iter()
     }
 }
 

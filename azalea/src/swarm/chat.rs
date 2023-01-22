@@ -15,165 +15,168 @@
 
 use crate::{Swarm, SwarmEvent};
 use async_trait::async_trait;
-use azalea_client::{ChatPacket, Client, Event};
+use azalea_client::{packet_handling::ChatReceivedEvent, ChatPacket, Client, Event, LocalPlayer};
+use bevy_ecs::{
+    prelude::{Component, Entity, EventReader, EventWriter},
+    query::{Added, Without},
+    schedule::SystemSet,
+    system::{Commands, Query, Res, ResMut, Resource},
+};
 use parking_lot::Mutex;
 use std::{collections::VecDeque, sync::Arc};
-use tokio::sync::broadcast::{Receiver, Sender};
+use tokio::sync::broadcast;
 
 #[derive(Clone)]
-pub struct Plugin {
-    pub swarm_state: SwarmState,
-    pub tx: Sender<ChatPacket>,
-}
-
-impl crate::Plugin for Plugin {
-    type State = State;
-
-    fn build(&self) -> State {
-        State {
-            chat_index: Arc::new(Mutex::new(0)),
-            swarm_state: self.swarm_state.clone(),
-            tx: self.tx.clone(),
-        }
+pub struct Plugin;
+impl bevy_app::Plugin for Plugin {
+    fn build(&self, app: &mut bevy_app::App) {
+        app.add_system(chat_listener)
+            .add_system(add_default_client_state)
+            .add_system(update_min_index_and_shrink_queue)
+            .insert_resource(GlobalChatState {
+                chat_queue: VecDeque::new(),
+                chat_min_index: 0,
+            });
     }
 }
 
-#[derive(Clone)]
-pub struct State {
-    pub chat_index: Arc<Mutex<usize>>,
-    pub tx: Sender<ChatPacket>,
-    pub swarm_state: SwarmState,
+/// Add a `ClientChatState` when a new client is added to the world.
+fn add_default_client_state(
+    mut commands: Commands,
+    query: Query<Entity, (Added<LocalPlayer>, Without<ClientChatState>)>,
+    global_chat_state: Res<GlobalChatState>,
+) {
+    for entity in query.iter() {
+        commands.entity(entity).insert(ClientChatState {
+            chat_index: global_chat_state.chat_min_index,
+        });
+    }
 }
 
-#[derive(Clone)]
-pub struct SwarmState {
-    pub chat_queue: Arc<Mutex<VecDeque<ChatPacket>>>,
-    pub chat_min_index: Arc<Mutex<usize>>,
-    pub rx: Arc<tokio::sync::Mutex<Receiver<ChatPacket>>>,
+#[derive(Component)]
+pub struct ClientChatState {
+    pub chat_index: usize,
 }
 
-impl State {
-    pub fn handle_chat(&self, message: ChatPacket) {
-        // When a bot receives a chat messages, it looks into the queue to find the
-        // earliest instance of the message content that's after the bot's chat index.
-        // If it finds it, then its personal index is simply updated. Otherwise, fire
-        // the event and add to the queue.
+/// A chat message that no other bots have seen yet was received by a bot.
+pub struct NewChatMessageEvent(ChatPacket);
 
-        let mut chat_queue = self.swarm_state.chat_queue.lock();
-        let chat_min_index = self.swarm_state.chat_min_index.lock();
-        let mut chat_index = self.chat_index.lock();
+#[derive(Resource)]
+pub struct GlobalChatState {
+    pub chat_queue: VecDeque<ChatPacket>,
+    pub chat_min_index: usize,
+}
 
-        if *chat_min_index > *chat_index {
-            // if this happens it's because this bot just logged in, so
-            // ignore it and let another bot handle it
-            println!("chat_min_index ({chat_min_index}) > chat_index ({chat_index})");
-            *chat_index = *chat_min_index;
-            return;
-        }
-        let actual_vec_index = *chat_index - *chat_min_index;
+fn chat_listener(
+    query: Query<&ClientChatState>,
+    events: EventReader<ChatReceivedEvent>,
+    mut global_chat_state: ResMut<GlobalChatState>,
+    new_chat_messages_events: EventWriter<NewChatMessageEvent>,
+) {
+    for event in events.iter() {
+        if let Ok(client_chat_state) = query.get(event.entity) {
+            // When a bot receives a chat messages, it looks into the queue to find the
+            // earliest instance of the message content that's after the bot's chat index.
+            // If it finds it, then its personal index is simply updated. Otherwise, fire
+            // the event and add to the queue.
 
-        // go through the queue and find the first message that's after the bot's index
-        let mut found = false;
-        for (i, past_message) in chat_queue.iter().enumerate().skip(actual_vec_index) {
-            if past_message == &message {
-                // found the message, update the index
-                *chat_index = i + *chat_min_index + 1;
-                found = true;
-                break;
+            if global_chat_state.chat_min_index > client_chat_state.chat_index {
+                // if this happens it's because this bot just logged in, so
+                // ignore it and let another bot handle it
+                println!(
+                    "chat_min_index ({}) > chat_index ({})",
+                    global_chat_state.chat_min_index, client_chat_state.chat_index
+                );
+                client_chat_state.chat_index = global_chat_state.chat_min_index;
+                return;
+            }
+            let actual_vec_index = client_chat_state.chat_index - global_chat_state.chat_min_index;
+
+            // go through the queue and find the first message that's after the bot's index
+            let mut found = false;
+            for (i, past_message) in global_chat_state
+                .chat_queue
+                .iter()
+                .enumerate()
+                .skip(actual_vec_index)
+            {
+                if past_message == &event.packet {
+                    // found the message, update the index
+                    client_chat_state.chat_index = i + global_chat_state.chat_min_index + 1;
+                    found = true;
+                    break;
+                }
+            }
+
+            if !found {
+                // didn't find the message, so fire the swarm event and add to the queue
+                new_chat_messages_events.send(NewChatMessageEvent(event.packet.clone()));
+                global_chat_state.chat_queue.push_back(event.packet);
+                client_chat_state.chat_index =
+                    global_chat_state.chat_queue.len() + global_chat_state.chat_min_index;
             }
         }
-
-        if !found {
-            // didn't find the message, so fire the swarm event and add to the queue
-            self.tx
-                .send(message.clone())
-                .expect("failed to send chat message to swarm");
-            chat_queue.push_back(message);
-            *chat_index = chat_queue.len() + *chat_min_index;
-        }
     }
 }
 
-#[async_trait]
-impl crate::PluginState for State {
-    async fn handle(self: Box<Self>, event: Event, _bot: Client) {
-        // we're allowed to access Plugin::swarm_state since it's shared for every bot
-        if let Event::Chat(m) = event {
-            self.handle_chat(m);
-        }
-    }
-}
+// impl GlobalChatState {
+//     async fn start<S>(self, swarm: Swarm)
+//     where
+//         S: Send + Sync + Clone + 'static,
+//     {
+//         // it should never be locked unless we reused the same plugin for two
+// swarms         // (bad)
+//         let mut rx = self.rx.lock().await;
+//         while let Ok(m) = rx.recv().await {
+//             swarm.swarm_tx.send(SwarmEvent::Chat(m)).unwrap();
+//             let bot_states = swarm
+//                 .bot_datas
+//                 .lock()
+//                 .iter()
+//                 .map(|(bot, _)| {
+//                     bot.plugins
+//                         .get::<ClientChatState>()
+//                         .expect("Chat plugin not installed")
+//                         .clone()
+//                 })
+//                 .collect::<Vec<_>>();
+//             self.handle_new_chat_message(&bot_states);
+//         }
+//     }
+// }
 
-impl SwarmState {
-    pub fn new<S>(swarm: Swarm<S>) -> (Self, Sender<ChatPacket>)
-    where
-        S: Send + Sync + Clone + 'static,
-    {
-        let (tx, rx) = tokio::sync::broadcast::channel(1);
-
-        let swarm_state = SwarmState {
-            chat_queue: Arc::new(Mutex::new(VecDeque::new())),
-            chat_min_index: Arc::new(Mutex::new(0)),
-            rx: Arc::new(tokio::sync::Mutex::new(rx)),
-        };
-        tokio::spawn(swarm_state.clone().start(swarm));
-
-        (swarm_state, tx)
-    }
-    async fn start<S>(self, swarm: Swarm<S>)
-    where
-        S: Send + Sync + Clone + 'static,
-    {
-        // it should never be locked unless we reused the same plugin for two swarms
-        // (bad)
-        let mut rx = self.rx.lock().await;
-        while let Ok(m) = rx.recv().await {
-            swarm.swarm_tx.send(SwarmEvent::Chat(m)).unwrap();
-            let bot_states = swarm
-                .bot_datas
-                .lock()
-                .iter()
-                .map(|(bot, _)| {
-                    bot.plugins
-                        .get::<State>()
-                        .expect("Chat plugin not installed")
-                        .clone()
-                })
-                .collect::<Vec<_>>();
-            self.handle_new_chat_message(&bot_states);
-        }
-    }
-}
-
-impl SwarmState {
-    pub fn handle_new_chat_message(&self, bot_states: &[State]) {
+fn update_min_index_and_shrink_queue(
+    query: Query<&ClientChatState>,
+    mut global_chat_state: ResMut<GlobalChatState>,
+    events: EventReader<NewChatMessageEvent>,
+) {
+    for event in events.iter() {
         // To make sure the queue doesn't grow too large, we keep a `chat_min_index`
         // in Swarm that's set to the smallest index of all the bots, and we remove all
         // messages from the queue that are before that index.
 
-        let chat_min_index = *self.chat_min_index.lock();
         let mut new_chat_min_index = usize::MAX;
-        for bot_state in bot_states {
-            let this_chat_index = *bot_state.chat_index.lock();
+        for client_chat_state in query.iter() {
+            let this_chat_index = client_chat_state.chat_index;
             if this_chat_index < new_chat_min_index {
                 new_chat_min_index = this_chat_index;
             }
         }
 
-        let mut chat_queue = self.chat_queue.lock();
-        if chat_min_index > new_chat_min_index {
+        if global_chat_state.chat_min_index > new_chat_min_index {
             println!(
-                "chat_min_index ({chat_min_index}) > new_chat_min_index ({new_chat_min_index})"
+                "chat_min_index ({chat_min_index}) > new_chat_min_index ({new_chat_min_index})",
+                chat_min_index = global_chat_state.chat_min_index,
             );
             return;
         }
         // remove all messages from the queue that are before the min index
-        for _ in 0..(new_chat_min_index - chat_min_index) {
-            chat_queue.pop_front();
+        for _ in 0..(new_chat_min_index - global_chat_state.chat_min_index) {
+            global_chat_state.chat_queue.pop_front();
         }
 
         // update the min index
-        *self.chat_min_index.lock() = new_chat_min_index;
+        self.chat_min_index = new_chat_min_index;
     }
 }
 
@@ -184,18 +187,18 @@ mod tests {
     #[tokio::test]
     async fn test_swarm_chat() {
         let (tx, mut rx) = tokio::sync::broadcast::channel(1);
-        let swarm_state = SwarmState {
+        let swarm_state = GlobalChatState {
             chat_queue: Arc::new(Mutex::new(VecDeque::new())),
             chat_min_index: Arc::new(Mutex::new(0)),
             rx: Arc::new(tokio::sync::Mutex::new(rx)),
         };
         let mut bot_states = vec![];
-        let bot0 = State {
+        let bot0 = ClientChatState {
             swarm_state: swarm_state.clone(),
             chat_index: Arc::new(Mutex::new(0)),
             tx: tx.clone(),
         };
-        let bot1 = State {
+        let bot1 = ClientChatState {
             swarm_state: swarm_state.clone(),
             chat_index: Arc::new(Mutex::new(0)),
             tx: tx.clone(),
@@ -234,13 +237,13 @@ mod tests {
     #[tokio::test]
     async fn test_new_bot() {
         let (tx, mut rx) = tokio::sync::broadcast::channel(1);
-        let swarm_state = SwarmState {
+        let swarm_state = GlobalChatState {
             chat_queue: Arc::new(Mutex::new(VecDeque::new())),
             chat_min_index: Arc::new(Mutex::new(0)),
             rx: Arc::new(tokio::sync::Mutex::new(rx)),
         };
         let mut bot_states = vec![];
-        let bot0 = State {
+        let bot0 = ClientChatState {
             swarm_state: swarm_state.clone(),
             chat_index: Arc::new(Mutex::new(0)),
             tx: tx.clone(),
@@ -254,7 +257,7 @@ mod tests {
             Ok(ChatPacket::new("a"))
         );
         // now a second bot joined and got a different chat message
-        let bot1 = State {
+        let bot1 = ClientChatState {
             swarm_state: swarm_state.clone(),
             chat_index: Arc::new(Mutex::new(0)),
             tx: tx.clone(),

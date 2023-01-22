@@ -1,24 +1,20 @@
 use crate::{
-    entity::{self, Entity, EntityUuid, MinecraftEntityId, Position, WorldName},
+    entity::{Entity, EntityUuid, MinecraftEntityId, Position, WorldName},
     entity_info::LoadedBy,
     ChunkStorage, EntityInfos, PartialChunkStorage, PartialEntityInfos, WorldContainer,
 };
 use azalea_core::ChunkPos;
 use bevy_ecs::{
-    component::Component,
-    prelude::Bundle,
-    query::{Changed, Without},
+    query::Changed,
     system::{Commands, Query, Res, ResMut},
 };
-use derive_more::{Deref, DerefMut};
 use log::{debug, error, info, warn};
 use nohash_hasher::IntMap;
-use parking_lot::RwLock;
+use std::fmt::Formatter;
 use std::{
     collections::{HashMap, HashSet},
     fmt::Debug,
 };
-use std::{fmt::Formatter, sync::Arc};
 
 /// PartialWorlds are usually owned by clients, and hold strong references to
 /// chunks and entities in [`WeakWorld`]s.
@@ -53,16 +49,15 @@ impl PartialWorld {
 pub fn deduplicate_entities(
     mut commands: Commands,
     mut query: Query<
-        (Entity, &MinecraftEntityId, &WorldName, &mut Position),
+        (Entity, &MinecraftEntityId, &WorldName, &Position),
         Changed<MinecraftEntityId>,
     >,
-    mut id_query: Query<&MinecraftEntityId>,
+    id_query: Query<&MinecraftEntityId>,
     mut loaded_by_query: Query<&mut LoadedBy>,
-    mut entity_infos: ResMut<EntityInfos>,
-    mut world_container: ResMut<WorldContainer>,
+    world_container: Res<WorldContainer>,
 ) {
     // if this entity already exists, remove it
-    for (entity, id, world_name, mut position) in query.iter_mut() {
+    for (entity, id, world_name, position) in query.iter_mut() {
         let entity_chunk = ChunkPos::from(*position);
         if let Some(world_lock) = world_container.get(world_name) {
             let world = world_lock.write();

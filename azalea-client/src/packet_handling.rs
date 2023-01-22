@@ -4,6 +4,7 @@ use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
     packets::game::{
+        clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
         serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
         serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
         serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
@@ -22,10 +23,10 @@ use azalea_world::{
 use bevy_app::{App, Plugin};
 use bevy_ecs::{
     component::Component,
-    prelude::Entity,
+    prelude::{Entity, EventWriter},
     query::Changed,
     schedule::{IntoSystemDescriptor, SystemSet},
-    system::{Commands, Query, Res, ResMut, SystemState},
+    system::{Commands, Query, ResMut, SystemState},
 };
 use log::{debug, error, trace, warn};
 use parking_lot::Mutex;
@@ -47,19 +48,46 @@ impl Plugin for PacketHandlerPlugin {
         )
         .add_event::<AddPlayerEvent>()
         .add_event::<RemovePlayerEvent>()
-        .add_event::<UpdatePlayerEvent>();
+        .add_event::<UpdatePlayerEvent>()
+        .add_event::<ChatReceivedEvent>();
     }
 }
 
 /// A player joined the game (or more specifically, was added to the tab
-/// list).
-pub struct AddPlayerEvent(PlayerInfo);
+/// list of a local player).
+pub struct AddPlayerEvent {
+    /// The local player entity that received this event.
+    pub entity: Entity,
+    pub info: PlayerInfo,
+}
 /// A player left the game (or maybe is still in the game and was just
-/// removed from the tab list).
-pub struct RemovePlayerEvent(PlayerInfo);
-/// A player was updated in the tab list (gamemode, display
+/// removed from the tab list of a local player).
+pub struct RemovePlayerEvent {
+    /// The local player entity that received this event.
+    pub entity: Entity,
+    pub info: PlayerInfo,
+}
+/// A player was updated in the tab list of a local player (gamemode, display
 /// name, or latency changed).
-pub struct UpdatePlayerEvent(PlayerInfo);
+pub struct UpdatePlayerEvent {
+    /// The local player entity that received this event.
+    pub entity: Entity,
+    pub info: PlayerInfo,
+}
+
+/// A client received a chat message packet.
+pub struct ChatReceivedEvent {
+    pub entity: Entity,
+    pub packet: ChatPacket,
+}
+
+/// Event for when an entity dies. dies. If it's a local player and there's a
+/// reason in the death screen, the [`ClientboundPlayerCombatKillPacket`] will
+/// be included.
+pub struct DeathEvent {
+    pub entity: Entity,
+    pub packet: Option<ClientboundPlayerCombatKillPacket>,
+}
 
 /// Something that receives packets from the server.
 #[derive(Component, Clone)]
@@ -207,8 +235,6 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                         .get(),
                     );
 
-                    local_player.tx.send(Event::Login).unwrap();
-
                     system_state.apply(ecs);
                 }
                 ClientboundGamePacket::SetChunkCacheRadius(p) => {
@@ -338,15 +364,19 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                 ClientboundGamePacket::PlayerInfoUpdate(p) => {
                     debug!("Got player info packet {:?}", p);
 
-                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
-                        SystemState::new(ecs);
-                    let mut query = system_state.get_mut(ecs);
+                    let mut system_state: SystemState<(
+                        Query<&mut LocalPlayer>,
+                        EventWriter<AddPlayerEvent>,
+                        EventWriter<UpdatePlayerEvent>,
+                    )> = SystemState::new(ecs);
+                    let (mut query, mut add_player_events, mut update_player_events) =
+                        system_state.get_mut(ecs);
                     let mut local_player = query.get_mut(player_entity).unwrap();
 
                     for updated_info in &p.entries {
                         // add the new player maybe
                         if p.actions.add_player {
-                            let player_info = PlayerInfo {
+                            let info = PlayerInfo {
                                 profile: updated_info.profile.clone(),
                                 uuid: updated_info.profile.uuid,
                                 gamemode: updated_info.game_mode,
@@ -355,8 +385,11 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                             };
                             local_player
                                 .players
-                                .insert(updated_info.profile.uuid, player_info.clone());
-                            local_player.tx.send(Event::AddPlayer(player_info)).unwrap();
+                                .insert(updated_info.profile.uuid, info.clone());
+                            add_player_events.send(AddPlayerEvent {
+                                entity: player_entity,
+                                info: info.clone(),
+                            });
                         } else if let Some(info) =
                             local_player.players.get_mut(&updated_info.profile.uuid)
                         {
@@ -371,8 +404,10 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                             if p.actions.update_display_name {
                                 info.display_name = updated_info.display_name.clone();
                             }
-                            let info = info.clone();
-                            local_player.tx.send(Event::UpdatePlayer(info)).unwrap();
+                            update_player_events.send(UpdatePlayerEvent {
+                                entity: player_entity,
+                                info: info.clone(),
+                            });
                         } else {
                             warn!(
                                 "Ignoring PlayerInfoUpdate for unknown player {}",
@@ -382,14 +417,19 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                     }
                 }
                 ClientboundGamePacket::PlayerInfoRemove(p) => {
-                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
-                        SystemState::new(ecs);
-                    let mut query = system_state.get_mut(ecs);
+                    let mut system_state: SystemState<(
+                        Query<&mut LocalPlayer>,
+                        EventWriter<RemovePlayerEvent>,
+                    )> = SystemState::new(ecs);
+                    let (mut query, mut remove_player_events) = system_state.get_mut(ecs);
                     let mut local_player = query.get_mut(player_entity).unwrap();
 
                     for uuid in &p.profile_ids {
                         if let Some(info) = local_player.players.remove(uuid) {
-                            local_player.tx.send(Event::RemovePlayer(info)).unwrap();
+                            remove_player_events.send(RemovePlayerEvent {
+                                entity: player_entity,
+                                info,
+                            });
                         }
                     }
                 }
@@ -553,9 +593,19 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                 ClientboundGamePacket::SetHealth(p) => {
                     debug!("Got set health packet {:?}", p);
 
-                    let mut system_state: SystemState<Query<&mut Health>> = SystemState::new(ecs);
-                    let mut query = system_state.get_mut(ecs);
+                    let mut system_state: SystemState<(
+                        Query<&mut Health>,
+                        EventWriter<DeathEvent>,
+                    )> = SystemState::new(ecs);
+                    let (mut query, mut death_events) = system_state.get_mut(ecs);
                     let mut health = query.get_mut(player_entity).unwrap();
+
+                    if p.health == 0. && **health != 0. {
+                        death_events.send(DeathEvent {
+                            entity: player_entity,
+                            packet: None,
+                        });
+                    }
 
                     **health = p.health;
 
@@ -674,28 +724,32 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                 ClientboundGamePacket::PlayerChat(p) => {
                     debug!("Got player chat packet {:?}", p);
 
-                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
-                        SystemState::new(ecs);
-                    let mut query = system_state.get_mut(ecs);
+                    let mut system_state: SystemState<(
+                        Query<&mut LocalPlayer>,
+                        EventWriter<ChatReceivedEvent>,
+                    )> = SystemState::new(ecs);
+                    let (mut query, mut chat_events) = system_state.get_mut(ecs);
                     let local_player = query.get_mut(player_entity).unwrap();
 
-                    local_player
-                        .tx
-                        .send(Event::Chat(ChatPacket::Player(Arc::new(p.clone()))))
-                        .unwrap();
+                    chat_events.send(ChatReceivedEvent {
+                        entity: player_entity,
+                        packet: ChatPacket::Player(Arc::new(p.clone())),
+                    });
                 }
                 ClientboundGamePacket::SystemChat(p) => {
                     debug!("Got system chat packet {:?}", p);
 
-                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
-                        SystemState::new(ecs);
-                    let mut query = system_state.get_mut(ecs);
+                    let mut system_state: SystemState<(
+                        Query<&mut LocalPlayer>,
+                        EventWriter<ChatReceivedEvent>,
+                    )> = SystemState::new(ecs);
+                    let (mut query, mut chat_events) = system_state.get_mut(ecs);
                     let local_player = query.get_mut(player_entity).unwrap();
 
-                    local_player
-                        .tx
-                        .send(Event::Chat(ChatPacket::System(Arc::new(p.clone()))))
-                        .unwrap();
+                    chat_events.send(ChatReceivedEvent {
+                        entity: player_entity,
+                        packet: ChatPacket::System(Arc::new(p.clone())),
+                    });
                 }
                 ClientboundGamePacket::Sound(_p) => {
                     // debug!("Got sound packet {:?}", p);
@@ -780,17 +834,17 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                     let mut system_state: SystemState<(
                         Commands,
                         Query<(&mut LocalPlayer, &MinecraftEntityId, Option<&Dead>)>,
+                        EventWriter<DeathEvent>,
                     )> = SystemState::new(ecs);
-                    let (mut commands, mut query) = system_state.get_mut(ecs);
+                    let (mut commands, mut query, mut death_events) = system_state.get_mut(ecs);
                     let (local_player, entity_id, dead) = query.get_mut(player_entity).unwrap();
 
                     if **entity_id == p.player_id && dead.is_none() {
                         commands.entity(player_entity).insert(Dead);
-
-                        local_player
-                            .tx
-                            .send(Event::Death(Some(Arc::new(p.clone()))))
-                            .unwrap();
+                        death_events.send(DeathEvent {
+                            entity: player_entity,
+                            packet: Some(p.clone()),
+                        });
                     }
 
                     system_state.apply(ecs);
