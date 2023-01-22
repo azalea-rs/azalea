@@ -25,9 +25,7 @@ impl BitSet {
     fn check_range(&self, from_index: usize, to_index: usize) {
         assert!(
             from_index <= to_index,
-            "fromIndex: {} > toIndex: {}",
-            from_index,
-            to_index
+            "fromIndex: {from_index} > toIndex: {to_index}",
         );
     }
 

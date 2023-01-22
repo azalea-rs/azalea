@@ -43,7 +43,7 @@ async fn main() -> anyhow::Result<()> {
     let mut states = Vec::new();
 
     for i in 0..1 {
-        accounts.push(Account::offline(&format!("bot{}", i)));
+        accounts.push(Account::offline(&format!("bot{i}")));
         states.push(State::default());
     }
 
@@ -98,7 +98,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                 } else if m.content() == "look" {
                     let target_pos_vec3 = entity.pos();
                     let target_pos: BlockPos = target_pos_vec3.into();
-                    println!("target_pos: {:?}", target_pos);
+                    println!("target_pos: {target_pos:?}");
                     bot.look_at(&target_pos.center());
                 } else if m.content() == "jump" {
                     bot.set_jumping(true);
@@ -138,10 +138,10 @@ async fn swarm_handle(
             println!("swarm chat message: {}", m.message().to_ansi());
             if m.message().to_string() == "<py5> world" {
                 for (name, world) in &swarm.worlds.read().worlds {
-                    println!("world name: {}", name);
+                    println!("world name: {name}");
                     if let Some(w) = world.upgrade() {
                         for chunk_pos in w.chunk_storage.read().chunks.values() {
-                            println!("chunk: {:?}", chunk_pos);
+                            println!("chunk: {chunk_pos:?}");
                         }
                     } else {
                         println!("nvm world is gone");

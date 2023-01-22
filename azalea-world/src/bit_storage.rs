@@ -91,8 +91,7 @@ impl fmt::Display for BitStorageError {
         match self {
             BitStorageError::InvalidLength { got, expected } => write!(
                 f,
-                "Invalid length given for storage, got: {}, but expected: {}",
-                got, expected
+                "Invalid length given for storage, got: {got}, but expected: {expected}",
             ),
         }
     }

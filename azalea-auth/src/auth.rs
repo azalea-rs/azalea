@@ -257,8 +257,7 @@ async fn interactive_get_ms_auth_token(
         log::trace!("Polling to check if user has logged in...");
         if let Ok(access_token_response) = client
             .post(format!(
-                "https://login.live.com/oauth20_token.srf?client_id={}",
-                CLIENT_ID
+                "https://login.live.com/oauth20_token.srf?client_id={CLIENT_ID}"
             ))
             .form(&vec![
                 ("client_id", CLIENT_ID),
