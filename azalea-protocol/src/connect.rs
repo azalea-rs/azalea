@@ -8,7 +8,8 @@ use crate::packets::status::{ClientboundStatusPacket, ServerboundStatusPacket};
 use crate::packets::ProtocolPacket;
 use crate::read::{read_packet, ReadPacketError};
 use crate::write::write_packet;
-use azalea_auth::sessionserver::SessionServerError;
+use azalea_auth::game_profile::GameProfile;
+use azalea_auth::sessionserver::{ClientSessionServerError, ServerSessionServerError};
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use bytes::BytesMut;
 use log::{error, info};
@@ -17,7 +18,7 @@ use std::marker::PhantomData;
 use std::net::SocketAddr;
 use thiserror::Error;
 use tokio::io::AsyncWriteExt;
-use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError};
 use tokio::net::TcpStream;
 use uuid::Uuid;
 
@@ -327,7 +328,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         uuid: &Uuid,
         private_key: [u8; 16],
         packet: &ClientboundHelloPacket,
-    ) -> Result<(), SessionServerError> {
+    ) -> Result<(), ClientSessionServerError> {
         azalea_auth::sessionserver::join(
             access_token,
             &packet.public_key,
@@ -336,6 +337,63 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
             &packet.server_id,
         )
         .await
+    }
+}
+
+impl Connection<ServerboundHandshakePacket, ClientboundHandshakePacket> {
+    /// Change our state from handshake to login. This is the state that is used
+    /// for logging in.
+    pub fn login(self) -> Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
+        Connection::from(self)
+    }
+
+    /// Change our state from handshake to status. This is the state that is
+    /// used for pinging the server.
+    pub fn status(self) -> Connection<ServerboundStatusPacket, ClientboundStatusPacket> {
+        Connection::from(self)
+    }
+}
+
+impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
+    /// Set our compression threshold, i.e. the maximum size that a packet is
+    /// allowed to be without getting compressed. If you set it to less than 0
+    /// then compression gets disabled.
+    pub fn set_compression_threshold(&mut self, threshold: i32) {
+        // if you pass a threshold of less than 0, compression is disabled
+        if threshold >= 0 {
+            self.reader.compression_threshold = Some(threshold as u32);
+            self.writer.compression_threshold = Some(threshold as u32);
+        } else {
+            self.reader.compression_threshold = None;
+            self.writer.compression_threshold = None;
+        }
+    }
+
+    /// Set the encryption key that is used to encrypt and decrypt packets. It's
+    /// the same for both reading and writing.
+    pub fn set_encryption_key(&mut self, key: [u8; 16]) {
+        let (enc_cipher, dec_cipher) = azalea_crypto::create_cipher(&key);
+        self.reader.dec_cipher = Some(dec_cipher);
+        self.writer.enc_cipher = Some(enc_cipher);
+    }
+
+    /// Change our state from login to game. This is the state that's used when
+    /// the client is actually in the game.
+    pub fn game(self) -> Connection<ServerboundGamePacket, ClientboundGamePacket> {
+        Connection::from(self)
+    }
+
+    /// Verify connecting clients have authenticated with Minecraft's servers.
+    /// This must happen after the client sends a `ServerboundLoginPacket::Key`
+    /// packet.
+    pub async fn authenticate(
+        &self,
+        username: &str,
+        public_key: &[u8],
+        private_key: &[u8; 16],
+        ip: Option<&str>,
+    ) -> Result<GameProfile, ServerSessionServerError> {
+        azalea_auth::sessionserver::serverside_auth(username, public_key, private_key, ip).await
     }
 }
 
@@ -389,5 +447,10 @@ where
                 _writing: PhantomData,
             },
         }
+    }
+
+    /// Convert from a `Connection` into a `TcpStream`. Useful for servers.
+    pub fn unwrap(self) -> Result<TcpStream, ReuniteError> {
+        self.reader.read_stream.reunite(self.writer.write_stream)
     }
 }

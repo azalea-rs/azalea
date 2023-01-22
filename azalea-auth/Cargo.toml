@@ -9,8 +9,8 @@ version = "0.5.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-buf = {path = "../azalea-buf", version = "^0.5.0" }
-azalea-crypto = {path = "../azalea-crypto", version = "^0.5.0" }
+azalea-buf = {path = "../azalea-buf", version = "^0.5.0"}
+azalea-crypto = {path = "../azalea-crypto", version = "^0.5.0"}
 chrono = {version = "0.4.22", default-features = false}
 log = "0.4.17"
 num-bigint = "0.4.3"
@@ -19,8 +19,8 @@ serde = {version = "1.0.145", features = ["derive"]}
 serde_json = "1.0.86"
 thiserror = "1.0.37"
 tokio = {version = "1.23.1", features = ["fs"]}
-uuid = "^1.1.2"
+uuid = {version = "^1.1.2", features = ["serde"]}
 
 [dev-dependencies]
-env_logger = "0.9.1"
+env_logger = "0.9.3"
 tokio = {version = "1.23.1", features = ["full"]}

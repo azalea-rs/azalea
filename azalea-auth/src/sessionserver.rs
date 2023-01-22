@@ -1,11 +1,15 @@
 //! Tell Mojang you're joining a multiplayer server.
+use log::debug;
+use reqwest::StatusCode;
 use serde::Deserialize;
 use serde_json::json;
 use thiserror::Error;
 use uuid::Uuid;
 
+use crate::game_profile::{GameProfile, SerializableGameProfile};
+
 #[derive(Debug, Error)]
-pub enum SessionServerError {
+pub enum ClientSessionServerError {
     #[error("Error sending HTTP request to sessionserver: {0}")]
     HttpError(#[from] reqwest::Error),
     #[error("Multiplayer is not enabled for this account")]
@@ -24,6 +28,18 @@ pub enum SessionServerError {
     UnexpectedResponse { status_code: u16, body: String },
 }
 
+#[derive(Debug, Error)]
+pub enum ServerSessionServerError {
+    #[error("Error sending HTTP request to sessionserver: {0}")]
+    HttpError(#[from] reqwest::Error),
+    #[error("Invalid or expired session")]
+    InvalidSession,
+    #[error("Unexpected response from sessionserver (status code {status_code}): {body}")]
+    UnexpectedResponse { status_code: u16, body: String },
+    #[error("Unknown sessionserver error: {0}")]
+    Unknown(String),
+}
+
 #[derive(Deserialize)]
 pub struct ForbiddenError {
     pub error: String,
@@ -39,7 +55,7 @@ pub async fn join(
     private_key: &[u8],
     uuid: &Uuid,
     server_id: &str,
-) -> Result<(), SessionServerError> {
+) -> Result<(), ClientSessionServerError> {
     let client = reqwest::Client::new();
 
     let server_hash = azalea_crypto::hex_digest(&azalea_crypto::digest_data(
@@ -63,28 +79,82 @@ pub async fn join(
         .await?;
 
     match res.status() {
-        reqwest::StatusCode::NO_CONTENT => Ok(()),
-        reqwest::StatusCode::FORBIDDEN => {
+        StatusCode::NO_CONTENT => Ok(()),
+        StatusCode::FORBIDDEN => {
             let forbidden = res.json::<ForbiddenError>().await?;
             match forbidden.error.as_str() {
-                "InsufficientPrivilegesException" => Err(SessionServerError::MultiplayerDisabled),
-                "UserBannedException" => Err(SessionServerError::Banned),
-                "AuthenticationUnavailableException" => {
-                    Err(SessionServerError::AuthServersUnreachable)
+                "InsufficientPrivilegesException" => {
+                    Err(ClientSessionServerError::MultiplayerDisabled)
                 }
-                "InvalidCredentialsException" => Err(SessionServerError::InvalidSession),
-                "ForbiddenOperationException" => Err(SessionServerError::ForbiddenOperation),
-                _ => Err(SessionServerError::Unknown(forbidden.error)),
+                "UserBannedException" => Err(ClientSessionServerError::Banned),
+                "AuthenticationUnavailableException" => {
+                    Err(ClientSessionServerError::AuthServersUnreachable)
+                }
+                "InvalidCredentialsException" => Err(ClientSessionServerError::InvalidSession),
+                "ForbiddenOperationException" => Err(ClientSessionServerError::ForbiddenOperation),
+                _ => Err(ClientSessionServerError::Unknown(forbidden.error)),
             }
         }
         status_code => {
             // log the headers
-            log::debug!("Error headers: {:#?}", res.headers());
+            debug!("Error headers: {:#?}", res.headers());
             let body = res.text().await?;
-            Err(SessionServerError::UnexpectedResponse {
+            Err(ClientSessionServerError::UnexpectedResponse {
                 status_code: status_code.as_u16(),
                 body,
             })
         }
     }
+}
+
+/// Ask Mojang's servers if the player joining is authenticated.
+/// Included in the reply is the player's skin and cape.
+/// The IP field is optional and equivalent to enabling
+/// 'prevent-proxy-connections' in server.properties
+pub async fn serverside_auth(
+    username: &str,
+    public_key: &[u8],
+    private_key: &[u8; 16],
+    ip: Option<&str>,
+) -> Result<GameProfile, ServerSessionServerError> {
+    let hash = azalea_crypto::hex_digest(&azalea_crypto::digest_data(
+        "".as_bytes(),
+        public_key,
+        private_key,
+    ));
+
+    let url = reqwest::Url::parse_with_params(
+        "https://sessionserver.mojang.com/session/minecraft/hasJoined",
+        if let Some(ip) = ip {
+            vec![("username", username), ("serverId", &hash), ("ip", ip)]
+        } else {
+            vec![("username", username), ("serverId", &hash)]
+        },
+    )
+    .expect("URL should always be valid");
+
+    let res = reqwest::get(url).await?;
+
+    match res.status() {
+        StatusCode::OK => {}
+        StatusCode::NO_CONTENT => {
+            return Err(ServerSessionServerError::InvalidSession);
+        }
+        StatusCode::FORBIDDEN => {
+            return Err(ServerSessionServerError::Unknown(
+                res.json::<ForbiddenError>().await?.error,
+            ))
+        }
+        status_code => {
+            // log the headers
+            debug!("Error headers: {:#?}", res.headers());
+            let body = res.text().await?;
+            return Err(ServerSessionServerError::UnexpectedResponse {
+                status_code: status_code.as_u16(),
+                body,
+            });
+        }
+    };
+
+    Ok(res.json::<SerializableGameProfile>().await?.into())
 }

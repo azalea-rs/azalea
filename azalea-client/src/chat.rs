@@ -77,8 +77,8 @@ impl ChatPacket {
     /// player-sent chat message, this will be None.
     pub fn uuid(&self) -> Option<Uuid> {
         match self {
-            ChatPacket::System(_) => return None,
-            ChatPacket::Player(m) => return Some(m.sender),
+            ChatPacket::System(_) => None,
+            ChatPacket::Player(m) => Some(m.sender),
         }
     }
 
