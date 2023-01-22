@@ -33,7 +33,7 @@ impl Client {
     ///     |profile: &&GameProfileComponent| profile.name == sender,
     /// );
     /// if let Some(entity) = entity {
-    ///     let position = bot.entity_components::<Position>(entity);
+    ///     let position = bot.entity_component::<Position>(entity);
     /// }
     /// ```
     pub fn entity_by<F: ReadOnlyWorldQuery, Q: ReadOnlyWorldQuery>(
@@ -45,7 +45,7 @@ impl Client {
 
     /// Get a component from an entity. Note that this will return an owned type
     /// (i.e. not a reference) so it may be expensive for larger types.
-    pub fn entity_components<Q: Component + Clone>(&mut self, entity: Entity) -> Q {
+    pub fn entity_component<Q: Component + Clone>(&mut self, entity: Entity) -> Q {
         let mut ecs = self.ecs.lock();
         let mut q = ecs.query::<&Q>();
         let components = q

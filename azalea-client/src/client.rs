@@ -37,7 +37,10 @@ use azalea_world::{
     entity::Entity, EntityInfos, EntityPlugin, Local, PartialWorld, World, WorldContainer,
 };
 use bevy_app::App;
-use bevy_ecs::schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet};
+use bevy_ecs::{
+    prelude::Component,
+    schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
+};
 use bevy_time::TimePlugin;
 use iyes_loopless::prelude::*;
 use log::{debug, error};
@@ -165,11 +168,7 @@ impl Client {
         let (conn, game_profile) = Self::handshake(conn, account, address).await?;
         let (read_conn, write_conn) = conn.into_split();
 
-        // The buffer has to be 1 to avoid a bug where if it lags events are
-        // received a bit later instead of the instant they were fired.
-        // That bug especially causes issues with the pathfinder.
         let (tx, rx) = mpsc::unbounded_channel();
-        tx.send(Event::Init).unwrap();
 
         let mut ecs = ecs_lock.lock();
 
@@ -213,8 +212,6 @@ impl Client {
             Local,
             LocalPlayerEvents(tx),
         ));
-
-        // just start up the game loop and we're ready!
 
         Ok((client, rx))
     }
@@ -364,6 +361,12 @@ impl Client {
         ecs: &'a mut bevy_ecs::world::World,
     ) -> bevy_ecs::world::Mut<'a, LocalPlayer> {
         self.query::<&mut LocalPlayer>(ecs)
+    }
+
+    /// Get a component from the client. This will clone the component and
+    /// return it.
+    pub fn component<T: Component + Clone>(&self) -> T {
+        self.query::<&T>(&mut self.ecs.lock()).clone()
     }
 
     /// Get a reference to our (potentially shared) world.

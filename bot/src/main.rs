@@ -1,6 +1,6 @@
 #![feature(type_alias_impl_trait)]
 
-use azalea::ecs::query::With;
+use azalea::bevy_ecs::query::With;
 use azalea::entity::metadata::Player;
 use azalea::entity::Position;
 use azalea::pathfinder::BlockPosGoal;
@@ -10,10 +10,10 @@ use azalea::{Account, Client, Event};
 use azalea_protocol::packets::game::serverbound_client_command_packet::ServerboundClientCommandPacket;
 use std::time::Duration;
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Component)]
 struct State {}
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Component)]
 struct SwarmState {}
 
 #[tokio::main]
@@ -56,8 +56,8 @@ async fn main() -> anyhow::Result<()> {
         let e = azalea::SwarmBuilder::new()
             .add_accounts(accounts.clone())
             .set_handler(handle)
-            .swarm_handle(swarm_handle)
-            .join_delay(Some(Duration::from_millis(1000)))
+            .set_swarm_handler(swarm_handle)
+            .join_delay(Duration::from_millis(1000))
             .start("localhost")
             .await;
         println!("{e:?}");
@@ -99,12 +99,12 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
             if let Some(entity) = entity {
                 match m.content().as_str() {
                     "goto" => {
-                        let entity_pos = bot.entity_components::<Position>(entity);
+                        let entity_pos = bot.entity_component::<Position>(entity);
                         let target_pos: BlockPos = entity_pos.into();
                         bot.goto(BlockPosGoal::from(target_pos));
                     }
                     "look" => {
-                        let entity_pos = bot.entity_components::<Position>(entity);
+                        let entity_pos = bot.entity_component::<Position>(entity);
                         let target_pos: BlockPos = entity_pos.into();
                         println!("target_pos: {:?}", target_pos);
                         bot.look_at(target_pos.center());
@@ -138,7 +138,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
 }
 
 async fn swarm_handle(
-    mut swarm: Swarm<State>,
+    mut swarm: Swarm,
     event: SwarmEvent,
     _state: SwarmState,
 ) -> anyhow::Result<()> {
@@ -151,7 +151,7 @@ async fn swarm_handle(
         SwarmEvent::Chat(m) => {
             println!("swarm chat message: {}", m.message().to_ansi());
             if m.message().to_string() == "<py5> world" {
-                for (name, world) in &swarm.worlds.read().worlds {
+                for (name, world) in &swarm.world_container.read().worlds {
                     println!("world name: {}", name);
                     if let Some(w) = world.upgrade() {
                         for chunk_pos in w.read().chunks.chunks.values() {
@@ -163,7 +163,7 @@ async fn swarm_handle(
                 }
             }
             if m.message().to_string() == "<py5> hi" {
-                for (bot, _) in swarm {
+                for bot in swarm {
                     bot.chat("hello");
                 }
             }

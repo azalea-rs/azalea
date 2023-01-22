@@ -22,16 +22,17 @@
 //! For faster compile times, make a `.cargo/config.toml` file in your project
 //! and copy
 //! [this file](https://github.com/mat-1/azalea/blob/main/.cargo/config.toml)
-//! into it.
+//! into it. You may have to install the LLD linker.
 //!
-//! For faster performance in debug mode, add
+//! For faster performance in debug mode, add the following code to your
+//! Cargo.toml:
 //! ```toml
 //! [profile.dev]
 //! opt-level = 1
 //! [profile.dev.package."*"]
 //! opt-level = 3
 //! ```
-//! to your Cargo.toml. You may have to install the LLD linker.
+//!
 //!
 //! # Examples
 //!
@@ -58,7 +59,7 @@
 //!     .unwrap();
 //! }
 //!
-//! #[derive(Default, Clone)]
+//! #[derive(Default, Clone, Component)]
 //! pub struct State {}
 //!
 //! async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {

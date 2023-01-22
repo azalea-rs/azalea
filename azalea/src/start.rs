@@ -1,5 +1,5 @@
 use crate::HandleFn;
-use azalea_client::{Account, Client, Plugins};
+use azalea_client::{Account, Client};
 use azalea_protocol::ServerAddress;
 use std::future::Future;
 use thiserror::Error;
@@ -41,14 +41,6 @@ where
     pub address: A,
     /// The account that's going to join the server.
     pub account: Account,
-    /// The plugins that are going to be used. Plugins are external crates that
-    /// add extra functionality to Azalea. You should use the [`plugins`] macro
-    /// for this field.
-    ///
-    /// ```rust,no_run
-    /// plugins![azalea_pathfinder::Plugin]
-    /// ```
-    pub plugins: Plugins,
     /// A struct that contains the data that you want your bot to remember
     /// across events.
     ///
@@ -114,16 +106,9 @@ pub async fn start<
 
     let (bot, mut rx) = Client::join(&options.account, address).await?;
 
-    let plugins = options.plugins;
-
     let state = options.state;
 
     while let Some(event) = rx.recv().await {
-        let cloned_plugins = (*bot.plugins).clone();
-        for plugin in cloned_plugins.into_iter() {
-            tokio::spawn(plugin.handle(event.clone(), bot.clone()));
-        }
-
         tokio::spawn((options.handle)(bot.clone(), event.clone(), state.clone()));
     }
 

@@ -14,7 +14,10 @@ use thiserror::Error;
 use tokio::{sync::mpsc, task::JoinHandle};
 use uuid::Uuid;
 
-use crate::{events::{Event, LocalPlayerEvents}, ClientInformation, PlayerInfo, WalkDirection};
+use crate::{
+    events::{Event, LocalPlayerEvents},
+    ClientInformation, PlayerInfo, WalkDirection,
+};
 
 /// A player that you control that is currently in a Minecraft server.
 #[derive(Component)]

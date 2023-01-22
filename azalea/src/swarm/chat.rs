@@ -13,24 +13,22 @@
 // in Swarm that's set to the smallest index of all the bots, and we remove all
 // messages from the queue that are before that index.
 
-use crate::{Swarm, SwarmEvent};
-use async_trait::async_trait;
-use azalea_client::{packet_handling::ChatReceivedEvent, ChatPacket, Client, Event, LocalPlayer};
+use azalea_client::{packet_handling::ChatReceivedEvent, ChatPacket, LocalPlayer};
 use bevy_ecs::{
     prelude::{Component, Entity, EventReader, EventWriter},
     query::{Added, Without},
-    schedule::SystemSet,
     system::{Commands, Query, Res, ResMut, Resource},
 };
-use parking_lot::Mutex;
-use std::{collections::VecDeque, sync::Arc};
-use tokio::sync::broadcast;
+use std::collections::VecDeque;
+
+use crate::{Swarm, SwarmEvent};
 
 #[derive(Clone)]
 pub struct Plugin;
 impl bevy_app::Plugin for Plugin {
     fn build(&self, app: &mut bevy_app::App) {
-        app.add_system(chat_listener)
+        app.add_event::<NewChatMessageEvent>()
+            .add_system(chat_listener)
             .add_system(add_default_client_state)
             .add_system(update_min_index_and_shrink_queue)
             .insert_resource(GlobalChatState {
@@ -68,13 +66,13 @@ pub struct GlobalChatState {
 }
 
 fn chat_listener(
-    query: Query<&ClientChatState>,
-    events: EventReader<ChatReceivedEvent>,
+    mut query: Query<&mut ClientChatState>,
+    mut events: EventReader<ChatReceivedEvent>,
     mut global_chat_state: ResMut<GlobalChatState>,
-    new_chat_messages_events: EventWriter<NewChatMessageEvent>,
+    mut new_chat_messages_events: EventWriter<NewChatMessageEvent>,
 ) {
     for event in events.iter() {
-        if let Ok(client_chat_state) = query.get(event.entity) {
+        if let Ok(mut client_chat_state) = query.get_mut(event.entity) {
             // When a bot receives a chat messages, it looks into the queue to find the
             // earliest instance of the message content that's after the bot's chat index.
             // If it finds it, then its personal index is simply updated. Otherwise, fire
@@ -111,7 +109,7 @@ fn chat_listener(
             if !found {
                 // didn't find the message, so fire the swarm event and add to the queue
                 new_chat_messages_events.send(NewChatMessageEvent(event.packet.clone()));
-                global_chat_state.chat_queue.push_back(event.packet);
+                global_chat_state.chat_queue.push_back(event.packet.clone());
                 client_chat_state.chat_index =
                     global_chat_state.chat_queue.len() + global_chat_state.chat_min_index;
             }
@@ -119,38 +117,17 @@ fn chat_listener(
     }
 }
 
-// impl GlobalChatState {
-//     async fn start<S>(self, swarm: Swarm)
-//     where
-//         S: Send + Sync + Clone + 'static,
-//     {
-//         // it should never be locked unless we reused the same plugin for two
-// swarms         // (bad)
-//         let mut rx = self.rx.lock().await;
-//         while let Ok(m) = rx.recv().await {
-//             swarm.swarm_tx.send(SwarmEvent::Chat(m)).unwrap();
-//             let bot_states = swarm
-//                 .bot_datas
-//                 .lock()
-//                 .iter()
-//                 .map(|(bot, _)| {
-//                     bot.plugins
-//                         .get::<ClientChatState>()
-//                         .expect("Chat plugin not installed")
-//                         .clone()
-//                 })
-//                 .collect::<Vec<_>>();
-//             self.handle_new_chat_message(&bot_states);
-//         }
-//     }
-// }
-
 fn update_min_index_and_shrink_queue(
     query: Query<&ClientChatState>,
     mut global_chat_state: ResMut<GlobalChatState>,
-    events: EventReader<NewChatMessageEvent>,
+    mut events: EventReader<NewChatMessageEvent>,
+    swarm: Res<Swarm>,
 ) {
     for event in events.iter() {
+        swarm
+            .swarm_tx
+            .send(SwarmEvent::Chat(event.0.clone()))
+            .unwrap();
         // To make sure the queue doesn't grow too large, we keep a `chat_min_index`
         // in Swarm that's set to the smallest index of all the bots, and we remove all
         // messages from the queue that are before that index.
@@ -176,7 +153,7 @@ fn update_min_index_and_shrink_queue(
         }
 
         // update the min index
-        self.chat_min_index = new_chat_min_index;
+        global_chat_state.chat_min_index = new_chat_min_index;
     }
 }
 
