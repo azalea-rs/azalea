@@ -1,4 +1,6 @@
 //! Tell Mojang you're joining a multiplayer server.
+use log::debug;
+use reqwest::StatusCode;
 use serde::Deserialize;
 use serde_json::json;
 use thiserror::Error;
@@ -28,14 +30,10 @@ pub enum ClientSessionServerError {
 
 #[derive(Debug, Error)]
 pub enum ServerSessionServerError {
-    #[error("Error parsing url: {0}")]
-    UrlParseError(#[from] url::ParseError),
     #[error("Error sending HTTP request to sessionserver: {0}")]
     HttpError(#[from] reqwest::Error),
     #[error("Invalid or expired session")]
     InvalidSession,
-    #[error("Forbidden operation (expired session?)")]
-    ForbiddenOperation,
     #[error("Unexpected response from sessionserver (status code {status_code}): {body}")]
     UnexpectedResponse { status_code: u16, body: String },
     #[error("Unknown sessionserver error: {0}")]
@@ -81,8 +79,8 @@ pub async fn join(
         .await?;
 
     match res.status() {
-        reqwest::StatusCode::NO_CONTENT => Ok(()),
-        reqwest::StatusCode::FORBIDDEN => {
+        StatusCode::NO_CONTENT => Ok(()),
+        StatusCode::FORBIDDEN => {
             let forbidden = res.json::<ForbiddenError>().await?;
             match forbidden.error.as_str() {
                 "InsufficientPrivilegesException" => {
@@ -99,7 +97,7 @@ pub async fn join(
         }
         status_code => {
             // log the headers
-            log::debug!("Error headers: {:#?}", res.headers());
+            debug!("Error headers: {:#?}", res.headers());
             let body = res.text().await?;
             Err(ClientSessionServerError::UnexpectedResponse {
                 status_code: status_code.as_u16(),
@@ -132,23 +130,24 @@ pub async fn serverside_auth(
         } else {
             vec![("username", username), ("serverId", &hash)]
         },
-    )?;
+    )
+    .expect("URL should always be valid");
 
     let res = reqwest::get(url).await?;
 
     match res.status() {
-        reqwest::StatusCode::OK => {}
-        reqwest::StatusCode::NO_CONTENT => {
+        StatusCode::OK => {}
+        StatusCode::NO_CONTENT => {
             return Err(ServerSessionServerError::InvalidSession);
         }
-        reqwest::StatusCode::FORBIDDEN => {
+        StatusCode::FORBIDDEN => {
             return Err(ServerSessionServerError::Unknown(
                 res.json::<ForbiddenError>().await?.error,
             ))
         }
         status_code => {
             // log the headers
-            log::debug!("Error headers: {:#?}", res.headers());
+            debug!("Error headers: {:#?}", res.headers());
             let body = res.text().await?;
             return Err(ServerSessionServerError::UnexpectedResponse {
                 status_code: status_code.as_u16(),

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-#[derive(McBuf, Debug, Clone, Default)]
+#[derive(McBuf, Debug, Clone, Default, Eq, PartialEq)]
 pub struct GameProfile {
     pub uuid: Uuid,
     pub name: String,
@@ -40,7 +40,7 @@ impl From<SerializableGameProfile> for GameProfile {
     }
 }
 
-#[derive(McBuf, Debug, Clone)]
+#[derive(McBuf, Debug, Clone, Eq, PartialEq)]
 pub struct ProfilePropertyValue {
     pub value: String,
     pub signature: Option<String>,
@@ -76,4 +76,45 @@ pub struct SerializableProfilePropertyValue {
     pub name: String,
     pub value: String,
     pub signature: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_deserialize_game_profile() {
+        let json = r#"{
+            "id": "f1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6",
+            "name": "Notch",
+            "properties": [
+                {
+                    "name": "qwer",
+                    "value": "asdf",
+                    "signature": "zxcv"
+                }
+            ]
+        }"#;
+        let profile = GameProfile::from(
+            serde_json::from_str::<SerializableProfilePropertyValue>(json).unwrap(),
+        );
+        assert_eq!(
+            profile,
+            GameProfile {
+                uuid: Uuid::parse_str("f1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6").unwrap(),
+                name: "Notch".to_string(),
+                properties: {
+                    let mut map = HashMap::new();
+                    map.insert(
+                        "asdf".to_string(),
+                        ProfilePropertyValue {
+                            value: "qwer".to_string(),
+                            signature: Some("zxcv".to_string()),
+                        },
+                    );
+                    map
+                },
+            }
+        );
+    }
 }

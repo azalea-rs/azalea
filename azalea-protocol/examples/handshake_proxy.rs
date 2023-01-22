@@ -1,4 +1,4 @@
-//! A `simple` server that gets login information and proxies connections.
+//! A "simple" server that gets login information and proxies connections.
 //! After login all connections are encrypted and Azalea cannot read them.
 
 use azalea_protocol::{
@@ -31,7 +31,7 @@ use tokio::{
 use tracing::Level;
 
 const LISTEN_ADDR: &str = "127.0.0.1:25566";
-const PROXY_ADDR: &str = "127.0.0.1:25565";
+const PROXY_ADDR: &str = "173.205.80.60:25565";
 
 const PROXY_DESC: &str = "An Azalea Minecraft Proxy";
 
@@ -39,7 +39,7 @@ const PROXY_DESC: &str = "An Azalea Minecraft Proxy";
 static PROXY_FAVICON: Lazy<Option<String>> = Lazy::new(|| None);
 
 static PROXY_VERSION: Lazy<Version> = Lazy::new(|| Version {
-    name: String::from("1.19.3"),
+    name: "1.19.3".to_string(),
     protocol: PROTOCOL_VERSION as i32,
 });
 
