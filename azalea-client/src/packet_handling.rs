@@ -49,7 +49,8 @@ impl Plugin for PacketHandlerPlugin {
         .add_event::<AddPlayerEvent>()
         .add_event::<RemovePlayerEvent>()
         .add_event::<UpdatePlayerEvent>()
-        .add_event::<ChatReceivedEvent>();
+        .add_event::<ChatReceivedEvent>()
+        .add_event::<DeathEvent>();
     }
 }
 

@@ -3,20 +3,20 @@
 mod chat;
 mod events;
 
-use crate::HandleFn;
+use crate::{bot, HandleFn};
 use azalea_client::{init_ecs_app, start_ecs, Account, ChatPacket, Client, Event, JoinError};
 use azalea_protocol::{
     connect::ConnectionError,
     resolver::{self, ResolverError},
     ServerAddress,
 };
-use azalea_world::WorldContainer;
+use azalea_world::{entity::Entity, WorldContainer};
 use bevy_app::Plugin;
 use bevy_ecs::{prelude::Component, system::Resource};
 use futures::future::join_all;
 use log::error;
 use parking_lot::{Mutex, RwLock};
-use std::{future::Future, net::SocketAddr, sync::Arc, time::Duration};
+use std::{collections::HashMap, future::Future, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::sync::mpsc;
 
@@ -33,7 +33,7 @@ use tokio::sync::mpsc;
 pub struct Swarm {
     pub ecs_lock: Arc<Mutex<bevy_ecs::world::World>>,
 
-    bots: Arc<Mutex<Vec<Client>>>,
+    bots: Arc<Mutex<HashMap<Entity, Client>>>,
 
     // bot_datas: Arc<Mutex<Vec<(Client, S)>>>,
     resolved_address: SocketAddr,
@@ -166,7 +166,9 @@ where
     }
 
     fn add_default_swarm_plugins(self) -> Self {
-        self.add_plugin(chat::Plugin).add_plugin(events::Plugin)
+        self.add_plugin(chat::Plugin)
+            .add_plugin(events::Plugin)
+            .add_plugin(bot::Plugin)
     }
 
     /// Build this `SwarmBuilder` into an actual [`Swarm`] and join the given
@@ -203,7 +205,7 @@ where
 
         let swarm = Swarm {
             ecs_lock: ecs_lock.clone(),
-            bots: Arc::new(Mutex::new(Vec::new())),
+            bots: Arc::new(Mutex::new(HashMap::new())),
 
             resolved_address,
             address,
@@ -265,10 +267,13 @@ where
             }
         });
 
+        println!("starting bot events");
         // bot events
         while let Some((Some(event), bot)) = bots_rx.recv().await {
+            println!("got event");
             if let Some(handler) = self.handler {
                 let state = bot.component::<S>();
+                println!("handler");
                 tokio::spawn((handler)(bot, event, state));
             }
         }
@@ -418,6 +423,8 @@ impl Swarm {
             ecs.entity_mut(bot.entity).insert(state);
         }
 
+        self.bots.lock().insert(bot.entity, bot.clone());
+
         let cloned_bots_tx = self.bots_tx.clone();
         let cloned_bot = bot.clone();
         let owned_account = account.clone();
@@ -432,6 +439,7 @@ impl Swarm {
                     error!("Error sending event to swarm: {e}");
                 }
             }
+            self.bots.lock().remove(&bot.entity);
             swarm_tx
                 .send(SwarmEvent::Disconnect(owned_account))
                 .unwrap();
@@ -480,7 +488,12 @@ impl IntoIterator for Swarm {
     /// }
     /// ```
     fn into_iter(self) -> Self::IntoIter {
-        self.bots.lock().clone().into_iter()
+        self.bots
+            .lock()
+            .clone()
+            .into_values()
+            .collect::<Vec<_>>()
+            .into_iter()
     }
 }
 
