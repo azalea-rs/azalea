@@ -196,6 +196,6 @@ impl McBufWritable for ActionEnumSet {
         if self.update_display_name {
             set.set(5);
         }
-        set.write_into(buf)
+        set.as_u8().write_into(buf)
     }
 }

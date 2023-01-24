@@ -40,7 +40,7 @@ impl McBufReadable for TagMap {
 
 impl McBufWritable for TagMap {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        (self.len() as u32).write_into(buf)?;
+        (self.len() as u32).var_write_into(buf)?;
         for (k, v) in &self.0 {
             k.write_into(buf)?;
             v.write_into(buf)?;

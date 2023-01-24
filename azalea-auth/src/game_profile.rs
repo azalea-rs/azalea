@@ -95,9 +95,8 @@ mod tests {
                 }
             ]
         }"#;
-        let profile = GameProfile::from(
-            serde_json::from_str::<SerializableProfilePropertyValue>(json).unwrap(),
-        );
+        let profile =
+            GameProfile::from(serde_json::from_str::<SerializableGameProfile>(json).unwrap());
         assert_eq!(
             profile,
             GameProfile {
@@ -106,9 +105,9 @@ mod tests {
                 properties: {
                     let mut map = HashMap::new();
                     map.insert(
-                        "asdf".to_string(),
+                        "qwer".to_string(),
                         ProfilePropertyValue {
-                            value: "qwer".to_string(),
+                            value: "asdf".to_string(),
                             signature: Some("zxcv".to_string()),
                         },
                     );
