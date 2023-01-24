@@ -113,10 +113,6 @@ impl BitSet {
         buf.read_exact(&mut data)?;
         Ok(BitSet::from(data))
     }
-
-    pub fn as_u8(&self) -> u8 {
-        self.data.iter().rev().fold(0, |acc, &b| acc * 2 + b as u8)
-    }
 }
 
 impl From<Vec<u64>> for BitSet {

@@ -177,25 +177,26 @@ impl McBufReadable for ActionEnumSet {
 
 impl McBufWritable for ActionEnumSet {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut set = BitSet::new(6);
+        let mut byte = 0;
         if self.add_player {
-            set.set(0);
+            byte |= 0b1;
         }
         if self.initialize_chat {
-            set.set(1);
+            byte |= 0b10;
         }
         if self.update_game_mode {
-            set.set(2);
+            byte |= 0b100;
         }
         if self.update_listed {
-            set.set(3);
+            byte |= 0b1000;
         }
         if self.update_latency {
-            set.set(4);
+            byte |= 0b10000;
         }
         if self.update_display_name {
-            set.set(5);
+            byte |= 0b100000;
         }
-        set.as_u8().write_into(buf)
+        u8::write_into(&byte, buf)?;
+        Ok(())
     }
 }
