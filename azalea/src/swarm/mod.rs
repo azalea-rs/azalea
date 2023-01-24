@@ -49,10 +49,10 @@ pub struct Swarm {
 /// Create a new [`Swarm`].
 pub struct SwarmBuilder<S, SS, Fut, SwarmFut>
 where
-    Fut: Future<Output = Result<(), anyhow::Error>>,
-    SwarmFut: Future<Output = Result<(), anyhow::Error>>,
     S: Default + Send + Sync + Clone + 'static,
     SS: Default + Send + Sync + Clone + 'static,
+    Fut: Future<Output = Result<(), anyhow::Error>>,
+    SwarmFut: Future<Output = Result<(), anyhow::Error>>,
 {
     app: bevy_app::App,
     /// The accounts that are going to join the server.
@@ -425,6 +425,7 @@ impl Swarm {
 
         self.bots.lock().insert(bot.entity, bot.clone());
 
+        let cloned_bots = self.bots.clone();
         let cloned_bots_tx = self.bots_tx.clone();
         let cloned_bot = bot.clone();
         let owned_account = account.clone();
@@ -439,7 +440,7 @@ impl Swarm {
                     error!("Error sending event to swarm: {e}");
                 }
             }
-            self.bots.lock().remove(&bot.entity);
+            cloned_bots.lock().remove(&bot.entity);
             swarm_tx
                 .send(SwarmEvent::Disconnect(owned_account))
                 .unwrap();
