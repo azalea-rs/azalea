@@ -32,7 +32,7 @@ impl McBufWritable for ServerboundPlayerInputPacket {
     fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         self.xxa.write_into(buf)?;
         self.zza.write_into(buf)?;
-        let mut byte = 0;
+        let mut byte = 0u8;
         if self.is_jumping {
             byte |= 1;
         }
