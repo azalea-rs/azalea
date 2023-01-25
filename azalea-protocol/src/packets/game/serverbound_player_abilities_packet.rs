@@ -23,7 +23,7 @@ impl McBufWritable for ServerboundPlayerAbilitiesPacket {
         if self.is_flying {
             byte |= 2;
         }
-        byte.write_into(buf)?;
+        u8::write_into(&byte, buf)?;
         Ok(())
     }
 }

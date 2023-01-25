@@ -143,6 +143,21 @@ mod tests {
     }
 
     #[test]
+    fn test_write_varlong() {
+        let mut buf = Vec::new();
+        0u64.var_write_into(&mut buf).unwrap();
+        assert_eq!(buf, vec![0]);
+
+        let mut buf = Vec::new();
+        1u64.var_write_into(&mut buf).unwrap();
+        assert_eq!(buf, vec![1]);
+
+        let mut buf = Vec::new();
+        9223372036854775807u64.var_write_into(&mut buf).unwrap();
+        assert_eq!(buf, vec![255, 255, 255, 255, 255, 255, 255, 255, 127]);
+    }
+
+    #[test]
     fn test_list() {
         let original_vec = vec!["a".to_string(), "bc".to_string(), "def".to_string()];
 
