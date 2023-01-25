@@ -31,7 +31,7 @@ pub struct Account {
     /// This is an Arc<Mutex> so it can be modified by [`Self::refresh`].
     pub access_token: Option<Arc<Mutex<String>>>,
     /// Only required for online-mode accounts.
-    pub uuid: Option<uuid::Uuid>,
+    pub uuid: Option<Uuid>,
 
     /// The parameters (i.e. email) that were passed for creating this
     /// [`Account`]. This is used to for automatic reauthentication when we get
@@ -85,7 +85,7 @@ impl Account {
         Ok(Self {
             username: auth_result.profile.name,
             access_token: Some(Arc::new(Mutex::new(auth_result.access_token))),
-            uuid: Some(Uuid::parse_str(&auth_result.profile.id).expect("Invalid UUID")),
+            uuid: Some(auth_result.profile.id),
             auth_opts: AuthOpts::Microsoft {
                 email: email.to_string(),
             },

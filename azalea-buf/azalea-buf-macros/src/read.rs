@@ -69,7 +69,7 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
                         variant_discrim = match &d.1 {
                             syn::Expr::Lit(e) => match &e.lit {
                                 syn::Lit::Int(i) => i.base10_parse().unwrap(),
-                                _ => panic!("Error parsing enum discriminant as int (is {:?})", e),
+                                _ => panic!("Error parsing enum discriminant as int (is {e:?})",),
                             },
                             syn::Expr::Unary(_) => {
                                 panic!("Negative enum discriminants are not supported")

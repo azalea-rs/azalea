@@ -1,4 +1,4 @@
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_core::ParticleData;
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Cursor, Write};
@@ -51,7 +51,18 @@ impl McBufReadable for ClientboundLevelParticlesPacket {
 }
 
 impl McBufWritable for ClientboundLevelParticlesPacket {
-    fn write_into(&self, _buf: &mut impl Write) -> Result<(), std::io::Error> {
-        todo!();
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.particle_id.var_write_into(buf)?;
+        self.override_limiter.write_into(buf)?;
+        self.x.write_into(buf)?;
+        self.y.write_into(buf)?;
+        self.z.write_into(buf)?;
+        self.x_dist.write_into(buf)?;
+        self.y_dist.write_into(buf)?;
+        self.z_dist.write_into(buf)?;
+        self.max_speed.write_into(buf)?;
+        self.count.write_into(buf)?;
+        self.data.write_without_id(buf)?;
+        Ok(())
     }
 }

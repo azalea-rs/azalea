@@ -10,6 +10,7 @@ use std::{
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
 use thiserror::Error;
+use uuid::Uuid;
 
 #[derive(Default)]
 pub struct AuthOpts {
@@ -209,8 +210,7 @@ pub struct GameOwnershipItem {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ProfileResponse {
-    // todo: make the id a uuid
-    pub id: String,
+    pub id: Uuid,
     pub name: String,
     pub skins: Vec<serde_json::Value>,
     pub capes: Vec<serde_json::Value>,
@@ -257,8 +257,7 @@ async fn interactive_get_ms_auth_token(
         log::trace!("Polling to check if user has logged in...");
         if let Ok(access_token_response) = client
             .post(format!(
-                "https://login.live.com/oauth20_token.srf?client_id={}",
-                CLIENT_ID
+                "https://login.live.com/oauth20_token.srf?client_id={CLIENT_ID}"
             ))
             .form(&vec![
                 ("client_id", CLIENT_ID),

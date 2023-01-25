@@ -74,11 +74,12 @@ impl ChatPacket {
     }
 
     /// Get the UUID of the sender of the message. If it's not a
-    /// player-sent chat message, this will be None.
+    /// player-sent chat message, this will be None (this is sometimes the case
+    /// when a server uses a plugin to modify chat messages).
     pub fn uuid(&self) -> Option<Uuid> {
         match self {
-            ChatPacket::System(_) => return None,
-            ChatPacket::Player(m) => return Some(m.sender),
+            ChatPacket::System(_) => None,
+            ChatPacket::Player(m) => Some(m.sender),
         }
     }
 
