@@ -2766,6 +2766,18 @@ registry!(Item, {
     PearlescentFroglight => "minecraft:pearlescent_froglight",
     Frogspawn => "minecraft:frogspawn",
     EchoShard => "minecraft:echo_shard",
+    NetheriteUpgradeSmithingTemplate => "minecraft:netherite_upgrade_smithing_template",
+    SentryArmorTrimSmithingTemplate => "minecraft:sentry_armor_trim_smithing_template",
+    DuneArmorTrimSmithingTemplate => "minecraft:dune_armor_trim_smithing_template",
+    CoastArmorTrimSmithingTemplate => "minecraft:coast_armor_trim_smithing_template",
+    WildArmorTrimSmithingTemplate => "minecraft:wild_armor_trim_smithing_template",
+    WardArmorTrimSmithingTemplate => "minecraft:ward_armor_trim_smithing_template",
+    EyeArmorTrimSmithingTemplate => "minecraft:eye_armor_trim_smithing_template",
+    VexArmorTrimSmithingTemplate => "minecraft:vex_armor_trim_smithing_template",
+    TideArmorTrimSmithingTemplate => "minecraft:tide_armor_trim_smithing_template",
+    SnoutArmorTrimSmithingTemplate => "minecraft:snout_armor_trim_smithing_template",
+    RibArmorTrimSmithingTemplate => "minecraft:rib_armor_trim_smithing_template",
+    SpireArmorTrimSmithingTemplate => "minecraft:spire_armor_trim_smithing_template",
 });
 
 registry!(LootConditionType, {
@@ -2961,6 +2973,7 @@ registry!(Menu, {
     Loom => "minecraft:loom",
     Merchant => "minecraft:merchant",
     ShulkerBox => "minecraft:shulker_box",
+    LegacySmithing => "minecraft:legacy_smithing",
     Smithing => "minecraft:smithing",
     Smoker => "minecraft:smoker",
     CartographyTable => "minecraft:cartography_table",
@@ -3234,6 +3247,8 @@ registry!(RecipeSerializer, {
     CampfireCooking => "minecraft:campfire_cooking",
     Stonecutting => "minecraft:stonecutting",
     Smithing => "minecraft:smithing",
+    SmithingTransform => "minecraft:smithing_transform",
+    SmithingTrim => "minecraft:smithing_trim",
 });
 
 registry!(RecipeType, {
