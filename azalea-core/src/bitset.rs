@@ -1,4 +1,4 @@
-use std::io::{Cursor, Read, Write};
+use std::io::{Cursor, Write};
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 
@@ -105,14 +105,6 @@ impl BitSet {
 
     pub fn set(&mut self, bit_index: usize) {
         self.data[bit_index / 64] |= 1u64 << (bit_index % 64);
-    }
-
-    /// Read a BitSet with a known length. Use [`FixedBitSet::read_from`]
-    /// instead.
-    fn read_fixed(buf: &mut Cursor<&[u8]>, length: usize) -> Result<Self, BufReadError> {
-        let mut data = vec![0; length.div_ceil(8)];
-        buf.read_exact(&mut data)?;
-        Ok(BitSet::from(data))
     }
 }
 

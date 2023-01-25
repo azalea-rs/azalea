@@ -3,7 +3,7 @@ use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
 use azalea_chat::Component;
-use azalea_core::{BitSet, FixedBitSet, GameType};
+use azalea_core::{FixedBitSet, GameType};
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::{
     collections::HashMap,
