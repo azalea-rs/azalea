@@ -107,8 +107,9 @@ impl BitSet {
         self.data[bit_index / 64] |= 1u64 << (bit_index % 64);
     }
 
-    /// Read a BitSet with a known length.
-    pub fn read_fixed(buf: &mut Cursor<&[u8]>, length: usize) -> Result<Self, BufReadError> {
+    /// Read a BitSet with a known length. Use [`FixedBitSet::read_from`]
+    /// instead.
+    fn read_fixed(buf: &mut Cursor<&[u8]>, length: usize) -> Result<Self, BufReadError> {
         let mut data = vec![0; length.div_ceil(8)];
         buf.read_exact(&mut data)?;
         Ok(BitSet::from(data))

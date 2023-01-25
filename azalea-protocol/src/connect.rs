@@ -305,7 +305,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///         let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
     ///         conn.authenticate(
     ///             &access_token,
-    ///             &Uuid::parse_str(&profile.id).expect("Invalid UUID"),
+    ///             &profile.id,
     ///             e.secret_key,
     ///             &p
     ///         ).await?;
