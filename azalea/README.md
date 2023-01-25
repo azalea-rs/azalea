@@ -74,4 +74,12 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 }
 ```
 
+# Plugins
+
+Azalea uses [Bevy ECS](https://docs.rs/bevy_ecs) internally to store information about the world and clients. Bevy plugins are more powerful than async handler functions, but more difficult to use. See [pathfinder](azalea/src/pathfinder/mod.rs) as an example of how to make a plugin. You can then use a plugin by adding `.add_plugin(ExamplePlugin)` in the client or swarm builder.
+
+Also note that just because something is an entity in the ECS doesn't mean that it's a Minecraft entity. You can filter for that by having `With<MinecraftEntityId>` as a filter.
+
+See the [https://bevy-cheatbook.github.io/programming/ecs-intro.html](Bevy Cheatbook) to learn more about Bevy ECS (and ECS in general).
+
 [`azalea_client`]: https://docs.rs/azalea-client

@@ -14,6 +14,7 @@ pub use azalea_core::{BlockPos, Vec3};
 pub use azalea_protocol as protocol;
 pub use azalea_registry::EntityKind;
 pub use azalea_world::{entity, World};
+use bevy_app::Plugin;
 use bevy_ecs::prelude::Component;
 use futures::Future;
 use protocol::ServerAddress;
@@ -35,6 +36,7 @@ where
     S: Default + Send + Sync + Clone + 'static,
     Fut: Future<Output = Result<(), anyhow::Error>>,
 {
+    app: bevy_app::App,
     /// The function that's called every time a bot receives an [`Event`].
     handler: Option<HandleFn<Fut, S>>,
     state: S,
@@ -44,16 +46,40 @@ where
     S: Default + Send + Sync + Clone + Component + 'static,
     Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
 {
+    /// Start building a client that can join the world.
     pub fn new() -> Self {
         Self {
+            // we create the app here so plugins can add onto it.
+            // the schedules won't run until [`Self::start`] is called.
+            app: init_ecs_app(),
+
             handler: None,
             state: S::default(),
         }
     }
+    /// Set the function that's called every time a bot receives an [`Event`].
+    /// This is the way to handle normal per-bot events.
+    ///
+    /// You can only have one client handler, calling this again will replace
+    /// the old client handler function (you can have a client handler and swarm
+    /// handler separately though).
     pub fn set_handler(mut self, handler: HandleFn<Fut, S>) -> Self {
         self.handler = Some(handler);
         self
     }
+    /// Add a plugin to the client's ECS.
+    pub fn add_plugin<T: Plugin>(mut self, plugin: T) -> Self {
+        self.app.add_plugin(plugin);
+        self
+    }
+
+    /// Build this `ClientBuilder` into an actual [`Client`] and join the given
+    /// server.
+    ///
+    /// The `address` argumentcan be a `&str`, [`ServerAddress`], or anything
+    /// that implements `TryInto<ServerAddress>`.
+    ///
+    /// [`ServerAddress`]: azalea_protocol::ServerAddress
     pub async fn start(
         self,
         account: Account,

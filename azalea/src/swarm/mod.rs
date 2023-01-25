@@ -146,10 +146,7 @@ where
         self
     }
 
-    /// TODO: write plugin docs probably here
-    ///
-    /// notes: ECS entities might not be Minecraft entities, filter by
-    /// MinecraftEntityId to make sure
+    /// Add a plugin to the swarm.
     pub fn add_plugin<T: Plugin>(mut self, plugin: T) -> Self {
         self.app.add_plugin(plugin);
         self
