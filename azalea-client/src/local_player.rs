@@ -73,9 +73,6 @@ pub struct LocalPlayerInLoadedChunk;
 
 impl LocalPlayer {
     /// Create a new `LocalPlayer`.
-    ///
-    /// You should only use this if you want to change these fields from the
-    /// defaults, otherwise use [`Client::join`].
     pub fn new(
         entity: Entity,
         packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,

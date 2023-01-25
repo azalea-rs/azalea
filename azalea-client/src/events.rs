@@ -6,7 +6,7 @@ use std::sync::Arc;
 use azalea_protocol::packets::game::{
     clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
 };
-use azalea_world::entity::{Entity, MinecraftEntityId};
+use azalea_world::entity::MinecraftEntityId;
 use bevy_app::Plugin;
 use bevy_ecs::{
     prelude::{Component, EventReader},
@@ -14,7 +14,6 @@ use bevy_ecs::{
     system::Query,
 };
 use derive_more::{Deref, DerefMut};
-use futures::SinkExt;
 use iyes_loopless::prelude::*;
 use tokio::sync::mpsc;
 

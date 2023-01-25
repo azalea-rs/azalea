@@ -65,6 +65,7 @@ impl Client {
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub(crate) fn send_position(
     mut query: Query<
         (
@@ -243,25 +244,15 @@ impl LocalPlayer {
 pub fn local_player_ai_step(
     mut query: Query<
         (
-            &mut LocalPlayer,
             &mut PhysicsState,
             &mut entity::Physics,
-            &mut entity::Position,
             &mut entity::metadata::Sprinting,
             &mut entity::Attributes,
         ),
         With<LocalPlayerInLoadedChunk>,
     >,
 ) {
-    for (
-        local_player,
-        mut physics_state,
-        mut physics,
-        mut position,
-        mut sprinting,
-        mut attributes,
-    ) in query.iter_mut()
-    {
+    for (mut physics_state, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
         LocalPlayer::tick_controls(None, &mut physics_state);
 
         // server ai step

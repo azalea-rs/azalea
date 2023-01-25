@@ -83,17 +83,12 @@ impl fmt::Debug for BuiltInExceptions {
                 write!(f, "Unclosed quoted string")
             }
             BuiltInExceptions::ReaderInvalidEscape { character } => {
-                write!(
-                    f,
-                    "Invalid escape sequence '{}' in quoted string",
-                    character
-                )
+                write!(f, "Invalid escape sequence '{character}' in quoted string")
             }
             BuiltInExceptions::ReaderInvalidBool { value } => {
                 write!(
                     f,
-                    "Invalid bool, expected true or false but found '{}'",
-                    value
+                    "Invalid bool, expected true or false but found '{value}'"
                 )
             }
             BuiltInExceptions::ReaderInvalidInt { value } => {

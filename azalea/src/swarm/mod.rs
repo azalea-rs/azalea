@@ -109,12 +109,12 @@ where
         }
         self
     }
-    /// Add a single new [`Account`] to the swarm. Use [`add_accounts`] to add
-    /// multiple accounts at a time.
+    /// Add a single new [`Account`] to the swarm. Use [`Self::add_accounts`] to
+    /// add multiple accounts at a time.
     ///
     /// This will make the state for this client be the default, use
     /// [`Self::add_account_with_state`] to avoid that.
-    pub fn add_account(mut self, account: Account) -> Self {
+    pub fn add_account(self, account: Account) -> Self {
         self.add_account_with_state(account, S::default())
     }
     /// Add an account with a custom initial state. Use just
@@ -222,7 +222,7 @@ where
         // SwarmBuilder (self) isn't Send so we have to take all the things we need out
         // of it
         let mut swarm_clone = swarm.clone();
-        let join_delay = self.join_delay.clone();
+        let join_delay = self.join_delay;
         let accounts = self.accounts.clone();
         let states = self.states.clone();
 
@@ -284,6 +284,18 @@ where
     }
 }
 
+impl<S, SS, Fut, SwarmFut> Default for SwarmBuilder<S, SS, Fut, SwarmFut>
+where
+    Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
+    SwarmFut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
+    S: Default + Send + Sync + Clone + Component + 'static,
+    SS: Default + Send + Sync + Clone + Component + 'static,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// An event about something that doesn't have to do with a single bot.
 #[derive(Clone, Debug)]
 pub enum SwarmEvent {
@@ -335,7 +347,7 @@ pub enum SwarmStartError {
 ///     let mut states = Vec::new();
 ///
 ///     for i in 0..10 {
-///         accounts.push(Account::offline(&format!("bot{}", i)));
+///         accounts.push(Account::offline(&format!("bot{i}")));
 ///         states.push(State::default());
 ///     }
 ///

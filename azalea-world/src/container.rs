@@ -24,7 +24,7 @@ pub struct WorldContainer {
     // If it looks like we're relying on the server giving us unique world names, that's because we
     // are. An evil server could give us two worlds with the same name and then we'd have no way of
     // telling them apart. We hope most servers are nice and don't do that though. It's only an
-    // issue when there's multiple clients with the same WeakWorldContainer in different worlds
+    // issue when there's multiple clients with the same WorldContainer in different worlds
     // anyways.
     pub worlds: HashMap<ResourceLocation, Weak<RwLock<World>>>,
 }

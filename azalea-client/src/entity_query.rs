@@ -23,7 +23,7 @@ impl Client {
     /// Return a lightweight [`Entity`] for the entity that matches the given
     /// predicate function.
     ///
-    /// You can then use [`Self::map_entity`] to get components from this
+    /// You can then use [`Self::entity_component`] to get components from this
     /// entity.
     ///
     /// # Example
@@ -34,6 +34,7 @@ impl Client {
     /// );
     /// if let Some(entity) = entity {
     ///     let position = bot.entity_component::<Position>(entity);
+    ///     // ...
     /// }
     /// ```
     pub fn entity_by<F: ReadOnlyWorldQuery, Q: ReadOnlyWorldQuery>(
@@ -58,7 +59,7 @@ impl Client {
 pub trait EntityPredicate<Q: ReadOnlyWorldQuery, Filter: ReadOnlyWorldQuery> {
     fn find(&self, ecs_lock: Arc<Mutex<bevy_ecs::world::World>>) -> Option<Entity>;
 }
-impl<'a, F, Q, Filter> EntityPredicate<(Q,), Filter> for F
+impl<F, Q, Filter> EntityPredicate<(Q,), Filter> for F
 where
     F: Fn(&ROQueryItem<Q>) -> bool,
     Q: ReadOnlyWorldQuery,
@@ -69,7 +70,7 @@ where
         let mut query = ecs.query_filtered::<(Entity, Q), Filter>();
         let entity = query.iter(&ecs).find(|(_, q)| (self)(q)).map(|(e, _)| e);
 
-        entity.clone()
+        entity
     }
 }
 

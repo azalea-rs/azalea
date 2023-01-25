@@ -48,22 +48,22 @@ async fn main() -> anyhow::Result<()> {
     let mut states = Vec::new();
 
     for i in 0..1 {
-        accounts.push(Account::offline(&format!("bot{}", i)));
+        accounts.push(Account::offline(&format!("bot{i}")));
         states.push(State::default());
     }
 
     loop {
-        // let e = azalea::SwarmBuilder::new()
-        //     .add_accounts(accounts.clone())
-        //     .set_handler(handle)
-        //     .set_swarm_handler(swarm_handle)
-        //     .join_delay(Duration::from_millis(1000))
-        //     .start("localhost")
-        //     .await;
-        let e = azalea::ClientBuilder::new()
+        let e = azalea::SwarmBuilder::new()
+            .add_accounts(accounts.clone())
             .set_handler(handle)
-            .start(Account::offline("bot"), "localhost")
+            .set_swarm_handler(swarm_handle)
+            .join_delay(Duration::from_millis(1000))
+            .start("localhost")
             .await;
+        // let e = azalea::ClientBuilder::new()
+        //     .set_handler(handle)
+        //     .start(Account::offline("bot"), "localhost")
+        //     .await;
         println!("{e:?}");
     }
 }
@@ -110,7 +110,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     "look" => {
                         let entity_pos = bot.entity_component::<Position>(entity);
                         let target_pos: BlockPos = entity_pos.into();
-                        println!("target_pos: {:?}", target_pos);
+                        println!("target_pos: {target_pos:?}");
                         bot.look_at(target_pos.center());
                     }
                     "jump" => {
@@ -156,10 +156,10 @@ async fn swarm_handle(
             println!("swarm chat message: {}", m.message().to_ansi());
             if m.message().to_string() == "<py5> world" {
                 for (name, world) in &swarm.world_container.read().worlds {
-                    println!("world name: {}", name);
+                    println!("world name: {name}");
                     if let Some(w) = world.upgrade() {
                         for chunk_pos in w.read().chunks.chunks.values() {
-                            println!("chunk: {:?}", chunk_pos);
+                            println!("chunk: {chunk_pos:?}");
                         }
                     } else {
                         println!("nvm world is gone");

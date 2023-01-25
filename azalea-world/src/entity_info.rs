@@ -4,7 +4,7 @@ use crate::{
         self, add_dead, update_bounding_box, Entity, EntityUuid, MinecraftEntityId, Position,
         WorldName,
     },
-    update_entity_by_id_index, update_uuid_index, PartialWorld, World, WorldContainer,
+    update_entity_by_id_index, update_uuid_index, PartialWorld, WorldContainer,
 };
 use azalea_core::ChunkPos;
 use bevy_app::{App, Plugin};
@@ -16,14 +16,12 @@ use bevy_ecs::{
     world::EntityMut,
 };
 use derive_more::{Deref, DerefMut};
-use iyes_loopless::prelude::*;
-use log::{debug, trace, warn};
-use nohash_hasher::{IntMap, IntSet};
+use log::{debug, warn};
+use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 use std::{
     collections::{HashMap, HashSet},
     fmt::Debug,
-    ops::DerefMut,
     sync::Arc,
 };
 use uuid::Uuid;
@@ -77,21 +75,15 @@ fn debug_new_entity(query: Query<Entity, Added<MinecraftEntityId>>) {
 //   "updates received" if not, then we simply increment our local "updates
 //   received" and do nothing else
 
-/// Store a map of entities by ID. To get an iterator over all entities, use
-/// `storage.shared.read().entities` [`WeakEntityStorage::entities`].
-///
-/// This is meant to be used with shared worlds.
-///
-/// You can access the shared storage with `world.shared.read()`.
+/// Keep track of certain metadatas that are only relevant for this partial
+/// world.
 #[derive(Debug, Default)]
 pub struct PartialEntityInfos {
-    // note: using MinecraftEntityId for entity ids is acceptable here since there's no chance of
-    // collisions here
+    // note: using MinecraftEntityId for entity ids is acceptable here since
+    // there's no chance of collisions here
     /// The entity id of the player that owns this partial world. This will
-    /// make [`PartialWorld::entity_mut`] pretend the entity doesn't exist so
+    /// make [`RelativeEntityUpdate`] pretend the entity doesn't exist so
     /// it doesn't get modified from outside sources.
-    ///
-    /// [`PartialWorld::entity_mut`]: crate::PartialWorld::entity_mut
     pub owner_entity: Option<Entity>,
     /// A counter for each entity that tracks how many updates we've observed
     /// for it.
@@ -228,6 +220,7 @@ pub struct LoadedBy(pub HashSet<Entity>);
 #[derive(Component, Debug, Deref, DerefMut)]
 pub struct UpdatesReceived(u32);
 
+#[allow(clippy::type_complexity)]
 pub fn add_updates_received(
     mut commands: Commands,
     query: Query<
@@ -290,7 +283,7 @@ fn remove_despawned_entities_from_indexes(
             warn!("Tried to remove entity from chunk {chunk:?} but the chunk was not found.");
         }
         // remove it from the uuid index
-        if entity_infos.entity_by_uuid.remove(&*uuid).is_none() {
+        if entity_infos.entity_by_uuid.remove(uuid).is_none() {
             warn!("Tried to remove entity {entity:?} from the uuid index but it was not there.");
         }
         // and now remove the entity from the ecs

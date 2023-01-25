@@ -18,7 +18,7 @@ use azalea_world::{
         set_rotation, Dead, EntityBundle, EntityKind, LastSentPosition, MinecraftEntityId, Physics,
         PlayerBundle, Position,
     },
-    EntityInfos, LoadedBy, PartialWorld, RelativeEntityUpdate, WorldContainer,
+    LoadedBy, PartialWorld, RelativeEntityUpdate, WorldContainer,
 };
 use bevy_app::{App, Plugin};
 use bevy_ecs::{
@@ -34,7 +34,7 @@ use tokio::sync::mpsc;
 
 use crate::{
     local_player::{GameProfileComponent, LocalPlayer},
-    ChatPacket, ClientInformation, Event, PlayerInfo,
+    ChatPacket, ClientInformation, PlayerInfo,
 };
 
 pub struct PacketHandlerPlugin;
@@ -119,14 +119,13 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                 ClientboundGamePacket::Login(p) => {
                     debug!("Got login packet");
 
+                    #[allow(clippy::type_complexity)]
                     let mut system_state: SystemState<(
                         Commands,
                         Query<(&mut LocalPlayer, &GameProfileComponent)>,
                         ResMut<WorldContainer>,
-                        ResMut<EntityInfos>,
                     )> = SystemState::new(ecs);
-                    let (mut commands, mut query, mut world_container, mut entity_infos) =
-                        system_state.get_mut(ecs);
+                    let (mut commands, mut query, mut world_container) = system_state.get_mut(ecs);
                     let (mut local_player, game_profile) = query.get_mut(player_entity).unwrap();
 
                     {
@@ -440,7 +439,7 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                     let mut system_state: SystemState<Query<&mut LocalPlayer>> =
                         SystemState::new(ecs);
                     let mut query = system_state.get_mut(ecs);
-                    let mut local_player = query.get_mut(player_entity).unwrap();
+                    let local_player = query.get_mut(player_entity).unwrap();
                     let mut partial_world = local_player.partial_world.write();
 
                     partial_world.chunks.view_center = ChunkPos::new(p.x, p.z);
@@ -496,7 +495,7 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                     let mut system_state: SystemState<(Commands, Query<&mut LocalPlayer>)> =
                         SystemState::new(ecs);
                     let (mut commands, mut query) = system_state.get_mut(ecs);
-                    let mut local_player = query.get_mut(player_entity).unwrap();
+                    let local_player = query.get_mut(player_entity).unwrap();
 
                     if let Some(world_name) = &local_player.world_name {
                         let bundle = p.as_entity_bundle(world_name.clone());
@@ -557,12 +556,10 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                 ClientboundGamePacket::AddPlayer(p) => {
                     debug!("Got add player packet {:?}", p);
 
-                    let mut system_state: SystemState<(
-                        Commands,
-                        Query<(&mut LocalPlayer, &EntityKind)>,
-                    )> = SystemState::new(ecs);
+                    let mut system_state: SystemState<(Commands, Query<&mut LocalPlayer>)> =
+                        SystemState::new(ecs);
                     let (mut commands, mut query) = system_state.get_mut(ecs);
-                    let (mut local_player, entity_kind) = query.get_mut(player_entity).unwrap();
+                    let local_player = query.get_mut(player_entity).unwrap();
 
                     if let Some(world_name) = &local_player.world_name {
                         let bundle = p.as_player_bundle(world_name.clone());
@@ -628,7 +625,7 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                     drop(world);
 
                     if let Some(entity) = entity {
-                        let mut new_position = p.position.clone();
+                        let new_position = p.position;
                         commands.add(RelativeEntityUpdate {
                             entity,
                             partial_world: local_player.partial_world.clone(),
@@ -725,12 +722,9 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                 ClientboundGamePacket::PlayerChat(p) => {
                     debug!("Got player chat packet {:?}", p);
 
-                    let mut system_state: SystemState<(
-                        Query<&mut LocalPlayer>,
-                        EventWriter<ChatReceivedEvent>,
-                    )> = SystemState::new(ecs);
-                    let (mut query, mut chat_events) = system_state.get_mut(ecs);
-                    let local_player = query.get_mut(player_entity).unwrap();
+                    let mut system_state: SystemState<EventWriter<ChatReceivedEvent>> =
+                        SystemState::new(ecs);
+                    let mut chat_events = system_state.get_mut(ecs);
 
                     chat_events.send(ChatReceivedEvent {
                         entity: player_entity,
@@ -740,12 +734,9 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                 ClientboundGamePacket::SystemChat(p) => {
                     debug!("Got system chat packet {:?}", p);
 
-                    let mut system_state: SystemState<(
-                        Query<&mut LocalPlayer>,
-                        EventWriter<ChatReceivedEvent>,
-                    )> = SystemState::new(ecs);
-                    let (mut query, mut chat_events) = system_state.get_mut(ecs);
-                    let local_player = query.get_mut(player_entity).unwrap();
+                    let mut system_state: SystemState<EventWriter<ChatReceivedEvent>> =
+                        SystemState::new(ecs);
+                    let mut chat_events = system_state.get_mut(ecs);
 
                     chat_events.send(ChatReceivedEvent {
                         entity: player_entity,
@@ -832,13 +823,14 @@ fn handle_packets(ecs: &mut bevy_ecs::world::World) {
                 ClientboundGamePacket::PlayerCombatKill(p) => {
                     debug!("Got player kill packet {:?}", p);
 
+                    #[allow(clippy::type_complexity)]
                     let mut system_state: SystemState<(
                         Commands,
-                        Query<(&mut LocalPlayer, &MinecraftEntityId, Option<&Dead>)>,
+                        Query<(&MinecraftEntityId, Option<&Dead>)>,
                         EventWriter<DeathEvent>,
                     )> = SystemState::new(ecs);
                     let (mut commands, mut query, mut death_events) = system_state.get_mut(ecs);
-                    let (local_player, entity_id, dead) = query.get_mut(player_entity).unwrap();
+                    let (entity_id, dead) = query.get_mut(player_entity).unwrap();
 
                     if **entity_id == p.player_id && dead.is_none() {
                         commands.entity(player_entity).insert(Dead);

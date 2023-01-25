@@ -17,11 +17,11 @@ use std::{
 };
 
 /// PartialWorlds are usually owned by clients, and hold strong references to
-/// chunks and entities in [`WeakWorld`]s.
+/// chunks and entities in [`World`]s.
 ///
 /// Basically, they hold the chunks and entities that are within render
 /// distance but can still access chunks and entities owned by other
-/// `PartialWorld`s that have the same `WeakWorld`.
+/// `PartialWorld`s that have the same `World`.
 ///
 /// This is primarily useful for having multiple clients in the same world.
 pub struct PartialWorld {

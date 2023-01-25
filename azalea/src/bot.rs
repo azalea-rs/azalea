@@ -1,4 +1,3 @@
-use azalea_client::Account;
 use azalea_core::Vec3;
 use azalea_world::entity::{set_rotation, Entity, Jumping, Physics, Position};
 use bevy_app::App;
@@ -85,7 +84,7 @@ fn look_at_listener(
 ) {
     for event in events.iter() {
         if let Ok((position, mut physics)) = query.get_mut(event.entity) {
-            let (y_rot, x_rot) = direction_looking_at(&position, &event.position);
+            let (y_rot, x_rot) = direction_looking_at(position, &event.position);
             set_rotation(&mut physics, y_rot, x_rot);
         }
     }

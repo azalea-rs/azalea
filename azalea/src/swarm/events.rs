@@ -1,7 +1,7 @@
 use azalea_client::LocalPlayer;
 use azalea_world::entity::MinecraftEntityId;
 use bevy_ecs::{
-    prelude::EventWriter,
+    prelude::{EventWriter, With},
     system::{Query, ResMut, Resource},
 };
 use derive_more::{Deref, DerefMut};
@@ -22,7 +22,7 @@ pub struct SwarmReadyEvent;
 struct IsSwarmReady(bool);
 
 fn check_ready(
-    query: Query<(&LocalPlayer, Option<&MinecraftEntityId>)>,
+    query: Query<Option<&MinecraftEntityId>, With<LocalPlayer>>,
     mut is_swarm_ready: ResMut<IsSwarmReady>,
     mut ready_events: EventWriter<SwarmReadyEvent>,
 ) {
@@ -31,7 +31,7 @@ fn check_ready(
         return;
     }
     // if all the players are in the world, we're ready
-    for (player, entity_id) in query.iter() {
+    for entity_id in query.iter() {
         if entity_id.is_none() {
             return;
         }

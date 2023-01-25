@@ -28,7 +28,7 @@ pub struct Account {
     /// The access token for authentication. You can obtain one of these
     /// manually from azalea-auth.
     ///
-    /// This is an Arc<Mutex> so it can be modified by [`Self::refresh`].
+    /// This is an `Arc<Mutex>` so it can be modified by [`Self::refresh`].
     pub access_token: Option<Arc<Mutex<String>>>,
     /// Only required for online-mode accounts.
     pub uuid: Option<uuid::Uuid>,

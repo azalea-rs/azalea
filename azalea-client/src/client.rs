@@ -16,7 +16,6 @@ use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
         game::{
-            clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
             serverbound_client_information_packet::ServerboundClientInformationPacket,
             ClientboundGamePacket, ServerboundGamePacket,
         },
@@ -45,9 +44,10 @@ use bevy_time::TimePlugin;
 use iyes_loopless::prelude::*;
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
-use std::{fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
+use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::{sync::mpsc, time};
+use uuid::Uuid;
 
 pub type ClientInformation = ServerboundClientInformationPacket;
 
@@ -371,7 +371,7 @@ impl Client {
 
     /// Get a reference to our (potentially shared) world.
     ///
-    /// This gets the [`WeakWorld`] from our world container. If it's a normal
+    /// This gets the [`World`] from our world container. If it's a normal
     /// client, then it'll be the same as the world the client has loaded.
     /// If the client using a shared world, then the shared world will be a
     /// superset of the client's world.
@@ -435,6 +435,11 @@ impl Client {
         }
 
         Ok(())
+    }
+
+    /// Get a HashMap of all the players in the tab list.
+    pub fn players(&mut self) -> HashMap<Uuid, PlayerInfo> {
+        self.local_player(&mut self.ecs.lock()).players.clone()
     }
 }
 
@@ -532,7 +537,7 @@ pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::Sender<()>) {
     loop {
         game_tick_interval.tick().await;
         if let Err(e) = run_schedule_sender.send(()).await {
-            println!("tick_run_schedule_loop error: {}", e);
+            println!("tick_run_schedule_loop error: {e}");
             // the sender is closed so end the task
             return;
         }

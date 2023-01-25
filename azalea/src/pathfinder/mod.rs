@@ -4,7 +4,7 @@ mod mtdstarlite;
 use crate::bot::{JumpEvent, LookAtEvent};
 use crate::{SprintDirection, WalkDirection};
 
-use azalea_client::{LocalPlayer, StartSprintEvent, StartWalkEvent};
+use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_world::entity::{Entity, Physics, Position, WorldName};
 use azalea_world::WorldContainer;
@@ -132,13 +132,13 @@ fn goto_listener(
 }
 
 fn tick_execute_path(
-    mut query: Query<(Entity, &LocalPlayer, &mut Pathfinder, &Position, &Physics)>,
+    mut query: Query<(Entity, &mut Pathfinder, &Position, &Physics)>,
     mut look_at_events: EventWriter<LookAtEvent>,
     mut sprint_events: EventWriter<StartSprintEvent>,
     mut walk_events: EventWriter<StartWalkEvent>,
     mut jump_events: EventWriter<JumpEvent>,
 ) {
-    for (entity, local_player, mut pathfinder, position, physics) in &mut query {
+    for (entity, mut pathfinder, position, physics) in &mut query {
         loop {
             let target = if let Some(target) = pathfinder.path.front() {
                 target
