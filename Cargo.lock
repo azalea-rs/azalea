@@ -356,6 +356,7 @@ version = "0.5.0"
 dependencies = [
  "azalea-block",
  "azalea-core",
+ "azalea-registry",
  "azalea-world",
  "bevy_app",
  "bevy_ecs",

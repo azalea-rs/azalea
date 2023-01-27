@@ -48,7 +48,8 @@ impl Plugin for EntityPlugin {
                 .with_system(debug_detect_updates_received_on_local_entities)
                 .with_system(update_entity_by_id_index)
                 .with_system(debug_new_entity),
-        );
+        )
+        .init_resource::<EntityInfos>();
     }
 }
 

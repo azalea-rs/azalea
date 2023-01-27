@@ -128,6 +128,7 @@ pub fn ai_step(
     >,
     mut force_jump_events: EventWriter<ForceJumpEvent>,
 ) {
+    println!("ai step");
     for (entity, mut physics, jumping) in &mut query {
         // vanilla does movement interpolation here, doesn't really matter much for a
         // bot though
@@ -306,131 +307,219 @@ fn jump_boost_power() -> f64 {
 
 #[cfg(test)]
 mod tests {
+    use std::{sync::Arc, time::Duration};
+
     use super::*;
-    use azalea_core::ChunkPos;
+    use azalea_core::{ChunkPos, ResourceLocation};
     use azalea_world::{
-        entity::{metadata, EntityMetadata},
-        Chunk, PartialWorld,
+        entity::{EntityBundle, MinecraftEntityId},
+        Chunk, EntityPlugin, PartialWorld,
     };
+    use bevy_app::App;
+    use iyes_loopless::fixedtimestep::FixedTimestepStageLabel;
+    use parking_lot::RwLock;
     use uuid::Uuid;
+
+    /// You need an app to spawn entities in the world and do updates.
+    fn make_test_app() -> App {
+        let mut app = App::new();
+        app.add_fixed_timestep(Duration::from_secs(1), "tick")
+            .add_plugin(PhysicsPlugin)
+            .add_plugin(EntityPlugin)
+            .init_resource::<WorldContainer>();
+        app
+    }
 
     #[test]
     fn test_gravity() {
-        let mut world = PartialWorld::default();
+        let mut app = make_test_app();
+        let world_lock = app.world.resource_mut::<WorldContainer>().insert(
+            ResourceLocation::new("minecraft:overworld").unwrap(),
+            384,
+            -64,
+        );
+        let mut partial_world = PartialWorld::default();
 
-        world.add_entity(
-            0,
-            EntityData::new(
-                Uuid::nil(),
-                Vec3 {
-                    x: 0.,
-                    y: 70.,
-                    z: 0.,
-                },
-                EntityMetadata::Player(metadata::Player::default()),
-            ),
-        );
-        let mut entity = world.entity_mut(0).unwrap();
-        // y should start at 70
-        assert_eq!(entity.pos().y, 70.);
-        entity.ai_step();
-        // delta is applied before gravity, so the first tick only sets the delta
-        assert_eq!(entity.pos().y, 70.);
-        assert!(entity.delta.y < 0.);
-        entity.ai_step();
-        // the second tick applies the delta to the position, so now it should go down
-        assert!(
-            entity.pos().y < 70.,
-            "Entity y ({}) didn't go down after physics steps",
-            entity.pos().y
-        );
+        let entity = app
+            .world
+            .spawn((
+                EntityBundle::new(
+                    Uuid::nil(),
+                    Vec3 {
+                        x: 0.,
+                        y: 70.,
+                        z: 0.,
+                    },
+                    azalea_registry::EntityKind::Zombie,
+                    ResourceLocation::new("minecraft:overworld").unwrap(),
+                ),
+                MinecraftEntityId(0),
+                Local,
+            ))
+            .id();
+        {
+            let entity_pos = app.world.get::<Position>(entity).unwrap().clone();
+            // y should start at 70
+            assert_eq!(entity_pos.y, 70.);
+        }
+        app.update();
+        {
+            let entity_pos = app.world.get::<Position>(entity).unwrap().clone();
+            // delta is applied before gravity, so the first tick only sets the delta
+            assert_eq!(entity_pos.y, 70.);
+            let entity_physics = app.world.get::<Physics>(entity).unwrap().clone();
+            assert!(entity_physics.delta.y < 0.);
+        }
+        app.update();
+        {
+            let entity_pos = app.world.get::<Position>(entity).unwrap().clone();
+            // the second tick applies the delta to the position, so now it should go down
+            assert!(
+                entity_pos.y < 70.,
+                "Entity y ({}) didn't go down after physics steps",
+                entity_pos.y
+            );
+        }
     }
     #[test]
     fn test_collision() {
-        let mut world = PartialWorld::default();
-        world
-            .set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
-            .unwrap();
-        world.add_entity(
-            0,
-            EntityData::new(
-                Uuid::nil(),
-                Vec3 {
-                    x: 0.5,
-                    y: 70.,
-                    z: 0.5,
-                },
-                EntityMetadata::Player(metadata::Player::default()),
-            ),
+        let mut app = make_test_app();
+        let world_lock = app.world.resource_mut::<WorldContainer>().insert(
+            ResourceLocation::new("minecraft:overworld").unwrap(),
+            384,
+            -64,
         );
-        let block_state = world.set_block_state(&BlockPos { x: 0, y: 69, z: 0 }, BlockState::Stone);
+        let mut partial_world = PartialWorld::default();
+
+        partial_world.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Arc::new(RwLock::new(Chunk::default()))),
+            &mut world_lock.write().chunks,
+        );
+        let entity = app
+            .world
+            .spawn((
+                EntityBundle::new(
+                    Uuid::nil(),
+                    Vec3 {
+                        x: 0.5,
+                        y: 70.,
+                        z: 0.5,
+                    },
+                    azalea_registry::EntityKind::Player,
+                    ResourceLocation::new("minecraft:overworld").unwrap(),
+                ),
+                MinecraftEntityId(0),
+                Local,
+            ))
+            .id();
+        let block_state = partial_world.chunks.set_block_state(
+            &BlockPos { x: 0, y: 69, z: 0 },
+            BlockState::Stone,
+            &mut world_lock.write().chunks,
+        );
         assert!(
             block_state.is_some(),
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
-        let mut entity = world.entity_mut(0).unwrap();
-        entity.ai_step();
-        // delta will change, but it won't move until next tick
-        assert_eq!(entity.pos().y, 70.);
-        assert!(entity.delta.y < 0.);
-        entity.ai_step();
-        // the second tick applies the delta to the position, but it also does collision
-        assert_eq!(entity.pos().y, 70.);
+        app.update();
+        {
+            let entity_pos = app.world.get::<Position>(entity).unwrap().clone();
+            // delta will change, but it won't move until next tick
+            assert_eq!(entity_pos.y, 70.);
+            let entity_physics = app.world.get::<Physics>(entity).unwrap().clone();
+            assert!(entity_physics.delta.y < 0.);
+        }
+        app.update();
+        {
+            let entity_pos = app.world.get::<Position>(entity).unwrap().clone();
+            // the second tick applies the delta to the position, but it also does collision
+            assert_eq!(entity_pos.y, 70.);
+        }
     }
 
     #[test]
     fn test_slab_collision() {
-        let mut world = PartialWorld::default();
-        world
-            .set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
-            .unwrap();
-        world.add_entity(
-            0,
-            EntityData::new(
-                Uuid::nil(),
-                Vec3 {
-                    x: 0.5,
-                    y: 71.,
-                    z: 0.5,
-                },
-                EntityMetadata::Player(metadata::Player::default()),
-            ),
+        let mut app = make_test_app();
+        let world_lock = app.world.resource_mut::<WorldContainer>().insert(
+            ResourceLocation::new("minecraft:overworld").unwrap(),
+            384,
+            -64,
         );
-        let block_state = world.set_block_state(
+        let mut partial_world = PartialWorld::default();
+
+        partial_world.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Arc::new(RwLock::new(Chunk::default()))),
+            &mut world_lock.write().chunks,
+        );
+        let entity = app
+            .world
+            .spawn((
+                EntityBundle::new(
+                    Uuid::nil(),
+                    Vec3 {
+                        x: 0.5,
+                        y: 71.,
+                        z: 0.5,
+                    },
+                    azalea_registry::EntityKind::Player,
+                    ResourceLocation::new("minecraft:overworld").unwrap(),
+                ),
+                MinecraftEntityId(0),
+                Local,
+            ))
+            .id();
+        let block_state = partial_world.chunks.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
             BlockState::StoneSlab_BottomFalse,
+            &mut world_lock.write().chunks,
         );
         assert!(
             block_state.is_some(),
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
-        let mut entity = world.entity_mut(0).unwrap();
         // do a few steps so we fall on the slab
         for _ in 0..20 {
-            entity.ai_step();
+            app.update();
         }
-        assert_eq!(entity.pos().y, 69.5);
+        let entity_pos = app.world.get::<Position>(entity).unwrap();
+        assert_eq!(entity_pos.y, 69.5);
     }
 
     #[test]
     fn test_top_slab_collision() {
-        let mut world = PartialWorld::default();
-        world
-            .set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
-            .unwrap();
-        world.add_entity(
-            0,
-            EntityData::new(
-                Uuid::nil(),
-                Vec3 {
-                    x: 0.5,
-                    y: 71.,
-                    z: 0.5,
-                },
-                EntityMetadata::Player(metadata::Player::default()),
-            ),
+        let mut app = make_test_app();
+        let world_lock = app.world.resource_mut::<WorldContainer>().insert(
+            ResourceLocation::new("minecraft:overworld").unwrap(),
+            384,
+            -64,
         );
-        let block_state = world.set_block_state(
+        let mut partial_world = PartialWorld::default();
+
+        partial_world.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Arc::new(RwLock::new(Chunk::default()))),
+            &mut world_lock.write().chunks,
+        );
+        let entity = app
+            .world
+            .spawn((
+                EntityBundle::new(
+                    Uuid::nil(),
+                    Vec3 {
+                        x: 0.5,
+                        y: 71.,
+                        z: 0.5,
+                    },
+                    azalea_registry::EntityKind::Player,
+                    ResourceLocation::new("minecraft:overworld").unwrap(),
+                ),
+                MinecraftEntityId(0),
+                Local,
+            ))
+            .id();
+        let block_state = world_lock.write().chunks.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
             BlockState::StoneSlab_TopFalse,
         );
@@ -438,33 +527,47 @@ mod tests {
             block_state.is_some(),
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
-        let mut entity = world.entity_mut(0).unwrap();
         // do a few steps so we fall on the slab
         for _ in 0..20 {
-            entity.ai_step();
+            app.update();
         }
-        assert_eq!(entity.pos().y, 70.);
+        let entity_pos = app.world.get::<Position>(entity).unwrap();
+        assert_eq!(entity_pos.y, 70.);
     }
 
     #[test]
     fn test_weird_wall_collision() {
-        let mut world = PartialWorld::default();
-        world
-            .set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
-            .unwrap();
-        world.add_entity(
-            0,
-            EntityData::new(
-                Uuid::nil(),
-                Vec3 {
-                    x: 0.5,
-                    y: 73.,
-                    z: 0.5,
-                },
-                EntityMetadata::Player(metadata::Player::default()),
-            ),
+        let mut app = make_test_app();
+        let world_lock = app.world.resource_mut::<WorldContainer>().insert(
+            ResourceLocation::new("minecraft:overworld").unwrap(),
+            384,
+            -64,
         );
-        let block_state = world.set_block_state(
+        let mut partial_world = PartialWorld::default();
+
+        partial_world.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Arc::new(RwLock::new(Chunk::default()))),
+            &mut world_lock.write().chunks,
+        );
+        let entity = app
+            .world
+            .spawn((
+                EntityBundle::new(
+                    Uuid::nil(),
+                    Vec3 {
+                        x: 0.5,
+                        y: 73.,
+                        z: 0.5,
+                    },
+                    azalea_registry::EntityKind::Player,
+                    ResourceLocation::new("minecraft:overworld").unwrap(),
+                ),
+                MinecraftEntityId(0),
+                Local,
+            ))
+            .id();
+        let block_state = world_lock.write().chunks.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
             BlockState::CobblestoneWall_LowLowLowFalseFalseLow,
         );
@@ -472,11 +575,12 @@ mod tests {
             block_state.is_some(),
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
-        let mut entity = world.entity_mut(0).unwrap();
         // do a few steps so we fall on the slab
         for _ in 0..20 {
-            entity.ai_step();
+            app.update();
         }
-        assert_eq!(entity.pos().y, 70.5);
+
+        let entity_pos = app.world.get::<Position>(entity).unwrap();
+        assert_eq!(entity_pos.y, 70.5);
     }
 }

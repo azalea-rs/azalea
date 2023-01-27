@@ -32,10 +32,8 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use azalea_world::{
-    entity::Entity, EntityInfos, EntityPlugin, Local, PartialWorld, World, WorldContainer,
-};
-use bevy_app::App;
+use azalea_world::{entity::Entity, EntityPlugin, Local, PartialWorld, World, WorldContainer};
+use bevy_app::{App, Plugin};
 use bevy_ecs::{
     prelude::Component,
     schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
@@ -443,6 +441,39 @@ impl Client {
     }
 }
 
+pub struct AzaleaPlugin;
+impl Plugin for AzaleaPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<StartWalkEvent>()
+            .add_event::<StartSprintEvent>();
+
+        app.add_fixed_timestep(Duration::from_millis(50), "tick");
+        app.add_fixed_timestep_system_set(
+            "tick",
+            0,
+            SystemSet::new()
+                .with_system(send_position)
+                .with_system(update_in_loaded_chunk)
+                .with_system(sprint_listener.label("sprint_listener").before("travel"))
+                .with_system(walk_listener.label("walk_listener").before("travel"))
+                .with_system(
+                    local_player_ai_step
+                        .before("ai_step")
+                        .after("sprint_listener"),
+                ),
+        );
+
+        // fire the Death event when the player dies.
+        app.add_system(death_event.after("tick").after("packet"));
+        app.add_plugin(PacketHandlerPlugin);
+        app.add_plugin(EntityPlugin);
+        app.add_plugin(PhysicsPlugin);
+        app.add_plugin(TimePlugin); // from bevy_time
+
+        app.init_resource::<WorldContainer>();
+    }
+}
+
 /// Create the [`App`]. This won't actually run anything yet.
 ///
 /// Note that you usually only need this if you're creating a client manually,
@@ -458,36 +489,7 @@ pub fn init_ecs_app() -> App {
     // you might be able to just drop the lock or put it in its own scope to fix
 
     let mut app = App::new();
-
-    app.add_event::<StartWalkEvent>()
-        .add_event::<StartSprintEvent>();
-
-    app.add_fixed_timestep(Duration::from_millis(50), "tick");
-    app.add_fixed_timestep_system_set(
-        "tick",
-        0,
-        SystemSet::new()
-            .with_system(send_position)
-            .with_system(update_in_loaded_chunk)
-            .with_system(sprint_listener.label("sprint_listener").before("travel"))
-            .with_system(walk_listener.label("walk_listener").before("travel"))
-            .with_system(
-                local_player_ai_step
-                    .before("ai_step")
-                    .after("sprint_listener"),
-            ),
-    );
-
-    // fire the Death event when the player dies.
-    app.add_system(death_event.after("tick").after("packet"));
-    app.add_plugin(PacketHandlerPlugin);
-    app.add_plugin(EntityPlugin);
-    app.add_plugin(PhysicsPlugin);
-    app.add_plugin(TimePlugin); // from bevy_time
-
-    app.init_resource::<WorldContainer>();
-    app.init_resource::<EntityInfos>();
-
+    app.add_plugin(AzaleaPlugin);
     app
 }
 

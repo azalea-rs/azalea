@@ -9,9 +9,10 @@ version = "0.5.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-block = {path = "../azalea-block", version = "^0.5.0" }
-azalea-core = {path = "../azalea-core", version = "^0.5.0" }
-azalea-world = {path = "../azalea-world", version = "^0.5.0" }
+azalea-block = { path = "../azalea-block", version = "^0.5.0" }
+azalea-core = { path = "../azalea-core", version = "^0.5.0" }
+azalea-world = { path = "../azalea-world", version = "^0.5.0" }
+azalea-registry = { path = "../azalea-registry", version = "^0.5.0" }
 bevy_app = { version = "0.9.1", default-features = false }
 bevy_ecs = { version = "0.9.1", default-features = false }
 iyes_loopless = "0.9.1"
