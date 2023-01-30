@@ -14,8 +14,11 @@
 // messages from the queue that are before that index.
 
 use azalea_client::{packet_handling::ChatReceivedEvent, ChatPacket, LocalPlayer};
-use bevy_ecs::{
-    prelude::{Component, Entity, EventReader, EventWriter},
+use azalea_ecs::app::{Plugin, App};
+use azalea_ecs::{
+    component::Component,
+    entity::Entity,
+    event::{EventReader, EventWriter},
     query::{Added, Without},
     system::{Commands, Query, Res, ResMut, Resource},
 };
@@ -24,9 +27,9 @@ use std::collections::VecDeque;
 use crate::{Swarm, SwarmEvent};
 
 #[derive(Clone)]
-pub struct Plugin;
-impl bevy_app::Plugin for Plugin {
-    fn build(&self, app: &mut bevy_app::App) {
+pub struct SwarmChatPlugin;
+impl Plugin for SwarmChatPlugin {
+    fn build(&self, app: &mut App) {
         app.add_event::<NewChatMessageEvent>()
             .add_system(chat_listener)
             .add_system(add_default_client_state)

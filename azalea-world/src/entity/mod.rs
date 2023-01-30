@@ -11,9 +11,10 @@ use self::{attributes::AttributeInstance, metadata::Health};
 pub use attributes::Attributes;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3, AABB};
-use bevy_ecs::{
+use azalea_ecs::{
     bundle::Bundle,
     component::Component,
+    entity::Entity,
     query::Changed,
     system::{Commands, Query},
 };
@@ -22,15 +23,6 @@ use derive_more::{Deref, DerefMut};
 pub use dimensions::{update_bounding_box, EntityDimensions};
 use std::fmt::Debug;
 use uuid::Uuid;
-
-/// A lightweight identifier of an entity.
-///
-/// Don't rely on the index of this being the same as a Minecraft entity id!
-/// (unless you're implementin a server, in which case you can decide your
-/// entity ids however you want)
-///
-/// If you want to refer to a Minecraft entity id, use [`MinecraftEntityId`].
-pub type Entity = bevy_ecs::entity::Entity;
 
 /// An entity ID used by Minecraft. These are not guaranteed to be unique in
 /// shared worlds, that's what [`Entity`] is for.

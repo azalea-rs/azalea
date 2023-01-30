@@ -46,7 +46,7 @@ use super::{EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Rotation
 use azalea_block::BlockState;
 use azalea_chat::FormattedText;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
-use bevy_ecs::{bundle::Bundle, component::Component};
+use azalea_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
 use uuid::Uuid;
@@ -183,7 +183,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
 
         # impl Allay {
         #     pub fn apply_metadata(
-        #         entity: &mut bevy_ecs::system::EntityCommands,
+        #         entity: &mut azalea_ecs::system::EntityCommands,
         #         d: EntityDataItem,
         #     ) -> Result<(), UpdateMetadataError> {
         #         match d.index {
@@ -196,7 +196,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
         # }
         code.append(f'impl {struct_name} {{')
         code.append(
-            f'    pub fn apply_metadata(entity: &mut bevy_ecs::system::EntityCommands, d: EntityDataItem) -> Result<(), UpdateMetadataError> {{')
+            f'    pub fn apply_metadata(entity: &mut azalea_ecs::system::EntityCommands, d: EntityDataItem) -> Result<(), UpdateMetadataError> {{')
         code.append(f'        match d.index {{')
 
         parent_last_index = -1
@@ -400,7 +400,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
 
     # and now make the main apply_metadata
     # pub fn apply_metadata(
-    #     entity: &mut bevy_ecs::system::EntityCommands,
+    #     entity: &mut azalea_ecs::system::EntityCommands,
     #     items: Vec<EntityDataItem>,
     # ) -> Result<(), UpdateMetadataError> {
     #     if entity.contains::<Allay>() {
@@ -414,7 +414,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     # }
     code.append(
         f'''pub fn apply_metadata(
-    entity: &mut bevy_ecs::system::EntityCommands,
+    entity: &mut azalea_ecs::system::EntityCommands,
     entity_kind: azalea_registry::EntityKind,
     items: Vec<EntityDataItem>,
 ) -> Result<(), UpdateMetadataError> {{
@@ -436,7 +436,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     code.append('}')
     code.append('')
 
-    # pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kind: azalea_registry::EntityKind) {
+    # pub fn apply_default_metadata(entity: &mut azalea_ecs::system::EntityCommands, kind: azalea_registry::EntityKind) {
     #     match kind {
     #         azalea_registry::EntityKind::AreaEffectCloud => {
     #             entity.insert(AreaEffectCloudMetadataBundle::default());
@@ -444,7 +444,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     #     }
     # }
     code.append(
-        'pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kind: azalea_registry::EntityKind) {')
+        'pub fn apply_default_metadata(entity: &mut azalea_ecs::system::EntityCommands, kind: azalea_registry::EntityKind) {')
     code.append('    match kind {')
     for entity_id in burger_entity_data:
         if entity_id.startswith('~'):

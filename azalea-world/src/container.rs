@@ -1,5 +1,5 @@
 use azalea_core::ResourceLocation;
-use bevy_ecs::system::Resource;
+use azalea_ecs::system::Resource;
 use log::error;
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;

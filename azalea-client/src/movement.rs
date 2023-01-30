@@ -1,5 +1,7 @@
 use crate::client::Client;
 use crate::local_player::{LocalPlayer, LocalPlayerInLoadedChunk, PhysicsState};
+use azalea_ecs::entity::Entity;
+use azalea_ecs::{event::EventReader, query::With, system::Query};
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
@@ -7,12 +9,10 @@ use azalea_protocol::packets::game::{
     serverbound_move_player_rot_packet::ServerboundMovePlayerRotPacket,
     serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
 };
-use azalea_world::entity::metadata::Sprinting;
-use azalea_world::entity::{Attributes, Entity, Jumping, MinecraftEntityId};
-use azalea_world::{entity, MoveEntityError};
-use bevy_ecs::event::EventReader;
-use bevy_ecs::prelude::With;
-use bevy_ecs::system::Query;
+use azalea_world::{
+    entity::{self, metadata::Sprinting, Attributes, Jumping, MinecraftEntityId},
+    MoveEntityError,
+};
 use std::backtrace::Backtrace;
 use thiserror::Error;
 

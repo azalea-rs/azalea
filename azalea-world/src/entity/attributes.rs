@@ -6,7 +6,7 @@ use std::{
 };
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use bevy_ecs::component::Component;
+use azalea_ecs::component::Component;
 use thiserror::Error;
 use uuid::{uuid, Uuid};
 

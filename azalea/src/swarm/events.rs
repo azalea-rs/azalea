@@ -1,14 +1,16 @@
 use azalea_client::LocalPlayer;
-use azalea_world::entity::MinecraftEntityId;
-use bevy_ecs::{
-    prelude::{EventWriter, With},
+use azalea_ecs::{
+    app::{App, Plugin},
+    event::EventWriter,
+    query::With,
     system::{Query, ResMut, Resource},
 };
+use azalea_world::entity::MinecraftEntityId;
 use derive_more::{Deref, DerefMut};
 
-pub struct Plugin;
-impl bevy_app::Plugin for Plugin {
-    fn build(&self, app: &mut bevy_app::App) {
+pub struct SwarmPlugin;
+impl Plugin for SwarmPlugin {
+    fn build(&self, app: &mut App) {
         app.add_event::<SwarmReadyEvent>()
             .add_system(check_ready)
             .init_resource::<IsSwarmReady>();

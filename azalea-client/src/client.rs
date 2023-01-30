@@ -11,12 +11,13 @@ use crate::{
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
-use azalea_ecs::{ecs::Ecs, TickPlugin};
 use azalea_ecs::{
+    app::{App, Plugin},
     component::Component,
+    entity::Entity,
     schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
-    App, Plugin,
 };
+use azalea_ecs::{ecs::Ecs, TickPlugin};
 use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
@@ -38,7 +39,7 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use azalea_world::{entity::Entity, EntityPlugin, Local, PartialWorld, World, WorldContainer};
+use azalea_world::{EntityPlugin, Local, PartialWorld, World, WorldContainer};
 use bevy_time::TimePlugin;
 use iyes_loopless::prelude::*;
 use log::{debug, error};

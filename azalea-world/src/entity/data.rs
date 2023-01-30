@@ -1,11 +1,12 @@
 //! Define some types needed for entity metadata.
 
 use azalea_block::BlockState;
-use azalea_buf::{BufReadError, McBufVarReadable, McBufVarWritable};
-use azalea_buf::{McBuf, McBufReadable, McBufWritable};
+use azalea_buf::{
+    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
+};
 use azalea_chat::FormattedText;
 use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot};
-use bevy_ecs::component::Component;
+use azalea_ecs::component::Component;
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
 use nohash_hasher::IntSet;

@@ -4,5 +4,4 @@
 pub use crate::bot::BotClientExt;
 pub use crate::pathfinder::PathfinderClientExt;
 pub use azalea_client::{Account, Client, Event};
-pub use bevy_ecs;
-pub use bevy_ecs::component::Component;
+pub use azalea_ecs::component::Component;

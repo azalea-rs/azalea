@@ -4,44 +4,41 @@ pub mod collision;
 
 use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
+use azalea_ecs::{
+    app::{App, Plugin},
+    entity::Entity,
+    event::{EventReader, EventWriter},
+    query::With,
+    schedule::{IntoSystemDescriptor, SystemSet},
+    system::{Query, Res},
+    AppTickExt,
+};
 use azalea_world::{
     entity::{
-        metadata::Sprinting, move_relative, Attributes, Entity, Jumping, Physics, Position,
-        WorldName,
+        metadata::Sprinting, move_relative, Attributes, Jumping, Physics, Position, WorldName,
     },
     Local, World, WorldContainer,
 };
-use bevy_app::Plugin;
-use bevy_ecs::{
-    event::{EventReader, EventWriter},
-    query::With,
-    schedule::{IntoSystemDescriptor, SystemStage},
-    system::Res,
-};
-use bevy_ecs::{schedule::SystemSet, system::Query};
 use collision::{move_colliding, MoverType};
 
 pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
-    fn build(&self, app: &mut bevy_app::App) {
-        app.add_event::<ForceJumpEvent>()
-            .stage("tick", |stage: &mut SystemStage| {
-                stage.add_system_set(
-                    SystemSet::new()
-                        .with_system(ai_step.label("ai_step"))
-                        .with_system(
-                            force_jump_listener
-                                .label("force_jump_listener")
-                                .after("ai_step"),
-                        )
-                        .with_system(
-                            travel
-                                .label("travel")
-                                .after("ai_step")
-                                .after("force_jump_listener"),
-                        ),
+    fn build(&self, app: &mut App) {
+        app.add_event::<ForceJumpEvent>().add_tick_system_set(
+            SystemSet::new()
+                .with_system(ai_step.label("ai_step"))
+                .with_system(
+                    force_jump_listener
+                        .label("force_jump_listener")
+                        .after("ai_step"),
                 )
-            });
+                .with_system(
+                    travel
+                        .label("travel")
+                        .after("ai_step")
+                        .after("force_jump_listener"),
+                ),
+        );
     }
 }
 
@@ -310,11 +307,11 @@ mod tests {
 
     use super::*;
     use azalea_core::{ChunkPos, ResourceLocation};
+    use azalea_ecs::app::App;
     use azalea_world::{
         entity::{EntityBundle, MinecraftEntityId},
         Chunk, EntityPlugin, PartialWorld,
     };
-    use bevy_app::App;
     use iyes_loopless::fixedtimestep::FixedTimestepStageLabel;
     use parking_lot::RwLock;
     use uuid::Uuid;

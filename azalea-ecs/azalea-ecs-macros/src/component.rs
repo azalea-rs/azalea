@@ -19,7 +19,7 @@ pub fn derive_resource(input: TokenStream) -> TokenStream {
     let (impl_generics, type_generics, where_clause) = &ast.generics.split_for_impl();
 
     TokenStream::from(quote! {
-        impl #impl_generics #azalea_ecs_path::system::Resource for #struct_name #type_generics #where_clause {
+        impl #impl_generics #azalea_ecs_path::system::BevyResource for #struct_name #type_generics #where_clause {
         }
     })
 }
@@ -44,7 +44,7 @@ pub fn derive_component(input: TokenStream) -> TokenStream {
     let (impl_generics, type_generics, where_clause) = &ast.generics.split_for_impl();
 
     TokenStream::from(quote! {
-        impl #impl_generics #azalea_ecs_path::component::Component for #struct_name #type_generics #where_clause {
+        impl #impl_generics #azalea_ecs_path::component::BevyComponent for #struct_name #type_generics #where_clause {
             type Storage = #storage;
         }
     })

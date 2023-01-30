@@ -1,10 +1,11 @@
 use crate::{
-    entity::{Entity, EntityUuid, MinecraftEntityId, Position, WorldName},
+    entity::{EntityUuid, MinecraftEntityId, Position, WorldName},
     entity_info::LoadedBy,
     ChunkStorage, EntityInfos, PartialChunkStorage, PartialEntityInfos, WorldContainer,
 };
 use azalea_core::ChunkPos;
-use bevy_ecs::{
+use azalea_ecs::{
+    entity::Entity,
     query::Changed,
     system::{Commands, Query, Res, ResMut},
 };

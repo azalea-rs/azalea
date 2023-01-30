@@ -1,6 +1,6 @@
 #![feature(type_alias_impl_trait)]
 
-use azalea::bevy_ecs::query::With;
+use azalea::ecs::query::With;
 use azalea::entity::metadata::Player;
 use azalea::entity::Position;
 use azalea::pathfinder::BlockPosGoal;

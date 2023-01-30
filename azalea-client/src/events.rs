@@ -4,11 +4,11 @@
 use std::sync::Arc;
 
 use azalea_ecs::{
+    app::{App, Plugin},
     component::Component,
     event::EventReader,
     query::{Added, Changed},
     system::Query,
-    Plugin,
 };
 use azalea_protocol::packets::game::{
     clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
@@ -85,7 +85,7 @@ pub struct LocalPlayerEvents(pub mpsc::UnboundedSender<Event>);
 
 pub struct EventPlugin;
 impl Plugin for EventPlugin {
-    fn build(&self, app: &mut azalea_ecs::App) {
+    fn build(&self, app: &mut App) {
         app.add_system(chat_listener)
             .add_system(login_listener)
             .add_system(init_listener)

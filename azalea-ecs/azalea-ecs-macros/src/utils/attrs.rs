@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use syn::DeriveInput;
 
 use super::symbol::Symbol;

@@ -5,14 +5,19 @@ mod events;
 
 use crate::{bot, HandleFn};
 use azalea_client::{init_ecs_app, start_ecs, Account, ChatPacket, Client, Event, JoinError};
+use azalea_ecs::{
+    app::{App, Plugin},
+    component::Component,
+    ecs::Ecs,
+    entity::Entity,
+    system::Resource,
+};
 use azalea_protocol::{
     connect::ConnectionError,
     resolver::{self, ResolverError},
     ServerAddress,
 };
-use azalea_world::{entity::Entity, WorldContainer};
-use bevy_app::Plugin;
-use bevy_ecs::{prelude::Component, system::Resource};
+use azalea_world::WorldContainer;
 use futures::future::join_all;
 use log::error;
 use parking_lot::{Mutex, RwLock};
@@ -31,7 +36,7 @@ use tokio::sync::mpsc;
 /// [`azalea::start_swarm`]: fn.start_swarm.html
 #[derive(Clone, Resource)]
 pub struct Swarm {
-    pub ecs_lock: Arc<Mutex<bevy_ecs::world::World>>,
+    pub ecs_lock: Arc<Mutex<Ecs>>,
 
     bots: Arc<Mutex<HashMap<Entity, Client>>>,
 
@@ -54,7 +59,7 @@ where
     Fut: Future<Output = Result<(), anyhow::Error>>,
     SwarmFut: Future<Output = Result<(), anyhow::Error>>,
 {
-    app: bevy_app::App,
+    app: App,
     /// The accounts that are going to join the server.
     accounts: Vec<Account>,
     /// The individual bot states. This must be the same length as `accounts`,
@@ -163,9 +168,9 @@ where
     }
 
     fn add_default_swarm_plugins(self) -> Self {
-        self.add_plugin(chat::Plugin)
-            .add_plugin(events::Plugin)
-            .add_plugin(bot::Plugin)
+        self.add_plugin(chat::SwarmChatPlugin)
+            .add_plugin(events::SwarmPlugin)
+            .add_plugin(bot::BotPlugin)
     }
 
     /// Build this `SwarmBuilder` into an actual [`Swarm`] and join the given

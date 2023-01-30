@@ -1,18 +1,29 @@
 #![feature(trait_alias)]
 
-//! Re-export the necessary parts of `bevy_ecs` and `bevy_app`.
+//! Re-export important parts of `bevy_ecs` and `bevy_app` and make them more
+//! compatible with Azalea.
 //!
 //! This is completely compatible with `bevy_ecs`, so it won't cause issues if
 //! you use plugins meant for Bevy.
+//!
+//! Changes:
+//! - Add [`TickPlugin`], [`TickStage`] and [`AppTickExt`]
+//! - Change the macros to use azalea_ecs instead of bevy_ecs
+//! - Rename bevy_ecs::world::World to azalea_ecs::ecs::Ecs
+//! - Re-export `bevy_app` in the `app` module.
 
 use std::{
     task::{Context, Poll},
     time::Duration,
 };
 
+pub mod ecs {
+    pub use bevy_ecs::world::World as Ecs;
+    pub use bevy_ecs::world::{EntityMut, EntityRef, Mut};
+}
 pub mod component {
     pub use azalea_ecs_macros::Component;
-    pub use bevy_ecs::component::{ComponentStorage, TableStorage};
+    pub use bevy_ecs::component::{ComponentId, ComponentStorage, Components, TableStorage};
 
     // we do this because re-exporting Component would re-export the macro as well,
     // which is bad (since we have our own Component macro)
@@ -21,14 +32,24 @@ pub mod component {
     pub trait Component = bevy_ecs::component::Component;
     pub use bevy_ecs::component::Component as BevyComponent;
 }
-pub mod ecs {
-    pub use bevy_ecs::world::World as Ecs;
-    pub use bevy_ecs::world::{EntityMut, EntityRef, Mut};
+pub mod bundle {
+    pub use azalea_ecs_macros::Bundle;
+    pub trait Bundle = bevy_ecs::bundle::Bundle;
+    pub use bevy_ecs::bundle::Bundle as BevyBundle;
 }
-pub use bevy_app::*;
+pub mod system {
+    pub use azalea_ecs_macros::Resource;
+    pub use bevy_ecs::system::{
+        Command, Commands, EntityCommands, Query, Res, ResMut, SystemState,
+    };
+    pub trait Resource = bevy_ecs::system::Resource;
+    pub use bevy_ecs::system::Resource as BevyResource;
+}
+pub use bevy_app as app;
+pub use bevy_ecs::{entity, event, ptr, query, schedule, storage};
+
+use app::{App, CoreStage, Plugin};
 use bevy_ecs::schedule::*;
-pub use bevy_ecs::system;
-pub use bevy_ecs::{event, query, schedule};
 use ecs::Ecs;
 use futures::task::noop_waker_ref;
 use tokio::time::Interval;
@@ -68,7 +89,7 @@ impl TickStage {
 impl Stage for TickStage {
     fn run(&mut self, ecs: &mut Ecs) {
         // keep calling run until it's caught up
-        while let Poll::Ready(r) = self
+        while let Poll::Ready(_) = self
             .interval
             .poll_tick(&mut Context::from_waker(&noop_waker_ref()))
         {

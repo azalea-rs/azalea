@@ -11,11 +11,13 @@ mod swarm;
 pub use azalea_block as blocks;
 pub use azalea_client::*;
 pub use azalea_core::{BlockPos, Vec3};
+use azalea_ecs::{
+    app::{App, Plugin},
+    component::Component,
+};
 pub use azalea_protocol as protocol;
 pub use azalea_registry::EntityKind;
 pub use azalea_world::{entity, World};
-use bevy_app::Plugin;
-use bevy_ecs::prelude::Component;
 use futures::Future;
 use protocol::ServerAddress;
 pub use swarm::*;
@@ -36,7 +38,7 @@ where
     S: Default + Send + Sync + Clone + 'static,
     Fut: Future<Output = Result<(), anyhow::Error>>,
 {
-    app: bevy_app::App,
+    app: App,
     /// The function that's called every time a bot receives an [`Event`].
     handler: Option<HandleFn<Fut, S>>,
     state: S,

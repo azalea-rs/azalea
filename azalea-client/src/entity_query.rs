@@ -1,9 +1,11 @@
 use std::sync::Arc;
 
-use azalea_ecs::component::Component;
-use azalea_ecs::ecs::Ecs;
-use azalea_ecs::query::{ROQueryItem, ReadOnlyWorldQuery, WorldQuery};
-use azalea_world::entity::Entity;
+use azalea_ecs::{
+    component::Component,
+    ecs::Ecs,
+    entity::Entity,
+    query::{ROQueryItem, ReadOnlyWorldQuery, WorldQuery},
+};
 use parking_lot::Mutex;
 
 use crate::Client;

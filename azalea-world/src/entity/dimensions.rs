@@ -1,5 +1,5 @@
 use azalea_core::{Vec3, AABB};
-use bevy_ecs::{query::Changed, system::Query};
+use azalea_ecs::{query::Changed, system::Query};
 
 use super::{Physics, Position};
 

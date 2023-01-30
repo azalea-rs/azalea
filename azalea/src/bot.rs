@@ -1,14 +1,19 @@
 use azalea_core::Vec3;
-use azalea_world::entity::{set_rotation, Entity, Jumping, Physics, Position};
-use bevy_app::App;
-use bevy_ecs::schedule::IntoSystemDescriptor;
-use bevy_ecs::{event::EventReader, prelude::Component, schedule::SystemSet, system::Query};
+use azalea_ecs::{
+    app::{App, Plugin},
+    component::Component,
+    event::EventReader,
+    schedule::IntoSystemDescriptor,
+    schedule::SystemSet,
+    system::Query, entity::Entity,
+};
+use azalea_world::entity::{set_rotation, Jumping, Physics, Position};
 use iyes_loopless::prelude::*;
 use std::f64::consts::PI;
 
 #[derive(Clone, Default)]
-pub struct Plugin;
-impl bevy_app::Plugin for Plugin {
+pub struct BotPlugin;
+impl Plugin for BotPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<LookAtEvent>()
             .add_event::<JumpEvent>()

@@ -3,12 +3,13 @@ use std::{collections::HashMap, io, sync::Arc};
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, ResourceLocation};
 use azalea_ecs::component::Component;
+use azalea_ecs::entity::Entity;
+use azalea_ecs::{query::Added, system::Query};
 use azalea_protocol::packets::game::ServerboundGamePacket;
 use azalea_world::{
-    entity::{self, Dead, Entity},
+    entity::{self, Dead},
     PartialWorld, World,
 };
-use bevy_ecs::{component::Component, query::Added, system::Query};
 use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
 use thiserror::Error;

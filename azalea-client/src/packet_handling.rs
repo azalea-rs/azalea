@@ -1,14 +1,13 @@
 use std::{collections::HashSet, io::Cursor, sync::Arc};
 
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
-use azalea_ecs::{component::Component, ecs::Ecs};
 use azalea_ecs::{
     component::Component,
-    prelude::{Entity, EventWriter},
+    ecs::Ecs,
     query::Changed,
     schedule::{IntoSystemDescriptor, SystemSet},
     system::{Commands, Query, ResMut, SystemState},
-    App, Plugin,
+    app::{App, Plugin}, event::EventWriter, entity::Entity,
 };
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 extern crate proc_macro;
 
 mod attrs;
@@ -35,8 +37,9 @@ impl Default for BevyManifest {
 
 impl BevyManifest {
     pub fn maybe_get_path(&self, name: &str) -> Option<syn::Path> {
+        const AZALEA: &str = "azalea";
+        const BEVY_ECS: &str = "bevy_ecs";
         const BEVY: &str = "bevy";
-        const BEVY_INTERNAL: &str = "bevy_internal";
 
         fn dep_package(dep: &Value) -> Option<&str> {
             if dep.as_str().is_some() {
@@ -52,16 +55,18 @@ impl BevyManifest {
         let find_in_deps = |deps: &Map<String, Value>| -> Option<syn::Path> {
             let package = if let Some(dep) = deps.get(name) {
                 return Some(Self::parse_str(dep_package(dep).unwrap_or(name)));
+            } else if let Some(dep) = deps.get(AZALEA) {
+                dep_package(dep).unwrap_or(AZALEA)
+            } else if let Some(dep) = deps.get(BEVY_ECS) {
+                dep_package(dep).unwrap_or(BEVY_ECS)
             } else if let Some(dep) = deps.get(BEVY) {
                 dep_package(dep).unwrap_or(BEVY)
-            } else if let Some(dep) = deps.get(BEVY_INTERNAL) {
-                dep_package(dep).unwrap_or(BEVY_INTERNAL)
             } else {
                 return None;
             };
 
             let mut path = Self::parse_str::<syn::Path>(package);
-            if let Some(module) = name.strip_prefix("bevy_") {
+            if let Some(module) = name.strip_prefix("azalea_") {
                 path.segments.push(Self::parse_str(module));
             }
             Some(path)
@@ -109,7 +114,8 @@ impl BevyManifest {
 ///
 /// # Args
 ///
-/// - `input`: The [`syn::DeriveInput`] for struct that is deriving the label trait
+/// - `input`: The [`syn::DeriveInput`] for struct that is deriving the label
+///   trait
 /// - `trait_path`: The path [`syn::Path`] to the label trait
 pub fn derive_label(
     input: syn::DeriveInput,

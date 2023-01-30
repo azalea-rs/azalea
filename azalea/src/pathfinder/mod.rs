@@ -6,28 +6,31 @@ use crate::{SprintDirection, WalkDirection};
 
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::{BlockPos, CardinalDirection};
-use azalea_world::entity::{Entity, Physics, Position, WorldName};
-use azalea_world::WorldContainer;
-use bevy_ecs::event::EventReader;
-use bevy_ecs::schedule::SystemSet;
-use bevy_ecs::system::{Query, Res};
-use bevy_ecs::{component::Component, event::EventWriter};
-use iyes_loopless::prelude::*;
+use azalea_ecs::app::{App, Plugin};
+use azalea_ecs::AppTickExt;
+use azalea_ecs::{
+    component::Component,
+    entity::Entity,
+    event::EventReader,
+    event::EventWriter,
+    schedule::SystemSet,
+    system::{Query, Res},
+};
+use azalea_world::{
+    entity::{Physics, Position, WorldName},
+    WorldContainer,
+};
 use log::{debug, error};
 use mtdstarlite::Edge;
 pub use mtdstarlite::MTDStarLite;
 use std::collections::VecDeque;
 
 #[derive(Clone, Default)]
-pub struct Plugin;
-impl bevy_app::Plugin for Plugin {
-    fn build(&self, app: &mut bevy_app::App) {
-        app.add_fixed_timestep_system_set(
-            "tick",
-            0,
-            SystemSet::new().with_system(tick_execute_path),
-        )
-        .add_system(goto_listener);
+pub struct PathfinderPlugin;
+impl Plugin for PathfinderPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_tick_system_set(SystemSet::new().with_system(tick_execute_path))
+            .add_system(goto_listener);
     }
 }
 
