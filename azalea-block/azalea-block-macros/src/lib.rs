@@ -71,7 +71,7 @@ impl Parse for PropertyWithNameAndDefault {
             is_enum = true;
             property_type = first_ident;
             let variant = input.parse::<Ident>()?;
-            property_default.extend(quote! { ::#variant })
+            property_default.extend(quote! { ::#variant });
         } else if first_ident_string == "true" || first_ident_string == "false" {
             property_type = Ident::new("bool", first_ident.span());
         } else {
@@ -386,7 +386,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             //     Ident::new(&property.to_string(), proc_macro2::Span::call_site());
             block_struct_fields.extend(quote! {
                 pub #name: #struct_name,
-            })
+            });
         }
 
         let block_name_pascal_case = Ident::new(
@@ -418,8 +418,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     combination
                         .iter()
                         .map(|v| v[0..1].to_uppercase() + &v[1..])
-                        .collect::<Vec<String>>()
-                        .join("")
+                        .collect::<String>()
                 ),
                 proc_macro2::Span::call_site(),
             );
@@ -507,20 +506,20 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             ..
         } in properties_with_name
         {
-            block_default_fields.extend(quote! {#name: #property_default,})
+            block_default_fields.extend(quote! { #name: #property_default, });
         }
 
         let block_behavior = &block.behavior;
         let block_id = block.name.to_string();
 
-        let from_block_to_state_match = if !block.properties_and_defaults.is_empty() {
+        let from_block_to_state_match = if block.properties_and_defaults.is_empty() {
+            quote! { BlockState::#block_name_pascal_case }
+        } else {
             quote! {
                 match b {
                     #from_block_to_state_match_inner
                 }
             }
-        } else {
-            quote! { BlockState::#block_name_pascal_case }
         };
 
         let block_struct = quote! {

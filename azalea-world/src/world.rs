@@ -95,7 +95,7 @@ pub fn deduplicate_entities(
                 }
             }
         } else {
-            error!("Entity was inserted into a world that doesn't exist.")
+            error!("Entity was inserted into a world that doesn't exist.");
         }
     }
 }

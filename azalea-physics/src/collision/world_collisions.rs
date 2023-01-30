@@ -71,9 +71,8 @@ impl<'a> Iterator for BlockCollisions<'a> {
             }
 
             let chunk = self.get_chunk(item.pos.x, item.pos.z);
-            let chunk = match chunk {
-                Some(chunk) => chunk,
-                None => continue,
+            let Some(chunk) = chunk else {
+                continue
             };
 
             let pos = item.pos;

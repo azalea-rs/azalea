@@ -2,12 +2,14 @@ use std::{collections::HashSet, io::Cursor, sync::Arc};
 
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_ecs::{
+    app::{App, Plugin},
     component::Component,
     ecs::Ecs,
+    entity::Entity,
+    event::EventWriter,
     query::Changed,
     schedule::{IntoSystemDescriptor, SystemSet},
     system::{Commands, Query, ResMut, SystemState},
-    app::{App, Plugin}, event::EventWriter, entity::Entity,
 };
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
@@ -114,7 +116,7 @@ fn handle_packets(ecs: &mut Ecs) {
     }
 
     for (player_entity, packets) in events_owned {
-        for packet in packets.iter() {
+        for packet in &packets {
             match packet {
                 ClientboundGamePacket::Login(p) => {
                     debug!("Got login packet");
@@ -631,7 +633,7 @@ fn handle_packets(ecs: &mut Ecs) {
                             partial_world: local_player.partial_world.clone(),
                             update: Box::new(move |entity| {
                                 let mut position = entity.get_mut::<Position>().unwrap();
-                                **position = new_position
+                                **position = new_position;
                             }),
                         });
                     } else {
@@ -661,7 +663,7 @@ fn handle_packets(ecs: &mut Ecs) {
                             partial_world: local_player.partial_world.clone(),
                             update: Box::new(move |entity| {
                                 let mut position = entity.get_mut::<Position>().unwrap();
-                                **position = position.with_delta(&delta)
+                                **position = position.with_delta(&delta);
                             }),
                         });
                     } else {
@@ -690,7 +692,7 @@ fn handle_packets(ecs: &mut Ecs) {
                             partial_world: local_player.partial_world.clone(),
                             update: Box::new(move |entity| {
                                 let mut position = entity.get_mut::<Position>().unwrap();
-                                **position = position.with_delta(&delta)
+                                **position = position.with_delta(&delta);
                             }),
                         });
                     } else {

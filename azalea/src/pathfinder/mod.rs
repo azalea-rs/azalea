@@ -49,7 +49,7 @@ impl PathfinderClientExt for azalea_client::Client {
         self.ecs.lock().send_event(GotoEvent {
             entity: self.entity,
             goal: Box::new(goal),
-        })
+        });
     }
 }
 pub struct GotoEvent {
@@ -101,7 +101,7 @@ fn goto_listener(
                 .get(world_name)
                 .expect("Entity tried to pathfind but the entity isn't in a valid world");
             let world = world_lock.read();
-            for possible_move in possible_moves.iter() {
+            for possible_move in &possible_moves {
                 edges.push(Edge {
                     target: possible_move.next_node(node),
                     cost: possible_move.cost(&world, node),
@@ -143,9 +143,7 @@ fn tick_execute_path(
 ) {
     for (entity, mut pathfinder, position, physics) in &mut query {
         loop {
-            let target = if let Some(target) = pathfinder.path.front() {
-                target
-            } else {
+            let Some(target) = pathfinder.path.front() else {
                 return;
             };
             let center = target.pos.center();
@@ -207,6 +205,7 @@ pub trait Goal {
 impl Node {
     /// Returns whether the entity is at the node and should start going to the
     /// next node.
+    #[must_use]
     pub fn is_reached(&self, position: &Position, physics: &Physics) -> bool {
         // println!(
         //     "entity.delta.y: {} {:?}=={:?}, self.vertical_vel={:?}",

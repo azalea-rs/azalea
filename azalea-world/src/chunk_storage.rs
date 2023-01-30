@@ -263,7 +263,7 @@ impl Chunk {
         // TODO: make sure the section exists
         let section = &mut self.sections[section_index as usize];
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
-        section.set(chunk_section_pos, state)
+        section.set(chunk_section_pos, state);
     }
 }
 

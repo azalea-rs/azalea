@@ -42,7 +42,7 @@ impl AttributeInstance {
                 _ => {}
             }
             if let AttributeModifierOperation::MultiplyTotal = modifier.operation {
-                total *= 1.0 + modifier.amount
+                total *= 1.0 + modifier.amount;
             }
         }
         total

@@ -2,10 +2,11 @@ use azalea_core::Vec3;
 use azalea_ecs::{
     app::{App, Plugin},
     component::Component,
+    entity::Entity,
     event::EventReader,
     schedule::IntoSystemDescriptor,
     schedule::SystemSet,
-    system::Query, entity::Entity,
+    system::Query,
 };
 use azalea_world::entity::{set_rotation, Jumping, Physics, Position};
 use iyes_loopless::prelude::*;
@@ -95,8 +96,8 @@ fn look_at_listener(
     }
 }
 
-/// Return the (y_rot, x_rot) that would make a client at `current` be looking
-/// at `target`.
+/// Return the (`y_rot`, `x_rot`) that would make a client at `current` be
+/// looking at `target`.
 fn direction_looking_at(current: &Vec3, target: &Vec3) -> (f32, f32) {
     // borrowed from mineflayer's Bot.lookAt because i didn't want to do math
     let delta = target - current;

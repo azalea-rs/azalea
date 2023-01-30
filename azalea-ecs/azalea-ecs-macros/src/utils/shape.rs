@@ -1,8 +1,9 @@
 use proc_macro::Span;
 use syn::{Data, DataStruct, Error, Fields, FieldsNamed};
 
-/// Get the fields of a data structure if that structure is a struct with named fields;
-/// otherwise, return a compile error that points to the site of the macro invocation.
+/// Get the fields of a data structure if that structure is a struct with named
+/// fields; otherwise, return a compile error that points to the site of the
+/// macro invocation.
 pub fn get_named_struct_fields(data: &syn::Data) -> syn::Result<&FieldsNamed> {
     match data {
         Data::Struct(DataStruct {

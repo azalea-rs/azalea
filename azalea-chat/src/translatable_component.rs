@@ -57,12 +57,9 @@ impl TranslatableComponent {
 
         while i < template.len() {
             if template.chars().nth(i).unwrap() == '%' {
-                let char_after = match template.chars().nth(i + 1) {
-                    Some(c) => c,
-                    None => {
-                        built_text.push(template.chars().nth(i).unwrap());
-                        break;
-                    }
+                let Some(char_after) = template.chars().nth(i + 1) else {
+                    built_text.push(template.chars().nth(i).unwrap());
+                    break;                
                 };
                 i += 1;
                 match char_after {
@@ -111,7 +108,7 @@ impl TranslatableComponent {
                 built_text.push(template.chars().nth(i).unwrap());
             }
 
-            i += 1
+            i += 1;
         }
 
         if components.is_empty() {

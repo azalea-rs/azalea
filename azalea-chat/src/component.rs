@@ -216,9 +216,7 @@ impl<'de> Deserialize<'de> for FormattedText {
                     "keybind text components aren't yet supported",
                 ));
             } else {
-                let _nbt = if let Some(nbt) = json.get("nbt") {
-                    nbt
-                } else {
+                let Some(_nbt) = json.get("nbt") else {
                     return Err(de::Error::custom(
                         format!("Don't know how to turn {json} into a FormattedText").as_str(),
                     ));
@@ -236,9 +234,8 @@ impl<'de> Deserialize<'de> for FormattedText {
                 ));
             }
             if let Some(extra) = json.get("extra") {
-                let extra = match extra.as_array() {
-                    Some(r) => r,
-                    None => return Err(de::Error::custom("Extra isn't an array")),
+                let Some(extra) = extra.as_array() else {
+                    return Err(de::Error::custom("Extra isn't an array"));
                 };
                 if extra.is_empty() {
                     return Err(de::Error::custom("Unexpected empty array of components"));

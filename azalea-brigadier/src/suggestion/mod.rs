@@ -31,7 +31,7 @@ impl<M: Clone> Suggestion<M> {
         }
         result.push_str(&self.text);
         if self.range.end() < input.len() {
-            result.push_str(&input[self.range.end()..])
+            result.push_str(&input[self.range.end()..]);
         }
 
         result

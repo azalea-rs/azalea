@@ -47,6 +47,7 @@ where
     Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
 {
     /// Start building a client that can join the world.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             // we create the app here so plugins can add onto it.
@@ -63,11 +64,13 @@ where
     /// You can only have one client handler, calling this again will replace
     /// the old client handler function (you can have a client handler and swarm
     /// handler separately though).
+    #[must_use]
     pub fn set_handler(mut self, handler: HandleFn<Fut, S>) -> Self {
         self.handler = Some(handler);
         self
     }
     /// Add a plugin to the client's ECS.
+    #[must_use]
     pub fn add_plugin<T: Plugin>(mut self, plugin: T) -> Self {
         self.app.add_plugin(plugin);
         self
@@ -85,9 +88,8 @@ where
         account: Account,
         address: impl TryInto<ServerAddress>,
     ) -> Result<(), StartError> {
-        let address = match address.try_into() {
-            Ok(address) => address,
-            Err(_) => return Err(StartError::InvalidAddress),
+        let Ok(address) = address.try_into() else {
+            return Err(StartError::InvalidAddress)
         };
 
         let (bot, mut rx) = Client::join(&account, address).await?;

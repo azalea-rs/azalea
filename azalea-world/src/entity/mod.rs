@@ -30,7 +30,7 @@ use uuid::Uuid;
 pub struct MinecraftEntityId(pub u32);
 impl std::hash::Hash for MinecraftEntityId {
     fn hash<H: std::hash::Hasher>(&self, hasher: &mut H) {
-        hasher.write_u32(self.0)
+        hasher.write_u32(self.0);
     }
 }
 impl nohash_hasher::IsEnabled for MinecraftEntityId {}

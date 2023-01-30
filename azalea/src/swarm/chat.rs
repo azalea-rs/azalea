@@ -1,4 +1,4 @@
-//! Implements SwarmEvent::Chat
+//! Implements `SwarmEvent::Chat`.
 
 // How the chat event works (to avoid firing the event multiple times):
 // ---
@@ -14,7 +14,7 @@
 // messages from the queue that are before that index.
 
 use azalea_client::{packet_handling::ChatReceivedEvent, ChatPacket, LocalPlayer};
-use azalea_ecs::app::{Plugin, App};
+use azalea_ecs::app::{App, Plugin};
 use azalea_ecs::{
     component::Component,
     entity::Entity,

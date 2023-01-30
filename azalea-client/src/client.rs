@@ -338,7 +338,7 @@ impl Client {
     /// Write a packet directly to the server.
     pub fn write_packet(&self, packet: ServerboundGamePacket) {
         self.local_player_mut(&mut self.ecs.lock())
-            .write_packet(packet)
+            .write_packet(packet);
     }
 
     /// Disconnect this client from the server by ending all tasks.

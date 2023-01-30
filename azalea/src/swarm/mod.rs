@@ -87,6 +87,7 @@ where
     SS: Default + Send + Sync + Clone + Component + 'static,
 {
     /// Start creating the swarm.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             // we create the app here so plugins can add onto it.
@@ -108,6 +109,7 @@ where
     /// Use [`Self::add_account`] to only add one account. If you want the
     /// clients to have different default states, add them one at a time with
     /// [`Self::add_account_with_state`].
+    #[must_use]
     pub fn add_accounts(mut self, accounts: Vec<Account>) -> Self {
         for account in accounts {
             self = self.add_account(account);
@@ -119,11 +121,13 @@ where
     ///
     /// This will make the state for this client be the default, use
     /// [`Self::add_account_with_state`] to avoid that.
+    #[must_use]
     pub fn add_account(self, account: Account) -> Self {
         self.add_account_with_state(account, S::default())
     }
     /// Add an account with a custom initial state. Use just
     /// [`Self::add_account`] to use the Default implementation for the state.
+    #[must_use]
     pub fn add_account_with_state(mut self, account: Account, state: S) -> Self {
         self.accounts.push(account);
         self.states.push(state);
@@ -136,6 +140,7 @@ where
     /// You can only have one client handler, calling this again will replace
     /// the old client handler function (you can have a client handler and swarm
     /// handler separately though).
+    #[must_use]
     pub fn set_handler(mut self, handler: HandleFn<Fut, S>) -> Self {
         self.handler = Some(handler);
         self
@@ -146,12 +151,14 @@ where
     /// You can only have one swarm handler, calling this again will replace
     /// the old swarm handler function (you can have a client handler and swarm
     /// handler separately though).
+    #[must_use]
     pub fn set_swarm_handler(mut self, handler: SwarmHandleFn<SwarmFut, SS>) -> Self {
         self.swarm_handler = Some(handler);
         self
     }
 
     /// Add a plugin to the swarm.
+    #[must_use]
     pub fn add_plugin<T: Plugin>(mut self, plugin: T) -> Self {
         self.app.add_plugin(plugin);
         self
@@ -162,11 +169,13 @@ where
     /// By default, every bot will connect at the same time. If you set this
     /// field, however, the bots will wait for the previous one to have
     /// connected and *then* they'll wait the given duration.
+    #[must_use]
     pub fn join_delay(mut self, delay: std::time::Duration) -> Self {
         self.join_delay = Some(delay);
         self
     }
 
+    #[must_use]
     fn add_default_swarm_plugins(self) -> Self {
         self.add_plugin(chat::SwarmChatPlugin)
             .add_plugin(events::SwarmPlugin)
@@ -413,6 +422,10 @@ pub enum SwarmStartError {
 impl Swarm {
     /// Add a new account to the swarm. You can remove it later by calling
     /// [`Client::disconnect`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an `Err` if the bot could not do a handshake successfully.
     pub async fn add<S: Component + Clone>(
         &mut self,
         account: &Account,
@@ -444,8 +457,6 @@ impl Swarm {
         let cloned_bot = bot.clone();
         let owned_account = account.clone();
         let swarm_tx = self.swarm_tx.clone();
-        // send the init event immediately so it's the first thing we get
-        swarm_tx.send(SwarmEvent::Init).unwrap();
         tokio::spawn(async move {
             while let Some(event) = rx.recv().await {
                 // we can't handle events here (since we can't copy the handler),

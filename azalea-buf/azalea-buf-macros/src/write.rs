@@ -40,9 +40,8 @@ fn write_named_fields(
 pub fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
     match data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => {
-            let FieldsNamed { named, .. } = match fields {
-                syn::Fields::Named(f) => f,
-                _ => panic!("#[derive(McBuf)] can only be used on structs with named fields"),
+            let syn::Fields::Named(FieldsNamed { named, .. }) = fields else {
+                panic!("#[derive(McBuf)] can only be used on structs with named fields")
             };
 
             let write_fields =
@@ -137,11 +136,11 @@ pub fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::Tok
                             if f.attrs.iter().any(|attr| attr.path.is_ident("var")) {
                                 writers_code.extend(quote! {
                                     azalea_buf::McBufVarWritable::var_write_into(#param_ident, buf)?;
-                                })
+                                });
                             } else {
                                 writers_code.extend(quote! {
                                     azalea_buf::McBufWritable::write_into(#param_ident, buf)?;
-                                })
+                                });
                             }
                         }
                         match_arms.extend(quote! {

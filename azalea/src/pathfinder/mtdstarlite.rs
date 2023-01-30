@@ -3,9 +3,9 @@
 //!
 //! Future optimization attempt ideas:
 //! - Use a different priority queue (e.g. fibonacci heap)
-//! - Use FxHash instead of the default hasher
+//! - Use `FxHash` instead of the default hasher
 //! - Have `par` be a raw pointer
-//! - Try borrowing vs copying the Node in several places (like state_mut)
+//! - Try borrowing vs copying the Node in several places (like `state_mut`)
 //! - Store edge costs in their own map
 
 use priority_queue::DoublePriorityQueue;
@@ -260,9 +260,7 @@ impl<
         // identify a path from sstart to sgoal using the parent pointers
         let mut target = self.state(&self.goal).par;
         while !(Some(self.start) == target) {
-            let this_target = if let Some(this_target) = target {
-                this_target
-            } else {
+            let Some(this_target) = target else {
                 break;
             };
             // hunter follows path from start to goal;

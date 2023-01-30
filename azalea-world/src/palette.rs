@@ -87,7 +87,7 @@ impl PalettedContainer {
     /// want `.set` instead.
     pub fn set_at_index(&mut self, index: usize, value: u32) {
         let paletted_value = self.id_for(value);
-        self.storage.set(index, paletted_value as u64)
+        self.storage.set(index, paletted_value as u64);
     }
 
     /// Sets the id at the given coordinates and return the previous id

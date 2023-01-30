@@ -111,7 +111,7 @@ impl LocalPlayer {
     /// The OwnedReadHalf for the TCP connection is in one of the tasks, so it
     /// automatically closes the connection when that's dropped.
     pub fn disconnect(&self) {
-        for task in self.tasks.iter() {
+        for task in &self.tasks {
             task.abort();
         }
     }

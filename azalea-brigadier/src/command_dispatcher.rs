@@ -136,7 +136,7 @@ impl<S> CommandDispatcher<S> {
                         return Ordering::Greater;
                     };
                     Ordering::Equal
-                })
+                });
             }
             let best_potential = potentials.into_iter().next().unwrap();
             return Ok(best_potential);
@@ -195,7 +195,7 @@ impl<S> CommandDispatcher<S> {
         let mut node = self.root.clone();
         for name in path {
             if let Some(child) = node.clone().borrow().child(name) {
-                node = child
+                node = child;
             } else {
                 return None;
             }
@@ -228,7 +228,7 @@ impl<S> CommandDispatcher<S> {
         let mut next: Vec<CommandContext<S>> = vec![];
 
         while !contexts.is_empty() {
-            for context in contexts.iter() {
+            for context in &contexts {
                 let child = &context.child;
                 if let Some(child) = child {
                     forked |= child.forks;
