@@ -1,3 +1,5 @@
+//! An internal crate used by `azalea_block`.
+
 mod utils;
 
 use proc_macro::TokenStream;

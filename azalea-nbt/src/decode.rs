@@ -35,6 +35,8 @@ fn read_string(stream: &mut Cursor<&[u8]>) -> Result<String, Error> {
 }
 
 impl Tag {
+    /// Read the NBT data when you already know the ID of the tag. You usually
+    /// want [`Tag::read`] if you're reading an NBT file.
     #[inline]
     fn read_known(stream: &mut Cursor<&[u8]>, id: u8) -> Result<Tag, Error> {
         Ok(match id {
@@ -129,6 +131,7 @@ impl Tag {
         })
     }
 
+    /// Read the NBT data. This will return a compound tag with a single item.
     pub fn read(stream: &mut Cursor<&[u8]>) -> Result<Tag, Error> {
         // default to compound tag
 
@@ -145,6 +148,7 @@ impl Tag {
         Ok(Tag::Compound(map))
     }
 
+    /// Read the NBT data compressed wtih zlib.
     pub fn read_zlib(stream: &mut impl BufRead) -> Result<Tag, Error> {
         let mut gz = ZlibDecoder::new(stream);
         let mut buf = Vec::new();
@@ -152,6 +156,7 @@ impl Tag {
         Tag::read(&mut Cursor::new(&buf))
     }
 
+    /// Read the NBT data compressed wtih gzip.
     pub fn read_gzip(stream: &mut Cursor<Vec<u8>>) -> Result<Tag, Error> {
         let mut gz = GzDecoder::new(stream);
         let mut buf = Vec::new();

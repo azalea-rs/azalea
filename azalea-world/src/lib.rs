@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 #![feature(int_roundings)]
 #![feature(error_generic_member_access)]
 #![feature(provide_any)]

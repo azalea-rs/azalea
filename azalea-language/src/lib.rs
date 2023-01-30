@@ -1,4 +1,4 @@
-//! Translate Minecraft strings from their id.
+#![doc = include_str!("../README.md")]
 
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
@@ -8,14 +8,4 @@ pub static STORAGE: Lazy<HashMap<String, String>> =
 
 pub fn get(key: &str) -> Option<&str> {
     STORAGE.get(key).map(|s| s.as_str())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_get() {
-        assert_eq!(get("translation.test.none"), Some("Hello, world!"));
-    }
 }

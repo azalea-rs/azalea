@@ -1,5 +1,4 @@
-//! Things for working with Minecraft chat messages.
-//! This was inspired by Minecraft and prismarine-chat.
+#![doc = include_str!("../README.md")]
 
 pub mod base_component;
 mod component;
