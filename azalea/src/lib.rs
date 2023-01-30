@@ -1,7 +1,5 @@
 #![doc = include_str!("../README.md")]
-#![feature(trait_upcasting)]
 #![feature(async_closure)]
-#![allow(incomplete_features)]
 
 mod bot;
 pub mod pathfinder;
