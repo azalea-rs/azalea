@@ -40,7 +40,7 @@ async fn main() {
                     if sender == client.profile.name {
                         continue; // ignore our own messages
                     }
-                    client.chat(&content).await;
+                    client.chat(&content);
                 };
             }
             _ => {}

@@ -12,10 +12,7 @@
 //! - Rename bevy_ecs::world::World to azalea_ecs::ecs::Ecs
 //! - Re-export `bevy_app` in the `app` module.
 
-use std::{
-    task::{Context, Poll},
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 
 pub mod ecs {
     pub use bevy_ecs::world::World as Ecs;
@@ -91,9 +88,7 @@ pub struct TickStage {
 impl Stage for TickStage {
     fn run(&mut self, ecs: &mut Ecs) {
         // if the interval is 0, that means it runs every tick
-        println!("running tick stage maybe");
         if self.interval.is_zero() {
-            println!("running tick stage");
             self.stage.run(ecs);
             return;
         }

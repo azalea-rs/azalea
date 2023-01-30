@@ -312,7 +312,6 @@ mod tests {
         entity::{EntityBundle, MinecraftEntityId},
         Chunk, EntityPlugin, PartialWorld,
     };
-    use iyes_loopless::fixedtimestep::FixedTimestepStageLabel;
     use parking_lot::RwLock;
     use uuid::Uuid;
 
@@ -331,12 +330,11 @@ mod tests {
     #[test]
     fn test_gravity() {
         let mut app = make_test_app();
-        let world_lock = app.world.resource_mut::<WorldContainer>().insert(
+        let _world_lock = app.world.resource_mut::<WorldContainer>().insert(
             ResourceLocation::new("minecraft:overworld").unwrap(),
             384,
             -64,
         );
-        let mut partial_world = PartialWorld::default();
 
         let entity = app
             .world

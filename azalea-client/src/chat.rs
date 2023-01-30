@@ -150,7 +150,7 @@ impl Client {
     /// ```rust,no_run
     /// # use azalea_client::{Client, Event};
     /// # async fn handle(bot: Client, event: Event) -> anyhow::Result<()> {
-    /// bot.chat("Hello, world!").await.unwrap();
+    /// bot.chat("Hello, world!");
     /// # Ok(())
     /// # }
     /// ```

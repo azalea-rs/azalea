@@ -27,13 +27,19 @@ impl Client {
     /// # Example
     /// Note that this will very likely change in the future.
     /// ```
+    /// use azalea_client::{Client, GameProfileComponent};
+    /// use azalea_ecs::query::With;
+    /// use azalea_world::entity::{Position, metadata::Player};
+    ///
+    /// # fn example(mut bot: Client, sender_name: String) {
     /// let entity = bot.entity_by::<With<Player>, (&GameProfileComponent,)>(
-    ///     |profile: &&GameProfileComponent| profile.name == sender,
+    ///     |profile: &&GameProfileComponent| profile.name == sender_name,
     /// );
     /// if let Some(entity) = entity {
     ///     let position = bot.entity_component::<Position>(entity);
     ///     // ...
     /// }
+    /// # }
     /// ```
     pub fn entity_by<F: ReadOnlyWorldQuery, Q: ReadOnlyWorldQuery>(
         &mut self,
