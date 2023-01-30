@@ -45,7 +45,7 @@ impl McBufWritable for ClientboundSetScorePacket {
         // convert None to an empty string
         self.objective_name
             .as_ref()
-            .unwrap_or(&"".to_string())
+            .unwrap_or(&String::new())
             .write_into(buf)?;
         if let Method::Change { score } = self.method {
             score.var_write_into(buf)?;

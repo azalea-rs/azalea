@@ -85,11 +85,11 @@ impl azalea_buf::McBufReadable for DisplayInfo {
             description,
             icon,
             frame,
+            show_toast,
+            hidden,
             background,
             x,
             y,
-            hidden,
-            show_toast,
         })
     }
 }

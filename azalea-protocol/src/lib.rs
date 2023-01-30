@@ -1,7 +1,7 @@
 //! A low-level crate to send and receive Minecraft packets.
 //!
 //! You should probably use [`azalea`] or [`azalea_client`] instead, as
-//! azalea_protocol delegates much of the work, such as auth, to the user of
+//! `azalea_protocol` delegates much of the work, such as auth, to the user of
 //! the crate.
 //!
 //! [`azalea`]: https://crates.io/crates/azalea
@@ -27,7 +27,7 @@ pub mod write;
 ///
 /// # Examples
 ///
-/// ServerAddress implements TryFrom<&str>, so you can use it like this:
+/// `ServerAddress` implements TryFrom<&str>, so you can use it like this:
 /// ```
 /// use azalea_protocol::ServerAddress;
 ///
@@ -45,7 +45,7 @@ impl<'a> TryFrom<&'a str> for ServerAddress {
     type Error = String;
 
     /// Convert a Minecraft server address (host:port, the port is optional) to
-    /// a ServerAddress
+    /// a `ServerAddress`
     fn try_from(string: &str) -> Result<Self, Self::Error> {
         if string.is_empty() {
             return Err("Empty string".to_string());
@@ -60,9 +60,9 @@ impl<'a> TryFrom<&'a str> for ServerAddress {
 }
 
 impl From<SocketAddr> for ServerAddress {
-    /// Convert an existing SocketAddr into a ServerAddress. This just converts
-    /// the ip to a string and passes along the port. The resolver will realize
-    /// it's already an IP address and not do any DNS requests.
+    /// Convert an existing `SocketAddr` into a `ServerAddress`. This just
+    /// converts the ip to a string and passes along the port. The resolver
+    /// will realize it's already an IP address and not do any DNS requests.
     fn from(addr: SocketAddr) -> Self {
         ServerAddress {
             host: addr.ip().to_string(),

@@ -76,8 +76,8 @@ pub enum FrameSplitterError {
     ConnectionClosed,
 }
 
-/// Read a length, then read that amount of bytes from BytesMut. If there's not
-/// enough data, return None
+/// Read a length, then read that amount of bytes from `BytesMut`. If there's
+/// not enough data, return None
 fn parse_frame(buffer: &mut BytesMut) -> Result<BytesMut, FrameSplitterError> {
     // copy the buffer first and read from the copy, then once we make sure
     // the packet is all good we read it fully

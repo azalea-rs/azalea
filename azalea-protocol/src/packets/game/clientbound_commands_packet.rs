@@ -183,7 +183,7 @@ impl McBufReadable for BrigadierNodeStub {
             warn!("Warning: The flags from a Brigadier node are over 31. This is probably a bug.",);
         }
 
-        let node_type = (flags.index(0) as u8) + (flags.index(1) as u8 * 2);
+        let node_type = u8::from(flags.index(0)) + (u8::from(flags.index(1)) * 2);
         let is_executable = flags.index(2);
         let has_redirect = flags.index(3);
         let has_suggestions_type = flags.index(4);
@@ -310,11 +310,11 @@ pub enum NodeType {
 }
 
 impl BrigadierNodeStub {
+    #[must_use]
     pub fn name(&self) -> Option<&str> {
         match &self.node_type {
             NodeType::Root => None,
-            NodeType::Literal { name } => Some(name),
-            NodeType::Argument { name, .. } => Some(name),
+            NodeType::Literal { name } | NodeType::Argument { name, .. } => Some(name),
         }
     }
 }
