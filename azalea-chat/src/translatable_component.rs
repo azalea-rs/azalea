@@ -59,7 +59,7 @@ impl TranslatableComponent {
             if template.chars().nth(i).unwrap() == '%' {
                 let Some(char_after) = template.chars().nth(i + 1) else {
                     built_text.push(template.chars().nth(i).unwrap());
-                    break;                
+                    break;
                 };
                 i += 1;
                 match char_after {
