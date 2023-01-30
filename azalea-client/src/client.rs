@@ -11,6 +11,12 @@ use crate::{
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
+use azalea_ecs::{ecs::Ecs, TickPlugin};
+use azalea_ecs::{
+    component::Component,
+    schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
+    App, Plugin,
+};
 use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
@@ -33,16 +39,11 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{entity::Entity, EntityPlugin, Local, PartialWorld, World, WorldContainer};
-use bevy_app::{App, Plugin};
-use bevy_ecs::{
-    prelude::Component,
-    schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
-};
 use bevy_time::TimePlugin;
 use iyes_loopless::prelude::*;
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
-use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
+use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc};
 use thiserror::Error;
 use tokio::{sync::mpsc, time};
 use uuid::Uuid;
@@ -68,7 +69,7 @@ pub struct Client {
     /// The entity component system. You probably don't need to access this
     /// directly. Note that if you're using a shared world (i.e. a swarm), this
     /// will contain all entities in all worlds.
-    pub ecs: Arc<Mutex<bevy_ecs::world::World>>,
+    pub ecs: Arc<Mutex<Ecs>>,
 }
 
 /// An error that happened while joining the server.
@@ -96,11 +97,7 @@ impl Client {
     /// Create a new client from the given GameProfile, Connection, and World.
     /// You should only use this if you want to change these fields from the
     /// defaults, otherwise use [`Client::join`].
-    pub fn new(
-        profile: GameProfile,
-        entity: Entity,
-        ecs: Arc<Mutex<bevy_ecs::world::World>>,
-    ) -> Self {
+    pub fn new(profile: GameProfile, entity: Entity, ecs: Arc<Mutex<Ecs>>) -> Self {
         Self {
             profile,
             // default our id to 0, it'll be set later
@@ -156,7 +153,7 @@ impl Client {
     /// Create a [`Client`] when you already have the ECS made with
     /// [`start_ecs`]. You'd usually want to use [`Self::join`] instead.
     pub async fn start_client(
-        ecs_lock: Arc<Mutex<bevy_ecs::world::World>>,
+        ecs_lock: Arc<Mutex<Ecs>>,
         account: &Account,
         address: &ServerAddress,
         resolved_address: &SocketAddr,
@@ -351,13 +348,13 @@ impl Client {
         self.local_player_mut(&mut self.ecs.lock()).disconnect();
     }
 
-    pub fn local_player<'a>(&'a self, ecs: &'a mut bevy_ecs::world::World) -> &'a LocalPlayer {
+    pub fn local_player<'a>(&'a self, ecs: &'a mut Ecs) -> &'a LocalPlayer {
         self.query::<&LocalPlayer>(ecs)
     }
     pub fn local_player_mut<'a>(
         &'a self,
-        ecs: &'a mut bevy_ecs::world::World,
-    ) -> bevy_ecs::world::Mut<'a, LocalPlayer> {
+        ecs: &'a mut Ecs,
+    ) -> azalea_ecs::ecs::Mut<'a, LocalPlayer> {
         self.query::<&mut LocalPlayer>(ecs)
     }
 
@@ -447,7 +444,7 @@ impl Plugin for AzaleaPlugin {
         app.add_event::<StartWalkEvent>()
             .add_event::<StartSprintEvent>();
 
-        app.add_fixed_timestep(Duration::from_millis(50), "tick");
+        app.add_plugin(TickPlugin);
         app.add_fixed_timestep_system_set(
             "tick",
             0,
@@ -500,7 +497,7 @@ pub fn start_ecs(
     app: App,
     run_schedule_receiver: mpsc::Receiver<()>,
     run_schedule_sender: mpsc::Sender<()>,
-) -> Arc<Mutex<bevy_ecs::world::World>> {
+) -> Arc<Mutex<Ecs>> {
     // all resources should have been added by now so we can take the ecs from the
     // app
     let ecs = Arc::new(Mutex::new(app.world));
@@ -516,7 +513,7 @@ pub fn start_ecs(
 }
 
 async fn run_schedule_loop(
-    ecs: Arc<Mutex<bevy_ecs::world::World>>,
+    ecs: Arc<Mutex<Ecs>>,
     mut schedule: Schedule,
     mut run_schedule_receiver: mpsc::Receiver<()>,
 ) {

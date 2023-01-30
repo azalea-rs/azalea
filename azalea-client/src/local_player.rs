@@ -2,6 +2,7 @@ use std::{collections::HashMap, io, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, ResourceLocation};
+use azalea_ecs::component::Component;
 use azalea_protocol::packets::game::ServerboundGamePacket;
 use azalea_world::{
     entity::{self, Dead, Entity},
@@ -117,7 +118,7 @@ impl LocalPlayer {
 
 /// Update the [`LocalPlayerInLoadedChunk`] component for all [`LocalPlayer`]s.
 pub fn update_in_loaded_chunk(
-    mut commands: bevy_ecs::system::Commands,
+    mut commands: azalea_ecs::system::Commands,
     query: Query<(Entity, &LocalPlayer, &entity::Position)>,
 ) {
     for (entity, local_player, position) in &query {

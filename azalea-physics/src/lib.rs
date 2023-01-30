@@ -15,34 +15,33 @@ use bevy_app::Plugin;
 use bevy_ecs::{
     event::{EventReader, EventWriter},
     query::With,
-    schedule::IntoSystemDescriptor,
+    schedule::{IntoSystemDescriptor, SystemStage},
     system::Res,
 };
 use bevy_ecs::{schedule::SystemSet, system::Query};
 use collision::{move_colliding, MoverType};
-use iyes_loopless::prelude::*;
 
 pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut bevy_app::App) {
         app.add_event::<ForceJumpEvent>()
-            .add_fixed_timestep_system_set(
-                "tick",
-                0,
-                SystemSet::new()
-                    .with_system(ai_step.label("ai_step"))
-                    .with_system(
-                        force_jump_listener
-                            .label("force_jump_listener")
-                            .after("ai_step"),
-                    )
-                    .with_system(
-                        travel
-                            .label("travel")
-                            .after("ai_step")
-                            .after("force_jump_listener"),
-                    ),
-            );
+            .stage("tick", |stage: &mut SystemStage| {
+                stage.add_system_set(
+                    SystemSet::new()
+                        .with_system(ai_step.label("ai_step"))
+                        .with_system(
+                            force_jump_listener
+                                .label("force_jump_listener")
+                                .after("ai_step"),
+                        )
+                        .with_system(
+                            travel
+                                .label("travel")
+                                .after("ai_step")
+                                .after("force_jump_listener"),
+                        ),
+                )
+            });
     }
 }
 

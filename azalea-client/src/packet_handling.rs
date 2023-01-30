@@ -1,6 +1,15 @@
 use std::{collections::HashSet, io::Cursor, sync::Arc};
 
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
+use azalea_ecs::{component::Component, ecs::Ecs};
+use azalea_ecs::{
+    component::Component,
+    prelude::{Entity, EventWriter},
+    query::Changed,
+    schedule::{IntoSystemDescriptor, SystemSet},
+    system::{Commands, Query, ResMut, SystemState},
+    App, Plugin,
+};
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
     packets::game::{
@@ -19,14 +28,6 @@ use azalea_world::{
         PlayerBundle, Position,
     },
     LoadedBy, PartialWorld, RelativeEntityUpdate, WorldContainer,
-};
-use bevy_app::{App, Plugin};
-use bevy_ecs::{
-    component::Component,
-    prelude::{Entity, EventWriter},
-    query::Changed,
-    schedule::{IntoSystemDescriptor, SystemSet},
-    system::{Commands, Query, ResMut, SystemState},
 };
 use log::{debug, error, trace, warn};
 use parking_lot::Mutex;
@@ -97,7 +98,7 @@ pub struct PacketReceiver {
     pub run_schedule_sender: mpsc::Sender<()>,
 }
 
-fn handle_packets(ecs: &mut bevy_ecs::world::World) {
+fn handle_packets(ecs: &mut Ecs) {
     let mut events_owned = Vec::new();
 
     {

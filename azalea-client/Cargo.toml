@@ -16,12 +16,11 @@ azalea-block = {path = "../azalea-block", version = "0.5.0"}
 azalea-chat = {path = "../azalea-chat", version = "0.5.0"}
 azalea-core = {path = "../azalea-core", version = "0.5.0"}
 azalea-crypto = {path = "../azalea-crypto", version = "0.5.0"}
+azalea-ecs = {path = "../azalea-ecs", version = "0.5.0"}
 azalea-physics = {path = "../azalea-physics", version = "0.5.0"}
 azalea-protocol = {path = "../azalea-protocol", version = "0.5.0"}
 azalea-registry = {path = "../azalea-registry", version = "0.5.0"}
 azalea-world = {path = "../azalea-world", version = "0.5.0"}
-bevy_app = {version = "0.9.1", default-features = false}
-bevy_ecs = {version = "0.9.1", default-features = false}
 bevy_time = "0.9.1"
 derive_more = {version = "0.99.17", features = ["deref", "deref_mut"]}
 futures = "0.3.25"

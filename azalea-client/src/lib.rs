@@ -24,7 +24,7 @@ pub mod ping;
 mod player;
 
 pub use account::Account;
-pub use bevy_ecs;
+pub use azalea_ecs as ecs;
 pub use client::{init_ecs_app, start_ecs, ChatPacket, Client, ClientInformation, JoinError};
 pub use events::Event;
 pub use local_player::{GameProfileComponent, LocalPlayer};

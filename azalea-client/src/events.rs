@@ -3,16 +3,17 @@
 
 use std::sync::Arc;
 
+use azalea_ecs::{
+    component::Component,
+    event::EventReader,
+    query::{Added, Changed},
+    system::Query,
+    Plugin,
+};
 use azalea_protocol::packets::game::{
     clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
 };
 use azalea_world::entity::MinecraftEntityId;
-use bevy_app::Plugin;
-use bevy_ecs::{
-    prelude::{Component, EventReader},
-    query::{Added, Changed},
-    system::Query,
-};
 use derive_more::{Deref, DerefMut};
 use iyes_loopless::prelude::*;
 use tokio::sync::mpsc;
@@ -84,7 +85,7 @@ pub struct LocalPlayerEvents(pub mpsc::UnboundedSender<Event>);
 
 pub struct EventPlugin;
 impl Plugin for EventPlugin {
-    fn build(&self, app: &mut bevy_app::App) {
+    fn build(&self, app: &mut azalea_ecs::App) {
         app.add_system(chat_listener)
             .add_system(login_listener)
             .add_system(init_listener)
