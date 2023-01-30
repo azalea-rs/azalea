@@ -27,8 +27,7 @@ pub fn get_lit_str(attr_name: Symbol, lit: &syn::Lit) -> syn::Result<&syn::LitSt
         Err(syn::Error::new_spanned(
             lit,
             format!(
-                "expected {} attribute to be a string: `{} = \"...\"`",
-                attr_name, attr_name
+                "expected {attr_name} attribute to be a string: `{attr_name} = \"...\"`"
             ),
         ))
     }
@@ -41,8 +40,7 @@ pub fn get_lit_bool(attr_name: Symbol, lit: &syn::Lit) -> syn::Result<bool> {
         Err(syn::Error::new_spanned(
             lit,
             format!(
-                "expected {} attribute to be a bool value, `true` or `false`: `{} = ...`",
-                attr_name, attr_name
+                "expected {attr_name} attribute to be a bool value, `true` or `false`: `{attr_name} = ...`"
             ),
         ))
     }

@@ -354,13 +354,13 @@ mod tests {
             ))
             .id();
         {
-            let entity_pos = app.world.get::<Position>(entity).unwrap().clone();
+            let entity_pos = *app.world.get::<Position>(entity).unwrap();
             // y should start at 70
             assert_eq!(entity_pos.y, 70.);
         }
         app.update();
         {
-            let entity_pos = app.world.get::<Position>(entity).unwrap().clone();
+            let entity_pos = *app.world.get::<Position>(entity).unwrap();
             // delta is applied before gravity, so the first tick only sets the delta
             assert_eq!(entity_pos.y, 70.);
             let entity_physics = app.world.get::<Physics>(entity).unwrap().clone();
@@ -368,7 +368,7 @@ mod tests {
         }
         app.update();
         {
-            let entity_pos = app.world.get::<Position>(entity).unwrap().clone();
+            let entity_pos = *app.world.get::<Position>(entity).unwrap();
             // the second tick applies the delta to the position, so now it should go down
             assert!(
                 entity_pos.y < 70.,
@@ -420,7 +420,7 @@ mod tests {
         );
         app.update();
         {
-            let entity_pos = app.world.get::<Position>(entity).unwrap().clone();
+            let entity_pos = *app.world.get::<Position>(entity).unwrap();
             // delta will change, but it won't move until next tick
             assert_eq!(entity_pos.y, 70.);
             let entity_physics = app.world.get::<Physics>(entity).unwrap().clone();
@@ -428,7 +428,7 @@ mod tests {
         }
         app.update();
         {
-            let entity_pos = app.world.get::<Position>(entity).unwrap().clone();
+            let entity_pos = *app.world.get::<Position>(entity).unwrap();
             // the second tick applies the delta to the position, but it also does collision
             assert_eq!(entity_pos.y, 70.);
         }
