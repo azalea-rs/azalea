@@ -258,41 +258,28 @@ where
     Ok(packet)
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use crate::packets::game::{clientbound_player_chat_packet::ChatType,
-// ClientboundGamePacket};     use std::io::Cursor;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::packets::game::ClientboundGamePacket;
+    use std::io::Cursor;
 
-//     #[tokio::test]
-//     async fn test_read_packet() {
-//         let mut buf: Cursor<&[u8]> = Cursor::new(&[
-//             51, 0, 12, 177, 250, 155, 132, 106, 60, 218, 161, 217, 90, 157,
-// 105, 57, 206, 20, 0, 5,             104, 101, 108, 108, 111, 0, 0, 0, 0, 0,
-// 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 116,             123, 34, 101, 120,
-// 116, 114, 97, 34, 58, 91, 123, 34, 99, 111, 108, 111, 114, 34, 58,
-//             34, 103, 114, 97, 121, 34, 44, 34, 116, 101, 120, 116, 34, 58,
-// 34, 91, 77, 69, 77, 66,             69, 82, 93, 32, 112, 108, 97, 121, 101,
-// 114, 49, 34, 125, 44, 123, 34, 116, 101, 120,             116, 34, 58, 34,
-// 32, 34, 125, 44, 123, 34, 99, 111, 108, 111, 114, 34, 58, 34, 103,
-//             114, 97, 121, 34, 44, 34, 116, 101, 120, 116, 34, 58, 34, 92,
-// 117, 48, 48, 51, 101, 32,             104, 101, 108, 108, 111, 34, 125, 93,
-// 44, 34, 116, 101, 120, 116, 34, 58, 34, 34, 125,             0, 7, 64, 123,
-// 34, 101, 120, 116, 114, 97, 34, 58, 91, 123, 34, 99, 111, 108, 111, 114,
-//             34, 58, 34, 103, 114, 97, 121, 34, 44, 34, 116, 101, 120, 116,
-// 34, 58, 34, 91, 77, 69,             77, 66, 69, 82, 93, 32, 112, 108, 97,
-// 121, 101, 114, 49, 34, 125, 93, 44, 34, 116, 101,             120, 116, 34,
-// 58, 34, 34, 125, 0,         ]);
-//         let packet = packet_decoder::<ClientboundGamePacket>(&mut
-// buf).unwrap();         match &packet {
-//             ClientboundGamePacket::PlayerChat(m) => {
-//                 assert_eq!(
-//                     m.chat_type.chat_type,
-//                     ChatType::Chat,
-//                     "Enums should default if they're invalid"
-//                 );
-//             }
-//             _ => panic!("Wrong packet type"),
-//         }
-//     }
-// }
+    #[tokio::test]
+    async fn test_read_packet() {
+        let mut buf: Cursor<&[u8]> = Cursor::new(&[
+            56, 64, 85, 58, 141, 138, 71, 146, 193, 64, 88, 0, 0, 0, 0, 0, 0, 64, 60, 224, 105, 34,
+            119, 8, 228, 67, 50, 51, 68, 194, 177, 230, 101, 0, 17, 0,
+        ]);
+        let packet = packet_decoder::<ClientboundGamePacket>(&mut buf).unwrap();
+        match &packet {
+            ClientboundGamePacket::PlayerPosition(p) => {
+                assert_eq!(p.id, 17);
+                assert_eq!(p.x, 84.91488892545296);
+                assert_eq!(p.y, 96.0);
+                assert_eq!(p.z, 28.876604227124417);
+                assert_eq!(p.dismount_vehicle, false);
+            }
+            _ => panic!("Wrong packet type"),
+        }
+    }
+}

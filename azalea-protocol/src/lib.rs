@@ -13,7 +13,7 @@
 #![feature(error_generic_member_access)]
 #![feature(provide_any)]
 
-use std::{net::SocketAddr, str::FromStr};
+use std::{fmt::Display, net::SocketAddr, str::FromStr};
 
 #[cfg(feature = "connecting")]
 pub mod connect;
@@ -68,6 +68,12 @@ impl From<SocketAddr> for ServerAddress {
             host: addr.ip().to_string(),
             port: addr.port(),
         }
+    }
+}
+
+impl Display for ServerAddress {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&format!("{0}:{1}", self.host, self.port))
     }
 }
 
