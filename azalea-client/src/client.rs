@@ -445,7 +445,7 @@ impl Plugin for AzaleaPlugin {
         app.add_event::<StartWalkEvent>()
             .add_event::<StartSprintEvent>();
 
-        app.add_plugin(TickPlugin);
+        app.add_plugin(TickPlugin::default());
         app.add_fixed_timestep_system_set(
             "tick",
             0,

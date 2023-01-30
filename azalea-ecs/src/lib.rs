@@ -8,13 +8,13 @@
 //!
 //! Changes:
 //! - Add [`TickPlugin`], [`TickStage`] and [`AppTickExt`]
-//! - Change the macros to use azalea_ecs instead of bevy_ecs
+//! - Change the macros to use azalea/azalea_ecs instead of bevy/bevy_ecs
 //! - Rename bevy_ecs::world::World to azalea_ecs::ecs::Ecs
 //! - Re-export `bevy_app` in the `app` module.
 
 use std::{
     task::{Context, Poll},
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 pub mod ecs {
@@ -51,17 +51,30 @@ pub use bevy_ecs::{entity, event, ptr, query, schedule, storage};
 use app::{App, CoreStage, Plugin};
 use bevy_ecs::schedule::*;
 use ecs::Ecs;
-use futures::task::noop_waker_ref;
-use tokio::time::Interval;
 
-pub struct TickPlugin;
+pub struct TickPlugin {
+    /// How often a tick should happen. 50 milliseconds by default. Set to 0 to
+    /// tick every update.
+    pub tick_interval: Duration,
+}
 impl Plugin for TickPlugin {
     fn build(&self, app: &mut App) {
         app.add_stage_before(
             CoreStage::Update,
             TickLabel,
-            TickStage::from_stage(SystemStage::parallel()),
+            TickStage {
+                interval: self.tick_interval,
+                next_tick: Instant::now(),
+                stage: Box::new(SystemStage::parallel()),
+            },
         );
+    }
+}
+impl Default for TickPlugin {
+    fn default() -> Self {
+        Self {
+            tick_interval: Duration::from_millis(50),
+        }
     }
 }
 
@@ -70,29 +83,25 @@ struct TickLabel;
 
 /// A [`Stage`] that runs every 50 milliseconds.
 pub struct TickStage {
-    pub interval: Interval,
+    pub interval: Duration,
+    pub next_tick: Instant,
     stage: Box<dyn Stage>,
 }
 
-impl TickStage {
-    pub fn from_stage(stage: impl Stage) -> Self {
-        let mut game_tick_interval = tokio::time::interval(Duration::from_millis(50));
-        // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
-        game_tick_interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Burst);
-
-        TickStage {
-            interval: game_tick_interval,
-            stage: Box::new(stage),
-        }
-    }
-}
 impl Stage for TickStage {
     fn run(&mut self, ecs: &mut Ecs) {
+        // if the interval is 0, that means it runs every tick
+        println!("running tick stage maybe");
+        if self.interval.is_zero() {
+            println!("running tick stage");
+            self.stage.run(ecs);
+            return;
+        }
         // keep calling run until it's caught up
-        while let Poll::Ready(_) = self
-            .interval
-            .poll_tick(&mut Context::from_waker(&noop_waker_ref()))
-        {
+        // TODO: Minecraft bursts up to 10 ticks and then skips, we should too (but
+        // check the source so we do it right)
+        while Instant::now() > self.next_tick {
+            self.next_tick += self.interval;
             self.stage.run(ecs);
         }
     }

@@ -307,7 +307,7 @@ mod tests {
 
     use super::*;
     use azalea_core::{ChunkPos, ResourceLocation};
-    use azalea_ecs::app::App;
+    use azalea_ecs::{app::App, TickPlugin};
     use azalea_world::{
         entity::{EntityBundle, MinecraftEntityId},
         Chunk, EntityPlugin, PartialWorld,
@@ -319,10 +319,12 @@ mod tests {
     /// You need an app to spawn entities in the world and do updates.
     fn make_test_app() -> App {
         let mut app = App::new();
-        app.add_fixed_timestep(Duration::from_secs(1), "tick")
-            .add_plugin(PhysicsPlugin)
-            .add_plugin(EntityPlugin)
-            .init_resource::<WorldContainer>();
+        app.add_plugin(TickPlugin {
+            tick_interval: Duration::ZERO,
+        })
+        .add_plugin(PhysicsPlugin)
+        .add_plugin(EntityPlugin)
+        .init_resource::<WorldContainer>();
         app
     }
 

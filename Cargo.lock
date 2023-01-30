@@ -331,7 +331,6 @@ dependencies = [
  "azalea-ecs-macros",
  "bevy_app",
  "bevy_ecs",
- "futures",
  "iyes_loopless",
  "tokio",
 ]
