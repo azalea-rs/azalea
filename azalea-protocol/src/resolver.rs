@@ -19,6 +19,7 @@ pub enum ResolverError {
 
 /// Resolve a Minecraft server address into an IP address and port.
 /// If it's already an IP address, it's returned as-is.
+#[must_use]
 #[async_recursion]
 pub async fn resolve_address(address: &ServerAddress) -> Result<SocketAddr, ResolverError> {
     // If the address.host is already in the format of an ip address, return it.

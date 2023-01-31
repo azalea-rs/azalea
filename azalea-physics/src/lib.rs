@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 #![feature(trait_alias)]
 
 pub mod collision;

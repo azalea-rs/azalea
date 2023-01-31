@@ -1,5 +1,4 @@
-//! Utilities for reading and writing for the Minecraft protocol
-
+#![doc = include_str!("../README.md")]
 #![feature(min_specialization)]
 // these two are necessary for thiserror backtraces
 #![feature(error_generic_member_access)]

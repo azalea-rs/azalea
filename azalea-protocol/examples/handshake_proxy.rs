@@ -150,7 +150,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                                 if let Some(id) = hello.profile_id {
                                     id.to_string()
                                 } else {
-                                    "".to_string()
+                                    String::new()
                                 }
                             );
 

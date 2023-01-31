@@ -26,7 +26,7 @@ impl McBufReadable for Method {
             2 => Method::Change(Parameters::read_from(buf)?),
             3 => Method::Join(PlayerList::read_from(buf)?),
             4 => Method::Leave(PlayerList::read_from(buf)?),
-            id => return Err(BufReadError::UnexpectedEnumVariant { id: id as i32 }),
+            id => return Err(BufReadError::UnexpectedEnumVariant { id: i32::from(id) }),
         })
     }
 }

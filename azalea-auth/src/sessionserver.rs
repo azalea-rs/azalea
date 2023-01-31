@@ -24,6 +24,8 @@ pub enum ClientSessionServerError {
     Unknown(String),
     #[error("Forbidden operation (expired session?)")]
     ForbiddenOperation,
+    #[error("RateLimiter disallowed request")]
+    RateLimited,
     #[error("Unexpected response from sessionserver (status code {status_code}): {body}")]
     UnexpectedResponse { status_code: u16, body: String },
 }
@@ -95,6 +97,7 @@ pub async fn join(
                 _ => Err(ClientSessionServerError::Unknown(forbidden.error)),
             }
         }
+        StatusCode::TOO_MANY_REQUESTS => Err(ClientSessionServerError::RateLimited),
         status_code => {
             // log the headers
             debug!("Error headers: {:#?}", res.headers());
