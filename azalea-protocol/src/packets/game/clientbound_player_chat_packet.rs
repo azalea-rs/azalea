@@ -90,6 +90,7 @@ impl ClientboundPlayerChatPacket {
     /// Returns the content of the message. If you want to get the Component
     /// for the whole message including the sender part, use
     /// [`ClientboundPlayerChatPacket::message`].
+    #[must_use]
     pub fn content(&self) -> Component {
         self.unsigned_content
             .clone()
@@ -97,6 +98,7 @@ impl ClientboundPlayerChatPacket {
     }
 
     /// Get the full message, including the sender part.
+    #[must_use]
     pub fn message(&self) -> Component {
         let sender = self.chat_type.name.clone();
         let content = self.content();
@@ -119,6 +121,7 @@ impl ClientboundPlayerChatPacket {
 }
 
 impl ChatType {
+    #[must_use]
     pub fn chat_translation_key(&self) -> &'static str {
         match self {
             ChatType::Chat => "chat.type.text",
@@ -131,15 +134,11 @@ impl ChatType {
         }
     }
 
+    #[must_use]
     pub fn narrator_translation_key(&self) -> &'static str {
         match self {
-            ChatType::Chat => "chat.type.text.narrate",
-            ChatType::SayCommand => "chat.type.text.narrate",
-            ChatType::MsgCommandIncoming => "chat.type.text.narrate",
-            ChatType::MsgCommandOutgoing => "chat.type.text.narrate",
-            ChatType::TeamMsgCommandIncoming => "chat.type.text.narrate",
-            ChatType::TeamMsgCommandOutgoing => "chat.type.text.narrate",
             ChatType::EmoteCommand => "chat.type.emote",
+            _ => "chat.type.text.narrate",
         }
     }
 }

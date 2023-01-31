@@ -2,6 +2,7 @@ use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
 use azalea_chat::Component;
+use azalea_core::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::Cursor;
 use std::io::Write;
@@ -116,28 +117,28 @@ pub struct Properties {
 
 impl McBufReadable for Properties {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let byte = u8::read_from(buf)?;
+        let set = FixedBitSet::<3>::read_from(buf)?;
         Ok(Self {
-            darken_screen: byte & 1 != 0,
-            play_music: byte & 2 != 0,
-            create_world_fog: byte & 4 != 0,
+            darken_screen: set.index(0),
+            play_music: set.index(1),
+            create_world_fog: set.index(2),
         })
     }
 }
 
 impl McBufWritable for Properties {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut byte = 0;
+        let mut set = FixedBitSet::<3>::new();
         if self.darken_screen {
-            byte |= 1;
+            set.set(0);
         }
         if self.play_music {
-            byte |= 2;
+            set.set(1);
         }
         if self.create_world_fog {
-            byte |= 4;
+            set.set(2);
         }
-        u8::write_into(&byte, buf)?;
+        set.write_into(buf)?;
         Ok(())
     }
 }

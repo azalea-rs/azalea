@@ -1,5 +1,5 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use azalea_core::ResourceLocation;
+use azalea_core::{FixedBitSet, ResourceLocation};
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Cursor, Write};
 
@@ -13,13 +13,13 @@ pub struct ClientboundStopSoundPacket {
 
 impl McBufReadable for ClientboundStopSoundPacket {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let byte = u8::read_from(buf)?;
-        let source = if byte & 1 != 0 {
+        let set = FixedBitSet::<2>::read_from(buf)?;
+        let source = if set.index(0) {
             Some(SoundSource::read_from(buf)?)
         } else {
             None
         };
-        let name = if byte & 2 != 0 {
+        let name = if set.index(1) {
             Some(ResourceLocation::read_from(buf)?)
         } else {
             None
@@ -31,14 +31,14 @@ impl McBufReadable for ClientboundStopSoundPacket {
 
 impl McBufWritable for ClientboundStopSoundPacket {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut byte = 0u8;
+        let mut set = FixedBitSet::<2>::new();
         if self.source.is_some() {
-            byte |= 1;
+            set.set(0);
         }
         if self.name.is_some() {
-            byte |= 2;
+            set.set(1);
         }
-        byte.write_into(buf)?;
+        set.write_into(buf)?;
         if let Some(source) = &self.source {
             source.write_into(buf)?;
         }

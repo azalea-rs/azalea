@@ -1,7 +1,7 @@
 use crate::packets::BufReadError;
 use azalea_buf::McBuf;
 use azalea_buf::{McBufReadable, McBufWritable};
-use azalea_core::BlockPos;
+use azalea_core::{BlockPos, FixedBitSet};
 use azalea_protocol_macros::ServerboundGamePacket;
 use std::io::{Cursor, Write};
 
@@ -69,28 +69,28 @@ pub struct Flags {
 
 impl McBufReadable for Flags {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let byte = u8::read_from(buf)?;
+        let set = FixedBitSet::<3>::read_from(buf)?;
         Ok(Self {
-            ignore_entities: byte & 1 != 0,
-            show_air: byte & 2 != 0,
-            show_bounding_box: byte & 4 != 0,
+            ignore_entities: set.index(0),
+            show_air: set.index(1),
+            show_bounding_box: set.index(2),
         })
     }
 }
 
 impl McBufWritable for Flags {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut byte = 0;
+        let mut set = FixedBitSet::<3>::new();
         if self.ignore_entities {
-            byte |= 1;
+            set.set(0);
         }
         if self.show_air {
-            byte |= 2;
+            set.set(1);
         }
         if self.show_bounding_box {
-            byte |= 4;
+            set.set(2);
         }
-        u8::write_into(&byte, buf)?;
+        set.write_into(buf)?;
         Ok(())
     }
 }

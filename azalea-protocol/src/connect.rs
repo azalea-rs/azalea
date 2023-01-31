@@ -189,6 +189,7 @@ where
     }
 
     /// Split the reader and writer into two objects. This doesn't allocate.
+    #[must_use]
     pub fn into_split(self) -> (ReadConnection<R>, WriteConnection<W>) {
         (self.reader, self.writer)
     }
@@ -229,12 +230,14 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
 
     /// Change our state from handshake to login. This is the state that is used
     /// for logging in.
+    #[must_use]
     pub fn login(self) -> Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         Connection::from(self)
     }
 
     /// Change our state from handshake to status. This is the state that is
     /// used for pinging the server.
+    #[must_use]
     pub fn status(self) -> Connection<ClientboundStatusPacket, ServerboundStatusPacket> {
         Connection::from(self)
     }
@@ -265,6 +268,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
 
     /// Change our state from login to game. This is the state that's used when
     /// you're actually in the game.
+    #[must_use]
     pub fn game(self) -> Connection<ClientboundGamePacket, ServerboundGamePacket> {
         Connection::from(self)
     }
@@ -343,12 +347,14 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
 impl Connection<ServerboundHandshakePacket, ClientboundHandshakePacket> {
     /// Change our state from handshake to login. This is the state that is used
     /// for logging in.
+    #[must_use]
     pub fn login(self) -> Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
         Connection::from(self)
     }
 
     /// Change our state from handshake to status. This is the state that is
     /// used for pinging the server.
+    #[must_use]
     pub fn status(self) -> Connection<ServerboundStatusPacket, ClientboundStatusPacket> {
         Connection::from(self)
     }
@@ -379,6 +385,7 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
 
     /// Change our state from login to game. This is the state that's used when
     /// the client is actually in the game.
+    #[must_use]
     pub fn game(self) -> Connection<ServerboundGamePacket, ClientboundGamePacket> {
         Connection::from(self)
     }
@@ -406,6 +413,7 @@ where
 {
     /// Creates a `Connection` of a type from a `Connection` of another type.
     /// Useful for servers or custom packets.
+    #[must_use]
     pub fn from<R2, W2>(connection: Connection<R1, W1>) -> Connection<R2, W2>
     where
         R2: ProtocolPacket + Debug,
