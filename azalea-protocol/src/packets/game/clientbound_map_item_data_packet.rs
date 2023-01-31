@@ -24,7 +24,7 @@ pub struct MapDecoration {
 }
 
 #[derive(Debug, Clone)]
-pub struct OptionalMapPatch(Option<MapPatch>);
+pub struct OptionalMapPatch(pub Option<MapPatch>);
 
 impl McBufReadable for OptionalMapPatch {
     fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {

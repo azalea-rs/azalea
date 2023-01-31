@@ -73,7 +73,7 @@ impl From<SocketAddr> for ServerAddress {
 
 impl Display for ServerAddress {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&format!("{0}:{1}", self.host, self.port))
+        write!(f, "{}:{}", self.host, self.port)
     }
 }
 
