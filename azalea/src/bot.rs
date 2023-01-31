@@ -1,16 +1,23 @@
 use azalea_core::Vec3;
 use azalea_ecs::{
-    app::{App, Plugin},
+    app::{App, Plugin, PluginGroup, PluginGroupBuilder},
     component::Component,
     entity::Entity,
     event::EventReader,
+    query::{With, Without},
     schedule::IntoSystemDescriptor,
     schedule::SystemSet,
-    system::Query,
+    system::{Commands, Query},
+    AppTickExt,
 };
-use azalea_world::entity::{set_rotation, Jumping, Physics, Position};
+use azalea_world::{
+    entity::{metadata::Player, set_rotation, Jumping, Physics, Position},
+    Local,
+};
 use iyes_loopless::prelude::*;
 use std::f64::consts::PI;
+
+use crate::{pathfinder::PathfinderPlugin, DefaultSwarmPlugins};
 
 #[derive(Clone, Default)]
 pub struct BotPlugin;
@@ -18,14 +25,10 @@ impl Plugin for BotPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<LookAtEvent>()
             .add_event::<JumpEvent>()
+            .add_system(insert_bot)
             .add_system(look_at_listener)
-            .add_system(jump_listener.label("jump_listener"))
-            .add_fixed_timestep_system_set(
-                "tick",
-                0,
-                // make sure tick_jump happens the tick after a jump event
-                SystemSet::new().with_system(tick_jump.before("jump_listener")),
-            );
+            .add_system(jump_listener.label("jump_listener").before("ai_step"))
+            .add_system(stop_jumping.before("jump_listener"));
     }
 }
 
@@ -35,7 +38,17 @@ pub struct Bot {
     jumping_once: bool,
 }
 
-fn tick_jump(mut query: Query<(&mut Jumping, &mut Bot)>) {
+/// Insert the [`Bot`] component for any local players that don't have it.
+fn insert_bot(
+    mut commands: Commands,
+    mut query: Query<Entity, (Without<Bot>, With<Local>, With<Player>)>,
+) {
+    for entity in &mut query {
+        commands.entity(entity).insert(Bot::default());
+    }
+}
+
+fn stop_jumping(mut query: Query<(&mut Jumping, &mut Bot)>) {
     for (mut jumping, mut bot) in &mut query {
         if bot.jumping_once && **jumping {
             bot.jumping_once = false;
@@ -105,4 +118,16 @@ fn direction_looking_at(current: &Vec3, target: &Vec3) -> (f32, f32) {
     let ground_distance = f64::sqrt(delta.x * delta.x + delta.z * delta.z);
     let x_rot = f64::atan2(delta.y, ground_distance) * -(180.0 / PI);
     (y_rot as f32, x_rot as f32)
+}
+
+/// A [`PluginGroup`] for the plugins that add extra bot functionality to the
+/// client.
+pub struct DefaultBotPlugins;
+
+impl PluginGroup for DefaultBotPlugins {
+    fn build(self) -> PluginGroupBuilder {
+        PluginGroupBuilder::start::<Self>()
+            .add(BotPlugin)
+            .add(PathfinderPlugin)
+    }
 }

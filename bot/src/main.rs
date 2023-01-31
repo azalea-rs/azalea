@@ -71,6 +71,7 @@ async fn main() -> anyhow::Result<()> {
 async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
     match event {
         Event::Init => {
+            println!("bot init");
             // bot.set_client_information(ClientInformation {
             //     view_distance: 2,
             //     ..Default::default()
@@ -81,6 +82,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
             bot.chat("Hello world");
         }
         Event::Chat(m) => {
+            println!("client chat message: {}", m.content());
             if m.content() == bot.profile.name {
                 bot.chat("Bye");
                 tokio::time::sleep(Duration::from_millis(50)).await;
@@ -98,8 +100,12 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
             //     .find(|e| e.name() == Some(sender));
             // let entity = bot.entity_by::<With<Player>>(|name: &Name| name == sender);
             let entity = bot.entity_by::<With<Player>, (&GameProfileComponent,)>(
-                |profile: &&GameProfileComponent| profile.name == sender,
+                |profile: &&GameProfileComponent| {
+                    println!("entity {:?}", profile);
+                    profile.name == sender
+                },
             );
+            println!("sender entity: {entity:?}");
             if let Some(entity) = entity {
                 if m.content() == "goto" {
                     let entity_pos = bot.entity_component::<Position>(entity);

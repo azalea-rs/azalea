@@ -16,6 +16,8 @@ use azalea_ecs::{
 pub use azalea_protocol as protocol;
 pub use azalea_registry::EntityKind;
 pub use azalea_world::{entity, World};
+use bot::DefaultBotPlugins;
+use ecs::app::PluginGroup;
 use futures::Future;
 use protocol::ServerAddress;
 pub use swarm::*;
@@ -57,6 +59,7 @@ where
             handler: None,
             state: S::default(),
         }
+        .add_plugins(DefaultBotPlugins)
     }
     /// Set the function that's called every time a bot receives an [`Event`].
     /// This is the way to handle normal per-bot events.
@@ -69,10 +72,16 @@ where
         self.handler = Some(handler);
         self
     }
-    /// Add a plugin to the client's ECS.
+    /// Add a plugin to the client.
     #[must_use]
     pub fn add_plugin<T: Plugin>(mut self, plugin: T) -> Self {
         self.app.add_plugin(plugin);
+        self
+    }
+    /// Add a group of plugins to the client.
+    #[must_use]
+    pub fn add_plugins<T: PluginGroup>(mut self, plugin_group: T) -> Self {
+        self.app.add_plugins(plugin_group);
         self
     }
 

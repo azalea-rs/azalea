@@ -58,6 +58,7 @@ impl Plugin for PacketHandlerPlugin {
 
 /// A player joined the game (or more specifically, was added to the tab
 /// list of a local player).
+#[derive(Debug)]
 pub struct AddPlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -65,6 +66,7 @@ pub struct AddPlayerEvent {
 }
 /// A player left the game (or maybe is still in the game and was just
 /// removed from the tab list of a local player).
+#[derive(Debug)]
 pub struct RemovePlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -72,6 +74,7 @@ pub struct RemovePlayerEvent {
 }
 /// A player was updated in the tab list of a local player (gamemode, display
 /// name, or latency changed).
+#[derive(Debug)]
 pub struct UpdatePlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -565,13 +568,15 @@ fn handle_packets(ecs: &mut Ecs) {
 
                     if let Some(world_name) = &local_player.world_name {
                         let bundle = p.as_player_bundle(world_name.clone());
-                        let spawned = commands.spawn((
+                        let mut spawned = commands.spawn((
                             MinecraftEntityId(p.id),
                             LoadedBy(HashSet::from([player_entity])),
                             bundle,
                         ));
 
-                        println!("spawned player entity: {:?}", spawned.id());
+                        if let Some(player_info) = local_player.players.get(&p.uuid) {
+                            spawned.insert(GameProfileComponent(player_info.profile.clone()));
+                        }
                     } else {
                         warn!("got add player packet but we haven't gotten a login packet yet");
                     }
@@ -639,6 +644,8 @@ fn handle_packets(ecs: &mut Ecs) {
                     } else {
                         warn!("Got teleport entity packet for unknown entity id {}", p.id);
                     }
+
+                    system_state.apply(ecs);
                 }
                 ClientboundGamePacket::UpdateAdvancements(p) => {
                     debug!("Got update advancements packet {:?}", p);

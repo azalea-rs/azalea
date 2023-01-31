@@ -7,6 +7,8 @@ use crate::{SprintDirection, WalkDirection};
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_ecs::app::{App, Plugin};
+use azalea_ecs::query::{With, Without};
+use azalea_ecs::system::Commands;
 use azalea_ecs::AppTickExt;
 use azalea_ecs::{
     component::Component,
@@ -16,6 +18,8 @@ use azalea_ecs::{
     schedule::SystemSet,
     system::{Query, Res},
 };
+use azalea_world::entity::metadata::Player;
+use azalea_world::Local;
 use azalea_world::{
     entity::{Physics, Position, WorldName},
     WorldContainer,
@@ -29,15 +33,25 @@ use std::collections::VecDeque;
 pub struct PathfinderPlugin;
 impl Plugin for PathfinderPlugin {
     fn build(&self, app: &mut App) {
-        app.add_tick_system_set(SystemSet::new().with_system(tick_execute_path))
-            .add_system(goto_listener);
+        app.add_event::<GotoEvent>()
+            .add_tick_system_set(SystemSet::new().with_system(tick_execute_path))
+            .add_system(goto_listener)
+            .add_system(add_default_pathfinder);
     }
 }
 
 /// A component that makes this entity able to pathfind.
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct Pathfinder {
     pub path: VecDeque<Node>,
+}
+fn add_default_pathfinder(
+    mut commands: Commands,
+    mut query: Query<Entity, (Without<Pathfinder>, With<Local>, With<Player>)>,
+) {
+    for entity in &mut query {
+        commands.entity(entity).insert(Pathfinder::default());
+    }
 }
 
 pub trait PathfinderClientExt {
@@ -57,14 +71,15 @@ pub struct GotoEvent {
     pub goal: Box<dyn Goal + Send + Sync>,
 }
 fn goto_listener(
+    mut commands: Commands,
     mut events: EventReader<GotoEvent>,
-    mut query: Query<(&Position, &WorldName, &mut Pathfinder)>,
+    mut query: Query<(&Position, &WorldName)>,
     world_container: Res<WorldContainer>,
 ) {
     for event in events.iter() {
-        let (position, world_name, mut pathfinder) = query
+        let (position, world_name) = query
             .get_mut(event.entity)
-            .expect("Called goto on an entity that can't pathfind");
+            .expect("Called goto on an entity that's not in the world");
         let start = Node {
             pos: BlockPos::from(position),
             vertical_vel: VerticalVel::None,
@@ -127,7 +142,8 @@ fn goto_listener(
 
         // convert the Option<Vec<Node>> to a VecDeque<Node>
         if let Some(p) = p {
-            pathfinder.path = p.into_iter().collect();
+            let p = p.into_iter().collect::<VecDeque<_>>();
+            commands.entity(event.entity).insert(Pathfinder { path: p });
         } else {
             error!("no path found");
         }

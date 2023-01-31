@@ -84,10 +84,6 @@ fn chat_listener(
             if global_chat_state.chat_min_index > client_chat_state.chat_index {
                 // if this happens it's because this bot just logged in, so
                 // ignore it and let another bot handle it
-                println!(
-                    "chat_min_index ({}) > chat_index ({})",
-                    global_chat_state.chat_min_index, client_chat_state.chat_index
-                );
                 client_chat_state.chat_index = global_chat_state.chat_min_index;
                 return;
             }
@@ -144,10 +140,6 @@ fn update_min_index_and_shrink_queue(
         }
 
         if global_chat_state.chat_min_index > new_chat_min_index {
-            println!(
-                "chat_min_index ({chat_min_index}) > new_chat_min_index ({new_chat_min_index})",
-                chat_min_index = global_chat_state.chat_min_index,
-            );
             return;
         }
         // remove all messages from the queue that are before the min index

@@ -46,7 +46,7 @@ pub use bevy_app as app;
 pub use bevy_ecs::{entity, event, ptr, query, schedule, storage};
 
 use app::{App, CoreStage, Plugin};
-use bevy_ecs::schedule::*;
+use bevy_ecs::{schedule::*, system::System};
 use ecs::Ecs;
 
 pub struct TickPlugin {
@@ -104,6 +104,7 @@ impl Stage for TickStage {
 
 pub trait AppTickExt {
     fn add_tick_system_set(&mut self, system_set: SystemSet) -> &mut App;
+    fn add_tick_system<Params>(&mut self, system: impl IntoSystemDescriptor<Params>) -> &mut App;
 }
 
 impl AppTickExt for App {
@@ -117,6 +118,19 @@ impl AppTickExt for App {
             .downcast_mut::<SystemStage>()
             .expect("Fixed Timestep sub-stage is not a SystemStage");
         stage.add_system_set(system_set);
+        self
+    }
+
+    fn add_tick_system<Params>(&mut self, system: impl IntoSystemDescriptor<Params>) -> &mut App {
+        let tick_stage = self
+            .schedule
+            .get_stage_mut::<TickStage>(TickLabel)
+            .expect("Tick Stage not found");
+        let stage = tick_stage
+            .stage
+            .downcast_mut::<SystemStage>()
+            .expect("Fixed Timestep sub-stage is not a SystemStage");
+        stage.add_system(system);
         self
     }
 }

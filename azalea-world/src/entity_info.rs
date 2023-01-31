@@ -145,7 +145,7 @@ impl Command for RelativeEntityUpdate {
             .get(&entity_id)
             .copied();
 
-        let can_update = this_client_updates_received == Some(**updates_received);
+        let can_update = this_client_updates_received.unwrap_or(1) == **updates_received;
         if can_update {
             let new_updates_received = this_client_updates_received.unwrap_or(0) + 1;
             partial_entity_infos
@@ -172,6 +172,10 @@ impl EntityInfos {
         Self {
             entity_by_uuid: HashMap::default(),
         }
+    }
+
+    pub fn get_entity_by_uuid(&self, uuid: &Uuid) -> Option<Entity> {
+        self.entity_by_uuid.get(uuid).copied()
     }
 }
 

@@ -1,21 +1,23 @@
 pub use crate::chat::ChatPacket;
 use crate::{
-    events::{Event, LocalPlayerEvents},
+    events::{Event, EventPlugin, LocalPlayerEvents},
     local_player::{
         death_event, update_in_loaded_chunk, GameProfileComponent, LocalPlayer, PhysicsState,
     },
     movement::{local_player_ai_step, send_position, sprint_listener, walk_listener},
     packet_handling::{self, PacketHandlerPlugin},
+    player::retroactively_add_game_profile_component,
     Account, PlayerInfo, StartSprintEvent, StartWalkEvent,
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
 use azalea_ecs::{
-    app::{App, Plugin},
+    app::{App, Plugin, PluginGroup, PluginGroupBuilder},
     component::Component,
     entity::Entity,
     schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
+    AppTickExt,
 };
 use azalea_ecs::{ecs::Ecs, TickPlugin};
 use azalea_physics::PhysicsPlugin;
@@ -445,10 +447,9 @@ impl Plugin for AzaleaPlugin {
         app.add_event::<StartWalkEvent>()
             .add_event::<StartSprintEvent>();
 
-        app.add_plugin(TickPlugin::default());
-        app.add_fixed_timestep_system_set(
-            "tick",
-            0,
+        app.add_plugins(DefaultPlugins);
+
+        app.add_tick_system_set(
             SystemSet::new()
                 .with_system(send_position)
                 .with_system(update_in_loaded_chunk)
@@ -463,10 +464,13 @@ impl Plugin for AzaleaPlugin {
 
         // fire the Death event when the player dies.
         app.add_system(death_event.after("tick").after("packet"));
-        app.add_plugin(PacketHandlerPlugin);
-        app.add_plugin(EntityPlugin);
-        app.add_plugin(PhysicsPlugin);
-        app.add_plugin(TimePlugin); // from bevy_time
+
+        // add GameProfileComponent when we get an AddPlayerEvent
+        app.add_system(
+            retroactively_add_game_profile_component
+                .after("tick")
+                .after("packet"),
+        );
 
         app.init_resource::<WorldContainer>();
     }
@@ -532,8 +536,6 @@ pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::Sender<()>) {
     // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
     game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
 
-    println!("tick_run_schedule_loop started");
-
     loop {
         game_tick_interval.tick().await;
         if let Err(e) = run_schedule_sender.send(()).await {
@@ -541,5 +543,20 @@ pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::Sender<()>) {
             // the sender is closed so end the task
             return;
         }
+    }
+}
+
+/// This plugin group will add all the default plugins necessary for Azalea to
+/// work.
+pub struct DefaultPlugins;
+
+impl PluginGroup for DefaultPlugins {
+    fn build(self) -> PluginGroupBuilder {
+        PluginGroupBuilder::start::<Self>()
+            .add(TickPlugin::default())
+            .add(PacketHandlerPlugin)
+            .add(EntityPlugin)
+            .add(PhysicsPlugin)
+            .add(EventPlugin)
     }
 }

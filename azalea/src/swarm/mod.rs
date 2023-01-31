@@ -3,10 +3,13 @@
 mod chat;
 mod events;
 
-use crate::{bot, HandleFn};
+use crate::{
+    bot::{self, DefaultBotPlugins},
+    HandleFn,
+};
 use azalea_client::{init_ecs_app, start_ecs, Account, ChatPacket, Client, Event, JoinError};
 use azalea_ecs::{
-    app::{App, Plugin},
+    app::{App, Plugin, PluginGroup, PluginGroupBuilder},
     component::Component,
     ecs::Ecs,
     entity::Entity,
@@ -101,7 +104,8 @@ where
             swarm_handler: None,
             join_delay: None,
         }
-        .add_default_swarm_plugins()
+        .add_plugins(DefaultSwarmPlugins)
+        .add_plugins(DefaultBotPlugins)
     }
 
     /// Add a vec of [`Account`]s to the swarm.
@@ -163,6 +167,12 @@ where
         self.app.add_plugin(plugin);
         self
     }
+    /// Add a group of plugins to the swarm.
+    #[must_use]
+    pub fn add_plugins<T: PluginGroup>(mut self, plugin_group: T) -> Self {
+        self.app.add_plugins(plugin_group);
+        self
+    }
 
     /// Set how long we should wait between each bot joining the server.
     ///
@@ -173,13 +183,6 @@ where
     pub fn join_delay(mut self, delay: std::time::Duration) -> Self {
         self.join_delay = Some(delay);
         self
-    }
-
-    #[must_use]
-    fn add_default_swarm_plugins(self) -> Self {
-        self.add_plugin(chat::SwarmChatPlugin)
-            .add_plugin(events::SwarmPlugin)
-            .add_plugin(bot::BotPlugin)
     }
 
     /// Build this `SwarmBuilder` into an actual [`Swarm`] and join the given
@@ -278,13 +281,10 @@ where
             }
         });
 
-        println!("starting bot events");
         // bot events
         while let Some((Some(event), bot)) = bots_rx.recv().await {
-            println!("got event");
             if let Some(handler) = self.handler {
                 let state = bot.component::<S>();
-                println!("handler");
                 tokio::spawn((handler)(bot, event, state));
             }
         }
@@ -526,5 +526,17 @@ impl IntoIterator for Swarm {
 impl From<ConnectionError> for SwarmStartError {
     fn from(e: ConnectionError) -> Self {
         SwarmStartError::from(JoinError::from(e))
+    }
+}
+
+/// This plugin group will add all the default plugins necessary for swarms to
+/// work.
+pub struct DefaultSwarmPlugins;
+
+impl PluginGroup for DefaultSwarmPlugins {
+    fn build(self) -> PluginGroupBuilder {
+        PluginGroupBuilder::start::<Self>()
+            .add(chat::SwarmChatPlugin)
+            .add(events::SwarmPlugin)
     }
 }

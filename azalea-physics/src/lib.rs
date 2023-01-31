@@ -46,7 +46,7 @@ impl Plugin for PhysicsPlugin {
 /// Move the entity with the given acceleration while handling friction,
 /// gravity, collisions, and some other stuff.
 fn travel(
-    mut query: Query<(&mut Physics, &mut Position, &Attributes, &WorldName)>,
+    mut query: Query<(&mut Physics, &mut Position, &Attributes, &WorldName), With<Local>>,
     world_container: Res<WorldContainer>,
 ) {
     for (mut physics, mut position, attributes, world_name) in &mut query {
@@ -125,7 +125,6 @@ pub fn ai_step(
     >,
     mut force_jump_events: EventWriter<ForceJumpEvent>,
 ) {
-    println!("ai step");
     for (entity, mut physics, jumping) in &mut query {
         // vanilla does movement interpolation here, doesn't really matter much for a
         // bot though

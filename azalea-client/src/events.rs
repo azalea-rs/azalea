@@ -9,6 +9,7 @@ use azalea_ecs::{
     event::EventReader,
     query::{Added, Changed},
     system::Query,
+    AppTickExt,
 };
 use azalea_protocol::packets::game::{
     clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
@@ -94,7 +95,7 @@ impl Plugin for EventPlugin {
             .add_system(update_player_listener)
             .add_system(remove_player_listener)
             .add_system(death_listener)
-            .add_fixed_timestep_system("tick", 0, tick_listener);
+            .add_tick_system(tick_listener);
     }
 }
 
