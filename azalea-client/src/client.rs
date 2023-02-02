@@ -7,6 +7,7 @@ use crate::{
     movement::{local_player_ai_step, send_position, sprint_listener, walk_listener},
     packet_handling::{self, PacketHandlerPlugin},
     player::retroactively_add_game_profile_component,
+    task_pool::TaskPoolPlugin,
     Account, PlayerInfo, StartSprintEvent, StartWalkEvent,
 };
 
@@ -42,8 +43,7 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{EntityPlugin, Local, PartialWorld, World, WorldContainer};
-use bevy_time::TimePlugin;
-use iyes_loopless::prelude::*;
+use bevy_tasks::{AsyncComputeTaskPool, TaskPoolBuilder};
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
 use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc};
@@ -558,5 +558,6 @@ impl PluginGroup for DefaultPlugins {
             .add(EntityPlugin)
             .add(PhysicsPlugin)
             .add(EventPlugin)
+            .add(TaskPoolPlugin::default())
     }
 }

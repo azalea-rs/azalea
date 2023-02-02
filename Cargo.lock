@@ -282,6 +282,7 @@ dependencies = [
  "azalea-protocol",
  "azalea-registry",
  "azalea-world",
+ "bevy_tasks",
  "bevy_time",
  "derive_more",
  "env_logger 0.9.3",

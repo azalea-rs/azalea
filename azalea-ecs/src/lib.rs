@@ -46,7 +46,7 @@ pub use bevy_app as app;
 pub use bevy_ecs::{entity, event, ptr, query, schedule, storage};
 
 use app::{App, CoreStage, Plugin};
-use bevy_ecs::{schedule::*, system::System};
+use bevy_ecs::schedule::*;
 use ecs::Ecs;
 
 pub struct TickPlugin {

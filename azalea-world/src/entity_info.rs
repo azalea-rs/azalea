@@ -7,13 +7,13 @@ use crate::{
 };
 use azalea_core::ChunkPos;
 use azalea_ecs::{
-    app::{App, Plugin},
+    app::{App, CoreStage, Plugin},
     component::Component,
     ecs::Ecs,
     ecs::EntityMut,
     entity::Entity,
     query::{Added, Changed, With, Without},
-    schedule::{IntoSystemDescriptor, SystemSet},
+    schedule::{IntoSystemDescriptor, SystemSet, SystemStage},
     system::{Command, Commands, Query, Res, ResMut, Resource},
 };
 use derive_more::{Deref, DerefMut};
@@ -39,16 +39,19 @@ impl Plugin for EntityPlugin {
                 .with_system(remove_despawned_entities_from_indexes)
                 .with_system(update_bounding_box)
                 .with_system(add_dead)
-                .with_system(add_updates_received.label("add_updates_received"))
                 .with_system(
-                    deduplicate_entities
-                        .after("add_reference_count")
-                        .label("deduplicate_entities"),
+                    add_updates_received
+                        .after("deduplicate_entities")
+                        .label("add_updates_received"),
                 )
                 .with_system(update_uuid_index.after("deduplicate_entities"))
                 .with_system(debug_detect_updates_received_on_local_entities)
-                .with_system(update_entity_by_id_index)
+                .with_system(update_entity_by_id_index.after("deduplicate_entities"))
                 .with_system(debug_new_entity),
+        )
+        .add_system_to_stage(
+            CoreStage::PostUpdate,
+            deduplicate_entities.label("deduplicate_entities"),
         )
         .init_resource::<EntityInfos>();
     }

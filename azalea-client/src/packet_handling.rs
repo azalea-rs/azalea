@@ -44,9 +44,7 @@ pub struct PacketHandlerPlugin;
 impl Plugin for PacketHandlerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::new()
-                .with_system(handle_packets.label("packet"))
-                .with_system(clear_packets.after("packet")),
+            SystemSet::new().with_system(handle_packets.label("packet").before("tick")),
         )
         .add_event::<AddPlayerEvent>()
         .add_event::<RemovePlayerEvent>()
@@ -111,9 +109,11 @@ fn handle_packets(ecs: &mut Ecs) {
         > = SystemState::new(ecs);
         let query = system_state.get(ecs);
         for (player_entity, packet_events) in &query {
-            let packets = packet_events.packets.lock();
+            let mut packets = packet_events.packets.lock();
             if !packets.is_empty() {
                 events_owned.push((player_entity, packets.clone()));
+                // clear the packets right after we read them
+                packets.clear();
             }
         }
     }
@@ -587,7 +587,7 @@ fn handle_packets(ecs: &mut Ecs) {
                     debug!("Got initialize border packet {:?}", p);
                 }
                 ClientboundGamePacket::SetTime(p) => {
-                    debug!("Got set time packet {:?}", p);
+                    // debug!("Got set time packet {:?}", p);
                 }
                 ClientboundGamePacket::SetDefaultSpawnPosition(p) => {
                     debug!("Got set default spawn position packet {:?}", p);
@@ -716,14 +716,15 @@ fn handle_packets(ecs: &mut Ecs) {
                     // debug!("Got move entity rot packet {:?}", p);
                 }
                 ClientboundGamePacket::KeepAlive(p) => {
-                    debug!("Got keep alive packet {:?}", p);
+                    debug!("Got keep alive packet {p:?} for {player_entity:?}");
 
                     let mut system_state: SystemState<Query<&mut LocalPlayer>> =
                         SystemState::new(ecs);
                     let mut query = system_state.get_mut(ecs);
-
                     let mut local_player = query.get_mut(player_entity).unwrap();
+
                     local_player.write_packet(ServerboundKeepAlivePacket { id: p.id }.get());
+                    debug!("Sent keep alive packet {p:?} for {player_entity:?}");
                 }
                 ClientboundGamePacket::RemoveEntities(p) => {
                     debug!("Got remove entities packet {:?}", p);
@@ -892,13 +893,6 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::ContainerClose(_) => {}
             }
         }
-    }
-}
-
-/// A system that clears all packets in the clientbound packet events.
-fn clear_packets(mut query: Query<&mut PacketReceiver>) {
-    for packets in query.iter_mut() {
-        packets.packets.lock().clear();
     }
 }
 

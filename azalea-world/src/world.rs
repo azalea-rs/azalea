@@ -58,37 +58,35 @@ pub fn deduplicate_entities(
     world_container: Res<WorldContainer>,
 ) {
     // if this entity already exists, remove it
-    for (entity, id, world_name, position) in query.iter_mut() {
+    for (new_entity, id, world_name, position) in query.iter_mut() {
         let entity_chunk = ChunkPos::from(*position);
         if let Some(world_lock) = world_container.get(world_name) {
             let world = world_lock.write();
             if let Some(entities_in_chunk) = world.entities_by_chunk.get(&entity_chunk) {
-                for other_entity in entities_in_chunk {
+                for old_entity in entities_in_chunk {
                     // if it's the same entity, skip it
-                    if other_entity == &entity {
+                    if old_entity == &new_entity {
                         continue;
                     }
 
-                    let other_entity_id = id_query
-                        .get(*other_entity)
+                    let old_entity_id = id_query
+                        .get(*old_entity)
                         .expect("Entities should always have ids");
-                    if other_entity_id == id {
+                    if old_entity_id == id {
                         // this entity already exists!!! remove the one we just added but increase
                         // the reference count
                         let new_loaded_by = loaded_by_query
-                            .get(entity)
+                            .get(new_entity)
                             .expect("Entities should always have the LoadedBy component")
                             .clone();
-                        let mut other_loaded_by = loaded_by_query
-                            .get_mut(*other_entity)
+                        let mut old_loaded_by = loaded_by_query
+                            .get_mut(*old_entity)
                             .expect("Entities should always have the LoadedBy component");
                         // merge them
-                        other_loaded_by.extend(new_loaded_by.iter());
-                        commands.entity(entity).despawn();
+                        old_loaded_by.extend(new_loaded_by.iter());
+                        commands.entity(new_entity).despawn();
                         info!(
-                            "Entity with id {id:?} already existed in the world, overwriting it with entity {entity:?}",
-                            id = id,
-                            entity = entity,
+                            "Entity with id {id:?} / {new_entity:?} already existed in the world, merging it with {old_entity:?}"
                         );
                         break;
                     }
@@ -105,11 +103,12 @@ pub fn update_uuid_index(
     query: Query<(Entity, &EntityUuid), Changed<EntityUuid>>,
 ) {
     for (entity, &uuid) in query.iter() {
-        if let Some(old_entity) = entity_infos.entity_by_uuid.insert(*uuid, entity) {
-            warn!(
-                "Entity with UUID {uuid:?} ({old_entity:?}) already existed in the world, overwriting it with entity {entity:?}",
-                uuid = *uuid,
-            );
+        // only add it if it doesn't already exist in
+        // entity_infos.entity_by_uuid
+        if entity_infos.entity_by_uuid.contains_key(&uuid) {
+            warn!("Entity with UUID {uuid:?} already existed in the world, not adding to index (ecs id: {entity:?})", uuid=*uuid);
+        } else {
+            entity_infos.entity_by_uuid.insert(*uuid, entity);
         }
     }
 }

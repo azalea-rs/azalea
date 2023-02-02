@@ -15,7 +15,6 @@ use azalea_ecs::{
     entity::Entity,
     event::EventReader,
     event::EventWriter,
-    schedule::SystemSet,
     system::{Query, Res},
 };
 use azalea_world::entity::metadata::Player;
@@ -34,7 +33,8 @@ pub struct PathfinderPlugin;
 impl Plugin for PathfinderPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<GotoEvent>()
-            .add_tick_system_set(SystemSet::new().with_system(tick_execute_path))
+            .add_event::<PathFoundEvent>()
+            .add_tick_system(tick_execute_path)
             .add_system(goto_listener)
             .add_system(add_default_pathfinder);
     }
@@ -70,6 +70,10 @@ pub struct GotoEvent {
     pub entity: Entity,
     pub goal: Box<dyn Goal + Send + Sync>,
 }
+pub struct PathFoundEvent {
+    pub path: VecDeque<Node>,
+}
+
 fn goto_listener(
     mut commands: Commands,
     mut events: EventReader<GotoEvent>,
@@ -168,6 +172,10 @@ fn tick_execute_path(
                 entity,
                 position: center,
             });
+            debug!(
+                "tick: pathfinder {entity:?}; going to {:?}; currently at {position:?}",
+                target.pos
+            );
             sprint_events.send(StartSprintEvent {
                 entity,
                 direction: SprintDirection::Forward,

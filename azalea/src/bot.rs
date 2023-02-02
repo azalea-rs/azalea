@@ -14,10 +14,9 @@ use azalea_world::{
     entity::{metadata::Player, set_rotation, Jumping, Physics, Position},
     Local,
 };
-use iyes_loopless::prelude::*;
 use std::f64::consts::PI;
 
-use crate::{pathfinder::PathfinderPlugin, DefaultSwarmPlugins};
+use crate::pathfinder::PathfinderPlugin;
 
 #[derive(Clone, Default)]
 pub struct BotPlugin;

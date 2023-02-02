@@ -3,10 +3,7 @@
 mod chat;
 mod events;
 
-use crate::{
-    bot::{self, DefaultBotPlugins},
-    HandleFn,
-};
+use crate::{bot::DefaultBotPlugins, HandleFn};
 use azalea_client::{init_ecs_app, start_ecs, Account, ChatPacket, Client, Event, JoinError};
 use azalea_ecs::{
     app::{App, Plugin, PluginGroup, PluginGroupBuilder},

@@ -16,7 +16,6 @@ use azalea_protocol::packets::game::{
 };
 use azalea_world::entity::MinecraftEntityId;
 use derive_more::{Deref, DerefMut};
-use iyes_loopless::prelude::*;
 use tokio::sync::mpsc;
 
 use crate::{
