@@ -49,48 +49,35 @@ impl PartialWorld {
 /// combined into the old one.
 pub fn deduplicate_entities(
     mut commands: Commands,
-    mut query: Query<
-        (Entity, &MinecraftEntityId, &WorldName, &Position),
-        Changed<MinecraftEntityId>,
-    >,
-    id_query: Query<&MinecraftEntityId>,
+    mut query: Query<(Entity, &MinecraftEntityId, &WorldName), Changed<MinecraftEntityId>>,
     mut loaded_by_query: Query<&mut LoadedBy>,
     world_container: Res<WorldContainer>,
 ) {
     // if this entity already exists, remove it
-    for (new_entity, id, world_name, position) in query.iter_mut() {
-        let entity_chunk = ChunkPos::from(*position);
+    for (new_entity, id, world_name) in query.iter_mut() {
         if let Some(world_lock) = world_container.get(world_name) {
             let world = world_lock.write();
-            if let Some(entities_in_chunk) = world.entities_by_chunk.get(&entity_chunk) {
-                for old_entity in entities_in_chunk {
-                    // if it's the same entity, skip it
-                    if old_entity == &new_entity {
-                        continue;
-                    }
-
-                    let old_entity_id = id_query
-                        .get(*old_entity)
-                        .expect("Entities should always have ids");
-                    if old_entity_id == id {
-                        // this entity already exists!!! remove the one we just added but increase
-                        // the reference count
-                        let new_loaded_by = loaded_by_query
-                            .get(new_entity)
-                            .expect("Entities should always have the LoadedBy component")
-                            .clone();
-                        let mut old_loaded_by = loaded_by_query
-                            .get_mut(*old_entity)
-                            .expect("Entities should always have the LoadedBy component");
-                        // merge them
-                        old_loaded_by.extend(new_loaded_by.iter());
-                        commands.entity(new_entity).despawn();
-                        info!(
-                            "Entity with id {id:?} / {new_entity:?} already existed in the world, merging it with {old_entity:?}"
-                        );
-                        break;
-                    }
+            if let Some(old_entity) = world.entity_by_id.get(id) {
+                if old_entity == &new_entity {
+                    continue;
                 }
+
+                // this entity already exists!!! remove the one we just added but increase
+                // the reference count
+                let new_loaded_by = loaded_by_query
+                    .get(new_entity)
+                    .expect("Entities should always have the LoadedBy component")
+                    .clone();
+                let old_loaded_by = loaded_by_query.get_mut(*old_entity);
+                // merge them if possible
+                if let Ok(mut old_loaded_by) = old_loaded_by {
+                    old_loaded_by.extend(new_loaded_by.iter());
+                }
+                commands.entity(new_entity).despawn();
+                info!(
+                        "Entity with id {id:?} / {new_entity:?} already existed in the world, merging it with {old_entity:?}"
+                    );
+                break;
             }
         } else {
             error!("Entity was inserted into a world that doesn't exist.");
@@ -187,6 +174,12 @@ pub fn update_entity_by_id_index(
     for (entity, id, world_name) in query.iter_mut() {
         let world_lock = world_container.get(world_name).unwrap();
         let mut world = world_lock.write();
+        if let Some(old_entity) = world.entity_by_id.get(id) {
+            warn!(
+                "Entity with ID {id:?} already existed in the world, not adding to index (ecs id: {old_entity:?} / {entity:?})"
+            );
+            continue;
+        }
         world.entity_by_id.insert(*id, entity);
         debug!("Added {entity:?} to {world_name:?} with {id:?}.");
     }

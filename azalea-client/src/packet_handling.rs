@@ -654,7 +654,7 @@ fn handle_packets(ecs: &mut Ecs) {
                     // debug!("Got rotate head packet {:?}", p);
                 }
                 ClientboundGamePacket::MoveEntityPos(p) => {
-                    let mut system_state: SystemState<(Commands, Query<&mut LocalPlayer>)> =
+                    let mut system_state: SystemState<(Commands, Query<&LocalPlayer>)> =
                         SystemState::new(ecs);
                     let (mut commands, mut query) = system_state.get_mut(ecs);
                     let local_player = query.get_mut(player_entity).unwrap();
@@ -668,8 +668,8 @@ fn handle_packets(ecs: &mut Ecs) {
                         commands.add(RelativeEntityUpdate {
                             entity,
                             partial_world: local_player.partial_world.clone(),
-                            update: Box::new(move |entity| {
-                                let mut position = entity.get_mut::<Position>().unwrap();
+                            update: Box::new(move |entity_mut| {
+                                let mut position = entity_mut.get_mut::<Position>().unwrap();
                                 **position = position.with_delta(&delta);
                             }),
                         });
@@ -697,8 +697,8 @@ fn handle_packets(ecs: &mut Ecs) {
                         commands.add(RelativeEntityUpdate {
                             entity,
                             partial_world: local_player.partial_world.clone(),
-                            update: Box::new(move |entity| {
-                                let mut position = entity.get_mut::<Position>().unwrap();
+                            update: Box::new(move |entity_mut| {
+                                let mut position = entity_mut.get_mut::<Position>().unwrap();
                                 **position = position.with_delta(&delta);
                             }),
                         });
