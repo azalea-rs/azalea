@@ -361,7 +361,7 @@ impl Client {
         self.query::<&mut LocalPlayer>(ecs)
     }
 
-    /// Get a component from the client. This will clone the component and
+    /// Get a component from this client. This will clone the component and
     /// return it.
     pub fn component<T: Component + Clone>(&self) -> T {
         self.query::<&T>(&mut self.ecs.lock()).clone()
@@ -453,8 +453,6 @@ impl Plugin for AzaleaPlugin {
             SystemSet::new()
                 .with_system(send_position)
                 .with_system(update_in_loaded_chunk)
-                .with_system(sprint_listener.label("sprint_listener").before("travel"))
-                .with_system(walk_listener.label("walk_listener").before("travel"))
                 .with_system(
                     local_player_ai_step
                         .before("ai_step")
@@ -464,6 +462,10 @@ impl Plugin for AzaleaPlugin {
 
         // fire the Death event when the player dies.
         app.add_system(death_event.after("tick").after("packet"));
+
+        // walk and sprint event listeners
+        app.add_system(walk_listener.label("walk_listener").before("travel"))
+            .add_system(sprint_listener.label("sprint_listener").before("travel"));
 
         // add GameProfileComponent when we get an AddPlayerEvent
         app.add_system(

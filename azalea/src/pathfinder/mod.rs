@@ -164,7 +164,7 @@ fn tick_execute_path(
     for (entity, mut pathfinder, position, physics) in &mut query {
         loop {
             let Some(target) = pathfinder.path.front() else {
-                return;
+                break;
             };
             let center = target.pos.center();
             // println!("going to {center:?} (at {pos:?})", pos = bot.entity().pos());
@@ -193,6 +193,7 @@ fn tick_execute_path(
                         entity,
                         direction: WalkDirection::None,
                     });
+                    // println!("ok path finished")
                 }
                 // tick again, maybe we already reached the next node!
             } else {

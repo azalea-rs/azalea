@@ -108,6 +108,10 @@ pub trait AppTickExt {
 }
 
 impl AppTickExt for App {
+    /// Adds a set of ECS systems that will run every 50 milliseconds.
+    ///
+    /// Note that you should NOT have `EventReader`s in tick systems, as this
+    /// will make them sometimes be missed.
     fn add_tick_system_set(&mut self, system_set: SystemSet) -> &mut App {
         let tick_stage = self
             .schedule
@@ -121,6 +125,10 @@ impl AppTickExt for App {
         self
     }
 
+    /// Adds a new ECS system that will run every 50 milliseconds.
+    ///
+    /// Note that you should NOT have `EventReader`s in tick systems, as this
+    /// will make them sometimes be missed.
     fn add_tick_system<Params>(&mut self, system: impl IntoSystemDescriptor<Params>) -> &mut App {
         let tick_stage = self
             .schedule

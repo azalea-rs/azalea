@@ -50,6 +50,9 @@ impl Client {
 
     /// Get a component from an entity. Note that this will return an owned type
     /// (i.e. not a reference) so it may be expensive for larger types.
+    ///
+    /// If you're trying to get a component for this client, use
+    /// [`Self::component`].
     pub fn entity_component<Q: Component + Clone>(&mut self, entity: Entity) -> Q {
         let mut ecs = self.ecs.lock();
         let mut q = ecs.query::<&Q>();

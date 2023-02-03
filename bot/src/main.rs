@@ -107,26 +107,40 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
             );
             println!("sender entity: {entity:?}");
             if let Some(entity) = entity {
-                let entity_pos = bot.entity_component::<Position>(entity);
-                println!("entity_pos: {entity_pos:?}");
-                if m.content() == "goto" {
-                    let entity_pos = bot.entity_component::<Position>(entity);
-                    let target_pos: BlockPos = entity_pos.into();
-                    bot.goto(BlockPosGoal::from(target_pos));
-                } else if m.content() == "look" {
-                    let entity_pos = bot.entity_component::<Position>(entity);
-                    let target_pos: BlockPos = entity_pos.into();
-                    println!("target_pos: {target_pos:?}");
-                    bot.look_at(target_pos.center());
-                } else if m.content() == "jump" {
-                    bot.set_jumping(true);
-                } else if m.content() == "walk" {
-                    bot.walk(WalkDirection::Forward);
-                } else if m.content() == "stop" {
-                    bot.set_jumping(false);
-                    bot.walk(WalkDirection::None);
-                } else if m.content() == "lag" {
-                    std::thread::sleep(Duration::from_millis(1000));
+                match m.content().as_str() {
+                    "whereami" => {
+                        let pos = bot.entity_component::<Position>(entity);
+                        bot.chat(&format!("You're at {pos:?}",));
+                    }
+                    "whereareyou" => {
+                        let pos = bot.component::<Position>();
+                        bot.chat(&format!("I'm at {pos:?}",));
+                    }
+                    "goto" => {
+                        let entity_pos = bot.entity_component::<Position>(entity);
+                        let target_pos: BlockPos = entity_pos.into();
+                        bot.goto(BlockPosGoal::from(target_pos));
+                    }
+                    "look" => {
+                        let entity_pos = bot.entity_component::<Position>(entity);
+                        let target_pos: BlockPos = entity_pos.into();
+                        println!("target_pos: {target_pos:?}");
+                        bot.look_at(target_pos.center());
+                    }
+                    "jump" => {
+                        bot.set_jumping(true);
+                    }
+                    "walk" => {
+                        bot.walk(WalkDirection::Forward);
+                    }
+                    "stop" => {
+                        bot.set_jumping(false);
+                        bot.walk(WalkDirection::None);
+                    }
+                    "lag" => {
+                        std::thread::sleep(Duration::from_millis(1000));
+                    }
+                    _ => {}
                 }
             }
         }
