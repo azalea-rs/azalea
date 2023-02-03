@@ -292,8 +292,10 @@ fn handle_packets(ecs: &mut Ecs) {
                         )>,
                     > = SystemState::new(ecs);
                     let mut query = system_state.get_mut(ecs);
-                    let (mut local_player, mut physics, mut position, mut last_sent_position) =
-                        query.get_mut(player_entity).unwrap();
+                    let Ok((mut local_player, mut physics, mut position, mut last_sent_position)) =
+                        query.get_mut(player_entity) else {
+                            continue;
+                        };
 
                     let delta_movement = physics.delta;
 
@@ -475,7 +477,7 @@ fn handle_packets(ecs: &mut Ecs) {
                             "Skipping parsing chunk {:?} because we already know about it",
                             pos
                         );
-                        return;
+                        continue;
                     }
 
                     // ok we're sure we're going to mutate the world, so get exclusive write

@@ -27,7 +27,7 @@ impl Plugin for BotPlugin {
             .add_system(insert_bot)
             .add_system(look_at_listener)
             .add_system(jump_listener.label("jump_listener").before("ai_step"))
-            .add_system(stop_jumping.before("jump_listener"));
+            .add_tick_system(stop_jumping.after("ai_step"));
     }
 }
 

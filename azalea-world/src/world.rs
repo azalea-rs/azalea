@@ -66,7 +66,9 @@ pub fn deduplicate_entities(
                 // the reference count
                 let new_loaded_by = loaded_by_query
                     .get(new_entity)
-                    .expect("Entities should always have the LoadedBy component")
+                    .expect(&format!(
+                        "Entities should always have the LoadedBy component ({new_entity:?} did not)"
+                    ))
                     .clone();
                 let old_loaded_by = loaded_by_query.get_mut(*old_entity);
                 // merge them if possible

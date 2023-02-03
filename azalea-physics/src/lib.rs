@@ -25,21 +25,22 @@ use collision::{move_colliding, MoverType};
 pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ForceJumpEvent>().add_tick_system_set(
-            SystemSet::new()
-                .with_system(ai_step.label("ai_step"))
-                .with_system(
-                    force_jump_listener
-                        .label("force_jump_listener")
-                        .after("ai_step"),
-                )
-                .with_system(
-                    travel
-                        .label("travel")
-                        .after("ai_step")
-                        .after("force_jump_listener"),
-                ),
-        );
+        app.add_event::<ForceJumpEvent>()
+            .add_system(
+                force_jump_listener
+                    .label("force_jump_listener")
+                    .after("ai_step"),
+            )
+            .add_tick_system_set(
+                SystemSet::new()
+                    .with_system(ai_step.label("ai_step"))
+                    .with_system(
+                        travel
+                            .label("travel")
+                            .after("ai_step")
+                            .after("force_jump_listener"),
+                    ),
+            );
     }
 }
 

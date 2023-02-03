@@ -8,6 +8,7 @@ use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_ecs::app::{App, Plugin};
 use azalea_ecs::query::{With, Without};
+use azalea_ecs::schedule::IntoSystemDescriptor;
 use azalea_ecs::system::Commands;
 use azalea_ecs::AppTickExt;
 use azalea_ecs::{
@@ -34,7 +35,7 @@ impl Plugin for PathfinderPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<GotoEvent>()
             .add_event::<PathFoundEvent>()
-            .add_tick_system(tick_execute_path)
+            .add_tick_system(tick_execute_path.before("walk_listener"))
             .add_system(goto_listener)
             .add_system(add_default_pathfinder);
     }
@@ -186,14 +187,12 @@ fn tick_execute_path(
             }
 
             if target.is_reached(position, physics) {
-                // println!("ok target {target:?} reached");
                 pathfinder.path.pop_front();
                 if pathfinder.path.is_empty() {
                     walk_events.send(StartWalkEvent {
                         entity,
                         direction: WalkDirection::None,
                     });
-                    // println!("ok path finished")
                 }
                 // tick again, maybe we already reached the next node!
             } else {
