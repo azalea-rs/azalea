@@ -110,7 +110,10 @@ pub fn deduplicate_local_entities(
                     continue;
                 }
 
-                commands.entity(*old_entity).despawn();
+                commands.entity(new_entity).despawn();
+                debug!(
+                    "Local entity with id {id:?} / {new_entity:?} already existed in the world, despawning it"
+                );
                 break;
             }
         } else {

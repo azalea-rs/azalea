@@ -23,8 +23,10 @@ azalea-physics = {version = "0.5.0", path = "../azalea-physics"}
 azalea-protocol = {version = "0.5.0", path = "../azalea-protocol"}
 azalea-registry = {version = "0.5.0", path = "../azalea-registry"}
 azalea-world = {version = "0.5.0", path = "../azalea-world"}
+bevy_tasks = "0.9.1"
 derive_more = {version = "0.99.17", features = ["deref", "deref_mut"]}
 futures = "0.3.25"
+futures-lite = "1.12.0"
 iyes_loopless = "0.9.1"
 log = "0.4.17"
 nohash-hasher = "0.2.0"

@@ -6,17 +6,15 @@ use crate::{SprintDirection, WalkDirection};
 
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::{BlockPos, CardinalDirection};
-use azalea_ecs::app::{App, Plugin};
-use azalea_ecs::query::{With, Without};
-use azalea_ecs::schedule::IntoSystemDescriptor;
-use azalea_ecs::system::Commands;
-use azalea_ecs::AppTickExt;
 use azalea_ecs::{
+    app::{App, Plugin},
     component::Component,
     entity::Entity,
-    event::EventReader,
-    event::EventWriter,
-    system::{Query, Res},
+    event::{EventReader, EventWriter},
+    query::{With, Without},
+    schedule::IntoSystemDescriptor,
+    system::{Commands, Query, Res},
+    AppTickExt,
 };
 use azalea_world::entity::metadata::Player;
 use azalea_world::Local;
@@ -24,10 +22,13 @@ use azalea_world::{
     entity::{Physics, Position, WorldName},
     WorldContainer,
 };
+use bevy_tasks::{AsyncComputeTaskPool, Task};
+use futures_lite::future;
 use log::{debug, error};
 use mtdstarlite::Edge;
 pub use mtdstarlite::MTDStarLite;
 use std::collections::VecDeque;
+use std::sync::Arc;
 
 #[derive(Clone, Default)]
 pub struct PathfinderPlugin;
@@ -37,7 +38,9 @@ impl Plugin for PathfinderPlugin {
             .add_event::<PathFoundEvent>()
             .add_tick_system(tick_execute_path.before("walk_listener"))
             .add_system(goto_listener)
-            .add_system(add_default_pathfinder);
+            .add_system(add_default_pathfinder)
+            .add_system(handle_tasks)
+            .add_system(path_found_listener);
     }
 }
 
@@ -63,17 +66,21 @@ impl PathfinderClientExt for azalea_client::Client {
     fn goto(&self, goal: impl Goal + Send + Sync + 'static) {
         self.ecs.lock().send_event(GotoEvent {
             entity: self.entity,
-            goal: Box::new(goal),
+            goal: Arc::new(goal),
         });
     }
 }
 pub struct GotoEvent {
     pub entity: Entity,
-    pub goal: Box<dyn Goal + Send + Sync>,
+    pub goal: Arc<dyn Goal + Send + Sync>,
 }
 pub struct PathFoundEvent {
+    pub entity: Entity,
     pub path: VecDeque<Node>,
 }
+
+#[derive(Component)]
+pub struct ComputePath(Task<Option<PathFoundEvent>>);
 
 fn goto_listener(
     mut commands: Commands,
@@ -81,6 +88,8 @@ fn goto_listener(
     mut query: Query<(&Position, &WorldName)>,
     world_container: Res<WorldContainer>,
 ) {
+    let thread_pool = AsyncComputeTaskPool::get();
+
     for event in events.iter() {
         let (position, world_name) = query
             .get_mut(event.entity)
@@ -89,69 +98,108 @@ fn goto_listener(
             pos: BlockPos::from(position),
             vertical_vel: VerticalVel::None,
         };
+
+        let world_lock = world_container
+            .get(world_name)
+            .expect("Entity tried to pathfind but the entity isn't in a valid world");
         let end = event.goal.goal_node();
-        debug!("start: {start:?}, end: {end:?}");
 
-        let possible_moves: Vec<&dyn moves::Move> = vec![
-            &moves::ForwardMove(CardinalDirection::North),
-            &moves::ForwardMove(CardinalDirection::East),
-            &moves::ForwardMove(CardinalDirection::South),
-            &moves::ForwardMove(CardinalDirection::West),
-            //
-            &moves::AscendMove(CardinalDirection::North),
-            &moves::AscendMove(CardinalDirection::East),
-            &moves::AscendMove(CardinalDirection::South),
-            &moves::AscendMove(CardinalDirection::West),
-            //
-            &moves::DescendMove(CardinalDirection::North),
-            &moves::DescendMove(CardinalDirection::East),
-            &moves::DescendMove(CardinalDirection::South),
-            &moves::DescendMove(CardinalDirection::West),
-            //
-            &moves::DiagonalMove(CardinalDirection::North),
-            &moves::DiagonalMove(CardinalDirection::East),
-            &moves::DiagonalMove(CardinalDirection::South),
-            &moves::DiagonalMove(CardinalDirection::West),
-        ];
+        let goal = event.goal.clone();
+        let entity = event.entity;
 
-        let successors = |node: &Node| {
-            let mut edges = Vec::new();
+        let task = thread_pool.spawn(async move {
+            debug!("start: {start:?}, end: {end:?}");
 
-            let world_lock = world_container
-                .get(world_name)
-                .expect("Entity tried to pathfind but the entity isn't in a valid world");
-            let world = world_lock.read();
-            for possible_move in &possible_moves {
-                edges.push(Edge {
-                    target: possible_move.next_node(node),
-                    cost: possible_move.cost(&world, node),
-                });
+            let possible_moves: Vec<&dyn moves::Move> = vec![
+                &moves::ForwardMove(CardinalDirection::North),
+                &moves::ForwardMove(CardinalDirection::East),
+                &moves::ForwardMove(CardinalDirection::South),
+                &moves::ForwardMove(CardinalDirection::West),
+                //
+                &moves::AscendMove(CardinalDirection::North),
+                &moves::AscendMove(CardinalDirection::East),
+                &moves::AscendMove(CardinalDirection::South),
+                &moves::AscendMove(CardinalDirection::West),
+                //
+                &moves::DescendMove(CardinalDirection::North),
+                &moves::DescendMove(CardinalDirection::East),
+                &moves::DescendMove(CardinalDirection::South),
+                &moves::DescendMove(CardinalDirection::West),
+                //
+                &moves::DiagonalMove(CardinalDirection::North),
+                &moves::DiagonalMove(CardinalDirection::East),
+                &moves::DiagonalMove(CardinalDirection::South),
+                &moves::DiagonalMove(CardinalDirection::West),
+            ];
+
+            let successors = |node: &Node| {
+                let mut edges = Vec::new();
+
+                let world = world_lock.read();
+                for possible_move in &possible_moves {
+                    edges.push(Edge {
+                        target: possible_move.next_node(node),
+                        cost: possible_move.cost(&world, node),
+                    });
+                }
+                edges
+            };
+
+            let mut pf = MTDStarLite::new(
+                start,
+                end,
+                |n| goal.heuristic(n),
+                successors,
+                successors,
+                |n| goal.success(n),
+            );
+
+            let start_time = std::time::Instant::now();
+            let p = pf.find_path();
+            let end_time = std::time::Instant::now();
+            debug!("path: {p:?}");
+            debug!("time: {:?}", end_time - start_time);
+
+            // convert the Option<Vec<Node>> to a VecDeque<Node>
+            if let Some(p) = p {
+                let path = p.into_iter().collect::<VecDeque<_>>();
+                // commands.entity(event.entity).insert(Pathfinder { path: p });
+                Some(PathFoundEvent { entity, path })
+            } else {
+                error!("no path found");
+                None
             }
-            edges
-        };
+        });
 
-        let mut pf = MTDStarLite::new(
-            start,
-            end,
-            |n| event.goal.heuristic(n),
-            successors,
-            successors,
-            |n| event.goal.success(n),
-        );
+        commands.spawn(ComputePath(task));
+    }
+}
 
-        let start = std::time::Instant::now();
-        let p = pf.find_path();
-        let end = std::time::Instant::now();
-        debug!("path: {p:?}");
-        debug!("time: {:?}", end - start);
+// poll the tasks and send the PathFoundEvent if they're done
+fn handle_tasks(
+    mut commands: Commands,
+    mut transform_tasks: Query<(Entity, &mut ComputePath)>,
+    mut path_found_events: EventWriter<PathFoundEvent>,
+) {
+    for (entity, mut task) in &mut transform_tasks {
+        if let Some(optional_path_found_event) = future::block_on(future::poll_once(&mut task.0)) {
+            if let Some(path_found_event) = optional_path_found_event {
+                path_found_events.send(path_found_event);
+            }
 
-        // convert the Option<Vec<Node>> to a VecDeque<Node>
-        if let Some(p) = p {
-            let p = p.into_iter().collect::<VecDeque<_>>();
-            commands.entity(event.entity).insert(Pathfinder { path: p });
-        } else {
-            error!("no path found");
+            // Task is complete, so remove task component from entity
+            commands.entity(entity).remove::<ComputePath>();
         }
+    }
+}
+
+// set the path for the target entity when we get the PathFoundEvent
+fn path_found_listener(mut events: EventReader<PathFoundEvent>, mut query: Query<&mut Pathfinder>) {
+    for event in events.iter() {
+        let mut pathfinder = query
+            .get_mut(event.entity)
+            .expect("Path found for an entity that doesn't have a pathfinder");
+        pathfinder.path = event.path.clone();
     }
 }
 

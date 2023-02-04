@@ -36,7 +36,7 @@ fn is_standable(pos: &BlockPos, world: &World) -> bool {
 const JUMP_COST: f32 = 0.5;
 const WALK_ONE_BLOCK_COST: f32 = 1.0;
 
-pub trait Move {
+pub trait Move: Send + Sync {
     fn cost(&self, world: &World, node: &Node) -> f32;
     /// Returns by how much the entity's position should be changed when this
     /// move is executed.

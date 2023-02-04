@@ -6,7 +6,6 @@ use azalea_ecs::{
     event::EventReader,
     query::{With, Without},
     schedule::IntoSystemDescriptor,
-    schedule::SystemSet,
     system::{Commands, Query},
     AppTickExt,
 };
