@@ -1,5 +1,5 @@
 use crate::{
-    deduplicate_entities,
+    deduplicate_entities, deduplicate_local_entities,
     entity::{
         self, add_dead, update_bounding_box, EntityUuid, MinecraftEntityId, Position, WorldName,
     },
@@ -44,10 +44,15 @@ impl Plugin for EntityPlugin {
                         .after("deduplicate_entities")
                         .label("add_updates_received"),
                 )
-                .with_system(update_uuid_index.after("deduplicate_entities"))
+                .with_system(update_uuid_index.label("update_uuid_index"))
                 .with_system(debug_detect_updates_received_on_local_entities)
-                .with_system(update_entity_by_id_index.after("deduplicate_entities"))
-                .with_system(debug_new_entity),
+                .with_system(update_entity_by_id_index.label("update_entity_by_id_index"))
+                .with_system(debug_new_entity)
+                .with_system(
+                    deduplicate_local_entities
+                        .before("update_uuid_index")
+                        .before("update_entity_by_id_index"),
+                ),
         )
         .add_system_to_stage(
             CoreStage::PostUpdate,

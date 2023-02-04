@@ -1,12 +1,12 @@
 use crate::{
     entity::{EntityUuid, MinecraftEntityId, Position, WorldName},
     entity_info::LoadedBy,
-    ChunkStorage, EntityInfos, PartialChunkStorage, PartialEntityInfos, WorldContainer,
+    ChunkStorage, EntityInfos, Local, PartialChunkStorage, PartialEntityInfos, WorldContainer,
 };
 use azalea_core::ChunkPos;
 use azalea_ecs::{
     entity::Entity,
-    query::Changed,
+    query::{Changed, With, Without},
     system::{Commands, Query, Res, ResMut},
 };
 use log::{debug, error, info, warn};
@@ -49,7 +49,10 @@ impl PartialWorld {
 /// combined into the old one.
 pub fn deduplicate_entities(
     mut commands: Commands,
-    mut query: Query<(Entity, &MinecraftEntityId, &WorldName), Changed<MinecraftEntityId>>,
+    mut query: Query<
+        (Entity, &MinecraftEntityId, &WorldName),
+        (Changed<MinecraftEntityId>, Without<Local>),
+    >,
     mut loaded_by_query: Query<&mut LoadedBy>,
     world_container: Res<WorldContainer>,
 ) {
@@ -79,6 +82,35 @@ pub fn deduplicate_entities(
                 info!(
                         "Entity with id {id:?} / {new_entity:?} already existed in the world, merging it with {old_entity:?}"
                     );
+                break;
+            }
+        } else {
+            error!("Entity was inserted into a world that doesn't exist.");
+        }
+    }
+}
+
+// when a local entity is added, if there was already an entity with the same id
+// then delete the old entity
+pub fn deduplicate_local_entities(
+    mut commands: Commands,
+    mut query: Query<
+        (Entity, &MinecraftEntityId, &WorldName),
+        (Changed<MinecraftEntityId>, With<Local>),
+    >,
+    world_container: Res<WorldContainer>,
+) {
+    // if this entity already exists, remove the old one
+    for (new_entity, id, world_name) in query.iter_mut() {
+        if let Some(world_lock) = world_container.get(world_name) {
+            let world = world_lock.write();
+            if let Some(old_entity) = world.entity_by_id.get(id) {
+                if old_entity == &new_entity {
+                    // lol
+                    continue;
+                }
+
+                commands.entity(*old_entity).despawn();
                 break;
             }
         } else {
@@ -178,7 +210,7 @@ pub fn update_entity_by_id_index(
         let mut world = world_lock.write();
         if let Some(old_entity) = world.entity_by_id.get(id) {
             warn!(
-                "Entity with ID {id:?} already existed in the world, not adding to index (ecs id: {old_entity:?} / {entity:?})"
+                "Entity with ID {id:?} already existed in the world, not adding to index (old ecs id: {old_entity:?} / new ecs id: {entity:?})"
             );
             continue;
         }
