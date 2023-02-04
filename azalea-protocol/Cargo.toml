@@ -31,7 +31,7 @@ log = "0.4.17"
 serde = {version = "1.0.130", features = ["serde_derive"]}
 serde_json = "^1.0.72"
 thiserror = "1.0.37"
-tokio = {version = "^1.23.1", features = ["io-util", "net", "macros"]}
+tokio = {version = "^1.24.2", features = ["io-util", "net", "macros"]}
 tokio-util = {version = "0.7.4", features = ["codec"]}
 trust-dns-resolver = {version = "^0.22.0", default-features = false, features = ["tokio-runtime"]}
 uuid = "1.1.2"
