@@ -1,6 +1,5 @@
 [workspace]
 members = [
-  "bot",
   "azalea",
   "azalea-client",
   "azalea-protocol",
