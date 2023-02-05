@@ -132,15 +132,16 @@ impl McBufVarWritable for i64 {
     fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut buffer = [0];
         let mut value = *self;
+        if value == 0 {
+            buf.write_all(&buffer).unwrap();
+        }
         while value != 0 {
             buffer[0] = (value & 0b0111_1111) as u8;
             value = (value >> 7) & (i64::max_value() >> 6);
             if value != 0 {
                 buffer[0] |= 0b1000_0000;
             }
-            // this only writes a single byte, so write_all isn't necessary
-            // the let _ = is so clippy doesn't complain
-            let _ = buf.write(&buffer)?;
+            buf.write_all(&buffer)?;
         }
         Ok(())
     }

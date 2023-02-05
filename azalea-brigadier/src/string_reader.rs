@@ -77,7 +77,7 @@ impl StringReader {
     }
 
     pub fn is_allowed_number(c: char) -> bool {
-        ('0'..='9').contains(&c) || c == '.' || c == '-'
+        c.is_ascii_digit() || c == '.' || c == '-'
     }
 
     pub fn is_quoted_string_start(c: char) -> bool {
@@ -175,9 +175,9 @@ impl StringReader {
     }
 
     pub fn is_allowed_in_unquoted_string(c: char) -> bool {
-        ('0'..='9').contains(&c)
-            || ('A'..='Z').contains(&c)
-            || ('a'..='z').contains(&c)
+        c.is_ascii_digit()
+            || c.is_ascii_uppercase()
+            || c.is_ascii_lowercase()
             || c == '_'
             || c == '-'
             || c == '.'

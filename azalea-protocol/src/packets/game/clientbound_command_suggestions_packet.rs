@@ -1,13 +1,13 @@
 use azalea_brigadier::suggestion::Suggestions;
 use azalea_buf::McBuf;
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundCommandSuggestionsPacket {
     #[var]
     pub id: u32,
-    pub suggestions: Suggestions<Component>,
+    pub suggestions: Suggestions<FormattedText>,
 }
 
 #[cfg(test)]
@@ -24,7 +24,7 @@ mod tests {
             suggestions: vec![Suggestion {
                 text: "foo".to_string(),
                 range: StringRange::new(1, 4),
-                tooltip: Some(Component::from("bar".to_string())),
+                tooltip: Some(FormattedText::from("bar".to_string())),
             }],
         };
         let mut buf = Vec::new();

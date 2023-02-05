@@ -9,11 +9,12 @@ version = "0.5.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-buf-macros = {path = "./azalea-buf-macros", version = "^0.5.0"}
+azalea-buf-macros = {path = "./azalea-buf-macros", version = "^0.5.0" }
 byteorder = "^1.4.3"
+log = "0.4.17"
 serde_json = {version = "^1.0", optional = true}
-thiserror = "^1.0.34"
-tokio = {version = "^1.21.2", features = ["io-util", "net", "macros"]}
+thiserror = "1.0.37"
+tokio = {version = "^1.24.2", features = ["io-util", "net", "macros"]}
 uuid = "^1.1.2"
 
 [features]

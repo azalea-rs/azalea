@@ -15,7 +15,7 @@ pub struct ClientboundCommandsPacket {
     pub root_index: u32,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BrigadierNodeStub {
     pub is_executable: bool,
     pub children: Vec<u32>,
@@ -23,7 +23,7 @@ pub struct BrigadierNodeStub {
     pub node_type: NodeType,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq)]
 pub struct BrigadierNumber<T> {
     pub min: Option<T>,
     pub max: Option<T>,
@@ -31,6 +31,19 @@ pub struct BrigadierNumber<T> {
 impl<T> BrigadierNumber<T> {
     pub fn new(min: Option<T>, max: Option<T>) -> BrigadierNumber<T> {
         BrigadierNumber { min, max }
+    }
+}
+impl<T: PartialEq> PartialEq for BrigadierNumber<T> {
+    fn eq(&self, other: &Self) -> bool {
+        match (&self.min, &self.max, &other.min, &other.max) {
+            (Some(f_min), None, Some(s_min), None) => f_min == s_min,
+            (None, Some(f_max), None, Some(s_max)) => f_max == s_max,
+            (Some(f_min), Some(f_max), Some(s_min), Some(s_max)) => {
+                f_min == s_min && f_max == s_max
+            }
+            (None, None, None, None) => true,
+            _ => false,
+        }
     }
 }
 impl<T: McBufReadable> McBufReadable for BrigadierNumber<T> {
@@ -69,7 +82,7 @@ impl<T: McBufWritable> McBufWritable for BrigadierNumber<T> {
     }
 }
 
-#[derive(Debug, Clone, Copy, McBuf)]
+#[derive(Debug, Clone, Copy, McBuf, PartialEq, Eq)]
 pub enum BrigadierString {
     /// Reads a single word
     SingleWord = 0,
@@ -80,7 +93,7 @@ pub enum BrigadierString {
     GreedyPhrase = 2,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BrigadierParser {
     Bool,
     Double(BrigadierNumber<f64>),
@@ -515,7 +528,7 @@ impl McBufWritable for BrigadierNodeStub {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum NodeType {
     Root,
     Literal {
@@ -535,5 +548,61 @@ impl BrigadierNodeStub {
             NodeType::Literal { name } => Some(name),
             NodeType::Argument { name, .. } => Some(name),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_brigadier_node_stub_root() {
+        let data = BrigadierNodeStub {
+            is_executable: false,
+            children: vec![1, 2],
+            redirect_node: None,
+            node_type: NodeType::Root,
+        };
+        let mut buf = Vec::new();
+        data.write_into(&mut buf).unwrap();
+        let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
+        let read_data = BrigadierNodeStub::read_from(&mut data_cursor).unwrap();
+        assert_eq!(data, read_data);
+    }
+
+    #[test]
+    fn test_brigadier_node_stub_literal() {
+        let data = BrigadierNodeStub {
+            is_executable: true,
+            children: vec![],
+            redirect_node: None,
+            node_type: NodeType::Literal {
+                name: "String".to_string(),
+            },
+        };
+        let mut buf = Vec::new();
+        data.write_into(&mut buf).unwrap();
+        let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
+        let read_data = BrigadierNodeStub::read_from(&mut data_cursor).unwrap();
+        assert_eq!(data, read_data);
+    }
+
+    #[test]
+    fn test_brigadier_node_stub_argument() {
+        let data = BrigadierNodeStub {
+            is_executable: false,
+            children: vec![6, 9],
+            redirect_node: Some(5),
+            node_type: NodeType::Argument {
+                name: "position".to_string(),
+                parser: BrigadierParser::Vec3,
+                suggestions_type: Some(ResourceLocation::new("minecraft:test_suggestion").unwrap()),
+            },
+        };
+        let mut buf = Vec::new();
+        data.write_into(&mut buf).unwrap();
+        let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
+        let read_data = BrigadierNodeStub::read_from(&mut data_cursor).unwrap();
+        assert_eq!(data, read_data);
     }
 }

@@ -1,5 +1,4 @@
-//! Utilities for reading and writing for the Minecraft protocol
-
+#![doc = include_str!("../README.md")]
 #![feature(min_specialization)]
 // these two are necessary for thiserror backtraces
 #![feature(error_generic_member_access)]
@@ -140,6 +139,21 @@ mod tests {
     fn test_read_varint_longer() {
         let buf = vec![138, 56, 0, 135, 56, 123];
         assert_eq!(i32::var_read_from(&mut Cursor::new(&buf)).unwrap(), 7178);
+    }
+
+    #[test]
+    fn test_write_varlong() {
+        let mut buf = Vec::new();
+        0u64.var_write_into(&mut buf).unwrap();
+        assert_eq!(buf, vec![0]);
+
+        let mut buf = Vec::new();
+        1u64.var_write_into(&mut buf).unwrap();
+        assert_eq!(buf, vec![1]);
+
+        let mut buf = Vec::new();
+        9223372036854775807u64.var_write_into(&mut buf).unwrap();
+        assert_eq!(buf, vec![255, 255, 255, 255, 255, 255, 255, 255, 127]);
     }
 
     #[test]

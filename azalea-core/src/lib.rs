@@ -1,6 +1,7 @@
-//! Random miscellaneous things like UUIDs that don't deserve their own crate.
-
+#![doc = include_str!("../README.md")]
 #![feature(int_roundings)]
+#![allow(incomplete_features)]
+#![feature(generic_const_exprs)]
 
 mod difficulty;
 pub use difficulty::*;

@@ -1,10 +1,12 @@
 use ahash::AHashMap;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// An NBT value.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 #[serde(untagged)]
 pub enum Tag {
-    End,                             // 0
+    #[default]
+    End, // 0
     Byte(i8),                        // 1
     Short(i16),                      // 2
     Int(i32),                        // 3
@@ -19,13 +21,8 @@ pub enum Tag {
     LongArray(Vec<i64>),             // 12
 }
 
-impl Default for Tag {
-    fn default() -> Self {
-        Tag::End
-    }
-}
-
 impl Tag {
+    /// Get the numerical ID of the tag type.
     #[inline]
     pub fn id(&self) -> u8 {
         match self {
@@ -45,6 +42,7 @@ impl Tag {
         }
     }
 
+    /// If the type is a byte, return the [`i8`].
     #[inline]
     pub fn as_byte(&self) -> Option<&i8> {
         if let Tag::Byte(v) = self {
@@ -54,6 +52,7 @@ impl Tag {
         }
     }
 
+    /// If the type is a short, return the [`i16`].
     #[inline]
     pub fn as_short(&self) -> Option<&i16> {
         if let Tag::Short(v) = self {
@@ -63,6 +62,7 @@ impl Tag {
         }
     }
 
+    /// If the type is an int, return the [`i32`].
     #[inline]
     pub fn as_int(&self) -> Option<&i32> {
         if let Tag::Int(v) = self {
@@ -72,6 +72,7 @@ impl Tag {
         }
     }
 
+    /// If the type is a long, return the [`i64`].
     #[inline]
     pub fn as_long(&self) -> Option<&i64> {
         if let Tag::Long(v) = self {
@@ -81,6 +82,7 @@ impl Tag {
         }
     }
 
+    /// If the type is a float, return the [`f32`].
     #[inline]
     pub fn as_float(&self) -> Option<&f32> {
         if let Tag::Float(v) = self {
@@ -90,6 +92,7 @@ impl Tag {
         }
     }
 
+    /// If the type is a double, return the [`f64`].
     #[inline]
     pub fn as_double(&self) -> Option<&f64> {
         if let Tag::Double(v) = self {
@@ -99,6 +102,7 @@ impl Tag {
         }
     }
 
+    /// If the type is a string, return the [`str`].
     #[inline]
     pub fn as_string(&self) -> Option<&str> {
         if let Tag::String(v) = self {
@@ -108,6 +112,7 @@ impl Tag {
         }
     }
 
+    /// If the type is a compound, return the `AHashMap<String, Tag>`.
     #[inline]
     pub fn as_compound(&self) -> Option<&AHashMap<String, Tag>> {
         if let Tag::Compound(v) = self {
@@ -117,6 +122,7 @@ impl Tag {
         }
     }
 
+    /// If the type is a bytearray, return the `[u8]`.
     #[inline]
     pub fn as_bytearray(&self) -> Option<&[u8]> {
         if let Tag::ByteArray(v) = self {
@@ -126,6 +132,7 @@ impl Tag {
         }
     }
 
+    /// If the type is an intarray, return the `Vec<i32>`.
     #[inline]
     pub fn as_intarray(&self) -> Option<&Vec<i32>> {
         if let Tag::IntArray(v) = self {
@@ -135,6 +142,7 @@ impl Tag {
         }
     }
 
+    /// If the type is a longarray, return the `Vec<i64>`.
     #[inline]
     pub fn as_longarray(&self) -> Option<&Vec<i64>> {
         if let Tag::LongArray(v) = self {
@@ -144,6 +152,7 @@ impl Tag {
         }
     }
 
+    /// If the type is a list, return the `[Tag]`.
     #[inline]
     pub fn as_list(&self) -> Option<&[Tag]> {
         if let Tag::List(v) = self {

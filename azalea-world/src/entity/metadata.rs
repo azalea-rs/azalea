@@ -1,8634 +1,10553 @@
+#![allow(clippy::single_match)]
+
 // This file is generated from codegen/lib/code/entity.py.
 // Don't change it manually!
 
-#![allow(clippy::clone_on_copy, clippy::derivable_impls)]
-use super::{EntityDataValue, Pose, Rotations, VillagerData};
+use super::{EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Rotations, VillagerData};
 use azalea_block::BlockState;
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
-use enum_as_inner::EnumAsInner;
-use std::{
-    collections::VecDeque,
-    ops::{Deref, DerefMut},
-};
+use azalea_ecs::{bundle::Bundle, component::Component};
+use derive_more::{Deref, DerefMut};
+use thiserror::Error;
 use uuid::Uuid;
 
-#[derive(Debug, Clone)]
-pub struct Allay {
-    pub abstract_creature: AbstractCreature,
-    pub dancing: bool,
-    pub can_duplicate: bool,
+#[derive(Error, Debug)]
+pub enum UpdateMetadataError {
+    #[error("Wrong type ({0:?})")]
+    WrongType(EntityDataValue),
+}
+impl From<EntityDataValue> for UpdateMetadataError {
+    fn from(value: EntityDataValue) -> Self {
+        Self::WrongType(value)
+    }
 }
 
+#[derive(Component, Deref, DerefMut)]
+pub struct OnFire(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct ShiftKeyDown(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct Sprinting(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct Swimming(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct CurrentlyGlowing(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct Invisible(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct FallFlying(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct AirSupply(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct CustomName(pub Option<FormattedText>);
+#[derive(Component, Deref, DerefMut)]
+pub struct CustomNameVisible(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct Silent(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct NoGravity(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct TicksFrozen(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct AutoSpinAttack(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct AbstractLivingUsingItem(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct Health(pub f32);
+#[derive(Component, Deref, DerefMut)]
+pub struct AbstractLivingEffectColor(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct EffectAmbience(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct ArrowCount(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct StingerCount(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct SleepingPos(pub Option<BlockPos>);
+#[derive(Component, Deref, DerefMut)]
+pub struct NoAi(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct LeftHanded(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct Aggressive(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct Dancing(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct CanDuplicate(pub bool);
+#[derive(Component)]
+pub struct Allay;
 impl Allay {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_creature = AbstractCreature::read(metadata)?;
-        let dancing = metadata.pop_front()?.into_boolean().ok()?;
-        let can_duplicate = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_creature,
-            dancing,
-            can_duplicate,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_creature.write());
-        metadata.push(EntityDataValue::Boolean(self.dancing.clone()));
-        metadata.push(EntityDataValue::Boolean(self.can_duplicate.clone()));
-        metadata
-    }
-}
-
-impl Default for Allay {
-    fn default() -> Self {
-        Self {
-            abstract_creature: Default::default(),
-            dancing: false,
-            can_duplicate: true,
-        }
-    }
-}
-
-impl Allay {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_creature.set_index(index, value)?,
-            16 => self.dancing = value.into_boolean().ok()?,
-            17 => self.can_duplicate = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Allay {
-    type Target = AbstractCreature;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_creature
-    }
-}
-impl DerefMut for Allay {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_creature
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AreaEffectCloud {
-    pub abstract_entity: AbstractEntity,
-    pub radius: f32,
-    pub color: i32,
-    pub waiting: bool,
-    pub particle: Particle,
-}
-
-impl AreaEffectCloud {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let radius = metadata.pop_front()?.into_float().ok()?;
-        let color = metadata.pop_front()?.into_int().ok()?;
-        let waiting = metadata.pop_front()?.into_boolean().ok()?;
-        let particle = metadata.pop_front()?.into_particle().ok()?;
-        Some(Self {
-            abstract_entity,
-            radius,
-            color,
-            waiting,
-            particle,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::Float(self.radius.clone()));
-        metadata.push(EntityDataValue::Int(self.color.clone()));
-        metadata.push(EntityDataValue::Boolean(self.waiting.clone()));
-        metadata.push(EntityDataValue::Particle(self.particle.clone()));
-        metadata
-    }
-}
-
-impl Default for AreaEffectCloud {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            radius: 0.5,
-            color: 0,
-            waiting: false,
-            particle: Default::default(),
-        }
-    }
-}
-
-impl AreaEffectCloud {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.radius = value.into_float().ok()?,
-            9 => self.color = value.into_int().ok()?,
-            10 => self.waiting = value.into_boolean().ok()?,
-            11 => self.particle = value.into_particle().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for AreaEffectCloud {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for AreaEffectCloud {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ArmorStand {
-    pub abstract_living: AbstractLiving,
-    pub small: bool,
-    pub show_arms: bool,
-    pub no_base_plate: bool,
-    pub marker: bool,
-    pub head_pose: Rotations,
-    pub body_pose: Rotations,
-    pub left_arm_pose: Rotations,
-    pub right_arm_pose: Rotations,
-    pub left_leg_pose: Rotations,
-    pub right_leg_pose: Rotations,
-}
-
-impl ArmorStand {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_living = AbstractLiving::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let small = bitfield & 0x1 != 0;
-        let show_arms = bitfield & 0x4 != 0;
-        let no_base_plate = bitfield & 0x8 != 0;
-        let marker = bitfield & 0x10 != 0;
-        let head_pose = metadata.pop_front()?.into_rotations().ok()?;
-        let body_pose = metadata.pop_front()?.into_rotations().ok()?;
-        let left_arm_pose = metadata.pop_front()?.into_rotations().ok()?;
-        let right_arm_pose = metadata.pop_front()?.into_rotations().ok()?;
-        let left_leg_pose = metadata.pop_front()?.into_rotations().ok()?;
-        let right_leg_pose = metadata.pop_front()?.into_rotations().ok()?;
-        Some(Self {
-            abstract_living,
-            small,
-            show_arms,
-            no_base_plate,
-            marker,
-            head_pose,
-            body_pose,
-            left_arm_pose,
-            right_arm_pose,
-            left_leg_pose,
-            right_leg_pose,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_living.write());
-        let mut bitfield = 0u8;
-        if self.small {
-            bitfield &= 0x1;
-        }
-        if self.show_arms {
-            bitfield &= 0x4;
-        }
-        if self.no_base_plate {
-            bitfield &= 0x8;
-        }
-        if self.marker {
-            bitfield &= 0x10;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::Rotations(self.head_pose.clone()));
-        metadata.push(EntityDataValue::Rotations(self.body_pose.clone()));
-        metadata.push(EntityDataValue::Rotations(self.left_arm_pose.clone()));
-        metadata.push(EntityDataValue::Rotations(self.right_arm_pose.clone()));
-        metadata.push(EntityDataValue::Rotations(self.left_leg_pose.clone()));
-        metadata.push(EntityDataValue::Rotations(self.right_leg_pose.clone()));
-        metadata
-    }
-}
-
-impl Default for ArmorStand {
-    fn default() -> Self {
-        Self {
-            abstract_living: Default::default(),
-            small: false,
-            show_arms: false,
-            no_base_plate: false,
-            marker: false,
-            head_pose: Default::default(),
-            body_pose: Default::default(),
-            left_arm_pose: Default::default(),
-            right_arm_pose: Default::default(),
-            left_leg_pose: Default::default(),
-            right_leg_pose: Default::default(),
-        }
-    }
-}
-
-impl ArmorStand {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=14 => self.abstract_living.set_index(index, value)?,
-            15 => {
-                let bitfield = value.into_byte().ok()?;
-                self.small = bitfield & 0x1 != 0;
-                self.show_arms = bitfield & 0x4 != 0;
-                self.no_base_plate = bitfield & 0x8 != 0;
-                self.marker = bitfield & 0x10 != 0;
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(Dancing(d.value.into_boolean()?));
             }
-            16 => self.head_pose = value.into_rotations().ok()?,
-            17 => self.body_pose = value.into_rotations().ok()?,
-            18 => self.left_arm_pose = value.into_rotations().ok()?,
-            19 => self.right_arm_pose = value.into_rotations().ok()?,
-            20 => self.left_leg_pose = value.into_rotations().ok()?,
-            21 => self.right_leg_pose = value.into_rotations().ok()?,
+            17 => {
+                entity.insert(CanDuplicate(d.value.into_boolean()?));
+            }
             _ => {}
         }
-        Some(())
-    }
-}
-impl Deref for ArmorStand {
-    type Target = AbstractLiving;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_living
-    }
-}
-impl DerefMut for ArmorStand {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_living
+        Ok(())
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Arrow {
-    pub abstract_entity: AbstractEntity,
-    pub crit_arrow: bool,
-    pub shot_from_crossbow: bool,
-    pub no_physics: bool,
-    pub pierce_level: u8,
-    pub effect_color: i32,
+#[derive(Bundle)]
+pub struct AllayMetadataBundle {
+    _marker: Allay,
+    parent: AbstractCreatureMetadataBundle,
+    dancing: Dancing,
+    can_duplicate: CanDuplicate,
 }
-
-impl Arrow {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let crit_arrow = bitfield & 0x1 != 0;
-        let shot_from_crossbow = bitfield & 0x4 != 0;
-        let no_physics = bitfield & 0x2 != 0;
-        let pierce_level = metadata.pop_front()?.into_byte().ok()?;
-        let effect_color = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_entity,
-            crit_arrow,
-            shot_from_crossbow,
-            no_physics,
-            pierce_level,
-            effect_color,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        let mut bitfield = 0u8;
-        if self.crit_arrow {
-            bitfield &= 0x1;
-        }
-        if self.shot_from_crossbow {
-            bitfield &= 0x4;
-        }
-        if self.no_physics {
-            bitfield &= 0x2;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::Byte(self.pierce_level.clone()));
-        metadata.push(EntityDataValue::Int(self.effect_color.clone()));
-        metadata
-    }
-}
-
-impl Default for Arrow {
+impl Default for AllayMetadataBundle {
     fn default() -> Self {
         Self {
-            abstract_entity: Default::default(),
-            crit_arrow: false,
-            shot_from_crossbow: false,
-            no_physics: false,
-            pierce_level: 0,
-            effect_color: -1,
+            _marker: Allay,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+            dancing: Dancing(false),
+            can_duplicate: CanDuplicate(true),
         }
     }
 }
 
-impl Arrow {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
+#[derive(Component, Deref, DerefMut)]
+pub struct Radius(pub f32);
+#[derive(Component, Deref, DerefMut)]
+pub struct AreaEffectCloudColor(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct Waiting(pub bool);
+#[derive(Component)]
+pub struct AreaEffectCloud;
+impl AreaEffectCloud {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                let bitfield = value.into_byte().ok()?;
-                self.crit_arrow = bitfield & 0x1 != 0;
-                self.shot_from_crossbow = bitfield & 0x4 != 0;
-                self.no_physics = bitfield & 0x2 != 0;
+                entity.insert(Radius(d.value.into_float()?));
             }
-            9 => self.pierce_level = value.into_byte().ok()?,
-            10 => self.effect_color = value.into_int().ok()?,
+            9 => {
+                entity.insert(AreaEffectCloudColor(d.value.into_int()?));
+            }
+            10 => {
+                entity.insert(Waiting(d.value.into_boolean()?));
+            }
+            11 => {
+                entity.insert(d.value.into_particle()?);
+            }
             _ => {}
         }
-        Some(())
-    }
-}
-impl Deref for Arrow {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for Arrow {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
+        Ok(())
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Axolotl {
-    pub abstract_animal: AbstractAnimal,
-    pub variant: i32,
-    pub playing_dead: bool,
-    pub from_bucket: bool,
+#[derive(Bundle)]
+pub struct AreaEffectCloudMetadataBundle {
+    _marker: AreaEffectCloud,
+    parent: AbstractEntityMetadataBundle,
+    radius: Radius,
+    area_effect_cloud_color: AreaEffectCloudColor,
+    waiting: Waiting,
+    particle: Particle,
 }
-
-impl Axolotl {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let variant = metadata.pop_front()?.into_int().ok()?;
-        let playing_dead = metadata.pop_front()?.into_boolean().ok()?;
-        let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_animal,
-            variant,
-            playing_dead,
-            from_bucket,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        metadata.push(EntityDataValue::Int(self.variant.clone()));
-        metadata.push(EntityDataValue::Boolean(self.playing_dead.clone()));
-        metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
-        metadata
-    }
-}
-
-impl Default for Axolotl {
+impl Default for AreaEffectCloudMetadataBundle {
     fn default() -> Self {
         Self {
-            abstract_animal: Default::default(),
-            variant: 0,
-            playing_dead: false,
-            from_bucket: false,
+            _marker: AreaEffectCloud,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            radius: Radius(3.0),
+            area_effect_cloud_color: AreaEffectCloudColor(0),
+            waiting: Waiting(false),
+            particle: Particle::default(),
         }
     }
 }
 
-impl Axolotl {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => self.variant = value.into_int().ok()?,
-            18 => self.playing_dead = value.into_boolean().ok()?,
-            19 => self.from_bucket = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Axolotl {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Axolotl {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Bat {
-    pub abstract_insentient: AbstractInsentient,
-    pub resting: bool,
-}
-
-impl Bat {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_insentient = AbstractInsentient::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let resting = bitfield & 0x1 != 0;
-        Some(Self {
-            abstract_insentient,
-            resting,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_insentient.write());
-        let mut bitfield = 0u8;
-        if self.resting {
-            bitfield &= 0x1;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata
-    }
-}
-
-impl Default for Bat {
-    fn default() -> Self {
-        Self {
-            abstract_insentient: Default::default(),
-            resting: false,
-        }
-    }
-}
-
-impl Bat {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_insentient.set_index(index, value)?,
+#[derive(Component, Deref, DerefMut)]
+pub struct Small(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct ShowArms(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct NoBasePlate(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct ArmorStandMarker(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct HeadPose(pub Rotations);
+#[derive(Component, Deref, DerefMut)]
+pub struct BodyPose(pub Rotations);
+#[derive(Component, Deref, DerefMut)]
+pub struct LeftArmPose(pub Rotations);
+#[derive(Component, Deref, DerefMut)]
+pub struct RightArmPose(pub Rotations);
+#[derive(Component, Deref, DerefMut)]
+pub struct LeftLegPose(pub Rotations);
+#[derive(Component, Deref, DerefMut)]
+pub struct RightLegPose(pub Rotations);
+#[derive(Component)]
+pub struct ArmorStand;
+impl ArmorStand {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=14 => AbstractLiving::apply_metadata(entity, d)?,
+            15 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(Small(bitfield & 0x1 != 0));
+                entity.insert(ShowArms(bitfield & 0x4 != 0));
+                entity.insert(NoBasePlate(bitfield & 0x8 != 0));
+                entity.insert(ArmorStandMarker(bitfield & 0x10 != 0));
+            }
             16 => {
-                let bitfield = value.into_byte().ok()?;
-                self.resting = bitfield & 0x1 != 0;
+                entity.insert(HeadPose(d.value.into_rotations()?));
             }
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Bat {
-    type Target = AbstractInsentient;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_insentient
-    }
-}
-impl DerefMut for Bat {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_insentient
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Bee {
-    pub abstract_animal: AbstractAnimal,
-    pub has_nectar: bool,
-    pub has_stung: bool,
-    pub rolling: bool,
-    pub remaining_anger_time: i32,
-}
-
-impl Bee {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let has_nectar = bitfield & 0x8 != 0;
-        let has_stung = bitfield & 0x4 != 0;
-        let rolling = bitfield & 0x2 != 0;
-        let remaining_anger_time = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_animal,
-            has_nectar,
-            has_stung,
-            rolling,
-            remaining_anger_time,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        let mut bitfield = 0u8;
-        if self.has_nectar {
-            bitfield &= 0x8;
-        }
-        if self.has_stung {
-            bitfield &= 0x4;
-        }
-        if self.rolling {
-            bitfield &= 0x2;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::Int(self.remaining_anger_time.clone()));
-        metadata
-    }
-}
-
-impl Default for Bee {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            has_nectar: false,
-            has_stung: false,
-            rolling: false,
-            remaining_anger_time: 0,
-        }
-    }
-}
-
-impl Bee {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
             17 => {
-                let bitfield = value.into_byte().ok()?;
-                self.has_nectar = bitfield & 0x8 != 0;
-                self.has_stung = bitfield & 0x4 != 0;
-                self.rolling = bitfield & 0x2 != 0;
+                entity.insert(BodyPose(d.value.into_rotations()?));
             }
-            18 => self.remaining_anger_time = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Bee {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Bee {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Blaze {
-    pub abstract_monster: AbstractMonster,
-    pub charged: bool,
-}
-
-impl Blaze {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let charged = bitfield & 0x1 != 0;
-        Some(Self {
-            abstract_monster,
-            charged,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        let mut bitfield = 0u8;
-        if self.charged {
-            bitfield &= 0x1;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata
-    }
-}
-
-impl Default for Blaze {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            charged: false,
-        }
-    }
-}
-
-impl Blaze {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => {
-                let bitfield = value.into_byte().ok()?;
-                self.charged = bitfield & 0x1 != 0;
-            }
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Blaze {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Blaze {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Boat {
-    pub abstract_entity: AbstractEntity,
-    pub hurt: i32,
-    pub hurtdir: i32,
-    pub damage: f32,
-    pub kind: i32,
-    pub paddle_left: bool,
-    pub paddle_right: bool,
-    pub bubble_time: i32,
-}
-
-impl Boat {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let hurt = metadata.pop_front()?.into_int().ok()?;
-        let hurtdir = metadata.pop_front()?.into_int().ok()?;
-        let damage = metadata.pop_front()?.into_float().ok()?;
-        let kind = metadata.pop_front()?.into_int().ok()?;
-        let paddle_left = metadata.pop_front()?.into_boolean().ok()?;
-        let paddle_right = metadata.pop_front()?.into_boolean().ok()?;
-        let bubble_time = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_entity,
-            hurt,
-            hurtdir,
-            damage,
-            kind,
-            paddle_left,
-            paddle_right,
-            bubble_time,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::Int(self.hurt.clone()));
-        metadata.push(EntityDataValue::Int(self.hurtdir.clone()));
-        metadata.push(EntityDataValue::Float(self.damage.clone()));
-        metadata.push(EntityDataValue::Int(self.kind.clone()));
-        metadata.push(EntityDataValue::Boolean(self.paddle_left.clone()));
-        metadata.push(EntityDataValue::Boolean(self.paddle_right.clone()));
-        metadata.push(EntityDataValue::Int(self.bubble_time.clone()));
-        metadata
-    }
-}
-
-impl Default for Boat {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            hurt: 0,
-            hurtdir: 1,
-            damage: 0.0,
-            kind: Default::default(),
-            paddle_left: false,
-            paddle_right: false,
-            bubble_time: 0,
-        }
-    }
-}
-
-impl Boat {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.hurt = value.into_int().ok()?,
-            9 => self.hurtdir = value.into_int().ok()?,
-            10 => self.damage = value.into_float().ok()?,
-            11 => self.kind = value.into_int().ok()?,
-            12 => self.paddle_left = value.into_boolean().ok()?,
-            13 => self.paddle_right = value.into_boolean().ok()?,
-            14 => self.bubble_time = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Boat {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for Boat {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Cat {
-    pub abstract_tameable: AbstractTameable,
-    pub variant: azalea_registry::CatVariant,
-    pub is_lying: bool,
-    pub relax_state_one: bool,
-    pub collar_color: i32,
-}
-
-impl Cat {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_tameable = AbstractTameable::read(metadata)?;
-        let variant = metadata.pop_front()?.into_cat_variant().ok()?;
-        let is_lying = metadata.pop_front()?.into_boolean().ok()?;
-        let relax_state_one = metadata.pop_front()?.into_boolean().ok()?;
-        let collar_color = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_tameable,
-            variant,
-            is_lying,
-            relax_state_one,
-            collar_color,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_tameable.write());
-        metadata.push(EntityDataValue::CatVariant(self.variant.clone()));
-        metadata.push(EntityDataValue::Boolean(self.is_lying.clone()));
-        metadata.push(EntityDataValue::Boolean(self.relax_state_one.clone()));
-        metadata.push(EntityDataValue::Int(self.collar_color.clone()));
-        metadata
-    }
-}
-
-impl Default for Cat {
-    fn default() -> Self {
-        Self {
-            abstract_tameable: Default::default(),
-            variant: azalea_registry::CatVariant::Tabby,
-            is_lying: false,
-            relax_state_one: false,
-            collar_color: Default::default(),
-        }
-    }
-}
-
-impl Cat {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=18 => self.abstract_tameable.set_index(index, value)?,
-            19 => self.variant = value.into_cat_variant().ok()?,
-            20 => self.is_lying = value.into_boolean().ok()?,
-            21 => self.relax_state_one = value.into_boolean().ok()?,
-            22 => self.collar_color = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Cat {
-    type Target = AbstractTameable;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_tameable
-    }
-}
-impl DerefMut for Cat {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_tameable
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct CaveSpider {
-    pub spider: Spider,
-}
-
-impl CaveSpider {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let spider = Spider::read(metadata)?;
-        Some(Self { spider })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.spider.write());
-        metadata
-    }
-}
-
-impl Default for CaveSpider {
-    fn default() -> Self {
-        Self {
-            spider: Default::default(),
-        }
-    }
-}
-
-impl CaveSpider {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.spider.set_index(index, value)
-    }
-}
-impl Deref for CaveSpider {
-    type Target = Spider;
-    fn deref(&self) -> &Self::Target {
-        &self.spider
-    }
-}
-impl DerefMut for CaveSpider {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.spider
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ChestBoat {
-    pub boat: Boat,
-}
-
-impl ChestBoat {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let boat = Boat::read(metadata)?;
-        Some(Self { boat })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.boat.write());
-        metadata
-    }
-}
-
-impl Default for ChestBoat {
-    fn default() -> Self {
-        Self {
-            boat: Default::default(),
-        }
-    }
-}
-
-impl ChestBoat {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.boat.set_index(index, value)
-    }
-}
-impl Deref for ChestBoat {
-    type Target = Boat;
-    fn deref(&self) -> &Self::Target {
-        &self.boat
-    }
-}
-impl DerefMut for ChestBoat {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.boat
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ChestMinecart {
-    pub abstract_minecart: AbstractMinecart,
-}
-
-impl ChestMinecart {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_minecart = AbstractMinecart::read(metadata)?;
-        Some(Self { abstract_minecart })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_minecart.write());
-        metadata
-    }
-}
-
-impl Default for ChestMinecart {
-    fn default() -> Self {
-        Self {
-            abstract_minecart: Default::default(),
-        }
-    }
-}
-
-impl ChestMinecart {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_minecart.set_index(index, value)
-    }
-}
-impl Deref for ChestMinecart {
-    type Target = AbstractMinecart;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_minecart
-    }
-}
-impl DerefMut for ChestMinecart {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_minecart
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Chicken {
-    pub abstract_animal: AbstractAnimal,
-}
-
-impl Chicken {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        Some(Self { abstract_animal })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        metadata
-    }
-}
-
-impl Default for Chicken {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-        }
-    }
-}
-
-impl Chicken {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_animal.set_index(index, value)
-    }
-}
-impl Deref for Chicken {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Chicken {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Cod {
-    pub abstract_creature: AbstractCreature,
-    pub from_bucket: bool,
-}
-
-impl Cod {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_creature = AbstractCreature::read(metadata)?;
-        let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_creature,
-            from_bucket,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_creature.write());
-        metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
-        metadata
-    }
-}
-
-impl Default for Cod {
-    fn default() -> Self {
-        Self {
-            abstract_creature: Default::default(),
-            from_bucket: false,
-        }
-    }
-}
-
-impl Cod {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_creature.set_index(index, value)?,
-            16 => self.from_bucket = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Cod {
-    type Target = AbstractCreature;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_creature
-    }
-}
-impl DerefMut for Cod {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_creature
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct CommandBlockMinecart {
-    pub abstract_minecart: AbstractMinecart,
-    pub command_name: String,
-    pub last_output: Component,
-}
-
-impl CommandBlockMinecart {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_minecart = AbstractMinecart::read(metadata)?;
-        let command_name = metadata.pop_front()?.into_string().ok()?;
-        let last_output = metadata.pop_front()?.into_component().ok()?;
-        Some(Self {
-            abstract_minecart,
-            command_name,
-            last_output,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_minecart.write());
-        metadata.push(EntityDataValue::String(self.command_name.clone()));
-        metadata.push(EntityDataValue::Component(self.last_output.clone()));
-        metadata
-    }
-}
-
-impl Default for CommandBlockMinecart {
-    fn default() -> Self {
-        Self {
-            abstract_minecart: Default::default(),
-            command_name: "".to_string(),
-            last_output: Default::default(),
-        }
-    }
-}
-
-impl CommandBlockMinecart {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=13 => self.abstract_minecart.set_index(index, value)?,
-            14 => self.command_name = value.into_string().ok()?,
-            15 => self.last_output = value.into_component().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for CommandBlockMinecart {
-    type Target = AbstractMinecart;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_minecart
-    }
-}
-impl DerefMut for CommandBlockMinecart {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_minecart
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Cow {
-    pub abstract_animal: AbstractAnimal,
-}
-
-impl Cow {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        Some(Self { abstract_animal })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        metadata
-    }
-}
-
-impl Default for Cow {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-        }
-    }
-}
-
-impl Cow {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_animal.set_index(index, value)
-    }
-}
-impl Deref for Cow {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Cow {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Creeper {
-    pub abstract_monster: AbstractMonster,
-    pub swell_dir: i32,
-    pub is_powered: bool,
-    pub is_ignited: bool,
-}
-
-impl Creeper {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let swell_dir = metadata.pop_front()?.into_int().ok()?;
-        let is_powered = metadata.pop_front()?.into_boolean().ok()?;
-        let is_ignited = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_monster,
-            swell_dir,
-            is_powered,
-            is_ignited,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Int(self.swell_dir.clone()));
-        metadata.push(EntityDataValue::Boolean(self.is_powered.clone()));
-        metadata.push(EntityDataValue::Boolean(self.is_ignited.clone()));
-        metadata
-    }
-}
-
-impl Default for Creeper {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            swell_dir: -1,
-            is_powered: false,
-            is_ignited: false,
-        }
-    }
-}
-
-impl Creeper {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.swell_dir = value.into_int().ok()?,
-            17 => self.is_powered = value.into_boolean().ok()?,
-            18 => self.is_ignited = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Creeper {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Creeper {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Dolphin {
-    pub abstract_creature: AbstractCreature,
-    pub treasure_pos: BlockPos,
-    pub got_fish: bool,
-    pub moistness_level: i32,
-}
-
-impl Dolphin {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_creature = AbstractCreature::read(metadata)?;
-        let treasure_pos = metadata.pop_front()?.into_block_pos().ok()?;
-        let got_fish = metadata.pop_front()?.into_boolean().ok()?;
-        let moistness_level = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_creature,
-            treasure_pos,
-            got_fish,
-            moistness_level,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_creature.write());
-        metadata.push(EntityDataValue::BlockPos(self.treasure_pos.clone()));
-        metadata.push(EntityDataValue::Boolean(self.got_fish.clone()));
-        metadata.push(EntityDataValue::Int(self.moistness_level.clone()));
-        metadata
-    }
-}
-
-impl Default for Dolphin {
-    fn default() -> Self {
-        Self {
-            abstract_creature: Default::default(),
-            treasure_pos: BlockPos::new(0, 0, 0),
-            got_fish: false,
-            moistness_level: 2400,
-        }
-    }
-}
-
-impl Dolphin {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_creature.set_index(index, value)?,
-            16 => self.treasure_pos = value.into_block_pos().ok()?,
-            17 => self.got_fish = value.into_boolean().ok()?,
-            18 => self.moistness_level = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Dolphin {
-    type Target = AbstractCreature;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_creature
-    }
-}
-impl DerefMut for Dolphin {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_creature
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Donkey {
-    pub abstract_animal: AbstractAnimal,
-    pub tamed: bool,
-    pub eating: bool,
-    pub standing: bool,
-    pub bred: bool,
-    pub saddled: bool,
-    pub owner_uuid: Option<Uuid>,
-    pub chest: bool,
-}
-
-impl Donkey {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tamed = bitfield & 0x2 != 0;
-        let eating = bitfield & 0x10 != 0;
-        let standing = bitfield & 0x20 != 0;
-        let bred = bitfield & 0x8 != 0;
-        let saddled = bitfield & 0x4 != 0;
-        let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-        let chest = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_animal,
-            tamed,
-            eating,
-            standing,
-            bred,
-            saddled,
-            owner_uuid,
-            chest,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        let mut bitfield = 0u8;
-        if self.tamed {
-            bitfield &= 0x2;
-        }
-        if self.eating {
-            bitfield &= 0x10;
-        }
-        if self.standing {
-            bitfield &= 0x20;
-        }
-        if self.bred {
-            bitfield &= 0x8;
-        }
-        if self.saddled {
-            bitfield &= 0x4;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::OptionalUuid(self.owner_uuid.clone()));
-        metadata.push(EntityDataValue::Boolean(self.chest.clone()));
-        metadata
-    }
-}
-
-impl Default for Donkey {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            tamed: false,
-            eating: false,
-            standing: false,
-            bred: false,
-            saddled: false,
-            owner_uuid: None,
-            chest: false,
-        }
-    }
-}
-
-impl Donkey {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => {
-                let bitfield = value.into_byte().ok()?;
-                self.tamed = bitfield & 0x2 != 0;
-                self.eating = bitfield & 0x10 != 0;
-                self.standing = bitfield & 0x20 != 0;
-                self.bred = bitfield & 0x8 != 0;
-                self.saddled = bitfield & 0x4 != 0;
-            }
-            18 => self.owner_uuid = value.into_optional_uuid().ok()?,
-            19 => self.chest = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Donkey {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Donkey {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct DragonFireball {
-    pub abstract_entity: AbstractEntity,
-}
-
-impl DragonFireball {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        Some(Self { abstract_entity })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata
-    }
-}
-
-impl Default for DragonFireball {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-        }
-    }
-}
-
-impl DragonFireball {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_entity.set_index(index, value)
-    }
-}
-impl Deref for DragonFireball {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for DragonFireball {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Drowned {
-    pub zombie: Zombie,
-}
-
-impl Drowned {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let zombie = Zombie::read(metadata)?;
-        Some(Self { zombie })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.zombie.write());
-        metadata
-    }
-}
-
-impl Default for Drowned {
-    fn default() -> Self {
-        Self {
-            zombie: Default::default(),
-        }
-    }
-}
-
-impl Drowned {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.zombie.set_index(index, value)
-    }
-}
-impl Deref for Drowned {
-    type Target = Zombie;
-    fn deref(&self) -> &Self::Target {
-        &self.zombie
-    }
-}
-impl DerefMut for Drowned {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.zombie
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Egg {
-    pub abstract_entity: AbstractEntity,
-    pub item_stack: Slot,
-}
-
-impl Egg {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-        Some(Self {
-            abstract_entity,
-            item_stack,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-        metadata
-    }
-}
-
-impl Default for Egg {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            item_stack: Slot::Empty,
-        }
-    }
-}
-
-impl Egg {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.item_stack = value.into_item_stack().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Egg {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for Egg {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ElderGuardian {
-    pub guardian: Guardian,
-}
-
-impl ElderGuardian {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let guardian = Guardian::read(metadata)?;
-        Some(Self { guardian })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.guardian.write());
-        metadata
-    }
-}
-
-impl Default for ElderGuardian {
-    fn default() -> Self {
-        Self {
-            guardian: Default::default(),
-        }
-    }
-}
-
-impl ElderGuardian {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.guardian.set_index(index, value)
-    }
-}
-impl Deref for ElderGuardian {
-    type Target = Guardian;
-    fn deref(&self) -> &Self::Target {
-        &self.guardian
-    }
-}
-impl DerefMut for ElderGuardian {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.guardian
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct EndCrystal {
-    pub abstract_entity: AbstractEntity,
-    pub beam_target: Option<BlockPos>,
-    pub show_bottom: bool,
-}
-
-impl EndCrystal {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let beam_target = metadata.pop_front()?.into_optional_block_pos().ok()?;
-        let show_bottom = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_entity,
-            beam_target,
-            show_bottom,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::OptionalBlockPos(self.beam_target.clone()));
-        metadata.push(EntityDataValue::Boolean(self.show_bottom.clone()));
-        metadata
-    }
-}
-
-impl Default for EndCrystal {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            beam_target: None,
-            show_bottom: true,
-        }
-    }
-}
-
-impl EndCrystal {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.beam_target = value.into_optional_block_pos().ok()?,
-            9 => self.show_bottom = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for EndCrystal {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for EndCrystal {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct EnderDragon {
-    pub abstract_insentient: AbstractInsentient,
-    pub phase: i32,
-}
-
-impl EnderDragon {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_insentient = AbstractInsentient::read(metadata)?;
-        let phase = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_insentient,
-            phase,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_insentient.write());
-        metadata.push(EntityDataValue::Int(self.phase.clone()));
-        metadata
-    }
-}
-
-impl Default for EnderDragon {
-    fn default() -> Self {
-        Self {
-            abstract_insentient: Default::default(),
-            phase: Default::default(),
-        }
-    }
-}
-
-impl EnderDragon {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_insentient.set_index(index, value)?,
-            16 => self.phase = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for EnderDragon {
-    type Target = AbstractInsentient;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_insentient
-    }
-}
-impl DerefMut for EnderDragon {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_insentient
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct EnderPearl {
-    pub abstract_entity: AbstractEntity,
-    pub item_stack: Slot,
-}
-
-impl EnderPearl {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-        Some(Self {
-            abstract_entity,
-            item_stack,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-        metadata
-    }
-}
-
-impl Default for EnderPearl {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            item_stack: Slot::Empty,
-        }
-    }
-}
-
-impl EnderPearl {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.item_stack = value.into_item_stack().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for EnderPearl {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for EnderPearl {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Enderman {
-    pub abstract_monster: AbstractMonster,
-    pub carry_state: Option<BlockState>,
-    pub creepy: bool,
-    pub stared_at: bool,
-}
-
-impl Enderman {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let carry_state = metadata.pop_front()?.into_optional_block_state().ok()?;
-        let creepy = metadata.pop_front()?.into_boolean().ok()?;
-        let stared_at = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_monster,
-            carry_state,
-            creepy,
-            stared_at,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::OptionalBlockState(
-            self.carry_state.clone(),
-        ));
-        metadata.push(EntityDataValue::Boolean(self.creepy.clone()));
-        metadata.push(EntityDataValue::Boolean(self.stared_at.clone()));
-        metadata
-    }
-}
-
-impl Default for Enderman {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            carry_state: None,
-            creepy: false,
-            stared_at: false,
-        }
-    }
-}
-
-impl Enderman {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.carry_state = value.into_optional_block_state().ok()?,
-            17 => self.creepy = value.into_boolean().ok()?,
-            18 => self.stared_at = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Enderman {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Enderman {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Endermite {
-    pub abstract_monster: AbstractMonster,
-}
-
-impl Endermite {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        Some(Self { abstract_monster })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata
-    }
-}
-
-impl Default for Endermite {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-        }
-    }
-}
-
-impl Endermite {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_monster.set_index(index, value)
-    }
-}
-impl Deref for Endermite {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Endermite {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Evoker {
-    pub abstract_monster: AbstractMonster,
-    pub is_celebrating: bool,
-    pub spell_casting: u8,
-}
-
-impl Evoker {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
-        let spell_casting = metadata.pop_front()?.into_byte().ok()?;
-        Some(Self {
-            abstract_monster,
-            is_celebrating,
-            spell_casting,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
-        metadata.push(EntityDataValue::Byte(self.spell_casting.clone()));
-        metadata
-    }
-}
-
-impl Default for Evoker {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            is_celebrating: false,
-            spell_casting: 0,
-        }
-    }
-}
-
-impl Evoker {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.is_celebrating = value.into_boolean().ok()?,
-            17 => self.spell_casting = value.into_byte().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Evoker {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Evoker {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct EvokerFangs {
-    pub abstract_entity: AbstractEntity,
-}
-
-impl EvokerFangs {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        Some(Self { abstract_entity })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata
-    }
-}
-
-impl Default for EvokerFangs {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-        }
-    }
-}
-
-impl EvokerFangs {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_entity.set_index(index, value)
-    }
-}
-impl Deref for EvokerFangs {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for EvokerFangs {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ExperienceBottle {
-    pub abstract_entity: AbstractEntity,
-    pub item_stack: Slot,
-}
-
-impl ExperienceBottle {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-        Some(Self {
-            abstract_entity,
-            item_stack,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-        metadata
-    }
-}
-
-impl Default for ExperienceBottle {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            item_stack: Slot::Empty,
-        }
-    }
-}
-
-impl ExperienceBottle {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.item_stack = value.into_item_stack().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for ExperienceBottle {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for ExperienceBottle {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ExperienceOrb {
-    pub abstract_entity: AbstractEntity,
-}
-
-impl ExperienceOrb {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        Some(Self { abstract_entity })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata
-    }
-}
-
-impl Default for ExperienceOrb {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-        }
-    }
-}
-
-impl ExperienceOrb {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_entity.set_index(index, value)
-    }
-}
-impl Deref for ExperienceOrb {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for ExperienceOrb {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct EyeOfEnder {
-    pub abstract_entity: AbstractEntity,
-    pub item_stack: Slot,
-}
-
-impl EyeOfEnder {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-        Some(Self {
-            abstract_entity,
-            item_stack,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-        metadata
-    }
-}
-
-impl Default for EyeOfEnder {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            item_stack: Slot::Empty,
-        }
-    }
-}
-
-impl EyeOfEnder {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.item_stack = value.into_item_stack().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for EyeOfEnder {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for EyeOfEnder {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct FallingBlock {
-    pub abstract_entity: AbstractEntity,
-    pub start_pos: BlockPos,
-}
-
-impl FallingBlock {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let start_pos = metadata.pop_front()?.into_block_pos().ok()?;
-        Some(Self {
-            abstract_entity,
-            start_pos,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::BlockPos(self.start_pos.clone()));
-        metadata
-    }
-}
-
-impl Default for FallingBlock {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            start_pos: BlockPos::new(0, 0, 0),
-        }
-    }
-}
-
-impl FallingBlock {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.start_pos = value.into_block_pos().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for FallingBlock {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for FallingBlock {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Fireball {
-    pub abstract_entity: AbstractEntity,
-    pub item_stack: Slot,
-}
-
-impl Fireball {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-        Some(Self {
-            abstract_entity,
-            item_stack,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-        metadata
-    }
-}
-
-impl Default for Fireball {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            item_stack: Slot::Empty,
-        }
-    }
-}
-
-impl Fireball {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.item_stack = value.into_item_stack().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Fireball {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for Fireball {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct FireworkRocket {
-    pub abstract_entity: AbstractEntity,
-    pub fireworks_item: Slot,
-    pub attached_to_target: Option<u32>,
-    pub shot_at_angle: bool,
-}
-
-impl FireworkRocket {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let fireworks_item = metadata.pop_front()?.into_item_stack().ok()?;
-        let attached_to_target = metadata.pop_front()?.into_optional_unsigned_int().ok()?;
-        let shot_at_angle = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_entity,
-            fireworks_item,
-            attached_to_target,
-            shot_at_angle,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::ItemStack(self.fireworks_item.clone()));
-        metadata.push(EntityDataValue::OptionalUnsignedInt(
-            self.attached_to_target.clone(),
-        ));
-        metadata.push(EntityDataValue::Boolean(self.shot_at_angle.clone()));
-        metadata
-    }
-}
-
-impl Default for FireworkRocket {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            fireworks_item: Slot::Empty,
-            attached_to_target: None,
-            shot_at_angle: false,
-        }
-    }
-}
-
-impl FireworkRocket {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.fireworks_item = value.into_item_stack().ok()?,
-            9 => self.attached_to_target = value.into_optional_unsigned_int().ok()?,
-            10 => self.shot_at_angle = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for FireworkRocket {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for FireworkRocket {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct FishingBobber {
-    pub abstract_entity: AbstractEntity,
-    pub hooked_entity: i32,
-    pub biting: bool,
-}
-
-impl FishingBobber {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let hooked_entity = metadata.pop_front()?.into_int().ok()?;
-        let biting = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_entity,
-            hooked_entity,
-            biting,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::Int(self.hooked_entity.clone()));
-        metadata.push(EntityDataValue::Boolean(self.biting.clone()));
-        metadata
-    }
-}
-
-impl Default for FishingBobber {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            hooked_entity: 0,
-            biting: false,
-        }
-    }
-}
-
-impl FishingBobber {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.hooked_entity = value.into_int().ok()?,
-            9 => self.biting = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for FishingBobber {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for FishingBobber {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Fox {
-    pub abstract_animal: AbstractAnimal,
-    pub kind: i32,
-    pub sitting: bool,
-    pub faceplanted: bool,
-    pub sleeping: bool,
-    pub pouncing: bool,
-    pub crouching: bool,
-    pub interested: bool,
-    pub trusted_id_0: Option<Uuid>,
-    pub trusted_id_1: Option<Uuid>,
-}
-
-impl Fox {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let kind = metadata.pop_front()?.into_int().ok()?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let sitting = bitfield & 0x1 != 0;
-        let faceplanted = bitfield & 0x40 != 0;
-        let sleeping = bitfield & 0x20 != 0;
-        let pouncing = bitfield & 0x10 != 0;
-        let crouching = bitfield & 0x4 != 0;
-        let interested = bitfield & 0x8 != 0;
-        let trusted_id_0 = metadata.pop_front()?.into_optional_uuid().ok()?;
-        let trusted_id_1 = metadata.pop_front()?.into_optional_uuid().ok()?;
-        Some(Self {
-            abstract_animal,
-            kind,
-            sitting,
-            faceplanted,
-            sleeping,
-            pouncing,
-            crouching,
-            interested,
-            trusted_id_0,
-            trusted_id_1,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        metadata.push(EntityDataValue::Int(self.kind.clone()));
-        let mut bitfield = 0u8;
-        if self.sitting {
-            bitfield &= 0x1;
-        }
-        if self.faceplanted {
-            bitfield &= 0x40;
-        }
-        if self.sleeping {
-            bitfield &= 0x20;
-        }
-        if self.pouncing {
-            bitfield &= 0x10;
-        }
-        if self.crouching {
-            bitfield &= 0x4;
-        }
-        if self.interested {
-            bitfield &= 0x8;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::OptionalUuid(self.trusted_id_0.clone()));
-        metadata.push(EntityDataValue::OptionalUuid(self.trusted_id_1.clone()));
-        metadata
-    }
-}
-
-impl Default for Fox {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            kind: 0,
-            sitting: false,
-            faceplanted: false,
-            sleeping: false,
-            pouncing: false,
-            crouching: false,
-            interested: false,
-            trusted_id_0: None,
-            trusted_id_1: None,
-        }
-    }
-}
-
-impl Fox {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => self.kind = value.into_int().ok()?,
             18 => {
-                let bitfield = value.into_byte().ok()?;
-                self.sitting = bitfield & 0x1 != 0;
-                self.faceplanted = bitfield & 0x40 != 0;
-                self.sleeping = bitfield & 0x20 != 0;
-                self.pouncing = bitfield & 0x10 != 0;
-                self.crouching = bitfield & 0x4 != 0;
-                self.interested = bitfield & 0x8 != 0;
+                entity.insert(LeftArmPose(d.value.into_rotations()?));
             }
-            19 => self.trusted_id_0 = value.into_optional_uuid().ok()?,
-            20 => self.trusted_id_1 = value.into_optional_uuid().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Fox {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Fox {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Frog {
-    pub abstract_animal: AbstractAnimal,
-    pub variant: azalea_registry::FrogVariant,
-    pub tongue_target: Option<u32>,
-}
-
-impl Frog {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let variant = metadata.pop_front()?.into_frog_variant().ok()?;
-        let tongue_target = metadata.pop_front()?.into_optional_unsigned_int().ok()?;
-        Some(Self {
-            abstract_animal,
-            variant,
-            tongue_target,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        metadata.push(EntityDataValue::FrogVariant(self.variant.clone()));
-        metadata.push(EntityDataValue::OptionalUnsignedInt(
-            self.tongue_target.clone(),
-        ));
-        metadata
-    }
-}
-
-impl Default for Frog {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            variant: azalea_registry::FrogVariant::Temperate,
-            tongue_target: None,
-        }
-    }
-}
-
-impl Frog {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => self.variant = value.into_frog_variant().ok()?,
-            18 => self.tongue_target = value.into_optional_unsigned_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Frog {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Frog {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct FurnaceMinecart {
-    pub abstract_minecart: AbstractMinecart,
-    pub fuel: bool,
-}
-
-impl FurnaceMinecart {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_minecart = AbstractMinecart::read(metadata)?;
-        let fuel = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_minecart,
-            fuel,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_minecart.write());
-        metadata.push(EntityDataValue::Boolean(self.fuel.clone()));
-        metadata
-    }
-}
-
-impl Default for FurnaceMinecart {
-    fn default() -> Self {
-        Self {
-            abstract_minecart: Default::default(),
-            fuel: false,
-        }
-    }
-}
-
-impl FurnaceMinecart {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=13 => self.abstract_minecart.set_index(index, value)?,
-            14 => self.fuel = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for FurnaceMinecart {
-    type Target = AbstractMinecart;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_minecart
-    }
-}
-impl DerefMut for FurnaceMinecart {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_minecart
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Ghast {
-    pub abstract_insentient: AbstractInsentient,
-    pub is_charging: bool,
-}
-
-impl Ghast {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_insentient = AbstractInsentient::read(metadata)?;
-        let is_charging = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_insentient,
-            is_charging,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_insentient.write());
-        metadata.push(EntityDataValue::Boolean(self.is_charging.clone()));
-        metadata
-    }
-}
-
-impl Default for Ghast {
-    fn default() -> Self {
-        Self {
-            abstract_insentient: Default::default(),
-            is_charging: false,
-        }
-    }
-}
-
-impl Ghast {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_insentient.set_index(index, value)?,
-            16 => self.is_charging = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Ghast {
-    type Target = AbstractInsentient;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_insentient
-    }
-}
-impl DerefMut for Ghast {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_insentient
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Giant {
-    pub abstract_monster: AbstractMonster,
-}
-
-impl Giant {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        Some(Self { abstract_monster })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata
-    }
-}
-
-impl Default for Giant {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-        }
-    }
-}
-
-impl Giant {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_monster.set_index(index, value)
-    }
-}
-impl Deref for Giant {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Giant {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct GlowItemFrame {
-    pub item_frame: ItemFrame,
-}
-
-impl GlowItemFrame {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let item_frame = ItemFrame::read(metadata)?;
-        Some(Self { item_frame })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.item_frame.write());
-        metadata
-    }
-}
-
-impl Default for GlowItemFrame {
-    fn default() -> Self {
-        Self {
-            item_frame: Default::default(),
-        }
-    }
-}
-
-impl GlowItemFrame {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.item_frame.set_index(index, value)
-    }
-}
-impl Deref for GlowItemFrame {
-    type Target = ItemFrame;
-    fn deref(&self) -> &Self::Target {
-        &self.item_frame
-    }
-}
-impl DerefMut for GlowItemFrame {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.item_frame
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct GlowSquid {
-    pub squid: Squid,
-    pub dark_ticks_remaining: i32,
-}
-
-impl GlowSquid {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let squid = Squid::read(metadata)?;
-        let dark_ticks_remaining = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            squid,
-            dark_ticks_remaining,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.squid.write());
-        metadata.push(EntityDataValue::Int(self.dark_ticks_remaining.clone()));
-        metadata
-    }
-}
-
-impl Default for GlowSquid {
-    fn default() -> Self {
-        Self {
-            squid: Default::default(),
-            dark_ticks_remaining: 0,
-        }
-    }
-}
-
-impl GlowSquid {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.squid.set_index(index, value)?,
-            16 => self.dark_ticks_remaining = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for GlowSquid {
-    type Target = Squid;
-    fn deref(&self) -> &Self::Target {
-        &self.squid
-    }
-}
-impl DerefMut for GlowSquid {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.squid
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Goat {
-    pub abstract_animal: AbstractAnimal,
-    pub is_screaming_goat: bool,
-    pub has_left_horn: bool,
-    pub has_right_horn: bool,
-}
-
-impl Goat {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let is_screaming_goat = metadata.pop_front()?.into_boolean().ok()?;
-        let has_left_horn = metadata.pop_front()?.into_boolean().ok()?;
-        let has_right_horn = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_animal,
-            is_screaming_goat,
-            has_left_horn,
-            has_right_horn,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        metadata.push(EntityDataValue::Boolean(self.is_screaming_goat.clone()));
-        metadata.push(EntityDataValue::Boolean(self.has_left_horn.clone()));
-        metadata.push(EntityDataValue::Boolean(self.has_right_horn.clone()));
-        metadata
-    }
-}
-
-impl Default for Goat {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            is_screaming_goat: false,
-            has_left_horn: true,
-            has_right_horn: true,
-        }
-    }
-}
-
-impl Goat {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => self.is_screaming_goat = value.into_boolean().ok()?,
-            18 => self.has_left_horn = value.into_boolean().ok()?,
-            19 => self.has_right_horn = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Goat {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Goat {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Guardian {
-    pub abstract_monster: AbstractMonster,
-    pub moving: bool,
-    pub attack_target: i32,
-}
-
-impl Guardian {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let moving = metadata.pop_front()?.into_boolean().ok()?;
-        let attack_target = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_monster,
-            moving,
-            attack_target,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Boolean(self.moving.clone()));
-        metadata.push(EntityDataValue::Int(self.attack_target.clone()));
-        metadata
-    }
-}
-
-impl Default for Guardian {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            moving: false,
-            attack_target: 0,
-        }
-    }
-}
-
-impl Guardian {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.moving = value.into_boolean().ok()?,
-            17 => self.attack_target = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Guardian {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Guardian {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Hoglin {
-    pub abstract_animal: AbstractAnimal,
-    pub immune_to_zombification: bool,
-}
-
-impl Hoglin {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let immune_to_zombification = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_animal,
-            immune_to_zombification,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        metadata.push(EntityDataValue::Boolean(
-            self.immune_to_zombification.clone(),
-        ));
-        metadata
-    }
-}
-
-impl Default for Hoglin {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            immune_to_zombification: false,
-        }
-    }
-}
-
-impl Hoglin {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => self.immune_to_zombification = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Hoglin {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Hoglin {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct HopperMinecart {
-    pub abstract_minecart: AbstractMinecart,
-}
-
-impl HopperMinecart {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_minecart = AbstractMinecart::read(metadata)?;
-        Some(Self { abstract_minecart })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_minecart.write());
-        metadata
-    }
-}
-
-impl Default for HopperMinecart {
-    fn default() -> Self {
-        Self {
-            abstract_minecart: Default::default(),
-        }
-    }
-}
-
-impl HopperMinecart {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_minecart.set_index(index, value)
-    }
-}
-impl Deref for HopperMinecart {
-    type Target = AbstractMinecart;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_minecart
-    }
-}
-impl DerefMut for HopperMinecart {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_minecart
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Horse {
-    pub abstract_animal: AbstractAnimal,
-    pub tamed: bool,
-    pub eating: bool,
-    pub standing: bool,
-    pub bred: bool,
-    pub saddled: bool,
-    pub owner_uuid: Option<Uuid>,
-    pub type_variant: i32,
-}
-
-impl Horse {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tamed = bitfield & 0x2 != 0;
-        let eating = bitfield & 0x10 != 0;
-        let standing = bitfield & 0x20 != 0;
-        let bred = bitfield & 0x8 != 0;
-        let saddled = bitfield & 0x4 != 0;
-        let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-        let type_variant = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_animal,
-            tamed,
-            eating,
-            standing,
-            bred,
-            saddled,
-            owner_uuid,
-            type_variant,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        let mut bitfield = 0u8;
-        if self.tamed {
-            bitfield &= 0x2;
-        }
-        if self.eating {
-            bitfield &= 0x10;
-        }
-        if self.standing {
-            bitfield &= 0x20;
-        }
-        if self.bred {
-            bitfield &= 0x8;
-        }
-        if self.saddled {
-            bitfield &= 0x4;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::OptionalUuid(self.owner_uuid.clone()));
-        metadata.push(EntityDataValue::Int(self.type_variant.clone()));
-        metadata
-    }
-}
-
-impl Default for Horse {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            tamed: false,
-            eating: false,
-            standing: false,
-            bred: false,
-            saddled: false,
-            owner_uuid: None,
-            type_variant: 0,
-        }
-    }
-}
-
-impl Horse {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => {
-                let bitfield = value.into_byte().ok()?;
-                self.tamed = bitfield & 0x2 != 0;
-                self.eating = bitfield & 0x10 != 0;
-                self.standing = bitfield & 0x20 != 0;
-                self.bred = bitfield & 0x8 != 0;
-                self.saddled = bitfield & 0x4 != 0;
+            19 => {
+                entity.insert(RightArmPose(d.value.into_rotations()?));
             }
-            18 => self.owner_uuid = value.into_optional_uuid().ok()?,
-            19 => self.type_variant = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Horse {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Horse {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Husk {
-    pub zombie: Zombie,
-}
-
-impl Husk {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let zombie = Zombie::read(metadata)?;
-        Some(Self { zombie })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.zombie.write());
-        metadata
-    }
-}
-
-impl Default for Husk {
-    fn default() -> Self {
-        Self {
-            zombie: Default::default(),
-        }
-    }
-}
-
-impl Husk {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.zombie.set_index(index, value)
-    }
-}
-impl Deref for Husk {
-    type Target = Zombie;
-    fn deref(&self) -> &Self::Target {
-        &self.zombie
-    }
-}
-impl DerefMut for Husk {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.zombie
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Illusioner {
-    pub abstract_monster: AbstractMonster,
-    pub is_celebrating: bool,
-    pub spell_casting: u8,
-}
-
-impl Illusioner {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
-        let spell_casting = metadata.pop_front()?.into_byte().ok()?;
-        Some(Self {
-            abstract_monster,
-            is_celebrating,
-            spell_casting,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
-        metadata.push(EntityDataValue::Byte(self.spell_casting.clone()));
-        metadata
-    }
-}
-
-impl Default for Illusioner {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            is_celebrating: false,
-            spell_casting: 0,
-        }
-    }
-}
-
-impl Illusioner {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.is_celebrating = value.into_boolean().ok()?,
-            17 => self.spell_casting = value.into_byte().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Illusioner {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Illusioner {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct IronGolem {
-    pub abstract_creature: AbstractCreature,
-    pub player_created: bool,
-}
-
-impl IronGolem {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_creature = AbstractCreature::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let player_created = bitfield & 0x1 != 0;
-        Some(Self {
-            abstract_creature,
-            player_created,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_creature.write());
-        let mut bitfield = 0u8;
-        if self.player_created {
-            bitfield &= 0x1;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata
-    }
-}
-
-impl Default for IronGolem {
-    fn default() -> Self {
-        Self {
-            abstract_creature: Default::default(),
-            player_created: false,
-        }
-    }
-}
-
-impl IronGolem {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_creature.set_index(index, value)?,
-            16 => {
-                let bitfield = value.into_byte().ok()?;
-                self.player_created = bitfield & 0x1 != 0;
-            }
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for IronGolem {
-    type Target = AbstractCreature;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_creature
-    }
-}
-impl DerefMut for IronGolem {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_creature
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Item {
-    pub abstract_entity: AbstractEntity,
-    pub item: Slot,
-}
-
-impl Item {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let item = metadata.pop_front()?.into_item_stack().ok()?;
-        Some(Self {
-            abstract_entity,
-            item,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::ItemStack(self.item.clone()));
-        metadata
-    }
-}
-
-impl Default for Item {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            item: Slot::Empty,
-        }
-    }
-}
-
-impl Item {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.item = value.into_item_stack().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Item {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for Item {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ItemFrame {
-    pub abstract_entity: AbstractEntity,
-    pub item: Slot,
-    pub rotation: i32,
-}
-
-impl ItemFrame {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let item = metadata.pop_front()?.into_item_stack().ok()?;
-        let rotation = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_entity,
-            item,
-            rotation,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::ItemStack(self.item.clone()));
-        metadata.push(EntityDataValue::Int(self.rotation.clone()));
-        metadata
-    }
-}
-
-impl Default for ItemFrame {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            item: Slot::Empty,
-            rotation: 0,
-        }
-    }
-}
-
-impl ItemFrame {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.item = value.into_item_stack().ok()?,
-            9 => self.rotation = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for ItemFrame {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for ItemFrame {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct LeashKnot {
-    pub abstract_entity: AbstractEntity,
-}
-
-impl LeashKnot {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        Some(Self { abstract_entity })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata
-    }
-}
-
-impl Default for LeashKnot {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-        }
-    }
-}
-
-impl LeashKnot {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_entity.set_index(index, value)
-    }
-}
-impl Deref for LeashKnot {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for LeashKnot {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct LightningBolt {
-    pub abstract_entity: AbstractEntity,
-}
-
-impl LightningBolt {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        Some(Self { abstract_entity })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata
-    }
-}
-
-impl Default for LightningBolt {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-        }
-    }
-}
-
-impl LightningBolt {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_entity.set_index(index, value)
-    }
-}
-impl Deref for LightningBolt {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for LightningBolt {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Llama {
-    pub abstract_animal: AbstractAnimal,
-    pub tamed: bool,
-    pub eating: bool,
-    pub standing: bool,
-    pub bred: bool,
-    pub saddled: bool,
-    pub owner_uuid: Option<Uuid>,
-    pub chest: bool,
-    pub strength: i32,
-    pub swag: i32,
-    pub variant: i32,
-}
-
-impl Llama {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tamed = bitfield & 0x2 != 0;
-        let eating = bitfield & 0x10 != 0;
-        let standing = bitfield & 0x20 != 0;
-        let bred = bitfield & 0x8 != 0;
-        let saddled = bitfield & 0x4 != 0;
-        let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-        let chest = metadata.pop_front()?.into_boolean().ok()?;
-        let strength = metadata.pop_front()?.into_int().ok()?;
-        let swag = metadata.pop_front()?.into_int().ok()?;
-        let variant = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_animal,
-            tamed,
-            eating,
-            standing,
-            bred,
-            saddled,
-            owner_uuid,
-            chest,
-            strength,
-            swag,
-            variant,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        let mut bitfield = 0u8;
-        if self.tamed {
-            bitfield &= 0x2;
-        }
-        if self.eating {
-            bitfield &= 0x10;
-        }
-        if self.standing {
-            bitfield &= 0x20;
-        }
-        if self.bred {
-            bitfield &= 0x8;
-        }
-        if self.saddled {
-            bitfield &= 0x4;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::OptionalUuid(self.owner_uuid.clone()));
-        metadata.push(EntityDataValue::Boolean(self.chest.clone()));
-        metadata.push(EntityDataValue::Int(self.strength.clone()));
-        metadata.push(EntityDataValue::Int(self.swag.clone()));
-        metadata.push(EntityDataValue::Int(self.variant.clone()));
-        metadata
-    }
-}
-
-impl Default for Llama {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            tamed: false,
-            eating: false,
-            standing: false,
-            bred: false,
-            saddled: false,
-            owner_uuid: None,
-            chest: false,
-            strength: 0,
-            swag: -1,
-            variant: 0,
-        }
-    }
-}
-
-impl Llama {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => {
-                let bitfield = value.into_byte().ok()?;
-                self.tamed = bitfield & 0x2 != 0;
-                self.eating = bitfield & 0x10 != 0;
-                self.standing = bitfield & 0x20 != 0;
-                self.bred = bitfield & 0x8 != 0;
-                self.saddled = bitfield & 0x4 != 0;
-            }
-            18 => self.owner_uuid = value.into_optional_uuid().ok()?,
-            19 => self.chest = value.into_boolean().ok()?,
-            20 => self.strength = value.into_int().ok()?,
-            21 => self.swag = value.into_int().ok()?,
-            22 => self.variant = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Llama {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Llama {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct LlamaSpit {
-    pub abstract_entity: AbstractEntity,
-}
-
-impl LlamaSpit {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        Some(Self { abstract_entity })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata
-    }
-}
-
-impl Default for LlamaSpit {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-        }
-    }
-}
-
-impl LlamaSpit {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_entity.set_index(index, value)
-    }
-}
-impl Deref for LlamaSpit {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for LlamaSpit {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct MagmaCube {
-    pub slime: Slime,
-}
-
-impl MagmaCube {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let slime = Slime::read(metadata)?;
-        Some(Self { slime })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.slime.write());
-        metadata
-    }
-}
-
-impl Default for MagmaCube {
-    fn default() -> Self {
-        Self {
-            slime: Default::default(),
-        }
-    }
-}
-
-impl MagmaCube {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.slime.set_index(index, value)
-    }
-}
-impl Deref for MagmaCube {
-    type Target = Slime;
-    fn deref(&self) -> &Self::Target {
-        &self.slime
-    }
-}
-impl DerefMut for MagmaCube {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.slime
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Marker {
-    pub abstract_entity: AbstractEntity,
-}
-
-impl Marker {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        Some(Self { abstract_entity })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata
-    }
-}
-
-impl Default for Marker {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-        }
-    }
-}
-
-impl Marker {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_entity.set_index(index, value)
-    }
-}
-impl Deref for Marker {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for Marker {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Minecart {
-    pub abstract_minecart: AbstractMinecart,
-}
-
-impl Minecart {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_minecart = AbstractMinecart::read(metadata)?;
-        Some(Self { abstract_minecart })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_minecart.write());
-        metadata
-    }
-}
-
-impl Default for Minecart {
-    fn default() -> Self {
-        Self {
-            abstract_minecart: Default::default(),
-        }
-    }
-}
-
-impl Minecart {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_minecart.set_index(index, value)
-    }
-}
-impl Deref for Minecart {
-    type Target = AbstractMinecart;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_minecart
-    }
-}
-impl DerefMut for Minecart {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_minecart
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Mooshroom {
-    pub cow: Cow,
-    pub kind: String,
-}
-
-impl Mooshroom {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let cow = Cow::read(metadata)?;
-        let kind = metadata.pop_front()?.into_string().ok()?;
-        Some(Self { cow, kind })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.cow.write());
-        metadata.push(EntityDataValue::String(self.kind.clone()));
-        metadata
-    }
-}
-
-impl Default for Mooshroom {
-    fn default() -> Self {
-        Self {
-            cow: Default::default(),
-            kind: Default::default(),
-        }
-    }
-}
-
-impl Mooshroom {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.cow.set_index(index, value)?,
-            17 => self.kind = value.into_string().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Mooshroom {
-    type Target = Cow;
-    fn deref(&self) -> &Self::Target {
-        &self.cow
-    }
-}
-impl DerefMut for Mooshroom {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.cow
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Mule {
-    pub abstract_animal: AbstractAnimal,
-    pub tamed: bool,
-    pub eating: bool,
-    pub standing: bool,
-    pub bred: bool,
-    pub saddled: bool,
-    pub owner_uuid: Option<Uuid>,
-    pub chest: bool,
-}
-
-impl Mule {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tamed = bitfield & 0x2 != 0;
-        let eating = bitfield & 0x10 != 0;
-        let standing = bitfield & 0x20 != 0;
-        let bred = bitfield & 0x8 != 0;
-        let saddled = bitfield & 0x4 != 0;
-        let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-        let chest = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_animal,
-            tamed,
-            eating,
-            standing,
-            bred,
-            saddled,
-            owner_uuid,
-            chest,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        let mut bitfield = 0u8;
-        if self.tamed {
-            bitfield &= 0x2;
-        }
-        if self.eating {
-            bitfield &= 0x10;
-        }
-        if self.standing {
-            bitfield &= 0x20;
-        }
-        if self.bred {
-            bitfield &= 0x8;
-        }
-        if self.saddled {
-            bitfield &= 0x4;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::OptionalUuid(self.owner_uuid.clone()));
-        metadata.push(EntityDataValue::Boolean(self.chest.clone()));
-        metadata
-    }
-}
-
-impl Default for Mule {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            tamed: false,
-            eating: false,
-            standing: false,
-            bred: false,
-            saddled: false,
-            owner_uuid: None,
-            chest: false,
-        }
-    }
-}
-
-impl Mule {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => {
-                let bitfield = value.into_byte().ok()?;
-                self.tamed = bitfield & 0x2 != 0;
-                self.eating = bitfield & 0x10 != 0;
-                self.standing = bitfield & 0x20 != 0;
-                self.bred = bitfield & 0x8 != 0;
-                self.saddled = bitfield & 0x4 != 0;
-            }
-            18 => self.owner_uuid = value.into_optional_uuid().ok()?,
-            19 => self.chest = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Mule {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Mule {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Ocelot {
-    pub abstract_animal: AbstractAnimal,
-    pub trusting: bool,
-}
-
-impl Ocelot {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let trusting = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_animal,
-            trusting,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        metadata.push(EntityDataValue::Boolean(self.trusting.clone()));
-        metadata
-    }
-}
-
-impl Default for Ocelot {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            trusting: false,
-        }
-    }
-}
-
-impl Ocelot {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => self.trusting = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Ocelot {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Ocelot {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Painting {
-    pub abstract_entity: AbstractEntity,
-    pub painting_variant: azalea_registry::PaintingVariant,
-}
-
-impl Painting {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let painting_variant = metadata.pop_front()?.into_painting_variant().ok()?;
-        Some(Self {
-            abstract_entity,
-            painting_variant,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::PaintingVariant(
-            self.painting_variant.clone(),
-        ));
-        metadata
-    }
-}
-
-impl Default for Painting {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            painting_variant: azalea_registry::PaintingVariant::Kebab,
-        }
-    }
-}
-
-impl Painting {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.painting_variant = value.into_painting_variant().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Painting {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for Painting {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Panda {
-    pub abstract_animal: AbstractAnimal,
-    pub unhappy_counter: i32,
-    pub sneeze_counter: i32,
-    pub eat_counter: i32,
-    pub sneezing: bool,
-    pub sitting: bool,
-    pub on_back: bool,
-    pub rolling: bool,
-    pub hidden_gene: u8,
-    pub flags: u8,
-}
-
-impl Panda {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let unhappy_counter = metadata.pop_front()?.into_int().ok()?;
-        let sneeze_counter = metadata.pop_front()?.into_int().ok()?;
-        let eat_counter = metadata.pop_front()?.into_int().ok()?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let sneezing = bitfield & 0x2 != 0;
-        let sitting = bitfield & 0x8 != 0;
-        let on_back = bitfield & 0x10 != 0;
-        let rolling = bitfield & 0x4 != 0;
-        let hidden_gene = metadata.pop_front()?.into_byte().ok()?;
-        let flags = metadata.pop_front()?.into_byte().ok()?;
-        Some(Self {
-            abstract_animal,
-            unhappy_counter,
-            sneeze_counter,
-            eat_counter,
-            sneezing,
-            sitting,
-            on_back,
-            rolling,
-            hidden_gene,
-            flags,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        metadata.push(EntityDataValue::Int(self.unhappy_counter.clone()));
-        metadata.push(EntityDataValue::Int(self.sneeze_counter.clone()));
-        metadata.push(EntityDataValue::Int(self.eat_counter.clone()));
-        let mut bitfield = 0u8;
-        if self.sneezing {
-            bitfield &= 0x2;
-        }
-        if self.sitting {
-            bitfield &= 0x8;
-        }
-        if self.on_back {
-            bitfield &= 0x10;
-        }
-        if self.rolling {
-            bitfield &= 0x4;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::Byte(self.hidden_gene.clone()));
-        metadata.push(EntityDataValue::Byte(self.flags.clone()));
-        metadata
-    }
-}
-
-impl Default for Panda {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            unhappy_counter: 0,
-            sneeze_counter: 0,
-            eat_counter: 0,
-            sneezing: false,
-            sitting: false,
-            on_back: false,
-            rolling: false,
-            hidden_gene: 0,
-            flags: 0,
-        }
-    }
-}
-
-impl Panda {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => self.unhappy_counter = value.into_int().ok()?,
-            18 => self.sneeze_counter = value.into_int().ok()?,
-            19 => self.eat_counter = value.into_int().ok()?,
             20 => {
-                let bitfield = value.into_byte().ok()?;
-                self.sneezing = bitfield & 0x2 != 0;
-                self.sitting = bitfield & 0x8 != 0;
-                self.on_back = bitfield & 0x10 != 0;
-                self.rolling = bitfield & 0x4 != 0;
+                entity.insert(LeftLegPose(d.value.into_rotations()?));
             }
-            21 => self.hidden_gene = value.into_byte().ok()?,
-            22 => self.flags = value.into_byte().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Panda {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Panda {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Parrot {
-    pub abstract_tameable: AbstractTameable,
-    pub variant: i32,
-}
-
-impl Parrot {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_tameable = AbstractTameable::read(metadata)?;
-        let variant = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_tameable,
-            variant,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_tameable.write());
-        metadata.push(EntityDataValue::Int(self.variant.clone()));
-        metadata
-    }
-}
-
-impl Default for Parrot {
-    fn default() -> Self {
-        Self {
-            abstract_tameable: Default::default(),
-            variant: 0,
-        }
-    }
-}
-
-impl Parrot {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=18 => self.abstract_tameable.set_index(index, value)?,
-            19 => self.variant = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Parrot {
-    type Target = AbstractTameable;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_tameable
-    }
-}
-impl DerefMut for Parrot {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_tameable
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Phantom {
-    pub abstract_insentient: AbstractInsentient,
-    pub size: i32,
-}
-
-impl Phantom {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_insentient = AbstractInsentient::read(metadata)?;
-        let size = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_insentient,
-            size,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_insentient.write());
-        metadata.push(EntityDataValue::Int(self.size.clone()));
-        metadata
-    }
-}
-
-impl Default for Phantom {
-    fn default() -> Self {
-        Self {
-            abstract_insentient: Default::default(),
-            size: 0,
-        }
-    }
-}
-
-impl Phantom {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_insentient.set_index(index, value)?,
-            16 => self.size = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Phantom {
-    type Target = AbstractInsentient;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_insentient
-    }
-}
-impl DerefMut for Phantom {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_insentient
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Pig {
-    pub abstract_animal: AbstractAnimal,
-    pub saddle: bool,
-    pub boost_time: i32,
-}
-
-impl Pig {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let saddle = metadata.pop_front()?.into_boolean().ok()?;
-        let boost_time = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_animal,
-            saddle,
-            boost_time,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        metadata.push(EntityDataValue::Boolean(self.saddle.clone()));
-        metadata.push(EntityDataValue::Int(self.boost_time.clone()));
-        metadata
-    }
-}
-
-impl Default for Pig {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            saddle: false,
-            boost_time: 0,
-        }
-    }
-}
-
-impl Pig {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => self.saddle = value.into_boolean().ok()?,
-            18 => self.boost_time = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Pig {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Pig {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Piglin {
-    pub abstract_monster: AbstractMonster,
-    pub immune_to_zombification: bool,
-    pub baby: bool,
-    pub is_charging_crossbow: bool,
-    pub is_dancing: bool,
-}
-
-impl Piglin {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let immune_to_zombification = metadata.pop_front()?.into_boolean().ok()?;
-        let baby = metadata.pop_front()?.into_boolean().ok()?;
-        let is_charging_crossbow = metadata.pop_front()?.into_boolean().ok()?;
-        let is_dancing = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_monster,
-            immune_to_zombification,
-            baby,
-            is_charging_crossbow,
-            is_dancing,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Boolean(
-            self.immune_to_zombification.clone(),
-        ));
-        metadata.push(EntityDataValue::Boolean(self.baby.clone()));
-        metadata.push(EntityDataValue::Boolean(self.is_charging_crossbow.clone()));
-        metadata.push(EntityDataValue::Boolean(self.is_dancing.clone()));
-        metadata
-    }
-}
-
-impl Default for Piglin {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            immune_to_zombification: false,
-            baby: false,
-            is_charging_crossbow: false,
-            is_dancing: false,
-        }
-    }
-}
-
-impl Piglin {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.immune_to_zombification = value.into_boolean().ok()?,
-            17 => self.baby = value.into_boolean().ok()?,
-            18 => self.is_charging_crossbow = value.into_boolean().ok()?,
-            19 => self.is_dancing = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Piglin {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Piglin {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct PiglinBrute {
-    pub abstract_monster: AbstractMonster,
-    pub immune_to_zombification: bool,
-}
-
-impl PiglinBrute {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let immune_to_zombification = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_monster,
-            immune_to_zombification,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Boolean(
-            self.immune_to_zombification.clone(),
-        ));
-        metadata
-    }
-}
-
-impl Default for PiglinBrute {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            immune_to_zombification: false,
-        }
-    }
-}
-
-impl PiglinBrute {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.immune_to_zombification = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for PiglinBrute {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for PiglinBrute {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Pillager {
-    pub abstract_monster: AbstractMonster,
-    pub is_celebrating: bool,
-    pub is_charging_crossbow: bool,
-}
-
-impl Pillager {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
-        let is_charging_crossbow = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_monster,
-            is_celebrating,
-            is_charging_crossbow,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
-        metadata.push(EntityDataValue::Boolean(self.is_charging_crossbow.clone()));
-        metadata
-    }
-}
-
-impl Default for Pillager {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            is_celebrating: false,
-            is_charging_crossbow: false,
-        }
-    }
-}
-
-impl Pillager {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.is_celebrating = value.into_boolean().ok()?,
-            17 => self.is_charging_crossbow = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Pillager {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Pillager {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Player {
-    pub abstract_living: AbstractLiving,
-    pub player_absorption: f32,
-    pub score: i32,
-    pub player_mode_customisation: u8,
-    pub player_main_hand: u8,
-    pub shoulder_left: azalea_nbt::Tag,
-    pub shoulder_right: azalea_nbt::Tag,
-}
-
-impl Player {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_living = AbstractLiving::read(metadata)?;
-        let player_absorption = metadata.pop_front()?.into_float().ok()?;
-        let score = metadata.pop_front()?.into_int().ok()?;
-        let player_mode_customisation = metadata.pop_front()?.into_byte().ok()?;
-        let player_main_hand = metadata.pop_front()?.into_byte().ok()?;
-        let shoulder_left = metadata.pop_front()?.into_compound_tag().ok()?;
-        let shoulder_right = metadata.pop_front()?.into_compound_tag().ok()?;
-        Some(Self {
-            abstract_living,
-            player_absorption,
-            score,
-            player_mode_customisation,
-            player_main_hand,
-            shoulder_left,
-            shoulder_right,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_living.write());
-        metadata.push(EntityDataValue::Float(self.player_absorption.clone()));
-        metadata.push(EntityDataValue::Int(self.score.clone()));
-        metadata.push(EntityDataValue::Byte(
-            self.player_mode_customisation.clone(),
-        ));
-        metadata.push(EntityDataValue::Byte(self.player_main_hand.clone()));
-        metadata.push(EntityDataValue::CompoundTag(self.shoulder_left.clone()));
-        metadata.push(EntityDataValue::CompoundTag(self.shoulder_right.clone()));
-        metadata
-    }
-}
-
-impl Default for Player {
-    fn default() -> Self {
-        Self {
-            abstract_living: Default::default(),
-            player_absorption: 0.0,
-            score: 0,
-            player_mode_customisation: 0,
-            player_main_hand: 1,
-            shoulder_left: azalea_nbt::Tag::Compound(Default::default()),
-            shoulder_right: azalea_nbt::Tag::Compound(Default::default()),
-        }
-    }
-}
-
-impl Player {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=14 => self.abstract_living.set_index(index, value)?,
-            15 => self.player_absorption = value.into_float().ok()?,
-            16 => self.score = value.into_int().ok()?,
-            17 => self.player_mode_customisation = value.into_byte().ok()?,
-            18 => self.player_main_hand = value.into_byte().ok()?,
-            19 => self.shoulder_left = value.into_compound_tag().ok()?,
-            20 => self.shoulder_right = value.into_compound_tag().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Player {
-    type Target = AbstractLiving;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_living
-    }
-}
-impl DerefMut for Player {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_living
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct PolarBear {
-    pub abstract_animal: AbstractAnimal,
-    pub standing: bool,
-}
-
-impl PolarBear {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let standing = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_animal,
-            standing,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        metadata.push(EntityDataValue::Boolean(self.standing.clone()));
-        metadata
-    }
-}
-
-impl Default for PolarBear {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            standing: false,
-        }
-    }
-}
-
-impl PolarBear {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => self.standing = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for PolarBear {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for PolarBear {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Potion {
-    pub abstract_entity: AbstractEntity,
-    pub item_stack: Slot,
-}
-
-impl Potion {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-        Some(Self {
-            abstract_entity,
-            item_stack,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-        metadata
-    }
-}
-
-impl Default for Potion {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            item_stack: Slot::Empty,
-        }
-    }
-}
-
-impl Potion {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.item_stack = value.into_item_stack().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Potion {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for Potion {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Pufferfish {
-    pub abstract_creature: AbstractCreature,
-    pub from_bucket: bool,
-    pub puff_state: i32,
-}
-
-impl Pufferfish {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_creature = AbstractCreature::read(metadata)?;
-        let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
-        let puff_state = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_creature,
-            from_bucket,
-            puff_state,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_creature.write());
-        metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
-        metadata.push(EntityDataValue::Int(self.puff_state.clone()));
-        metadata
-    }
-}
-
-impl Default for Pufferfish {
-    fn default() -> Self {
-        Self {
-            abstract_creature: Default::default(),
-            from_bucket: false,
-            puff_state: 0,
-        }
-    }
-}
-
-impl Pufferfish {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_creature.set_index(index, value)?,
-            16 => self.from_bucket = value.into_boolean().ok()?,
-            17 => self.puff_state = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Pufferfish {
-    type Target = AbstractCreature;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_creature
-    }
-}
-impl DerefMut for Pufferfish {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_creature
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Rabbit {
-    pub abstract_animal: AbstractAnimal,
-    pub kind: i32,
-}
-
-impl Rabbit {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let kind = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_animal,
-            kind,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        metadata.push(EntityDataValue::Int(self.kind.clone()));
-        metadata
-    }
-}
-
-impl Default for Rabbit {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            kind: 0,
-        }
-    }
-}
-
-impl Rabbit {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => self.kind = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Rabbit {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Rabbit {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Ravager {
-    pub abstract_monster: AbstractMonster,
-    pub is_celebrating: bool,
-}
-
-impl Ravager {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_monster,
-            is_celebrating,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
-        metadata
-    }
-}
-
-impl Default for Ravager {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            is_celebrating: false,
-        }
-    }
-}
-
-impl Ravager {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.is_celebrating = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Ravager {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Ravager {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Salmon {
-    pub abstract_creature: AbstractCreature,
-    pub from_bucket: bool,
-}
-
-impl Salmon {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_creature = AbstractCreature::read(metadata)?;
-        let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_creature,
-            from_bucket,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_creature.write());
-        metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
-        metadata
-    }
-}
-
-impl Default for Salmon {
-    fn default() -> Self {
-        Self {
-            abstract_creature: Default::default(),
-            from_bucket: false,
-        }
-    }
-}
-
-impl Salmon {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_creature.set_index(index, value)?,
-            16 => self.from_bucket = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Salmon {
-    type Target = AbstractCreature;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_creature
-    }
-}
-impl DerefMut for Salmon {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_creature
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Sheep {
-    pub abstract_animal: AbstractAnimal,
-    pub sheared: bool,
-}
-
-impl Sheep {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let sheared = bitfield & 0x10 != 0;
-        Some(Self {
-            abstract_animal,
-            sheared,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        let mut bitfield = 0u8;
-        if self.sheared {
-            bitfield &= 0x10;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata
-    }
-}
-
-impl Default for Sheep {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            sheared: false,
-        }
-    }
-}
-
-impl Sheep {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => {
-                let bitfield = value.into_byte().ok()?;
-                self.sheared = bitfield & 0x10 != 0;
+            21 => {
+                entity.insert(RightLegPose(d.value.into_rotations()?));
             }
             _ => {}
         }
-        Some(())
-    }
-}
-impl Deref for Sheep {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Sheep {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
+        Ok(())
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Shulker {
-    pub abstract_creature: AbstractCreature,
-    pub attach_face: Direction,
-    pub peek: u8,
-    pub color: u8,
+#[derive(Bundle)]
+pub struct ArmorStandMetadataBundle {
+    _marker: ArmorStand,
+    parent: AbstractLivingMetadataBundle,
+    small: Small,
+    show_arms: ShowArms,
+    no_base_plate: NoBasePlate,
+    armor_stand_marker: ArmorStandMarker,
+    head_pose: HeadPose,
+    body_pose: BodyPose,
+    left_arm_pose: LeftArmPose,
+    right_arm_pose: RightArmPose,
+    left_leg_pose: LeftLegPose,
+    right_leg_pose: RightLegPose,
 }
-
-impl Shulker {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_creature = AbstractCreature::read(metadata)?;
-        let attach_face = metadata.pop_front()?.into_direction().ok()?;
-        let peek = metadata.pop_front()?.into_byte().ok()?;
-        let color = metadata.pop_front()?.into_byte().ok()?;
-        Some(Self {
-            abstract_creature,
-            attach_face,
-            peek,
-            color,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_creature.write());
-        metadata.push(EntityDataValue::Direction(self.attach_face.clone()));
-        metadata.push(EntityDataValue::Byte(self.peek.clone()));
-        metadata.push(EntityDataValue::Byte(self.color.clone()));
-        metadata
-    }
-}
-
-impl Default for Shulker {
+impl Default for ArmorStandMetadataBundle {
     fn default() -> Self {
         Self {
-            abstract_creature: Default::default(),
-            attach_face: Default::default(),
-            peek: 0,
-            color: 16,
+            _marker: ArmorStand,
+            parent: AbstractLivingMetadataBundle {
+                _marker: AbstractLiving,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                auto_spin_attack: AutoSpinAttack(false),
+                abstract_living_using_item: AbstractLivingUsingItem(false),
+                health: Health(1.0),
+                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                effect_ambience: EffectAmbience(false),
+                arrow_count: ArrowCount(0),
+                stinger_count: StingerCount(0),
+                sleeping_pos: SleepingPos(None),
+            },
+            small: Small(false),
+            show_arms: ShowArms(false),
+            no_base_plate: NoBasePlate(false),
+            armor_stand_marker: ArmorStandMarker(false),
+            head_pose: HeadPose(Default::default()),
+            body_pose: BodyPose(Default::default()),
+            left_arm_pose: LeftArmPose(Default::default()),
+            right_arm_pose: RightArmPose(Default::default()),
+            left_leg_pose: LeftLegPose(Default::default()),
+            right_leg_pose: RightLegPose(Default::default()),
         }
     }
 }
 
-impl Shulker {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_creature.set_index(index, value)?,
-            16 => self.attach_face = value.into_direction().ok()?,
-            17 => self.peek = value.into_byte().ok()?,
-            18 => self.color = value.into_byte().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Shulker {
-    type Target = AbstractCreature;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_creature
-    }
-}
-impl DerefMut for Shulker {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_creature
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ShulkerBullet {
-    pub abstract_entity: AbstractEntity,
-}
-
-impl ShulkerBullet {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        Some(Self { abstract_entity })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata
-    }
-}
-
-impl Default for ShulkerBullet {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-        }
-    }
-}
-
-impl ShulkerBullet {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_entity.set_index(index, value)
-    }
-}
-impl Deref for ShulkerBullet {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for ShulkerBullet {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Silverfish {
-    pub abstract_monster: AbstractMonster,
-}
-
-impl Silverfish {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        Some(Self { abstract_monster })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata
-    }
-}
-
-impl Default for Silverfish {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-        }
-    }
-}
-
-impl Silverfish {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_monster.set_index(index, value)
-    }
-}
-impl Deref for Silverfish {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Silverfish {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Skeleton {
-    pub abstract_monster: AbstractMonster,
-    pub stray_conversion: bool,
-}
-
-impl Skeleton {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let stray_conversion = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_monster,
-            stray_conversion,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Boolean(self.stray_conversion.clone()));
-        metadata
-    }
-}
-
-impl Default for Skeleton {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            stray_conversion: false,
-        }
-    }
-}
-
-impl Skeleton {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.stray_conversion = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Skeleton {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Skeleton {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct SkeletonHorse {
-    pub abstract_animal: AbstractAnimal,
-    pub tamed: bool,
-    pub eating: bool,
-    pub standing: bool,
-    pub bred: bool,
-    pub saddled: bool,
-    pub owner_uuid: Option<Uuid>,
-}
-
-impl SkeletonHorse {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tamed = bitfield & 0x2 != 0;
-        let eating = bitfield & 0x10 != 0;
-        let standing = bitfield & 0x20 != 0;
-        let bred = bitfield & 0x8 != 0;
-        let saddled = bitfield & 0x4 != 0;
-        let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-        Some(Self {
-            abstract_animal,
-            tamed,
-            eating,
-            standing,
-            bred,
-            saddled,
-            owner_uuid,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        let mut bitfield = 0u8;
-        if self.tamed {
-            bitfield &= 0x2;
-        }
-        if self.eating {
-            bitfield &= 0x10;
-        }
-        if self.standing {
-            bitfield &= 0x20;
-        }
-        if self.bred {
-            bitfield &= 0x8;
-        }
-        if self.saddled {
-            bitfield &= 0x4;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::OptionalUuid(self.owner_uuid.clone()));
-        metadata
-    }
-}
-
-impl Default for SkeletonHorse {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            tamed: false,
-            eating: false,
-            standing: false,
-            bred: false,
-            saddled: false,
-            owner_uuid: None,
-        }
-    }
-}
-
-impl SkeletonHorse {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => {
-                let bitfield = value.into_byte().ok()?;
-                self.tamed = bitfield & 0x2 != 0;
-                self.eating = bitfield & 0x10 != 0;
-                self.standing = bitfield & 0x20 != 0;
-                self.bred = bitfield & 0x8 != 0;
-                self.saddled = bitfield & 0x4 != 0;
-            }
-            18 => self.owner_uuid = value.into_optional_uuid().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for SkeletonHorse {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for SkeletonHorse {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Slime {
-    pub abstract_insentient: AbstractInsentient,
-    pub size: i32,
-}
-
-impl Slime {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_insentient = AbstractInsentient::read(metadata)?;
-        let size = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_insentient,
-            size,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_insentient.write());
-        metadata.push(EntityDataValue::Int(self.size.clone()));
-        metadata
-    }
-}
-
-impl Default for Slime {
-    fn default() -> Self {
-        Self {
-            abstract_insentient: Default::default(),
-            size: 1,
-        }
-    }
-}
-
-impl Slime {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_insentient.set_index(index, value)?,
-            16 => self.size = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Slime {
-    type Target = AbstractInsentient;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_insentient
-    }
-}
-impl DerefMut for Slime {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_insentient
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct SmallFireball {
-    pub abstract_entity: AbstractEntity,
-    pub item_stack: Slot,
-}
-
-impl SmallFireball {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-        Some(Self {
-            abstract_entity,
-            item_stack,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-        metadata
-    }
-}
-
-impl Default for SmallFireball {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            item_stack: Slot::Empty,
-        }
-    }
-}
-
-impl SmallFireball {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.item_stack = value.into_item_stack().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for SmallFireball {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for SmallFireball {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct SnowGolem {
-    pub abstract_creature: AbstractCreature,
-    pub has_pumpkin: bool,
-}
-
-impl SnowGolem {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_creature = AbstractCreature::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let has_pumpkin = bitfield & 0x10 != 0;
-        Some(Self {
-            abstract_creature,
-            has_pumpkin,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_creature.write());
-        let mut bitfield = 0u8;
-        if self.has_pumpkin {
-            bitfield &= 0x10;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata
-    }
-}
-
-impl Default for SnowGolem {
-    fn default() -> Self {
-        Self {
-            abstract_creature: Default::default(),
-            has_pumpkin: true,
-        }
-    }
-}
-
-impl SnowGolem {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_creature.set_index(index, value)?,
-            16 => {
-                let bitfield = value.into_byte().ok()?;
-                self.has_pumpkin = bitfield & 0x10 != 0;
-            }
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for SnowGolem {
-    type Target = AbstractCreature;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_creature
-    }
-}
-impl DerefMut for SnowGolem {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_creature
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Snowball {
-    pub abstract_entity: AbstractEntity,
-    pub item_stack: Slot,
-}
-
-impl Snowball {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let item_stack = metadata.pop_front()?.into_item_stack().ok()?;
-        Some(Self {
-            abstract_entity,
-            item_stack,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::ItemStack(self.item_stack.clone()));
-        metadata
-    }
-}
-
-impl Default for Snowball {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            item_stack: Slot::Empty,
-        }
-    }
-}
-
-impl Snowball {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.item_stack = value.into_item_stack().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Snowball {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for Snowball {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct SpawnerMinecart {
-    pub abstract_minecart: AbstractMinecart,
-}
-
-impl SpawnerMinecart {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_minecart = AbstractMinecart::read(metadata)?;
-        Some(Self { abstract_minecart })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_minecart.write());
-        metadata
-    }
-}
-
-impl Default for SpawnerMinecart {
-    fn default() -> Self {
-        Self {
-            abstract_minecart: Default::default(),
-        }
-    }
-}
-
-impl SpawnerMinecart {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_minecart.set_index(index, value)
-    }
-}
-impl Deref for SpawnerMinecart {
-    type Target = AbstractMinecart;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_minecart
-    }
-}
-impl DerefMut for SpawnerMinecart {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_minecart
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct SpectralArrow {
-    pub abstract_entity: AbstractEntity,
-    pub crit_arrow: bool,
-    pub shot_from_crossbow: bool,
-    pub no_physics: bool,
-    pub pierce_level: u8,
-}
-
-impl SpectralArrow {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let crit_arrow = bitfield & 0x1 != 0;
-        let shot_from_crossbow = bitfield & 0x4 != 0;
-        let no_physics = bitfield & 0x2 != 0;
-        let pierce_level = metadata.pop_front()?.into_byte().ok()?;
-        Some(Self {
-            abstract_entity,
-            crit_arrow,
-            shot_from_crossbow,
-            no_physics,
-            pierce_level,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        let mut bitfield = 0u8;
-        if self.crit_arrow {
-            bitfield &= 0x1;
-        }
-        if self.shot_from_crossbow {
-            bitfield &= 0x4;
-        }
-        if self.no_physics {
-            bitfield &= 0x2;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::Byte(self.pierce_level.clone()));
-        metadata
-    }
-}
-
-impl Default for SpectralArrow {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            crit_arrow: false,
-            shot_from_crossbow: false,
-            no_physics: false,
-            pierce_level: 0,
-        }
-    }
-}
-
-impl SpectralArrow {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
+#[derive(Component, Deref, DerefMut)]
+pub struct ArrowCritArrow(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct ArrowShotFromCrossbow(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct ArrowNoPhysics(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct ArrowPierceLevel(pub u8);
+#[derive(Component, Deref, DerefMut)]
+pub struct ArrowEffectColor(pub i32);
+#[derive(Component)]
+pub struct Arrow;
+impl Arrow {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                let bitfield = value.into_byte().ok()?;
-                self.crit_arrow = bitfield & 0x1 != 0;
-                self.shot_from_crossbow = bitfield & 0x4 != 0;
-                self.no_physics = bitfield & 0x2 != 0;
+                let bitfield = d.value.into_byte()?;
+                entity.insert(ArrowCritArrow(bitfield & 0x1 != 0));
+                entity.insert(ArrowShotFromCrossbow(bitfield & 0x4 != 0));
+                entity.insert(ArrowNoPhysics(bitfield & 0x2 != 0));
             }
-            9 => self.pierce_level = value.into_byte().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for SpectralArrow {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for SpectralArrow {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Spider {
-    pub abstract_monster: AbstractMonster,
-    pub climbing: bool,
-}
-
-impl Spider {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let climbing = bitfield & 0x1 != 0;
-        Some(Self {
-            abstract_monster,
-            climbing,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        let mut bitfield = 0u8;
-        if self.climbing {
-            bitfield &= 0x1;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata
-    }
-}
-
-impl Default for Spider {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            climbing: false,
-        }
-    }
-}
-
-impl Spider {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => {
-                let bitfield = value.into_byte().ok()?;
-                self.climbing = bitfield & 0x1 != 0;
+            9 => {
+                entity.insert(ArrowPierceLevel(d.value.into_byte()?));
+            }
+            10 => {
+                entity.insert(ArrowEffectColor(d.value.into_int()?));
             }
             _ => {}
         }
-        Some(())
-    }
-}
-impl Deref for Spider {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Spider {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
+        Ok(())
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Squid {
-    pub abstract_creature: AbstractCreature,
+#[derive(Bundle)]
+pub struct ArrowMetadataBundle {
+    _marker: Arrow,
+    parent: AbstractEntityMetadataBundle,
+    arrow_crit_arrow: ArrowCritArrow,
+    arrow_shot_from_crossbow: ArrowShotFromCrossbow,
+    arrow_no_physics: ArrowNoPhysics,
+    arrow_pierce_level: ArrowPierceLevel,
+    arrow_effect_color: ArrowEffectColor,
 }
-
-impl Squid {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_creature = AbstractCreature::read(metadata)?;
-        Some(Self { abstract_creature })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_creature.write());
-        metadata
-    }
-}
-
-impl Default for Squid {
+impl Default for ArrowMetadataBundle {
     fn default() -> Self {
         Self {
-            abstract_creature: Default::default(),
+            _marker: Arrow,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            arrow_crit_arrow: ArrowCritArrow(false),
+            arrow_shot_from_crossbow: ArrowShotFromCrossbow(false),
+            arrow_no_physics: ArrowNoPhysics(false),
+            arrow_pierce_level: ArrowPierceLevel(0),
+            arrow_effect_color: ArrowEffectColor(-1),
         }
     }
 }
 
-impl Squid {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_creature.set_index(index, value)
-    }
-}
-impl Deref for Squid {
-    type Target = AbstractCreature;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_creature
-    }
-}
-impl DerefMut for Squid {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_creature
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Stray {
-    pub abstract_monster: AbstractMonster,
-}
-
-impl Stray {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        Some(Self { abstract_monster })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata
-    }
-}
-
-impl Default for Stray {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-        }
-    }
-}
-
-impl Stray {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_monster.set_index(index, value)
-    }
-}
-impl Deref for Stray {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Stray {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Strider {
-    pub abstract_animal: AbstractAnimal,
-    pub boost_time: i32,
-    pub suffocating: bool,
-    pub saddle: bool,
-}
-
-impl Strider {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let boost_time = metadata.pop_front()?.into_int().ok()?;
-        let suffocating = metadata.pop_front()?.into_boolean().ok()?;
-        let saddle = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_animal,
-            boost_time,
-            suffocating,
-            saddle,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        metadata.push(EntityDataValue::Int(self.boost_time.clone()));
-        metadata.push(EntityDataValue::Boolean(self.suffocating.clone()));
-        metadata.push(EntityDataValue::Boolean(self.saddle.clone()));
-        metadata
-    }
-}
-
-impl Default for Strider {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            boost_time: 0,
-            suffocating: false,
-            saddle: false,
-        }
-    }
-}
-
-impl Strider {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => self.boost_time = value.into_int().ok()?,
-            18 => self.suffocating = value.into_boolean().ok()?,
-            19 => self.saddle = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Strider {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Strider {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Tadpole {
-    pub abstract_creature: AbstractCreature,
-    pub from_bucket: bool,
-}
-
-impl Tadpole {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_creature = AbstractCreature::read(metadata)?;
-        let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_creature,
-            from_bucket,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_creature.write());
-        metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
-        metadata
-    }
-}
-
-impl Default for Tadpole {
-    fn default() -> Self {
-        Self {
-            abstract_creature: Default::default(),
-            from_bucket: false,
-        }
-    }
-}
-
-impl Tadpole {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_creature.set_index(index, value)?,
-            16 => self.from_bucket = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Tadpole {
-    type Target = AbstractCreature;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_creature
-    }
-}
-impl DerefMut for Tadpole {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_creature
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Tnt {
-    pub abstract_entity: AbstractEntity,
-    pub fuse: i32,
-}
-
-impl Tnt {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let fuse = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_entity,
-            fuse,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::Int(self.fuse.clone()));
-        metadata
-    }
-}
-
-impl Default for Tnt {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            fuse: 80,
-        }
-    }
-}
-
-impl Tnt {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.fuse = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Tnt {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for Tnt {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct TntMinecart {
-    pub abstract_minecart: AbstractMinecart,
-}
-
-impl TntMinecart {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_minecart = AbstractMinecart::read(metadata)?;
-        Some(Self { abstract_minecart })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_minecart.write());
-        metadata
-    }
-}
-
-impl Default for TntMinecart {
-    fn default() -> Self {
-        Self {
-            abstract_minecart: Default::default(),
-        }
-    }
-}
-
-impl TntMinecart {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_minecart.set_index(index, value)
-    }
-}
-impl Deref for TntMinecart {
-    type Target = AbstractMinecart;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_minecart
-    }
-}
-impl DerefMut for TntMinecart {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_minecart
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct TraderLlama {
-    pub llama: Llama,
-}
-
-impl TraderLlama {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let llama = Llama::read(metadata)?;
-        Some(Self { llama })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.llama.write());
-        metadata
-    }
-}
-
-impl Default for TraderLlama {
-    fn default() -> Self {
-        Self {
-            llama: Default::default(),
-        }
-    }
-}
-
-impl TraderLlama {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.llama.set_index(index, value)
-    }
-}
-impl Deref for TraderLlama {
-    type Target = Llama;
-    fn deref(&self) -> &Self::Target {
-        &self.llama
-    }
-}
-impl DerefMut for TraderLlama {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.llama
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Trident {
-    pub abstract_entity: AbstractEntity,
-    pub crit_arrow: bool,
-    pub shot_from_crossbow: bool,
-    pub no_physics: bool,
-    pub pierce_level: u8,
-    pub loyalty: u8,
-    pub foil: bool,
-}
-
-impl Trident {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let crit_arrow = bitfield & 0x1 != 0;
-        let shot_from_crossbow = bitfield & 0x4 != 0;
-        let no_physics = bitfield & 0x2 != 0;
-        let pierce_level = metadata.pop_front()?.into_byte().ok()?;
-        let loyalty = metadata.pop_front()?.into_byte().ok()?;
-        let foil = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_entity,
-            crit_arrow,
-            shot_from_crossbow,
-            no_physics,
-            pierce_level,
-            loyalty,
-            foil,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        let mut bitfield = 0u8;
-        if self.crit_arrow {
-            bitfield &= 0x1;
-        }
-        if self.shot_from_crossbow {
-            bitfield &= 0x4;
-        }
-        if self.no_physics {
-            bitfield &= 0x2;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::Byte(self.pierce_level.clone()));
-        metadata.push(EntityDataValue::Byte(self.loyalty.clone()));
-        metadata.push(EntityDataValue::Boolean(self.foil.clone()));
-        metadata
-    }
-}
-
-impl Default for Trident {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            crit_arrow: false,
-            shot_from_crossbow: false,
-            no_physics: false,
-            pierce_level: 0,
-            loyalty: 0,
-            foil: false,
-        }
-    }
-}
-
-impl Trident {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => {
-                let bitfield = value.into_byte().ok()?;
-                self.crit_arrow = bitfield & 0x1 != 0;
-                self.shot_from_crossbow = bitfield & 0x4 != 0;
-                self.no_physics = bitfield & 0x2 != 0;
-            }
-            9 => self.pierce_level = value.into_byte().ok()?,
-            10 => self.loyalty = value.into_byte().ok()?,
-            11 => self.foil = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Trident {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for Trident {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct TropicalFish {
-    pub abstract_creature: AbstractCreature,
-    pub from_bucket: bool,
-    pub type_variant: i32,
-}
-
-impl TropicalFish {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_creature = AbstractCreature::read(metadata)?;
-        let from_bucket = metadata.pop_front()?.into_boolean().ok()?;
-        let type_variant = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_creature,
-            from_bucket,
-            type_variant,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_creature.write());
-        metadata.push(EntityDataValue::Boolean(self.from_bucket.clone()));
-        metadata.push(EntityDataValue::Int(self.type_variant.clone()));
-        metadata
-    }
-}
-
-impl Default for TropicalFish {
-    fn default() -> Self {
-        Self {
-            abstract_creature: Default::default(),
-            from_bucket: false,
-            type_variant: 0,
-        }
-    }
-}
-
-impl TropicalFish {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_creature.set_index(index, value)?,
-            16 => self.from_bucket = value.into_boolean().ok()?,
-            17 => self.type_variant = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for TropicalFish {
-    type Target = AbstractCreature;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_creature
-    }
-}
-impl DerefMut for TropicalFish {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_creature
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Turtle {
-    pub abstract_animal: AbstractAnimal,
-    pub home_pos: BlockPos,
-    pub has_egg: bool,
-    pub laying_egg: bool,
-    pub travel_pos: BlockPos,
-    pub going_home: bool,
-    pub travelling: bool,
-}
-
-impl Turtle {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let home_pos = metadata.pop_front()?.into_block_pos().ok()?;
-        let has_egg = metadata.pop_front()?.into_boolean().ok()?;
-        let laying_egg = metadata.pop_front()?.into_boolean().ok()?;
-        let travel_pos = metadata.pop_front()?.into_block_pos().ok()?;
-        let going_home = metadata.pop_front()?.into_boolean().ok()?;
-        let travelling = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_animal,
-            home_pos,
-            has_egg,
-            laying_egg,
-            travel_pos,
-            going_home,
-            travelling,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        metadata.push(EntityDataValue::BlockPos(self.home_pos.clone()));
-        metadata.push(EntityDataValue::Boolean(self.has_egg.clone()));
-        metadata.push(EntityDataValue::Boolean(self.laying_egg.clone()));
-        metadata.push(EntityDataValue::BlockPos(self.travel_pos.clone()));
-        metadata.push(EntityDataValue::Boolean(self.going_home.clone()));
-        metadata.push(EntityDataValue::Boolean(self.travelling.clone()));
-        metadata
-    }
-}
-
-impl Default for Turtle {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            home_pos: BlockPos::new(0, 0, 0),
-            has_egg: false,
-            laying_egg: false,
-            travel_pos: BlockPos::new(0, 0, 0),
-            going_home: false,
-            travelling: false,
-        }
-    }
-}
-
-impl Turtle {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
-            17 => self.home_pos = value.into_block_pos().ok()?,
-            18 => self.has_egg = value.into_boolean().ok()?,
-            19 => self.laying_egg = value.into_boolean().ok()?,
-            20 => self.travel_pos = value.into_block_pos().ok()?,
-            21 => self.going_home = value.into_boolean().ok()?,
-            22 => self.travelling = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Turtle {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for Turtle {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Vex {
-    pub abstract_monster: AbstractMonster,
-    pub flags: u8,
-}
-
-impl Vex {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let flags = metadata.pop_front()?.into_byte().ok()?;
-        Some(Self {
-            abstract_monster,
-            flags,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Byte(self.flags.clone()));
-        metadata
-    }
-}
-
-impl Default for Vex {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            flags: 0,
-        }
-    }
-}
-
-impl Vex {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.flags = value.into_byte().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Vex {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Vex {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Villager {
-    pub abstract_ageable: AbstractAgeable,
-    pub unhappy_counter: i32,
-    pub villager_data: VillagerData,
-}
-
-impl Villager {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_ageable = AbstractAgeable::read(metadata)?;
-        let unhappy_counter = metadata.pop_front()?.into_int().ok()?;
-        let villager_data = metadata.pop_front()?.into_villager_data().ok()?;
-        Some(Self {
-            abstract_ageable,
-            unhappy_counter,
-            villager_data,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_ageable.write());
-        metadata.push(EntityDataValue::Int(self.unhappy_counter.clone()));
-        metadata.push(EntityDataValue::VillagerData(self.villager_data.clone()));
-        metadata
-    }
-}
-
-impl Default for Villager {
-    fn default() -> Self {
-        Self {
-            abstract_ageable: Default::default(),
-            unhappy_counter: 0,
-            villager_data: Default::default(),
-        }
-    }
-}
-
-impl Villager {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_ageable.set_index(index, value)?,
-            17 => self.unhappy_counter = value.into_int().ok()?,
-            18 => self.villager_data = value.into_villager_data().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Villager {
-    type Target = AbstractAgeable;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_ageable
-    }
-}
-impl DerefMut for Villager {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_ageable
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Vindicator {
-    pub abstract_monster: AbstractMonster,
-    pub is_celebrating: bool,
-}
-
-impl Vindicator {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_monster,
-            is_celebrating,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
-        metadata
-    }
-}
-
-impl Default for Vindicator {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            is_celebrating: false,
-        }
-    }
-}
-
-impl Vindicator {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.is_celebrating = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Vindicator {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Vindicator {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct WanderingTrader {
-    pub abstract_ageable: AbstractAgeable,
-    pub unhappy_counter: i32,
-}
-
-impl WanderingTrader {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_ageable = AbstractAgeable::read(metadata)?;
-        let unhappy_counter = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_ageable,
-            unhappy_counter,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_ageable.write());
-        metadata.push(EntityDataValue::Int(self.unhappy_counter.clone()));
-        metadata
-    }
-}
-
-impl Default for WanderingTrader {
-    fn default() -> Self {
-        Self {
-            abstract_ageable: Default::default(),
-            unhappy_counter: 0,
-        }
-    }
-}
-
-impl WanderingTrader {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_ageable.set_index(index, value)?,
-            17 => self.unhappy_counter = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for WanderingTrader {
-    type Target = AbstractAgeable;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_ageable
-    }
-}
-impl DerefMut for WanderingTrader {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_ageable
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Warden {
-    pub abstract_monster: AbstractMonster,
-    pub client_anger_level: i32,
-}
-
-impl Warden {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let client_anger_level = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_monster,
-            client_anger_level,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Int(self.client_anger_level.clone()));
-        metadata
-    }
-}
-
-impl Default for Warden {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            client_anger_level: 0,
-        }
-    }
-}
-
-impl Warden {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.client_anger_level = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Warden {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Warden {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Witch {
-    pub abstract_monster: AbstractMonster,
-    pub is_celebrating: bool,
-    pub using_item: bool,
-}
-
-impl Witch {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let is_celebrating = metadata.pop_front()?.into_boolean().ok()?;
-        let using_item = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_monster,
-            is_celebrating,
-            using_item,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Boolean(self.is_celebrating.clone()));
-        metadata.push(EntityDataValue::Boolean(self.using_item.clone()));
-        metadata
-    }
-}
-
-impl Default for Witch {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            is_celebrating: false,
-            using_item: false,
-        }
-    }
-}
-
-impl Witch {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.is_celebrating = value.into_boolean().ok()?,
-            17 => self.using_item = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Witch {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Witch {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Wither {
-    pub abstract_monster: AbstractMonster,
-    pub target_a: i32,
-    pub target_b: i32,
-    pub target_c: i32,
-    pub inv: i32,
-}
-
-impl Wither {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let target_a = metadata.pop_front()?.into_int().ok()?;
-        let target_b = metadata.pop_front()?.into_int().ok()?;
-        let target_c = metadata.pop_front()?.into_int().ok()?;
-        let inv = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_monster,
-            target_a,
-            target_b,
-            target_c,
-            inv,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Int(self.target_a.clone()));
-        metadata.push(EntityDataValue::Int(self.target_b.clone()));
-        metadata.push(EntityDataValue::Int(self.target_c.clone()));
-        metadata.push(EntityDataValue::Int(self.inv.clone()));
-        metadata
-    }
-}
-
-impl Default for Wither {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            target_a: 0,
-            target_b: 0,
-            target_c: 0,
-            inv: 0,
-        }
-    }
-}
-
-impl Wither {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.target_a = value.into_int().ok()?,
-            17 => self.target_b = value.into_int().ok()?,
-            18 => self.target_c = value.into_int().ok()?,
-            19 => self.inv = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Wither {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Wither {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct WitherSkeleton {
-    pub abstract_monster: AbstractMonster,
-}
-
-impl WitherSkeleton {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        Some(Self { abstract_monster })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata
-    }
-}
-
-impl Default for WitherSkeleton {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-        }
-    }
-}
-
-impl WitherSkeleton {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_monster.set_index(index, value)
-    }
-}
-impl Deref for WitherSkeleton {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for WitherSkeleton {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct WitherSkull {
-    pub abstract_entity: AbstractEntity,
-    pub dangerous: bool,
-}
-
-impl WitherSkull {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let dangerous = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_entity,
-            dangerous,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::Boolean(self.dangerous.clone()));
-        metadata
-    }
-}
-
-impl Default for WitherSkull {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            dangerous: false,
-        }
-    }
-}
-
-impl WitherSkull {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.dangerous = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for WitherSkull {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for WitherSkull {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Wolf {
-    pub abstract_tameable: AbstractTameable,
-    pub interested: bool,
-    pub collar_color: i32,
-    pub remaining_anger_time: i32,
-}
-
-impl Wolf {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_tameable = AbstractTameable::read(metadata)?;
-        let interested = metadata.pop_front()?.into_boolean().ok()?;
-        let collar_color = metadata.pop_front()?.into_int().ok()?;
-        let remaining_anger_time = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            abstract_tameable,
-            interested,
-            collar_color,
-            remaining_anger_time,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_tameable.write());
-        metadata.push(EntityDataValue::Boolean(self.interested.clone()));
-        metadata.push(EntityDataValue::Int(self.collar_color.clone()));
-        metadata.push(EntityDataValue::Int(self.remaining_anger_time.clone()));
-        metadata
-    }
-}
-
-impl Default for Wolf {
-    fn default() -> Self {
-        Self {
-            abstract_tameable: Default::default(),
-            interested: false,
-            collar_color: Default::default(),
-            remaining_anger_time: 0,
-        }
-    }
-}
-
-impl Wolf {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=18 => self.abstract_tameable.set_index(index, value)?,
-            19 => self.interested = value.into_boolean().ok()?,
-            20 => self.collar_color = value.into_int().ok()?,
-            21 => self.remaining_anger_time = value.into_int().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Wolf {
-    type Target = AbstractTameable;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_tameable
-    }
-}
-impl DerefMut for Wolf {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_tameable
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Zoglin {
-    pub abstract_monster: AbstractMonster,
-    pub baby: bool,
-}
-
-impl Zoglin {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let baby = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_monster,
-            baby,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Boolean(self.baby.clone()));
-        metadata
-    }
-}
-
-impl Default for Zoglin {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            baby: false,
-        }
-    }
-}
-
-impl Zoglin {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.baby = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Zoglin {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Zoglin {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Zombie {
-    pub abstract_monster: AbstractMonster,
-    pub baby: bool,
-    pub special_type: i32,
-    pub drowned_conversion: bool,
-}
-
-impl Zombie {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_monster = AbstractMonster::read(metadata)?;
-        let baby = metadata.pop_front()?.into_boolean().ok()?;
-        let special_type = metadata.pop_front()?.into_int().ok()?;
-        let drowned_conversion = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_monster,
-            baby,
-            special_type,
-            drowned_conversion,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_monster.write());
-        metadata.push(EntityDataValue::Boolean(self.baby.clone()));
-        metadata.push(EntityDataValue::Int(self.special_type.clone()));
-        metadata.push(EntityDataValue::Boolean(self.drowned_conversion.clone()));
-        metadata
-    }
-}
-
-impl Default for Zombie {
-    fn default() -> Self {
-        Self {
-            abstract_monster: Default::default(),
-            baby: false,
-            special_type: 0,
-            drowned_conversion: false,
-        }
-    }
-}
-
-impl Zombie {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_monster.set_index(index, value)?,
-            16 => self.baby = value.into_boolean().ok()?,
-            17 => self.special_type = value.into_int().ok()?,
-            18 => self.drowned_conversion = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for Zombie {
-    type Target = AbstractMonster;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_monster
-    }
-}
-impl DerefMut for Zombie {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_monster
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ZombieHorse {
-    pub abstract_animal: AbstractAnimal,
-    pub tamed: bool,
-    pub eating: bool,
-    pub standing: bool,
-    pub bred: bool,
-    pub saddled: bool,
-    pub owner_uuid: Option<Uuid>,
-}
-
-impl ZombieHorse {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tamed = bitfield & 0x2 != 0;
-        let eating = bitfield & 0x10 != 0;
-        let standing = bitfield & 0x20 != 0;
-        let bred = bitfield & 0x8 != 0;
-        let saddled = bitfield & 0x4 != 0;
-        let owner_uuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-        Some(Self {
-            abstract_animal,
-            tamed,
-            eating,
-            standing,
-            bred,
-            saddled,
-            owner_uuid,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        let mut bitfield = 0u8;
-        if self.tamed {
-            bitfield &= 0x2;
-        }
-        if self.eating {
-            bitfield &= 0x10;
-        }
-        if self.standing {
-            bitfield &= 0x20;
-        }
-        if self.bred {
-            bitfield &= 0x8;
-        }
-        if self.saddled {
-            bitfield &= 0x4;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::OptionalUuid(self.owner_uuid.clone()));
-        metadata
-    }
-}
-
-impl Default for ZombieHorse {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            tamed: false,
-            eating: false,
-            standing: false,
-            bred: false,
-            saddled: false,
-            owner_uuid: None,
-        }
-    }
-}
-
-impl ZombieHorse {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
+#[derive(Component, Deref, DerefMut)]
+pub struct AbstractAgeableBaby(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct AxolotlVariant(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct PlayingDead(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct AxolotlFromBucket(pub bool);
+#[derive(Component)]
+pub struct Axolotl;
+impl Axolotl {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
-                let bitfield = value.into_byte().ok()?;
-                self.tamed = bitfield & 0x2 != 0;
-                self.eating = bitfield & 0x10 != 0;
-                self.standing = bitfield & 0x20 != 0;
-                self.bred = bitfield & 0x8 != 0;
-                self.saddled = bitfield & 0x4 != 0;
+                entity.insert(AxolotlVariant(d.value.into_int()?));
             }
-            18 => self.owner_uuid = value.into_optional_uuid().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for ZombieHorse {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for ZombieHorse {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ZombieVillager {
-    pub zombie: Zombie,
-    pub converting: bool,
-    pub villager_data: VillagerData,
-}
-
-impl ZombieVillager {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let zombie = Zombie::read(metadata)?;
-        let converting = metadata.pop_front()?.into_boolean().ok()?;
-        let villager_data = metadata.pop_front()?.into_villager_data().ok()?;
-        Some(Self {
-            zombie,
-            converting,
-            villager_data,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.zombie.write());
-        metadata.push(EntityDataValue::Boolean(self.converting.clone()));
-        metadata.push(EntityDataValue::VillagerData(self.villager_data.clone()));
-        metadata
-    }
-}
-
-impl Default for ZombieVillager {
-    fn default() -> Self {
-        Self {
-            zombie: Default::default(),
-            converting: false,
-            villager_data: Default::default(),
-        }
-    }
-}
-
-impl ZombieVillager {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=18 => self.zombie.set_index(index, value)?,
-            19 => self.converting = value.into_boolean().ok()?,
-            20 => self.villager_data = value.into_villager_data().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for ZombieVillager {
-    type Target = Zombie;
-    fn deref(&self) -> &Self::Target {
-        &self.zombie
-    }
-}
-impl DerefMut for ZombieVillager {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.zombie
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ZombifiedPiglin {
-    pub zombie: Zombie,
-}
-
-impl ZombifiedPiglin {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let zombie = Zombie::read(metadata)?;
-        Some(Self { zombie })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.zombie.write());
-        metadata
-    }
-}
-
-impl Default for ZombifiedPiglin {
-    fn default() -> Self {
-        Self {
-            zombie: Default::default(),
-        }
-    }
-}
-
-impl ZombifiedPiglin {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.zombie.set_index(index, value)
-    }
-}
-impl Deref for ZombifiedPiglin {
-    type Target = Zombie;
-    fn deref(&self) -> &Self::Target {
-        &self.zombie
-    }
-}
-impl DerefMut for ZombifiedPiglin {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.zombie
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AbstractAgeable {
-    pub abstract_creature: AbstractCreature,
-    pub baby: bool,
-}
-
-impl AbstractAgeable {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_creature = AbstractCreature::read(metadata)?;
-        let baby = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_creature,
-            baby,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_creature.write());
-        metadata.push(EntityDataValue::Boolean(self.baby.clone()));
-        metadata
-    }
-}
-
-impl Default for AbstractAgeable {
-    fn default() -> Self {
-        Self {
-            abstract_creature: Default::default(),
-            baby: false,
-        }
-    }
-}
-
-impl AbstractAgeable {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=15 => self.abstract_creature.set_index(index, value)?,
-            16 => self.baby = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for AbstractAgeable {
-    type Target = AbstractCreature;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_creature
-    }
-}
-impl DerefMut for AbstractAgeable {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_creature
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AbstractAnimal {
-    pub abstract_ageable: AbstractAgeable,
-}
-
-impl AbstractAnimal {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_ageable = AbstractAgeable::read(metadata)?;
-        Some(Self { abstract_ageable })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_ageable.write());
-        metadata
-    }
-}
-
-impl Default for AbstractAnimal {
-    fn default() -> Self {
-        Self {
-            abstract_ageable: Default::default(),
-        }
-    }
-}
-
-impl AbstractAnimal {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_ageable.set_index(index, value)
-    }
-}
-impl Deref for AbstractAnimal {
-    type Target = AbstractAgeable;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_ageable
-    }
-}
-impl DerefMut for AbstractAnimal {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_ageable
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AbstractCreature {
-    pub abstract_insentient: AbstractInsentient,
-}
-
-impl AbstractCreature {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_insentient = AbstractInsentient::read(metadata)?;
-        Some(Self {
-            abstract_insentient,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_insentient.write());
-        metadata
-    }
-}
-
-impl Default for AbstractCreature {
-    fn default() -> Self {
-        Self {
-            abstract_insentient: Default::default(),
-        }
-    }
-}
-
-impl AbstractCreature {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_insentient.set_index(index, value)
-    }
-}
-impl Deref for AbstractCreature {
-    type Target = AbstractInsentient;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_insentient
-    }
-}
-impl DerefMut for AbstractCreature {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_insentient
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AbstractEntity {
-    pub on_fire: bool,
-    pub shift_key_down: bool,
-    pub sprinting: bool,
-    pub swimming: bool,
-    pub currently_glowing: bool,
-    pub invisible: bool,
-    pub fall_flying: bool,
-    pub air_supply: i32,
-    pub custom_name: Option<Component>,
-    pub custom_name_visible: bool,
-    pub silent: bool,
-    pub no_gravity: bool,
-    pub pose: Pose,
-    pub ticks_frozen: i32,
-}
-
-impl AbstractEntity {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let on_fire = bitfield & 0x1 != 0;
-        let shift_key_down = bitfield & 0x2 != 0;
-        let sprinting = bitfield & 0x8 != 0;
-        let swimming = bitfield & 0x10 != 0;
-        let currently_glowing = bitfield & 0x40 != 0;
-        let invisible = bitfield & 0x20 != 0;
-        let fall_flying = bitfield & 0x80 != 0;
-        let air_supply = metadata.pop_front()?.into_int().ok()?;
-        let custom_name = metadata.pop_front()?.into_optional_component().ok()?;
-        let custom_name_visible = metadata.pop_front()?.into_boolean().ok()?;
-        let silent = metadata.pop_front()?.into_boolean().ok()?;
-        let no_gravity = metadata.pop_front()?.into_boolean().ok()?;
-        let pose = metadata.pop_front()?.into_pose().ok()?;
-        let ticks_frozen = metadata.pop_front()?.into_int().ok()?;
-        Some(Self {
-            on_fire,
-            shift_key_down,
-            sprinting,
-            swimming,
-            currently_glowing,
-            invisible,
-            fall_flying,
-            air_supply,
-            custom_name,
-            custom_name_visible,
-            silent,
-            no_gravity,
-            pose,
-            ticks_frozen,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        let mut bitfield = 0u8;
-        if self.on_fire {
-            bitfield &= 0x1;
-        }
-        if self.shift_key_down {
-            bitfield &= 0x2;
-        }
-        if self.sprinting {
-            bitfield &= 0x8;
-        }
-        if self.swimming {
-            bitfield &= 0x10;
-        }
-        if self.currently_glowing {
-            bitfield &= 0x40;
-        }
-        if self.invisible {
-            bitfield &= 0x20;
-        }
-        if self.fall_flying {
-            bitfield &= 0x80;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::Int(self.air_supply.clone()));
-        metadata.push(EntityDataValue::OptionalComponent(self.custom_name.clone()));
-        metadata.push(EntityDataValue::Boolean(self.custom_name_visible.clone()));
-        metadata.push(EntityDataValue::Boolean(self.silent.clone()));
-        metadata.push(EntityDataValue::Boolean(self.no_gravity.clone()));
-        metadata.push(EntityDataValue::Pose(self.pose.clone()));
-        metadata.push(EntityDataValue::Int(self.ticks_frozen.clone()));
-        metadata
-    }
-}
-
-impl Default for AbstractEntity {
-    fn default() -> Self {
-        Self {
-            on_fire: false,
-            shift_key_down: false,
-            sprinting: false,
-            swimming: false,
-            currently_glowing: false,
-            invisible: false,
-            fall_flying: false,
-            air_supply: Default::default(),
-            custom_name: None,
-            custom_name_visible: false,
-            silent: false,
-            no_gravity: false,
-            pose: Default::default(),
-            ticks_frozen: 0,
-        }
-    }
-}
-
-impl AbstractEntity {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0 => {
-                let bitfield = value.into_byte().ok()?;
-                self.on_fire = bitfield & 0x1 != 0;
-                self.shift_key_down = bitfield & 0x2 != 0;
-                self.sprinting = bitfield & 0x8 != 0;
-                self.swimming = bitfield & 0x10 != 0;
-                self.currently_glowing = bitfield & 0x40 != 0;
-                self.invisible = bitfield & 0x20 != 0;
-                self.fall_flying = bitfield & 0x80 != 0;
+            18 => {
+                entity.insert(PlayingDead(d.value.into_boolean()?));
             }
-            1 => self.air_supply = value.into_int().ok()?,
-            2 => self.custom_name = value.into_optional_component().ok()?,
-            3 => self.custom_name_visible = value.into_boolean().ok()?,
-            4 => self.silent = value.into_boolean().ok()?,
-            5 => self.no_gravity = value.into_boolean().ok()?,
-            6 => self.pose = value.into_pose().ok()?,
-            7 => self.ticks_frozen = value.into_int().ok()?,
+            19 => {
+                entity.insert(AxolotlFromBucket(d.value.into_boolean()?));
+            }
             _ => {}
         }
-        Some(())
-    }
-}
-#[derive(Debug, Clone)]
-pub struct AbstractInsentient {
-    pub abstract_living: AbstractLiving,
-    pub no_ai: bool,
-    pub left_handed: bool,
-    pub aggressive: bool,
-}
-
-impl AbstractInsentient {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_living = AbstractLiving::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let no_ai = bitfield & 0x1 != 0;
-        let left_handed = bitfield & 0x2 != 0;
-        let aggressive = bitfield & 0x4 != 0;
-        Some(Self {
-            abstract_living,
-            no_ai,
-            left_handed,
-            aggressive,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_living.write());
-        let mut bitfield = 0u8;
-        if self.no_ai {
-            bitfield &= 0x1;
-        }
-        if self.left_handed {
-            bitfield &= 0x2;
-        }
-        if self.aggressive {
-            bitfield &= 0x4;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata
+        Ok(())
     }
 }
 
-impl Default for AbstractInsentient {
+#[derive(Bundle)]
+pub struct AxolotlMetadataBundle {
+    _marker: Axolotl,
+    parent: AbstractAnimalMetadataBundle,
+    axolotl_variant: AxolotlVariant,
+    playing_dead: PlayingDead,
+    axolotl_from_bucket: AxolotlFromBucket,
+}
+impl Default for AxolotlMetadataBundle {
     fn default() -> Self {
         Self {
-            abstract_living: Default::default(),
-            no_ai: false,
-            left_handed: false,
-            aggressive: false,
+            _marker: Axolotl,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            axolotl_variant: AxolotlVariant(0),
+            playing_dead: PlayingDead(false),
+            axolotl_from_bucket: AxolotlFromBucket(false),
         }
     }
 }
 
-impl AbstractInsentient {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=14 => self.abstract_living.set_index(index, value)?,
+#[derive(Component, Deref, DerefMut)]
+pub struct Resting(pub bool);
+#[derive(Component)]
+pub struct Bat;
+impl Bat {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
+            16 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(Resting(bitfield & 0x1 != 0));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct BatMetadataBundle {
+    _marker: Bat,
+    parent: AbstractInsentientMetadataBundle,
+    resting: Resting,
+}
+impl Default for BatMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Bat,
+            parent: AbstractInsentientMetadataBundle {
+                _marker: AbstractInsentient,
+                parent: AbstractLivingMetadataBundle {
+                    _marker: AbstractLiving,
+                    parent: AbstractEntityMetadataBundle {
+                        _marker: AbstractEntity,
+                        on_fire: OnFire(false),
+                        shift_key_down: ShiftKeyDown(false),
+                        sprinting: Sprinting(false),
+                        swimming: Swimming(false),
+                        currently_glowing: CurrentlyGlowing(false),
+                        invisible: Invisible(false),
+                        fall_flying: FallFlying(false),
+                        air_supply: AirSupply(Default::default()),
+                        custom_name: CustomName(None),
+                        custom_name_visible: CustomNameVisible(false),
+                        silent: Silent(false),
+                        no_gravity: NoGravity(false),
+                        pose: Pose::default(),
+                        ticks_frozen: TicksFrozen(0),
+                    },
+                    auto_spin_attack: AutoSpinAttack(false),
+                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                    health: Health(1.0),
+                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                    effect_ambience: EffectAmbience(false),
+                    arrow_count: ArrowCount(0),
+                    stinger_count: StingerCount(0),
+                    sleeping_pos: SleepingPos(None),
+                },
+                no_ai: NoAi(false),
+                left_handed: LeftHanded(false),
+                aggressive: Aggressive(false),
+            },
+            resting: Resting(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct HasNectar(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct HasStung(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct BeeRolling(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct BeeRemainingAngerTime(pub i32);
+#[derive(Component)]
+pub struct Bee;
+impl Bee {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(HasNectar(bitfield & 0x8 != 0));
+                entity.insert(HasStung(bitfield & 0x4 != 0));
+                entity.insert(BeeRolling(bitfield & 0x2 != 0));
+            }
+            18 => {
+                entity.insert(BeeRemainingAngerTime(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct BeeMetadataBundle {
+    _marker: Bee,
+    parent: AbstractAnimalMetadataBundle,
+    has_nectar: HasNectar,
+    has_stung: HasStung,
+    bee_rolling: BeeRolling,
+    bee_remaining_anger_time: BeeRemainingAngerTime,
+}
+impl Default for BeeMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Bee,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            has_nectar: HasNectar(false),
+            has_stung: HasStung(false),
+            bee_rolling: BeeRolling(false),
+            bee_remaining_anger_time: BeeRemainingAngerTime(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct Charged(pub bool);
+#[derive(Component)]
+pub struct Blaze;
+impl Blaze {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(Charged(bitfield & 0x1 != 0));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct BlazeMetadataBundle {
+    _marker: Blaze,
+    parent: AbstractMonsterMetadataBundle,
+    charged: Charged,
+}
+impl Default for BlazeMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Blaze,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            charged: Charged(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct BoatHurt(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct BoatHurtdir(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct BoatDamage(pub f32);
+#[derive(Component, Deref, DerefMut)]
+pub struct BoatKind(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct PaddleLeft(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct PaddleRight(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct BubbleTime(pub i32);
+#[derive(Component)]
+pub struct Boat;
+impl Boat {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(BoatHurt(d.value.into_int()?));
+            }
+            9 => {
+                entity.insert(BoatHurtdir(d.value.into_int()?));
+            }
+            10 => {
+                entity.insert(BoatDamage(d.value.into_float()?));
+            }
+            11 => {
+                entity.insert(BoatKind(d.value.into_int()?));
+            }
+            12 => {
+                entity.insert(PaddleLeft(d.value.into_boolean()?));
+            }
+            13 => {
+                entity.insert(PaddleRight(d.value.into_boolean()?));
+            }
+            14 => {
+                entity.insert(BubbleTime(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct BoatMetadataBundle {
+    _marker: Boat,
+    parent: AbstractEntityMetadataBundle,
+    boat_hurt: BoatHurt,
+    boat_hurtdir: BoatHurtdir,
+    boat_damage: BoatDamage,
+    boat_kind: BoatKind,
+    paddle_left: PaddleLeft,
+    paddle_right: PaddleRight,
+    bubble_time: BubbleTime,
+}
+impl Default for BoatMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Boat,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            boat_hurt: BoatHurt(0),
+            boat_hurtdir: BoatHurtdir(1),
+            boat_damage: BoatDamage(0.0),
+            boat_kind: BoatKind(Default::default()),
+            paddle_left: PaddleLeft(false),
+            paddle_right: PaddleRight(false),
+            bubble_time: BubbleTime(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct Tame(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct InSittingPose(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct Owneruuid(pub Option<Uuid>);
+#[derive(Component, Deref, DerefMut)]
+pub struct CatVariant(pub azalea_registry::CatVariant);
+#[derive(Component, Deref, DerefMut)]
+pub struct IsLying(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct RelaxStateOne(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct CatCollarColor(pub i32);
+#[derive(Component)]
+pub struct Cat;
+impl Cat {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=18 => AbstractTameable::apply_metadata(entity, d)?,
+            19 => {
+                entity.insert(CatVariant(d.value.into_cat_variant()?));
+            }
+            20 => {
+                entity.insert(IsLying(d.value.into_boolean()?));
+            }
+            21 => {
+                entity.insert(RelaxStateOne(d.value.into_boolean()?));
+            }
+            22 => {
+                entity.insert(CatCollarColor(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct CatMetadataBundle {
+    _marker: Cat,
+    parent: AbstractTameableMetadataBundle,
+    cat_variant: CatVariant,
+    is_lying: IsLying,
+    relax_state_one: RelaxStateOne,
+    cat_collar_color: CatCollarColor,
+}
+impl Default for CatMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Cat,
+            parent: AbstractTameableMetadataBundle {
+                _marker: AbstractTameable,
+                parent: AbstractAnimalMetadataBundle {
+                    _marker: AbstractAnimal,
+                    parent: AbstractAgeableMetadataBundle {
+                        _marker: AbstractAgeable,
+                        parent: AbstractCreatureMetadataBundle {
+                            _marker: AbstractCreature,
+                            parent: AbstractInsentientMetadataBundle {
+                                _marker: AbstractInsentient,
+                                parent: AbstractLivingMetadataBundle {
+                                    _marker: AbstractLiving,
+                                    parent: AbstractEntityMetadataBundle {
+                                        _marker: AbstractEntity,
+                                        on_fire: OnFire(false),
+                                        shift_key_down: ShiftKeyDown(false),
+                                        sprinting: Sprinting(false),
+                                        swimming: Swimming(false),
+                                        currently_glowing: CurrentlyGlowing(false),
+                                        invisible: Invisible(false),
+                                        fall_flying: FallFlying(false),
+                                        air_supply: AirSupply(Default::default()),
+                                        custom_name: CustomName(None),
+                                        custom_name_visible: CustomNameVisible(false),
+                                        silent: Silent(false),
+                                        no_gravity: NoGravity(false),
+                                        pose: Pose::default(),
+                                        ticks_frozen: TicksFrozen(0),
+                                    },
+                                    auto_spin_attack: AutoSpinAttack(false),
+                                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                                    health: Health(1.0),
+                                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                    effect_ambience: EffectAmbience(false),
+                                    arrow_count: ArrowCount(0),
+                                    stinger_count: StingerCount(0),
+                                    sleeping_pos: SleepingPos(None),
+                                },
+                                no_ai: NoAi(false),
+                                left_handed: LeftHanded(false),
+                                aggressive: Aggressive(false),
+                            },
+                        },
+                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                    },
+                },
+                tame: Tame(false),
+                in_sitting_pose: InSittingPose(false),
+                owneruuid: Owneruuid(None),
+            },
+            cat_variant: CatVariant(azalea_registry::CatVariant::Tabby),
+            is_lying: IsLying(false),
+            relax_state_one: RelaxStateOne(false),
+            cat_collar_color: CatCollarColor(Default::default()),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct Climbing(pub bool);
+#[derive(Component)]
+pub struct CaveSpider;
+impl CaveSpider {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => Spider::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct CaveSpiderMetadataBundle {
+    _marker: CaveSpider,
+    parent: SpiderMetadataBundle,
+}
+impl Default for CaveSpiderMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: CaveSpider,
+            parent: SpiderMetadataBundle {
+                _marker: Spider,
+                parent: AbstractMonsterMetadataBundle {
+                    _marker: AbstractMonster,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                },
+                climbing: Climbing(false),
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct ChestBoat;
+impl ChestBoat {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=14 => Boat::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ChestBoatMetadataBundle {
+    _marker: ChestBoat,
+    parent: BoatMetadataBundle,
+}
+impl Default for ChestBoatMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: ChestBoat,
+            parent: BoatMetadataBundle {
+                _marker: Boat,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                boat_hurt: BoatHurt(0),
+                boat_hurtdir: BoatHurtdir(1),
+                boat_damage: BoatDamage(0.0),
+                boat_kind: BoatKind(Default::default()),
+                paddle_left: PaddleLeft(false),
+                paddle_right: PaddleRight(false),
+                bubble_time: BubbleTime(0),
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct AbstractMinecartHurt(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct AbstractMinecartHurtdir(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct AbstractMinecartDamage(pub f32);
+#[derive(Component, Deref, DerefMut)]
+pub struct DisplayBlock(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct DisplayOffset(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct CustomDisplay(pub bool);
+#[derive(Component)]
+pub struct ChestMinecart;
+impl ChestMinecart {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ChestMinecartMetadataBundle {
+    _marker: ChestMinecart,
+    parent: AbstractMinecartMetadataBundle,
+}
+impl Default for ChestMinecartMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: ChestMinecart,
+            parent: AbstractMinecartMetadataBundle {
+                _marker: AbstractMinecart,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                abstract_minecart_hurt: AbstractMinecartHurt(0),
+                abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+                abstract_minecart_damage: AbstractMinecartDamage(0.0),
+                display_block: DisplayBlock(Default::default()),
+                display_offset: DisplayOffset(6),
+                custom_display: CustomDisplay(false),
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Chicken;
+impl Chicken {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ChickenMetadataBundle {
+    _marker: Chicken,
+    parent: AbstractAnimalMetadataBundle,
+}
+impl Default for ChickenMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Chicken,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct CodFromBucket(pub bool);
+#[derive(Component)]
+pub struct Cod;
+impl Cod {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(CodFromBucket(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct CodMetadataBundle {
+    _marker: Cod,
+    parent: AbstractCreatureMetadataBundle,
+    cod_from_bucket: CodFromBucket,
+}
+impl Default for CodMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Cod,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+            cod_from_bucket: CodFromBucket(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct CommandName(pub String);
+#[derive(Component, Deref, DerefMut)]
+pub struct LastOutput(pub FormattedText);
+#[derive(Component)]
+pub struct CommandBlockMinecart;
+impl CommandBlockMinecart {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
+            14 => {
+                entity.insert(CommandName(d.value.into_string()?));
+            }
             15 => {
-                let bitfield = value.into_byte().ok()?;
-                self.no_ai = bitfield & 0x1 != 0;
-                self.left_handed = bitfield & 0x2 != 0;
-                self.aggressive = bitfield & 0x4 != 0;
+                entity.insert(LastOutput(d.value.into_formatted_text()?));
             }
             _ => {}
         }
-        Some(())
-    }
-}
-impl Deref for AbstractInsentient {
-    type Target = AbstractLiving;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_living
-    }
-}
-impl DerefMut for AbstractInsentient {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_living
+        Ok(())
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct AbstractLiving {
-    pub abstract_entity: AbstractEntity,
-    pub auto_spin_attack: bool,
-    pub using_item: bool,
-    pub health: f32,
-    pub effect_color: i32,
-    pub effect_ambience: bool,
-    pub arrow_count: i32,
-    pub stinger_count: i32,
-    pub sleeping_pos: Option<BlockPos>,
+#[derive(Bundle)]
+pub struct CommandBlockMinecartMetadataBundle {
+    _marker: CommandBlockMinecart,
+    parent: AbstractMinecartMetadataBundle,
+    command_name: CommandName,
+    last_output: LastOutput,
 }
-
-impl AbstractLiving {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let auto_spin_attack = bitfield & 0x4 != 0;
-        let using_item = bitfield & 0x1 != 0;
-        let health = metadata.pop_front()?.into_float().ok()?;
-        let effect_color = metadata.pop_front()?.into_int().ok()?;
-        let effect_ambience = metadata.pop_front()?.into_boolean().ok()?;
-        let arrow_count = metadata.pop_front()?.into_int().ok()?;
-        let stinger_count = metadata.pop_front()?.into_int().ok()?;
-        let sleeping_pos = metadata.pop_front()?.into_optional_block_pos().ok()?;
-        Some(Self {
-            abstract_entity,
-            auto_spin_attack,
-            using_item,
-            health,
-            effect_color,
-            effect_ambience,
-            arrow_count,
-            stinger_count,
-            sleeping_pos,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        let mut bitfield = 0u8;
-        if self.auto_spin_attack {
-            bitfield &= 0x4;
-        }
-        if self.using_item {
-            bitfield &= 0x1;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::Float(self.health.clone()));
-        metadata.push(EntityDataValue::Int(self.effect_color.clone()));
-        metadata.push(EntityDataValue::Boolean(self.effect_ambience.clone()));
-        metadata.push(EntityDataValue::Int(self.arrow_count.clone()));
-        metadata.push(EntityDataValue::Int(self.stinger_count.clone()));
-        metadata.push(EntityDataValue::OptionalBlockPos(self.sleeping_pos.clone()));
-        metadata
-    }
-}
-
-impl Default for AbstractLiving {
+impl Default for CommandBlockMinecartMetadataBundle {
     fn default() -> Self {
         Self {
-            abstract_entity: Default::default(),
-            auto_spin_attack: false,
-            using_item: false,
-            health: 1.0,
-            effect_color: 0,
-            effect_ambience: false,
-            arrow_count: 0,
-            stinger_count: 0,
-            sleeping_pos: None,
+            _marker: CommandBlockMinecart,
+            parent: AbstractMinecartMetadataBundle {
+                _marker: AbstractMinecart,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                abstract_minecart_hurt: AbstractMinecartHurt(0),
+                abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+                abstract_minecart_damage: AbstractMinecartDamage(0.0),
+                display_block: DisplayBlock(Default::default()),
+                display_offset: DisplayOffset(6),
+                custom_display: CustomDisplay(false),
+            },
+            command_name: CommandName("".to_string()),
+            last_output: LastOutput(Default::default()),
         }
     }
 }
 
-impl AbstractLiving {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => {
-                let bitfield = value.into_byte().ok()?;
-                self.auto_spin_attack = bitfield & 0x4 != 0;
-                self.using_item = bitfield & 0x1 != 0;
+#[derive(Component)]
+pub struct Cow;
+impl Cow {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct CowMetadataBundle {
+    _marker: Cow,
+    parent: AbstractAnimalMetadataBundle,
+}
+impl Default for CowMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Cow,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct SwellDir(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct IsPowered(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct IsIgnited(pub bool);
+#[derive(Component)]
+pub struct Creeper;
+impl Creeper {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(SwellDir(d.value.into_int()?));
             }
-            9 => self.health = value.into_float().ok()?,
-            10 => self.effect_color = value.into_int().ok()?,
-            11 => self.effect_ambience = value.into_boolean().ok()?,
-            12 => self.arrow_count = value.into_int().ok()?,
-            13 => self.stinger_count = value.into_int().ok()?,
-            14 => self.sleeping_pos = value.into_optional_block_pos().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for AbstractLiving {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for AbstractLiving {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AbstractMinecart {
-    pub abstract_entity: AbstractEntity,
-    pub hurt: i32,
-    pub hurtdir: i32,
-    pub damage: f32,
-    pub display_block: i32,
-    pub display_offset: i32,
-    pub custom_display: bool,
-}
-
-impl AbstractMinecart {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_entity = AbstractEntity::read(metadata)?;
-        let hurt = metadata.pop_front()?.into_int().ok()?;
-        let hurtdir = metadata.pop_front()?.into_int().ok()?;
-        let damage = metadata.pop_front()?.into_float().ok()?;
-        let display_block = metadata.pop_front()?.into_int().ok()?;
-        let display_offset = metadata.pop_front()?.into_int().ok()?;
-        let custom_display = metadata.pop_front()?.into_boolean().ok()?;
-        Some(Self {
-            abstract_entity,
-            hurt,
-            hurtdir,
-            damage,
-            display_block,
-            display_offset,
-            custom_display,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_entity.write());
-        metadata.push(EntityDataValue::Int(self.hurt.clone()));
-        metadata.push(EntityDataValue::Int(self.hurtdir.clone()));
-        metadata.push(EntityDataValue::Float(self.damage.clone()));
-        metadata.push(EntityDataValue::Int(self.display_block.clone()));
-        metadata.push(EntityDataValue::Int(self.display_offset.clone()));
-        metadata.push(EntityDataValue::Boolean(self.custom_display.clone()));
-        metadata
-    }
-}
-
-impl Default for AbstractMinecart {
-    fn default() -> Self {
-        Self {
-            abstract_entity: Default::default(),
-            hurt: 0,
-            hurtdir: 1,
-            damage: 0.0,
-            display_block: Default::default(),
-            display_offset: 6,
-            custom_display: false,
-        }
-    }
-}
-
-impl AbstractMinecart {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=7 => self.abstract_entity.set_index(index, value)?,
-            8 => self.hurt = value.into_int().ok()?,
-            9 => self.hurtdir = value.into_int().ok()?,
-            10 => self.damage = value.into_float().ok()?,
-            11 => self.display_block = value.into_int().ok()?,
-            12 => self.display_offset = value.into_int().ok()?,
-            13 => self.custom_display = value.into_boolean().ok()?,
-            _ => {}
-        }
-        Some(())
-    }
-}
-impl Deref for AbstractMinecart {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_entity
-    }
-}
-impl DerefMut for AbstractMinecart {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_entity
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AbstractMonster {
-    pub abstract_creature: AbstractCreature,
-}
-
-impl AbstractMonster {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_creature = AbstractCreature::read(metadata)?;
-        Some(Self { abstract_creature })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_creature.write());
-        metadata
-    }
-}
-
-impl Default for AbstractMonster {
-    fn default() -> Self {
-        Self {
-            abstract_creature: Default::default(),
-        }
-    }
-}
-
-impl AbstractMonster {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        self.abstract_creature.set_index(index, value)
-    }
-}
-impl Deref for AbstractMonster {
-    type Target = AbstractCreature;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_creature
-    }
-}
-impl DerefMut for AbstractMonster {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_creature
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AbstractTameable {
-    pub abstract_animal: AbstractAnimal,
-    pub tame: bool,
-    pub in_sitting_pose: bool,
-    pub owneruuid: Option<Uuid>,
-}
-
-impl AbstractTameable {
-    pub fn read(metadata: &mut VecDeque<EntityDataValue>) -> Option<Self> {
-        let abstract_animal = AbstractAnimal::read(metadata)?;
-        let bitfield = metadata.pop_front()?.into_byte().ok()?;
-        let tame = bitfield & 0x4 != 0;
-        let in_sitting_pose = bitfield & 0x1 != 0;
-        let owneruuid = metadata.pop_front()?.into_optional_uuid().ok()?;
-        Some(Self {
-            abstract_animal,
-            tame,
-            in_sitting_pose,
-            owneruuid,
-        })
-    }
-
-    pub fn write(&self) -> Vec<EntityDataValue> {
-        let mut metadata = Vec::new();
-        metadata.extend(self.abstract_animal.write());
-        let mut bitfield = 0u8;
-        if self.tame {
-            bitfield &= 0x4;
-        }
-        if self.in_sitting_pose {
-            bitfield &= 0x1;
-        }
-        metadata.push(EntityDataValue::Byte(bitfield));
-        metadata.push(EntityDataValue::OptionalUuid(self.owneruuid.clone()));
-        metadata
-    }
-}
-
-impl Default for AbstractTameable {
-    fn default() -> Self {
-        Self {
-            abstract_animal: Default::default(),
-            tame: false,
-            in_sitting_pose: false,
-            owneruuid: None,
-        }
-    }
-}
-
-impl AbstractTameable {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match index {
-            0..=16 => self.abstract_animal.set_index(index, value)?,
             17 => {
-                let bitfield = value.into_byte().ok()?;
-                self.tame = bitfield & 0x4 != 0;
-                self.in_sitting_pose = bitfield & 0x1 != 0;
+                entity.insert(IsPowered(d.value.into_boolean()?));
             }
-            18 => self.owneruuid = value.into_optional_uuid().ok()?,
+            18 => {
+                entity.insert(IsIgnited(d.value.into_boolean()?));
+            }
             _ => {}
         }
-        Some(())
-    }
-}
-impl Deref for AbstractTameable {
-    type Target = AbstractAnimal;
-    fn deref(&self) -> &Self::Target {
-        &self.abstract_animal
-    }
-}
-impl DerefMut for AbstractTameable {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.abstract_animal
+        Ok(())
     }
 }
 
-#[derive(Debug, Clone, EnumAsInner)]
-pub enum EntityMetadata {
-    Allay(Allay),
-    AreaEffectCloud(AreaEffectCloud),
-    ArmorStand(ArmorStand),
-    Arrow(Arrow),
-    Axolotl(Axolotl),
-    Bat(Bat),
-    Bee(Bee),
-    Blaze(Blaze),
-    Boat(Boat),
-    Cat(Cat),
-    CaveSpider(CaveSpider),
-    ChestBoat(ChestBoat),
-    ChestMinecart(ChestMinecart),
-    Chicken(Chicken),
-    Cod(Cod),
-    CommandBlockMinecart(CommandBlockMinecart),
-    Cow(Cow),
-    Creeper(Creeper),
-    Dolphin(Dolphin),
-    Donkey(Donkey),
-    DragonFireball(DragonFireball),
-    Drowned(Drowned),
-    Egg(Egg),
-    ElderGuardian(ElderGuardian),
-    EndCrystal(EndCrystal),
-    EnderDragon(EnderDragon),
-    EnderPearl(EnderPearl),
-    Enderman(Enderman),
-    Endermite(Endermite),
-    Evoker(Evoker),
-    EvokerFangs(EvokerFangs),
-    ExperienceBottle(ExperienceBottle),
-    ExperienceOrb(ExperienceOrb),
-    EyeOfEnder(EyeOfEnder),
-    FallingBlock(FallingBlock),
-    Fireball(Fireball),
-    FireworkRocket(FireworkRocket),
-    FishingBobber(FishingBobber),
-    Fox(Fox),
-    Frog(Frog),
-    FurnaceMinecart(FurnaceMinecart),
-    Ghast(Ghast),
-    Giant(Giant),
-    GlowItemFrame(GlowItemFrame),
-    GlowSquid(GlowSquid),
-    Goat(Goat),
-    Guardian(Guardian),
-    Hoglin(Hoglin),
-    HopperMinecart(HopperMinecart),
-    Horse(Horse),
-    Husk(Husk),
-    Illusioner(Illusioner),
-    IronGolem(IronGolem),
-    Item(Item),
-    ItemFrame(ItemFrame),
-    LeashKnot(LeashKnot),
-    LightningBolt(LightningBolt),
-    Llama(Llama),
-    LlamaSpit(LlamaSpit),
-    MagmaCube(MagmaCube),
-    Marker(Marker),
-    Minecart(Minecart),
-    Mooshroom(Mooshroom),
-    Mule(Mule),
-    Ocelot(Ocelot),
-    Painting(Painting),
-    Panda(Panda),
-    Parrot(Parrot),
-    Phantom(Phantom),
-    Pig(Pig),
-    Piglin(Piglin),
-    PiglinBrute(PiglinBrute),
-    Pillager(Pillager),
-    Player(Player),
-    PolarBear(PolarBear),
-    Potion(Potion),
-    Pufferfish(Pufferfish),
-    Rabbit(Rabbit),
-    Ravager(Ravager),
-    Salmon(Salmon),
-    Sheep(Sheep),
-    Shulker(Shulker),
-    ShulkerBullet(ShulkerBullet),
-    Silverfish(Silverfish),
-    Skeleton(Skeleton),
-    SkeletonHorse(SkeletonHorse),
-    Slime(Slime),
-    SmallFireball(SmallFireball),
-    SnowGolem(SnowGolem),
-    Snowball(Snowball),
-    SpawnerMinecart(SpawnerMinecart),
-    SpectralArrow(SpectralArrow),
-    Spider(Spider),
-    Squid(Squid),
-    Stray(Stray),
-    Strider(Strider),
-    Tadpole(Tadpole),
-    Tnt(Tnt),
-    TntMinecart(TntMinecart),
-    TraderLlama(TraderLlama),
-    Trident(Trident),
-    TropicalFish(TropicalFish),
-    Turtle(Turtle),
-    Vex(Vex),
-    Villager(Villager),
-    Vindicator(Vindicator),
-    WanderingTrader(WanderingTrader),
-    Warden(Warden),
-    Witch(Witch),
-    Wither(Wither),
-    WitherSkeleton(WitherSkeleton),
-    WitherSkull(WitherSkull),
-    Wolf(Wolf),
-    Zoglin(Zoglin),
-    Zombie(Zombie),
-    ZombieHorse(ZombieHorse),
-    ZombieVillager(ZombieVillager),
-    ZombifiedPiglin(ZombifiedPiglin),
+#[derive(Bundle)]
+pub struct CreeperMetadataBundle {
+    _marker: Creeper,
+    parent: AbstractMonsterMetadataBundle,
+    swell_dir: SwellDir,
+    is_powered: IsPowered,
+    is_ignited: IsIgnited,
 }
-
-impl From<azalea_registry::EntityType> for EntityMetadata {
-    fn from(value: azalea_registry::EntityType) -> Self {
-        match value {
-            azalea_registry::EntityType::Allay => EntityMetadata::Allay(Allay::default()),
-            azalea_registry::EntityType::AreaEffectCloud => {
-                EntityMetadata::AreaEffectCloud(AreaEffectCloud::default())
-            }
-            azalea_registry::EntityType::ArmorStand => {
-                EntityMetadata::ArmorStand(ArmorStand::default())
-            }
-            azalea_registry::EntityType::Arrow => EntityMetadata::Arrow(Arrow::default()),
-            azalea_registry::EntityType::Axolotl => EntityMetadata::Axolotl(Axolotl::default()),
-            azalea_registry::EntityType::Bat => EntityMetadata::Bat(Bat::default()),
-            azalea_registry::EntityType::Bee => EntityMetadata::Bee(Bee::default()),
-            azalea_registry::EntityType::Blaze => EntityMetadata::Blaze(Blaze::default()),
-            azalea_registry::EntityType::Boat => EntityMetadata::Boat(Boat::default()),
-            azalea_registry::EntityType::Cat => EntityMetadata::Cat(Cat::default()),
-            azalea_registry::EntityType::CaveSpider => {
-                EntityMetadata::CaveSpider(CaveSpider::default())
-            }
-            azalea_registry::EntityType::ChestBoat => {
-                EntityMetadata::ChestBoat(ChestBoat::default())
-            }
-            azalea_registry::EntityType::ChestMinecart => {
-                EntityMetadata::ChestMinecart(ChestMinecart::default())
-            }
-            azalea_registry::EntityType::Chicken => EntityMetadata::Chicken(Chicken::default()),
-            azalea_registry::EntityType::Cod => EntityMetadata::Cod(Cod::default()),
-            azalea_registry::EntityType::CommandBlockMinecart => {
-                EntityMetadata::CommandBlockMinecart(CommandBlockMinecart::default())
-            }
-            azalea_registry::EntityType::Cow => EntityMetadata::Cow(Cow::default()),
-            azalea_registry::EntityType::Creeper => EntityMetadata::Creeper(Creeper::default()),
-            azalea_registry::EntityType::Dolphin => EntityMetadata::Dolphin(Dolphin::default()),
-            azalea_registry::EntityType::Donkey => EntityMetadata::Donkey(Donkey::default()),
-            azalea_registry::EntityType::DragonFireball => {
-                EntityMetadata::DragonFireball(DragonFireball::default())
-            }
-            azalea_registry::EntityType::Drowned => EntityMetadata::Drowned(Drowned::default()),
-            azalea_registry::EntityType::Egg => EntityMetadata::Egg(Egg::default()),
-            azalea_registry::EntityType::ElderGuardian => {
-                EntityMetadata::ElderGuardian(ElderGuardian::default())
-            }
-            azalea_registry::EntityType::EndCrystal => {
-                EntityMetadata::EndCrystal(EndCrystal::default())
-            }
-            azalea_registry::EntityType::EnderDragon => {
-                EntityMetadata::EnderDragon(EnderDragon::default())
-            }
-            azalea_registry::EntityType::EnderPearl => {
-                EntityMetadata::EnderPearl(EnderPearl::default())
-            }
-            azalea_registry::EntityType::Enderman => EntityMetadata::Enderman(Enderman::default()),
-            azalea_registry::EntityType::Endermite => {
-                EntityMetadata::Endermite(Endermite::default())
-            }
-            azalea_registry::EntityType::Evoker => EntityMetadata::Evoker(Evoker::default()),
-            azalea_registry::EntityType::EvokerFangs => {
-                EntityMetadata::EvokerFangs(EvokerFangs::default())
-            }
-            azalea_registry::EntityType::ExperienceBottle => {
-                EntityMetadata::ExperienceBottle(ExperienceBottle::default())
-            }
-            azalea_registry::EntityType::ExperienceOrb => {
-                EntityMetadata::ExperienceOrb(ExperienceOrb::default())
-            }
-            azalea_registry::EntityType::EyeOfEnder => {
-                EntityMetadata::EyeOfEnder(EyeOfEnder::default())
-            }
-            azalea_registry::EntityType::FallingBlock => {
-                EntityMetadata::FallingBlock(FallingBlock::default())
-            }
-            azalea_registry::EntityType::Fireball => EntityMetadata::Fireball(Fireball::default()),
-            azalea_registry::EntityType::FireworkRocket => {
-                EntityMetadata::FireworkRocket(FireworkRocket::default())
-            }
-            azalea_registry::EntityType::FishingBobber => {
-                EntityMetadata::FishingBobber(FishingBobber::default())
-            }
-            azalea_registry::EntityType::Fox => EntityMetadata::Fox(Fox::default()),
-            azalea_registry::EntityType::Frog => EntityMetadata::Frog(Frog::default()),
-            azalea_registry::EntityType::FurnaceMinecart => {
-                EntityMetadata::FurnaceMinecart(FurnaceMinecart::default())
-            }
-            azalea_registry::EntityType::Ghast => EntityMetadata::Ghast(Ghast::default()),
-            azalea_registry::EntityType::Giant => EntityMetadata::Giant(Giant::default()),
-            azalea_registry::EntityType::GlowItemFrame => {
-                EntityMetadata::GlowItemFrame(GlowItemFrame::default())
-            }
-            azalea_registry::EntityType::GlowSquid => {
-                EntityMetadata::GlowSquid(GlowSquid::default())
-            }
-            azalea_registry::EntityType::Goat => EntityMetadata::Goat(Goat::default()),
-            azalea_registry::EntityType::Guardian => EntityMetadata::Guardian(Guardian::default()),
-            azalea_registry::EntityType::Hoglin => EntityMetadata::Hoglin(Hoglin::default()),
-            azalea_registry::EntityType::HopperMinecart => {
-                EntityMetadata::HopperMinecart(HopperMinecart::default())
-            }
-            azalea_registry::EntityType::Horse => EntityMetadata::Horse(Horse::default()),
-            azalea_registry::EntityType::Husk => EntityMetadata::Husk(Husk::default()),
-            azalea_registry::EntityType::Illusioner => {
-                EntityMetadata::Illusioner(Illusioner::default())
-            }
-            azalea_registry::EntityType::IronGolem => {
-                EntityMetadata::IronGolem(IronGolem::default())
-            }
-            azalea_registry::EntityType::Item => EntityMetadata::Item(Item::default()),
-            azalea_registry::EntityType::ItemFrame => {
-                EntityMetadata::ItemFrame(ItemFrame::default())
-            }
-            azalea_registry::EntityType::LeashKnot => {
-                EntityMetadata::LeashKnot(LeashKnot::default())
-            }
-            azalea_registry::EntityType::LightningBolt => {
-                EntityMetadata::LightningBolt(LightningBolt::default())
-            }
-            azalea_registry::EntityType::Llama => EntityMetadata::Llama(Llama::default()),
-            azalea_registry::EntityType::LlamaSpit => {
-                EntityMetadata::LlamaSpit(LlamaSpit::default())
-            }
-            azalea_registry::EntityType::MagmaCube => {
-                EntityMetadata::MagmaCube(MagmaCube::default())
-            }
-            azalea_registry::EntityType::Marker => EntityMetadata::Marker(Marker::default()),
-            azalea_registry::EntityType::Minecart => EntityMetadata::Minecart(Minecart::default()),
-            azalea_registry::EntityType::Mooshroom => {
-                EntityMetadata::Mooshroom(Mooshroom::default())
-            }
-            azalea_registry::EntityType::Mule => EntityMetadata::Mule(Mule::default()),
-            azalea_registry::EntityType::Ocelot => EntityMetadata::Ocelot(Ocelot::default()),
-            azalea_registry::EntityType::Painting => EntityMetadata::Painting(Painting::default()),
-            azalea_registry::EntityType::Panda => EntityMetadata::Panda(Panda::default()),
-            azalea_registry::EntityType::Parrot => EntityMetadata::Parrot(Parrot::default()),
-            azalea_registry::EntityType::Phantom => EntityMetadata::Phantom(Phantom::default()),
-            azalea_registry::EntityType::Pig => EntityMetadata::Pig(Pig::default()),
-            azalea_registry::EntityType::Piglin => EntityMetadata::Piglin(Piglin::default()),
-            azalea_registry::EntityType::PiglinBrute => {
-                EntityMetadata::PiglinBrute(PiglinBrute::default())
-            }
-            azalea_registry::EntityType::Pillager => EntityMetadata::Pillager(Pillager::default()),
-            azalea_registry::EntityType::Player => EntityMetadata::Player(Player::default()),
-            azalea_registry::EntityType::PolarBear => {
-                EntityMetadata::PolarBear(PolarBear::default())
-            }
-            azalea_registry::EntityType::Potion => EntityMetadata::Potion(Potion::default()),
-            azalea_registry::EntityType::Pufferfish => {
-                EntityMetadata::Pufferfish(Pufferfish::default())
-            }
-            azalea_registry::EntityType::Rabbit => EntityMetadata::Rabbit(Rabbit::default()),
-            azalea_registry::EntityType::Ravager => EntityMetadata::Ravager(Ravager::default()),
-            azalea_registry::EntityType::Salmon => EntityMetadata::Salmon(Salmon::default()),
-            azalea_registry::EntityType::Sheep => EntityMetadata::Sheep(Sheep::default()),
-            azalea_registry::EntityType::Shulker => EntityMetadata::Shulker(Shulker::default()),
-            azalea_registry::EntityType::ShulkerBullet => {
-                EntityMetadata::ShulkerBullet(ShulkerBullet::default())
-            }
-            azalea_registry::EntityType::Silverfish => {
-                EntityMetadata::Silverfish(Silverfish::default())
-            }
-            azalea_registry::EntityType::Skeleton => EntityMetadata::Skeleton(Skeleton::default()),
-            azalea_registry::EntityType::SkeletonHorse => {
-                EntityMetadata::SkeletonHorse(SkeletonHorse::default())
-            }
-            azalea_registry::EntityType::Slime => EntityMetadata::Slime(Slime::default()),
-            azalea_registry::EntityType::SmallFireball => {
-                EntityMetadata::SmallFireball(SmallFireball::default())
-            }
-            azalea_registry::EntityType::SnowGolem => {
-                EntityMetadata::SnowGolem(SnowGolem::default())
-            }
-            azalea_registry::EntityType::Snowball => EntityMetadata::Snowball(Snowball::default()),
-            azalea_registry::EntityType::SpawnerMinecart => {
-                EntityMetadata::SpawnerMinecart(SpawnerMinecart::default())
-            }
-            azalea_registry::EntityType::SpectralArrow => {
-                EntityMetadata::SpectralArrow(SpectralArrow::default())
-            }
-            azalea_registry::EntityType::Spider => EntityMetadata::Spider(Spider::default()),
-            azalea_registry::EntityType::Squid => EntityMetadata::Squid(Squid::default()),
-            azalea_registry::EntityType::Stray => EntityMetadata::Stray(Stray::default()),
-            azalea_registry::EntityType::Strider => EntityMetadata::Strider(Strider::default()),
-            azalea_registry::EntityType::Tadpole => EntityMetadata::Tadpole(Tadpole::default()),
-            azalea_registry::EntityType::Tnt => EntityMetadata::Tnt(Tnt::default()),
-            azalea_registry::EntityType::TntMinecart => {
-                EntityMetadata::TntMinecart(TntMinecart::default())
-            }
-            azalea_registry::EntityType::TraderLlama => {
-                EntityMetadata::TraderLlama(TraderLlama::default())
-            }
-            azalea_registry::EntityType::Trident => EntityMetadata::Trident(Trident::default()),
-            azalea_registry::EntityType::TropicalFish => {
-                EntityMetadata::TropicalFish(TropicalFish::default())
-            }
-            azalea_registry::EntityType::Turtle => EntityMetadata::Turtle(Turtle::default()),
-            azalea_registry::EntityType::Vex => EntityMetadata::Vex(Vex::default()),
-            azalea_registry::EntityType::Villager => EntityMetadata::Villager(Villager::default()),
-            azalea_registry::EntityType::Vindicator => {
-                EntityMetadata::Vindicator(Vindicator::default())
-            }
-            azalea_registry::EntityType::WanderingTrader => {
-                EntityMetadata::WanderingTrader(WanderingTrader::default())
-            }
-            azalea_registry::EntityType::Warden => EntityMetadata::Warden(Warden::default()),
-            azalea_registry::EntityType::Witch => EntityMetadata::Witch(Witch::default()),
-            azalea_registry::EntityType::Wither => EntityMetadata::Wither(Wither::default()),
-            azalea_registry::EntityType::WitherSkeleton => {
-                EntityMetadata::WitherSkeleton(WitherSkeleton::default())
-            }
-            azalea_registry::EntityType::WitherSkull => {
-                EntityMetadata::WitherSkull(WitherSkull::default())
-            }
-            azalea_registry::EntityType::Wolf => EntityMetadata::Wolf(Wolf::default()),
-            azalea_registry::EntityType::Zoglin => EntityMetadata::Zoglin(Zoglin::default()),
-            azalea_registry::EntityType::Zombie => EntityMetadata::Zombie(Zombie::default()),
-            azalea_registry::EntityType::ZombieHorse => {
-                EntityMetadata::ZombieHorse(ZombieHorse::default())
-            }
-            azalea_registry::EntityType::ZombieVillager => {
-                EntityMetadata::ZombieVillager(ZombieVillager::default())
-            }
-            azalea_registry::EntityType::ZombifiedPiglin => {
-                EntityMetadata::ZombifiedPiglin(ZombifiedPiglin::default())
-            }
+impl Default for CreeperMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Creeper,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            swell_dir: SwellDir(-1),
+            is_powered: IsPowered(false),
+            is_ignited: IsIgnited(false),
         }
     }
 }
 
-impl EntityMetadata {
-    pub fn set_index(&mut self, index: u8, value: EntityDataValue) -> Option<()> {
-        match self {
-            EntityMetadata::Allay(entity) => entity.set_index(index, value),
-            EntityMetadata::AreaEffectCloud(entity) => entity.set_index(index, value),
-            EntityMetadata::ArmorStand(entity) => entity.set_index(index, value),
-            EntityMetadata::Arrow(entity) => entity.set_index(index, value),
-            EntityMetadata::Axolotl(entity) => entity.set_index(index, value),
-            EntityMetadata::Bat(entity) => entity.set_index(index, value),
-            EntityMetadata::Bee(entity) => entity.set_index(index, value),
-            EntityMetadata::Blaze(entity) => entity.set_index(index, value),
-            EntityMetadata::Boat(entity) => entity.set_index(index, value),
-            EntityMetadata::Cat(entity) => entity.set_index(index, value),
-            EntityMetadata::CaveSpider(entity) => entity.set_index(index, value),
-            EntityMetadata::ChestBoat(entity) => entity.set_index(index, value),
-            EntityMetadata::ChestMinecart(entity) => entity.set_index(index, value),
-            EntityMetadata::Chicken(entity) => entity.set_index(index, value),
-            EntityMetadata::Cod(entity) => entity.set_index(index, value),
-            EntityMetadata::CommandBlockMinecart(entity) => entity.set_index(index, value),
-            EntityMetadata::Cow(entity) => entity.set_index(index, value),
-            EntityMetadata::Creeper(entity) => entity.set_index(index, value),
-            EntityMetadata::Dolphin(entity) => entity.set_index(index, value),
-            EntityMetadata::Donkey(entity) => entity.set_index(index, value),
-            EntityMetadata::DragonFireball(entity) => entity.set_index(index, value),
-            EntityMetadata::Drowned(entity) => entity.set_index(index, value),
-            EntityMetadata::Egg(entity) => entity.set_index(index, value),
-            EntityMetadata::ElderGuardian(entity) => entity.set_index(index, value),
-            EntityMetadata::EndCrystal(entity) => entity.set_index(index, value),
-            EntityMetadata::EnderDragon(entity) => entity.set_index(index, value),
-            EntityMetadata::EnderPearl(entity) => entity.set_index(index, value),
-            EntityMetadata::Enderman(entity) => entity.set_index(index, value),
-            EntityMetadata::Endermite(entity) => entity.set_index(index, value),
-            EntityMetadata::Evoker(entity) => entity.set_index(index, value),
-            EntityMetadata::EvokerFangs(entity) => entity.set_index(index, value),
-            EntityMetadata::ExperienceBottle(entity) => entity.set_index(index, value),
-            EntityMetadata::ExperienceOrb(entity) => entity.set_index(index, value),
-            EntityMetadata::EyeOfEnder(entity) => entity.set_index(index, value),
-            EntityMetadata::FallingBlock(entity) => entity.set_index(index, value),
-            EntityMetadata::Fireball(entity) => entity.set_index(index, value),
-            EntityMetadata::FireworkRocket(entity) => entity.set_index(index, value),
-            EntityMetadata::FishingBobber(entity) => entity.set_index(index, value),
-            EntityMetadata::Fox(entity) => entity.set_index(index, value),
-            EntityMetadata::Frog(entity) => entity.set_index(index, value),
-            EntityMetadata::FurnaceMinecart(entity) => entity.set_index(index, value),
-            EntityMetadata::Ghast(entity) => entity.set_index(index, value),
-            EntityMetadata::Giant(entity) => entity.set_index(index, value),
-            EntityMetadata::GlowItemFrame(entity) => entity.set_index(index, value),
-            EntityMetadata::GlowSquid(entity) => entity.set_index(index, value),
-            EntityMetadata::Goat(entity) => entity.set_index(index, value),
-            EntityMetadata::Guardian(entity) => entity.set_index(index, value),
-            EntityMetadata::Hoglin(entity) => entity.set_index(index, value),
-            EntityMetadata::HopperMinecart(entity) => entity.set_index(index, value),
-            EntityMetadata::Horse(entity) => entity.set_index(index, value),
-            EntityMetadata::Husk(entity) => entity.set_index(index, value),
-            EntityMetadata::Illusioner(entity) => entity.set_index(index, value),
-            EntityMetadata::IronGolem(entity) => entity.set_index(index, value),
-            EntityMetadata::Item(entity) => entity.set_index(index, value),
-            EntityMetadata::ItemFrame(entity) => entity.set_index(index, value),
-            EntityMetadata::LeashKnot(entity) => entity.set_index(index, value),
-            EntityMetadata::LightningBolt(entity) => entity.set_index(index, value),
-            EntityMetadata::Llama(entity) => entity.set_index(index, value),
-            EntityMetadata::LlamaSpit(entity) => entity.set_index(index, value),
-            EntityMetadata::MagmaCube(entity) => entity.set_index(index, value),
-            EntityMetadata::Marker(entity) => entity.set_index(index, value),
-            EntityMetadata::Minecart(entity) => entity.set_index(index, value),
-            EntityMetadata::Mooshroom(entity) => entity.set_index(index, value),
-            EntityMetadata::Mule(entity) => entity.set_index(index, value),
-            EntityMetadata::Ocelot(entity) => entity.set_index(index, value),
-            EntityMetadata::Painting(entity) => entity.set_index(index, value),
-            EntityMetadata::Panda(entity) => entity.set_index(index, value),
-            EntityMetadata::Parrot(entity) => entity.set_index(index, value),
-            EntityMetadata::Phantom(entity) => entity.set_index(index, value),
-            EntityMetadata::Pig(entity) => entity.set_index(index, value),
-            EntityMetadata::Piglin(entity) => entity.set_index(index, value),
-            EntityMetadata::PiglinBrute(entity) => entity.set_index(index, value),
-            EntityMetadata::Pillager(entity) => entity.set_index(index, value),
-            EntityMetadata::Player(entity) => entity.set_index(index, value),
-            EntityMetadata::PolarBear(entity) => entity.set_index(index, value),
-            EntityMetadata::Potion(entity) => entity.set_index(index, value),
-            EntityMetadata::Pufferfish(entity) => entity.set_index(index, value),
-            EntityMetadata::Rabbit(entity) => entity.set_index(index, value),
-            EntityMetadata::Ravager(entity) => entity.set_index(index, value),
-            EntityMetadata::Salmon(entity) => entity.set_index(index, value),
-            EntityMetadata::Sheep(entity) => entity.set_index(index, value),
-            EntityMetadata::Shulker(entity) => entity.set_index(index, value),
-            EntityMetadata::ShulkerBullet(entity) => entity.set_index(index, value),
-            EntityMetadata::Silverfish(entity) => entity.set_index(index, value),
-            EntityMetadata::Skeleton(entity) => entity.set_index(index, value),
-            EntityMetadata::SkeletonHorse(entity) => entity.set_index(index, value),
-            EntityMetadata::Slime(entity) => entity.set_index(index, value),
-            EntityMetadata::SmallFireball(entity) => entity.set_index(index, value),
-            EntityMetadata::SnowGolem(entity) => entity.set_index(index, value),
-            EntityMetadata::Snowball(entity) => entity.set_index(index, value),
-            EntityMetadata::SpawnerMinecart(entity) => entity.set_index(index, value),
-            EntityMetadata::SpectralArrow(entity) => entity.set_index(index, value),
-            EntityMetadata::Spider(entity) => entity.set_index(index, value),
-            EntityMetadata::Squid(entity) => entity.set_index(index, value),
-            EntityMetadata::Stray(entity) => entity.set_index(index, value),
-            EntityMetadata::Strider(entity) => entity.set_index(index, value),
-            EntityMetadata::Tadpole(entity) => entity.set_index(index, value),
-            EntityMetadata::Tnt(entity) => entity.set_index(index, value),
-            EntityMetadata::TntMinecart(entity) => entity.set_index(index, value),
-            EntityMetadata::TraderLlama(entity) => entity.set_index(index, value),
-            EntityMetadata::Trident(entity) => entity.set_index(index, value),
-            EntityMetadata::TropicalFish(entity) => entity.set_index(index, value),
-            EntityMetadata::Turtle(entity) => entity.set_index(index, value),
-            EntityMetadata::Vex(entity) => entity.set_index(index, value),
-            EntityMetadata::Villager(entity) => entity.set_index(index, value),
-            EntityMetadata::Vindicator(entity) => entity.set_index(index, value),
-            EntityMetadata::WanderingTrader(entity) => entity.set_index(index, value),
-            EntityMetadata::Warden(entity) => entity.set_index(index, value),
-            EntityMetadata::Witch(entity) => entity.set_index(index, value),
-            EntityMetadata::Wither(entity) => entity.set_index(index, value),
-            EntityMetadata::WitherSkeleton(entity) => entity.set_index(index, value),
-            EntityMetadata::WitherSkull(entity) => entity.set_index(index, value),
-            EntityMetadata::Wolf(entity) => entity.set_index(index, value),
-            EntityMetadata::Zoglin(entity) => entity.set_index(index, value),
-            EntityMetadata::Zombie(entity) => entity.set_index(index, value),
-            EntityMetadata::ZombieHorse(entity) => entity.set_index(index, value),
-            EntityMetadata::ZombieVillager(entity) => entity.set_index(index, value),
-            EntityMetadata::ZombifiedPiglin(entity) => entity.set_index(index, value),
+#[derive(Component, Deref, DerefMut)]
+pub struct TreasurePos(pub BlockPos);
+#[derive(Component, Deref, DerefMut)]
+pub struct GotFish(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct MoistnessLevel(pub i32);
+#[derive(Component)]
+pub struct Dolphin;
+impl Dolphin {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(TreasurePos(d.value.into_block_pos()?));
+            }
+            17 => {
+                entity.insert(GotFish(d.value.into_boolean()?));
+            }
+            18 => {
+                entity.insert(MoistnessLevel(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct DolphinMetadataBundle {
+    _marker: Dolphin,
+    parent: AbstractCreatureMetadataBundle,
+    treasure_pos: TreasurePos,
+    got_fish: GotFish,
+    moistness_level: MoistnessLevel,
+}
+impl Default for DolphinMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Dolphin,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+            treasure_pos: TreasurePos(BlockPos::new(0, 0, 0)),
+            got_fish: GotFish(false),
+            moistness_level: MoistnessLevel(2400),
         }
     }
 }
 
-impl Deref for EntityMetadata {
-    type Target = AbstractEntity;
-    fn deref(&self) -> &Self::Target {
-        match self {
-            EntityMetadata::Allay(entity) => entity,
-            EntityMetadata::AreaEffectCloud(entity) => entity,
-            EntityMetadata::ArmorStand(entity) => entity,
-            EntityMetadata::Arrow(entity) => entity,
-            EntityMetadata::Axolotl(entity) => entity,
-            EntityMetadata::Bat(entity) => entity,
-            EntityMetadata::Bee(entity) => entity,
-            EntityMetadata::Blaze(entity) => entity,
-            EntityMetadata::Boat(entity) => entity,
-            EntityMetadata::Cat(entity) => entity,
-            EntityMetadata::CaveSpider(entity) => entity,
-            EntityMetadata::ChestBoat(entity) => entity,
-            EntityMetadata::ChestMinecart(entity) => entity,
-            EntityMetadata::Chicken(entity) => entity,
-            EntityMetadata::Cod(entity) => entity,
-            EntityMetadata::CommandBlockMinecart(entity) => entity,
-            EntityMetadata::Cow(entity) => entity,
-            EntityMetadata::Creeper(entity) => entity,
-            EntityMetadata::Dolphin(entity) => entity,
-            EntityMetadata::Donkey(entity) => entity,
-            EntityMetadata::DragonFireball(entity) => entity,
-            EntityMetadata::Drowned(entity) => entity,
-            EntityMetadata::Egg(entity) => entity,
-            EntityMetadata::ElderGuardian(entity) => entity,
-            EntityMetadata::EndCrystal(entity) => entity,
-            EntityMetadata::EnderDragon(entity) => entity,
-            EntityMetadata::EnderPearl(entity) => entity,
-            EntityMetadata::Enderman(entity) => entity,
-            EntityMetadata::Endermite(entity) => entity,
-            EntityMetadata::Evoker(entity) => entity,
-            EntityMetadata::EvokerFangs(entity) => entity,
-            EntityMetadata::ExperienceBottle(entity) => entity,
-            EntityMetadata::ExperienceOrb(entity) => entity,
-            EntityMetadata::EyeOfEnder(entity) => entity,
-            EntityMetadata::FallingBlock(entity) => entity,
-            EntityMetadata::Fireball(entity) => entity,
-            EntityMetadata::FireworkRocket(entity) => entity,
-            EntityMetadata::FishingBobber(entity) => entity,
-            EntityMetadata::Fox(entity) => entity,
-            EntityMetadata::Frog(entity) => entity,
-            EntityMetadata::FurnaceMinecart(entity) => entity,
-            EntityMetadata::Ghast(entity) => entity,
-            EntityMetadata::Giant(entity) => entity,
-            EntityMetadata::GlowItemFrame(entity) => entity,
-            EntityMetadata::GlowSquid(entity) => entity,
-            EntityMetadata::Goat(entity) => entity,
-            EntityMetadata::Guardian(entity) => entity,
-            EntityMetadata::Hoglin(entity) => entity,
-            EntityMetadata::HopperMinecart(entity) => entity,
-            EntityMetadata::Horse(entity) => entity,
-            EntityMetadata::Husk(entity) => entity,
-            EntityMetadata::Illusioner(entity) => entity,
-            EntityMetadata::IronGolem(entity) => entity,
-            EntityMetadata::Item(entity) => entity,
-            EntityMetadata::ItemFrame(entity) => entity,
-            EntityMetadata::LeashKnot(entity) => entity,
-            EntityMetadata::LightningBolt(entity) => entity,
-            EntityMetadata::Llama(entity) => entity,
-            EntityMetadata::LlamaSpit(entity) => entity,
-            EntityMetadata::MagmaCube(entity) => entity,
-            EntityMetadata::Marker(entity) => entity,
-            EntityMetadata::Minecart(entity) => entity,
-            EntityMetadata::Mooshroom(entity) => entity,
-            EntityMetadata::Mule(entity) => entity,
-            EntityMetadata::Ocelot(entity) => entity,
-            EntityMetadata::Painting(entity) => entity,
-            EntityMetadata::Panda(entity) => entity,
-            EntityMetadata::Parrot(entity) => entity,
-            EntityMetadata::Phantom(entity) => entity,
-            EntityMetadata::Pig(entity) => entity,
-            EntityMetadata::Piglin(entity) => entity,
-            EntityMetadata::PiglinBrute(entity) => entity,
-            EntityMetadata::Pillager(entity) => entity,
-            EntityMetadata::Player(entity) => entity,
-            EntityMetadata::PolarBear(entity) => entity,
-            EntityMetadata::Potion(entity) => entity,
-            EntityMetadata::Pufferfish(entity) => entity,
-            EntityMetadata::Rabbit(entity) => entity,
-            EntityMetadata::Ravager(entity) => entity,
-            EntityMetadata::Salmon(entity) => entity,
-            EntityMetadata::Sheep(entity) => entity,
-            EntityMetadata::Shulker(entity) => entity,
-            EntityMetadata::ShulkerBullet(entity) => entity,
-            EntityMetadata::Silverfish(entity) => entity,
-            EntityMetadata::Skeleton(entity) => entity,
-            EntityMetadata::SkeletonHorse(entity) => entity,
-            EntityMetadata::Slime(entity) => entity,
-            EntityMetadata::SmallFireball(entity) => entity,
-            EntityMetadata::SnowGolem(entity) => entity,
-            EntityMetadata::Snowball(entity) => entity,
-            EntityMetadata::SpawnerMinecart(entity) => entity,
-            EntityMetadata::SpectralArrow(entity) => entity,
-            EntityMetadata::Spider(entity) => entity,
-            EntityMetadata::Squid(entity) => entity,
-            EntityMetadata::Stray(entity) => entity,
-            EntityMetadata::Strider(entity) => entity,
-            EntityMetadata::Tadpole(entity) => entity,
-            EntityMetadata::Tnt(entity) => entity,
-            EntityMetadata::TntMinecart(entity) => entity,
-            EntityMetadata::TraderLlama(entity) => entity,
-            EntityMetadata::Trident(entity) => entity,
-            EntityMetadata::TropicalFish(entity) => entity,
-            EntityMetadata::Turtle(entity) => entity,
-            EntityMetadata::Vex(entity) => entity,
-            EntityMetadata::Villager(entity) => entity,
-            EntityMetadata::Vindicator(entity) => entity,
-            EntityMetadata::WanderingTrader(entity) => entity,
-            EntityMetadata::Warden(entity) => entity,
-            EntityMetadata::Witch(entity) => entity,
-            EntityMetadata::Wither(entity) => entity,
-            EntityMetadata::WitherSkeleton(entity) => entity,
-            EntityMetadata::WitherSkull(entity) => entity,
-            EntityMetadata::Wolf(entity) => entity,
-            EntityMetadata::Zoglin(entity) => entity,
-            EntityMetadata::Zombie(entity) => entity,
-            EntityMetadata::ZombieHorse(entity) => entity,
-            EntityMetadata::ZombieVillager(entity) => entity,
-            EntityMetadata::ZombifiedPiglin(entity) => entity,
+#[derive(Component, Deref, DerefMut)]
+pub struct DonkeyTamed(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct DonkeyEating(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct DonkeyStanding(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct DonkeyBred(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct DonkeySaddled(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct DonkeyOwnerUuid(pub Option<Uuid>);
+#[derive(Component, Deref, DerefMut)]
+pub struct DonkeyChest(pub bool);
+#[derive(Component)]
+pub struct Donkey;
+impl Donkey {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(DonkeyTamed(bitfield & 0x2 != 0));
+                entity.insert(DonkeyEating(bitfield & 0x10 != 0));
+                entity.insert(DonkeyStanding(bitfield & 0x20 != 0));
+                entity.insert(DonkeyBred(bitfield & 0x8 != 0));
+                entity.insert(DonkeySaddled(bitfield & 0x4 != 0));
+            }
+            18 => {
+                entity.insert(DonkeyOwnerUuid(d.value.into_optional_uuid()?));
+            }
+            19 => {
+                entity.insert(DonkeyChest(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct DonkeyMetadataBundle {
+    _marker: Donkey,
+    parent: AbstractAnimalMetadataBundle,
+    donkey_tamed: DonkeyTamed,
+    donkey_eating: DonkeyEating,
+    donkey_standing: DonkeyStanding,
+    donkey_bred: DonkeyBred,
+    donkey_saddled: DonkeySaddled,
+    donkey_owner_uuid: DonkeyOwnerUuid,
+    donkey_chest: DonkeyChest,
+}
+impl Default for DonkeyMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Donkey,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            donkey_tamed: DonkeyTamed(false),
+            donkey_eating: DonkeyEating(false),
+            donkey_standing: DonkeyStanding(false),
+            donkey_bred: DonkeyBred(false),
+            donkey_saddled: DonkeySaddled(false),
+            donkey_owner_uuid: DonkeyOwnerUuid(None),
+            donkey_chest: DonkeyChest(false),
         }
     }
 }
-impl DerefMut for EntityMetadata {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        match self {
-            EntityMetadata::Allay(entity) => entity,
-            EntityMetadata::AreaEffectCloud(entity) => entity,
-            EntityMetadata::ArmorStand(entity) => entity,
-            EntityMetadata::Arrow(entity) => entity,
-            EntityMetadata::Axolotl(entity) => entity,
-            EntityMetadata::Bat(entity) => entity,
-            EntityMetadata::Bee(entity) => entity,
-            EntityMetadata::Blaze(entity) => entity,
-            EntityMetadata::Boat(entity) => entity,
-            EntityMetadata::Cat(entity) => entity,
-            EntityMetadata::CaveSpider(entity) => entity,
-            EntityMetadata::ChestBoat(entity) => entity,
-            EntityMetadata::ChestMinecart(entity) => entity,
-            EntityMetadata::Chicken(entity) => entity,
-            EntityMetadata::Cod(entity) => entity,
-            EntityMetadata::CommandBlockMinecart(entity) => entity,
-            EntityMetadata::Cow(entity) => entity,
-            EntityMetadata::Creeper(entity) => entity,
-            EntityMetadata::Dolphin(entity) => entity,
-            EntityMetadata::Donkey(entity) => entity,
-            EntityMetadata::DragonFireball(entity) => entity,
-            EntityMetadata::Drowned(entity) => entity,
-            EntityMetadata::Egg(entity) => entity,
-            EntityMetadata::ElderGuardian(entity) => entity,
-            EntityMetadata::EndCrystal(entity) => entity,
-            EntityMetadata::EnderDragon(entity) => entity,
-            EntityMetadata::EnderPearl(entity) => entity,
-            EntityMetadata::Enderman(entity) => entity,
-            EntityMetadata::Endermite(entity) => entity,
-            EntityMetadata::Evoker(entity) => entity,
-            EntityMetadata::EvokerFangs(entity) => entity,
-            EntityMetadata::ExperienceBottle(entity) => entity,
-            EntityMetadata::ExperienceOrb(entity) => entity,
-            EntityMetadata::EyeOfEnder(entity) => entity,
-            EntityMetadata::FallingBlock(entity) => entity,
-            EntityMetadata::Fireball(entity) => entity,
-            EntityMetadata::FireworkRocket(entity) => entity,
-            EntityMetadata::FishingBobber(entity) => entity,
-            EntityMetadata::Fox(entity) => entity,
-            EntityMetadata::Frog(entity) => entity,
-            EntityMetadata::FurnaceMinecart(entity) => entity,
-            EntityMetadata::Ghast(entity) => entity,
-            EntityMetadata::Giant(entity) => entity,
-            EntityMetadata::GlowItemFrame(entity) => entity,
-            EntityMetadata::GlowSquid(entity) => entity,
-            EntityMetadata::Goat(entity) => entity,
-            EntityMetadata::Guardian(entity) => entity,
-            EntityMetadata::Hoglin(entity) => entity,
-            EntityMetadata::HopperMinecart(entity) => entity,
-            EntityMetadata::Horse(entity) => entity,
-            EntityMetadata::Husk(entity) => entity,
-            EntityMetadata::Illusioner(entity) => entity,
-            EntityMetadata::IronGolem(entity) => entity,
-            EntityMetadata::Item(entity) => entity,
-            EntityMetadata::ItemFrame(entity) => entity,
-            EntityMetadata::LeashKnot(entity) => entity,
-            EntityMetadata::LightningBolt(entity) => entity,
-            EntityMetadata::Llama(entity) => entity,
-            EntityMetadata::LlamaSpit(entity) => entity,
-            EntityMetadata::MagmaCube(entity) => entity,
-            EntityMetadata::Marker(entity) => entity,
-            EntityMetadata::Minecart(entity) => entity,
-            EntityMetadata::Mooshroom(entity) => entity,
-            EntityMetadata::Mule(entity) => entity,
-            EntityMetadata::Ocelot(entity) => entity,
-            EntityMetadata::Painting(entity) => entity,
-            EntityMetadata::Panda(entity) => entity,
-            EntityMetadata::Parrot(entity) => entity,
-            EntityMetadata::Phantom(entity) => entity,
-            EntityMetadata::Pig(entity) => entity,
-            EntityMetadata::Piglin(entity) => entity,
-            EntityMetadata::PiglinBrute(entity) => entity,
-            EntityMetadata::Pillager(entity) => entity,
-            EntityMetadata::Player(entity) => entity,
-            EntityMetadata::PolarBear(entity) => entity,
-            EntityMetadata::Potion(entity) => entity,
-            EntityMetadata::Pufferfish(entity) => entity,
-            EntityMetadata::Rabbit(entity) => entity,
-            EntityMetadata::Ravager(entity) => entity,
-            EntityMetadata::Salmon(entity) => entity,
-            EntityMetadata::Sheep(entity) => entity,
-            EntityMetadata::Shulker(entity) => entity,
-            EntityMetadata::ShulkerBullet(entity) => entity,
-            EntityMetadata::Silverfish(entity) => entity,
-            EntityMetadata::Skeleton(entity) => entity,
-            EntityMetadata::SkeletonHorse(entity) => entity,
-            EntityMetadata::Slime(entity) => entity,
-            EntityMetadata::SmallFireball(entity) => entity,
-            EntityMetadata::SnowGolem(entity) => entity,
-            EntityMetadata::Snowball(entity) => entity,
-            EntityMetadata::SpawnerMinecart(entity) => entity,
-            EntityMetadata::SpectralArrow(entity) => entity,
-            EntityMetadata::Spider(entity) => entity,
-            EntityMetadata::Squid(entity) => entity,
-            EntityMetadata::Stray(entity) => entity,
-            EntityMetadata::Strider(entity) => entity,
-            EntityMetadata::Tadpole(entity) => entity,
-            EntityMetadata::Tnt(entity) => entity,
-            EntityMetadata::TntMinecart(entity) => entity,
-            EntityMetadata::TraderLlama(entity) => entity,
-            EntityMetadata::Trident(entity) => entity,
-            EntityMetadata::TropicalFish(entity) => entity,
-            EntityMetadata::Turtle(entity) => entity,
-            EntityMetadata::Vex(entity) => entity,
-            EntityMetadata::Villager(entity) => entity,
-            EntityMetadata::Vindicator(entity) => entity,
-            EntityMetadata::WanderingTrader(entity) => entity,
-            EntityMetadata::Warden(entity) => entity,
-            EntityMetadata::Witch(entity) => entity,
-            EntityMetadata::Wither(entity) => entity,
-            EntityMetadata::WitherSkeleton(entity) => entity,
-            EntityMetadata::WitherSkull(entity) => entity,
-            EntityMetadata::Wolf(entity) => entity,
-            EntityMetadata::Zoglin(entity) => entity,
-            EntityMetadata::Zombie(entity) => entity,
-            EntityMetadata::ZombieHorse(entity) => entity,
-            EntityMetadata::ZombieVillager(entity) => entity,
-            EntityMetadata::ZombifiedPiglin(entity) => entity,
+
+#[derive(Component)]
+pub struct DragonFireball;
+impl DragonFireball {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct DragonFireballMetadataBundle {
+    _marker: DragonFireball,
+    parent: AbstractEntityMetadataBundle,
+}
+impl Default for DragonFireballMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: DragonFireball,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct ZombieBaby(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct SpecialType(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct DrownedConversion(pub bool);
+#[derive(Component)]
+pub struct Drowned;
+impl Drowned {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=18 => Zombie::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct DrownedMetadataBundle {
+    _marker: Drowned,
+    parent: ZombieMetadataBundle,
+}
+impl Default for DrownedMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Drowned,
+            parent: ZombieMetadataBundle {
+                _marker: Zombie,
+                parent: AbstractMonsterMetadataBundle {
+                    _marker: AbstractMonster,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                },
+                zombie_baby: ZombieBaby(false),
+                special_type: SpecialType(0),
+                drowned_conversion: DrownedConversion(false),
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct EggItemStack(pub Slot);
+#[derive(Component)]
+pub struct Egg;
+impl Egg {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(EggItemStack(d.value.into_item_stack()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct EggMetadataBundle {
+    _marker: Egg,
+    parent: AbstractEntityMetadataBundle,
+    egg_item_stack: EggItemStack,
+}
+impl Default for EggMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Egg,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            egg_item_stack: EggItemStack(Slot::Empty),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct Moving(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct AttackTarget(pub i32);
+#[derive(Component)]
+pub struct ElderGuardian;
+impl ElderGuardian {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=17 => Guardian::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ElderGuardianMetadataBundle {
+    _marker: ElderGuardian,
+    parent: GuardianMetadataBundle,
+}
+impl Default for ElderGuardianMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: ElderGuardian,
+            parent: GuardianMetadataBundle {
+                _marker: Guardian,
+                parent: AbstractMonsterMetadataBundle {
+                    _marker: AbstractMonster,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                },
+                moving: Moving(false),
+                attack_target: AttackTarget(0),
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct BeamTarget(pub Option<BlockPos>);
+#[derive(Component, Deref, DerefMut)]
+pub struct ShowBottom(pub bool);
+#[derive(Component)]
+pub struct EndCrystal;
+impl EndCrystal {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(BeamTarget(d.value.into_optional_block_pos()?));
+            }
+            9 => {
+                entity.insert(ShowBottom(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct EndCrystalMetadataBundle {
+    _marker: EndCrystal,
+    parent: AbstractEntityMetadataBundle,
+    beam_target: BeamTarget,
+    show_bottom: ShowBottom,
+}
+impl Default for EndCrystalMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: EndCrystal,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            beam_target: BeamTarget(None),
+            show_bottom: ShowBottom(true),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct Phase(pub i32);
+#[derive(Component)]
+pub struct EnderDragon;
+impl EnderDragon {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(Phase(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct EnderDragonMetadataBundle {
+    _marker: EnderDragon,
+    parent: AbstractInsentientMetadataBundle,
+    phase: Phase,
+}
+impl Default for EnderDragonMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: EnderDragon,
+            parent: AbstractInsentientMetadataBundle {
+                _marker: AbstractInsentient,
+                parent: AbstractLivingMetadataBundle {
+                    _marker: AbstractLiving,
+                    parent: AbstractEntityMetadataBundle {
+                        _marker: AbstractEntity,
+                        on_fire: OnFire(false),
+                        shift_key_down: ShiftKeyDown(false),
+                        sprinting: Sprinting(false),
+                        swimming: Swimming(false),
+                        currently_glowing: CurrentlyGlowing(false),
+                        invisible: Invisible(false),
+                        fall_flying: FallFlying(false),
+                        air_supply: AirSupply(Default::default()),
+                        custom_name: CustomName(None),
+                        custom_name_visible: CustomNameVisible(false),
+                        silent: Silent(false),
+                        no_gravity: NoGravity(false),
+                        pose: Pose::default(),
+                        ticks_frozen: TicksFrozen(0),
+                    },
+                    auto_spin_attack: AutoSpinAttack(false),
+                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                    health: Health(1.0),
+                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                    effect_ambience: EffectAmbience(false),
+                    arrow_count: ArrowCount(0),
+                    stinger_count: StingerCount(0),
+                    sleeping_pos: SleepingPos(None),
+                },
+                no_ai: NoAi(false),
+                left_handed: LeftHanded(false),
+                aggressive: Aggressive(false),
+            },
+            phase: Phase(Default::default()),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct EnderPearlItemStack(pub Slot);
+#[derive(Component)]
+pub struct EnderPearl;
+impl EnderPearl {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(EnderPearlItemStack(d.value.into_item_stack()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct EnderPearlMetadataBundle {
+    _marker: EnderPearl,
+    parent: AbstractEntityMetadataBundle,
+    ender_pearl_item_stack: EnderPearlItemStack,
+}
+impl Default for EnderPearlMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: EnderPearl,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            ender_pearl_item_stack: EnderPearlItemStack(Slot::Empty),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct CarryState(pub BlockState);
+#[derive(Component, Deref, DerefMut)]
+pub struct Creepy(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct StaredAt(pub bool);
+#[derive(Component)]
+pub struct Enderman;
+impl Enderman {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(CarryState(d.value.into_optional_block_state()?.unwrap()));
+            }
+            17 => {
+                entity.insert(Creepy(d.value.into_boolean()?));
+            }
+            18 => {
+                entity.insert(StaredAt(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct EndermanMetadataBundle {
+    _marker: Enderman,
+    parent: AbstractMonsterMetadataBundle,
+    carry_state: CarryState,
+    creepy: Creepy,
+    stared_at: StaredAt,
+}
+impl Default for EndermanMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Enderman,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            carry_state: CarryState(BlockState::Air),
+            creepy: Creepy(false),
+            stared_at: StaredAt(false),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Endermite;
+impl Endermite {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct EndermiteMetadataBundle {
+    _marker: Endermite,
+    parent: AbstractMonsterMetadataBundle,
+}
+impl Default for EndermiteMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Endermite,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct EvokerIsCelebrating(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct EvokerSpellCasting(pub u8);
+#[derive(Component)]
+pub struct Evoker;
+impl Evoker {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(EvokerIsCelebrating(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(EvokerSpellCasting(d.value.into_byte()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct EvokerMetadataBundle {
+    _marker: Evoker,
+    parent: AbstractMonsterMetadataBundle,
+    evoker_is_celebrating: EvokerIsCelebrating,
+    evoker_spell_casting: EvokerSpellCasting,
+}
+impl Default for EvokerMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Evoker,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            evoker_is_celebrating: EvokerIsCelebrating(false),
+            evoker_spell_casting: EvokerSpellCasting(0),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct EvokerFangs;
+impl EvokerFangs {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct EvokerFangsMetadataBundle {
+    _marker: EvokerFangs,
+    parent: AbstractEntityMetadataBundle,
+}
+impl Default for EvokerFangsMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: EvokerFangs,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct ExperienceBottleItemStack(pub Slot);
+#[derive(Component)]
+pub struct ExperienceBottle;
+impl ExperienceBottle {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(ExperienceBottleItemStack(d.value.into_item_stack()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ExperienceBottleMetadataBundle {
+    _marker: ExperienceBottle,
+    parent: AbstractEntityMetadataBundle,
+    experience_bottle_item_stack: ExperienceBottleItemStack,
+}
+impl Default for ExperienceBottleMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: ExperienceBottle,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            experience_bottle_item_stack: ExperienceBottleItemStack(Slot::Empty),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct ExperienceOrb;
+impl ExperienceOrb {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ExperienceOrbMetadataBundle {
+    _marker: ExperienceOrb,
+    parent: AbstractEntityMetadataBundle,
+}
+impl Default for ExperienceOrbMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: ExperienceOrb,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct EyeOfEnderItemStack(pub Slot);
+#[derive(Component)]
+pub struct EyeOfEnder;
+impl EyeOfEnder {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(EyeOfEnderItemStack(d.value.into_item_stack()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct EyeOfEnderMetadataBundle {
+    _marker: EyeOfEnder,
+    parent: AbstractEntityMetadataBundle,
+    eye_of_ender_item_stack: EyeOfEnderItemStack,
+}
+impl Default for EyeOfEnderMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: EyeOfEnder,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            eye_of_ender_item_stack: EyeOfEnderItemStack(Slot::Empty),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct StartPos(pub BlockPos);
+#[derive(Component)]
+pub struct FallingBlock;
+impl FallingBlock {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(StartPos(d.value.into_block_pos()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct FallingBlockMetadataBundle {
+    _marker: FallingBlock,
+    parent: AbstractEntityMetadataBundle,
+    start_pos: StartPos,
+}
+impl Default for FallingBlockMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: FallingBlock,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            start_pos: StartPos(BlockPos::new(0, 0, 0)),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct FireballItemStack(pub Slot);
+#[derive(Component)]
+pub struct Fireball;
+impl Fireball {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(FireballItemStack(d.value.into_item_stack()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct FireballMetadataBundle {
+    _marker: Fireball,
+    parent: AbstractEntityMetadataBundle,
+    fireball_item_stack: FireballItemStack,
+}
+impl Default for FireballMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Fireball,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            fireball_item_stack: FireballItemStack(Slot::Empty),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct FireworksItem(pub Slot);
+#[derive(Component, Deref, DerefMut)]
+pub struct AttachedToTarget(pub OptionalUnsignedInt);
+#[derive(Component, Deref, DerefMut)]
+pub struct ShotAtAngle(pub bool);
+#[derive(Component)]
+pub struct FireworkRocket;
+impl FireworkRocket {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(FireworksItem(d.value.into_item_stack()?));
+            }
+            9 => {
+                entity.insert(AttachedToTarget(d.value.into_optional_unsigned_int()?));
+            }
+            10 => {
+                entity.insert(ShotAtAngle(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct FireworkRocketMetadataBundle {
+    _marker: FireworkRocket,
+    parent: AbstractEntityMetadataBundle,
+    fireworks_item: FireworksItem,
+    attached_to_target: AttachedToTarget,
+    shot_at_angle: ShotAtAngle,
+}
+impl Default for FireworkRocketMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: FireworkRocket,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            fireworks_item: FireworksItem(Slot::Empty),
+            attached_to_target: AttachedToTarget(OptionalUnsignedInt(None)),
+            shot_at_angle: ShotAtAngle(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct HookedEntity(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct Biting(pub bool);
+#[derive(Component)]
+pub struct FishingBobber;
+impl FishingBobber {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(HookedEntity(d.value.into_int()?));
+            }
+            9 => {
+                entity.insert(Biting(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct FishingBobberMetadataBundle {
+    _marker: FishingBobber,
+    parent: AbstractEntityMetadataBundle,
+    hooked_entity: HookedEntity,
+    biting: Biting,
+}
+impl Default for FishingBobberMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: FishingBobber,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            hooked_entity: HookedEntity(0),
+            biting: Biting(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct FoxKind(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct FoxSitting(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct Faceplanted(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct Sleeping(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct Pouncing(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct Crouching(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct FoxInterested(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct TrustedId0(pub Option<Uuid>);
+#[derive(Component, Deref, DerefMut)]
+pub struct TrustedId1(pub Option<Uuid>);
+#[derive(Component)]
+pub struct Fox;
+impl Fox {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(FoxKind(d.value.into_int()?));
+            }
+            18 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(FoxSitting(bitfield & 0x1 != 0));
+                entity.insert(Faceplanted(bitfield & 0x40 != 0));
+                entity.insert(Sleeping(bitfield & 0x20 != 0));
+                entity.insert(Pouncing(bitfield & 0x10 != 0));
+                entity.insert(Crouching(bitfield & 0x4 != 0));
+                entity.insert(FoxInterested(bitfield & 0x8 != 0));
+            }
+            19 => {
+                entity.insert(TrustedId0(d.value.into_optional_uuid()?));
+            }
+            20 => {
+                entity.insert(TrustedId1(d.value.into_optional_uuid()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct FoxMetadataBundle {
+    _marker: Fox,
+    parent: AbstractAnimalMetadataBundle,
+    fox_kind: FoxKind,
+    fox_sitting: FoxSitting,
+    faceplanted: Faceplanted,
+    sleeping: Sleeping,
+    pouncing: Pouncing,
+    crouching: Crouching,
+    fox_interested: FoxInterested,
+    trusted_id_0: TrustedId0,
+    trusted_id_1: TrustedId1,
+}
+impl Default for FoxMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Fox,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            fox_kind: FoxKind(0),
+            fox_sitting: FoxSitting(false),
+            faceplanted: Faceplanted(false),
+            sleeping: Sleeping(false),
+            pouncing: Pouncing(false),
+            crouching: Crouching(false),
+            fox_interested: FoxInterested(false),
+            trusted_id_0: TrustedId0(None),
+            trusted_id_1: TrustedId1(None),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct FrogVariant(pub azalea_registry::FrogVariant);
+#[derive(Component, Deref, DerefMut)]
+pub struct TongueTarget(pub OptionalUnsignedInt);
+#[derive(Component)]
+pub struct Frog;
+impl Frog {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(FrogVariant(d.value.into_frog_variant()?));
+            }
+            18 => {
+                entity.insert(TongueTarget(d.value.into_optional_unsigned_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct FrogMetadataBundle {
+    _marker: Frog,
+    parent: AbstractAnimalMetadataBundle,
+    frog_variant: FrogVariant,
+    tongue_target: TongueTarget,
+}
+impl Default for FrogMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Frog,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            frog_variant: FrogVariant(azalea_registry::FrogVariant::Temperate),
+            tongue_target: TongueTarget(OptionalUnsignedInt(None)),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct Fuel(pub bool);
+#[derive(Component)]
+pub struct FurnaceMinecart;
+impl FurnaceMinecart {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
+            14 => {
+                entity.insert(Fuel(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct FurnaceMinecartMetadataBundle {
+    _marker: FurnaceMinecart,
+    parent: AbstractMinecartMetadataBundle,
+    fuel: Fuel,
+}
+impl Default for FurnaceMinecartMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: FurnaceMinecart,
+            parent: AbstractMinecartMetadataBundle {
+                _marker: AbstractMinecart,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                abstract_minecart_hurt: AbstractMinecartHurt(0),
+                abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+                abstract_minecart_damage: AbstractMinecartDamage(0.0),
+                display_block: DisplayBlock(Default::default()),
+                display_offset: DisplayOffset(6),
+                custom_display: CustomDisplay(false),
+            },
+            fuel: Fuel(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct IsCharging(pub bool);
+#[derive(Component)]
+pub struct Ghast;
+impl Ghast {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(IsCharging(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct GhastMetadataBundle {
+    _marker: Ghast,
+    parent: AbstractInsentientMetadataBundle,
+    is_charging: IsCharging,
+}
+impl Default for GhastMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Ghast,
+            parent: AbstractInsentientMetadataBundle {
+                _marker: AbstractInsentient,
+                parent: AbstractLivingMetadataBundle {
+                    _marker: AbstractLiving,
+                    parent: AbstractEntityMetadataBundle {
+                        _marker: AbstractEntity,
+                        on_fire: OnFire(false),
+                        shift_key_down: ShiftKeyDown(false),
+                        sprinting: Sprinting(false),
+                        swimming: Swimming(false),
+                        currently_glowing: CurrentlyGlowing(false),
+                        invisible: Invisible(false),
+                        fall_flying: FallFlying(false),
+                        air_supply: AirSupply(Default::default()),
+                        custom_name: CustomName(None),
+                        custom_name_visible: CustomNameVisible(false),
+                        silent: Silent(false),
+                        no_gravity: NoGravity(false),
+                        pose: Pose::default(),
+                        ticks_frozen: TicksFrozen(0),
+                    },
+                    auto_spin_attack: AutoSpinAttack(false),
+                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                    health: Health(1.0),
+                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                    effect_ambience: EffectAmbience(false),
+                    arrow_count: ArrowCount(0),
+                    stinger_count: StingerCount(0),
+                    sleeping_pos: SleepingPos(None),
+                },
+                no_ai: NoAi(false),
+                left_handed: LeftHanded(false),
+                aggressive: Aggressive(false),
+            },
+            is_charging: IsCharging(false),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Giant;
+impl Giant {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct GiantMetadataBundle {
+    _marker: Giant,
+    parent: AbstractMonsterMetadataBundle,
+}
+impl Default for GiantMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Giant,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct ItemFrameItem(pub Slot);
+#[derive(Component, Deref, DerefMut)]
+pub struct Rotation(pub i32);
+#[derive(Component)]
+pub struct GlowItemFrame;
+impl GlowItemFrame {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=9 => ItemFrame::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct GlowItemFrameMetadataBundle {
+    _marker: GlowItemFrame,
+    parent: ItemFrameMetadataBundle,
+}
+impl Default for GlowItemFrameMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: GlowItemFrame,
+            parent: ItemFrameMetadataBundle {
+                _marker: ItemFrame,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                item_frame_item: ItemFrameItem(Slot::Empty),
+                rotation: Rotation(0),
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct DarkTicksRemaining(pub i32);
+#[derive(Component)]
+pub struct GlowSquid;
+impl GlowSquid {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => Squid::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(DarkTicksRemaining(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct GlowSquidMetadataBundle {
+    _marker: GlowSquid,
+    parent: SquidMetadataBundle,
+    dark_ticks_remaining: DarkTicksRemaining,
+}
+impl Default for GlowSquidMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: GlowSquid,
+            parent: SquidMetadataBundle {
+                _marker: Squid,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            dark_ticks_remaining: DarkTicksRemaining(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct IsScreamingGoat(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct HasLeftHorn(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct HasRightHorn(pub bool);
+#[derive(Component)]
+pub struct Goat;
+impl Goat {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(IsScreamingGoat(d.value.into_boolean()?));
+            }
+            18 => {
+                entity.insert(HasLeftHorn(d.value.into_boolean()?));
+            }
+            19 => {
+                entity.insert(HasRightHorn(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct GoatMetadataBundle {
+    _marker: Goat,
+    parent: AbstractAnimalMetadataBundle,
+    is_screaming_goat: IsScreamingGoat,
+    has_left_horn: HasLeftHorn,
+    has_right_horn: HasRightHorn,
+}
+impl Default for GoatMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Goat,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            is_screaming_goat: IsScreamingGoat(false),
+            has_left_horn: HasLeftHorn(true),
+            has_right_horn: HasRightHorn(true),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Guardian;
+impl Guardian {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(Moving(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(AttackTarget(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct GuardianMetadataBundle {
+    _marker: Guardian,
+    parent: AbstractMonsterMetadataBundle,
+    moving: Moving,
+    attack_target: AttackTarget,
+}
+impl Default for GuardianMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Guardian,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            moving: Moving(false),
+            attack_target: AttackTarget(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct HoglinImmuneToZombification(pub bool);
+#[derive(Component)]
+pub struct Hoglin;
+impl Hoglin {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(HoglinImmuneToZombification(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct HoglinMetadataBundle {
+    _marker: Hoglin,
+    parent: AbstractAnimalMetadataBundle,
+    hoglin_immune_to_zombification: HoglinImmuneToZombification,
+}
+impl Default for HoglinMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Hoglin,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            hoglin_immune_to_zombification: HoglinImmuneToZombification(false),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct HopperMinecart;
+impl HopperMinecart {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct HopperMinecartMetadataBundle {
+    _marker: HopperMinecart,
+    parent: AbstractMinecartMetadataBundle,
+}
+impl Default for HopperMinecartMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: HopperMinecart,
+            parent: AbstractMinecartMetadataBundle {
+                _marker: AbstractMinecart,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                abstract_minecart_hurt: AbstractMinecartHurt(0),
+                abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+                abstract_minecart_damage: AbstractMinecartDamage(0.0),
+                display_block: DisplayBlock(Default::default()),
+                display_offset: DisplayOffset(6),
+                custom_display: CustomDisplay(false),
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct HorseTamed(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct HorseEating(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct HorseStanding(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct HorseBred(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct HorseSaddled(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct HorseOwnerUuid(pub Option<Uuid>);
+#[derive(Component, Deref, DerefMut)]
+pub struct HorseTypeVariant(pub i32);
+#[derive(Component)]
+pub struct Horse;
+impl Horse {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(HorseTamed(bitfield & 0x2 != 0));
+                entity.insert(HorseEating(bitfield & 0x10 != 0));
+                entity.insert(HorseStanding(bitfield & 0x20 != 0));
+                entity.insert(HorseBred(bitfield & 0x8 != 0));
+                entity.insert(HorseSaddled(bitfield & 0x4 != 0));
+            }
+            18 => {
+                entity.insert(HorseOwnerUuid(d.value.into_optional_uuid()?));
+            }
+            19 => {
+                entity.insert(HorseTypeVariant(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct HorseMetadataBundle {
+    _marker: Horse,
+    parent: AbstractAnimalMetadataBundle,
+    horse_tamed: HorseTamed,
+    horse_eating: HorseEating,
+    horse_standing: HorseStanding,
+    horse_bred: HorseBred,
+    horse_saddled: HorseSaddled,
+    horse_owner_uuid: HorseOwnerUuid,
+    horse_type_variant: HorseTypeVariant,
+}
+impl Default for HorseMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Horse,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            horse_tamed: HorseTamed(false),
+            horse_eating: HorseEating(false),
+            horse_standing: HorseStanding(false),
+            horse_bred: HorseBred(false),
+            horse_saddled: HorseSaddled(false),
+            horse_owner_uuid: HorseOwnerUuid(None),
+            horse_type_variant: HorseTypeVariant(0),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Husk;
+impl Husk {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=18 => Zombie::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct HuskMetadataBundle {
+    _marker: Husk,
+    parent: ZombieMetadataBundle,
+}
+impl Default for HuskMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Husk,
+            parent: ZombieMetadataBundle {
+                _marker: Zombie,
+                parent: AbstractMonsterMetadataBundle {
+                    _marker: AbstractMonster,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                },
+                zombie_baby: ZombieBaby(false),
+                special_type: SpecialType(0),
+                drowned_conversion: DrownedConversion(false),
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct IllusionerIsCelebrating(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct IllusionerSpellCasting(pub u8);
+#[derive(Component)]
+pub struct Illusioner;
+impl Illusioner {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(IllusionerIsCelebrating(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(IllusionerSpellCasting(d.value.into_byte()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct IllusionerMetadataBundle {
+    _marker: Illusioner,
+    parent: AbstractMonsterMetadataBundle,
+    illusioner_is_celebrating: IllusionerIsCelebrating,
+    illusioner_spell_casting: IllusionerSpellCasting,
+}
+impl Default for IllusionerMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Illusioner,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            illusioner_is_celebrating: IllusionerIsCelebrating(false),
+            illusioner_spell_casting: IllusionerSpellCasting(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct PlayerCreated(pub bool);
+#[derive(Component)]
+pub struct IronGolem;
+impl IronGolem {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
+            16 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(PlayerCreated(bitfield & 0x1 != 0));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct IronGolemMetadataBundle {
+    _marker: IronGolem,
+    parent: AbstractCreatureMetadataBundle,
+    player_created: PlayerCreated,
+}
+impl Default for IronGolemMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: IronGolem,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+            player_created: PlayerCreated(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct ItemItem(pub Slot);
+#[derive(Component)]
+pub struct Item;
+impl Item {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(ItemItem(d.value.into_item_stack()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ItemMetadataBundle {
+    _marker: Item,
+    parent: AbstractEntityMetadataBundle,
+    item_item: ItemItem,
+}
+impl Default for ItemMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Item,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            item_item: ItemItem(Slot::Empty),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct ItemFrame;
+impl ItemFrame {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(ItemFrameItem(d.value.into_item_stack()?));
+            }
+            9 => {
+                entity.insert(Rotation(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ItemFrameMetadataBundle {
+    _marker: ItemFrame,
+    parent: AbstractEntityMetadataBundle,
+    item_frame_item: ItemFrameItem,
+    rotation: Rotation,
+}
+impl Default for ItemFrameMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: ItemFrame,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            item_frame_item: ItemFrameItem(Slot::Empty),
+            rotation: Rotation(0),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct LeashKnot;
+impl LeashKnot {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct LeashKnotMetadataBundle {
+    _marker: LeashKnot,
+    parent: AbstractEntityMetadataBundle,
+}
+impl Default for LeashKnotMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: LeashKnot,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct LightningBolt;
+impl LightningBolt {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct LightningBoltMetadataBundle {
+    _marker: LightningBolt,
+    parent: AbstractEntityMetadataBundle,
+}
+impl Default for LightningBoltMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: LightningBolt,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct LlamaTamed(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct LlamaEating(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct LlamaStanding(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct LlamaBred(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct LlamaSaddled(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct LlamaOwnerUuid(pub Option<Uuid>);
+#[derive(Component, Deref, DerefMut)]
+pub struct LlamaChest(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct Strength(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct Swag(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct LlamaVariant(pub i32);
+#[derive(Component)]
+pub struct Llama;
+impl Llama {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(LlamaTamed(bitfield & 0x2 != 0));
+                entity.insert(LlamaEating(bitfield & 0x10 != 0));
+                entity.insert(LlamaStanding(bitfield & 0x20 != 0));
+                entity.insert(LlamaBred(bitfield & 0x8 != 0));
+                entity.insert(LlamaSaddled(bitfield & 0x4 != 0));
+            }
+            18 => {
+                entity.insert(LlamaOwnerUuid(d.value.into_optional_uuid()?));
+            }
+            19 => {
+                entity.insert(LlamaChest(d.value.into_boolean()?));
+            }
+            20 => {
+                entity.insert(Strength(d.value.into_int()?));
+            }
+            21 => {
+                entity.insert(Swag(d.value.into_int()?));
+            }
+            22 => {
+                entity.insert(LlamaVariant(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct LlamaMetadataBundle {
+    _marker: Llama,
+    parent: AbstractAnimalMetadataBundle,
+    llama_tamed: LlamaTamed,
+    llama_eating: LlamaEating,
+    llama_standing: LlamaStanding,
+    llama_bred: LlamaBred,
+    llama_saddled: LlamaSaddled,
+    llama_owner_uuid: LlamaOwnerUuid,
+    llama_chest: LlamaChest,
+    strength: Strength,
+    swag: Swag,
+    llama_variant: LlamaVariant,
+}
+impl Default for LlamaMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Llama,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            llama_tamed: LlamaTamed(false),
+            llama_eating: LlamaEating(false),
+            llama_standing: LlamaStanding(false),
+            llama_bred: LlamaBred(false),
+            llama_saddled: LlamaSaddled(false),
+            llama_owner_uuid: LlamaOwnerUuid(None),
+            llama_chest: LlamaChest(false),
+            strength: Strength(0),
+            swag: Swag(-1),
+            llama_variant: LlamaVariant(0),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct LlamaSpit;
+impl LlamaSpit {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct LlamaSpitMetadataBundle {
+    _marker: LlamaSpit,
+    parent: AbstractEntityMetadataBundle,
+}
+impl Default for LlamaSpitMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: LlamaSpit,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct SlimeSize(pub i32);
+#[derive(Component)]
+pub struct MagmaCube;
+impl MagmaCube {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => Slime::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct MagmaCubeMetadataBundle {
+    _marker: MagmaCube,
+    parent: SlimeMetadataBundle,
+}
+impl Default for MagmaCubeMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: MagmaCube,
+            parent: SlimeMetadataBundle {
+                _marker: Slime,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+                slime_size: SlimeSize(1),
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Marker;
+impl Marker {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct MarkerMetadataBundle {
+    _marker: Marker,
+    parent: AbstractEntityMetadataBundle,
+}
+impl Default for MarkerMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Marker,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Minecart;
+impl Minecart {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct MinecartMetadataBundle {
+    _marker: Minecart,
+    parent: AbstractMinecartMetadataBundle,
+}
+impl Default for MinecartMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Minecart,
+            parent: AbstractMinecartMetadataBundle {
+                _marker: AbstractMinecart,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                abstract_minecart_hurt: AbstractMinecartHurt(0),
+                abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+                abstract_minecart_damage: AbstractMinecartDamage(0.0),
+                display_block: DisplayBlock(Default::default()),
+                display_offset: DisplayOffset(6),
+                custom_display: CustomDisplay(false),
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct MooshroomKind(pub String);
+#[derive(Component)]
+pub struct Mooshroom;
+impl Mooshroom {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => Cow::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(MooshroomKind(d.value.into_string()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct MooshroomMetadataBundle {
+    _marker: Mooshroom,
+    parent: CowMetadataBundle,
+    mooshroom_kind: MooshroomKind,
+}
+impl Default for MooshroomMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Mooshroom,
+            parent: CowMetadataBundle {
+                _marker: Cow,
+                parent: AbstractAnimalMetadataBundle {
+                    _marker: AbstractAnimal,
+                    parent: AbstractAgeableMetadataBundle {
+                        _marker: AbstractAgeable,
+                        parent: AbstractCreatureMetadataBundle {
+                            _marker: AbstractCreature,
+                            parent: AbstractInsentientMetadataBundle {
+                                _marker: AbstractInsentient,
+                                parent: AbstractLivingMetadataBundle {
+                                    _marker: AbstractLiving,
+                                    parent: AbstractEntityMetadataBundle {
+                                        _marker: AbstractEntity,
+                                        on_fire: OnFire(false),
+                                        shift_key_down: ShiftKeyDown(false),
+                                        sprinting: Sprinting(false),
+                                        swimming: Swimming(false),
+                                        currently_glowing: CurrentlyGlowing(false),
+                                        invisible: Invisible(false),
+                                        fall_flying: FallFlying(false),
+                                        air_supply: AirSupply(Default::default()),
+                                        custom_name: CustomName(None),
+                                        custom_name_visible: CustomNameVisible(false),
+                                        silent: Silent(false),
+                                        no_gravity: NoGravity(false),
+                                        pose: Pose::default(),
+                                        ticks_frozen: TicksFrozen(0),
+                                    },
+                                    auto_spin_attack: AutoSpinAttack(false),
+                                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                                    health: Health(1.0),
+                                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                    effect_ambience: EffectAmbience(false),
+                                    arrow_count: ArrowCount(0),
+                                    stinger_count: StingerCount(0),
+                                    sleeping_pos: SleepingPos(None),
+                                },
+                                no_ai: NoAi(false),
+                                left_handed: LeftHanded(false),
+                                aggressive: Aggressive(false),
+                            },
+                        },
+                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                    },
+                },
+            },
+            mooshroom_kind: MooshroomKind(Default::default()),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct MuleTamed(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct MuleEating(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct MuleStanding(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct MuleBred(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct MuleSaddled(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct MuleOwnerUuid(pub Option<Uuid>);
+#[derive(Component, Deref, DerefMut)]
+pub struct MuleChest(pub bool);
+#[derive(Component)]
+pub struct Mule;
+impl Mule {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(MuleTamed(bitfield & 0x2 != 0));
+                entity.insert(MuleEating(bitfield & 0x10 != 0));
+                entity.insert(MuleStanding(bitfield & 0x20 != 0));
+                entity.insert(MuleBred(bitfield & 0x8 != 0));
+                entity.insert(MuleSaddled(bitfield & 0x4 != 0));
+            }
+            18 => {
+                entity.insert(MuleOwnerUuid(d.value.into_optional_uuid()?));
+            }
+            19 => {
+                entity.insert(MuleChest(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct MuleMetadataBundle {
+    _marker: Mule,
+    parent: AbstractAnimalMetadataBundle,
+    mule_tamed: MuleTamed,
+    mule_eating: MuleEating,
+    mule_standing: MuleStanding,
+    mule_bred: MuleBred,
+    mule_saddled: MuleSaddled,
+    mule_owner_uuid: MuleOwnerUuid,
+    mule_chest: MuleChest,
+}
+impl Default for MuleMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Mule,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            mule_tamed: MuleTamed(false),
+            mule_eating: MuleEating(false),
+            mule_standing: MuleStanding(false),
+            mule_bred: MuleBred(false),
+            mule_saddled: MuleSaddled(false),
+            mule_owner_uuid: MuleOwnerUuid(None),
+            mule_chest: MuleChest(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct Trusting(pub bool);
+#[derive(Component)]
+pub struct Ocelot;
+impl Ocelot {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(Trusting(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct OcelotMetadataBundle {
+    _marker: Ocelot,
+    parent: AbstractAnimalMetadataBundle,
+    trusting: Trusting,
+}
+impl Default for OcelotMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Ocelot,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            trusting: Trusting(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct PaintingVariant(pub azalea_registry::PaintingVariant);
+#[derive(Component)]
+pub struct Painting;
+impl Painting {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(PaintingVariant(d.value.into_painting_variant()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct PaintingMetadataBundle {
+    _marker: Painting,
+    parent: AbstractEntityMetadataBundle,
+    painting_variant: PaintingVariant,
+}
+impl Default for PaintingMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Painting,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            painting_variant: PaintingVariant(azalea_registry::PaintingVariant::Kebab),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct PandaUnhappyCounter(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct SneezeCounter(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct EatCounter(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct Sneezing(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct PandaSitting(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct OnBack(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct PandaRolling(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct HiddenGene(pub u8);
+#[derive(Component, Deref, DerefMut)]
+pub struct PandaFlags(pub u8);
+#[derive(Component)]
+pub struct Panda;
+impl Panda {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(PandaUnhappyCounter(d.value.into_int()?));
+            }
+            18 => {
+                entity.insert(SneezeCounter(d.value.into_int()?));
+            }
+            19 => {
+                entity.insert(EatCounter(d.value.into_int()?));
+            }
+            20 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(Sneezing(bitfield & 0x2 != 0));
+                entity.insert(PandaSitting(bitfield & 0x8 != 0));
+                entity.insert(OnBack(bitfield & 0x10 != 0));
+                entity.insert(PandaRolling(bitfield & 0x4 != 0));
+            }
+            21 => {
+                entity.insert(HiddenGene(d.value.into_byte()?));
+            }
+            22 => {
+                entity.insert(PandaFlags(d.value.into_byte()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct PandaMetadataBundle {
+    _marker: Panda,
+    parent: AbstractAnimalMetadataBundle,
+    panda_unhappy_counter: PandaUnhappyCounter,
+    sneeze_counter: SneezeCounter,
+    eat_counter: EatCounter,
+    sneezing: Sneezing,
+    panda_sitting: PandaSitting,
+    on_back: OnBack,
+    panda_rolling: PandaRolling,
+    hidden_gene: HiddenGene,
+    panda_flags: PandaFlags,
+}
+impl Default for PandaMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Panda,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            panda_unhappy_counter: PandaUnhappyCounter(0),
+            sneeze_counter: SneezeCounter(0),
+            eat_counter: EatCounter(0),
+            sneezing: Sneezing(false),
+            panda_sitting: PandaSitting(false),
+            on_back: OnBack(false),
+            panda_rolling: PandaRolling(false),
+            hidden_gene: HiddenGene(0),
+            panda_flags: PandaFlags(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct ParrotVariant(pub i32);
+#[derive(Component)]
+pub struct Parrot;
+impl Parrot {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=18 => AbstractTameable::apply_metadata(entity, d)?,
+            19 => {
+                entity.insert(ParrotVariant(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ParrotMetadataBundle {
+    _marker: Parrot,
+    parent: AbstractTameableMetadataBundle,
+    parrot_variant: ParrotVariant,
+}
+impl Default for ParrotMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Parrot,
+            parent: AbstractTameableMetadataBundle {
+                _marker: AbstractTameable,
+                parent: AbstractAnimalMetadataBundle {
+                    _marker: AbstractAnimal,
+                    parent: AbstractAgeableMetadataBundle {
+                        _marker: AbstractAgeable,
+                        parent: AbstractCreatureMetadataBundle {
+                            _marker: AbstractCreature,
+                            parent: AbstractInsentientMetadataBundle {
+                                _marker: AbstractInsentient,
+                                parent: AbstractLivingMetadataBundle {
+                                    _marker: AbstractLiving,
+                                    parent: AbstractEntityMetadataBundle {
+                                        _marker: AbstractEntity,
+                                        on_fire: OnFire(false),
+                                        shift_key_down: ShiftKeyDown(false),
+                                        sprinting: Sprinting(false),
+                                        swimming: Swimming(false),
+                                        currently_glowing: CurrentlyGlowing(false),
+                                        invisible: Invisible(false),
+                                        fall_flying: FallFlying(false),
+                                        air_supply: AirSupply(Default::default()),
+                                        custom_name: CustomName(None),
+                                        custom_name_visible: CustomNameVisible(false),
+                                        silent: Silent(false),
+                                        no_gravity: NoGravity(false),
+                                        pose: Pose::default(),
+                                        ticks_frozen: TicksFrozen(0),
+                                    },
+                                    auto_spin_attack: AutoSpinAttack(false),
+                                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                                    health: Health(1.0),
+                                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                    effect_ambience: EffectAmbience(false),
+                                    arrow_count: ArrowCount(0),
+                                    stinger_count: StingerCount(0),
+                                    sleeping_pos: SleepingPos(None),
+                                },
+                                no_ai: NoAi(false),
+                                left_handed: LeftHanded(false),
+                                aggressive: Aggressive(false),
+                            },
+                        },
+                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                    },
+                },
+                tame: Tame(false),
+                in_sitting_pose: InSittingPose(false),
+                owneruuid: Owneruuid(None),
+            },
+            parrot_variant: ParrotVariant(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct PhantomSize(pub i32);
+#[derive(Component)]
+pub struct Phantom;
+impl Phantom {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(PhantomSize(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct PhantomMetadataBundle {
+    _marker: Phantom,
+    parent: AbstractInsentientMetadataBundle,
+    phantom_size: PhantomSize,
+}
+impl Default for PhantomMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Phantom,
+            parent: AbstractInsentientMetadataBundle {
+                _marker: AbstractInsentient,
+                parent: AbstractLivingMetadataBundle {
+                    _marker: AbstractLiving,
+                    parent: AbstractEntityMetadataBundle {
+                        _marker: AbstractEntity,
+                        on_fire: OnFire(false),
+                        shift_key_down: ShiftKeyDown(false),
+                        sprinting: Sprinting(false),
+                        swimming: Swimming(false),
+                        currently_glowing: CurrentlyGlowing(false),
+                        invisible: Invisible(false),
+                        fall_flying: FallFlying(false),
+                        air_supply: AirSupply(Default::default()),
+                        custom_name: CustomName(None),
+                        custom_name_visible: CustomNameVisible(false),
+                        silent: Silent(false),
+                        no_gravity: NoGravity(false),
+                        pose: Pose::default(),
+                        ticks_frozen: TicksFrozen(0),
+                    },
+                    auto_spin_attack: AutoSpinAttack(false),
+                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                    health: Health(1.0),
+                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                    effect_ambience: EffectAmbience(false),
+                    arrow_count: ArrowCount(0),
+                    stinger_count: StingerCount(0),
+                    sleeping_pos: SleepingPos(None),
+                },
+                no_ai: NoAi(false),
+                left_handed: LeftHanded(false),
+                aggressive: Aggressive(false),
+            },
+            phantom_size: PhantomSize(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct PigSaddle(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct PigBoostTime(pub i32);
+#[derive(Component)]
+pub struct Pig;
+impl Pig {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(PigSaddle(d.value.into_boolean()?));
+            }
+            18 => {
+                entity.insert(PigBoostTime(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct PigMetadataBundle {
+    _marker: Pig,
+    parent: AbstractAnimalMetadataBundle,
+    pig_saddle: PigSaddle,
+    pig_boost_time: PigBoostTime,
+}
+impl Default for PigMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Pig,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            pig_saddle: PigSaddle(false),
+            pig_boost_time: PigBoostTime(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct PiglinImmuneToZombification(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct PiglinBaby(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct PiglinIsChargingCrossbow(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct IsDancing(pub bool);
+#[derive(Component)]
+pub struct Piglin;
+impl Piglin {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(PiglinImmuneToZombification(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(PiglinBaby(d.value.into_boolean()?));
+            }
+            18 => {
+                entity.insert(PiglinIsChargingCrossbow(d.value.into_boolean()?));
+            }
+            19 => {
+                entity.insert(IsDancing(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct PiglinMetadataBundle {
+    _marker: Piglin,
+    parent: AbstractMonsterMetadataBundle,
+    piglin_immune_to_zombification: PiglinImmuneToZombification,
+    piglin_baby: PiglinBaby,
+    piglin_is_charging_crossbow: PiglinIsChargingCrossbow,
+    is_dancing: IsDancing,
+}
+impl Default for PiglinMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Piglin,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            piglin_immune_to_zombification: PiglinImmuneToZombification(false),
+            piglin_baby: PiglinBaby(false),
+            piglin_is_charging_crossbow: PiglinIsChargingCrossbow(false),
+            is_dancing: IsDancing(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct PiglinBruteImmuneToZombification(pub bool);
+#[derive(Component)]
+pub struct PiglinBrute;
+impl PiglinBrute {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(PiglinBruteImmuneToZombification(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct PiglinBruteMetadataBundle {
+    _marker: PiglinBrute,
+    parent: AbstractMonsterMetadataBundle,
+    piglin_brute_immune_to_zombification: PiglinBruteImmuneToZombification,
+}
+impl Default for PiglinBruteMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: PiglinBrute,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            piglin_brute_immune_to_zombification: PiglinBruteImmuneToZombification(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct PillagerIsCelebrating(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct PillagerIsChargingCrossbow(pub bool);
+#[derive(Component)]
+pub struct Pillager;
+impl Pillager {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(PillagerIsCelebrating(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(PillagerIsChargingCrossbow(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct PillagerMetadataBundle {
+    _marker: Pillager,
+    parent: AbstractMonsterMetadataBundle,
+    pillager_is_celebrating: PillagerIsCelebrating,
+    pillager_is_charging_crossbow: PillagerIsChargingCrossbow,
+}
+impl Default for PillagerMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Pillager,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            pillager_is_celebrating: PillagerIsCelebrating(false),
+            pillager_is_charging_crossbow: PillagerIsChargingCrossbow(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct PlayerAbsorption(pub f32);
+#[derive(Component, Deref, DerefMut)]
+pub struct Score(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct PlayerModeCustomisation(pub u8);
+#[derive(Component, Deref, DerefMut)]
+pub struct PlayerMainHand(pub u8);
+#[derive(Component, Deref, DerefMut)]
+pub struct ShoulderLeft(pub azalea_nbt::Tag);
+#[derive(Component, Deref, DerefMut)]
+pub struct ShoulderRight(pub azalea_nbt::Tag);
+#[derive(Component)]
+pub struct Player;
+impl Player {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=14 => AbstractLiving::apply_metadata(entity, d)?,
+            15 => {
+                entity.insert(PlayerAbsorption(d.value.into_float()?));
+            }
+            16 => {
+                entity.insert(Score(d.value.into_int()?));
+            }
+            17 => {
+                entity.insert(PlayerModeCustomisation(d.value.into_byte()?));
+            }
+            18 => {
+                entity.insert(PlayerMainHand(d.value.into_byte()?));
+            }
+            19 => {
+                entity.insert(ShoulderLeft(d.value.into_compound_tag()?));
+            }
+            20 => {
+                entity.insert(ShoulderRight(d.value.into_compound_tag()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct PlayerMetadataBundle {
+    _marker: Player,
+    parent: AbstractLivingMetadataBundle,
+    player_absorption: PlayerAbsorption,
+    score: Score,
+    player_mode_customisation: PlayerModeCustomisation,
+    player_main_hand: PlayerMainHand,
+    shoulder_left: ShoulderLeft,
+    shoulder_right: ShoulderRight,
+}
+impl Default for PlayerMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Player,
+            parent: AbstractLivingMetadataBundle {
+                _marker: AbstractLiving,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                auto_spin_attack: AutoSpinAttack(false),
+                abstract_living_using_item: AbstractLivingUsingItem(false),
+                health: Health(1.0),
+                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                effect_ambience: EffectAmbience(false),
+                arrow_count: ArrowCount(0),
+                stinger_count: StingerCount(0),
+                sleeping_pos: SleepingPos(None),
+            },
+            player_absorption: PlayerAbsorption(0.0),
+            score: Score(0),
+            player_mode_customisation: PlayerModeCustomisation(0),
+            player_main_hand: PlayerMainHand(1),
+            shoulder_left: ShoulderLeft(azalea_nbt::Tag::Compound(Default::default())),
+            shoulder_right: ShoulderRight(azalea_nbt::Tag::Compound(Default::default())),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct PolarBearStanding(pub bool);
+#[derive(Component)]
+pub struct PolarBear;
+impl PolarBear {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(PolarBearStanding(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct PolarBearMetadataBundle {
+    _marker: PolarBear,
+    parent: AbstractAnimalMetadataBundle,
+    polar_bear_standing: PolarBearStanding,
+}
+impl Default for PolarBearMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: PolarBear,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            polar_bear_standing: PolarBearStanding(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct PotionItemStack(pub Slot);
+#[derive(Component)]
+pub struct Potion;
+impl Potion {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(PotionItemStack(d.value.into_item_stack()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct PotionMetadataBundle {
+    _marker: Potion,
+    parent: AbstractEntityMetadataBundle,
+    potion_item_stack: PotionItemStack,
+}
+impl Default for PotionMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Potion,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            potion_item_stack: PotionItemStack(Slot::Empty),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct PufferfishFromBucket(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct PuffState(pub i32);
+#[derive(Component)]
+pub struct Pufferfish;
+impl Pufferfish {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(PufferfishFromBucket(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(PuffState(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct PufferfishMetadataBundle {
+    _marker: Pufferfish,
+    parent: AbstractCreatureMetadataBundle,
+    pufferfish_from_bucket: PufferfishFromBucket,
+    puff_state: PuffState,
+}
+impl Default for PufferfishMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Pufferfish,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+            pufferfish_from_bucket: PufferfishFromBucket(false),
+            puff_state: PuffState(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct RabbitKind(pub i32);
+#[derive(Component)]
+pub struct Rabbit;
+impl Rabbit {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(RabbitKind(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct RabbitMetadataBundle {
+    _marker: Rabbit,
+    parent: AbstractAnimalMetadataBundle,
+    rabbit_kind: RabbitKind,
+}
+impl Default for RabbitMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Rabbit,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            rabbit_kind: RabbitKind(Default::default()),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct RavagerIsCelebrating(pub bool);
+#[derive(Component)]
+pub struct Ravager;
+impl Ravager {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(RavagerIsCelebrating(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct RavagerMetadataBundle {
+    _marker: Ravager,
+    parent: AbstractMonsterMetadataBundle,
+    ravager_is_celebrating: RavagerIsCelebrating,
+}
+impl Default for RavagerMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Ravager,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            ravager_is_celebrating: RavagerIsCelebrating(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct SalmonFromBucket(pub bool);
+#[derive(Component)]
+pub struct Salmon;
+impl Salmon {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(SalmonFromBucket(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SalmonMetadataBundle {
+    _marker: Salmon,
+    parent: AbstractCreatureMetadataBundle,
+    salmon_from_bucket: SalmonFromBucket,
+}
+impl Default for SalmonMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Salmon,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+            salmon_from_bucket: SalmonFromBucket(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct Sheared(pub bool);
+#[derive(Component)]
+pub struct Sheep;
+impl Sheep {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(Sheared(bitfield & 0x10 != 0));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SheepMetadataBundle {
+    _marker: Sheep,
+    parent: AbstractAnimalMetadataBundle,
+    sheared: Sheared,
+}
+impl Default for SheepMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Sheep,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            sheared: Sheared(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct AttachFace(pub Direction);
+#[derive(Component, Deref, DerefMut)]
+pub struct Peek(pub u8);
+#[derive(Component, Deref, DerefMut)]
+pub struct ShulkerColor(pub u8);
+#[derive(Component)]
+pub struct Shulker;
+impl Shulker {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(AttachFace(d.value.into_direction()?));
+            }
+            17 => {
+                entity.insert(Peek(d.value.into_byte()?));
+            }
+            18 => {
+                entity.insert(ShulkerColor(d.value.into_byte()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ShulkerMetadataBundle {
+    _marker: Shulker,
+    parent: AbstractCreatureMetadataBundle,
+    attach_face: AttachFace,
+    peek: Peek,
+    shulker_color: ShulkerColor,
+}
+impl Default for ShulkerMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Shulker,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+            attach_face: AttachFace(Default::default()),
+            peek: Peek(0),
+            shulker_color: ShulkerColor(16),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct ShulkerBullet;
+impl ShulkerBullet {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ShulkerBulletMetadataBundle {
+    _marker: ShulkerBullet,
+    parent: AbstractEntityMetadataBundle,
+}
+impl Default for ShulkerBulletMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: ShulkerBullet,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Silverfish;
+impl Silverfish {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SilverfishMetadataBundle {
+    _marker: Silverfish,
+    parent: AbstractMonsterMetadataBundle,
+}
+impl Default for SilverfishMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Silverfish,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct StrayConversion(pub bool);
+#[derive(Component)]
+pub struct Skeleton;
+impl Skeleton {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(StrayConversion(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SkeletonMetadataBundle {
+    _marker: Skeleton,
+    parent: AbstractMonsterMetadataBundle,
+    stray_conversion: StrayConversion,
+}
+impl Default for SkeletonMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Skeleton,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            stray_conversion: StrayConversion(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct SkeletonHorseTamed(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct SkeletonHorseEating(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct SkeletonHorseStanding(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct SkeletonHorseBred(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct SkeletonHorseSaddled(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct SkeletonHorseOwnerUuid(pub Option<Uuid>);
+#[derive(Component)]
+pub struct SkeletonHorse;
+impl SkeletonHorse {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(SkeletonHorseTamed(bitfield & 0x2 != 0));
+                entity.insert(SkeletonHorseEating(bitfield & 0x10 != 0));
+                entity.insert(SkeletonHorseStanding(bitfield & 0x20 != 0));
+                entity.insert(SkeletonHorseBred(bitfield & 0x8 != 0));
+                entity.insert(SkeletonHorseSaddled(bitfield & 0x4 != 0));
+            }
+            18 => {
+                entity.insert(SkeletonHorseOwnerUuid(d.value.into_optional_uuid()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SkeletonHorseMetadataBundle {
+    _marker: SkeletonHorse,
+    parent: AbstractAnimalMetadataBundle,
+    skeleton_horse_tamed: SkeletonHorseTamed,
+    skeleton_horse_eating: SkeletonHorseEating,
+    skeleton_horse_standing: SkeletonHorseStanding,
+    skeleton_horse_bred: SkeletonHorseBred,
+    skeleton_horse_saddled: SkeletonHorseSaddled,
+    skeleton_horse_owner_uuid: SkeletonHorseOwnerUuid,
+}
+impl Default for SkeletonHorseMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: SkeletonHorse,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            skeleton_horse_tamed: SkeletonHorseTamed(false),
+            skeleton_horse_eating: SkeletonHorseEating(false),
+            skeleton_horse_standing: SkeletonHorseStanding(false),
+            skeleton_horse_bred: SkeletonHorseBred(false),
+            skeleton_horse_saddled: SkeletonHorseSaddled(false),
+            skeleton_horse_owner_uuid: SkeletonHorseOwnerUuid(None),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Slime;
+impl Slime {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(SlimeSize(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SlimeMetadataBundle {
+    _marker: Slime,
+    parent: AbstractInsentientMetadataBundle,
+    slime_size: SlimeSize,
+}
+impl Default for SlimeMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Slime,
+            parent: AbstractInsentientMetadataBundle {
+                _marker: AbstractInsentient,
+                parent: AbstractLivingMetadataBundle {
+                    _marker: AbstractLiving,
+                    parent: AbstractEntityMetadataBundle {
+                        _marker: AbstractEntity,
+                        on_fire: OnFire(false),
+                        shift_key_down: ShiftKeyDown(false),
+                        sprinting: Sprinting(false),
+                        swimming: Swimming(false),
+                        currently_glowing: CurrentlyGlowing(false),
+                        invisible: Invisible(false),
+                        fall_flying: FallFlying(false),
+                        air_supply: AirSupply(Default::default()),
+                        custom_name: CustomName(None),
+                        custom_name_visible: CustomNameVisible(false),
+                        silent: Silent(false),
+                        no_gravity: NoGravity(false),
+                        pose: Pose::default(),
+                        ticks_frozen: TicksFrozen(0),
+                    },
+                    auto_spin_attack: AutoSpinAttack(false),
+                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                    health: Health(1.0),
+                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                    effect_ambience: EffectAmbience(false),
+                    arrow_count: ArrowCount(0),
+                    stinger_count: StingerCount(0),
+                    sleeping_pos: SleepingPos(None),
+                },
+                no_ai: NoAi(false),
+                left_handed: LeftHanded(false),
+                aggressive: Aggressive(false),
+            },
+            slime_size: SlimeSize(1),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct SmallFireballItemStack(pub Slot);
+#[derive(Component)]
+pub struct SmallFireball;
+impl SmallFireball {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(SmallFireballItemStack(d.value.into_item_stack()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SmallFireballMetadataBundle {
+    _marker: SmallFireball,
+    parent: AbstractEntityMetadataBundle,
+    small_fireball_item_stack: SmallFireballItemStack,
+}
+impl Default for SmallFireballMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: SmallFireball,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            small_fireball_item_stack: SmallFireballItemStack(Slot::Empty),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct HasPumpkin(pub bool);
+#[derive(Component)]
+pub struct SnowGolem;
+impl SnowGolem {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
+            16 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(HasPumpkin(bitfield & 0x10 != 0));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SnowGolemMetadataBundle {
+    _marker: SnowGolem,
+    parent: AbstractCreatureMetadataBundle,
+    has_pumpkin: HasPumpkin,
+}
+impl Default for SnowGolemMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: SnowGolem,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+            has_pumpkin: HasPumpkin(true),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct SnowballItemStack(pub Slot);
+#[derive(Component)]
+pub struct Snowball;
+impl Snowball {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(SnowballItemStack(d.value.into_item_stack()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SnowballMetadataBundle {
+    _marker: Snowball,
+    parent: AbstractEntityMetadataBundle,
+    snowball_item_stack: SnowballItemStack,
+}
+impl Default for SnowballMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Snowball,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            snowball_item_stack: SnowballItemStack(Slot::Empty),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct SpawnerMinecart;
+impl SpawnerMinecart {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SpawnerMinecartMetadataBundle {
+    _marker: SpawnerMinecart,
+    parent: AbstractMinecartMetadataBundle,
+}
+impl Default for SpawnerMinecartMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: SpawnerMinecart,
+            parent: AbstractMinecartMetadataBundle {
+                _marker: AbstractMinecart,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                abstract_minecart_hurt: AbstractMinecartHurt(0),
+                abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+                abstract_minecart_damage: AbstractMinecartDamage(0.0),
+                display_block: DisplayBlock(Default::default()),
+                display_offset: DisplayOffset(6),
+                custom_display: CustomDisplay(false),
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct SpectralArrowCritArrow(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct SpectralArrowShotFromCrossbow(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct SpectralArrowNoPhysics(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct SpectralArrowPierceLevel(pub u8);
+#[derive(Component)]
+pub struct SpectralArrow;
+impl SpectralArrow {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(SpectralArrowCritArrow(bitfield & 0x1 != 0));
+                entity.insert(SpectralArrowShotFromCrossbow(bitfield & 0x4 != 0));
+                entity.insert(SpectralArrowNoPhysics(bitfield & 0x2 != 0));
+            }
+            9 => {
+                entity.insert(SpectralArrowPierceLevel(d.value.into_byte()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SpectralArrowMetadataBundle {
+    _marker: SpectralArrow,
+    parent: AbstractEntityMetadataBundle,
+    spectral_arrow_crit_arrow: SpectralArrowCritArrow,
+    spectral_arrow_shot_from_crossbow: SpectralArrowShotFromCrossbow,
+    spectral_arrow_no_physics: SpectralArrowNoPhysics,
+    spectral_arrow_pierce_level: SpectralArrowPierceLevel,
+}
+impl Default for SpectralArrowMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: SpectralArrow,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            spectral_arrow_crit_arrow: SpectralArrowCritArrow(false),
+            spectral_arrow_shot_from_crossbow: SpectralArrowShotFromCrossbow(false),
+            spectral_arrow_no_physics: SpectralArrowNoPhysics(false),
+            spectral_arrow_pierce_level: SpectralArrowPierceLevel(0),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Spider;
+impl Spider {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(Climbing(bitfield & 0x1 != 0));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SpiderMetadataBundle {
+    _marker: Spider,
+    parent: AbstractMonsterMetadataBundle,
+    climbing: Climbing,
+}
+impl Default for SpiderMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Spider,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            climbing: Climbing(false),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Squid;
+impl Squid {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SquidMetadataBundle {
+    _marker: Squid,
+    parent: AbstractCreatureMetadataBundle,
+}
+impl Default for SquidMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Squid,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Stray;
+impl Stray {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct StrayMetadataBundle {
+    _marker: Stray,
+    parent: AbstractMonsterMetadataBundle,
+}
+impl Default for StrayMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Stray,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct StriderBoostTime(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct Suffocating(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct StriderSaddle(pub bool);
+#[derive(Component)]
+pub struct Strider;
+impl Strider {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(StriderBoostTime(d.value.into_int()?));
+            }
+            18 => {
+                entity.insert(Suffocating(d.value.into_boolean()?));
+            }
+            19 => {
+                entity.insert(StriderSaddle(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct StriderMetadataBundle {
+    _marker: Strider,
+    parent: AbstractAnimalMetadataBundle,
+    strider_boost_time: StriderBoostTime,
+    suffocating: Suffocating,
+    strider_saddle: StriderSaddle,
+}
+impl Default for StriderMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Strider,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            strider_boost_time: StriderBoostTime(0),
+            suffocating: Suffocating(false),
+            strider_saddle: StriderSaddle(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct TadpoleFromBucket(pub bool);
+#[derive(Component)]
+pub struct Tadpole;
+impl Tadpole {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(TadpoleFromBucket(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct TadpoleMetadataBundle {
+    _marker: Tadpole,
+    parent: AbstractCreatureMetadataBundle,
+    tadpole_from_bucket: TadpoleFromBucket,
+}
+impl Default for TadpoleMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Tadpole,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+            tadpole_from_bucket: TadpoleFromBucket(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct Fuse(pub i32);
+#[derive(Component)]
+pub struct Tnt;
+impl Tnt {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(Fuse(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct TntMetadataBundle {
+    _marker: Tnt,
+    parent: AbstractEntityMetadataBundle,
+    fuse: Fuse,
+}
+impl Default for TntMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Tnt,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            fuse: Fuse(80),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct TntMinecart;
+impl TntMinecart {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct TntMinecartMetadataBundle {
+    _marker: TntMinecart,
+    parent: AbstractMinecartMetadataBundle,
+}
+impl Default for TntMinecartMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: TntMinecart,
+            parent: AbstractMinecartMetadataBundle {
+                _marker: AbstractMinecart,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                abstract_minecart_hurt: AbstractMinecartHurt(0),
+                abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+                abstract_minecart_damage: AbstractMinecartDamage(0.0),
+                display_block: DisplayBlock(Default::default()),
+                display_offset: DisplayOffset(6),
+                custom_display: CustomDisplay(false),
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct TraderLlama;
+impl TraderLlama {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=22 => Llama::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct TraderLlamaMetadataBundle {
+    _marker: TraderLlama,
+    parent: LlamaMetadataBundle,
+}
+impl Default for TraderLlamaMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: TraderLlama,
+            parent: LlamaMetadataBundle {
+                _marker: Llama,
+                parent: AbstractAnimalMetadataBundle {
+                    _marker: AbstractAnimal,
+                    parent: AbstractAgeableMetadataBundle {
+                        _marker: AbstractAgeable,
+                        parent: AbstractCreatureMetadataBundle {
+                            _marker: AbstractCreature,
+                            parent: AbstractInsentientMetadataBundle {
+                                _marker: AbstractInsentient,
+                                parent: AbstractLivingMetadataBundle {
+                                    _marker: AbstractLiving,
+                                    parent: AbstractEntityMetadataBundle {
+                                        _marker: AbstractEntity,
+                                        on_fire: OnFire(false),
+                                        shift_key_down: ShiftKeyDown(false),
+                                        sprinting: Sprinting(false),
+                                        swimming: Swimming(false),
+                                        currently_glowing: CurrentlyGlowing(false),
+                                        invisible: Invisible(false),
+                                        fall_flying: FallFlying(false),
+                                        air_supply: AirSupply(Default::default()),
+                                        custom_name: CustomName(None),
+                                        custom_name_visible: CustomNameVisible(false),
+                                        silent: Silent(false),
+                                        no_gravity: NoGravity(false),
+                                        pose: Pose::default(),
+                                        ticks_frozen: TicksFrozen(0),
+                                    },
+                                    auto_spin_attack: AutoSpinAttack(false),
+                                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                                    health: Health(1.0),
+                                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                    effect_ambience: EffectAmbience(false),
+                                    arrow_count: ArrowCount(0),
+                                    stinger_count: StingerCount(0),
+                                    sleeping_pos: SleepingPos(None),
+                                },
+                                no_ai: NoAi(false),
+                                left_handed: LeftHanded(false),
+                                aggressive: Aggressive(false),
+                            },
+                        },
+                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                    },
+                },
+                llama_tamed: LlamaTamed(false),
+                llama_eating: LlamaEating(false),
+                llama_standing: LlamaStanding(false),
+                llama_bred: LlamaBred(false),
+                llama_saddled: LlamaSaddled(false),
+                llama_owner_uuid: LlamaOwnerUuid(None),
+                llama_chest: LlamaChest(false),
+                strength: Strength(0),
+                swag: Swag(-1),
+                llama_variant: LlamaVariant(0),
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct TridentCritArrow(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct TridentShotFromCrossbow(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct TridentNoPhysics(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct TridentPierceLevel(pub u8);
+#[derive(Component, Deref, DerefMut)]
+pub struct Loyalty(pub u8);
+#[derive(Component, Deref, DerefMut)]
+pub struct Foil(pub bool);
+#[derive(Component)]
+pub struct Trident;
+impl Trident {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(TridentCritArrow(bitfield & 0x1 != 0));
+                entity.insert(TridentShotFromCrossbow(bitfield & 0x4 != 0));
+                entity.insert(TridentNoPhysics(bitfield & 0x2 != 0));
+            }
+            9 => {
+                entity.insert(TridentPierceLevel(d.value.into_byte()?));
+            }
+            10 => {
+                entity.insert(Loyalty(d.value.into_byte()?));
+            }
+            11 => {
+                entity.insert(Foil(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct TridentMetadataBundle {
+    _marker: Trident,
+    parent: AbstractEntityMetadataBundle,
+    trident_crit_arrow: TridentCritArrow,
+    trident_shot_from_crossbow: TridentShotFromCrossbow,
+    trident_no_physics: TridentNoPhysics,
+    trident_pierce_level: TridentPierceLevel,
+    loyalty: Loyalty,
+    foil: Foil,
+}
+impl Default for TridentMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Trident,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            trident_crit_arrow: TridentCritArrow(false),
+            trident_shot_from_crossbow: TridentShotFromCrossbow(false),
+            trident_no_physics: TridentNoPhysics(false),
+            trident_pierce_level: TridentPierceLevel(0),
+            loyalty: Loyalty(0),
+            foil: Foil(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct TropicalFishFromBucket(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct TropicalFishTypeVariant(pub i32);
+#[derive(Component)]
+pub struct TropicalFish;
+impl TropicalFish {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(TropicalFishFromBucket(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(TropicalFishTypeVariant(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct TropicalFishMetadataBundle {
+    _marker: TropicalFish,
+    parent: AbstractCreatureMetadataBundle,
+    tropical_fish_from_bucket: TropicalFishFromBucket,
+    tropical_fish_type_variant: TropicalFishTypeVariant,
+}
+impl Default for TropicalFishMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: TropicalFish,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+            tropical_fish_from_bucket: TropicalFishFromBucket(false),
+            tropical_fish_type_variant: TropicalFishTypeVariant(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct HomePos(pub BlockPos);
+#[derive(Component, Deref, DerefMut)]
+pub struct HasEgg(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct LayingEgg(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct TravelPos(pub BlockPos);
+#[derive(Component, Deref, DerefMut)]
+pub struct GoingHome(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct Travelling(pub bool);
+#[derive(Component)]
+pub struct Turtle;
+impl Turtle {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(HomePos(d.value.into_block_pos()?));
+            }
+            18 => {
+                entity.insert(HasEgg(d.value.into_boolean()?));
+            }
+            19 => {
+                entity.insert(LayingEgg(d.value.into_boolean()?));
+            }
+            20 => {
+                entity.insert(TravelPos(d.value.into_block_pos()?));
+            }
+            21 => {
+                entity.insert(GoingHome(d.value.into_boolean()?));
+            }
+            22 => {
+                entity.insert(Travelling(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct TurtleMetadataBundle {
+    _marker: Turtle,
+    parent: AbstractAnimalMetadataBundle,
+    home_pos: HomePos,
+    has_egg: HasEgg,
+    laying_egg: LayingEgg,
+    travel_pos: TravelPos,
+    going_home: GoingHome,
+    travelling: Travelling,
+}
+impl Default for TurtleMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Turtle,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            home_pos: HomePos(BlockPos::new(0, 0, 0)),
+            has_egg: HasEgg(false),
+            laying_egg: LayingEgg(false),
+            travel_pos: TravelPos(BlockPos::new(0, 0, 0)),
+            going_home: GoingHome(false),
+            travelling: Travelling(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct VexFlags(pub u8);
+#[derive(Component)]
+pub struct Vex;
+impl Vex {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(VexFlags(d.value.into_byte()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct VexMetadataBundle {
+    _marker: Vex,
+    parent: AbstractMonsterMetadataBundle,
+    vex_flags: VexFlags,
+}
+impl Default for VexMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Vex,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            vex_flags: VexFlags(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct VillagerUnhappyCounter(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct VillagerVillagerData(pub VillagerData);
+#[derive(Component)]
+pub struct Villager;
+impl Villager {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAgeable::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(VillagerUnhappyCounter(d.value.into_int()?));
+            }
+            18 => {
+                entity.insert(VillagerVillagerData(d.value.into_villager_data()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct VillagerMetadataBundle {
+    _marker: Villager,
+    parent: AbstractAgeableMetadataBundle,
+    villager_unhappy_counter: VillagerUnhappyCounter,
+    villager_villager_data: VillagerVillagerData,
+}
+impl Default for VillagerMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Villager,
+            parent: AbstractAgeableMetadataBundle {
+                _marker: AbstractAgeable,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+                abstract_ageable_baby: AbstractAgeableBaby(false),
+            },
+            villager_unhappy_counter: VillagerUnhappyCounter(0),
+            villager_villager_data: VillagerVillagerData(VillagerData {
+                kind: azalea_registry::VillagerKind::Plains,
+                profession: azalea_registry::VillagerProfession::None,
+                level: 0,
+            }),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct VindicatorIsCelebrating(pub bool);
+#[derive(Component)]
+pub struct Vindicator;
+impl Vindicator {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(VindicatorIsCelebrating(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct VindicatorMetadataBundle {
+    _marker: Vindicator,
+    parent: AbstractMonsterMetadataBundle,
+    vindicator_is_celebrating: VindicatorIsCelebrating,
+}
+impl Default for VindicatorMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Vindicator,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            vindicator_is_celebrating: VindicatorIsCelebrating(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct WanderingTraderUnhappyCounter(pub i32);
+#[derive(Component)]
+pub struct WanderingTrader;
+impl WanderingTrader {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAgeable::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(WanderingTraderUnhappyCounter(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct WanderingTraderMetadataBundle {
+    _marker: WanderingTrader,
+    parent: AbstractAgeableMetadataBundle,
+    wandering_trader_unhappy_counter: WanderingTraderUnhappyCounter,
+}
+impl Default for WanderingTraderMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: WanderingTrader,
+            parent: AbstractAgeableMetadataBundle {
+                _marker: AbstractAgeable,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+                abstract_ageable_baby: AbstractAgeableBaby(false),
+            },
+            wandering_trader_unhappy_counter: WanderingTraderUnhappyCounter(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct ClientAngerLevel(pub i32);
+#[derive(Component)]
+pub struct Warden;
+impl Warden {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(ClientAngerLevel(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct WardenMetadataBundle {
+    _marker: Warden,
+    parent: AbstractMonsterMetadataBundle,
+    client_anger_level: ClientAngerLevel,
+}
+impl Default for WardenMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Warden,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            client_anger_level: ClientAngerLevel(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct WitchIsCelebrating(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct WitchUsingItem(pub bool);
+#[derive(Component)]
+pub struct Witch;
+impl Witch {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(WitchIsCelebrating(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(WitchUsingItem(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct WitchMetadataBundle {
+    _marker: Witch,
+    parent: AbstractMonsterMetadataBundle,
+    witch_is_celebrating: WitchIsCelebrating,
+    witch_using_item: WitchUsingItem,
+}
+impl Default for WitchMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Witch,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            witch_is_celebrating: WitchIsCelebrating(false),
+            witch_using_item: WitchUsingItem(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct TargetA(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct TargetB(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct TargetC(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct Inv(pub i32);
+#[derive(Component)]
+pub struct Wither;
+impl Wither {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(TargetA(d.value.into_int()?));
+            }
+            17 => {
+                entity.insert(TargetB(d.value.into_int()?));
+            }
+            18 => {
+                entity.insert(TargetC(d.value.into_int()?));
+            }
+            19 => {
+                entity.insert(Inv(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct WitherMetadataBundle {
+    _marker: Wither,
+    parent: AbstractMonsterMetadataBundle,
+    target_a: TargetA,
+    target_b: TargetB,
+    target_c: TargetC,
+    inv: Inv,
+}
+impl Default for WitherMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Wither,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            target_a: TargetA(0),
+            target_b: TargetB(0),
+            target_c: TargetC(0),
+            inv: Inv(0),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct WitherSkeleton;
+impl WitherSkeleton {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct WitherSkeletonMetadataBundle {
+    _marker: WitherSkeleton,
+    parent: AbstractMonsterMetadataBundle,
+}
+impl Default for WitherSkeletonMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: WitherSkeleton,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct Dangerous(pub bool);
+#[derive(Component)]
+pub struct WitherSkull;
+impl WitherSkull {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(Dangerous(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct WitherSkullMetadataBundle {
+    _marker: WitherSkull,
+    parent: AbstractEntityMetadataBundle,
+    dangerous: Dangerous,
+}
+impl Default for WitherSkullMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: WitherSkull,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            dangerous: Dangerous(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct WolfInterested(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct WolfCollarColor(pub i32);
+#[derive(Component, Deref, DerefMut)]
+pub struct WolfRemainingAngerTime(pub i32);
+#[derive(Component)]
+pub struct Wolf;
+impl Wolf {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=18 => AbstractTameable::apply_metadata(entity, d)?,
+            19 => {
+                entity.insert(WolfInterested(d.value.into_boolean()?));
+            }
+            20 => {
+                entity.insert(WolfCollarColor(d.value.into_int()?));
+            }
+            21 => {
+                entity.insert(WolfRemainingAngerTime(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct WolfMetadataBundle {
+    _marker: Wolf,
+    parent: AbstractTameableMetadataBundle,
+    wolf_interested: WolfInterested,
+    wolf_collar_color: WolfCollarColor,
+    wolf_remaining_anger_time: WolfRemainingAngerTime,
+}
+impl Default for WolfMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Wolf,
+            parent: AbstractTameableMetadataBundle {
+                _marker: AbstractTameable,
+                parent: AbstractAnimalMetadataBundle {
+                    _marker: AbstractAnimal,
+                    parent: AbstractAgeableMetadataBundle {
+                        _marker: AbstractAgeable,
+                        parent: AbstractCreatureMetadataBundle {
+                            _marker: AbstractCreature,
+                            parent: AbstractInsentientMetadataBundle {
+                                _marker: AbstractInsentient,
+                                parent: AbstractLivingMetadataBundle {
+                                    _marker: AbstractLiving,
+                                    parent: AbstractEntityMetadataBundle {
+                                        _marker: AbstractEntity,
+                                        on_fire: OnFire(false),
+                                        shift_key_down: ShiftKeyDown(false),
+                                        sprinting: Sprinting(false),
+                                        swimming: Swimming(false),
+                                        currently_glowing: CurrentlyGlowing(false),
+                                        invisible: Invisible(false),
+                                        fall_flying: FallFlying(false),
+                                        air_supply: AirSupply(Default::default()),
+                                        custom_name: CustomName(None),
+                                        custom_name_visible: CustomNameVisible(false),
+                                        silent: Silent(false),
+                                        no_gravity: NoGravity(false),
+                                        pose: Pose::default(),
+                                        ticks_frozen: TicksFrozen(0),
+                                    },
+                                    auto_spin_attack: AutoSpinAttack(false),
+                                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                                    health: Health(1.0),
+                                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                    effect_ambience: EffectAmbience(false),
+                                    arrow_count: ArrowCount(0),
+                                    stinger_count: StingerCount(0),
+                                    sleeping_pos: SleepingPos(None),
+                                },
+                                no_ai: NoAi(false),
+                                left_handed: LeftHanded(false),
+                                aggressive: Aggressive(false),
+                            },
+                        },
+                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                    },
+                },
+                tame: Tame(false),
+                in_sitting_pose: InSittingPose(false),
+                owneruuid: Owneruuid(None),
+            },
+            wolf_interested: WolfInterested(false),
+            wolf_collar_color: WolfCollarColor(Default::default()),
+            wolf_remaining_anger_time: WolfRemainingAngerTime(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct ZoglinBaby(pub bool);
+#[derive(Component)]
+pub struct Zoglin;
+impl Zoglin {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(ZoglinBaby(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ZoglinMetadataBundle {
+    _marker: Zoglin,
+    parent: AbstractMonsterMetadataBundle,
+    zoglin_baby: ZoglinBaby,
+}
+impl Default for ZoglinMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Zoglin,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            zoglin_baby: ZoglinBaby(false),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Zombie;
+impl Zombie {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(ZombieBaby(d.value.into_boolean()?));
+            }
+            17 => {
+                entity.insert(SpecialType(d.value.into_int()?));
+            }
+            18 => {
+                entity.insert(DrownedConversion(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ZombieMetadataBundle {
+    _marker: Zombie,
+    parent: AbstractMonsterMetadataBundle,
+    zombie_baby: ZombieBaby,
+    special_type: SpecialType,
+    drowned_conversion: DrownedConversion,
+}
+impl Default for ZombieMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Zombie,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
+            zombie_baby: ZombieBaby(false),
+            special_type: SpecialType(0),
+            drowned_conversion: DrownedConversion(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct ZombieHorseTamed(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct ZombieHorseEating(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct ZombieHorseStanding(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct ZombieHorseBred(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct ZombieHorseSaddled(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct ZombieHorseOwnerUuid(pub Option<Uuid>);
+#[derive(Component)]
+pub struct ZombieHorse;
+impl ZombieHorse {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(ZombieHorseTamed(bitfield & 0x2 != 0));
+                entity.insert(ZombieHorseEating(bitfield & 0x10 != 0));
+                entity.insert(ZombieHorseStanding(bitfield & 0x20 != 0));
+                entity.insert(ZombieHorseBred(bitfield & 0x8 != 0));
+                entity.insert(ZombieHorseSaddled(bitfield & 0x4 != 0));
+            }
+            18 => {
+                entity.insert(ZombieHorseOwnerUuid(d.value.into_optional_uuid()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ZombieHorseMetadataBundle {
+    _marker: ZombieHorse,
+    parent: AbstractAnimalMetadataBundle,
+    zombie_horse_tamed: ZombieHorseTamed,
+    zombie_horse_eating: ZombieHorseEating,
+    zombie_horse_standing: ZombieHorseStanding,
+    zombie_horse_bred: ZombieHorseBred,
+    zombie_horse_saddled: ZombieHorseSaddled,
+    zombie_horse_owner_uuid: ZombieHorseOwnerUuid,
+}
+impl Default for ZombieHorseMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: ZombieHorse,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            zombie_horse_tamed: ZombieHorseTamed(false),
+            zombie_horse_eating: ZombieHorseEating(false),
+            zombie_horse_standing: ZombieHorseStanding(false),
+            zombie_horse_bred: ZombieHorseBred(false),
+            zombie_horse_saddled: ZombieHorseSaddled(false),
+            zombie_horse_owner_uuid: ZombieHorseOwnerUuid(None),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct Converting(pub bool);
+#[derive(Component, Deref, DerefMut)]
+pub struct ZombieVillagerVillagerData(pub VillagerData);
+#[derive(Component)]
+pub struct ZombieVillager;
+impl ZombieVillager {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=18 => Zombie::apply_metadata(entity, d)?,
+            19 => {
+                entity.insert(Converting(d.value.into_boolean()?));
+            }
+            20 => {
+                entity.insert(ZombieVillagerVillagerData(d.value.into_villager_data()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ZombieVillagerMetadataBundle {
+    _marker: ZombieVillager,
+    parent: ZombieMetadataBundle,
+    converting: Converting,
+    zombie_villager_villager_data: ZombieVillagerVillagerData,
+}
+impl Default for ZombieVillagerMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: ZombieVillager,
+            parent: ZombieMetadataBundle {
+                _marker: Zombie,
+                parent: AbstractMonsterMetadataBundle {
+                    _marker: AbstractMonster,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                },
+                zombie_baby: ZombieBaby(false),
+                special_type: SpecialType(0),
+                drowned_conversion: DrownedConversion(false),
+            },
+            converting: Converting(false),
+            zombie_villager_villager_data: ZombieVillagerVillagerData(VillagerData {
+                kind: azalea_registry::VillagerKind::Plains,
+                profession: azalea_registry::VillagerProfession::None,
+                level: 0,
+            }),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct ZombifiedPiglin;
+impl ZombifiedPiglin {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=18 => Zombie::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ZombifiedPiglinMetadataBundle {
+    _marker: ZombifiedPiglin,
+    parent: ZombieMetadataBundle,
+}
+impl Default for ZombifiedPiglinMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: ZombifiedPiglin,
+            parent: ZombieMetadataBundle {
+                _marker: Zombie,
+                parent: AbstractMonsterMetadataBundle {
+                    _marker: AbstractMonster,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                },
+                zombie_baby: ZombieBaby(false),
+                special_type: SpecialType(0),
+                drowned_conversion: DrownedConversion(false),
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractAgeable;
+impl AbstractAgeable {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(AbstractAgeableBaby(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct AbstractAgeableMetadataBundle {
+    _marker: AbstractAgeable,
+    parent: AbstractCreatureMetadataBundle,
+    abstract_ageable_baby: AbstractAgeableBaby,
+}
+impl Default for AbstractAgeableMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: AbstractAgeable,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+            abstract_ageable_baby: AbstractAgeableBaby(false),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractAnimal;
+impl AbstractAnimal {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAgeable::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct AbstractAnimalMetadataBundle {
+    _marker: AbstractAnimal,
+    parent: AbstractAgeableMetadataBundle,
+}
+impl Default for AbstractAnimalMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: AbstractAnimal,
+            parent: AbstractAgeableMetadataBundle {
+                _marker: AbstractAgeable,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+                abstract_ageable_baby: AbstractAgeableBaby(false),
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractCreature;
+impl AbstractCreature {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct AbstractCreatureMetadataBundle {
+    _marker: AbstractCreature,
+    parent: AbstractInsentientMetadataBundle,
+}
+impl Default for AbstractCreatureMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: AbstractCreature,
+            parent: AbstractInsentientMetadataBundle {
+                _marker: AbstractInsentient,
+                parent: AbstractLivingMetadataBundle {
+                    _marker: AbstractLiving,
+                    parent: AbstractEntityMetadataBundle {
+                        _marker: AbstractEntity,
+                        on_fire: OnFire(false),
+                        shift_key_down: ShiftKeyDown(false),
+                        sprinting: Sprinting(false),
+                        swimming: Swimming(false),
+                        currently_glowing: CurrentlyGlowing(false),
+                        invisible: Invisible(false),
+                        fall_flying: FallFlying(false),
+                        air_supply: AirSupply(Default::default()),
+                        custom_name: CustomName(None),
+                        custom_name_visible: CustomNameVisible(false),
+                        silent: Silent(false),
+                        no_gravity: NoGravity(false),
+                        pose: Pose::default(),
+                        ticks_frozen: TicksFrozen(0),
+                    },
+                    auto_spin_attack: AutoSpinAttack(false),
+                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                    health: Health(1.0),
+                    abstract_living_effect_color: AbstractLivingEffectColor(0),
+                    effect_ambience: EffectAmbience(false),
+                    arrow_count: ArrowCount(0),
+                    stinger_count: StingerCount(0),
+                    sleeping_pos: SleepingPos(None),
+                },
+                no_ai: NoAi(false),
+                left_handed: LeftHanded(false),
+                aggressive: Aggressive(false),
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractEntity;
+impl AbstractEntity {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(OnFire(bitfield & 0x1 != 0));
+                entity.insert(ShiftKeyDown(bitfield & 0x2 != 0));
+                entity.insert(Sprinting(bitfield & 0x8 != 0));
+                entity.insert(Swimming(bitfield & 0x10 != 0));
+                entity.insert(CurrentlyGlowing(bitfield & 0x40 != 0));
+                entity.insert(Invisible(bitfield & 0x20 != 0));
+                entity.insert(FallFlying(bitfield & 0x80 != 0));
+            }
+            1 => {
+                entity.insert(AirSupply(d.value.into_int()?));
+            }
+            2 => {
+                entity.insert(CustomName(d.value.into_optional_formatted_text()?));
+            }
+            3 => {
+                entity.insert(CustomNameVisible(d.value.into_boolean()?));
+            }
+            4 => {
+                entity.insert(Silent(d.value.into_boolean()?));
+            }
+            5 => {
+                entity.insert(NoGravity(d.value.into_boolean()?));
+            }
+            6 => {
+                entity.insert(d.value.into_pose()?);
+            }
+            7 => {
+                entity.insert(TicksFrozen(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct AbstractEntityMetadataBundle {
+    _marker: AbstractEntity,
+    on_fire: OnFire,
+    shift_key_down: ShiftKeyDown,
+    sprinting: Sprinting,
+    swimming: Swimming,
+    currently_glowing: CurrentlyGlowing,
+    invisible: Invisible,
+    fall_flying: FallFlying,
+    air_supply: AirSupply,
+    custom_name: CustomName,
+    custom_name_visible: CustomNameVisible,
+    silent: Silent,
+    no_gravity: NoGravity,
+    pose: Pose,
+    ticks_frozen: TicksFrozen,
+}
+impl Default for AbstractEntityMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: AbstractEntity,
+            on_fire: OnFire(false),
+            shift_key_down: ShiftKeyDown(false),
+            sprinting: Sprinting(false),
+            swimming: Swimming(false),
+            currently_glowing: CurrentlyGlowing(false),
+            invisible: Invisible(false),
+            fall_flying: FallFlying(false),
+            air_supply: AirSupply(Default::default()),
+            custom_name: CustomName(None),
+            custom_name_visible: CustomNameVisible(false),
+            silent: Silent(false),
+            no_gravity: NoGravity(false),
+            pose: Pose::default(),
+            ticks_frozen: TicksFrozen(0),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractInsentient;
+impl AbstractInsentient {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=14 => AbstractLiving::apply_metadata(entity, d)?,
+            15 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(NoAi(bitfield & 0x1 != 0));
+                entity.insert(LeftHanded(bitfield & 0x2 != 0));
+                entity.insert(Aggressive(bitfield & 0x4 != 0));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct AbstractInsentientMetadataBundle {
+    _marker: AbstractInsentient,
+    parent: AbstractLivingMetadataBundle,
+    no_ai: NoAi,
+    left_handed: LeftHanded,
+    aggressive: Aggressive,
+}
+impl Default for AbstractInsentientMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: AbstractInsentient,
+            parent: AbstractLivingMetadataBundle {
+                _marker: AbstractLiving,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(None),
+                    custom_name_visible: CustomNameVisible(false),
+                    silent: Silent(false),
+                    no_gravity: NoGravity(false),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(0),
+                },
+                auto_spin_attack: AutoSpinAttack(false),
+                abstract_living_using_item: AbstractLivingUsingItem(false),
+                health: Health(1.0),
+                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                effect_ambience: EffectAmbience(false),
+                arrow_count: ArrowCount(0),
+                stinger_count: StingerCount(0),
+                sleeping_pos: SleepingPos(None),
+            },
+            no_ai: NoAi(false),
+            left_handed: LeftHanded(false),
+            aggressive: Aggressive(false),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractLiving;
+impl AbstractLiving {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(AutoSpinAttack(bitfield & 0x4 != 0));
+                entity.insert(AbstractLivingUsingItem(bitfield & 0x1 != 0));
+            }
+            9 => {
+                entity.insert(Health(d.value.into_float()?));
+            }
+            10 => {
+                entity.insert(AbstractLivingEffectColor(d.value.into_int()?));
+            }
+            11 => {
+                entity.insert(EffectAmbience(d.value.into_boolean()?));
+            }
+            12 => {
+                entity.insert(ArrowCount(d.value.into_int()?));
+            }
+            13 => {
+                entity.insert(StingerCount(d.value.into_int()?));
+            }
+            14 => {
+                entity.insert(SleepingPos(d.value.into_optional_block_pos()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct AbstractLivingMetadataBundle {
+    _marker: AbstractLiving,
+    parent: AbstractEntityMetadataBundle,
+    auto_spin_attack: AutoSpinAttack,
+    abstract_living_using_item: AbstractLivingUsingItem,
+    health: Health,
+    abstract_living_effect_color: AbstractLivingEffectColor,
+    effect_ambience: EffectAmbience,
+    arrow_count: ArrowCount,
+    stinger_count: StingerCount,
+    sleeping_pos: SleepingPos,
+}
+impl Default for AbstractLivingMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: AbstractLiving,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            auto_spin_attack: AutoSpinAttack(false),
+            abstract_living_using_item: AbstractLivingUsingItem(false),
+            health: Health(1.0),
+            abstract_living_effect_color: AbstractLivingEffectColor(0),
+            effect_ambience: EffectAmbience(false),
+            arrow_count: ArrowCount(0),
+            stinger_count: StingerCount(0),
+            sleeping_pos: SleepingPos(None),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractMinecart;
+impl AbstractMinecart {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(AbstractMinecartHurt(d.value.into_int()?));
+            }
+            9 => {
+                entity.insert(AbstractMinecartHurtdir(d.value.into_int()?));
+            }
+            10 => {
+                entity.insert(AbstractMinecartDamage(d.value.into_float()?));
+            }
+            11 => {
+                entity.insert(DisplayBlock(d.value.into_int()?));
+            }
+            12 => {
+                entity.insert(DisplayOffset(d.value.into_int()?));
+            }
+            13 => {
+                entity.insert(CustomDisplay(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct AbstractMinecartMetadataBundle {
+    _marker: AbstractMinecart,
+    parent: AbstractEntityMetadataBundle,
+    abstract_minecart_hurt: AbstractMinecartHurt,
+    abstract_minecart_hurtdir: AbstractMinecartHurtdir,
+    abstract_minecart_damage: AbstractMinecartDamage,
+    display_block: DisplayBlock,
+    display_offset: DisplayOffset,
+    custom_display: CustomDisplay,
+}
+impl Default for AbstractMinecartMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: AbstractMinecart,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            abstract_minecart_hurt: AbstractMinecartHurt(0),
+            abstract_minecart_hurtdir: AbstractMinecartHurtdir(1),
+            abstract_minecart_damage: AbstractMinecartDamage(0.0),
+            display_block: DisplayBlock(Default::default()),
+            display_offset: DisplayOffset(6),
+            custom_display: CustomDisplay(false),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractMonster;
+impl AbstractMonster {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct AbstractMonsterMetadataBundle {
+    _marker: AbstractMonster,
+    parent: AbstractCreatureMetadataBundle,
+}
+impl Default for AbstractMonsterMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: AbstractMonster,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(None),
+                            custom_name_visible: CustomNameVisible(false),
+                            silent: Silent(false),
+                            no_gravity: NoGravity(false),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(0),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        abstract_living_effect_color: AbstractLivingEffectColor(0),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractTameable;
+impl AbstractTameable {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                let bitfield = d.value.into_byte()?;
+                entity.insert(Tame(bitfield & 0x4 != 0));
+                entity.insert(InSittingPose(bitfield & 0x1 != 0));
+            }
+            18 => {
+                entity.insert(Owneruuid(d.value.into_optional_uuid()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct AbstractTameableMetadataBundle {
+    _marker: AbstractTameable,
+    parent: AbstractAnimalMetadataBundle,
+    tame: Tame,
+    in_sitting_pose: InSittingPose,
+    owneruuid: Owneruuid,
+}
+impl Default for AbstractTameableMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: AbstractTameable,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            tame: Tame(false),
+            in_sitting_pose: InSittingPose(false),
+            owneruuid: Owneruuid(None),
+        }
+    }
+}
+
+pub fn apply_metadata(
+    entity: &mut azalea_ecs::system::EntityCommands,
+    entity_kind: azalea_registry::EntityKind,
+    items: Vec<EntityDataItem>,
+) -> Result<(), UpdateMetadataError> {
+    match entity_kind {
+        azalea_registry::EntityKind::Allay => {
+            for d in items {
+                Allay::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::AreaEffectCloud => {
+            for d in items {
+                AreaEffectCloud::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ArmorStand => {
+            for d in items {
+                ArmorStand::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Arrow => {
+            for d in items {
+                Arrow::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Axolotl => {
+            for d in items {
+                Axolotl::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Bat => {
+            for d in items {
+                Bat::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Bee => {
+            for d in items {
+                Bee::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Blaze => {
+            for d in items {
+                Blaze::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Boat => {
+            for d in items {
+                Boat::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Cat => {
+            for d in items {
+                Cat::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::CaveSpider => {
+            for d in items {
+                CaveSpider::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ChestBoat => {
+            for d in items {
+                ChestBoat::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ChestMinecart => {
+            for d in items {
+                ChestMinecart::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Chicken => {
+            for d in items {
+                Chicken::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Cod => {
+            for d in items {
+                Cod::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::CommandBlockMinecart => {
+            for d in items {
+                CommandBlockMinecart::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Cow => {
+            for d in items {
+                Cow::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Creeper => {
+            for d in items {
+                Creeper::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Dolphin => {
+            for d in items {
+                Dolphin::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Donkey => {
+            for d in items {
+                Donkey::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::DragonFireball => {
+            for d in items {
+                DragonFireball::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Drowned => {
+            for d in items {
+                Drowned::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Egg => {
+            for d in items {
+                Egg::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ElderGuardian => {
+            for d in items {
+                ElderGuardian::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::EndCrystal => {
+            for d in items {
+                EndCrystal::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::EnderDragon => {
+            for d in items {
+                EnderDragon::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::EnderPearl => {
+            for d in items {
+                EnderPearl::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Enderman => {
+            for d in items {
+                Enderman::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Endermite => {
+            for d in items {
+                Endermite::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Evoker => {
+            for d in items {
+                Evoker::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::EvokerFangs => {
+            for d in items {
+                EvokerFangs::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ExperienceBottle => {
+            for d in items {
+                ExperienceBottle::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ExperienceOrb => {
+            for d in items {
+                ExperienceOrb::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::EyeOfEnder => {
+            for d in items {
+                EyeOfEnder::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::FallingBlock => {
+            for d in items {
+                FallingBlock::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Fireball => {
+            for d in items {
+                Fireball::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::FireworkRocket => {
+            for d in items {
+                FireworkRocket::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::FishingBobber => {
+            for d in items {
+                FishingBobber::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Fox => {
+            for d in items {
+                Fox::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Frog => {
+            for d in items {
+                Frog::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::FurnaceMinecart => {
+            for d in items {
+                FurnaceMinecart::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Ghast => {
+            for d in items {
+                Ghast::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Giant => {
+            for d in items {
+                Giant::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::GlowItemFrame => {
+            for d in items {
+                GlowItemFrame::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::GlowSquid => {
+            for d in items {
+                GlowSquid::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Goat => {
+            for d in items {
+                Goat::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Guardian => {
+            for d in items {
+                Guardian::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Hoglin => {
+            for d in items {
+                Hoglin::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::HopperMinecart => {
+            for d in items {
+                HopperMinecart::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Horse => {
+            for d in items {
+                Horse::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Husk => {
+            for d in items {
+                Husk::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Illusioner => {
+            for d in items {
+                Illusioner::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::IronGolem => {
+            for d in items {
+                IronGolem::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Item => {
+            for d in items {
+                Item::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ItemFrame => {
+            for d in items {
+                ItemFrame::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::LeashKnot => {
+            for d in items {
+                LeashKnot::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::LightningBolt => {
+            for d in items {
+                LightningBolt::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Llama => {
+            for d in items {
+                Llama::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::LlamaSpit => {
+            for d in items {
+                LlamaSpit::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::MagmaCube => {
+            for d in items {
+                MagmaCube::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Marker => {
+            for d in items {
+                Marker::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Minecart => {
+            for d in items {
+                Minecart::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Mooshroom => {
+            for d in items {
+                Mooshroom::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Mule => {
+            for d in items {
+                Mule::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Ocelot => {
+            for d in items {
+                Ocelot::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Painting => {
+            for d in items {
+                Painting::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Panda => {
+            for d in items {
+                Panda::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Parrot => {
+            for d in items {
+                Parrot::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Phantom => {
+            for d in items {
+                Phantom::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Pig => {
+            for d in items {
+                Pig::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Piglin => {
+            for d in items {
+                Piglin::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::PiglinBrute => {
+            for d in items {
+                PiglinBrute::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Pillager => {
+            for d in items {
+                Pillager::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Player => {
+            for d in items {
+                Player::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::PolarBear => {
+            for d in items {
+                PolarBear::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Potion => {
+            for d in items {
+                Potion::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Pufferfish => {
+            for d in items {
+                Pufferfish::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Rabbit => {
+            for d in items {
+                Rabbit::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Ravager => {
+            for d in items {
+                Ravager::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Salmon => {
+            for d in items {
+                Salmon::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Sheep => {
+            for d in items {
+                Sheep::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Shulker => {
+            for d in items {
+                Shulker::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ShulkerBullet => {
+            for d in items {
+                ShulkerBullet::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Silverfish => {
+            for d in items {
+                Silverfish::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Skeleton => {
+            for d in items {
+                Skeleton::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::SkeletonHorse => {
+            for d in items {
+                SkeletonHorse::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Slime => {
+            for d in items {
+                Slime::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::SmallFireball => {
+            for d in items {
+                SmallFireball::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::SnowGolem => {
+            for d in items {
+                SnowGolem::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Snowball => {
+            for d in items {
+                Snowball::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::SpawnerMinecart => {
+            for d in items {
+                SpawnerMinecart::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::SpectralArrow => {
+            for d in items {
+                SpectralArrow::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Spider => {
+            for d in items {
+                Spider::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Squid => {
+            for d in items {
+                Squid::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Stray => {
+            for d in items {
+                Stray::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Strider => {
+            for d in items {
+                Strider::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Tadpole => {
+            for d in items {
+                Tadpole::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Tnt => {
+            for d in items {
+                Tnt::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::TntMinecart => {
+            for d in items {
+                TntMinecart::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::TraderLlama => {
+            for d in items {
+                TraderLlama::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Trident => {
+            for d in items {
+                Trident::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::TropicalFish => {
+            for d in items {
+                TropicalFish::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Turtle => {
+            for d in items {
+                Turtle::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Vex => {
+            for d in items {
+                Vex::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Villager => {
+            for d in items {
+                Villager::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Vindicator => {
+            for d in items {
+                Vindicator::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::WanderingTrader => {
+            for d in items {
+                WanderingTrader::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Warden => {
+            for d in items {
+                Warden::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Witch => {
+            for d in items {
+                Witch::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Wither => {
+            for d in items {
+                Wither::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::WitherSkeleton => {
+            for d in items {
+                WitherSkeleton::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::WitherSkull => {
+            for d in items {
+                WitherSkull::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Wolf => {
+            for d in items {
+                Wolf::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Zoglin => {
+            for d in items {
+                Zoglin::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Zombie => {
+            for d in items {
+                Zombie::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ZombieHorse => {
+            for d in items {
+                ZombieHorse::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ZombieVillager => {
+            for d in items {
+                ZombieVillager::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ZombifiedPiglin => {
+            for d in items {
+                ZombifiedPiglin::apply_metadata(entity, d)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+pub fn apply_default_metadata(
+    entity: &mut azalea_ecs::system::EntityCommands,
+    kind: azalea_registry::EntityKind,
+) {
+    match kind {
+        azalea_registry::EntityKind::Allay => {
+            entity.insert(AllayMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::AreaEffectCloud => {
+            entity.insert(AreaEffectCloudMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ArmorStand => {
+            entity.insert(ArmorStandMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Arrow => {
+            entity.insert(ArrowMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Axolotl => {
+            entity.insert(AxolotlMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Bat => {
+            entity.insert(BatMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Bee => {
+            entity.insert(BeeMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Blaze => {
+            entity.insert(BlazeMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Boat => {
+            entity.insert(BoatMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Cat => {
+            entity.insert(CatMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::CaveSpider => {
+            entity.insert(CaveSpiderMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ChestBoat => {
+            entity.insert(ChestBoatMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ChestMinecart => {
+            entity.insert(ChestMinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Chicken => {
+            entity.insert(ChickenMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Cod => {
+            entity.insert(CodMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::CommandBlockMinecart => {
+            entity.insert(CommandBlockMinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Cow => {
+            entity.insert(CowMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Creeper => {
+            entity.insert(CreeperMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Dolphin => {
+            entity.insert(DolphinMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Donkey => {
+            entity.insert(DonkeyMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::DragonFireball => {
+            entity.insert(DragonFireballMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Drowned => {
+            entity.insert(DrownedMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Egg => {
+            entity.insert(EggMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ElderGuardian => {
+            entity.insert(ElderGuardianMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::EndCrystal => {
+            entity.insert(EndCrystalMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::EnderDragon => {
+            entity.insert(EnderDragonMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::EnderPearl => {
+            entity.insert(EnderPearlMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Enderman => {
+            entity.insert(EndermanMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Endermite => {
+            entity.insert(EndermiteMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Evoker => {
+            entity.insert(EvokerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::EvokerFangs => {
+            entity.insert(EvokerFangsMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ExperienceBottle => {
+            entity.insert(ExperienceBottleMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ExperienceOrb => {
+            entity.insert(ExperienceOrbMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::EyeOfEnder => {
+            entity.insert(EyeOfEnderMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::FallingBlock => {
+            entity.insert(FallingBlockMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Fireball => {
+            entity.insert(FireballMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::FireworkRocket => {
+            entity.insert(FireworkRocketMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::FishingBobber => {
+            entity.insert(FishingBobberMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Fox => {
+            entity.insert(FoxMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Frog => {
+            entity.insert(FrogMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::FurnaceMinecart => {
+            entity.insert(FurnaceMinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Ghast => {
+            entity.insert(GhastMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Giant => {
+            entity.insert(GiantMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::GlowItemFrame => {
+            entity.insert(GlowItemFrameMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::GlowSquid => {
+            entity.insert(GlowSquidMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Goat => {
+            entity.insert(GoatMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Guardian => {
+            entity.insert(GuardianMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Hoglin => {
+            entity.insert(HoglinMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::HopperMinecart => {
+            entity.insert(HopperMinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Horse => {
+            entity.insert(HorseMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Husk => {
+            entity.insert(HuskMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Illusioner => {
+            entity.insert(IllusionerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::IronGolem => {
+            entity.insert(IronGolemMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Item => {
+            entity.insert(ItemMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ItemFrame => {
+            entity.insert(ItemFrameMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::LeashKnot => {
+            entity.insert(LeashKnotMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::LightningBolt => {
+            entity.insert(LightningBoltMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Llama => {
+            entity.insert(LlamaMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::LlamaSpit => {
+            entity.insert(LlamaSpitMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::MagmaCube => {
+            entity.insert(MagmaCubeMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Marker => {
+            entity.insert(MarkerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Minecart => {
+            entity.insert(MinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Mooshroom => {
+            entity.insert(MooshroomMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Mule => {
+            entity.insert(MuleMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Ocelot => {
+            entity.insert(OcelotMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Painting => {
+            entity.insert(PaintingMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Panda => {
+            entity.insert(PandaMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Parrot => {
+            entity.insert(ParrotMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Phantom => {
+            entity.insert(PhantomMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Pig => {
+            entity.insert(PigMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Piglin => {
+            entity.insert(PiglinMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::PiglinBrute => {
+            entity.insert(PiglinBruteMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Pillager => {
+            entity.insert(PillagerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Player => {
+            entity.insert(PlayerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::PolarBear => {
+            entity.insert(PolarBearMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Potion => {
+            entity.insert(PotionMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Pufferfish => {
+            entity.insert(PufferfishMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Rabbit => {
+            entity.insert(RabbitMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Ravager => {
+            entity.insert(RavagerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Salmon => {
+            entity.insert(SalmonMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Sheep => {
+            entity.insert(SheepMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Shulker => {
+            entity.insert(ShulkerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ShulkerBullet => {
+            entity.insert(ShulkerBulletMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Silverfish => {
+            entity.insert(SilverfishMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Skeleton => {
+            entity.insert(SkeletonMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::SkeletonHorse => {
+            entity.insert(SkeletonHorseMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Slime => {
+            entity.insert(SlimeMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::SmallFireball => {
+            entity.insert(SmallFireballMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::SnowGolem => {
+            entity.insert(SnowGolemMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Snowball => {
+            entity.insert(SnowballMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::SpawnerMinecart => {
+            entity.insert(SpawnerMinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::SpectralArrow => {
+            entity.insert(SpectralArrowMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Spider => {
+            entity.insert(SpiderMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Squid => {
+            entity.insert(SquidMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Stray => {
+            entity.insert(StrayMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Strider => {
+            entity.insert(StriderMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Tadpole => {
+            entity.insert(TadpoleMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Tnt => {
+            entity.insert(TntMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::TntMinecart => {
+            entity.insert(TntMinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::TraderLlama => {
+            entity.insert(TraderLlamaMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Trident => {
+            entity.insert(TridentMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::TropicalFish => {
+            entity.insert(TropicalFishMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Turtle => {
+            entity.insert(TurtleMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Vex => {
+            entity.insert(VexMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Villager => {
+            entity.insert(VillagerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Vindicator => {
+            entity.insert(VindicatorMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::WanderingTrader => {
+            entity.insert(WanderingTraderMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Warden => {
+            entity.insert(WardenMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Witch => {
+            entity.insert(WitchMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Wither => {
+            entity.insert(WitherMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::WitherSkeleton => {
+            entity.insert(WitherSkeletonMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::WitherSkull => {
+            entity.insert(WitherSkullMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Wolf => {
+            entity.insert(WolfMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Zoglin => {
+            entity.insert(ZoglinMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Zombie => {
+            entity.insert(ZombieMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ZombieHorse => {
+            entity.insert(ZombieHorseMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ZombieVillager => {
+            entity.insert(ZombieVillagerMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ZombifiedPiglin => {
+            entity.insert(ZombifiedPiglinMetadataBundle::default());
         }
     }
 }

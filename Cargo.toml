@@ -1,6 +1,5 @@
 [workspace]
 members = [
-  "bot",
   "azalea",
   "azalea-client",
   "azalea-protocol",
@@ -16,6 +15,7 @@ members = [
   "azalea-buf",
   "azalea-physics",
   "azalea-registry",
+  "azalea-ecs",
 ]
 
 [profile.release]
@@ -24,19 +24,9 @@ debug = true
 # decoding packets takes forever if we don't do this
 [profile.dev.package.azalea-crypto]
 opt-level = 3
-[profile.dev.package.cipher]
-opt-level = 3
 [profile.dev.package.cfb8]
 opt-level = 3
 [profile.dev.package.aes]
-opt-level = 3
-[profile.dev.package.crypto-common]
-opt-level = 3
-[profile.dev.package.generic-array]
-opt-level = 3
-[profile.dev.package.typenum]
-opt-level = 3
-[profile.dev.package.inout]
 opt-level = 3
 [profile.dev.package.flate2]
 opt-level = 3

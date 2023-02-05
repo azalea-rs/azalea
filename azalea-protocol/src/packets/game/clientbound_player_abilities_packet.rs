@@ -1,5 +1,6 @@
 use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_core::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Cursor, Write};
 
@@ -21,31 +22,31 @@ pub struct PlayerAbilitiesFlags {
 
 impl McBufReadable for PlayerAbilitiesFlags {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let byte = u8::read_from(buf)?;
+        let set = FixedBitSet::<4>::read_from(buf)?;
         Ok(PlayerAbilitiesFlags {
-            invulnerable: byte & 1 != 0,
-            flying: byte & 2 != 0,
-            can_fly: byte & 4 != 0,
-            instant_break: byte & 8 != 0,
+            invulnerable: set.index(0),
+            flying: set.index(1),
+            can_fly: set.index(2),
+            instant_break: set.index(3),
         })
     }
 }
 
 impl McBufWritable for PlayerAbilitiesFlags {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut byte = 0;
+        let mut set = FixedBitSet::<4>::new();
         if self.invulnerable {
-            byte |= 0b1;
+            set.set(0);
         }
         if self.flying {
-            byte |= 0b10;
+            set.set(1);
         }
         if self.can_fly {
-            byte |= 0b100;
+            set.set(2);
         }
         if self.instant_break {
-            byte |= 0b1000;
+            set.set(3);
         }
-        u8::write_into(&byte, buf)
+        set.write_into(buf)
     }
 }

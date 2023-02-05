@@ -30,9 +30,9 @@ impl McBufReadable for ClientboundExplodePacket {
         let mut to_blow = Vec::with_capacity(to_blow_len as usize);
         for _ in 0..to_blow_len {
             // the bytes are offsets from the main x y z
-            let x = x_floor + i8::read_from(buf)? as i32;
-            let y = y_floor + i8::read_from(buf)? as i32;
-            let z = z_floor + i8::read_from(buf)? as i32;
+            let x = x_floor + i32::from(i8::read_from(buf)?);
+            let y = y_floor + i32::from(i8::read_from(buf)?);
+            let z = z_floor + i32::from(i8::read_from(buf)?);
             to_blow.push(BlockPos { x, y, z });
         }
 

@@ -65,7 +65,9 @@ impl<S> CommandNode<S> {
     pub fn get_relevant_nodes(&self, input: &mut StringReader) -> Vec<Rc<RefCell<CommandNode<S>>>> {
         let literals = &self.literals;
 
-        if !literals.is_empty() {
+        if literals.is_empty() {
+            self.arguments.values().cloned().collect()
+        } else {
             let cursor = input.cursor();
             while input.can_read() && input.peek() != ' ' {
                 input.skip();
@@ -83,8 +85,6 @@ impl<S> CommandNode<S> {
             } else {
                 self.arguments.values().cloned().collect()
             }
-        } else {
-            self.arguments.values().cloned().collect()
         }
     }
 
