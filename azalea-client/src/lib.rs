@@ -22,7 +22,7 @@ mod movement;
 pub mod packet_handling;
 pub mod ping;
 mod player;
-mod task_pool;
+pub mod task_pool;
 
 pub use account::Account;
 pub use azalea_ecs as ecs;
