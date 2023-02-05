@@ -324,34 +324,3 @@ impl Debug for EntityInfos {
         f.debug_struct("EntityInfos").finish()
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use crate::entity::metadata;
-
-//     use super::*;
-//     use azalea_core::Vec3;
-
-//     #[test]
-//     fn test_store_entity() {
-//         let mut storage = PartialEntityInfos::default();
-//         assert!(storage.limited_get_by_id(0).is_none());
-//         assert!(storage.shared.read().get_by_id(0).is_none());
-
-//         let uuid = Uuid::from_u128(100);
-//         storage.insert(
-//             0,
-//             EntityData::new(
-//                 uuid,
-//                 Vec3::default(),
-//                 EntityMetadata::Player(metadata::Player::default()),
-//             ),
-//         );
-//         assert_eq!(storage.limited_get_by_id(0).unwrap().uuid, uuid);
-//         assert_eq!(storage.shared.read().get_by_id(0).unwrap().uuid, uuid);
-
-//         storage.remove_by_id(0);
-//         assert!(storage.limited_get_by_id(0).is_none());
-//         assert!(storage.shared.read().get_by_id(0).is_none());
-//     }
-// }

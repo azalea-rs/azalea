@@ -103,6 +103,7 @@ impl McBufWritable for OptionalUnsignedInt {
     }
 }
 
+/// A set of x, y, and z rotations. This is used for armor stands.
 #[derive(Clone, Debug, McBuf, Default)]
 pub struct Rotations {
     pub x: f32,

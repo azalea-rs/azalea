@@ -37,7 +37,7 @@ opt-level = 3
 # Examples
 
 ```rust,no_run
-A bot that logs chat messages sent in the server to the console.
+//! A bot that logs chat messages sent in the server to the console.
 
 use azalea::prelude::*;
 use parking_lot::Mutex;
@@ -48,15 +48,13 @@ async fn main() {
     let account = Account::offline("bot");
     // or Account::microsoft("example@example.com").await.unwrap();
 
-    azalea::start(azalea::Options {
-        account,
-        address: "localhost",
-        state: State::default(),
-        plugins: plugins![],
-        handle,
-    })
-    .await
-    .unwrap();
+    loop {
+        let e = azalea::ClientBuilder::new()
+            .set_handler(handle)
+            .start(account, "localhost")
+            .await;
+        eprintln!("{:?}", e);
+    }
 }
 
 #[derive(Default, Clone, Component)]
@@ -76,10 +74,10 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 
 # Plugins
 
-Azalea uses [Bevy ECS](https://docs.rs/bevy_ecs) internally to store information about the world and clients. Bevy plugins are more powerful than async handler functions, but more difficult to use. See [pathfinder](azalea/src/pathfinder/mod.rs) as an example of how to make a plugin. You can then use a plugin by adding `.add_plugin(ExamplePlugin)` in the client or swarm builder.
+Azalea uses [Bevy ECS](https://docs.rs/bevy_ecs) internally to store information about the world and clients. Bevy plugins are more powerful than async handler functions, but more difficult to use. See [pathfinder](azalea/src/pathfinder/mod.rs) as an example of how to make a plugin. You can then enable a plugin by adding `.add_plugin(ExamplePlugin)` in your client/swarm builder.
 
 Also note that just because something is an entity in the ECS doesn't mean that it's a Minecraft entity. You can filter for that by having `With<MinecraftEntityId>` as a filter.
 
-See the [https://bevy-cheatbook.github.io/programming/ecs-intro.html](Bevy Cheatbook) to learn more about Bevy ECS (and ECS in general).
+See the [Bevy Cheatbook](https://bevy-cheatbook.github.io/programming/ecs-intro.html) to learn more about Bevy ECS (and the ECS paradigm in general).
 
 [`azalea_client`]: https://docs.rs/azalea-client

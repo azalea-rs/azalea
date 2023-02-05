@@ -172,7 +172,7 @@ impl From<&LastSentPosition> for BlockPos {
 /// The name of the world the entity is in. If two entities share the same world
 /// name, we assume they're in the same world.
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
-pub struct WorldName(ResourceLocation);
+pub struct WorldName(pub ResourceLocation);
 
 /// A component for entities that can jump.
 ///

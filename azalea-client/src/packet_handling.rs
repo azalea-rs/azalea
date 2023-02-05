@@ -26,7 +26,7 @@ use azalea_world::{
     entity::{
         metadata::{apply_metadata, Health, PlayerMetadataBundle},
         set_rotation, Dead, EntityBundle, EntityKind, LastSentPosition, MinecraftEntityId, Physics,
-        PlayerBundle, Position,
+        PlayerBundle, Position, WorldName,
     },
     LoadedBy, PartialWorld, RelativeEntityUpdate, WorldContainer,
 };
@@ -128,11 +128,16 @@ fn handle_packets(ecs: &mut Ecs) {
                     #[allow(clippy::type_complexity)]
                     let mut system_state: SystemState<(
                         Commands,
-                        Query<(&mut LocalPlayer, &GameProfileComponent)>,
+                        Query<(
+                            &mut LocalPlayer,
+                            Option<&mut WorldName>,
+                            &GameProfileComponent,
+                        )>,
                         ResMut<WorldContainer>,
                     )> = SystemState::new(ecs);
                     let (mut commands, mut query, mut world_container) = system_state.get_mut(ecs);
-                    let (mut local_player, game_profile) = query.get_mut(player_entity).unwrap();
+                    let (mut local_player, world_name, game_profile) =
+                        query.get_mut(player_entity).unwrap();
 
                     {
                         // TODO: have registry_holder be a struct because this sucks rn
@@ -188,12 +193,19 @@ fn handle_packets(ecs: &mut Ecs) {
                             .as_int()
                             .expect("min_y tag is not an int");
 
-                        let world_name = p.dimension.clone();
+                        let new_world_name = p.dimension.clone();
 
-                        local_player.world_name = Some(world_name.clone());
+                        if let Some(mut world_name) = world_name {
+                            *world_name = world_name.clone();
+                        } else {
+                            commands
+                                .entity(player_entity)
+                                .insert(WorldName(new_world_name.clone()));
+                        }
                         // add this world to the world_container (or don't if it's already
                         // there)
-                        let weak_world = world_container.insert(world_name.clone(), height, min_y);
+                        let weak_world =
+                            world_container.insert(new_world_name.clone(), height, min_y);
                         // set the partial_world to an empty world
                         // (when we add chunks or entities those will be in the
                         // world_container)
@@ -212,7 +224,7 @@ fn handle_packets(ecs: &mut Ecs) {
                                 game_profile.uuid,
                                 Vec3::default(),
                                 azalea_registry::EntityKind::Player,
-                                world_name,
+                                new_world_name,
                             ),
                             metadata: PlayerMetadataBundle::default(),
                         };
@@ -506,12 +518,12 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::AddEntity(p) => {
                     debug!("Got add entity packet {:?}", p);
 
-                    let mut system_state: SystemState<(Commands, Query<&mut LocalPlayer>)> =
+                    let mut system_state: SystemState<(Commands, Query<Option<&WorldName>>)> =
                         SystemState::new(ecs);
                     let (mut commands, mut query) = system_state.get_mut(ecs);
-                    let local_player = query.get_mut(player_entity).unwrap();
+                    let world_name = query.get_mut(player_entity).unwrap();
 
-                    if let Some(world_name) = &local_player.world_name {
+                    if let Some(WorldName(world_name)) = world_name {
                         let bundle = p.as_entity_bundle(world_name.clone());
                         let mut entity_commands = commands.spawn((
                             MinecraftEntityId(p.id),
@@ -570,12 +582,14 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::AddPlayer(p) => {
                     debug!("Got add player packet {:?}", p);
 
-                    let mut system_state: SystemState<(Commands, Query<&mut LocalPlayer>)> =
-                        SystemState::new(ecs);
+                    let mut system_state: SystemState<(
+                        Commands,
+                        Query<(&mut LocalPlayer, Option<&WorldName>)>,
+                    )> = SystemState::new(ecs);
                     let (mut commands, mut query) = system_state.get_mut(ecs);
-                    let local_player = query.get_mut(player_entity).unwrap();
+                    let (local_player, world_name) = query.get_mut(player_entity).unwrap();
 
-                    if let Some(world_name) = &local_player.world_name {
+                    if let Some(WorldName(world_name)) = world_name {
                         let bundle = p.as_player_bundle(world_name.clone());
                         let mut spawned = commands.spawn((
                             MinecraftEntityId(p.id),

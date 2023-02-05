@@ -1,16 +1,20 @@
 #![feature(trait_alias)]
 
-//! Re-export important parts of `bevy_ecs` and `bevy_app` and make them more
-//! compatible with Azalea.
+//! Re-export important parts of [`bevy_ecs`] and [`bevy_app`] and make them
+//! more compatible with Azalea.
 //!
 //! This is completely compatible with `bevy_ecs`, so it won't cause issues if
 //! you use plugins meant for Bevy.
 //!
 //! Changes:
-//! - Add [`TickPlugin`], [`TickStage`] and [`AppTickExt`]
+//! - Add [`TickPlugin`], [`TickStage`] and [`AppTickExt`] (which adds
+//!   `app.add_tick_system` and `app.add_tick_system_set`).
 //! - Change the macros to use azalea/azalea_ecs instead of bevy/bevy_ecs
-//! - Rename bevy_ecs::world::World to azalea_ecs::ecs::Ecs
-//! - Re-export `bevy_app` in the `app` module.
+//! - Rename `world::World` to [`ecs::Ecs`]
+//! - Re-export `bevy_app` in the [`app`] module.
+//!
+//! [`bevy_ecs`]: https://docs.rs/bevy_ecs
+//! [`bevy_app`]: https://docs.rs/bevy_app
 
 use std::time::{Duration, Instant};
 

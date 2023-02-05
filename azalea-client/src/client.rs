@@ -42,7 +42,7 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use azalea_world::{EntityPlugin, Local, PartialWorld, World, WorldContainer};
+use azalea_world::{entity::WorldName, EntityPlugin, Local, PartialWorld, World, WorldContainer};
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
 use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc};
@@ -52,8 +52,13 @@ use uuid::Uuid;
 
 pub type ClientInformation = ServerboundClientInformationPacket;
 
-/// Client has the things that a user interacting with the library will want.
+/// `Client` has the things that a user interacting with the library will want.
 /// Things that a player in the world will want to know are in [`LocalPlayer`].
+///
+/// To make a new client, use either [`azalea::ClientBuilder`] or
+/// [`Client::join`].
+///
+/// [`azalea::ClientBuilder`]: https://docs.rs/azalea/latest/azalea/struct.ClientBuilder.html
 #[derive(Clone)]
 pub struct Client {
     /// The [`GameProfile`] for our client. This contains your username, UUID,
@@ -362,6 +367,17 @@ impl Client {
 
     /// Get a component from this client. This will clone the component and
     /// return it.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if the component doesn't exist on the client.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn example(client: &azalea::Client) {
+    /// let world_name = client.component::<WorldName>();
+    /// # }
     pub fn component<T: Component + Clone>(&self) -> T {
         self.query::<&T>(&mut self.ecs.lock()).clone()
     }
@@ -373,17 +389,8 @@ impl Client {
     /// If the client using a shared world, then the shared world will be a
     /// superset of the client's world.
     pub fn world(&self) -> Arc<RwLock<World>> {
-        let mut ecs = self.ecs.lock();
-
-        let world_name = {
-            let local_player = self.local_player(&mut ecs);
-            local_player
-                .world_name
-                .as_ref()
-                .expect("World name must be known if we're doing Client::world")
-                .clone()
-        };
-
+        let world_name = self.component::<WorldName>();
+        let ecs = self.ecs.lock();
         let world_container = ecs.resource::<WorldContainer>();
         world_container.get(&world_name).unwrap()
     }
@@ -391,7 +398,8 @@ impl Client {
     /// Returns whether we have a received the login packet yet.
     pub fn logged_in(&self) -> bool {
         // the login packet tells us the world name
-        self.local_player(&mut self.ecs.lock()).world_name.is_some()
+        self.query::<Option<&WorldName>>(&mut self.ecs.lock())
+            .is_some()
     }
 
     /// Tell the server we changed our game options (i.e. render distance, main

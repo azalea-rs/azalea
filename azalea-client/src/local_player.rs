@@ -1,7 +1,7 @@
 use std::{collections::HashMap, io, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
-use azalea_core::{ChunkPos, ResourceLocation};
+use azalea_core::ChunkPos;
 use azalea_ecs::component::Component;
 use azalea_ecs::entity::Entity;
 use azalea_ecs::{query::Added, system::Query};
@@ -21,22 +21,29 @@ use crate::{
     ClientInformation, PlayerInfo, WalkDirection,
 };
 
-/// A player that you control that is currently in a Minecraft server.
+/// This is a component for our local player entities that are probably in a
+/// world. If you have access to a [`Client`], you probably don't need to care
+/// about this since `Client` gives you access to everything here.
+///
+/// You can also use the [`Local`] marker component for queries if you're only
+/// checking for a local player and don't need the contents of this component.
+///
+/// [`Local`]: azalea_world::Local
+/// [`Client`]: crate::Client
 #[derive(Component)]
 pub struct LocalPlayer {
-    pub packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
-
+    packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
+    /// Some of the "settings" for this client that are sent to the server, such
+    /// as render distance.
     pub client_information: ClientInformation,
-    /// A map of player uuids to their information in the tab list
+    /// A map of player UUIDs to their information in the tab list
     pub players: HashMap<Uuid, PlayerInfo>,
-
     /// The partial world is the world this client currently has loaded. It has
     /// a limited render distance.
     pub partial_world: Arc<RwLock<PartialWorld>>,
     /// The world is the combined [`PartialWorld`]s of all clients in the same
     /// world. (Only relevant if you're using a shared world, i.e. a swarm)
     pub world: Arc<RwLock<World>>,
-    pub world_name: Option<ResourceLocation>,
 
     /// A list of async tasks that are running and will stop running when this
     /// LocalPlayer is dropped or disconnected with [`Self::disconnect`]
@@ -93,13 +100,12 @@ impl LocalPlayer {
                 client_information.view_distance.into(),
                 Some(entity),
             ))),
-            world_name: None,
 
             tasks: Vec::new(),
         }
     }
 
-    /// Spawn a task to write a packet directly to the server.
+    /// Write a packet directly to the server.
     pub fn write_packet(&mut self, packet: ServerboundGamePacket) {
         self.packet_writer
             .send(packet)
