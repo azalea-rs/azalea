@@ -333,6 +333,8 @@ impl Client {
     }
 }
 
+/// An event sent when the client starts walking. This does not get sent for
+/// non-local entities.
 pub struct StartWalkEvent {
     pub entity: Entity,
     pub direction: WalkDirection,
@@ -354,6 +356,8 @@ pub fn walk_listener(
     }
 }
 
+/// An event sent when the client starts sprinting. This does not get sent for
+/// non-local entities.
 pub struct StartSprintEvent {
     pub entity: Entity,
     pub direction: SprintDirection,

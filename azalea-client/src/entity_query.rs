@@ -12,6 +12,15 @@ use crate::Client;
 
 impl Client {
     /// A convenience function for getting components of our player's entity.
+    ///
+    /// # Examples
+    /// ```
+    /// # fn example(mut client: azalea_client::Client) {
+    /// let is_logged_in = client
+    ///     .query::<Option<&WorldName>>(&mut client.ecs.lock())
+    ///     .is_some();
+    /// # }
+    /// ```
     pub fn query<'w, Q: WorldQuery>(&self, ecs: &'w mut Ecs) -> <Q as WorldQuery>::Item<'w> {
         ecs.query::<Q>()
             .get_mut(ecs, self.entity)

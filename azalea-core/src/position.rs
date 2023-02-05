@@ -109,6 +109,8 @@ macro_rules! vec3_impl {
     };
 }
 
+/// Used to represent an exact position in the world where an entity could be.
+/// For blocks, [`BlockPos`] is used instead.
 #[derive(Clone, Copy, Debug, Default, PartialEq, McBuf)]
 pub struct Vec3 {
     pub x: f64,
@@ -117,6 +119,8 @@ pub struct Vec3 {
 }
 vec3_impl!(Vec3, f64);
 
+/// The coordinates of a block in the world. For entities (if the coordinate
+/// with decimals), use [`Vec3`] instead.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct BlockPos {
     pub x: i32,
@@ -137,6 +141,8 @@ impl BlockPos {
     }
 }
 
+/// Chunk coordinates are used to represent where a chunk is in the world. You
+/// can convert the x and z to block coordinates by multiplying them by 16.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ChunkPos {
     pub x: i32,

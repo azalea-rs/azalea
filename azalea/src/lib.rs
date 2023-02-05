@@ -39,6 +39,15 @@ pub enum StartError {
     Join(#[from] azalea_client::JoinError),
 }
 
+/// A builder for creating new [`Client`]s. This is the recommended way of
+/// making Azalea bots.
+///
+/// ```no_run
+/// azalea::ClientBuilder::new()
+///     .set_handler(handle)
+///     .start(Account::offline("bot"), "localhost")
+///     .await;
+/// ```
 pub struct ClientBuilder<S, Fut>
 where
     S: Default + Send + Sync + Clone + 'static,
