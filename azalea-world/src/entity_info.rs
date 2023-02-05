@@ -13,7 +13,7 @@ use azalea_ecs::{
     ecs::EntityMut,
     entity::Entity,
     query::{Added, Changed, With, Without},
-    schedule::{IntoSystemDescriptor, SystemSet, SystemStage},
+    schedule::{IntoSystemDescriptor, SystemSet},
     system::{Command, Commands, Query, Res, ResMut, Resource},
 };
 use derive_more::{Deref, DerefMut};

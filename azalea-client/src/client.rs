@@ -43,7 +43,6 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{EntityPlugin, Local, PartialWorld, World, WorldContainer};
-use bevy_tasks::{AsyncComputeTaskPool, TaskPoolBuilder};
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
 use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc};

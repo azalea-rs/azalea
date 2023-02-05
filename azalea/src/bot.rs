@@ -37,6 +37,7 @@ pub struct Bot {
 }
 
 /// Insert the [`Bot`] component for any local players that don't have it.
+#[allow(clippy::type_complexity)]
 fn insert_bot(
     mut commands: Commands,
     mut query: Query<Entity, (Without<Bot>, With<Local>, With<Player>)>,

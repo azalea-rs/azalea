@@ -49,6 +49,7 @@ impl Plugin for PathfinderPlugin {
 pub struct Pathfinder {
     pub path: VecDeque<Node>,
 }
+#[allow(clippy::type_complexity)]
 fn add_default_pathfinder(
     mut commands: Commands,
     mut query: Query<Entity, (Without<Pathfinder>, With<Local>, With<Player>)>,

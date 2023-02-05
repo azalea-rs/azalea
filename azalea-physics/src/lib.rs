@@ -304,7 +304,7 @@ fn jump_boost_power() -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use std::{sync::Arc, time::Duration};
+    use std::time::Duration;
 
     use super::*;
     use azalea_core::{ChunkPos, ResourceLocation};
@@ -313,7 +313,6 @@ mod tests {
         entity::{EntityBundle, MinecraftEntityId},
         Chunk, EntityPlugin, PartialWorld,
     };
-    use parking_lot::RwLock;
     use uuid::Uuid;
 
     /// You need an app to spawn entities in the world and do updates.

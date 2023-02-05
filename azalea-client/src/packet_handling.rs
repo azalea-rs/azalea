@@ -594,7 +594,7 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::InitializeBorder(p) => {
                     debug!("Got initialize border packet {:?}", p);
                 }
-                ClientboundGamePacket::SetTime(p) => {
+                ClientboundGamePacket::SetTime(_p) => {
                     // debug!("Got set time packet {:?}", p);
                 }
                 ClientboundGamePacket::SetDefaultSpawnPosition(p) => {

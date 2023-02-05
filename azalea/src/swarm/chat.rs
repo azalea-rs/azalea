@@ -13,17 +13,14 @@
 // in Swarm that's set to the smallest index of all the bots, and we remove all
 // messages from the queue that are before that index.
 
-use azalea_client::{packet_handling::ChatReceivedEvent, ChatPacket, LocalPlayer};
+use azalea_client::{packet_handling::ChatReceivedEvent, ChatPacket};
 use azalea_ecs::{
     app::{App, Plugin},
     component::Component,
-    entity::Entity,
     event::{EventReader, EventWriter},
-    query::{Added, Without},
     schedule::IntoSystemDescriptor,
     system::{Commands, Query, Res, ResMut, Resource},
 };
-use azalea_world::Local;
 use std::collections::VecDeque;
 
 use crate::{Swarm, SwarmEvent};

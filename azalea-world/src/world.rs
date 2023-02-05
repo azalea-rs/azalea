@@ -1,5 +1,5 @@
 use crate::{
-    entity::{EntityUuid, MinecraftEntityId, Position, WorldName},
+    entity::{EntityUuid, MinecraftEntityId, WorldName},
     entity_info::LoadedBy,
     ChunkStorage, EntityInfos, Local, PartialChunkStorage, PartialEntityInfos, WorldContainer,
 };
@@ -47,6 +47,7 @@ impl PartialWorld {
 /// This is the reason why spawning entities into the ECS when you get a spawn
 /// entity packet is okay. This system will make sure the new entity gets
 /// combined into the old one.
+#[allow(clippy::type_complexity)]
 pub fn deduplicate_entities(
     mut commands: Commands,
     mut query: Query<
@@ -69,7 +70,7 @@ pub fn deduplicate_entities(
                 // the reference count
                 let new_loaded_by = loaded_by_query
                     .get(new_entity)
-                    .expect(&format!(
+                    .unwrap_or_else(|_| panic!(
                         "Entities should always have the LoadedBy component ({new_entity:?} did not)"
                     ))
                     .clone();
@@ -92,6 +93,7 @@ pub fn deduplicate_entities(
 
 // when a local entity is added, if there was already an entity with the same id
 // then delete the old entity
+#[allow(clippy::type_complexity)]
 pub fn deduplicate_local_entities(
     mut commands: Commands,
     mut query: Query<

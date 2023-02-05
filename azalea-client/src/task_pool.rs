@@ -80,14 +80,14 @@ impl Default for TaskPoolOptions {
 }
 
 impl TaskPoolOptions {
-    /// Create a configuration that forces using the given number of threads.
-    pub fn with_num_threads(thread_count: usize) -> Self {
-        TaskPoolOptions {
-            min_total_threads: thread_count,
-            max_total_threads: thread_count,
-            ..Default::default()
-        }
-    }
+    // /// Create a configuration that forces using the given number of threads.
+    // pub fn with_num_threads(thread_count: usize) -> Self {
+    //     TaskPoolOptions {
+    //         min_total_threads: thread_count,
+    //         max_total_threads: thread_count,
+    //         ..Default::default()
+    //     }
+    // }
 
     /// Inserts the default thread pools into the given resource map based on
     /// the configured values
