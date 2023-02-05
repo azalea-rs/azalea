@@ -1,5 +1,5 @@
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use azalea_chat::{style::ChatFormatting, Component};
+use azalea_chat::{style::ChatFormatting, FormattedText};
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Cursor, Write};
 
@@ -61,13 +61,13 @@ impl McBufWritable for Method {
 
 #[derive(McBuf, Clone, Debug)]
 pub struct Parameters {
-    pub display_name: Component,
+    pub display_name: FormattedText,
     pub options: u8,
     pub nametag_visibility: String,
     pub collision_rule: String,
     pub color: ChatFormatting,
-    pub player_prefix: Component,
-    pub player_suffix: Component,
+    pub player_prefix: FormattedText,
+    pub player_suffix: FormattedText,
 }
 
 type PlayerList = Vec<String>;

@@ -4,7 +4,7 @@ A port of Mojang's Authlib and launcher authentication.
 
 # Examples
 
-```
+```no_run
 use std::path::PathBuf;
 
 #[tokio::main]

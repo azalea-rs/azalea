@@ -539,7 +539,7 @@ impl VoxelShape {
                     x_coords[var7 as usize],
                     y_coords[var8 as usize],
                     z_coords[var9 as usize],
-                )
+                );
             },
             true,
         );

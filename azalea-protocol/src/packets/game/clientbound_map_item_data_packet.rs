@@ -1,5 +1,5 @@
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, ClientboundGamePacket, McBuf)]
@@ -20,7 +20,7 @@ pub struct MapDecoration {
     /// Minecraft does & 15 on this value, azalea-protocol doesn't. I don't
     /// think it matters.
     pub rot: i8,
-    pub name: Option<Component>,
+    pub name: Option<FormattedText>,
 }
 
 #[derive(Debug, Clone)]

@@ -1,5 +1,5 @@
 use crate::ResourceLocation;
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use std::{
     io::{Cursor, Write},
     ops::{Add, AddAssign, Mul, Rem, Sub},
@@ -109,7 +109,7 @@ macro_rules! vec3_impl {
     };
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, McBuf)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -270,10 +270,20 @@ impl From<&Vec3> for BlockPos {
         }
     }
 }
+impl From<Vec3> for BlockPos {
+    fn from(pos: Vec3) -> Self {
+        BlockPos::from(&pos)
+    }
+}
 
 impl From<&Vec3> for ChunkPos {
     fn from(pos: &Vec3) -> Self {
         ChunkPos::from(&BlockPos::from(pos))
+    }
+}
+impl From<Vec3> for ChunkPos {
+    fn from(pos: Vec3) -> Self {
+        ChunkPos::from(&pos)
     }
 }
 

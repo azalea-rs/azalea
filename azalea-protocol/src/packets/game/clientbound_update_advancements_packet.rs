@@ -1,5 +1,5 @@
 use azalea_buf::McBuf;
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_core::{ResourceLocation, Slot};
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::collections::HashMap;
@@ -23,8 +23,8 @@ pub struct Advancement {
 
 #[derive(Clone, Debug)]
 pub struct DisplayInfo {
-    pub title: Component,
-    pub description: Component,
+    pub title: FormattedText,
+    pub description: FormattedText,
     pub icon: Slot,
     pub frame: FrameType,
     pub show_toast: bool,
@@ -128,8 +128,8 @@ mod tests {
                 Advancement {
                     parent_id: None,
                     display: Some(DisplayInfo {
-                        title: Component::from("title".to_string()),
-                        description: Component::from("description".to_string()),
+                        title: FormattedText::from("title".to_string()),
+                        description: FormattedText::from("description".to_string()),
                         icon: Slot::Empty,
                         frame: FrameType::Task,
                         show_toast: true,

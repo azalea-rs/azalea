@@ -1,14 +1,19 @@
+#![feature(type_alias_impl_trait)]
+
+use azalea::ecs::query::With;
+use azalea::entity::metadata::Player;
+use azalea::entity::Position;
 use azalea::pathfinder::BlockPosGoal;
 // use azalea::ClientInformation;
-use azalea::{prelude::*, BlockPos, Swarm, SwarmEvent, WalkDirection};
+use azalea::{prelude::*, BlockPos, GameProfileComponent, Swarm, SwarmEvent, WalkDirection};
 use azalea::{Account, Client, Event};
 use azalea_protocol::packets::game::serverbound_client_command_packet::ServerboundClientCommandPacket;
 use std::time::Duration;
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Component)]
 struct State {}
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Component)]
 struct SwarmState {}
 
 #[tokio::main]
@@ -48,23 +53,17 @@ async fn main() -> anyhow::Result<()> {
     }
 
     loop {
-        let e = azalea::start_swarm(azalea::SwarmOptions {
-            accounts: accounts.clone(),
-            address: "localhost",
-
-            states: states.clone(),
-            swarm_state: SwarmState::default(),
-
-            plugins: plugins![],
-            swarm_plugins: swarm_plugins![],
-
-            handle,
-            swarm_handle,
-
-            join_delay: Some(Duration::from_millis(1000)),
-            // join_delay: None,
-        })
-        .await;
+        let e = azalea::SwarmBuilder::new()
+            .add_accounts(accounts.clone())
+            .set_handler(handle)
+            .set_swarm_handler(swarm_handle)
+            .join_delay(Duration::from_millis(1000))
+            .start("localhost")
+            .await;
+        // let e = azalea::ClientBuilder::new()
+        //     .set_handler(handle)
+        //     .start(Account::offline("bot"), "localhost")
+        //     .await;
         println!("{e:?}");
     }
 }
@@ -72,6 +71,7 @@ async fn main() -> anyhow::Result<()> {
 async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
     match event {
         Event::Init => {
+            println!("bot init");
             // bot.set_client_information(ClientInformation {
             //     view_distance: 2,
             //     ..Default::default()
@@ -79,43 +79,76 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
             // .await?;
         }
         Event::Login => {
-            bot.chat("Hello world").await?;
+            bot.chat("Hello world");
         }
         Event::Chat(m) => {
+            println!("client chat message: {}", m.content());
             if m.content() == bot.profile.name {
-                bot.chat("Bye").await?;
+                bot.chat("Bye");
                 tokio::time::sleep(Duration::from_millis(50)).await;
-                bot.disconnect().await?;
+                bot.disconnect();
             }
-            let entity = bot
-                .world()
-                .entity_by_uuid(&uuid::uuid!("6536bfed-8695-48fd-83a1-ecd24cf2a0fd"));
+            let Some(sender) = m.username() else {
+                return Ok(())
+            };
+            // let mut ecs = bot.ecs.lock();
+            // let entity = bot
+            //     .ecs
+            //     .lock()
+            //     .query::<&Player>()
+            //     .iter(&mut ecs)
+            //     .find(|e| e.name() == Some(sender));
+            // let entity = bot.entity_by::<With<Player>>(|name: &Name| name == sender);
+            let entity = bot.entity_by::<With<Player>, (&GameProfileComponent,)>(
+                |profile: &&GameProfileComponent| {
+                    println!("entity {profile:?}");
+                    profile.name == sender
+                },
+            );
+            println!("sender entity: {entity:?}");
             if let Some(entity) = entity {
-                if m.content() == "goto" {
-                    let target_pos_vec3 = entity.pos();
-                    let target_pos: BlockPos = target_pos_vec3.into();
-                    bot.goto(BlockPosGoal::from(target_pos));
-                } else if m.content() == "look" {
-                    let target_pos_vec3 = entity.pos();
-                    let target_pos: BlockPos = target_pos_vec3.into();
-                    println!("target_pos: {target_pos:?}");
-                    bot.look_at(&target_pos.center());
-                } else if m.content() == "jump" {
-                    bot.set_jumping(true);
-                } else if m.content() == "walk" {
-                    bot.walk(WalkDirection::Forward);
-                } else if m.content() == "stop" {
-                    bot.set_jumping(false);
-                    bot.walk(WalkDirection::None);
-                } else if m.content() == "lag" {
-                    std::thread::sleep(Duration::from_millis(1000));
+                match m.content().as_str() {
+                    "whereami" => {
+                        let pos = bot.entity_component::<Position>(entity);
+                        bot.chat(&format!("You're at {pos:?}",));
+                    }
+                    "whereareyou" => {
+                        let pos = bot.component::<Position>();
+                        bot.chat(&format!("I'm at {pos:?}",));
+                    }
+                    "goto" => {
+                        let entity_pos = bot.entity_component::<Position>(entity);
+                        let target_pos: BlockPos = entity_pos.into();
+                        println!("going to {target_pos:?}");
+                        bot.goto(BlockPosGoal::from(target_pos));
+                    }
+                    "look" => {
+                        let entity_pos = bot.entity_component::<Position>(entity);
+                        let target_pos: BlockPos = entity_pos.into();
+                        println!("target_pos: {target_pos:?}");
+                        bot.look_at(target_pos.center());
+                    }
+                    "jump" => {
+                        bot.set_jumping(true);
+                    }
+                    "walk" => {
+                        bot.walk(WalkDirection::Forward);
+                    }
+                    "stop" => {
+                        bot.set_jumping(false);
+                        bot.walk(WalkDirection::None);
+                    }
+                    "lag" => {
+                        std::thread::sleep(Duration::from_millis(1000));
+                    }
+                    _ => {}
                 }
             }
         }
         Event::Death(_) => {
             bot.write_packet(ServerboundClientCommandPacket {
                 action: azalea_protocol::packets::game::serverbound_client_command_packet::Action::PerformRespawn,
-            }.get()).await?;
+            }.get());
         }
         _ => {}
     }
@@ -124,7 +157,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
 }
 
 async fn swarm_handle(
-    mut swarm: Swarm<State>,
+    mut swarm: Swarm,
     event: SwarmEvent,
     _state: SwarmState,
 ) -> anyhow::Result<()> {
@@ -137,10 +170,10 @@ async fn swarm_handle(
         SwarmEvent::Chat(m) => {
             println!("swarm chat message: {}", m.message().to_ansi());
             if m.message().to_string() == "<py5> world" {
-                for (name, world) in &swarm.worlds.read().worlds {
+                for (name, world) in &swarm.world_container.read().worlds {
                     println!("world name: {name}");
                     if let Some(w) = world.upgrade() {
-                        for chunk_pos in w.chunk_storage.read().chunks.values() {
+                        for chunk_pos in w.read().chunks.chunks.values() {
                             println!("chunk: {chunk_pos:?}");
                         }
                     } else {
@@ -149,8 +182,8 @@ async fn swarm_handle(
                 }
             }
             if m.message().to_string() == "<py5> hi" {
-                for (bot, _) in swarm {
-                    bot.chat("hello").await?;
+                for bot in swarm {
+                    bot.chat("hello");
                 }
             }
         }

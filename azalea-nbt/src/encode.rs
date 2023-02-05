@@ -26,62 +26,62 @@ fn write_compound(
             Tag::Byte(value) => {
                 writer.write_u8(1)?;
                 write_string(writer, key)?;
-                writer.write_i8(*value)?
+                writer.write_i8(*value)?;
             }
             Tag::Short(value) => {
                 writer.write_u8(2)?;
                 write_string(writer, key)?;
-                writer.write_i16::<BE>(*value)?
+                writer.write_i16::<BE>(*value)?;
             }
             Tag::Int(value) => {
                 writer.write_u8(3)?;
                 write_string(writer, key)?;
-                writer.write_i32::<BE>(*value)?
+                writer.write_i32::<BE>(*value)?;
             }
             Tag::Long(value) => {
                 writer.write_u8(4)?;
                 write_string(writer, key)?;
-                writer.write_i64::<BE>(*value)?
+                writer.write_i64::<BE>(*value)?;
             }
             Tag::Float(value) => {
                 writer.write_u8(5)?;
                 write_string(writer, key)?;
-                writer.write_f32::<BE>(*value)?
+                writer.write_f32::<BE>(*value)?;
             }
             Tag::Double(value) => {
                 writer.write_u8(6)?;
                 write_string(writer, key)?;
-                writer.write_f64::<BE>(*value)?
+                writer.write_f64::<BE>(*value)?;
             }
             Tag::ByteArray(value) => {
                 writer.write_u8(7)?;
                 write_string(writer, key)?;
-                write_bytearray(writer, value)?
+                write_bytearray(writer, value)?;
             }
             Tag::String(value) => {
                 writer.write_u8(8)?;
                 write_string(writer, key)?;
-                write_string(writer, value)?
+                write_string(writer, value)?;
             }
             Tag::List(value) => {
                 writer.write_u8(9)?;
                 write_string(writer, key)?;
-                write_list(writer, value)?
+                write_list(writer, value)?;
             }
             Tag::Compound(value) => {
                 writer.write_u8(10)?;
                 write_string(writer, key)?;
-                write_compound(writer, value, true)?
+                write_compound(writer, value, true)?;
             }
             Tag::IntArray(value) => {
                 writer.write_u8(11)?;
                 write_string(writer, key)?;
-                write_intarray(writer, value)?
+                write_intarray(writer, value)?;
             }
             Tag::LongArray(value) => {
                 writer.write_u8(12)?;
                 write_string(writer, key)?;
-                write_longarray(writer, value)?
+                write_longarray(writer, value)?;
             }
         }
     }

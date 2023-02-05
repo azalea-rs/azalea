@@ -7,16 +7,18 @@ mod bit_storage;
 mod chunk_storage;
 mod container;
 pub mod entity;
-mod entity_storage;
+mod entity_info;
 mod palette;
 mod world;
 
 use std::backtrace::Backtrace;
 
 pub use bit_storage::BitStorage;
-pub use chunk_storage::{Chunk, ChunkStorage, PartialChunkStorage, WeakChunkStorage};
+pub use chunk_storage::{Chunk, ChunkStorage, PartialChunkStorage};
 pub use container::*;
-pub use entity_storage::{PartialEntityStorage, WeakEntityStorage};
+pub use entity_info::{
+    EntityInfos, EntityPlugin, LoadedBy, Local, PartialEntityInfos, RelativeEntityUpdate,
+};
 use thiserror::Error;
 pub use world::*;
 

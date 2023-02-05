@@ -3,19 +3,17 @@ use quote::quote;
 use syn::{
     self, braced,
     parse::{Parse, ParseStream, Result},
-    parse_macro_input, DeriveInput, FieldsNamed, Ident, LitInt, Token,
+    parse_macro_input, DeriveInput, Ident, LitInt, Token,
 };
 
 fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> TokenStream {
     let DeriveInput { ident, data, .. } = parse_macro_input!(input);
 
-    let fields = match &data {
-        syn::Data::Struct(syn::DataStruct { fields, .. }) => fields,
-        _ => panic!("#[derive(*Packet)] can only be used on structs"),
+    let syn::Data::Struct(syn::DataStruct { fields, .. }) = &data else {
+        panic!("#[derive(*Packet)] can only be used on structs")
     };
-    let FieldsNamed { named: _, .. } = match fields {
-        syn::Fields::Named(f) => f,
-        _ => panic!("#[derive(*Packet)] can only be used on structs with named fields"),
+    let syn::Fields::Named(_) = fields else {
+        panic!("#[derive(*Packet)] can only be used on structs with named fields")
     };
     let variant_name = variant_name_from(&ident);
 

@@ -1,9 +1,7 @@
-use std::backtrace::Backtrace;
-
-use crate::Client;
-use azalea_core::Vec3;
-use azalea_physics::collision::{MovableEntity, MoverType};
-use azalea_physics::HasPhysics;
+use crate::client::Client;
+use crate::local_player::{LocalPlayer, LocalPlayerInLoadedChunk, PhysicsState};
+use azalea_ecs::entity::Entity;
+use azalea_ecs::{event::EventReader, query::With, system::Query};
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
@@ -11,7 +9,11 @@ use azalea_protocol::packets::game::{
     serverbound_move_player_rot_packet::ServerboundMovePlayerRotPacket,
     serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
 };
-use azalea_world::MoveEntityError;
+use azalea_world::{
+    entity::{self, metadata::Sprinting, Attributes, Jumping, MinecraftEntityId},
+    MoveEntityError,
+};
+use std::backtrace::Backtrace;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -33,24 +35,72 @@ impl From<MoveEntityError> for MovePlayerError {
 }
 
 impl Client {
-    /// This gets called automatically every tick.
-    pub(crate) async fn send_position(&mut self) -> Result<(), MovePlayerError> {
+    /// Set whether we're jumping. This acts as if you held space in
+    /// vanilla. If you want to jump once, use the `jump` function.
+    ///
+    /// If you're making a realistic client, calling this function every tick is
+    /// recommended.
+    pub fn set_jumping(&mut self, jumping: bool) {
+        let mut ecs = self.ecs.lock();
+        let mut jumping_mut = self.query::<&mut Jumping>(&mut ecs);
+        **jumping_mut = jumping;
+    }
+
+    /// Returns whether the player will try to jump next tick.
+    pub fn jumping(&self) -> bool {
+        let mut ecs = self.ecs.lock();
+        let jumping_ref = self.query::<&Jumping>(&mut ecs);
+        **jumping_ref
+    }
+
+    /// Sets your rotation. `y_rot` is yaw (looking to the side), `x_rot` is
+    /// pitch (looking up and down). You can get these numbers from the vanilla
+    /// f3 screen.
+    /// `y_rot` goes from -180 to 180, and `x_rot` goes from -90 to 90.
+    pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
+        let mut ecs = self.ecs.lock();
+        let mut physics = self.query::<&mut entity::Physics>(&mut ecs);
+
+        entity::set_rotation(&mut physics, y_rot, x_rot);
+    }
+}
+
+#[allow(clippy::type_complexity)]
+pub(crate) fn send_position(
+    mut query: Query<
+        (
+            &MinecraftEntityId,
+            &mut LocalPlayer,
+            &mut PhysicsState,
+            &entity::Position,
+            &mut entity::LastSentPosition,
+            &mut entity::Physics,
+            &entity::metadata::Sprinting,
+        ),
+        &LocalPlayerInLoadedChunk,
+    >,
+) {
+    for (
+        id,
+        mut local_player,
+        mut physics_state,
+        position,
+        mut last_sent_position,
+        mut physics,
+        sprinting,
+    ) in query.iter_mut()
+    {
+        local_player.send_sprinting_if_needed(id, sprinting, &mut physics_state);
+
         let packet = {
-            self.send_sprinting_if_needed().await?;
             // TODO: the camera being able to be controlled by other entities isn't
             // implemented yet if !self.is_controlled_camera() { return };
 
-            let mut physics_state = self.physics_state.lock();
-
-            let player_entity = self.entity();
-            let player_pos = player_entity.pos();
-            let player_old_pos = player_entity.last_pos;
-
-            let x_delta = player_pos.x - player_old_pos.x;
-            let y_delta = player_pos.y - player_old_pos.y;
-            let z_delta = player_pos.z - player_old_pos.z;
-            let y_rot_delta = (player_entity.y_rot - player_entity.y_rot_last) as f64;
-            let x_rot_delta = (player_entity.x_rot - player_entity.x_rot_last) as f64;
+            let x_delta = position.x - last_sent_position.x;
+            let y_delta = position.y - last_sent_position.y;
+            let z_delta = position.z - last_sent_position.z;
+            let y_rot_delta = (physics.y_rot - physics.y_rot_last) as f64;
+            let x_rot_delta = (physics.x_rot - physics.x_rot_last) as f64;
 
             physics_state.position_remainder += 1;
 
@@ -67,38 +117,38 @@ impl Client {
             let packet = if sending_position && sending_rotation {
                 Some(
                     ServerboundMovePlayerPosRotPacket {
-                        x: player_pos.x,
-                        y: player_pos.y,
-                        z: player_pos.z,
-                        x_rot: player_entity.x_rot,
-                        y_rot: player_entity.y_rot,
-                        on_ground: player_entity.on_ground,
+                        x: position.x,
+                        y: position.y,
+                        z: position.z,
+                        x_rot: physics.x_rot,
+                        y_rot: physics.y_rot,
+                        on_ground: physics.on_ground,
                     }
                     .get(),
                 )
             } else if sending_position {
                 Some(
                     ServerboundMovePlayerPosPacket {
-                        x: player_pos.x,
-                        y: player_pos.y,
-                        z: player_pos.z,
-                        on_ground: player_entity.on_ground,
+                        x: position.x,
+                        y: position.y,
+                        z: position.z,
+                        on_ground: physics.on_ground,
                     }
                     .get(),
                 )
             } else if sending_rotation {
                 Some(
                     ServerboundMovePlayerRotPacket {
-                        x_rot: player_entity.x_rot,
-                        y_rot: player_entity.y_rot,
-                        on_ground: player_entity.on_ground,
+                        x_rot: physics.x_rot,
+                        y_rot: physics.y_rot,
+                        on_ground: physics.on_ground,
                     }
                     .get(),
                 )
-            } else if player_entity.last_on_ground != player_entity.on_ground {
+            } else if physics.last_on_ground != physics.on_ground {
                 Some(
                     ServerboundMovePlayerStatusOnlyPacket {
-                        on_ground: player_entity.on_ground,
+                        on_ground: physics.on_ground,
                     }
                     .get(),
                 )
@@ -106,131 +156,56 @@ impl Client {
                 None
             };
 
-            drop(player_entity);
-            let mut player_entity = self.entity();
-
             if sending_position {
-                player_entity.last_pos = *player_entity.pos();
+                **last_sent_position = **position;
                 physics_state.position_remainder = 0;
             }
             if sending_rotation {
-                player_entity.y_rot_last = player_entity.y_rot;
-                player_entity.x_rot_last = player_entity.x_rot;
+                physics.y_rot_last = physics.y_rot;
+                physics.x_rot_last = physics.x_rot;
             }
 
-            player_entity.last_on_ground = player_entity.on_ground;
+            physics.last_on_ground = physics.on_ground;
             // minecraft checks for autojump here, but also autojump is bad so
 
             packet
         };
 
         if let Some(packet) = packet {
-            self.write_packet(packet).await?;
+            local_player.write_packet(packet);
         }
-
-        Ok(())
     }
+}
 
-    async fn send_sprinting_if_needed(&mut self) -> Result<(), MovePlayerError> {
-        let is_sprinting = self.entity().metadata.sprinting;
-        let was_sprinting = self.physics_state.lock().was_sprinting;
-        if is_sprinting != was_sprinting {
-            let sprinting_action = if is_sprinting {
+impl LocalPlayer {
+    fn send_sprinting_if_needed(
+        &mut self,
+        id: &MinecraftEntityId,
+        sprinting: &entity::metadata::Sprinting,
+        physics_state: &mut PhysicsState,
+    ) {
+        let was_sprinting = physics_state.was_sprinting;
+        if **sprinting != was_sprinting {
+            let sprinting_action = if **sprinting {
                 azalea_protocol::packets::game::serverbound_player_command_packet::Action::StartSprinting
             } else {
                 azalea_protocol::packets::game::serverbound_player_command_packet::Action::StopSprinting
             };
-            let player_entity_id = self.entity().id;
             self.write_packet(
                 ServerboundPlayerCommandPacket {
-                    id: player_entity_id,
+                    id: **id,
                     action: sprinting_action,
                     data: 0,
                 }
                 .get(),
-            )
-            .await?;
-            self.physics_state.lock().was_sprinting = is_sprinting;
+            );
+            physics_state.was_sprinting = **sprinting;
         }
-
-        Ok(())
-    }
-
-    // Set our current position to the provided Vec3, potentially clipping through
-    // blocks.
-    pub async fn set_position(&mut self, new_pos: Vec3) -> Result<(), MovePlayerError> {
-        let player_entity_id = *self.entity_id.read();
-        let mut world_lock = self.world.write();
-
-        world_lock.set_entity_pos(player_entity_id, new_pos)?;
-
-        Ok(())
-    }
-
-    pub async fn move_entity(&mut self, movement: &Vec3) -> Result<(), MovePlayerError> {
-        let mut world_lock = self.world.write();
-        let player_entity_id = *self.entity_id.read();
-
-        let mut entity = world_lock
-            .entity_mut(player_entity_id)
-            .ok_or(MovePlayerError::PlayerNotInWorld(Backtrace::capture()))?;
-        log::trace!(
-            "move entity bounding box: {} {:?}",
-            entity.id,
-            entity.bounding_box
-        );
-
-        entity.move_colliding(&MoverType::Own, movement)?;
-
-        Ok(())
-    }
-
-    /// Makes the bot do one physics tick. Note that this is already handled
-    /// automatically by the client.
-    pub fn ai_step(&mut self) {
-        self.tick_controls(None);
-
-        // server ai step
-        {
-            let mut player_entity = self.entity();
-
-            let physics_state = self.physics_state.lock();
-            player_entity.xxa = physics_state.left_impulse;
-            player_entity.zza = physics_state.forward_impulse;
-        }
-
-        // TODO: food data and abilities
-        // let has_enough_food_to_sprint = self.food_data().food_level ||
-        // self.abilities().may_fly;
-        let has_enough_food_to_sprint = true;
-
-        // TODO: double tapping w to sprint i think
-
-        let trying_to_sprint = self.physics_state.lock().trying_to_sprint;
-
-        if !self.sprinting()
-            && (
-                // !self.is_in_water()
-                // || self.is_underwater() &&
-                self.has_enough_impulse_to_start_sprinting()
-                    && has_enough_food_to_sprint
-                    // && !self.using_item()
-                    // && !self.has_effect(MobEffects.BLINDNESS)
-                    && trying_to_sprint
-            )
-        {
-            self.set_sprinting(true);
-        }
-
-        let mut player_entity = self.entity();
-        player_entity.ai_step();
     }
 
     /// Update the impulse from self.move_direction. The multipler is used for
     /// sneaking.
-    pub(crate) fn tick_controls(&mut self, multiplier: Option<f32>) {
-        let mut physics_state = self.physics_state.lock();
-
+    pub(crate) fn tick_controls(multiplier: Option<f32>, physics_state: &mut PhysicsState) {
         let mut forward_impulse: f32 = 0.;
         let mut left_impulse: f32 = 0.;
         let move_direction = physics_state.move_direction;
@@ -262,7 +237,54 @@ impl Client {
             physics_state.left_impulse *= multiplier;
         }
     }
+}
 
+/// Makes the bot do one physics tick. Note that this is already handled
+/// automatically by the client.
+pub fn local_player_ai_step(
+    mut query: Query<
+        (
+            &mut PhysicsState,
+            &mut entity::Physics,
+            &mut entity::metadata::Sprinting,
+            &mut entity::Attributes,
+        ),
+        With<LocalPlayerInLoadedChunk>,
+    >,
+) {
+    for (mut physics_state, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
+        LocalPlayer::tick_controls(None, &mut physics_state);
+
+        // server ai step
+        physics.xxa = physics_state.left_impulse;
+        physics.zza = physics_state.forward_impulse;
+
+        // TODO: food data and abilities
+        // let has_enough_food_to_sprint = self.food_data().food_level ||
+        // self.abilities().may_fly;
+        let has_enough_food_to_sprint = true;
+
+        // TODO: double tapping w to sprint i think
+
+        let trying_to_sprint = physics_state.trying_to_sprint;
+
+        if !**sprinting
+            && (
+                // !self.is_in_water()
+                // || self.is_underwater() &&
+                has_enough_impulse_to_start_sprinting(&physics_state)
+                    && has_enough_food_to_sprint
+                    // && !self.using_item()
+                    // && !self.has_effect(MobEffects.BLINDNESS)
+                    && trying_to_sprint
+            )
+        {
+            set_sprinting(true, &mut sprinting, &mut attributes);
+        }
+    }
+}
+
+impl Client {
     /// Start walking in the given direction. To sprint, use
     /// [`Client::sprint`]. To stop walking, call walk with
     /// `WalkDirection::None`.
@@ -280,12 +302,11 @@ impl Client {
     /// # }
     /// ```
     pub fn walk(&mut self, direction: WalkDirection) {
-        {
-            let mut physics_state = self.physics_state.lock();
-            physics_state.move_direction = direction;
-        }
-
-        self.set_sprinting(false);
+        let mut ecs = self.ecs.lock();
+        ecs.send_event(StartWalkEvent {
+            entity: self.entity,
+            direction,
+        });
     }
 
     /// Start sprinting in the given direction. To stop moving, call
@@ -304,71 +325,81 @@ impl Client {
     /// # }
     /// ```
     pub fn sprint(&mut self, direction: SprintDirection) {
-        let mut physics_state = self.physics_state.lock();
-        physics_state.move_direction = WalkDirection::from(direction);
-        physics_state.trying_to_sprint = true;
+        let mut ecs = self.ecs.lock();
+        ecs.send_event(StartSprintEvent {
+            entity: self.entity,
+            direction,
+        });
     }
+}
 
-    // Whether we're currently sprinting.
-    pub fn sprinting(&self) -> bool {
-        self.entity().metadata.sprinting
-    }
+pub struct StartWalkEvent {
+    pub entity: Entity,
+    pub direction: WalkDirection,
+}
 
-    /// Change whether we're sprinting by adding an attribute modifier to the
-    /// player. You should use the [`walk`] and [`sprint`] methods instead.
-    /// Returns if the operation was successful.
-    fn set_sprinting(&mut self, sprinting: bool) -> bool {
-        let mut player_entity = self.entity();
-        player_entity.metadata.sprinting = sprinting;
-        if sprinting {
-            player_entity
-                .attributes
-                .speed
-                .insert(azalea_world::entity::attributes::sprinting_modifier())
-                .is_ok()
-        } else {
-            player_entity
-                .attributes
-                .speed
-                .remove(&azalea_world::entity::attributes::sprinting_modifier().uuid)
-                .is_none()
+/// Start walking in the given direction. To sprint, use
+/// [`Client::sprint`]. To stop walking, call walk with
+/// `WalkDirection::None`.
+pub fn walk_listener(
+    mut events: EventReader<StartWalkEvent>,
+    mut query: Query<(&mut PhysicsState, &mut Sprinting, &mut Attributes)>,
+) {
+    for event in events.iter() {
+        if let Ok((mut physics_state, mut sprinting, mut attributes)) = query.get_mut(event.entity)
+        {
+            physics_state.move_direction = event.direction;
+            set_sprinting(false, &mut sprinting, &mut attributes);
         }
     }
+}
 
-    /// Set whether we're jumping. This acts as if you held space in
-    /// vanilla. If you want to jump once, use the `jump` function.
-    ///
-    /// If you're making a realistic client, calling this function every tick is
-    /// recommended.
-    pub fn set_jumping(&mut self, jumping: bool) {
-        let mut player_entity = self.entity();
-        player_entity.jumping = jumping;
+pub struct StartSprintEvent {
+    pub entity: Entity,
+    pub direction: SprintDirection,
+}
+/// Start sprinting in the given direction.
+pub fn sprint_listener(
+    mut query: Query<&mut PhysicsState>,
+    mut events: EventReader<StartSprintEvent>,
+) {
+    for event in events.iter() {
+        if let Ok(mut physics_state) = query.get_mut(event.entity) {
+            physics_state.move_direction = WalkDirection::from(event.direction);
+            physics_state.trying_to_sprint = true;
+        }
     }
+}
 
-    /// Returns whether the player will try to jump next tick.
-    pub fn jumping(&self) -> bool {
-        let player_entity = self.entity();
-        player_entity.jumping
+/// Change whether we're sprinting by adding an attribute modifier to the
+/// player. You should use the [`walk`] and [`sprint`] methods instead.
+/// Returns if the operation was successful.
+fn set_sprinting(
+    sprinting: bool,
+    currently_sprinting: &mut Sprinting,
+    attributes: &mut Attributes,
+) -> bool {
+    **currently_sprinting = sprinting;
+    if sprinting {
+        attributes
+            .speed
+            .insert(entity::attributes::sprinting_modifier())
+            .is_ok()
+    } else {
+        attributes
+            .speed
+            .remove(&entity::attributes::sprinting_modifier().uuid)
+            .is_none()
     }
+}
 
-    /// Sets your rotation. `y_rot` is yaw (looking to the side), `x_rot` is
-    /// pitch (looking up and down). You can get these numbers from the vanilla
-    /// f3 screen.
-    /// `y_rot` goes from -180 to 180, and `x_rot` goes from -90 to 90.
-    pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
-        let mut player_entity = self.entity();
-        player_entity.set_rotation(y_rot, x_rot);
-    }
-
-    // Whether the player is moving fast enough to be able to start sprinting.
-    fn has_enough_impulse_to_start_sprinting(&self) -> bool {
-        // if self.underwater() {
-        //     self.has_forward_impulse()
-        // } else {
-        let physics_state = self.physics_state.lock();
-        physics_state.forward_impulse > 0.8
-        // }
-    }
+// Whether the player is moving fast enough to be able to start sprinting.
+fn has_enough_impulse_to_start_sprinting(physics_state: &PhysicsState) -> bool {
+    // if self.underwater() {
+    //     self.has_forward_impulse()
+    // } else {
+    physics_state.forward_impulse > 0.8
+    // }
 }
 
 #[derive(Clone, Copy, Debug, Default)]

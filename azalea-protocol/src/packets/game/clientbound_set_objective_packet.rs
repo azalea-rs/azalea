@@ -1,5 +1,5 @@
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Cursor, Write};
 
@@ -48,7 +48,7 @@ impl McBufWritable for Method {
 
 #[derive(McBuf, Clone, Debug)]
 pub struct DisplayInfo {
-    pub display_name: Component,
+    pub display_name: FormattedText,
     pub render_type: RenderType,
 }
 

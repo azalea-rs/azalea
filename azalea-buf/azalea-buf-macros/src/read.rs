@@ -39,9 +39,8 @@ fn read_named_fields(
 pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
     match data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => {
-            let FieldsNamed { named, .. } = match fields {
-                syn::Fields::Named(f) => f,
-                _ => panic!("#[derive(McBuf)] can only be used on structs with named fields"),
+            let syn::Fields::Named(FieldsNamed { named, .. }) = fields else {
+                panic!("#[derive(McBuf)] can only be used on structs with named fields")
             };
 
             let (read_fields, read_field_names) = read_named_fields(named);
@@ -69,7 +68,7 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
                         variant_discrim = match &d.1 {
                             syn::Expr::Lit(e) => match &e.lit {
                                 syn::Lit::Int(i) => i.base10_parse().unwrap(),
-                                _ => panic!("Error parsing enum discriminant as int (is {e:?})",),
+                                _ => panic!("Error parsing enum discriminant as int (is {e:?})"),
                             },
                             syn::Expr::Unary(_) => {
                                 panic!("Negative enum discriminants are not supported")
@@ -102,11 +101,11 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
                             if f.attrs.iter().any(|attr| attr.path.is_ident("var")) {
                                 reader_code.extend(quote! {
                                     Self::#variant_name(azalea_buf::McBufVarReadable::var_read_from(buf)?),
-                                })
+                                });
                             } else {
                                 reader_code.extend(quote! {
                                     Self::#variant_name(azalea_buf::McBufReadable::read_from(buf)?),
-                                })
+                                });
                             }
                         }
                         quote! { Ok(#reader_code) }

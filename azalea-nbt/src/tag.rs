@@ -2,10 +2,11 @@ use ahash::AHashMap;
 use serde::{Deserialize, Serialize};
 
 /// An NBT value.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 #[serde(untagged)]
 pub enum Tag {
-    End,                             // 0
+    #[default]
+    End, // 0
     Byte(i8),                        // 1
     Short(i16),                      // 2
     Int(i32),                        // 3
@@ -18,12 +19,6 @@ pub enum Tag {
     Compound(AHashMap<String, Tag>), // 10
     IntArray(Vec<i32>),              // 11
     LongArray(Vec<i64>),             // 12
-}
-
-impl Default for Tag {
-    fn default() -> Self {
-        Tag::End
-    }
 }
 
 impl Tag {
