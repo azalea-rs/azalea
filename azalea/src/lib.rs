@@ -19,9 +19,13 @@ pub use azalea_world::{entity, World};
 use bot::DefaultBotPlugins;
 use ecs::app::PluginGroup;
 use futures::Future;
-use protocol::ServerAddress;
+use protocol::{
+    resolver::{self, ResolverError},
+    ServerAddress,
+};
 pub use swarm::*;
 use thiserror::Error;
+use tokio::sync::mpsc;
 
 pub type HandleFn<Fut, S> = fn(Client, Event, S) -> Fut;
 
@@ -29,6 +33,8 @@ pub type HandleFn<Fut, S> = fn(Client, Event, S) -> Fut;
 pub enum StartError {
     #[error("Invalid address")]
     InvalidAddress,
+    #[error(transparent)]
+    ResolveAddress(#[from] ResolverError),
     #[error("Join error: {0}")]
     Join(#[from] azalea_client::JoinError),
 }
@@ -88,7 +94,7 @@ where
     /// Build this `ClientBuilder` into an actual [`Client`] and join the given
     /// server.
     ///
-    /// The `address` argumentcan be a `&str`, [`ServerAddress`], or anything
+    /// The `address` argument can be a `&str`, [`ServerAddress`], or anything
     /// that implements `TryInto<ServerAddress>`.
     ///
     /// [`ServerAddress`]: azalea_protocol::ServerAddress
@@ -97,11 +103,21 @@ where
         account: Account,
         address: impl TryInto<ServerAddress>,
     ) -> Result<(), StartError> {
-        let Ok(address) = address.try_into() else {
-            return Err(StartError::InvalidAddress)
-        };
+        let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
+        let resolved_address = resolver::resolve_address(&address).await?;
 
-        let (bot, mut rx) = Client::join(&account, address).await?;
+        // An event that causes the schedule to run. This is only used internally.
+        let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
+        let ecs_lock = start_ecs(self.app, run_schedule_receiver, run_schedule_sender.clone());
+
+        let (bot, mut rx) = Client::start_client(
+            ecs_lock,
+            &account,
+            &address,
+            &resolved_address,
+            run_schedule_sender,
+        )
+        .await?;
 
         while let Some(event) = rx.recv().await {
             if let Some(handler) = self.handler {

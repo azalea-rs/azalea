@@ -185,7 +185,7 @@ where
     /// Build this `SwarmBuilder` into an actual [`Swarm`] and join the given
     /// server.
     ///
-    /// The `address` argumentcan be a `&str`, [`ServerAddress`], or anything
+    /// The `address` argument can be a `&str`, [`ServerAddress`], or anything
     /// that implements `TryInto<ServerAddress>`.
     ///
     /// [`ServerAddress`]: azalea_protocol::ServerAddress

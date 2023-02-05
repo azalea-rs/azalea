@@ -47,7 +47,7 @@ async fn main() -> anyhow::Result<()> {
     let mut accounts = Vec::new();
     let mut states = Vec::new();
 
-    for i in 0..5 {
+    for i in 0..1 {
         accounts.push(Account::offline(&format!("bot{i}")));
         states.push(State::default());
     }
@@ -119,6 +119,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     "goto" => {
                         let entity_pos = bot.entity_component::<Position>(entity);
                         let target_pos: BlockPos = entity_pos.into();
+                        println!("going to {target_pos:?}");
                         bot.goto(BlockPosGoal::from(target_pos));
                     }
                     "look" => {

@@ -9,7 +9,7 @@ use azalea_ecs::{
     query::{Changed, With, Without},
     system::{Commands, Query, Res, ResMut},
 };
-use log::{debug, error, info, warn};
+use log::{debug, error, info};
 use nohash_hasher::IntMap;
 use std::fmt::Formatter;
 use std::{

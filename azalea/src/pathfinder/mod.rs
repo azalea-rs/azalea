@@ -236,10 +236,10 @@ fn tick_execute_path(
             }
 
             if target.is_reached(position, physics) {
-                println!("reached target");
+                // println!("reached target");
                 pathfinder.path.pop_front();
                 if pathfinder.path.is_empty() {
-                    println!("reached goal");
+                    // println!("reached goal");
                     walk_events.send(StartWalkEvent {
                         entity,
                         direction: WalkDirection::None,
