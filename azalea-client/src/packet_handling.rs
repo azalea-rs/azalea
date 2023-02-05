@@ -582,6 +582,7 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::AddPlayer(p) => {
                     debug!("Got add player packet {:?}", p);
 
+                    #[allow(clippy::type_complexity)]
                     let mut system_state: SystemState<(
                         Commands,
                         Query<(&mut LocalPlayer, Option<&WorldName>)>,
