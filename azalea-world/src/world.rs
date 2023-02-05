@@ -221,3 +221,15 @@ pub fn update_entity_by_id_index(
         debug!("Added {entity:?} to {world_name:?} with {id:?}.");
     }
 }
+
+impl From<ChunkStorage> for World {
+    /// Make an empty world from this `ChunkStorage`. This is meant to be a
+    /// convenience function for tests.
+    fn from(chunks: ChunkStorage) -> Self {
+        Self {
+            chunks,
+            entities_by_chunk: HashMap::new(),
+            entity_by_id: IntMap::default(),
+        }
+    }
+}

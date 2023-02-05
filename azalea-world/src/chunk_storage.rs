@@ -125,10 +125,7 @@ impl PartialChunkStorage {
             return Ok(());
         }
 
-        let chunk = Arc::new(RwLock::new(Chunk::read_with_dimension_height(
-            data,
-            chunk_storage.height,
-        )?));
+        let chunk = Chunk::read_with_dimension_height(data, chunk_storage.height)?;
 
         trace!("Loaded chunk {:?}", pos);
         self.set(pos, Some(chunk), chunk_storage);
@@ -163,11 +160,22 @@ impl PartialChunkStorage {
     }
 
     /// Set a chunk in the shared storage and reference it from the limited
-    /// storage.
+    /// storage. Use [`Self::set_with_shared_reference`] if you already have
+    /// an `Arc<RwLock<Chunk>>`.
     ///
     /// # Panics
     /// If the chunk is not in the render distance.
-    pub fn set(
+    pub fn set(&mut self, pos: &ChunkPos, chunk: Option<Chunk>, chunk_storage: &mut ChunkStorage) {
+        self.set_with_shared_reference(pos, chunk.map(|c| Arc::new(RwLock::new(c))), chunk_storage);
+    }
+
+    /// Set a chunk in the shared storage and reference it from the limited
+    /// storage. Use [`Self::set`] if you don't already have an
+    /// `Arc<RwLock<Chunk>>` (it'll make it for you).
+    ///
+    /// # Panics
+    /// If the chunk is not in the render distance.
+    pub fn set_with_shared_reference(
         &mut self,
         pos: &ChunkPos,
         chunk: Option<Arc<RwLock<Chunk>>>,
@@ -393,7 +401,7 @@ mod tests {
         let mut partial_chunk_storage = PartialChunkStorage::default();
         partial_chunk_storage.set(
             &ChunkPos { x: 0, z: 0 },
-            Some(Arc::new(RwLock::new(Chunk::default()))),
+            Some(Chunk::default()),
             &mut chunk_storage,
         );
         assert!(chunk_storage

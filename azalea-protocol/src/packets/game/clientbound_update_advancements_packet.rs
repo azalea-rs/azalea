@@ -128,8 +128,8 @@ mod tests {
                 Advancement {
                     parent_id: None,
                     display: Some(DisplayInfo {
-                        title: Component::from("title".to_string()),
-                        description: Component::from("description".to_string()),
+                        title: FormattedText::from("title".to_string()),
+                        description: FormattedText::from("description".to_string()),
                         icon: Slot::Empty,
                         frame: FrameType::Task,
                         show_toast: true,

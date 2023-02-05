@@ -390,7 +390,7 @@ mod tests {
 
         partial_world.chunks.set(
             &ChunkPos { x: 0, z: 0 },
-            Some(Arc::new(RwLock::new(Chunk::default()))),
+            Some(Chunk::default()),
             &mut world_lock.write().chunks,
         );
         let entity = app
@@ -447,7 +447,7 @@ mod tests {
 
         partial_world.chunks.set(
             &ChunkPos { x: 0, z: 0 },
-            Some(Arc::new(RwLock::new(Chunk::default()))),
+            Some(Chunk::default()),
             &mut world_lock.write().chunks,
         );
         let entity = app
@@ -496,7 +496,7 @@ mod tests {
 
         partial_world.chunks.set(
             &ChunkPos { x: 0, z: 0 },
-            Some(Arc::new(RwLock::new(Chunk::default()))),
+            Some(Chunk::default()),
             &mut world_lock.write().chunks,
         );
         let entity = app
@@ -544,7 +544,7 @@ mod tests {
 
         partial_world.chunks.set(
             &ChunkPos { x: 0, z: 0 },
-            Some(Arc::new(RwLock::new(Chunk::default()))),
+            Some(Chunk::default()),
             &mut world_lock.write().chunks,
         );
         let entity = app

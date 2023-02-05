@@ -151,56 +151,92 @@ mod tests {
     use super::*;
     use azalea_block::BlockState;
     use azalea_core::ChunkPos;
-    use azalea_world::{Chunk, PartialWorld};
+    use azalea_world::{Chunk, ChunkStorage, PartialWorld};
 
     #[test]
     fn test_is_passable() {
-        let mut world = PartialWorld::default();
-        world
-            .set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
-            .unwrap();
-        world.set_block_state(&BlockPos::new(0, 0, 0), BlockState::Stone);
-        world.set_block_state(&BlockPos::new(0, 1, 0), BlockState::Air);
+        let mut partial_world = PartialWorld::default();
+        let mut chunk_storage = ChunkStorage::default();
 
-        assert_eq!(
-            is_block_passable(&BlockPos::new(0, 0, 0), &world.shared),
-            false
+        partial_world.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Chunk::default()),
+            &mut chunk_storage,
         );
-        assert_eq!(
-            is_block_passable(&BlockPos::new(0, 1, 0), &world.shared),
-            true
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 0, 0),
+            BlockState::Stone,
+            &mut chunk_storage,
         );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 1, 0),
+            BlockState::Air,
+            &mut chunk_storage,
+        );
+
+        let world = chunk_storage.into();
+        assert_eq!(is_block_passable(&BlockPos::new(0, 0, 0), &world), false);
+        assert_eq!(is_block_passable(&BlockPos::new(0, 1, 0), &world), true);
     }
 
     #[test]
     fn test_is_solid() {
-        let mut world = PartialWorld::default();
-        world
-            .set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
-            .unwrap();
-        world.set_block_state(&BlockPos::new(0, 0, 0), BlockState::Stone);
-        world.set_block_state(&BlockPos::new(0, 1, 0), BlockState::Air);
-
-        assert_eq!(is_block_solid(&BlockPos::new(0, 0, 0), &world.shared), true);
-        assert_eq!(
-            is_block_solid(&BlockPos::new(0, 1, 0), &world.shared),
-            false
+        let mut partial_world = PartialWorld::default();
+        let mut chunk_storage = ChunkStorage::default();
+        partial_world.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Chunk::default()),
+            &mut chunk_storage,
         );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 0, 0),
+            BlockState::Stone,
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 1, 0),
+            BlockState::Air,
+            &mut chunk_storage,
+        );
+
+        let world = chunk_storage.into();
+        assert_eq!(is_block_solid(&BlockPos::new(0, 0, 0), &world), true);
+        assert_eq!(is_block_solid(&BlockPos::new(0, 1, 0), &world), false);
     }
 
     #[test]
     fn test_is_standable() {
-        let mut world = PartialWorld::default();
-        world
-            .set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
-            .unwrap();
-        world.set_block_state(&BlockPos::new(0, 0, 0), BlockState::Stone);
-        world.set_block_state(&BlockPos::new(0, 1, 0), BlockState::Air);
-        world.set_block_state(&BlockPos::new(0, 2, 0), BlockState::Air);
-        world.set_block_state(&BlockPos::new(0, 3, 0), BlockState::Air);
+        let mut partial_world = PartialWorld::default();
+        let mut chunk_storage = ChunkStorage::default();
+        partial_world.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Chunk::default()),
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 0, 0),
+            BlockState::Stone,
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 1, 0),
+            BlockState::Air,
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 2, 0),
+            BlockState::Air,
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 3, 0),
+            BlockState::Air,
+            &mut chunk_storage,
+        );
 
-        assert!(is_standable(&BlockPos::new(0, 1, 0), &world.shared));
-        assert!(!is_standable(&BlockPos::new(0, 0, 0), &world.shared));
-        assert!(!is_standable(&BlockPos::new(0, 2, 0), &world.shared));
+        let world = chunk_storage.into();
+        assert!(is_standable(&BlockPos::new(0, 1, 0), &world));
+        assert!(!is_standable(&BlockPos::new(0, 0, 0), &world));
+        assert!(!is_standable(&BlockPos::new(0, 2, 0), &world));
     }
 }

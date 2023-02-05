@@ -80,6 +80,7 @@ pub struct UpdatePlayerEvent {
 }
 
 /// A client received a chat message packet.
+#[derive(Debug)]
 pub struct ChatReceivedEvent {
     pub entity: Entity,
     pub packet: ChatPacket,
@@ -460,30 +461,35 @@ fn handle_packets(ecs: &mut Ecs) {
                     let mut query = system_state.get_mut(ecs);
                     let local_player = query.get_mut(player_entity).unwrap();
 
+                    let mut world = local_player.world.write();
+                    let mut partial_world = local_player.partial_world.write();
+
                     // OPTIMIZATION: if we already know about the chunk from the
                     // shared world (and not ourselves), then we don't need to
                     // parse it again. This is only used when we have a shared
                     // world, since we check that the chunk isn't currently owned
                     // by this client.
-                    let shared_has_chunk = local_player.world.read().chunks.get(&pos).is_some();
+                    let shared_chunk = local_player.world.read().chunks.get(&pos);
                     let this_client_has_chunk = local_player
                         .partial_world
                         .read()
                         .chunks
                         .limited_get(&pos)
                         .is_some();
-                    if shared_has_chunk && !this_client_has_chunk {
-                        trace!(
-                            "Skipping parsing chunk {:?} because we already know about it",
-                            pos
-                        );
-                        continue;
+                    if !this_client_has_chunk {
+                        if let Some(shared_chunk) = shared_chunk {
+                            trace!(
+                                "Skipping parsing chunk {:?} because we already know about it",
+                                pos
+                            );
+                            partial_world.chunks.set_with_shared_reference(
+                                &pos,
+                                Some(shared_chunk.clone()),
+                                &mut world.chunks,
+                            );
+                            continue;
+                        }
                     }
-
-                    // ok we're sure we're going to mutate the world, so get exclusive write
-                    // access
-                    let mut world = local_player.world.write();
-                    let mut partial_world = local_player.partial_world.write();
 
                     if let Err(e) = partial_world.chunks.replace_with_packet_data(
                         &pos,
