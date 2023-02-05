@@ -24,9 +24,18 @@ impl McBufWritable for BlockHitResult {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self.block_pos.write_into(buf)?;
         self.direction.write_into(buf)?;
-        f32::write_into(&((self.location.x - f64::from(self.block_pos.x)) as f32), buf)?;
-        f32::write_into(&((self.location.y - f64::from(self.block_pos.y)) as f32), buf)?;
-        f32::write_into(&((self.location.z - f64::from(self.block_pos.z)) as f32), buf)?;
+        f32::write_into(
+            &((self.location.x - f64::from(self.block_pos.x)) as f32),
+            buf,
+        )?;
+        f32::write_into(
+            &((self.location.y - f64::from(self.block_pos.y)) as f32),
+            buf,
+        )?;
+        f32::write_into(
+            &((self.location.z - f64::from(self.block_pos.z)) as f32),
+            buf,
+        )?;
         self.inside.write_into(buf)?;
         Ok(())
     }

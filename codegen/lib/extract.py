@@ -53,7 +53,7 @@ def determine_python_command():
     def try_python_command(version):
         return os.system(f'{version} --version') == 0
 
-    for version in ('python3.9', 'python3.8', 'python3', 'python'):
+    for version in (sys.executable, 'python3.9', 'python3.8', 'python3', 'python'):
         if try_python_command(version):
             python_command = version
             return version
