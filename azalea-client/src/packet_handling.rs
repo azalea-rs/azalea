@@ -477,6 +477,8 @@ fn handle_packets(ecs: &mut Ecs) {
                             }
                         }
                     }
+
+                    system_state.apply(ecs);
                 }
                 ClientboundGamePacket::SetChunkCacheCenter(p) => {
                     debug!("Got chunk cache center packet {:?}", p);
