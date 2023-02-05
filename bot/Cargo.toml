@@ -14,5 +14,5 @@ azalea-protocol = {path = "../azalea-protocol"}
 env_logger = "0.9.1"
 parking_lot = {version = "^0.12.1", features = ["deadlock_detection"]}
 rand = "0.8.5"
-tokio = "1.23.1"
+tokio = "1.24.2"
 uuid = "1.1.2"

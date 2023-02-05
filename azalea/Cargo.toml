@@ -34,7 +34,7 @@ num-traits = "0.2.15"
 parking_lot = {version = "^0.12.1", features = ["deadlock_detection"]}
 priority-queue = "1.3.0"
 thiserror = "^1.0.37"
-tokio = "^1.23.1"
+tokio = "^1.24.2"
 uuid = "1.2.2"
 
 [dev-dependencies]
