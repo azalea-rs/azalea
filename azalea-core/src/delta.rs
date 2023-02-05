@@ -39,6 +39,7 @@ impl PositionDeltaTrait for PositionDelta8 {
 }
 
 impl Vec3 {
+    #[must_use]
     pub fn with_delta(&self, delta: &dyn PositionDeltaTrait) -> Vec3 {
         Vec3 {
             x: self.x + delta.x(),

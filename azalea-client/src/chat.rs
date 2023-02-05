@@ -1,7 +1,6 @@
 //! Implementations of chat-related features.
 
-use crate::Client;
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_protocol::packets::game::{
     clientbound_player_chat_packet::ClientboundPlayerChatPacket,
     clientbound_system_chat_packet::ClientboundSystemChatPacket,
@@ -12,6 +11,9 @@ use std::{
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
 };
+use uuid::Uuid;
+
+use crate::client::Client;
 
 /// A chat packet, either a system message or a chat message.
 #[derive(Debug, Clone, PartialEq)]
@@ -29,7 +31,7 @@ macro_rules! regex {
 
 impl ChatPacket {
     /// Get the message shown in chat for this packet.
-    pub fn message(&self) -> Component {
+    pub fn message(&self) -> FormattedText {
         match self {
             ChatPacket::System(p) => p.content.clone(),
             ChatPacket::Player(p) => p.message(),
@@ -72,11 +74,30 @@ impl ChatPacket {
         self.split_sender_and_content().0
     }
 
+    /// Get the UUID of the sender of the message. If it's not a
+    /// player-sent chat message, this will be None (this is sometimes the case
+    /// when a server uses a plugin to modify chat messages).
+    pub fn uuid(&self) -> Option<Uuid> {
+        match self {
+            ChatPacket::System(_) => None,
+            ChatPacket::Player(m) => Some(m.sender),
+        }
+    }
+
     /// Get the content part of the message as a string. This does not preserve
     /// formatting codes. If it's not a player-sent chat message or the sender
     /// couldn't be determined, this will contain the entire message.
     pub fn content(&self) -> String {
         self.split_sender_and_content().1
+    }
+
+    /// Create a new ChatPacket from a string. This is meant to be used as a
+    /// convenience function for testing.
+    pub fn new(message: &str) -> Self {
+        ChatPacket::System(Arc::new(ClientboundSystemChatPacket {
+            content: FormattedText::from(message),
+            overlay: false,
+        }))
     }
 }
 
@@ -85,7 +106,7 @@ impl Client {
     /// not the command packet. The [`Client::chat`] function handles checking
     /// whether the message is a command and using the proper packet for you,
     /// so you should use that instead.
-    pub async fn send_chat_packet(&self, message: &str) -> Result<(), std::io::Error> {
+    pub fn send_chat_packet(&self, message: &str) {
         // TODO: chat signing
         // let signature = sign_message();
         let packet = ServerboundChatPacket {
@@ -101,12 +122,12 @@ impl Client {
             last_seen_messages: LastSeenMessagesUpdate::default(),
         }
         .get();
-        self.write_packet(packet).await
+        self.write_packet(packet);
     }
 
     /// Send a command packet to the server. The `command` argument should not
     /// include the slash at the front.
-    pub async fn send_command_packet(&self, command: &str) -> Result<(), std::io::Error> {
+    pub fn send_command_packet(&self, command: &str) {
         // TODO: chat signing
         let packet = ServerboundChatCommandPacket {
             command: command.to_string(),
@@ -121,7 +142,7 @@ impl Client {
             last_seen_messages: LastSeenMessagesUpdate::default(),
         }
         .get();
-        self.write_packet(packet).await
+        self.write_packet(packet);
     }
 
     /// Send a message in chat.
@@ -129,15 +150,15 @@ impl Client {
     /// ```rust,no_run
     /// # use azalea_client::{Client, Event};
     /// # async fn handle(bot: Client, event: Event) -> anyhow::Result<()> {
-    /// bot.chat("Hello, world!").await.unwrap();
+    /// bot.chat("Hello, world!");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn chat(&self, message: &str) -> Result<(), std::io::Error> {
+    pub fn chat(&self, message: &str) {
         if let Some(command) = message.strip_prefix('/') {
-            self.send_command_packet(command).await
+            self.send_command_packet(command);
         } else {
-            self.send_chat_packet(message).await
+            self.send_chat_packet(message);
         }
     }
 }

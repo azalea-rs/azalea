@@ -16,7 +16,7 @@ pub enum Stat {
     Broken(azalea_registry::Item),
     PickedUp(azalea_registry::Item),
     Dropped(azalea_registry::Item),
-    Killed(azalea_registry::EntityType),
-    KilledBy(azalea_registry::EntityType),
+    Killed(azalea_registry::EntityKind),
+    KilledBy(azalea_registry::EntityKind),
     Custom(azalea_registry::CustomStat),
 }

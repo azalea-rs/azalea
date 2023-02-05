@@ -1,4 +1,4 @@
-use std::io::{Cursor, Read, Write};
+use std::io::{Cursor, Write};
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 
@@ -25,9 +25,7 @@ impl BitSet {
     fn check_range(&self, from_index: usize, to_index: usize) {
         assert!(
             from_index <= to_index,
-            "fromIndex: {} > toIndex: {}",
-            from_index,
-            to_index
+            "fromIndex: {from_index} > toIndex: {to_index}",
         );
     }
 
@@ -107,13 +105,6 @@ impl BitSet {
 
     pub fn set(&mut self, bit_index: usize) {
         self.data[bit_index / 64] |= 1u64 << (bit_index % 64);
-    }
-
-    /// Read a BitSet with a known length.
-    pub fn read_fixed(buf: &mut Cursor<&[u8]>, length: usize) -> Result<Self, BufReadError> {
-        let mut data = vec![0; length.div_ceil(8)];
-        buf.read_exact(&mut data)?;
-        Ok(BitSet::from(data))
     }
 }
 

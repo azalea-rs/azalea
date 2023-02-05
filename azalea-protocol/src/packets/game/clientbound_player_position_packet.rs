@@ -1,5 +1,6 @@
 use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_core::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Cursor, Write};
 
@@ -29,35 +30,35 @@ pub struct RelativeArguments {
 
 impl McBufReadable for RelativeArguments {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let byte = u8::read_from(buf)?;
+        let set = FixedBitSet::<5>::read_from(buf)?;
         Ok(RelativeArguments {
-            x: byte & 0b1 != 0,
-            y: byte & 0b10 != 0,
-            z: byte & 0b100 != 0,
-            y_rot: byte & 0b1000 != 0,
-            x_rot: byte & 0b10000 != 0,
+            x: set.index(0),
+            y: set.index(1),
+            z: set.index(2),
+            y_rot: set.index(3),
+            x_rot: set.index(4),
         })
     }
 }
 
 impl McBufWritable for RelativeArguments {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut byte = 0;
+        let mut set = FixedBitSet::<5>::new();
         if self.x {
-            byte |= 0b1;
+            set.set(0);
         }
         if self.y {
-            byte |= 0b10;
+            set.set(1);
         }
         if self.z {
-            byte |= 0b100;
+            set.set(2);
         }
         if self.y_rot {
-            byte |= 0b1000;
+            set.set(3);
         }
         if self.x_rot {
-            byte |= 0b10000;
+            set.set(4);
         }
-        u8::write_into(&byte, buf)
+        set.write_into(buf)
     }
 }

@@ -2,6 +2,7 @@ use std::io::Cursor;
 
 use azalea_buf::BufReadError;
 use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_core::FixedBitSet;
 use azalea_protocol_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, ServerboundGamePacket)]
@@ -16,14 +17,12 @@ impl McBufReadable for ServerboundPlayerInputPacket {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let xxa = f32::read_from(buf)?;
         let zza = f32::read_from(buf)?;
-        let byte = u8::read_from(buf)?;
-        let is_jumping = byte & 1 != 0;
-        let is_shift_key_down = byte & 2 != 0;
+        let set = FixedBitSet::<2>::read_from(buf)?;
         Ok(Self {
             xxa,
             zza,
-            is_jumping,
-            is_shift_key_down,
+            is_jumping: set.index(0),
+            is_shift_key_down: set.index(1),
         })
     }
 }
@@ -32,14 +31,13 @@ impl McBufWritable for ServerboundPlayerInputPacket {
     fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         self.xxa.write_into(buf)?;
         self.zza.write_into(buf)?;
-        let mut byte = 0;
+        let mut set = FixedBitSet::<2>::new();
         if self.is_jumping {
-            byte |= 1;
+            set.set(0);
         }
         if self.is_shift_key_down {
-            byte |= 2;
+            set.set(1);
         }
-        byte.write_into(buf)?;
-        Ok(())
+        set.write_into(buf)
     }
 }

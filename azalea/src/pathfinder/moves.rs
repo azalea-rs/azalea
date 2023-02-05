@@ -5,7 +5,7 @@ use azalea_world::World;
 
 /// whether this block is passable
 fn is_block_passable(pos: &BlockPos, world: &World) -> bool {
-    if let Some(block) = world.get_block_state(pos) {
+    if let Some(block) = world.chunks.get_block_state(pos) {
         block.shape() == &collision::empty_shape()
     } else {
         false
@@ -14,7 +14,7 @@ fn is_block_passable(pos: &BlockPos, world: &World) -> bool {
 
 /// whether this block has a solid hitbox (i.e. we can stand on it)
 fn is_block_solid(pos: &BlockPos, world: &World) -> bool {
-    if let Some(block) = world.get_block_state(pos) {
+    if let Some(block) = world.chunks.get_block_state(pos) {
         block.shape() == &collision::block_shape()
     } else {
         false
@@ -36,7 +36,7 @@ fn is_standable(pos: &BlockPos, world: &World) -> bool {
 const JUMP_COST: f32 = 0.5;
 const WALK_ONE_BLOCK_COST: f32 = 1.0;
 
-pub trait Move {
+pub trait Move: Send + Sync {
     fn cost(&self, world: &World, node: &Node) -> f32;
     /// Returns by how much the entity's position should be changed when this
     /// move is executed.
@@ -151,45 +151,90 @@ mod tests {
     use super::*;
     use azalea_block::BlockState;
     use azalea_core::ChunkPos;
-    use azalea_world::Chunk;
+    use azalea_world::{Chunk, ChunkStorage, PartialWorld};
 
     #[test]
     fn test_is_passable() {
-        let mut world = World::default();
-        world
-            .set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
-            .unwrap();
-        world.set_block_state(&BlockPos::new(0, 0, 0), BlockState::Stone);
-        world.set_block_state(&BlockPos::new(0, 1, 0), BlockState::Air);
+        let mut partial_world = PartialWorld::default();
+        let mut chunk_storage = ChunkStorage::default();
 
+        partial_world.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Chunk::default()),
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 0, 0),
+            BlockState::Stone,
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 1, 0),
+            BlockState::Air,
+            &mut chunk_storage,
+        );
+
+        let world = chunk_storage.into();
         assert_eq!(is_block_passable(&BlockPos::new(0, 0, 0), &world), false);
         assert_eq!(is_block_passable(&BlockPos::new(0, 1, 0), &world), true);
     }
 
     #[test]
     fn test_is_solid() {
-        let mut world = World::default();
-        world
-            .set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
-            .unwrap();
-        world.set_block_state(&BlockPos::new(0, 0, 0), BlockState::Stone);
-        world.set_block_state(&BlockPos::new(0, 1, 0), BlockState::Air);
+        let mut partial_world = PartialWorld::default();
+        let mut chunk_storage = ChunkStorage::default();
+        partial_world.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Chunk::default()),
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 0, 0),
+            BlockState::Stone,
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 1, 0),
+            BlockState::Air,
+            &mut chunk_storage,
+        );
 
+        let world = chunk_storage.into();
         assert_eq!(is_block_solid(&BlockPos::new(0, 0, 0), &world), true);
         assert_eq!(is_block_solid(&BlockPos::new(0, 1, 0), &world), false);
     }
 
     #[test]
     fn test_is_standable() {
-        let mut world = World::default();
-        world
-            .set_chunk(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()))
-            .unwrap();
-        world.set_block_state(&BlockPos::new(0, 0, 0), BlockState::Stone);
-        world.set_block_state(&BlockPos::new(0, 1, 0), BlockState::Air);
-        world.set_block_state(&BlockPos::new(0, 2, 0), BlockState::Air);
-        world.set_block_state(&BlockPos::new(0, 3, 0), BlockState::Air);
+        let mut partial_world = PartialWorld::default();
+        let mut chunk_storage = ChunkStorage::default();
+        partial_world.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Chunk::default()),
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 0, 0),
+            BlockState::Stone,
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 1, 0),
+            BlockState::Air,
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 2, 0),
+            BlockState::Air,
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 3, 0),
+            BlockState::Air,
+            &mut chunk_storage,
+        );
 
+        let world = chunk_storage.into();
         assert!(is_standable(&BlockPos::new(0, 1, 0), &world));
         assert!(!is_standable(&BlockPos::new(0, 0, 0), &world));
         assert!(!is_standable(&BlockPos::new(0, 2, 0), &world));

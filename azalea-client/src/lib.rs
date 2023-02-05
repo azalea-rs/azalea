@@ -9,27 +9,26 @@
 #![allow(incomplete_features)]
 #![feature(trait_upcasting)]
 #![feature(error_generic_member_access)]
+#![feature(type_alias_impl_trait)]
 
 mod account;
 mod chat;
 mod client;
+mod entity_query;
+mod events;
 mod get_mc_dir;
+mod inventory;
+mod local_player;
 mod movement;
+pub mod packet_handling;
 pub mod ping;
 mod player;
-mod plugins;
+pub mod task_pool;
 
 pub use account::Account;
-pub use client::{ChatPacket, Client, ClientInformation, Event, JoinError, PhysicsState};
-pub use movement::{SprintDirection, WalkDirection};
+pub use azalea_ecs as ecs;
+pub use client::{init_ecs_app, start_ecs, ChatPacket, Client, ClientInformation, JoinError};
+pub use events::Event;
+pub use local_player::{GameProfileComponent, LocalPlayer};
+pub use movement::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
 pub use player::PlayerInfo;
-pub use plugins::{Plugin, PluginState, PluginStates, Plugins};
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}

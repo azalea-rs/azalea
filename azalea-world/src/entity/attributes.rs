@@ -1,4 +1,4 @@
-//! <https://minecraft.fandom.com/wiki/Attribute>
+//! See <https://minecraft.fandom.com/wiki/Attribute>.
 
 use std::{
     collections::HashMap,
@@ -6,11 +6,12 @@ use std::{
 };
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+use azalea_ecs::component::Component;
 use thiserror::Error;
 use uuid::{uuid, Uuid};
 
-#[derive(Clone, Debug)]
-pub struct AttributeModifiers {
+#[derive(Clone, Debug, Component)]
+pub struct Attributes {
     pub speed: AttributeInstance,
 }
 
@@ -41,7 +42,7 @@ impl AttributeInstance {
                 _ => {}
             }
             if let AttributeModifierOperation::MultiplyTotal = modifier.operation {
-                total *= 1.0 + modifier.amount
+                total *= 1.0 + modifier.amount;
             }
         }
         total

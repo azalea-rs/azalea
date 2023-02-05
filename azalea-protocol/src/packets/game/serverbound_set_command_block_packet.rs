@@ -1,6 +1,6 @@
 use crate::packets::McBufWritable;
 use azalea_buf::{BufReadError, McBuf, McBufReadable};
-use azalea_core::BlockPos;
+use azalea_core::{BlockPos, FixedBitSet};
 use azalea_protocol_macros::ServerboundGamePacket;
 use std::io::Cursor;
 
@@ -28,17 +28,14 @@ impl McBufReadable for ServerboundSetCommandBlockPacket {
         let command = String::read_from(buf)?;
         let mode = Mode::read_from(buf)?;
 
-        let byte = u8::read_from(buf)?;
-        let track_output = byte & 1 != 0;
-        let conditional = byte & 2 != 0;
-        let automatic = byte & 4 != 0;
+        let set = FixedBitSet::<3>::read_from(buf)?;
         Ok(Self {
             pos,
             command,
             mode,
-            track_output,
-            conditional,
-            automatic,
+            track_output: set.index(0),
+            conditional: set.index(1),
+            automatic: set.index(2),
         })
     }
 }
@@ -49,17 +46,16 @@ impl McBufWritable for ServerboundSetCommandBlockPacket {
         self.command.write_into(buf)?;
         self.mode.write_into(buf)?;
 
-        let mut byte: u8 = 0;
+        let mut set = FixedBitSet::<3>::new();
         if self.track_output {
-            byte |= 1;
+            set.set(0);
         }
         if self.conditional {
-            byte |= 2;
+            set.set(1);
         }
         if self.automatic {
-            byte |= 4;
+            set.set(2);
         }
-        byte.write_into(buf)?;
-        Ok(())
+        set.write_into(buf)
     }
 }

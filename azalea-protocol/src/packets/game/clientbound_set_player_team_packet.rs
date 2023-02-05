@@ -1,5 +1,5 @@
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use azalea_chat::{style::ChatFormatting, Component};
+use azalea_chat::{style::ChatFormatting, FormattedText};
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Cursor, Write};
 
@@ -26,7 +26,7 @@ impl McBufReadable for Method {
             2 => Method::Change(Parameters::read_from(buf)?),
             3 => Method::Join(PlayerList::read_from(buf)?),
             4 => Method::Leave(PlayerList::read_from(buf)?),
-            id => return Err(BufReadError::UnexpectedEnumVariant { id: id as i32 }),
+            id => return Err(BufReadError::UnexpectedEnumVariant { id: i32::from(id) }),
         })
     }
 }
@@ -61,13 +61,13 @@ impl McBufWritable for Method {
 
 #[derive(McBuf, Clone, Debug)]
 pub struct Parameters {
-    pub display_name: Component,
+    pub display_name: FormattedText,
     pub options: u8,
     pub nametag_visibility: String,
     pub collision_rule: String,
     pub color: ChatFormatting,
-    pub player_prefix: Component,
-    pub player_suffix: Component,
+    pub player_prefix: FormattedText,
+    pub player_suffix: FormattedText,
 }
 
 type PlayerList = Vec<String>;

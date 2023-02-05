@@ -1,4 +1,4 @@
-//! Implements SwarmEvent::Chat
+//! Implements `SwarmEvent::Chat`.
 
 // How the chat event works (to avoid firing the event multiple times):
 // ---
@@ -13,136 +13,239 @@
 // in Swarm that's set to the smallest index of all the bots, and we remove all
 // messages from the queue that are before that index.
 
+use azalea_client::{packet_handling::ChatReceivedEvent, ChatPacket};
+use azalea_ecs::{
+    app::{App, Plugin},
+    component::Component,
+    event::{EventReader, EventWriter},
+    schedule::IntoSystemDescriptor,
+    system::{Commands, Query, Res, ResMut, Resource},
+};
+use std::collections::VecDeque;
+
 use crate::{Swarm, SwarmEvent};
-use async_trait::async_trait;
-use azalea_client::{ChatPacket, Client, Event};
-use parking_lot::Mutex;
-use std::{collections::VecDeque, sync::Arc};
-use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 
 #[derive(Clone)]
-pub struct Plugin {
-    pub swarm_state: SwarmState,
-    pub tx: UnboundedSender<ChatPacket>,
-}
-
-impl crate::Plugin for Plugin {
-    type State = State;
-
-    fn build(&self) -> State {
-        State {
-            farthest_chat_index: Arc::new(Mutex::new(0)),
-            swarm_state: self.swarm_state.clone(),
-            tx: self.tx.clone(),
-        }
+pub struct SwarmChatPlugin;
+impl Plugin for SwarmChatPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<NewChatMessageEvent>()
+            .add_system(chat_listener.label("chat_listener"))
+            .add_system(update_min_index_and_shrink_queue.after("chat_listener"))
+            .insert_resource(GlobalChatState {
+                chat_queue: VecDeque::new(),
+                chat_min_index: 0,
+            });
     }
 }
 
-#[derive(Clone)]
-pub struct State {
-    pub farthest_chat_index: Arc<Mutex<usize>>,
-    pub tx: UnboundedSender<ChatPacket>,
-    pub swarm_state: SwarmState,
+#[derive(Component, Debug)]
+pub struct ClientChatState {
+    pub chat_index: usize,
 }
 
-#[derive(Clone)]
-pub struct SwarmState {
-    pub chat_queue: Arc<Mutex<VecDeque<ChatPacket>>>,
-    pub chat_min_index: Arc<Mutex<usize>>,
-    pub rx: Arc<tokio::sync::Mutex<UnboundedReceiver<ChatPacket>>>,
+/// A chat message that no other bots have seen yet was received by a bot.
+#[derive(Debug)]
+pub struct NewChatMessageEvent(ChatPacket);
+
+#[derive(Resource)]
+pub struct GlobalChatState {
+    pub chat_queue: VecDeque<ChatPacket>,
+    pub chat_min_index: usize,
 }
 
-#[async_trait]
-impl crate::PluginState for State {
-    async fn handle(self: Box<Self>, event: Event, _bot: Client) {
-        // we're allowed to access Plugin::swarm_state since it's shared for every bot
-        if let Event::Chat(m) = event {
-            // When a bot receives a chat messages, it looks into the queue to find the
-            // earliest instance of the message content that's after the bot's chat index.
-            // If it finds it, then its personal index is simply updated. Otherwise, fire
-            // the event and add to the queue.
-
-            let mut chat_queue = self.swarm_state.chat_queue.lock();
-            let chat_min_index = self.swarm_state.chat_min_index.lock();
-            let mut farthest_chat_index = self.farthest_chat_index.lock();
-
-            let actual_vec_index = *farthest_chat_index - *chat_min_index;
-
-            // go through the queue and find the first message that's after the bot's index
-            let mut found = false;
-            for (i, msg) in chat_queue.iter().enumerate().skip(actual_vec_index) {
-                if msg == &m {
-                    // found the message, update the index
-                    *farthest_chat_index = i + *chat_min_index + 1;
-                    found = true;
-                    break;
-                }
-            }
-
-            if !found {
-                // didn't find the message, so fire the swarm event and add to the queue
-                self.tx
-                    .send(m.clone())
-                    .expect("failed to send chat message to swarm");
-                chat_queue.push_back(m);
-                *farthest_chat_index = chat_queue.len() - 1 + *chat_min_index;
-            }
-        }
-    }
-}
-
-impl SwarmState {
-    pub fn new<S>(swarm: Swarm<S>) -> (Self, UnboundedSender<ChatPacket>)
-    where
-        S: Send + Sync + Clone + 'static,
-    {
-        let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
-
-        let swarm_state = SwarmState {
-            chat_queue: Arc::new(Mutex::new(VecDeque::new())),
-            chat_min_index: Arc::new(Mutex::new(0)),
-            rx: Arc::new(tokio::sync::Mutex::new(rx)),
+fn chat_listener(
+    mut commands: Commands,
+    mut query: Query<&mut ClientChatState>,
+    mut events: EventReader<ChatReceivedEvent>,
+    mut global_chat_state: ResMut<GlobalChatState>,
+    mut new_chat_messages_events: EventWriter<NewChatMessageEvent>,
+) {
+    for event in events.iter() {
+        let mut client_chat_state = query.get_mut(event.entity);
+        let mut client_chat_index = if let Ok(ref client_chat_state) = client_chat_state {
+            client_chat_state.chat_index
+        } else {
+            // if the client has no chat state, we default to this and insert it at the end
+            global_chat_state.chat_min_index
         };
-        tokio::spawn(swarm_state.clone().start(swarm));
 
-        (swarm_state, tx)
-    }
-    async fn start<S>(self, swarm: Swarm<S>)
-    where
-        S: Send + Sync + Clone + 'static,
-    {
-        // it should never be locked unless we reused the same plugin for two swarms
-        // (bad)
-        let mut rx = self.rx.lock().await;
-        while let Some(m) = rx.recv().await {
-            swarm.swarm_tx.send(SwarmEvent::Chat(m)).unwrap();
+        // When a bot receives a chat messages, it looks into the queue to find the
+        // earliest instance of the message content that's after the bot's chat index.
+        // If it finds it, then its personal index is simply updated. Otherwise, fire
+        // the event and add to the queue.
 
-            // To make sure the queue doesn't grow too large, we keep a `chat_min_index`
-            // in Swarm that's set to the smallest index of all the bots, and we remove all
-            // messages from the queue that are before that index.
+        let actual_vec_index = client_chat_index - global_chat_state.chat_min_index;
 
-            let chat_min_index = *self.chat_min_index.lock();
-            let mut new_chat_min_index = usize::MAX;
-            for (bot, _) in swarm.bot_datas.lock().iter() {
-                let this_farthest_chat_index = *bot
-                    .plugins
-                    .get::<State>()
-                    .expect("Chat plugin not installed")
-                    .farthest_chat_index
-                    .lock();
-                if this_farthest_chat_index < new_chat_min_index {
-                    new_chat_min_index = this_farthest_chat_index;
-                }
+        // go through the queue and find the first message that's after the bot's index
+        let mut found = false;
+        for (i, past_message) in global_chat_state
+            .chat_queue
+            .iter()
+            .enumerate()
+            .skip(actual_vec_index)
+        {
+            if past_message == &event.packet {
+                // found the message, update the index
+                client_chat_index = i + global_chat_state.chat_min_index + 1;
+                found = true;
+                break;
             }
-
-            let mut chat_queue = self.chat_queue.lock();
-            // remove all messages from the queue that are before the min index
-            for _ in 0..(new_chat_min_index - chat_min_index) {
-                chat_queue.pop_front();
-            }
-
-            // update the min index
-            *self.chat_min_index.lock() = new_chat_min_index;
         }
+
+        if !found {
+            // didn't find the message, so fire the swarm event and add to the queue
+            new_chat_messages_events.send(NewChatMessageEvent(event.packet.clone()));
+            global_chat_state.chat_queue.push_back(event.packet.clone());
+            client_chat_index =
+                global_chat_state.chat_queue.len() + global_chat_state.chat_min_index;
+        }
+        if let Ok(ref mut client_chat_state) = client_chat_state {
+            client_chat_state.chat_index = client_chat_index;
+        } else {
+            commands.entity(event.entity).insert(ClientChatState {
+                chat_index: client_chat_index,
+            });
+        }
+    }
+}
+
+fn update_min_index_and_shrink_queue(
+    query: Query<&ClientChatState>,
+    mut global_chat_state: ResMut<GlobalChatState>,
+    mut events: EventReader<NewChatMessageEvent>,
+    swarm: Option<Res<Swarm>>,
+) {
+    for event in events.iter() {
+        if let Some(swarm) = &swarm {
+            // it should also work if Swarm isn't present (so the tests don't need it)
+            swarm
+                .swarm_tx
+                .send(SwarmEvent::Chat(event.0.clone()))
+                .unwrap();
+        }
+        // To make sure the queue doesn't grow too large, we keep a `chat_min_index`
+        // in Swarm that's set to the smallest index of all the bots, and we remove all
+        // messages from the queue that are before that index.
+
+        let mut new_chat_min_index = global_chat_state.chat_min_index;
+        for client_chat_state in query.iter() {
+            let this_chat_index = client_chat_state.chat_index;
+            if this_chat_index < new_chat_min_index {
+                new_chat_min_index = this_chat_index;
+            }
+        }
+
+        if global_chat_state.chat_min_index > new_chat_min_index {
+            return;
+        }
+        // remove all messages from the queue that are before the min index
+        for _ in 0..(new_chat_min_index - global_chat_state.chat_min_index) {
+            global_chat_state.chat_queue.pop_front();
+        }
+
+        // update the min index
+        global_chat_state.chat_min_index = new_chat_min_index;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use azalea_ecs::{ecs::Ecs, event::Events, system::SystemState};
+
+    use super::*;
+
+    fn make_test_app() -> App {
+        let mut app = App::new();
+        // we add the events like this instead of with .add_event so we can have our own
+        // event mangement in drain_events
+        app.init_resource::<Events<ChatReceivedEvent>>()
+            .init_resource::<Events<NewChatMessageEvent>>()
+            .add_system(chat_listener.label("chat_listener"))
+            .add_system(update_min_index_and_shrink_queue.after("chat_listener"))
+            .insert_resource(GlobalChatState {
+                chat_queue: VecDeque::new(),
+                chat_min_index: 0,
+            });
+        app
+    }
+
+    fn drain_events(ecs: &mut Ecs) -> Vec<ChatPacket> {
+        let mut system_state: SystemState<ResMut<Events<NewChatMessageEvent>>> =
+            SystemState::new(ecs);
+        let mut events = system_state.get_mut(ecs);
+
+        events.drain().map(|e| e.0.clone()).collect::<Vec<_>>()
+    }
+
+    #[tokio::test]
+    async fn test_swarm_chat() {
+        let mut app = make_test_app();
+
+        let bot0 = app.world.spawn_empty().id();
+        let bot1 = app.world.spawn_empty().id();
+
+        app.world.send_event(ChatReceivedEvent {
+            entity: bot0,
+            packet: ChatPacket::new("a"),
+        });
+        app.update();
+
+        // the swarm should get the event immediately after the bot gets it
+        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("a")]);
+        assert_eq!(
+            app.world.get::<ClientChatState>(bot0).unwrap().chat_index,
+            1
+        );
+        // and a second bot sending the event shouldn't do anything
+        app.world.send_event(ChatReceivedEvent {
+            entity: bot1,
+            packet: ChatPacket::new("a"),
+        });
+        app.update();
+        assert_eq!(drain_events(&mut app.world), vec![]);
+        assert_eq!(
+            app.world.get::<ClientChatState>(bot1).unwrap().chat_index,
+            1
+        );
+
+        // but if the first one gets it again, it should sent it again
+        app.world.send_event(ChatReceivedEvent {
+            entity: bot0,
+            packet: ChatPacket::new("a"),
+        });
+        app.update();
+        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("a")]);
+
+        // alright and now the second bot got a different chat message and it should be
+        // sent
+        app.world.send_event(ChatReceivedEvent {
+            entity: bot1,
+            packet: ChatPacket::new("b"),
+        });
+        app.update();
+        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("b")]);
+    }
+
+    #[tokio::test]
+    async fn test_new_bot() {
+        let mut app = make_test_app();
+
+        let bot0 = app.world.spawn_empty().id();
+
+        // bot0 gets a chat message
+        app.world.send_event(ChatReceivedEvent {
+            entity: bot0,
+            packet: ChatPacket::new("a"),
+        });
+        app.update();
+        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("a")]);
+        let bot1 = app.world.spawn_empty().id();
+        app.world.send_event(ChatReceivedEvent {
+            entity: bot1,
+            packet: ChatPacket::new("b"),
+        });
+        app.update();
+        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("b")]);
     }
 }

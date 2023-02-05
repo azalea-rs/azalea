@@ -1,5 +1,5 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundStatusPacket;
 use serde::{Deserialize, Serialize};
 use serde_json::{value::Serializer, Value};
@@ -28,7 +28,7 @@ pub struct Players {
 // the entire packet is just json, which is why it has deserialize
 #[derive(Clone, Debug, Serialize, Deserialize, ClientboundStatusPacket)]
 pub struct ClientboundStatusResponsePacket {
-    pub description: Component,
+    pub description: FormattedText,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub favicon: Option<String>,

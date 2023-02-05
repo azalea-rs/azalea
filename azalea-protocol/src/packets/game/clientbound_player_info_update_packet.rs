@@ -2,8 +2,8 @@ use azalea_auth::game_profile::{GameProfile, ProfilePropertyValue};
 use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
-use azalea_chat::Component;
-use azalea_core::{BitSet, GameType};
+use azalea_chat::FormattedText;
+use azalea_core::{FixedBitSet, GameType};
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::{
     collections::HashMap,
@@ -25,7 +25,7 @@ pub struct PlayerInfoEntry {
     pub listed: bool,
     pub latency: i32,
     pub game_mode: GameType,
-    pub display_name: Option<Component>,
+    pub display_name: Option<FormattedText>,
     pub chat_session: Option<RemoteChatSessionData>,
 }
 
@@ -53,7 +53,7 @@ pub struct UpdateLatencyAction {
 }
 #[derive(Clone, Debug, McBuf)]
 pub struct UpdateDisplayNameAction {
-    pub display_name: Option<Component>,
+    pub display_name: Option<FormattedText>,
 }
 
 impl McBufReadable for ClientboundPlayerInfoUpdatePacket {
@@ -151,7 +151,7 @@ impl McBufWritable for ClientboundPlayerInfoUpdatePacket {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ActionEnumSet {
     pub add_player: bool,
     pub initialize_chat: bool,
@@ -163,7 +163,7 @@ pub struct ActionEnumSet {
 
 impl McBufReadable for ActionEnumSet {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = BitSet::read_fixed(buf, 6)?;
+        let set = FixedBitSet::<6>::read_from(buf)?;
         Ok(ActionEnumSet {
             add_player: set.index(0),
             initialize_chat: set.index(1),
@@ -177,7 +177,7 @@ impl McBufReadable for ActionEnumSet {
 
 impl McBufWritable for ActionEnumSet {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut set = BitSet::new(6);
+        let mut set = FixedBitSet::<6>::new();
         if self.add_player {
             set.set(0);
         }
@@ -196,6 +196,29 @@ impl McBufWritable for ActionEnumSet {
         if self.update_display_name {
             set.set(5);
         }
-        set.write_into(buf)
+        set.write_into(buf)?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_action_enum_set() {
+        let data = ActionEnumSet {
+            add_player: true,
+            initialize_chat: false,
+            update_game_mode: true,
+            update_listed: false,
+            update_latency: true,
+            update_display_name: false,
+        };
+        let mut buf = Vec::new();
+        data.write_into(&mut buf).unwrap();
+        let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
+        let read_data = ActionEnumSet::read_from(&mut data_cursor).unwrap();
+        assert_eq!(read_data, data);
     }
 }

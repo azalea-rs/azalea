@@ -1,34 +1,17 @@
+use super::Shapes;
 use crate::collision::{BlockWithShape, VoxelShape, AABB};
 use azalea_block::BlockState;
 use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType, EPSILON};
-use azalea_world::entity::EntityData;
 use azalea_world::{Chunk, World};
-use parking_lot::Mutex;
+use parking_lot::RwLock;
 use std::sync::Arc;
 
-use super::Shapes;
-
-pub trait CollisionGetter {
-    fn get_block_collisions<'a>(
-        &'a self,
-        entity: Option<&EntityData>,
-        aabb: AABB,
-    ) -> BlockCollisions<'a>;
-}
-
-impl CollisionGetter for World {
-    fn get_block_collisions<'a>(
-        &'a self,
-        entity: Option<&EntityData>,
-        aabb: AABB,
-    ) -> BlockCollisions<'a> {
-        BlockCollisions::new(self, entity, aabb)
-    }
+pub fn get_block_collisions(world: &World, aabb: AABB) -> BlockCollisions<'_> {
+    BlockCollisions::new(world, aabb)
 }
 
 pub struct BlockCollisions<'a> {
     pub world: &'a World,
-    // context: CollisionContext,
     pub aabb: AABB,
     pub entity_shape: VoxelShape,
     pub cursor: Cursor3d,
@@ -36,8 +19,7 @@ pub struct BlockCollisions<'a> {
 }
 
 impl<'a> BlockCollisions<'a> {
-    // TODO: the entity is stored in the context
-    pub fn new(world: &'a World, _entity: Option<&EntityData>, aabb: AABB) -> Self {
+    pub fn new(world: &'a World, aabb: AABB) -> Self {
         let origin_x = (aabb.min_x - EPSILON) as i32 - 1;
         let origin_y = (aabb.min_y - EPSILON) as i32 - 1;
         let origin_z = (aabb.min_z - EPSILON) as i32 - 1;
@@ -57,7 +39,7 @@ impl<'a> BlockCollisions<'a> {
         }
     }
 
-    fn get_chunk(&self, block_x: i32, block_z: i32) -> Option<Arc<Mutex<Chunk>>> {
+    fn get_chunk(&self, block_x: i32, block_z: i32) -> Option<Arc<RwLock<Chunk>>> {
         let chunk_x = ChunkSectionPos::block_to_section_coord(block_x);
         let chunk_z = ChunkSectionPos::block_to_section_coord(block_z);
         let chunk_pos = ChunkPos::new(chunk_x, chunk_z);
@@ -75,7 +57,7 @@ impl<'a> BlockCollisions<'a> {
         //    return var7;
         // }
 
-        self.world.get_chunk(&chunk_pos)
+        self.world.chunks.get(&chunk_pos)
     }
 }
 
@@ -89,15 +71,14 @@ impl<'a> Iterator for BlockCollisions<'a> {
             }
 
             let chunk = self.get_chunk(item.pos.x, item.pos.z);
-            let chunk = match chunk {
-                Some(chunk) => chunk,
-                None => continue,
+            let Some(chunk) = chunk else {
+                continue
             };
 
             let pos = item.pos;
             let block_state: BlockState = chunk
-                .lock()
-                .get(&(&pos).into(), self.world.min_y())
+                .read()
+                .get(&(&pos).into(), self.world.chunks.min_y)
                 .unwrap_or(BlockState::Air);
 
             // TODO: continue if self.only_suffocating_blocks and the block is not

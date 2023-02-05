@@ -1,9 +1,9 @@
 use azalea_buf::McBuf;
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket, PartialEq)]
 pub struct ClientboundSystemChatPacket {
-    pub content: Component,
+    pub content: FormattedText,
     pub overlay: bool,
 }
