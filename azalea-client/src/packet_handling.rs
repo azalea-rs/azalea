@@ -461,9 +461,6 @@ fn handle_packets(ecs: &mut Ecs) {
                     let mut query = system_state.get_mut(ecs);
                     let local_player = query.get_mut(player_entity).unwrap();
 
-                    let mut world = local_player.world.write();
-                    let mut partial_world = local_player.partial_world.write();
-
                     // OPTIMIZATION: if we already know about the chunk from the
                     // shared world (and not ourselves), then we don't need to
                     // parse it again. This is only used when we have a shared
@@ -476,6 +473,10 @@ fn handle_packets(ecs: &mut Ecs) {
                         .chunks
                         .limited_get(&pos)
                         .is_some();
+
+                    let mut world = local_player.world.write();
+                    let mut partial_world = local_player.partial_world.write();
+
                     if !this_client_has_chunk {
                         if let Some(shared_chunk) = shared_chunk {
                             trace!(
