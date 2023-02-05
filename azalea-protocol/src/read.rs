@@ -9,6 +9,7 @@ use bytes::BytesMut;
 use flate2::read::ZlibDecoder;
 use futures::StreamExt;
 use log::{log_enabled, trace};
+use std::backtrace::Backtrace;
 use std::{
     fmt::Debug,
     io::{Cursor, Read},
@@ -19,10 +20,11 @@ use tokio_util::codec::{BytesCodec, FramedRead};
 
 #[derive(Error, Debug)]
 pub enum ReadPacketError {
-    #[error("Error reading packet {packet_name} ({packet_id}): {source}")]
+    #[error("Error reading packet {packet_name} (id {packet_id}): {source}")]
     Parse {
         packet_id: u32,
         packet_name: String,
+        backtrace: Box<Backtrace>,
         source: BufReadError,
     },
     #[error("Unknown packet id {id} in state {state_name}")]
@@ -74,8 +76,8 @@ pub enum FrameSplitterError {
     ConnectionClosed,
 }
 
-/// Read a length, then read that amount of bytes from BytesMut. If there's not
-/// enough data, return None
+/// Read a length, then read that amount of bytes from `BytesMut`. If there's
+/// not enough data, return None
 fn parse_frame(buffer: &mut BytesMut) -> Result<BytesMut, FrameSplitterError> {
     // copy the buffer first and read from the copy, then once we make sure
     // the packet is all good we read it fully
@@ -84,7 +86,7 @@ fn parse_frame(buffer: &mut BytesMut) -> Result<BytesMut, FrameSplitterError> {
     let length = match u32::var_read_from(&mut buffer_copy) {
         Ok(length) => length as usize,
         Err(err) => match err {
-            BufReadError::Io(io_err) => return Err(FrameSplitterError::Io { source: io_err }),
+            BufReadError::Io { source } => return Err(FrameSplitterError::Io { source }),
             _ => return Err(err.into()),
         },
     };
@@ -126,7 +128,7 @@ fn frame_splitter(buffer: &mut BytesMut) -> Result<Option<Vec<u8>>, FrameSplitte
 
 fn packet_decoder<P: ProtocolPacket + Debug>(
     stream: &mut Cursor<&[u8]>,
-) -> Result<P, ReadPacketError> {
+) -> Result<P, Box<ReadPacketError>> {
     // Packet ID
     let packet_id =
         u32::var_read_from(stream).map_err(|e| ReadPacketError::ReadPacketId { source: e })?;
@@ -207,13 +209,13 @@ pub async fn read_packet<'a, P: ProtocolPacket + Debug, R>(
     buffer: &mut BytesMut,
     compression_threshold: Option<u32>,
     cipher: &mut Option<Aes128CfbDec>,
-) -> Result<P, ReadPacketError>
+) -> Result<P, Box<ReadPacketError>>
 where
     R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
 {
     let mut framed = FramedRead::new(stream, BytesCodec::new());
     let mut buf = loop {
-        if let Some(buf) = frame_splitter(buffer)? {
+        if let Some(buf) = frame_splitter(buffer).map_err(ReadPacketError::from)? {
             // we got a full packet!!
             break buf;
         } else {
@@ -222,7 +224,7 @@ where
 
         // if we were given a cipher, decrypt the packet
         if let Some(message) = framed.next().await {
-            let mut bytes = message?;
+            let mut bytes = message.map_err(ReadPacketError::from)?;
 
             if let Some(cipher) = cipher {
                 azalea_crypto::decrypt_packet(cipher, &mut bytes);
@@ -230,12 +232,13 @@ where
 
             buffer.extend_from_slice(&bytes);
         } else {
-            return Err(ReadPacketError::ConnectionClosed);
+            return Err(Box::new(ReadPacketError::ConnectionClosed));
         };
     };
 
     if let Some(compression_threshold) = compression_threshold {
-        buf = compression_decoder(&mut Cursor::new(&buf[..]), compression_threshold)?;
+        buf = compression_decoder(&mut Cursor::new(&buf[..]), compression_threshold)
+            .map_err(ReadPacketError::from)?;
     }
 
     if log_enabled!(log::Level::Trace) {
@@ -255,41 +258,28 @@ where
     Ok(packet)
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use crate::packets::game::{clientbound_player_chat_packet::ChatType,
-// ClientboundGamePacket};     use std::io::Cursor;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::packets::game::ClientboundGamePacket;
+    use std::io::Cursor;
 
-//     #[tokio::test]
-//     async fn test_read_packet() {
-//         let mut buf: Cursor<&[u8]> = Cursor::new(&[
-//             51, 0, 12, 177, 250, 155, 132, 106, 60, 218, 161, 217, 90, 157,
-// 105, 57, 206, 20, 0, 5,             104, 101, 108, 108, 111, 0, 0, 0, 0, 0,
-// 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 116,             123, 34, 101, 120,
-// 116, 114, 97, 34, 58, 91, 123, 34, 99, 111, 108, 111, 114, 34, 58,
-//             34, 103, 114, 97, 121, 34, 44, 34, 116, 101, 120, 116, 34, 58,
-// 34, 91, 77, 69, 77, 66,             69, 82, 93, 32, 112, 108, 97, 121, 101,
-// 114, 49, 34, 125, 44, 123, 34, 116, 101, 120,             116, 34, 58, 34,
-// 32, 34, 125, 44, 123, 34, 99, 111, 108, 111, 114, 34, 58, 34, 103,
-//             114, 97, 121, 34, 44, 34, 116, 101, 120, 116, 34, 58, 34, 92,
-// 117, 48, 48, 51, 101, 32,             104, 101, 108, 108, 111, 34, 125, 93,
-// 44, 34, 116, 101, 120, 116, 34, 58, 34, 34, 125,             0, 7, 64, 123,
-// 34, 101, 120, 116, 114, 97, 34, 58, 91, 123, 34, 99, 111, 108, 111, 114,
-//             34, 58, 34, 103, 114, 97, 121, 34, 44, 34, 116, 101, 120, 116,
-// 34, 58, 34, 91, 77, 69,             77, 66, 69, 82, 93, 32, 112, 108, 97,
-// 121, 101, 114, 49, 34, 125, 93, 44, 34, 116, 101,             120, 116, 34,
-// 58, 34, 34, 125, 0,         ]);
-//         let packet = packet_decoder::<ClientboundGamePacket>(&mut
-// buf).unwrap();         match &packet {
-//             ClientboundGamePacket::PlayerChat(m) => {
-//                 assert_eq!(
-//                     m.chat_type.chat_type,
-//                     ChatType::Chat,
-//                     "Enums should default if they're invalid"
-//                 );
-//             }
-//             _ => panic!("Wrong packet type"),
-//         }
-//     }
-// }
+    #[tokio::test]
+    async fn test_read_packet() {
+        let mut buf: Cursor<&[u8]> = Cursor::new(&[
+            56, 64, 85, 58, 141, 138, 71, 146, 193, 64, 88, 0, 0, 0, 0, 0, 0, 64, 60, 224, 105, 34,
+            119, 8, 228, 67, 50, 51, 68, 194, 177, 230, 101, 0, 17, 0,
+        ]);
+        let packet = packet_decoder::<ClientboundGamePacket>(&mut buf).unwrap();
+        match &packet {
+            ClientboundGamePacket::PlayerPosition(p) => {
+                assert_eq!(p.id, 17);
+                assert_eq!(p.x, 84.91488892545296);
+                assert_eq!(p.y, 96.0);
+                assert_eq!(p.z, 28.876604227124417);
+                assert_eq!(p.dismount_vehicle, false);
+            }
+            _ => panic!("Wrong packet type"),
+        }
+    }
+}

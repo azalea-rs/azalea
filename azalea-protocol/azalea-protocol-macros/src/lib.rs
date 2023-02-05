@@ -3,19 +3,17 @@ use quote::quote;
 use syn::{
     self, braced,
     parse::{Parse, ParseStream, Result},
-    parse_macro_input, DeriveInput, FieldsNamed, Ident, LitInt, Token,
+    parse_macro_input, DeriveInput, Ident, LitInt, Token,
 };
 
 fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> TokenStream {
     let DeriveInput { ident, data, .. } = parse_macro_input!(input);
 
-    let fields = match &data {
-        syn::Data::Struct(syn::DataStruct { fields, .. }) => fields,
-        _ => panic!("#[derive(*Packet)] can only be used on structs"),
+    let syn::Data::Struct(syn::DataStruct { fields, .. }) = &data else {
+        panic!("#[derive(*Packet)] can only be used on structs")
     };
-    let FieldsNamed { named: _, .. } = match fields {
-        syn::Fields::Named(f) => f,
-        _ => panic!("#[derive(*Packet)] can only be used on structs with named fields"),
+    let syn::Fields::Named(_) = fields else {
+        panic!("#[derive(*Packet)] can only be used on structs with named fields")
     };
     let variant_name = variant_name_from(&ident);
 
@@ -221,11 +219,19 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
         });
         serverbound_read_match_contents.extend(quote! {
             #id => {
-                let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse { source: e, packet_id: #id, packet_name: #name_litstr.to_string() })?;
-                let mut leftover = Vec::new();
-                let _ = std::io::Read::read_to_end(buf, &mut leftover);
-                if !leftover.is_empty() {
-                    return Err(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover });
+                let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
+                    source: e,
+                    packet_id: #id,
+                    backtrace: Box::new(std::backtrace::Backtrace::capture()),
+                    packet_name: #name_litstr.to_string(),
+                })?;
+                #[cfg(debug_assertions)]
+                {
+                    let mut leftover = Vec::new();
+                    let _ = std::io::Read::read_to_end(buf, &mut leftover);
+                    if !leftover.is_empty() {
+                        return Err(Box::new(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover }));
+                    }
                 }
                 data
             },
@@ -246,14 +252,25 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
         });
         clientbound_read_match_contents.extend(quote! {
             #id => {
-                let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse { source: e, packet_id: #id, packet_name: #name_litstr.to_string() })?;
+                let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
+                    source: e,
+                    packet_id: #id,
+                    backtrace: Box::new(std::backtrace::Backtrace::capture()),
+                    packet_name: #name_litstr.to_string(),
+                })?;
                 #[cfg(debug_assertions)]
                 {
                     let mut leftover = Vec::new();
                     let _ = std::io::Read::read_to_end(buf, &mut leftover);
                     if !leftover.is_empty() {
-                        return Err(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover });
-
+                        return Err(
+                            Box::new(
+                                crate::read::ReadPacketError::LeftoverData {
+                                    packet_name: #name_litstr.to_string(),
+                                    data: leftover
+                                }
+                            )
+                        );
                     }
                 }
                 data
@@ -314,13 +331,13 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             fn read(
                 id: u32,
                 buf: &mut std::io::Cursor<&[u8]>,
-            ) -> Result<#serverbound_state_name, crate::read::ReadPacketError>
+            ) -> Result<#serverbound_state_name, Box<crate::read::ReadPacketError>>
             where
                 Self: Sized,
             {
                 Ok(match id {
                     #serverbound_read_match_contents
-                    _ => return Err(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id }),
+                    _ => return Err(Box::new(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id })),
                 })
             }
         }
@@ -345,13 +362,13 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             fn read(
                 id: u32,
                 buf: &mut std::io::Cursor<&[u8]>,
-            ) -> Result<#clientbound_state_name, crate::read::ReadPacketError>
+            ) -> Result<#clientbound_state_name, Box<crate::read::ReadPacketError>>
             where
                 Self: Sized,
             {
                 Ok(match id {
                     #clientbound_read_match_contents
-                    _ => return Err(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id }),
+                    _ => return Err(Box::new(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id })),
                 })
             }
         }

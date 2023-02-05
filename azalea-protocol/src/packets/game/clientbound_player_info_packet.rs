@@ -2,7 +2,7 @@ use crate::packets::login::serverbound_hello_packet::ProfilePublicKeyData;
 use azalea_auth::game_profile::ProfilePropertyValue;
 use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable};
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_core::GameType;
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::collections::HashMap;
@@ -31,7 +31,7 @@ pub struct AddPlayer {
     pub gamemode: GameType,
     #[var]
     pub latency: i32,
-    pub display_name: Option<Component>,
+    pub display_name: Option<FormattedText>,
     pub profile_public_key: Option<ProfilePublicKeyData>,
 }
 
@@ -51,7 +51,7 @@ pub struct UpdateLatency {
 #[derive(Clone, Debug, McBuf)]
 pub struct UpdateDisplayName {
     pub uuid: Uuid,
-    pub display_name: Option<Component>,
+    pub display_name: Option<FormattedText>,
 }
 #[derive(Clone, Debug, McBuf)]
 pub struct RemovePlayer {

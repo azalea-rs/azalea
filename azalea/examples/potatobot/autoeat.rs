@@ -1,6 +1,7 @@
 //! Automatically eat when we get hungry.
 
 use async_trait::async_trait;
+use azalea::prelude::*;
 use azalea::{Client, Event};
 use parking_lot::Mutex;
 use std::sync::Arc;
@@ -10,7 +11,7 @@ pub struct Plugin {
     pub state: State,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Component)]
 pub struct State {}
 
 #[async_trait]

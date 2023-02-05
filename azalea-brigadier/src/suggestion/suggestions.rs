@@ -5,7 +5,7 @@ use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
 #[cfg(feature = "azalea-buf")]
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 #[cfg(feature = "azalea-buf")]
 use std::io::{Cursor, Write};
 use std::{collections::HashSet, hash::Hash};
@@ -68,12 +68,12 @@ impl<M> Default for Suggestions<M> {
 }
 
 #[cfg(feature = "azalea-buf")]
-impl McBufReadable for Suggestions<Component> {
+impl McBufReadable for Suggestions<FormattedText> {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         #[derive(McBuf)]
         struct StandaloneSuggestion {
             pub text: String,
-            pub tooltip: Option<Component>,
+            pub tooltip: Option<FormattedText>,
         }
 
         let start = u32::var_read_from(buf)? as usize;
@@ -97,7 +97,7 @@ impl McBufReadable for Suggestions<Component> {
 }
 
 #[cfg(feature = "azalea-buf")]
-impl McBufWritable for Suggestions<Component> {
+impl McBufWritable for Suggestions<FormattedText> {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         (self.range.start() as u32).var_write_into(buf)?;
         (self.range.length() as u32).var_write_into(buf)?;

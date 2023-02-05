@@ -1,6 +1,7 @@
 use crate::{BlockPos, Slot};
 use azalea_buf::McBuf;
 
+#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
 #[derive(Debug, Clone, McBuf, Default)]
 pub struct Particle {
     #[var]

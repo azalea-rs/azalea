@@ -1,6 +1,6 @@
 use azalea_chat::{
     style::{Ansi, ChatFormatting, TextColor},
-    Component,
+    FormattedText,
 };
 use serde::Deserialize;
 use serde_json::Value;
@@ -15,7 +15,7 @@ fn basic_ansi_test() {
 }"#,
     )
     .unwrap();
-    let component = Component::deserialize(&j).unwrap();
+    let component = FormattedText::deserialize(&j).unwrap();
     assert_eq!(
         component.to_ansi(),
         "\u{1b}[1m\u{1b}[38;2;255;85;85mhello\u{1b}[m"
@@ -51,7 +51,7 @@ fn complex_ansi_test() {
 ]"##,
     )
     .unwrap();
-    let component = Component::deserialize(&j).unwrap();
+    let component = FormattedText::deserialize(&j).unwrap();
     assert_eq!(
         component.to_ansi(),
         format!(
@@ -70,6 +70,6 @@ fn complex_ansi_test() {
 #[test]
 fn component_from_string() {
     let j: Value = serde_json::from_str("\"foo\"").unwrap();
-    let component = Component::deserialize(&j).unwrap();
+    let component = FormattedText::deserialize(&j).unwrap();
     assert_eq!(component.to_ansi(), "foo");
 }

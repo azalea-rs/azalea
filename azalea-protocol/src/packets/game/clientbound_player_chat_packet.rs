@@ -1,7 +1,7 @@
 use azalea_buf::McBuf;
 use azalea_chat::{
     translatable_component::{StringOrComponent, TranslatableComponent},
-    Component,
+    FormattedText,
 };
 use azalea_core::BitSet;
 use azalea_crypto::{MessageSignature, SignedMessageHeader};
@@ -28,8 +28,8 @@ pub enum ChatType {
 #[derive(Clone, Debug, McBuf, PartialEq)]
 pub struct ChatTypeBound {
     pub chat_type: ChatType,
-    pub name: Component,
-    pub target_name: Option<Component>,
+    pub name: FormattedText,
+    pub target_name: Option<FormattedText>,
 }
 
 #[derive(Clone, Debug, McBuf, PartialEq)]
@@ -37,7 +37,7 @@ pub struct PlayerChatMessage {
     pub signed_header: SignedMessageHeader,
     pub header_signature: MessageSignature,
     pub signed_body: SignedMessageBody,
-    pub unsigned_content: Option<Component>,
+    pub unsigned_content: Option<FormattedText>,
     pub filter_mask: FilterMask,
 }
 
@@ -50,17 +50,17 @@ pub struct SignedMessageBody {
 }
 
 impl PlayerChatMessage {
-    /// Returns the content of the message. If you want to get the Component
-    /// for the whole message including the sender part, use
+    /// Returns the content of the message. If you want to get the
+    /// 'FormattedText' for the whole message including the sender part, use
     /// [`ClientboundPlayerChatPacket::message`].
-    pub fn content(&self, only_secure_chat: bool) -> Component {
+    pub fn content(&self, only_secure_chat: bool) -> FormattedText {
         if only_secure_chat {
             return self
                 .signed_body
                 .content
                 .decorated
                 .clone()
-                .unwrap_or_else(|| Component::from(self.signed_body.content.plain.clone()));
+                .unwrap_or_else(|| FormattedText::from(self.signed_body.content.plain.clone()));
         }
         self.unsigned_content
             .clone()
@@ -70,7 +70,7 @@ impl PlayerChatMessage {
 
 impl ClientboundPlayerChatPacket {
     /// Get the full message, including the sender part.
-    pub fn message(&self, only_secure_chat: bool) -> Component {
+    pub fn message(&self, only_secure_chat: bool) -> FormattedText {
         let sender = self.chat_type.name.clone();
         let content = self.message.content(only_secure_chat);
         let target = self.chat_type.target_name.clone();
@@ -78,20 +78,21 @@ impl ClientboundPlayerChatPacket {
         let translation_key = self.chat_type.chat_type.chat_translation_key();
 
         let mut args = vec![
-            StringOrComponent::Component(sender),
-            StringOrComponent::Component(content),
+            StringOrComponent::FormattedText(sender),
+            StringOrComponent::FormattedText(content),
         ];
         if let Some(target) = target {
-            args.push(StringOrComponent::Component(target));
+            args.push(StringOrComponent::FormattedText(target));
         }
 
         let component = TranslatableComponent::new(translation_key.to_string(), args);
 
-        Component::Translatable(component)
+        FormattedText::Translatable(component)
     }
 }
 
 impl ChatType {
+    #[must_use]
     pub fn chat_translation_key(&self) -> &'static str {
         match self {
             ChatType::Chat => "chat.type.text",
@@ -104,15 +105,11 @@ impl ChatType {
         }
     }
 
+    #[must_use]
     pub fn narrator_translation_key(&self) -> &'static str {
         match self {
-            ChatType::Chat => "chat.type.text.narrate",
-            ChatType::SayCommand => "chat.type.text.narrate",
-            ChatType::MsgCommandIncoming => "chat.type.text.narrate",
-            ChatType::MsgCommandOutgoing => "chat.type.text.narrate",
-            ChatType::TeamMsgCommandIncoming => "chat.type.text.narrate",
-            ChatType::TeamMsgCommandOutgoing => "chat.type.text.narrate",
             ChatType::EmoteCommand => "chat.type.emote",
+            _ => "chat.type.text.narrate",
         }
     }
 }
@@ -133,7 +130,7 @@ pub struct LastSeenMessagesUpdate {
 pub struct ChatMessageContent {
     pub plain: String,
     /// Only sent if the decorated message is different than the plain.
-    pub decorated: Option<Component>,
+    pub decorated: Option<FormattedText>,
 }
 
 #[derive(Clone, Debug, McBuf, PartialEq)]

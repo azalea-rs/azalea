@@ -1,5 +1,5 @@
 use azalea_buf::McBuf;
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_core::{ResourceLocation, Slot};
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::collections::HashMap;
@@ -17,16 +17,14 @@ pub struct ClientboundUpdateAdvancementsPacket {
 pub struct Advancement {
     parent_id: Option<ResourceLocation>,
     display: Option<DisplayInfo>,
-    // rewards: AdvancementRewards.EMPTY,
     criteria: HashMap<ResourceLocation, Criterion>,
     requirements: Vec<Vec<String>>,
-    // requirements_strategy: RequirementsStrategy.AND
 }
 
 #[derive(Clone, Debug)]
 pub struct DisplayInfo {
-    pub title: Component,
-    pub description: Component,
+    pub title: FormattedText,
+    pub description: FormattedText,
     pub icon: Slot,
     pub frame: FrameType,
     pub show_toast: bool,
@@ -87,11 +85,11 @@ impl azalea_buf::McBufReadable for DisplayInfo {
             description,
             icon,
             frame,
+            show_toast,
+            hidden,
             background,
             x,
             y,
-            hidden,
-            show_toast,
         })
     }
 }
@@ -114,57 +112,77 @@ pub struct CriterionProgress {
     date: Option<u64>,
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use azalea_buf::{McBufReadable, McBufWritable};
-//     use azalea_core::ResourceLocation;
-//     use azalea_protocol_macros::ClientboundGamePacket;
-//     use std::io::Cursor;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use azalea_buf::{McBufReadable, McBufWritable};
+    use azalea_core::ResourceLocation;
+    use std::io::Cursor;
 
-//     #[test]
-//     fn test() {
-//         let mut buf = Cursor::new(Vec::new());
-//         let packet = ClientboundUpdateAdvancementsPacket {
-//             reset: true,
-//             added: [(
-//                 ResourceLocation::new("minecraft:test").unwrap(),
-//                 Advancement {
-//                     parent_id: None,
-//                     display: Some(DisplayInfo {
-//                         title: Component::from("title".to_string()),
-//                         description:
-// Component::from("description".to_string()),                         icon:
-// Slot::Empty,                         frame: FrameType::Task,
-//                         show_toast: true,
-//                         hidden: false,
-//                         background: None,
-//                         x: 0.0,
-//                         y: 0.0,
-//                     }),
-//                     criteria: HashMap::new(),
-//                     requirements: Vec::new(),
-//                 },
-//             )]
-//             .into_iter()
-//             .collect(),
-//             removed: vec![ResourceLocation::new("minecraft:test2").unwrap()],
-//             progress: [(
-//                 ResourceLocation::new("minecraft:test3").unwrap(),
-//                 [(
-//                     ResourceLocation::new("minecraft:test4").unwrap(),
-//                     CriterionProgress {
-//                         date: Some(123456789),
-//                     },
-//                 )]
-//                 .into_iter()
-//                 .collect(),
-//             )]
-//             .into_iter()
-//             .collect(),
-//         };
-//         packet.write_into(&mut buf).unwrap();
-//         let packet = ClientboundUpdateAdvancementsPacket::read_from(&mut
-// buf).unwrap();         assert_eq!(packet.reset, true);
-//     }
-// }
+    #[test]
+    fn test() {
+        let packet = ClientboundUpdateAdvancementsPacket {
+            reset: true,
+            added: [(
+                ResourceLocation::new("minecraft:test").unwrap(),
+                Advancement {
+                    parent_id: None,
+                    display: Some(DisplayInfo {
+                        title: FormattedText::from("title".to_string()),
+                        description: FormattedText::from("description".to_string()),
+                        icon: Slot::Empty,
+                        frame: FrameType::Task,
+                        show_toast: true,
+                        hidden: false,
+                        background: None,
+                        x: 0.0,
+                        y: 0.0,
+                    }),
+                    criteria: HashMap::new(),
+                    requirements: Vec::new(),
+                },
+            )]
+            .into_iter()
+            .collect(),
+            removed: vec![ResourceLocation::new("minecraft:test2").unwrap()],
+            progress: [(
+                ResourceLocation::new("minecraft:test3").unwrap(),
+                [(
+                    ResourceLocation::new("minecraft:test4").unwrap(),
+                    CriterionProgress {
+                        date: Some(123456789),
+                    },
+                )]
+                .into_iter()
+                .collect(),
+            )]
+            .into_iter()
+            .collect(),
+        };
+
+        let mut data = Vec::new();
+        packet.write_into(&mut data).unwrap();
+        let mut buf: Cursor<&[u8]> = Cursor::new(&data);
+
+        let read_packet = ClientboundUpdateAdvancementsPacket::read_from(&mut buf).unwrap();
+        assert_eq!(packet.reset, read_packet.reset);
+        assert_eq!(packet.removed, read_packet.removed);
+
+        let advancement = packet
+            .added
+            .get(&ResourceLocation::new("minecraft:test").unwrap())
+            .unwrap()
+            .clone();
+        let read_advancement = read_packet
+            .added
+            .get(&ResourceLocation::new("minecraft:test").unwrap())
+            .unwrap()
+            .clone();
+        assert_eq!(advancement.parent_id, read_advancement.parent_id);
+
+        let display = advancement.display.unwrap();
+        let read_display = read_advancement.display.unwrap();
+        assert_eq!(display.title, read_display.title);
+        assert_eq!(display.description, read_display.description);
+    }
+}

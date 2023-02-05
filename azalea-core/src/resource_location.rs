@@ -3,6 +3,9 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use std::io::{Cursor, Write};
 
+// TODO: make a `resourcelocation!("minecraft:overwolrd")` macro that checks if
+// it's correct at compile-time.
+
 #[derive(Hash, Clone, PartialEq, Eq)]
 pub struct ResourceLocation {
     pub namespace: String,

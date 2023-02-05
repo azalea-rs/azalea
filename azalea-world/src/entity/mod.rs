@@ -1,192 +1,190 @@
+#![allow(clippy::derived_hash_with_manual_eq)]
+
 pub mod attributes;
 mod data;
 mod dimensions;
 pub mod metadata;
 
-use self::attributes::{AttributeInstance, AttributeModifiers};
-pub use self::metadata::EntityMetadata;
-use crate::WeakWorld;
+use crate::ChunkStorage;
+
+use self::{attributes::AttributeInstance, metadata::Health};
+pub use attributes::Attributes;
 use azalea_block::BlockState;
-use azalea_core::{BlockPos, Vec3, AABB};
+use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3, AABB};
+use azalea_ecs::{
+    bundle::Bundle,
+    component::Component,
+    entity::Entity,
+    query::Changed,
+    system::{Commands, Query},
+};
 pub use data::*;
-pub use dimensions::*;
-use std::marker::PhantomData;
-use std::ops::{Deref, DerefMut};
-use std::ptr::NonNull;
+use derive_more::{Deref, DerefMut};
+pub use dimensions::{update_bounding_box, EntityDimensions};
+use std::fmt::Debug;
 use uuid::Uuid;
 
-/// A reference to an entity in a world.
-#[derive(Debug)]
-pub struct Entity<'d, D = &'d WeakWorld> {
-    /// The world this entity is in.
-    pub world: D,
-    /// The incrementing numerical id of the entity.
-    pub id: u32,
-    pub data: NonNull<EntityData>,
-    _marker: PhantomData<&'d ()>,
-}
-
-impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
-    pub fn new(world: D, id: u32, data: NonNull<EntityData>) -> Self {
-        // TODO: have this be based on the entity type
-        Self {
-            world,
-            id,
-            data,
-            _marker: PhantomData,
-        }
+/// An entity ID used by Minecraft. These are not guaranteed to be unique in
+/// shared worlds, that's what [`Entity`] is for.
+#[derive(Component, Copy, Clone, Debug, PartialEq, Eq, Deref, DerefMut)]
+pub struct MinecraftEntityId(pub u32);
+impl std::hash::Hash for MinecraftEntityId {
+    fn hash<H: std::hash::Hasher>(&self, hasher: &mut H) {
+        hasher.write_u32(self.0);
     }
 }
+impl nohash_hasher::IsEnabled for MinecraftEntityId {}
+pub fn set_rotation(physics: &mut Physics, y_rot: f32, x_rot: f32) {
+    physics.y_rot = y_rot % 360.0;
+    physics.x_rot = x_rot.clamp(-90.0, 90.0) % 360.0;
+    // TODO: minecraft also sets yRotO and xRotO to xRot and yRot ... but
+    // idk what they're used for so
+}
 
-impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
-    /// Sets the position of the entity. This doesn't update the cache in
-    /// azalea-world, and should only be used within azalea-world!
-    ///
-    /// # Safety
-    /// Cached position in the world must be updated.
-    pub unsafe fn move_unchecked(&mut self, new_pos: Vec3) {
-        self.pos = new_pos;
-        let bounding_box = self.make_bounding_box();
-        self.bounding_box = bounding_box;
+pub fn move_relative(physics: &mut Physics, speed: f32, acceleration: &Vec3) {
+    let input_vector = input_vector(physics, speed, acceleration);
+    physics.delta += input_vector;
+}
+
+pub fn input_vector(physics: &mut Physics, speed: f32, acceleration: &Vec3) -> Vec3 {
+    let distance = acceleration.length_squared();
+    if distance < 1.0E-7 {
+        return Vec3::default();
     }
-
-    pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
-        self.y_rot = y_rot % 360.0;
-        self.x_rot = x_rot.clamp(-90.0, 90.0) % 360.0;
-        // TODO: minecraft also sets yRotO and xRotO to xRot and yRot ... but
-        // idk what they're used for so
+    let acceleration = if distance > 1.0 {
+        acceleration.normalize()
+    } else {
+        *acceleration
     }
-
-    pub fn move_relative(&mut self, speed: f32, acceleration: &Vec3) {
-        let input_vector = self.input_vector(speed, acceleration);
-        self.delta += input_vector;
-    }
-
-    pub fn input_vector(&self, speed: f32, acceleration: &Vec3) -> Vec3 {
-        let distance = acceleration.length_squared();
-        if distance < 1.0E-7 {
-            return Vec3::default();
-        }
-        let acceleration = if distance > 1.0 {
-            acceleration.normalize()
-        } else {
-            *acceleration
-        }
-        .scale(speed as f64);
-        let y_rot = f32::sin(self.y_rot * 0.017453292f32);
-        let x_rot = f32::cos(self.y_rot * 0.017453292f32);
-        Vec3 {
-            x: acceleration.x * (x_rot as f64) - acceleration.z * (y_rot as f64),
-            y: acceleration.y,
-            z: acceleration.z * (x_rot as f64) + acceleration.x * (y_rot as f64),
-        }
-    }
-
-    /// Apply the given metadata items to the entity. Everything that isn't
-    /// included in items will be left unchanged. If an error occured, None
-    /// will be returned.
-    ///
-    /// TODO: this should be changed to have a proper error.
-    pub fn apply_metadata(&mut self, items: &Vec<EntityDataItem>) -> Option<()> {
-        for item in items {
-            self.metadata.set_index(item.index, item.value.clone())?;
-        }
-        Some(())
+    .scale(speed as f64);
+    let y_rot = f32::sin(physics.y_rot * 0.017453292f32);
+    let x_rot = f32::cos(physics.y_rot * 0.017453292f32);
+    Vec3 {
+        x: acceleration.x * (x_rot as f64) - acceleration.z * (y_rot as f64),
+        y: acceleration.y,
+        z: acceleration.z * (x_rot as f64) + acceleration.x * (y_rot as f64),
     }
 }
 
-impl<'d, D: Deref<Target = WeakWorld>> Entity<'d, D> {
-    #[inline]
-    pub fn pos(&self) -> &Vec3 {
-        &self.pos
-    }
-
-    pub fn make_bounding_box(&self) -> AABB {
-        self.dimensions.make_bounding_box(self.pos())
-    }
-
-    /// Get the position of the block below the entity, but a little lower.
-    pub fn on_pos_legacy(&self) -> BlockPos {
-        self.on_pos(0.2)
-    }
-
-    // int x = Mth.floor(this.position.x);
-    // int y = Mth.floor(this.position.y - (double)var1);
-    // int z = Mth.floor(this.position.z);
-    // BlockPos var5 = new BlockPos(x, y, z);
-    // if (this.level.getBlockState(var5).isAir()) {
-    //    BlockPos var6 = var5.below();
-    //    BlockState var7 = this.level.getBlockState(var6);
-    //    if (var7.is(BlockTags.FENCES) || var7.is(BlockTags.WALLS) ||
-    // var7.getBlock() instanceof FenceGateBlock) {       return var6;
-    //    }
-    // }
-    // return var5;
-    pub fn on_pos(&self, offset: f32) -> BlockPos {
-        let x = self.pos().x.floor() as i32;
-        let y = (self.pos().y - offset as f64).floor() as i32;
-        let z = self.pos().z.floor() as i32;
-        let pos = BlockPos { x, y, z };
-
-        // TODO: check if block below is a fence, wall, or fence gate
-        let block_pos = pos.down(1);
-        let block_state = self.world.get_block_state(&block_pos);
-        if block_state == Some(BlockState::Air) {
-            let block_pos_below = block_pos.down(1);
-            let block_state_below = self.world.get_block_state(&block_pos_below);
-            if let Some(_block_state_below) = block_state_below {
-                // if block_state_below.is_fence()
-                //     || block_state_below.is_wall()
-                //     || block_state_below.is_fence_gate()
-                // {
-                //     return block_pos_below;
-                // }
-            }
-        }
-
-        pos
-    }
+/// Get the position of the block below the entity, but a little lower.
+pub fn on_pos_legacy(chunk_storage: &ChunkStorage, position: &Position) -> BlockPos {
+    on_pos(0.2, chunk_storage, position)
 }
 
-// impl<
-//         'd,
-//         D: Deref<Target = WeakWorld> + Deref<Target = WeakWorld>,
-//         D2: Deref<Target = WeakWorld>,
-//     > From<Entity<'d, D>> for Entity<'d, D2>
-// {
-//     fn from(entity: Entity<'d, D>) -> Entity<'d, D> {
-//         Entity {
-//             world: entity.world,
-//             id: entity.id,
-//             data: entity.data,
-//             _marker: PhantomData,
-//         }
-//     }
+// int x = Mth.floor(this.position.x);
+// int y = Mth.floor(this.position.y - (double)var1);
+// int z = Mth.floor(this.position.z);
+// BlockPos var5 = new BlockPos(x, y, z);
+// if (this.level.getBlockState(var5).isAir()) {
+//    BlockPos var6 = var5.below();
+//    BlockState var7 = this.level.getBlockState(var6);
+//    if (var7.is(BlockTags.FENCES) || var7.is(BlockTags.WALLS) ||
+// var7.getBlock() instanceof FenceGateBlock) {       return var6;
+//    }
 // }
+// return var5;
+pub fn on_pos(offset: f32, chunk_storage: &ChunkStorage, pos: &Position) -> BlockPos {
+    let x = pos.x.floor() as i32;
+    let y = (pos.y - offset as f64).floor() as i32;
+    let z = pos.z.floor() as i32;
+    let pos = BlockPos { x, y, z };
 
-impl<D: Deref<Target = WeakWorld>> DerefMut for Entity<'_, D> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { self.data.as_mut() }
+    // TODO: check if block below is a fence, wall, or fence gate
+    let block_pos = pos.down(1);
+    let block_state = chunk_storage.get_block_state(&block_pos);
+    if block_state == Some(BlockState::Air) {
+        let block_pos_below = block_pos.down(1);
+        let block_state_below = chunk_storage.get_block_state(&block_pos_below);
+        if let Some(_block_state_below) = block_state_below {
+            // if block_state_below.is_fence()
+            //     || block_state_below.is_wall()
+            //     || block_state_below.is_fence_gate()
+            // {
+            //     return block_pos_below;
+            // }
+        }
+    }
+
+    pos
+}
+
+/// The Minecraft UUID of the entity. For players, this is their actual player
+/// UUID, and for other entities it's just random.
+#[derive(Component, Deref, DerefMut, Clone, Copy)]
+pub struct EntityUuid(Uuid);
+impl Debug for EntityUuid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        (self.0).fmt(f)
     }
 }
 
-impl<D: Deref<Target = WeakWorld>> Deref for Entity<'_, D> {
-    type Target = EntityData;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { self.data.as_ref() }
+/// The position of the entity right now.
+///
+/// You are free to change this; there's systems that update the indexes
+/// automatically.
+#[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
+pub struct Position(Vec3);
+impl From<Position> for ChunkPos {
+    fn from(value: Position) -> Self {
+        ChunkPos::from(&value.0)
+    }
+}
+impl From<Position> for BlockPos {
+    fn from(value: Position) -> Self {
+        BlockPos::from(&value.0)
+    }
+}
+impl From<&Position> for ChunkPos {
+    fn from(value: &Position) -> Self {
+        ChunkPos::from(value.0)
+    }
+}
+impl From<&Position> for BlockPos {
+    fn from(value: &Position) -> Self {
+        BlockPos::from(value.0)
     }
 }
 
-#[derive(Debug)]
-pub struct EntityData {
-    pub uuid: Uuid,
-    /// The position of the entity right now.
-    /// This can be changde with unsafe_move, but the correct way is with
-    /// world.move_entity
-    pos: Vec3,
-    /// The position of the entity last tick.
-    pub last_pos: Vec3,
+/// The last position of the entity that was sent to the network.
+#[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
+pub struct LastSentPosition(Vec3);
+impl From<LastSentPosition> for ChunkPos {
+    fn from(value: LastSentPosition) -> Self {
+        ChunkPos::from(&value.0)
+    }
+}
+impl From<LastSentPosition> for BlockPos {
+    fn from(value: LastSentPosition) -> Self {
+        BlockPos::from(&value.0)
+    }
+}
+impl From<&LastSentPosition> for ChunkPos {
+    fn from(value: &LastSentPosition) -> Self {
+        ChunkPos::from(value.0)
+    }
+}
+impl From<&LastSentPosition> for BlockPos {
+    fn from(value: &LastSentPosition) -> Self {
+        BlockPos::from(value.0)
+    }
+}
+
+/// The name of the world the entity is in. If two entities share the same world
+/// name, we assume they're in the same world.
+#[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
+pub struct WorldName(ResourceLocation);
+
+/// A component for entities that can jump.
+///
+/// If this is true, the entity will try to jump every tick. (It's equivalent to
+/// the space key being held in vanilla.)
+#[derive(Debug, Component, Deref, DerefMut)]
+pub struct Jumping(bool);
+
+/// The physics data relating to the entity, such as position, velocity, and
+/// bounding box.
+#[derive(Debug, Component)]
+pub struct Physics {
     pub delta: Vec3,
 
     /// X acceleration.
@@ -211,97 +209,129 @@ pub struct EntityData {
     /// unlike dimensions.
     pub bounding_box: AABB,
 
-    /// Whether the entity will try to jump every tick
-    /// (equivalent to the space key being held down in vanilla).
-    pub jumping: bool,
-
     pub has_impulse: bool,
-
-    /// Stores some extra data about the entity, including the entity type.
-    pub metadata: EntityMetadata,
-
-    /// The attributes and modifiers that the entity has (for example, speed).
-    pub attributes: AttributeModifiers,
 }
 
-impl EntityData {
-    pub fn new(uuid: Uuid, pos: Vec3, metadata: EntityMetadata) -> Self {
+/// Marker component for entities that are dead.
+///
+/// "Dead" means that the entity has 0 health.
+#[derive(Component, Copy, Clone, Default)]
+pub struct Dead;
+
+/// System that adds the [`Dead`] marker component if an entity's health is set
+/// to 0 (or less than 0). This will be present if an entity is doing the death
+/// animation.
+///
+/// Entities that are dead can not be revived.
+/// TODO: fact check this in-game by setting an entity's health to 0 and then
+/// not 0
+pub fn add_dead(mut commands: Commands, query: Query<(Entity, &Health), Changed<Health>>) {
+    for (entity, health) in query.iter() {
+        if **health <= 0.0 {
+            commands.entity(entity).insert(Dead);
+        }
+    }
+}
+
+/// A component NewType for [`azalea_registry::EntityKind`].
+///
+/// Most of the time, you should be using `azalea_registry::EntityKind`
+/// instead.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Deref)]
+pub struct EntityKind(azalea_registry::EntityKind);
+
+/// A bundle of components that every entity has. This doesn't contain metadata,
+/// that has to be added separately.
+#[derive(Bundle)]
+pub struct EntityBundle {
+    pub kind: EntityKind,
+    pub uuid: EntityUuid,
+    pub world_name: WorldName,
+    pub position: Position,
+    pub last_sent_position: LastSentPosition,
+    pub physics: Physics,
+    pub attributes: Attributes,
+    pub jumping: Jumping,
+}
+
+impl EntityBundle {
+    pub fn new(
+        uuid: Uuid,
+        pos: Vec3,
+        kind: azalea_registry::EntityKind,
+        world_name: ResourceLocation,
+    ) -> Self {
+        // TODO: get correct entity dimensions by having them codegened somewhere
         let dimensions = EntityDimensions {
             width: 0.6,
             height: 1.8,
         };
 
         Self {
-            uuid,
-            pos,
-            last_pos: pos,
-            delta: Vec3::default(),
+            kind: EntityKind(kind),
+            uuid: EntityUuid(uuid),
+            world_name: WorldName(world_name),
+            position: Position(pos),
+            last_sent_position: LastSentPosition(pos),
+            physics: Physics {
+                delta: Vec3::default(),
 
-            xxa: 0.,
-            yya: 0.,
-            zza: 0.,
+                xxa: 0.,
+                yya: 0.,
+                zza: 0.,
 
-            x_rot: 0.,
-            y_rot: 0.,
+                x_rot: 0.,
+                y_rot: 0.,
 
-            y_rot_last: 0.,
-            x_rot_last: 0.,
+                y_rot_last: 0.,
+                x_rot_last: 0.,
 
-            on_ground: false,
-            last_on_ground: false,
+                on_ground: false,
+                last_on_ground: false,
 
-            // TODO: have this be based on the entity type
-            bounding_box: dimensions.make_bounding_box(&pos),
-            dimensions,
+                // TODO: have this be based on the entity type
+                bounding_box: dimensions.make_bounding_box(&pos),
+                dimensions,
 
-            has_impulse: false,
+                has_impulse: false,
+            },
 
-            jumping: false,
-
-            metadata,
-
-            attributes: AttributeModifiers {
-                // TODO: do the correct defaults for everything, some entities have different
-                // defaults
+            attributes: Attributes {
+                // TODO: do the correct defaults for everything, some
+                // entities have different defaults
                 speed: AttributeInstance::new(0.1),
             },
+
+            jumping: Jumping(false),
         }
     }
-
-    /// Get the position of the entity in the world.
-    #[inline]
-    pub fn pos(&self) -> &Vec3 {
-        &self.pos
-    }
-
-    /// Convert this &self into a (mutable) pointer.
-    ///
-    /// # Safety
-    /// The entity MUST exist for at least as long as this pointer exists.
-    pub unsafe fn as_ptr(&self) -> NonNull<EntityData> {
-        // this is cursed
-        NonNull::new_unchecked(self as *const EntityData as *mut EntityData)
-    }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::PartialWorld;
-
-    #[test]
-    fn from_mut_entity_to_ref_entity() {
-        let mut world = PartialWorld::default();
-        let uuid = Uuid::from_u128(100);
-        world.add_entity(
-            0,
-            EntityData::new(
-                uuid,
-                Vec3::default(),
-                EntityMetadata::Player(metadata::Player::default()),
-            ),
-        );
-        let entity: Entity = world.entity_mut(0).unwrap();
-        assert_eq!(entity.uuid, uuid);
-    }
+/// A bundle of the components that are always present for a player.
+#[derive(Bundle)]
+pub struct PlayerBundle {
+    pub entity: EntityBundle,
+    pub metadata: metadata::PlayerMetadataBundle,
 }
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use crate::PartialWorld;
+
+//     #[test]
+//     fn from_mut_entity_to_ref_entity() {
+//         let mut world = PartialWorld::default();
+//         let uuid = Uuid::from_u128(100);
+//         world.add_entity(
+//             0,
+//             EntityData::new(
+//                 uuid,
+//                 Vec3::default(),
+//                 EntityMetadata::Player(metadata::Player::default()),
+//             ),
+//         );
+//         let entity: Entity = world.entity_mut(0).unwrap();
+//         assert_eq!(entity.uuid, uuid);
+//     }
+// }

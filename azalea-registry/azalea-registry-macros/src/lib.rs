@@ -116,7 +116,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
 
     // Display that uses registry ids
     let mut display_items = quote! {};
-    for item in input.items.iter() {
+    for item in &input.items {
         let name = &item.name;
         let id = &item.id;
         display_items.extend(quote! {

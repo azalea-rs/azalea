@@ -1,6 +1,8 @@
 use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use byteorder::{ReadBytesExt, BE};
+use log::warn;
 use std::{
+    backtrace::Backtrace,
     collections::HashMap,
     hash::Hash,
     io::{Cursor, Read},
@@ -17,14 +19,18 @@ pub enum BufReadError {
     CouldNotReadBytes,
     #[error("The received encoded string buffer length is longer than maximum allowed ({length} > {max_length})")]
     StringLengthTooLong { length: u32, max_length: u32 },
-    #[error("{0}")]
-    Io(
+    #[error("{source}")]
+    Io {
         #[from]
         #[backtrace]
-        std::io::Error,
-    ),
-    #[error("Invalid UTF-8")]
-    InvalidUtf8,
+        source: std::io::Error,
+    },
+    #[error("Invalid UTF-8: {bytes:?} (lossy: {lossy:?})")]
+    InvalidUtf8 {
+        bytes: Vec<u8>,
+        lossy: String,
+        // backtrace: Backtrace,
+    },
     #[error("Unexpected enum variant {id}")]
     UnexpectedEnumVariant { id: i32 },
     #[error("Unexpected enum variant {id}")]
@@ -33,12 +39,17 @@ pub enum BufReadError {
     UnexpectedEof {
         attempted_read: usize,
         actual_read: usize,
+        backtrace: Backtrace,
     },
     #[error("{0}")]
     Custom(String),
     #[cfg(feature = "serde_json")]
-    #[error("{0}")]
-    Deserialization(#[from] serde_json::Error),
+    #[error("{source}")]
+    Deserialization {
+        #[from]
+        #[backtrace]
+        source: serde_json::Error,
+    },
 }
 
 fn read_bytes<'a>(buf: &'a mut Cursor<&[u8]>, length: usize) -> Result<&'a [u8], BufReadError> {
@@ -46,6 +57,7 @@ fn read_bytes<'a>(buf: &'a mut Cursor<&[u8]>, length: usize) -> Result<&'a [u8],
         return Err(BufReadError::UnexpectedEof {
             attempted_read: length,
             actual_read: buf.get_ref().len() - buf.position() as usize,
+            backtrace: Backtrace::capture(),
         });
     }
     let initial_position = buf.position() as usize;
@@ -66,7 +78,11 @@ fn read_utf_with_len(buf: &mut Cursor<&[u8]>, max_length: u32) -> Result<String,
 
     let buffer = read_bytes(buf, length as usize)?;
     let string = std::str::from_utf8(buffer)
-        .map_err(|_| BufReadError::InvalidUtf8)?
+        .map_err(|_| BufReadError::InvalidUtf8 {
+            bytes: buffer.to_vec(),
+            lossy: String::from_utf8_lossy(buffer).to_string(),
+            // backtrace: Backtrace::capture(),
+        })?
         .to_string();
     if string.len() > length as usize {
         return Err(BufReadError::StringLengthTooLong { length, max_length });
@@ -266,7 +282,11 @@ impl McBufReadable for u64 {
 
 impl McBufReadable for bool {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(u8::read_from(buf)? != 0)
+        let byte = u8::read_from(buf)?;
+        if byte > 1 {
+            warn!("Boolean value was not 0 or 1, but {}", byte);
+        }
+        Ok(byte != 0)
     }
 }
 
