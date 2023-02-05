@@ -464,7 +464,12 @@ impl Plugin for AzaleaPlugin {
 
         // walk and sprint event listeners
         app.add_system(walk_listener.label("walk_listener").before("travel"))
-            .add_system(sprint_listener.label("sprint_listener").before("travel"));
+            .add_system(
+                sprint_listener
+                    .label("sprint_listener")
+                    .before("travel")
+                    .before("walk_listener"),
+            );
 
         // add GameProfileComponent when we get an AddPlayerEvent
         app.add_system(

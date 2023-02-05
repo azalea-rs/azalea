@@ -38,7 +38,7 @@ impl Plugin for PathfinderPlugin {
             .add_event::<PathFoundEvent>()
             .add_tick_system(tick_execute_path.before("walk_listener"))
             .add_system(goto_listener)
-            .add_system(add_default_pathfinder)
+            .add_system(add_default_pathfinder.after("deduplicate_entities"))
             .add_system(handle_tasks)
             .add_system(path_found_listener);
     }
@@ -236,8 +236,10 @@ fn tick_execute_path(
             }
 
             if target.is_reached(position, physics) {
+                println!("reached target");
                 pathfinder.path.pop_front();
                 if pathfinder.path.is_empty() {
+                    println!("reached goal");
                     walk_events.send(StartWalkEvent {
                         entity,
                         direction: WalkDirection::None,

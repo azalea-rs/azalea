@@ -42,21 +42,33 @@ impl Plugin for EntityPlugin {
                 .with_system(
                     add_updates_received
                         .after("deduplicate_entities")
+                        .after("deduplicate_local_entities")
                         .label("add_updates_received"),
                 )
-                .with_system(update_uuid_index.label("update_uuid_index"))
+                .with_system(
+                    update_uuid_index
+                        .label("update_uuid_index")
+                        .after("deduplicate_local_entities")
+                        .after("deduplicate_entities"),
+                )
                 .with_system(debug_detect_updates_received_on_local_entities)
-                .with_system(update_entity_by_id_index.label("update_entity_by_id_index"))
-                .with_system(debug_new_entity)
+                .with_system(
+                    update_entity_by_id_index
+                        .label("update_entity_by_id_index")
+                        .after("deduplicate_entities"),
+                )
+                .with_system(debug_new_entity),
+        )
+        .add_system_set_to_stage(
+            CoreStage::PostUpdate,
+            SystemSet::new()
+                .with_system(deduplicate_entities.label("deduplicate_entities"))
                 .with_system(
                     deduplicate_local_entities
+                        .label("deduplicate_local_entities")
                         .before("update_uuid_index")
                         .before("update_entity_by_id_index"),
                 ),
-        )
-        .add_system_to_stage(
-            CoreStage::PostUpdate,
-            deduplicate_entities.label("deduplicate_entities"),
         )
         .init_resource::<EntityInfos>();
     }

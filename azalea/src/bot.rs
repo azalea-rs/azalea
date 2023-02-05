@@ -23,7 +23,7 @@ impl Plugin for BotPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<LookAtEvent>()
             .add_event::<JumpEvent>()
-            .add_system(insert_bot)
+            .add_system(insert_bot.before("deduplicate_entities"))
             .add_system(look_at_listener)
             .add_system(jump_listener.label("jump_listener").before("ai_step"))
             .add_tick_system(stop_jumping.after("ai_step"));

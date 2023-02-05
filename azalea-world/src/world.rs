@@ -112,9 +112,9 @@ pub fn deduplicate_local_entities(
                     continue;
                 }
 
-                commands.entity(new_entity).despawn();
+                commands.entity(*old_entity).despawn();
                 debug!(
-                    "Local entity with id {id:?} / {new_entity:?} already existed in the world, despawning it"
+                    "Added local entity {id:?} / {new_entity:?} but already existed in world as {old_entity:?}, despawning {old_entity:?}"
                 );
                 break;
             }
@@ -131,11 +131,11 @@ pub fn update_uuid_index(
     for (entity, &uuid) in query.iter() {
         // only add it if it doesn't already exist in
         // entity_infos.entity_by_uuid
-        if entity_infos.entity_by_uuid.contains_key(&uuid) {
-            warn!("Entity with UUID {uuid:?} already existed in the world, not adding to index (ecs id: {entity:?})", uuid=*uuid);
-        } else {
-            entity_infos.entity_by_uuid.insert(*uuid, entity);
-        }
+        // if entity_infos.entity_by_uuid.contains_key(&uuid) {
+        //     warn!("Entity with UUID {uuid:?} already existed in the world, not adding
+        // to index (ecs id: {entity:?})", uuid=*uuid);     continue;
+        // }
+        entity_infos.entity_by_uuid.insert(*uuid, entity);
     }
 }
 
@@ -213,12 +213,12 @@ pub fn update_entity_by_id_index(
     for (entity, id, world_name) in query.iter_mut() {
         let world_lock = world_container.get(world_name).unwrap();
         let mut world = world_lock.write();
-        if let Some(old_entity) = world.entity_by_id.get(id) {
-            warn!(
-                "Entity with ID {id:?} already existed in the world, not adding to index (old ecs id: {old_entity:?} / new ecs id: {entity:?})"
-            );
-            continue;
-        }
+        // if let Some(old_entity) = world.entity_by_id.get(id) {
+        //     warn!(
+        //         "Entity with ID {id:?} already existed in the world, not adding to
+        // index (old ecs id: {old_entity:?} / new ecs id: {entity:?})"     );
+        //     continue;
+        // }
         world.entity_by_id.insert(*id, entity);
         debug!("Added {entity:?} to {world_name:?} with {id:?}.");
     }
