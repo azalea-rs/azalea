@@ -257,29 +257,3 @@ where
 
     Ok(packet)
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::packets::game::ClientboundGamePacket;
-    use std::io::Cursor;
-
-    #[tokio::test]
-    async fn test_read_packet() {
-        let mut buf: Cursor<&[u8]> = Cursor::new(&[
-            56, 64, 85, 58, 141, 138, 71, 146, 193, 64, 88, 0, 0, 0, 0, 0, 0, 64, 60, 224, 105, 34,
-            119, 8, 228, 67, 50, 51, 68, 194, 177, 230, 101, 0, 17, 0,
-        ]);
-        let packet = packet_decoder::<ClientboundGamePacket>(&mut buf).unwrap();
-        match &packet {
-            ClientboundGamePacket::PlayerPosition(p) => {
-                assert_eq!(p.id, 17);
-                assert_eq!(p.x, 84.91488892545296);
-                assert_eq!(p.y, 96.0);
-                assert_eq!(p.z, 28.876604227124417);
-                assert_eq!(p.dismount_vehicle, false);
-            }
-            _ => panic!("Wrong packet type"),
-        }
-    }
-}

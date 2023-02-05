@@ -852,127 +852,6 @@ impl Default for BoatMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut)]
-pub struct CamelTamed(pub bool);
-#[derive(Component, Deref, DerefMut)]
-pub struct CamelEating(pub bool);
-#[derive(Component, Deref, DerefMut)]
-pub struct CamelStanding(pub bool);
-#[derive(Component, Deref, DerefMut)]
-pub struct CamelBred(pub bool);
-#[derive(Component, Deref, DerefMut)]
-pub struct CamelSaddled(pub bool);
-#[derive(Component, Deref, DerefMut)]
-pub struct CamelOwnerUuid(pub Option<Uuid>);
-#[derive(Component, Deref, DerefMut)]
-pub struct Dash(pub bool);
-#[derive(Component, Deref, DerefMut)]
-pub struct LastPoseChangeTick(pub i64);
-#[derive(Component)]
-pub struct Camel;
-impl Camel {
-    pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
-        d: EntityDataItem,
-    ) -> Result<(), UpdateMetadataError> {
-        match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
-                let bitfield = d.value.into_byte()?;
-                entity.insert(CamelTamed(bitfield & 0x2 != 0));
-                entity.insert(CamelEating(bitfield & 0x10 != 0));
-                entity.insert(CamelStanding(bitfield & 0x20 != 0));
-                entity.insert(CamelBred(bitfield & 0x8 != 0));
-                entity.insert(CamelSaddled(bitfield & 0x4 != 0));
-            }
-            18 => {
-                entity.insert(CamelOwnerUuid(d.value.into_optional_uuid()?));
-            }
-            19 => {
-                entity.insert(Dash(d.value.into_boolean()?));
-            }
-            20 => {
-                entity.insert(LastPoseChangeTick(d.value.into_long()?));
-            }
-            _ => {}
-        }
-        Ok(())
-    }
-}
-
-#[derive(Bundle)]
-pub struct CamelMetadataBundle {
-    _marker: Camel,
-    parent: AbstractAnimalMetadataBundle,
-    camel_tamed: CamelTamed,
-    camel_eating: CamelEating,
-    camel_standing: CamelStanding,
-    camel_bred: CamelBred,
-    camel_saddled: CamelSaddled,
-    camel_owner_uuid: CamelOwnerUuid,
-    dash: Dash,
-    last_pose_change_tick: LastPoseChangeTick,
-}
-impl Default for CamelMetadataBundle {
-    fn default() -> Self {
-        Self {
-            _marker: Camel,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(None),
-                                    custom_name_visible: CustomNameVisible(false),
-                                    silent: Silent(false),
-                                    no_gravity: NoGravity(false),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(0),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                abstract_living_effect_color: AbstractLivingEffectColor(0),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
-            camel_tamed: CamelTamed(false),
-            camel_eating: CamelEating(false),
-            camel_standing: CamelStanding(false),
-            camel_bred: CamelBred(false),
-            camel_saddled: CamelSaddled(false),
-            camel_owner_uuid: CamelOwnerUuid(None),
-            dash: Dash(false),
-            last_pose_change_tick: LastPoseChangeTick(-52),
-        }
-    }
-}
-
-#[derive(Component, Deref, DerefMut)]
 pub struct Tame(pub bool);
 #[derive(Component, Deref, DerefMut)]
 pub struct InSittingPose(pub bool);
@@ -2302,7 +2181,7 @@ impl Enderman {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(CarryState(d.value.into_block_state()?));
+                entity.insert(CarryState(d.value.into_optional_block_state()?.unwrap()));
             }
             17 => {
                 entity.insert(Creepy(d.value.into_boolean()?));
