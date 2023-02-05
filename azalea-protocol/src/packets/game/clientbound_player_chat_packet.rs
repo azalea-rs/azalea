@@ -3,7 +3,7 @@ use azalea_buf::{
 };
 use azalea_chat::{
     translatable_component::{StringOrComponent, TranslatableComponent},
-    Component,
+    FormattedText,
 };
 use azalea_core::BitSet;
 use azalea_crypto::MessageSignature;
@@ -18,7 +18,7 @@ pub struct ClientboundPlayerChatPacket {
     pub index: u32,
     pub signature: Option<MessageSignature>,
     pub body: PackedSignedMessageBody,
-    pub unsigned_content: Option<Component>,
+    pub unsigned_content: Option<FormattedText>,
     pub filter_mask: FilterMask,
     pub chat_type: ChatTypeBound,
 }
@@ -66,8 +66,8 @@ pub enum ChatType {
 #[derive(Clone, Debug, McBuf, PartialEq)]
 pub struct ChatTypeBound {
     pub chat_type: ChatType,
-    pub name: Component,
-    pub target_name: Option<Component>,
+    pub name: FormattedText,
+    pub target_name: Option<FormattedText>,
 }
 
 // must be in Client
@@ -87,17 +87,19 @@ pub struct MessageSignatureCache {
 // {} }
 
 impl ClientboundPlayerChatPacket {
-    /// Returns the content of the message. If you want to get the Component
+    /// Returns the content of the message. If you want to get the FormattedText
     /// for the whole message including the sender part, use
     /// [`ClientboundPlayerChatPacket::message`].
-    pub fn content(&self) -> Component {
+    #[must_use]
+    pub fn content(&self) -> FormattedText {
         self.unsigned_content
             .clone()
-            .unwrap_or_else(|| Component::from(self.body.content.clone()))
+            .unwrap_or_else(|| FormattedText::from(self.body.content.clone()))
     }
 
     /// Get the full message, including the sender part.
-    pub fn message(&self) -> Component {
+    #[must_use]
+    pub fn message(&self) -> FormattedText {
         let sender = self.chat_type.name.clone();
         let content = self.content();
         let target = self.chat_type.target_name.clone();
@@ -105,20 +107,21 @@ impl ClientboundPlayerChatPacket {
         let translation_key = self.chat_type.chat_type.chat_translation_key();
 
         let mut args = vec![
-            StringOrComponent::Component(sender),
-            StringOrComponent::Component(content),
+            StringOrComponent::FormattedText(sender),
+            StringOrComponent::FormattedText(content),
         ];
         if let Some(target) = target {
-            args.push(StringOrComponent::Component(target));
+            args.push(StringOrComponent::FormattedText(target));
         }
 
         let component = TranslatableComponent::new(translation_key.to_string(), args);
 
-        Component::Translatable(component)
+        FormattedText::Translatable(component)
     }
 }
 
 impl ChatType {
+    #[must_use]
     pub fn chat_translation_key(&self) -> &'static str {
         match self {
             ChatType::Chat => "chat.type.text",
@@ -131,15 +134,11 @@ impl ChatType {
         }
     }
 
+    #[must_use]
     pub fn narrator_translation_key(&self) -> &'static str {
         match self {
-            ChatType::Chat => "chat.type.text.narrate",
-            ChatType::SayCommand => "chat.type.text.narrate",
-            ChatType::MsgCommandIncoming => "chat.type.text.narrate",
-            ChatType::MsgCommandOutgoing => "chat.type.text.narrate",
-            ChatType::TeamMsgCommandIncoming => "chat.type.text.narrate",
-            ChatType::TeamMsgCommandOutgoing => "chat.type.text.narrate",
             ChatType::EmoteCommand => "chat.type.emote",
+            _ => "chat.type.text.narrate",
         }
     }
 }

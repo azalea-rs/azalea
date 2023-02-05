@@ -8,7 +8,8 @@ use uuid::Uuid;
 
 /// Something that can join Minecraft servers.
 ///
-/// To join a server using this account, use [`crate::Client::join`].
+/// To join a server using this account, use [`Client::join`] or
+/// [`azalea::ClientBuilder`].
 ///
 /// # Examples
 ///
@@ -21,6 +22,9 @@ use uuid::Uuid;
 /// // or Account::offline("example");
 /// # }
 /// ```
+///
+/// [`Client::join`]: crate::Client::join
+/// [`azalea::ClientBuilder`]: https://docs.rs/azalea/latest/azalea/struct.ClientBuilder.html
 #[derive(Clone, Debug)]
 pub struct Account {
     /// The Minecraft username of the account.
@@ -28,7 +32,7 @@ pub struct Account {
     /// The access token for authentication. You can obtain one of these
     /// manually from azalea-auth.
     ///
-    /// This is an Arc<Mutex> so it can be modified by [`Self::refresh`].
+    /// This is an `Arc<Mutex>` so it can be modified by [`Self::refresh`].
     pub access_token: Option<Arc<Mutex<String>>>,
     /// Only required for online-mode accounts.
     pub uuid: Option<Uuid>,

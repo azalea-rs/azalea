@@ -1,7 +1,7 @@
 use std::fmt::{self, Display, Formatter};
 
 use crate::{
-    base_component::BaseComponent, style::Style, text_component::TextComponent, Component,
+    base_component::BaseComponent, style::Style, text_component::TextComponent, FormattedText,
 };
 use serde::{ser::SerializeMap, Serialize, Serializer, __private::ser::FlatMapSerializer};
 
@@ -9,7 +9,7 @@ use serde::{ser::SerializeMap, Serialize, Serializer, __private::ser::FlatMapSer
 #[serde(untagged)]
 pub enum StringOrComponent {
     String(String),
-    Component(Component),
+    FormattedText(FormattedText),
 }
 
 /// A message whose content depends on the client's language.
@@ -42,7 +42,7 @@ impl TranslatableComponent {
         }
     }
 
-    /// Convert the key and args to a Component.
+    /// Convert the key and args to a FormattedText.
     pub fn read(&self) -> Result<TextComponent, fmt::Error> {
         let template = azalea_language::get(&self.key).unwrap_or(&self.key);
         // decode the % things
@@ -57,12 +57,9 @@ impl TranslatableComponent {
 
         while i < template.len() {
             if template.chars().nth(i).unwrap() == '%' {
-                let char_after = match template.chars().nth(i + 1) {
-                    Some(c) => c,
-                    None => {
-                        built_text.push(template.chars().nth(i).unwrap());
-                        break;
-                    }
+                let Some(char_after) = template.chars().nth(i + 1) else {
+                    built_text.push(template.chars().nth(i).unwrap());
+                    break;
                 };
                 i += 1;
                 match char_after {
@@ -111,7 +108,7 @@ impl TranslatableComponent {
                 built_text.push(template.chars().nth(i).unwrap());
             }
 
-            i += 1
+            i += 1;
         }
 
         if components.is_empty() {
@@ -122,7 +119,7 @@ impl TranslatableComponent {
 
         Ok(TextComponent {
             base: BaseComponent {
-                siblings: components.into_iter().map(Component::Text).collect(),
+                siblings: components.into_iter().map(FormattedText::Text).collect(),
                 style: Style::default(),
             },
             text: "".to_string(),
@@ -133,10 +130,10 @@ impl TranslatableComponent {
 impl Display for TranslatableComponent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // this contains the final string will all the ansi escape codes
-        for component in Component::Translatable(self.clone()).into_iter() {
+        for component in FormattedText::Translatable(self.clone()).into_iter() {
             let component_text = match &component {
-                Component::Text(c) => c.text.to_string(),
-                Component::Translatable(c) => c.read()?.to_string(),
+                FormattedText::Text(c) => c.text.to_string(),
+                FormattedText::Translatable(c) => c.read()?.to_string(),
             };
 
             f.write_str(&component_text)?;
@@ -150,7 +147,7 @@ impl Display for StringOrComponent {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
             StringOrComponent::String(s) => write!(f, "{s}"),
-            StringOrComponent::Component(c) => write!(f, "{c}"),
+            StringOrComponent::FormattedText(c) => write!(f, "{c}"),
         }
     }
 }
@@ -159,7 +156,7 @@ impl From<StringOrComponent> for TextComponent {
     fn from(soc: StringOrComponent) -> Self {
         match soc {
             StringOrComponent::String(s) => TextComponent::new(s),
-            StringOrComponent::Component(c) => TextComponent::new(c.to_string()),
+            StringOrComponent::FormattedText(c) => TextComponent::new(c.to_string()),
         }
     }
 }

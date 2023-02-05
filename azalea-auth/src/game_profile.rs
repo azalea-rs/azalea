@@ -5,7 +5,9 @@ use uuid::Uuid;
 
 #[derive(McBuf, Debug, Clone, Default, Eq, PartialEq)]
 pub struct GameProfile {
+    /// The UUID of the player.
     pub uuid: Uuid,
+    /// The username of the player.
     pub name: String,
     pub properties: HashMap<String, ProfilePropertyValue>,
 }

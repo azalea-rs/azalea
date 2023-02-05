@@ -63,9 +63,9 @@ impl McBufReadable for ActionType {
                 let hand = InteractionHand::read_from(buf)?;
                 Ok(ActionType::InteractAt {
                     location: Vec3 {
-                        x: x as f64,
-                        y: y as f64,
-                        z: z as f64,
+                        x: f64::from(x),
+                        y: f64::from(y),
+                        z: f64::from(z),
                     },
                     hand,
                 })

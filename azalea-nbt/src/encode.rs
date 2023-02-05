@@ -6,8 +6,6 @@ use byteorder::{WriteBytesExt, BE};
 use flate2::write::{GzEncoder, ZlibEncoder};
 use std::io::Write;
 
-// who needs friends when you've got code that runs in nanoseconds?
-
 #[inline]
 fn write_string(writer: &mut dyn Write, string: &str) -> Result<(), Error> {
     writer.write_u16::<BE>(string.len() as u16)?;
@@ -28,62 +26,62 @@ fn write_compound(
             Tag::Byte(value) => {
                 writer.write_u8(1)?;
                 write_string(writer, key)?;
-                writer.write_i8(*value)?
+                writer.write_i8(*value)?;
             }
             Tag::Short(value) => {
                 writer.write_u8(2)?;
                 write_string(writer, key)?;
-                writer.write_i16::<BE>(*value)?
+                writer.write_i16::<BE>(*value)?;
             }
             Tag::Int(value) => {
                 writer.write_u8(3)?;
                 write_string(writer, key)?;
-                writer.write_i32::<BE>(*value)?
+                writer.write_i32::<BE>(*value)?;
             }
             Tag::Long(value) => {
                 writer.write_u8(4)?;
                 write_string(writer, key)?;
-                writer.write_i64::<BE>(*value)?
+                writer.write_i64::<BE>(*value)?;
             }
             Tag::Float(value) => {
                 writer.write_u8(5)?;
                 write_string(writer, key)?;
-                writer.write_f32::<BE>(*value)?
+                writer.write_f32::<BE>(*value)?;
             }
             Tag::Double(value) => {
                 writer.write_u8(6)?;
                 write_string(writer, key)?;
-                writer.write_f64::<BE>(*value)?
+                writer.write_f64::<BE>(*value)?;
             }
             Tag::ByteArray(value) => {
                 writer.write_u8(7)?;
                 write_string(writer, key)?;
-                write_bytearray(writer, value)?
+                write_bytearray(writer, value)?;
             }
             Tag::String(value) => {
                 writer.write_u8(8)?;
                 write_string(writer, key)?;
-                write_string(writer, value)?
+                write_string(writer, value)?;
             }
             Tag::List(value) => {
                 writer.write_u8(9)?;
                 write_string(writer, key)?;
-                write_list(writer, value)?
+                write_list(writer, value)?;
             }
             Tag::Compound(value) => {
                 writer.write_u8(10)?;
                 write_string(writer, key)?;
-                write_compound(writer, value, true)?
+                write_compound(writer, value, true)?;
             }
             Tag::IntArray(value) => {
                 writer.write_u8(11)?;
                 write_string(writer, key)?;
-                write_intarray(writer, value)?
+                write_intarray(writer, value)?;
             }
             Tag::LongArray(value) => {
                 writer.write_u8(12)?;
                 write_string(writer, key)?;
-                write_longarray(writer, value)?
+                write_longarray(writer, value)?;
             }
         }
     }
@@ -166,6 +164,10 @@ fn write_longarray(writer: &mut dyn Write, value: &Vec<i64>) -> Result<(), Error
 }
 
 impl Tag {
+    /// Write the tag as unnamed, uncompressed NBT data. If you're writing a
+    /// compound tag and the length of the NBT is already known, use
+    /// [`Tag::write`] to avoid the `End` tag (this is used when writing NBT to
+    /// a file).
     #[inline]
     pub fn write_without_end(&self, writer: &mut dyn Write) -> Result<(), Error> {
         match self {
@@ -187,6 +189,11 @@ impl Tag {
         Ok(())
     }
 
+    /// Write the compound tag as NBT data.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `Err` if it's not a Compound or End tag.
     pub fn write(&self, writer: &mut impl Write) -> Result<(), Error> {
         match self {
             Tag::Compound(value) => {
@@ -201,11 +208,21 @@ impl Tag {
         }
     }
 
+    /// Write the compound tag as NBT data compressed wtih zlib.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `Err` if it's not a Compound or End tag.
     pub fn write_zlib(&self, writer: &mut impl Write) -> Result<(), Error> {
         let mut encoder = ZlibEncoder::new(writer, flate2::Compression::default());
         self.write(&mut encoder)
     }
 
+    /// Write the compound tag as NBT data compressed wtih gzip.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `Err` if it's not a Compound or End tag.
     pub fn write_gzip(&self, writer: &mut impl Write) -> Result<(), Error> {
         let mut encoder = GzEncoder::new(writer, flate2::Compression::default());
         self.write(&mut encoder)

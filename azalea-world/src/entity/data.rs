@@ -1,15 +1,20 @@
+//! Define some types needed for entity metadata.
+
 use azalea_block::BlockState;
-use azalea_buf::{BufReadError, McBufVarReadable, McBufVarWritable};
-use azalea_buf::{McBuf, McBufReadable, McBufWritable};
-use azalea_chat::Component;
+use azalea_buf::{
+    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
+};
+use azalea_chat::FormattedText;
 use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot};
+use azalea_ecs::component::Component;
+use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
 use nohash_hasher::IntSet;
 use std::io::{Cursor, Write};
 use uuid::Uuid;
 
-#[derive(Clone, Debug)]
-pub struct EntityMetadataItems(pub Vec<EntityDataItem>);
+#[derive(Clone, Debug, Deref)]
+pub struct EntityMetadataItems(Vec<EntityDataItem>);
 
 #[derive(Clone, Debug)]
 pub struct EntityDataItem {
@@ -52,8 +57,8 @@ pub enum EntityDataValue {
     Long(i64),
     Float(f32),
     String(String),
-    Component(Component),
-    OptionalComponent(Option<Component>),
+    FormattedText(FormattedText),
+    OptionalFormattedText(Option<FormattedText>),
     ItemStack(Slot),
     Boolean(bool),
     Rotations(Rotations),
@@ -98,6 +103,7 @@ impl McBufWritable for OptionalUnsignedInt {
     }
 }
 
+/// A set of x, y, and z rotations. This is used for armor stands.
 #[derive(Clone, Debug, McBuf, Default)]
 pub struct Rotations {
     pub x: f32,
@@ -105,7 +111,7 @@ pub struct Rotations {
     pub z: f32,
 }
 
-#[derive(Clone, Debug, Copy, McBuf, Default)]
+#[derive(Clone, Debug, Copy, McBuf, Default, Component)]
 pub enum Pose {
     #[default]
     Standing = 0,
@@ -120,7 +126,7 @@ pub enum Pose {
 
 #[derive(Debug, Clone, McBuf)]
 pub struct VillagerData {
-    pub kind: azalea_registry::VillagerType,
+    pub kind: azalea_registry::VillagerKind,
     pub profession: azalea_registry::VillagerProfession,
     #[var]
     pub level: u32,

@@ -88,7 +88,7 @@ impl fmt::Debug for BuiltInExceptions {
             BuiltInExceptions::ReaderInvalidBool { value } => {
                 write!(
                     f,
-                    "Invalid bool, expected true or false but found '{value}'",
+                    "Invalid bool, expected true or false but found '{value}'"
                 )
             }
             BuiltInExceptions::ReaderInvalidInt { value } => {

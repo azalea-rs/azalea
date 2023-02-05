@@ -8,27 +8,33 @@ version = "0.5.0"
 
 [package.metadata.release]
 pre-release-replacements = [
-    { file = "src/lib.rs", search = "//! `azalea = \"[a-z0-9\\.-]+\"`", replace = "//! `azalea = \"{{version}}\"`" },
+  {file = "src/lib.rs", search = "//! `azalea = \"[a-z0-9\\.-]+\"`", replace = "//! `azalea = \"{{version}}\"`"},
 ]
 
 [dependencies]
 anyhow = "^1.0.65"
 async-trait = "0.1.58"
-azalea-block = { version = "0.5.0", path = "../azalea-block" }
-azalea-chat = { version = "0.5.0", path = "../azalea-chat" }
-azalea-client = { version = "0.5.0", path = "../azalea-client" }
-azalea-core = { version = "0.5.0", path = "../azalea-core" }
-azalea-physics = { version = "0.5.0", path = "../azalea-physics" }
-azalea-protocol = { version = "0.5.0", path = "../azalea-protocol" }
-azalea-world = { version = "0.5.0", path = "../azalea-world" }
+azalea-block = {version = "0.5.0", path = "../azalea-block"}
+azalea-chat = {version = "0.5.0", path = "../azalea-chat"}
+azalea-client = {version = "0.5.0", path = "../azalea-client"}
+azalea-core = {version = "0.5.0", path = "../azalea-core"}
+azalea-ecs = { version = "0.5.0", path = "../azalea-ecs" }
+azalea-physics = {version = "0.5.0", path = "../azalea-physics"}
+azalea-protocol = {version = "0.5.0", path = "../azalea-protocol"}
+azalea-registry = {version = "0.5.0", path = "../azalea-registry"}
+azalea-world = {version = "0.5.0", path = "../azalea-world"}
+bevy_tasks = "0.9.1"
+derive_more = {version = "0.99.17", features = ["deref", "deref_mut"]}
 futures = "0.3.25"
+futures-lite = "1.12.0"
+iyes_loopless = "0.9.1"
 log = "0.4.17"
 nohash-hasher = "0.2.0"
 num-traits = "0.2.15"
-parking_lot = { version = "^0.12.1", features = ["deadlock_detection"] }
+parking_lot = {version = "^0.12.1", features = ["deadlock_detection"]}
 priority-queue = "1.3.0"
 thiserror = "^1.0.37"
-tokio = "^1.23.1"
+tokio = "^1.24.2"
 uuid = "1.2.2"
 
 [dev-dependencies]

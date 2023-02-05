@@ -18,7 +18,7 @@ async fn main() {
     .unwrap();
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Component)]
 pub struct State {}
 
 async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {

@@ -64,7 +64,7 @@ impl DiscreteVoxelShape {
     }
 
     pub fn for_all_boxes(&self, consumer: impl IntLineConsumer, swap: bool) {
-        BitSetDiscreteVoxelShape::for_all_boxes(self, consumer, swap)
+        BitSetDiscreteVoxelShape::for_all_boxes(self, consumer, swap);
     }
 }
 

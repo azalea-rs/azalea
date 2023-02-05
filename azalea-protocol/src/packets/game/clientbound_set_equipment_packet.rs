@@ -65,6 +65,7 @@ pub enum EquipmentSlot {
 }
 
 impl EquipmentSlot {
+    #[must_use]
     pub fn from_byte(byte: u8) -> Option<Self> {
         match byte {
             0 => Some(EquipmentSlot::MainHand),

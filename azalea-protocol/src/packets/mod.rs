@@ -21,6 +21,7 @@ pub enum ConnectionProtocol {
 }
 
 impl ConnectionProtocol {
+    #[must_use]
     pub fn from_i32(i: i32) -> Option<Self> {
         match i {
             -1 => Some(ConnectionProtocol::Handshake),
@@ -39,7 +40,7 @@ where
 {
     fn id(&self) -> u32;
 
-    /// Read a packet by its id, ConnectionProtocol, and flow
+    /// Read a packet by its id, `ConnectionProtocol`, and flow
     fn read(id: u32, buf: &mut Cursor<&[u8]>) -> Result<Self, Box<ReadPacketError>>;
 
     fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;

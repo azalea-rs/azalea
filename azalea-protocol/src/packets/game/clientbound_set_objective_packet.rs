@@ -1,5 +1,5 @@
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use azalea_chat::Component;
+use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Cursor, Write};
 
@@ -22,7 +22,7 @@ impl McBufReadable for Method {
             0 => Method::Add(DisplayInfo::read_from(buf)?),
             1 => Method::Remove,
             2 => Method::Change(DisplayInfo::read_from(buf)?),
-            id => return Err(BufReadError::UnexpectedEnumVariant { id: id as i32 }),
+            id => return Err(BufReadError::UnexpectedEnumVariant { id: i32::from(id) }),
         })
     }
 }
@@ -48,7 +48,7 @@ impl McBufWritable for Method {
 
 #[derive(McBuf, Clone, Debug)]
 pub struct DisplayInfo {
-    pub display_name: Component,
+    pub display_name: FormattedText,
     pub render_type: RenderType,
 }
 
