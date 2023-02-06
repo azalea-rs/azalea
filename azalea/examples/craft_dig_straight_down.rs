@@ -3,7 +3,7 @@ use azalea::prelude::*;
 use parking_lot::Mutex;
 use std::sync::Arc;
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Component)]
 struct State {
     pub started: Arc<Mutex<bool>>,
 }
@@ -13,15 +13,11 @@ async fn main() {
     let account = Account::offline("bot");
     // or let bot = Account::microsoft("email").await;
 
-    azalea::start(azalea::Options {
-        account,
-        address: "localhost",
-        state: State::default(),
-        plugins: plugins![],
-        handle,
-    })
-    .await
-    .unwrap();
+    azalea::ClientBuilder::new()
+        .set_handler(handle)
+        .start(account, "localhost")
+        .await
+        .unwrap();
 }
 
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {

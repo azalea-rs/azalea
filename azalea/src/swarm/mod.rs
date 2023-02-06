@@ -28,12 +28,10 @@ use tokio::sync::mpsc;
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
 ///
-/// Swarms are created from the [`azalea::start_swarm`] function.
+/// Swarms are created from [`azalea::SwarmBuilder`].
 ///
 /// The `S` type parameter is the type of the state for individual bots.
 /// It's used to make the [`Swarm::add`] function work.
-///
-/// [`azalea::start_swarm`]: fn.start_swarm.html
 #[derive(Clone, Resource)]
 pub struct Swarm {
     pub ecs_lock: Arc<Mutex<Ecs>>,
@@ -84,7 +82,7 @@ where
     Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
     SwarmFut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
     S: Default + Send + Sync + Clone + Component + 'static,
-    SS: Default + Send + Sync + Clone + Component + 'static,
+    SS: Default + Send + Sync + Clone + Resource + 'static,
 {
     /// Start creating the swarm.
     #[must_use]
@@ -297,7 +295,7 @@ where
     Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
     SwarmFut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
     S: Default + Send + Sync + Clone + Component + 'static,
-    SS: Default + Send + Sync + Clone + Component + 'static,
+    SS: Default + Send + Sync + Clone + Resource + 'static,
 {
     fn default() -> Self {
         Self::new()
@@ -340,13 +338,12 @@ pub enum SwarmStartError {
 /// # Examples
 /// ```rust,no_run
 /// use azalea::{prelude::*, Swarm, SwarmEvent};
-/// use azalea::{Account, Client, Event};
 /// use std::time::Duration;
 ///
-/// #[derive(Default, Clone)]
+/// #[derive(Default, Clone, Component)]
 /// struct State {}
 ///
-/// #[derive(Default, Clone)]
+/// #[derive(Default, Clone, Resource)]
 /// struct SwarmState {}
 ///
 /// #[tokio::main]
@@ -360,22 +357,13 @@ pub enum SwarmStartError {
 ///     }
 ///
 ///     loop {
-///         let e = azalea::start_swarm(azalea::SwarmOptions {
-///             accounts: accounts.clone(),
-///             address: "localhost",
-///
-///             states: states.clone(),
-///             swarm_state: SwarmState::default(),
-///
-///             plugins: plugins![],
-///             swarm_plugins: swarm_plugins![],
-///
-///             handle,
-///             swarm_handle,
-///
-///             join_delay: Some(Duration::from_millis(1000)),
-///         })
-///         .await;
+///         let e = SwarmBuilder::new()
+///             .add_accounts(accounts.clone())
+///             .set_handler(handle)
+///             .set_swarm_handler(swarm_handle)
+///             .join_delay(Duration::from_millis(1000))
+///             .start("localhost")
+///             .await;
 ///         println!("{e:?}");
 ///     }
 /// }
@@ -405,16 +393,6 @@ pub enum SwarmStartError {
 ///     }
 ///     Ok(())
 /// }
-// pub async fn start_swarm<
-//     S: Send + Sync + Clone + 'static,
-//     SS: Send + Sync + Clone + 'static,
-//     A: Send + TryInto<ServerAddress>,
-//     Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
-//     SwarmFut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
-// >(
-//     options: SwarmOptions<S, SS, A, Fut, SwarmFut>,
-// ) -> Result<(), SwarmStartError> {
-// }
 
 impl Swarm {
     /// Add a new account to the swarm. You can remove it later by calling
@@ -457,7 +435,7 @@ impl Swarm {
         tokio::spawn(async move {
             while let Some(event) = rx.recv().await {
                 // we can't handle events here (since we can't copy the handler),
-                // they're handled above in start_swarm
+                // they're handled above in SwarmBuilder::start
                 if let Err(e) = cloned_bots_tx.send((Some(event), cloned_bot.clone())) {
                     error!("Error sending event to swarm: {e}");
                 }
