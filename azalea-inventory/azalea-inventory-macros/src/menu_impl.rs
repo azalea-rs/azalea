@@ -5,12 +5,40 @@ use quote::quote;
 pub fn generate(input: &DeclareMenus) -> TokenStream {
     let mut slot_mut_match_variants = quote! {};
     let mut len_match_variants = quote! {};
+
+    let mut hotbar_slot_start = 0;
+    let mut hotbar_slot_end = 0;
+
     for menu in &input.menus {
         slot_mut_match_variants.extend(generate_match_variant_for_slot_mut(menu));
         len_match_variants.extend(generate_match_variant_for_len(menu));
+
+        // this part is only used to generate `Player::is_hotbar_slot`
+        if menu.name.to_string() == "Player" {
+            let mut i = 0;
+            for field in &menu.fields {
+                let field_name = &field.name;
+                let start = i;
+                i += field.length;
+                if field_name.to_string() == "inventory" {
+                    hotbar_slot_start = start;
+                    // it only adds 8 here since it's inclusive (there's 9
+                    // total hotbar slots)
+                    hotbar_slot_end = start + 8;
+                }
+            }
+        }
     }
 
+    assert!(hotbar_slot_start != 0 && hotbar_slot_end != 0);
     quote! {
+        impl Player {
+            /// Returns whether the given protocol index is in the player's hotbar.
+            pub fn is_hotbar_slot(&self, i: usize) -> bool {
+                i >= #hotbar_slot_start && i <= #hotbar_slot_end
+            }
+        }
+
         impl Menu {
             /// Get a mutable reference to the [`Slot`] at the given protocol index. If
             /// you're trying to get an item in a menu normally, you should just

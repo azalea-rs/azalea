@@ -1,7 +1,7 @@
 pub use crate::chat::ChatPacket;
 use crate::{
     events::{Event, EventPlugin, LocalPlayerEvents},
-    inventory::InventoryMenu,
+    inventory::{ActiveContainer, InventoryMenu},
     local_player::{
         death_event, update_in_loaded_chunk, GameProfileComponent, LocalPlayer, PhysicsState,
     },
@@ -215,6 +215,7 @@ impl Client {
             Local,
             LocalPlayerEvents(tx),
             InventoryMenu::default(),
+            ActiveContainer::default(),
         ));
 
         Ok((client, rx))

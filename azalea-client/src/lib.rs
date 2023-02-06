@@ -17,7 +17,7 @@ mod client;
 mod entity_query;
 mod events;
 mod get_mc_dir;
-mod inventory;
+pub mod inventory;
 mod local_player;
 mod movement;
 pub mod packet_handling;

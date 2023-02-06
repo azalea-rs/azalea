@@ -5,6 +5,7 @@
 use azalea::ecs::query::With;
 use azalea::entity::metadata::Player;
 use azalea::entity::Position;
+use azalea::inventory::InventoryMenu;
 use azalea::pathfinder::BlockPosGoal;
 use azalea::{prelude::*, BlockPos, GameProfileComponent, Swarm, SwarmEvent, WalkDirection};
 use azalea::{Account, Client, Event};
@@ -141,6 +142,10 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     }
                     "lag" => {
                         std::thread::sleep(Duration::from_millis(1000));
+                    }
+                    "inventory" => {
+                        let inventory = bot.component::<InventoryMenu>();
+                        println!("inventory: {inventory:?}");
                     }
                     _ => {}
                 }

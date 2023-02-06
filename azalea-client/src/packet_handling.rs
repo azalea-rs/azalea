@@ -1,6 +1,6 @@
 use std::{collections::HashSet, io::Cursor, sync::Arc};
 
-use azalea_core::{ChunkPos, ResourceLocation, Vec3};
+use azalea_core::{ChunkPos, ResourceLocation, Slot, Vec3};
 use azalea_ecs::{
     app::{App, Plugin},
     component::Component,
@@ -35,7 +35,7 @@ use parking_lot::Mutex;
 use tokio::sync::mpsc;
 
 use crate::{
-    inventory::{InventoryMenu, OpenContainerMenu},
+    inventory::{ActiveContainer, InventoryMenu},
     local_player::{GameProfileComponent, LocalPlayer},
     ChatPacket, ClientInformation, PlayerInfo,
 };
@@ -621,7 +621,7 @@ fn handle_packets(ecs: &mut Ecs) {
                     debug!("Got container set content packet {:?}", p);
 
                     let mut system_state: SystemState<
-                        Query<(&mut InventoryMenu, Option<&mut OpenContainerMenu>)>,
+                        Query<(&mut InventoryMenu, Option<&mut ActiveContainer>)>,
                     > = SystemState::new(ecs);
                     let mut query = system_state.get_mut(ecs);
                     let (mut inventory_menu, open_container) =
@@ -650,8 +650,39 @@ fn handle_packets(ecs: &mut Ecs) {
                         );
                     }
                 }
-                ClientboundGamePacket::ContainerSetData(_) => {}
-                ClientboundGamePacket::ContainerSetSlot(_) => {}
+                ClientboundGamePacket::ContainerSetData(p) => {
+                    debug!("Got container set data packet {:?}", p);
+                }
+                ClientboundGamePacket::ContainerSetSlot(p) => {
+                    debug!("Got container set slot packet {:?}", p);
+
+                    let mut system_state: SystemState<
+                        Query<(&mut InventoryMenu, &mut ActiveContainer)>,
+                    > = SystemState::new(ecs);
+                    let mut query = system_state.get_mut(ecs);
+                    let (mut inventory_menu, mut active_container) =
+                        query.get_mut(player_entity).unwrap();
+
+                    if p.container_id == -1 {
+                        // -1 means carried item
+                        active_container.carried = p.item_stack.clone();
+                    } else if p.container_id == -2 {
+                        if let Some(mut slot) = inventory_menu.slot_mut(p.slot.into()) {
+                            *slot = p.item_stack.clone();
+                        }
+                    } else {
+                        // technically minecraft has slightly different behavior here if you're in
+                        // creative mode and have your inventory open
+                        if p.container_id == 0
+                            && inventory_menu.as_player().is_hotbar_slot(p.slot.into())
+                        {
+                            if let Slot::Present(item) = p.item_stack {
+                                // TODO container stuff
+                            }
+                        }
+                    }
+                }
+                ClientboundGamePacket::ContainerClose(_) => {}
                 ClientboundGamePacket::SetHealth(p) => {
                     debug!("Got set health packet {:?}", p);
 
@@ -945,7 +976,6 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::TakeItemEntity(_) => {}
                 ClientboundGamePacket::DisguisedChat(_) => {}
                 ClientboundGamePacket::UpdateEnabledFeatures(_) => {}
-                ClientboundGamePacket::ContainerClose(_) => {}
             }
         }
     }

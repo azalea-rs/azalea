@@ -44,7 +44,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
             }
 
             let chest_block = bot.world().find_one_block(|b| b.id == "minecraft:chest");
-            bot.goto(chest_block).await;
+            bot.goto(chest_block);
             let chest = bot
                 .open_container(&bot.world().find_one_block(|b| b.id == "minecraft:chest"))
                 .await
