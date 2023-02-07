@@ -140,3 +140,18 @@ declare_menus! {
         result: 1,
     },
 }
+
+impl Menu {
+    /// Get the [`Player`] from this [`Menu`].
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the menu isn't `Menu::Player`.
+    pub fn as_player(&self) -> &Player {
+        if let Menu::Player(player) = &self {
+            player
+        } else {
+            unreachable!("Called `Menu::as_player` on a menu that wasn't `Player`.")
+        }
+    }
+}

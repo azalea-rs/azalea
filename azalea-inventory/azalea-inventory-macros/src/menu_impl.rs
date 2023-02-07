@@ -34,7 +34,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
     quote! {
         impl Player {
             /// Returns whether the given protocol index is in the player's hotbar.
-            pub fn is_hotbar_slot(&self, i: usize) -> bool {
+            pub fn is_hotbar_slot(i: usize) -> bool {
                 i >= #hotbar_slot_start && i <= #hotbar_slot_end
             }
         }

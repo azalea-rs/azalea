@@ -1,6 +1,6 @@
 use std::{collections::HashSet, io::Cursor, sync::Arc};
 
-use azalea_core::{ChunkPos, ResourceLocation, Slot, Vec3};
+use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_ecs::{
     app::{App, Plugin},
     component::Component,
@@ -35,7 +35,7 @@ use parking_lot::Mutex;
 use tokio::sync::mpsc;
 
 use crate::{
-    inventory::{ActiveContainer, InventoryMenu},
+    inventory::InventoryComponent,
     local_player::{GameProfileComponent, LocalPlayer},
     ChatPacket, ClientInformation, PlayerInfo,
 };
@@ -620,34 +620,26 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::ContainerSetContent(p) => {
                     debug!("Got container set content packet {:?}", p);
 
-                    let mut system_state: SystemState<
-                        Query<(&mut InventoryMenu, Option<&mut ActiveContainer>)>,
-                    > = SystemState::new(ecs);
+                    let mut system_state: SystemState<Query<&mut InventoryComponent>> =
+                        SystemState::new(ecs);
                     let mut query = system_state.get_mut(ecs);
-                    let (mut inventory_menu, open_container) =
-                        query.get_mut(player_entity).unwrap();
+                    let mut inventory = query.get_mut(player_entity).unwrap();
 
                     // container id 0 is always the player's inventory
                     if p.container_id == 0 {
                         // this is just so it has the same type as the `else` block
                         for (i, slot) in p.items.iter().enumerate() {
-                            if let Some(slot_mut) = inventory_menu.slot_mut(i) {
+                            if let Some(slot_mut) = inventory.inventory_menu.slot_mut(i) {
                                 *slot_mut = slot.clone();
                             }
                         }
-                    } else if let Some(mut open_container) = open_container {
-                        if open_container.id == p.container_id {
-                            for (i, slot) in p.items.iter().enumerate() {
-                                if let Some(slot_mut) = open_container.menu.slot_mut(i) {
-                                    *slot_mut = slot.clone();
-                                }
+                    } else if inventory.id == p.container_id {
+                        let mut menu = inventory.menu();
+                        for (i, slot) in p.items.iter().enumerate() {
+                            if let Some(slot_mut) = menu.slot_mut(i) {
+                                *slot_mut = slot.clone();
                             }
                         }
-                    } else {
-                        warn!(
-                            "ContainerSetPacket was received with id {} but no container was open",
-                            p.container_id
-                        );
                     }
                 }
                 ClientboundGamePacket::ContainerSetData(p) => {
@@ -656,29 +648,34 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::ContainerSetSlot(p) => {
                     debug!("Got container set slot packet {:?}", p);
 
-                    let mut system_state: SystemState<
-                        Query<(&mut InventoryMenu, &mut ActiveContainer)>,
-                    > = SystemState::new(ecs);
+                    let mut system_state: SystemState<Query<&mut InventoryComponent>> =
+                        SystemState::new(ecs);
                     let mut query = system_state.get_mut(ecs);
-                    let (mut inventory_menu, mut active_container) =
-                        query.get_mut(player_entity).unwrap();
+                    let mut inventory = query.get_mut(player_entity).unwrap();
 
                     if p.container_id == -1 {
                         // -1 means carried item
-                        active_container.carried = p.item_stack.clone();
+                        inventory.carried = p.item_stack.clone();
                     } else if p.container_id == -2 {
-                        if let Some(mut slot) = inventory_menu.slot_mut(p.slot.into()) {
+                        if let Some(mut slot) = inventory.inventory_menu.slot_mut(p.slot.into()) {
                             *slot = p.item_stack.clone();
                         }
                     } else {
+                        let is_creative_mode_and_inventory_closed = false;
                         // technically minecraft has slightly different behavior here if you're in
                         // creative mode and have your inventory open
                         if p.container_id == 0
-                            && inventory_menu.as_player().is_hotbar_slot(p.slot.into())
+                            && azalea_inventory::Player::is_hotbar_slot(p.slot.into())
                         {
-                            if let Slot::Present(item) = p.item_stack {
-                                // TODO container stuff
+                            // minecraft also sets a "pop time" here which is used for an animation
+                            // but that's not really necessary
+                            if let Some(slot) = inventory.inventory_menu.slot_mut(p.slot.into()) {
+                                *slot = p.item_stack.clone();
                             }
+                        } else if p.container_id == inventory.id
+                            && (p.container_id != 0 || !is_creative_mode_and_inventory_closed)
+                        {
+                            var2.containerMenu.setItem(var4, var1.getStateId(), var3);
                         }
                     }
                 }
