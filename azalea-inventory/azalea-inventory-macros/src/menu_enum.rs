@@ -23,6 +23,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             #player_fields
         }
 
+        #[derive(Clone, Debug)]
         pub enum Menu {
             Player(Player),
             #variants

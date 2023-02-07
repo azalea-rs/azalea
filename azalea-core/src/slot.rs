@@ -13,8 +13,7 @@ pub enum Slot {
 
 #[derive(Debug, Clone, McBuf)]
 pub struct SlotData {
-    #[var]
-    pub id: u32,
+    pub id: azalea_registry::Item,
     pub count: u8,
     pub nbt: Tag,
 }

@@ -1,6 +1,20 @@
 use azalea_core::Slot;
-use azalea_ecs::component::Component;
+use azalea_ecs::{
+    app::{App, Plugin},
+    component::Component,
+    entity::Entity,
+    event::EventReader,
+    system::Query,
+};
 use azalea_inventory::Menu;
+
+pub struct InventoryPlugin;
+impl Plugin for InventoryPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<ClientSideCloseContainerEvent>()
+            .add_system(handle_client_side_close_container_event);
+    }
+}
 
 /// A component present on all local players that have an inventory.
 #[derive(Component)]
@@ -34,7 +48,19 @@ impl InventoryComponent {
     /// Returns the currently active menu. If a container is open it'll return
     /// [`Self::container_menu`], otherwise [`Self::inventory_menu`].
     pub fn menu(&self) -> &azalea_inventory::Menu {
-        &self.container_menu.unwrap_or(self.inventory_menu)
+        if let Some(menu) = &self.container_menu {
+            menu
+        } else {
+            &self.inventory_menu
+        }
+    }
+
+    pub fn menu_mut(&mut self) -> &mut azalea_inventory::Menu {
+        if let Some(menu) = &mut self.container_menu {
+            menu
+        } else {
+            &mut self.inventory_menu
+        }
     }
 }
 impl Default for InventoryComponent {
@@ -46,5 +72,22 @@ impl Default for InventoryComponent {
             carried: Slot::Empty,
             state_id: 0,
         }
+    }
+}
+
+/// Close a container without notifying the server.
+///
+/// Note that this also gets fired from [`CloseContainerEvent`].
+pub struct ClientSideCloseContainerEvent {
+    pub entity: Entity,
+}
+fn handle_client_side_close_container_event(
+    mut events: EventReader<ClientSideCloseContainerEvent>,
+    mut query: Query<&mut InventoryComponent>,
+) {
+    for event in events.iter() {
+        let mut inventory = query.get_mut(event.entity).unwrap();
+        inventory.container_menu = None;
+        inventory.id = 0;
     }
 }

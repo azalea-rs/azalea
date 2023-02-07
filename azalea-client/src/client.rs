@@ -1,7 +1,7 @@
 pub use crate::chat::ChatPacket;
 use crate::{
     events::{Event, EventPlugin, LocalPlayerEvents},
-    inventory::InventoryComponent,
+    inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
         death_event, update_in_loaded_chunk, GameProfileComponent, LocalPlayer, PhysicsState,
     },
@@ -575,5 +575,6 @@ impl PluginGroup for DefaultPlugins {
             .add(PhysicsPlugin)
             .add(EventPlugin)
             .add(TaskPoolPlugin::default())
+            .add(InventoryPlugin)
     }
 }

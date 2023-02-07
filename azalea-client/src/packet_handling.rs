@@ -35,7 +35,7 @@ use parking_lot::Mutex;
 use tokio::sync::mpsc;
 
 use crate::{
-    inventory::InventoryComponent,
+    inventory::{ClientSideCloseContainerEvent, InventoryComponent},
     local_player::{GameProfileComponent, LocalPlayer},
     ChatPacket, ClientInformation, PlayerInfo,
 };
@@ -634,7 +634,7 @@ fn handle_packets(ecs: &mut Ecs) {
                             }
                         }
                     } else if inventory.id == p.container_id {
-                        let mut menu = inventory.menu();
+                        let menu = inventory.menu_mut();
                         for (i, slot) in p.items.iter().enumerate() {
                             if let Some(slot_mut) = menu.slot_mut(i) {
                                 *slot_mut = slot.clone();
@@ -644,6 +644,17 @@ fn handle_packets(ecs: &mut Ecs) {
                 }
                 ClientboundGamePacket::ContainerSetData(p) => {
                     debug!("Got container set data packet {:?}", p);
+                    // let mut system_state: SystemState<Query<&mut
+                    // InventoryComponent>> =
+                    //     SystemState::new(ecs);
+                    // let mut query = system_state.get_mut(ecs);
+                    // let mut inventory =
+                    // query.get_mut(player_entity).unwrap();
+
+                    // TODO: handle ContainerSetData packet
+                    // this is used for various things like the furnace progress
+                    // bar
+                    // see https://wiki.vg/Protocol#Set_Container_Property
                 }
                 ClientboundGamePacket::ContainerSetSlot(p) => {
                     debug!("Got container set slot packet {:?}", p);
@@ -657,7 +668,7 @@ fn handle_packets(ecs: &mut Ecs) {
                         // -1 means carried item
                         inventory.carried = p.item_stack.clone();
                     } else if p.container_id == -2 {
-                        if let Some(mut slot) = inventory.inventory_menu.slot_mut(p.slot.into()) {
+                        if let Some(slot) = inventory.inventory_menu.slot_mut(p.slot.into()) {
                             *slot = p.item_stack.clone();
                         }
                     } else {
@@ -675,11 +686,23 @@ fn handle_packets(ecs: &mut Ecs) {
                         } else if p.container_id == inventory.id
                             && (p.container_id != 0 || !is_creative_mode_and_inventory_closed)
                         {
-                            var2.containerMenu.setItem(var4, var1.getStateId(), var3);
+                            // var2.containerMenu.setItem(var4, var1.getStateId(), var3);
+                            if let Some(slot) = inventory.menu_mut().slot_mut(p.slot.into()) {
+                                *slot = p.item_stack.clone();
+                                inventory.state_id = p.state_id;
+                            }
                         }
                     }
                 }
-                ClientboundGamePacket::ContainerClose(_) => {}
+                ClientboundGamePacket::ContainerClose(_p) => {
+                    // there's p.container_id but minecraft doesn't actually check it
+                    let mut system_state: SystemState<EventWriter<ClientSideCloseContainerEvent>> =
+                        SystemState::new(ecs);
+                    let mut client_side_close_container_events = system_state.get_mut(ecs);
+                    client_side_close_container_events.send(ClientSideCloseContainerEvent {
+                        entity: player_entity,
+                    })
+                }
                 ClientboundGamePacket::SetHealth(p) => {
                     debug!("Got set health packet {:?}", p);
 

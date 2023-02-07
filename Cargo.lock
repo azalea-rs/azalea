@@ -309,6 +309,7 @@ dependencies = [
  "azalea-buf",
  "azalea-chat",
  "azalea-nbt",
+ "azalea-registry",
  "bevy_ecs",
  "uuid",
 ]
