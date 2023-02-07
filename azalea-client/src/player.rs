@@ -5,7 +5,7 @@ use azalea_ecs::{
     event::EventReader,
     system::{Commands, Res},
 };
-use azalea_world::EntityInfos;
+use azalea_world::entity::EntityInfos;
 use uuid::Uuid;
 
 use crate::{packet_handling::AddPlayerEvent, GameProfileComponent};

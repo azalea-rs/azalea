@@ -28,7 +28,8 @@ use azalea_world::{
         set_rotation, Dead, EntityBundle, EntityKind, LastSentPosition, MinecraftEntityId, Physics,
         PlayerBundle, Position, WorldName,
     },
-    LoadedBy, PartialWorld, RelativeEntityUpdate, WorldContainer,
+    entity::{LoadedBy, RelativeEntityUpdate},
+    PartialWorld, WorldContainer,
 };
 use log::{debug, error, trace, warn};
 use parking_lot::Mutex;

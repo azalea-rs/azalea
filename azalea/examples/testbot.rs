@@ -1,4 +1,4 @@
-//! mat's bot for testing new azalea features
+//! a bot for testing new azalea features
 
 #![feature(type_alias_impl_trait)]
 

@@ -9,10 +9,7 @@ use azalea_ecs::{
     system::{Commands, Query},
     AppTickExt,
 };
-use azalea_world::{
-    entity::{metadata::Player, set_rotation, Jumping, Physics, Position},
-    Local,
-};
+use azalea_world::entity::{metadata::Player, set_rotation, Jumping, Local, Physics, Position};
 use std::f64::consts::PI;
 
 use crate::pathfinder::PathfinderPlugin;

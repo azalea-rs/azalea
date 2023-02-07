@@ -3,6 +3,7 @@
 pub mod attributes;
 mod data;
 mod dimensions;
+mod info;
 pub mod metadata;
 
 use crate::ChunkStorage;
@@ -21,6 +22,7 @@ use azalea_ecs::{
 pub use data::*;
 use derive_more::{Deref, DerefMut};
 pub use dimensions::{update_bounding_box, EntityDimensions};
+pub use info::{EntityInfos, EntityPlugin, LoadedBy, PartialEntityInfos, RelativeEntityUpdate};
 use std::fmt::Debug;
 use uuid::Uuid;
 
@@ -313,6 +315,11 @@ pub struct PlayerBundle {
     pub entity: EntityBundle,
     pub metadata: metadata::PlayerMetadataBundle,
 }
+
+/// A marker component that signifies that this entity is "local" and shouldn't
+/// be updated by other clients.
+#[derive(Component)]
+pub struct Local;
 
 // #[cfg(test)]
 // mod tests {
