@@ -942,10 +942,18 @@ impl PacketReceiver {
     /// Loop that reads from the connection and adds the packets to the queue +
     /// runs the schedule.
     pub async fn read_task(self, mut read_conn: ReadConnection<ClientboundGamePacket>) {
-        while let Ok(packet) = read_conn.read().await {
-            self.packets.lock().push(packet);
-            // tell the client to run all the systems
-            self.run_schedule_sender.send(()).await.unwrap();
+        loop {
+            match read_conn.read().await {
+                Ok(packet) => {
+                    self.packets.lock().push(packet);
+                    // tell the client to run all the systems
+                    self.run_schedule_sender.send(()).await.unwrap();
+                }
+                Err(error) => {
+                    error!("Error reading packet from Client: {error:?}");
+                    return;
+                }
+            }
         }
     }
 
