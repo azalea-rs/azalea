@@ -1,4 +1,4 @@
-//! mat's bot for testing new azalea features
+//! a bot for testing new azalea features
 
 #![feature(type_alias_impl_trait)]
 
@@ -14,7 +14,7 @@ use std::time::Duration;
 #[derive(Default, Clone, Component)]
 struct State {}
 
-#[derive(Default, Clone, Component)]
+#[derive(Default, Clone, Resource)]
 struct SwarmState {}
 
 #[tokio::main]
@@ -54,7 +54,7 @@ async fn main() -> anyhow::Result<()> {
     }
 
     loop {
-        let e = azalea::SwarmBuilder::new()
+        let e = SwarmBuilder::new()
             .add_accounts(accounts.clone())
             .set_handler(handle)
             .set_swarm_handler(swarm_handle)

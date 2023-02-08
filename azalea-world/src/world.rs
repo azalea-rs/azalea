@@ -1,7 +1,8 @@
 use crate::{
-    entity::{EntityUuid, MinecraftEntityId, WorldName},
-    entity_info::LoadedBy,
-    ChunkStorage, EntityInfos, Local, PartialChunkStorage, PartialEntityInfos, WorldContainer,
+    entity::{
+        EntityInfos, EntityUuid, LoadedBy, Local, MinecraftEntityId, PartialEntityInfos, WorldName,
+    },
+    ChunkStorage, PartialChunkStorage, WorldContainer,
 };
 use azalea_core::ChunkPos;
 use azalea_ecs::{

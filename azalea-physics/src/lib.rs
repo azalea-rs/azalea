@@ -16,9 +16,10 @@ use azalea_ecs::{
 };
 use azalea_world::{
     entity::{
-        metadata::Sprinting, move_relative, Attributes, Jumping, Physics, Position, WorldName,
+        metadata::Sprinting, move_relative, Attributes, Jumping, Local, Physics, Position,
+        WorldName,
     },
-    Local, World, WorldContainer,
+    World, WorldContainer,
 };
 use collision::{move_colliding, MoverType};
 
@@ -310,8 +311,8 @@ mod tests {
     use azalea_core::{ChunkPos, ResourceLocation};
     use azalea_ecs::{app::App, TickPlugin};
     use azalea_world::{
-        entity::{EntityBundle, MinecraftEntityId},
-        Chunk, EntityPlugin, PartialWorld,
+        entity::{EntityBundle, EntityPlugin, MinecraftEntityId},
+        Chunk, PartialWorld,
     };
     use uuid::Uuid;
 

@@ -20,8 +20,8 @@ use tokio::sync::mpsc;
 
 use crate::{
     packet_handling::{
-        AddPlayerEvent, ChatReceivedEvent, DeathEvent, PacketReceiver, RemovePlayerEvent,
-        UpdatePlayerEvent,
+        AddPlayerEvent, ChatReceivedEvent, DeathEvent, KeepAliveEvent, PacketReceiver,
+        RemovePlayerEvent, UpdatePlayerEvent,
     },
     ChatPacket, PlayerInfo,
 };
@@ -73,6 +73,8 @@ pub enum Event {
     UpdatePlayer(PlayerInfo),
     /// The client player died in-game.
     Death(Option<Arc<ClientboundPlayerCombatKillPacket>>),
+    /// A `KeepAlive` packet was sent by the server.
+    KeepAlive(u64),
 }
 
 /// A component that contains an event sender for events that are only
@@ -94,6 +96,7 @@ impl Plugin for EventPlugin {
             .add_system(update_player_listener)
             .add_system(remove_player_listener)
             .add_system(death_listener)
+            .add_system(keepalive_listener)
             .add_tick_system(tick_listener);
     }
 }
@@ -157,7 +160,7 @@ fn update_player_listener(
     for event in events.iter() {
         let local_player_events = query
             .get(event.entity)
-            .expect("Non-localplayer entities shouldn't be able to receive add player events");
+            .expect("Non-localplayer entities shouldn't be able to receive update player events");
         local_player_events
             .send(Event::UpdatePlayer(event.info.clone()))
             .unwrap();
@@ -171,7 +174,7 @@ fn remove_player_listener(
     for event in events.iter() {
         let local_player_events = query
             .get(event.entity)
-            .expect("Non-localplayer entities shouldn't be able to receive add player events");
+            .expect("Non-localplayer entities shouldn't be able to receive remove player events");
         local_player_events
             .send(Event::RemovePlayer(event.info.clone()))
             .unwrap();
@@ -185,5 +188,16 @@ fn death_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<Deat
                 .send(Event::Death(event.packet.clone().map(|p| p.into())))
                 .unwrap();
         }
+    }
+}
+
+fn keepalive_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<KeepAliveEvent>) {
+    for event in events.iter() {
+        let local_player_events = query
+            .get(event.entity)
+            .expect("Non-localplayer entities shouldn't be able to receive keepalive events");
+        local_player_events
+            .send(Event::KeepAlive(event.id))
+            .unwrap();
     }
 }

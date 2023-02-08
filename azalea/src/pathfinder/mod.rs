@@ -17,7 +17,7 @@ use azalea_ecs::{
     AppTickExt,
 };
 use azalea_world::entity::metadata::Player;
-use azalea_world::Local;
+use azalea_world::entity::Local;
 use azalea_world::{
     entity::{Physics, Position, WorldName},
     WorldContainer,

@@ -21,6 +21,7 @@ use azalea_protocol::{
         serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
         ClientboundGamePacket, ServerboundGamePacket,
     },
+    read::ReadPacketError,
 };
 use azalea_world::{
     entity::{
@@ -28,7 +29,8 @@ use azalea_world::{
         set_rotation, Dead, EntityBundle, EntityKind, LastSentPosition, MinecraftEntityId, Physics,
         PlayerBundle, Position, WorldName,
     },
-    LoadedBy, PartialWorld, RelativeEntityUpdate, WorldContainer,
+    entity::{LoadedBy, RelativeEntityUpdate},
+    PartialWorld, WorldContainer,
 };
 use log::{debug, error, trace, warn};
 use parking_lot::Mutex;
@@ -50,13 +52,14 @@ impl Plugin for PacketHandlerPlugin {
         .add_event::<RemovePlayerEvent>()
         .add_event::<UpdatePlayerEvent>()
         .add_event::<ChatReceivedEvent>()
-        .add_event::<DeathEvent>();
+        .add_event::<DeathEvent>()
+        .add_event::<KeepAliveEvent>();
     }
 }
 
 /// A player joined the game (or more specifically, was added to the tab
 /// list of a local player).
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AddPlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -64,7 +67,7 @@ pub struct AddPlayerEvent {
 }
 /// A player left the game (or maybe is still in the game and was just
 /// removed from the tab list of a local player).
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RemovePlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -72,7 +75,7 @@ pub struct RemovePlayerEvent {
 }
 /// A player was updated in the tab list of a local player (gamemode, display
 /// name, or latency changed).
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UpdatePlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -80,7 +83,7 @@ pub struct UpdatePlayerEvent {
 }
 
 /// A client received a chat message packet.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ChatReceivedEvent {
     pub entity: Entity,
     pub packet: ChatPacket,
@@ -89,9 +92,20 @@ pub struct ChatReceivedEvent {
 /// Event for when an entity dies. dies. If it's a local player and there's a
 /// reason in the death screen, the [`ClientboundPlayerCombatKillPacket`] will
 /// be included.
+#[derive(Debug, Clone)]
 pub struct DeathEvent {
     pub entity: Entity,
     pub packet: Option<ClientboundPlayerCombatKillPacket>,
+}
+
+/// A KeepAlive packet is sent from the server to verify that the client is
+/// still connected.
+#[derive(Debug, Clone)]
+pub struct KeepAliveEvent {
+    pub entity: Entity,
+    /// The ID of the keepalive. This is an arbitrary number, but vanilla
+    /// servers use the time to generate this.
+    pub id: u64,
 }
 
 /// Something that receives packets from the server.
@@ -582,6 +596,7 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::AddPlayer(p) => {
                     debug!("Got add player packet {:?}", p);
 
+                    #[allow(clippy::type_complexity)]
                     let mut system_state: SystemState<(
                         Commands,
                         Query<(&mut LocalPlayer, Option<&WorldName>)>,
@@ -741,11 +756,18 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::KeepAlive(p) => {
                     debug!("Got keep alive packet {p:?} for {player_entity:?}");
 
-                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
-                        SystemState::new(ecs);
-                    let mut query = system_state.get_mut(ecs);
-                    let mut local_player = query.get_mut(player_entity).unwrap();
+                    let mut system_state: SystemState<(
+                        Query<&mut LocalPlayer>,
+                        EventWriter<KeepAliveEvent>,
+                    )> = SystemState::new(ecs);
+                    let (mut query, mut keepalive_events) = system_state.get_mut(ecs);
 
+                    keepalive_events.send(KeepAliveEvent {
+                        entity: player_entity,
+                        id: p.id,
+                    });
+
+                    let mut local_player = query.get_mut(player_entity).unwrap();
                     local_player.write_packet(ServerboundKeepAlivePacket { id: p.id }.get());
                     debug!("Sent keep alive packet {p:?} for {player_entity:?}");
                 }
@@ -925,10 +947,20 @@ impl PacketReceiver {
     /// Loop that reads from the connection and adds the packets to the queue +
     /// runs the schedule.
     pub async fn read_task(self, mut read_conn: ReadConnection<ClientboundGamePacket>) {
-        while let Ok(packet) = read_conn.read().await {
-            self.packets.lock().push(packet);
-            // tell the client to run all the systems
-            self.run_schedule_sender.send(()).await.unwrap();
+        loop {
+            match read_conn.read().await {
+                Ok(packet) => {
+                    self.packets.lock().push(packet);
+                    // tell the client to run all the systems
+                    self.run_schedule_sender.send(()).await.unwrap();
+                }
+                Err(error) => {
+                    if !matches!(*error, ReadPacketError::ConnectionClosed) {
+                        error!("Error reading packet from Client: {error:?}");
+                    }
+                    return;
+                }
+            }
         }
     }
 

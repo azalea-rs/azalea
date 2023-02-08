@@ -1,5 +1,4 @@
-use azalea::{prelude::*, SwarmEvent};
-use azalea::{Account, Client, Event, Swarm};
+use azalea::prelude::*;
 
 #[tokio::main]
 async fn main() {
@@ -7,44 +6,29 @@ async fn main() {
     let mut states = Vec::new();
 
     for i in 0..10 {
-        accounts.push(Account::offline(&format!("bot{o}")));
+        accounts.push(Account::offline(&format!("bot{i}")));
         states.push(State::default());
     }
 
-    azalea::start_swarm(azalea::SwarmOptions {
-        accounts,
-        address: "localhost",
-
-        swarm_state: SwarmState::default(),
-        states,
-
-        swarm_plugins: plugins![],
-        plugins: plugins![],
-
-        handle,
-        swarm_handle,
-
-        join_delay: None,
-    })
-    .await
-    .unwrap();
+    let e = azalea::SwarmBuilder::new()
+        .add_accounts(accounts.clone())
+        .set_handler(handle)
+        .set_swarm_handler(swarm_handle)
+        .start("localhost")
+        .await;
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Component)]
 struct State {}
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Resource)]
 struct SwarmState {}
 
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn swarm_handle(
-    swarm: Swarm<State>,
-    event: SwarmEvent,
-    state: SwarmState,
-) -> anyhow::Result<()> {
+async fn swarm_handle(swarm: Swarm, event: SwarmEvent, state: SwarmState) -> anyhow::Result<()> {
     match &event {
         SwarmEvent::Login => {
             swarm.goto(azalea::BlockPos::new(0, 70, 0)).await;
