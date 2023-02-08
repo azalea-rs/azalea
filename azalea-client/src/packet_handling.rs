@@ -98,11 +98,13 @@ pub struct DeathEvent {
     pub packet: Option<ClientboundPlayerCombatKillPacket>,
 }
 
-/// A KeepAlive event is sent from the server
-/// to verify the client is still connected.
+/// A KeepAlive packet is sent from the server to verify that the client is
+/// still connected.
 #[derive(Debug, Clone)]
 pub struct KeepAliveEvent {
     pub entity: Entity,
+    /// The ID of the keepalive. This is an arbitrary number, but vanilla
+    /// servers use the time to generate this.
     pub id: u64,
 }
 
@@ -951,11 +953,10 @@ impl PacketReceiver {
                     self.run_schedule_sender.send(()).await.unwrap();
                 }
                 Err(error) => {
-                    if let ReadPacketError::ConnectionClosed = *error {
-                        return;
-                    } else {
-                        panic!("Error reading packet from Client: {error:?}");
+                    if !matches!(*error, ReadPacketError::ConnectionClosed) {
+                        error!("Error reading packet from Client: {error:?}");
                     }
+                    return;
                 }
             }
         }

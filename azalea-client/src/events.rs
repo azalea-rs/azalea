@@ -73,7 +73,7 @@ pub enum Event {
     UpdatePlayer(PlayerInfo),
     /// The client player died in-game.
     Death(Option<Arc<ClientboundPlayerCombatKillPacket>>),
-    /// A KeepAlive event from the Server
+    /// A `KeepAlive` packet was sent by the server.
     KeepAlive(u64),
 }
 
