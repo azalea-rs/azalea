@@ -6,6 +6,9 @@ name = "azalea-block"
 repository = "https://github.com/mat-1/azalea/tree/main/azalea-block"
 version = "0.5.0"
 
+[features]
+full-debug = ["azalea-block-macros/full-debug"]
+
 [lib]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

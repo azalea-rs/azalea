@@ -563,6 +563,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
         #[repr(u32)]
         #[derive(Copy, Clone, PartialEq, Eq)]
+        // the Debug impl is very large and slows down compilation
+        #[cfg_attr(feature = "full-debug", derive(Debug))]
         pub enum BlockState {
             #block_state_enum_variants
         }
@@ -575,10 +577,11 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             }
         }
 
+        #[cfg(not(feature = "full-debug"))]
         impl std::fmt::Debug for BlockState {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 // having a big match statement here would take up 700kb
-                f.write_str("BlockState")
+                f.write_str("BlockState (enable full-debug feature to see block)")
             }
         }
     };

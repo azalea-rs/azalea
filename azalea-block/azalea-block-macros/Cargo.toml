@@ -6,6 +6,9 @@ name = "azalea-block-macros"
 repository = "https://github.com/mat-1/azalea/tree/main/azalea-block/azalea-block-macros"
 version = "0.5.0"
 
+[features]
+full-debug = []
+
 [lib]
 proc-macro = true
 
