@@ -268,7 +268,6 @@ pub fn add_updates_received(
     }
 }
 
-
 /// The [`UpdatesReceived`] component should never be on [`Local`] entities.
 /// This warns if an entity has both components.
 fn debug_detect_updates_received_on_local_entities(
