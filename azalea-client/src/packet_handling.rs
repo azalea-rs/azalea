@@ -21,6 +21,7 @@ use azalea_protocol::{
         serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
         ClientboundGamePacket, ServerboundGamePacket,
     },
+    read::ReadPacketError,
 };
 use azalea_world::{
     entity::{
@@ -950,7 +951,11 @@ impl PacketReceiver {
                     self.run_schedule_sender.send(()).await.unwrap();
                 }
                 Err(error) => {
-                    panic!("Error reading packet from Client: {error:?}");
+                    if let ReadPacketError::ConnectionClosed = *error {
+                        return;
+                    } else {
+                        panic!("Error reading packet from Client: {error:?}");
+                    }
                 }
             }
         }
