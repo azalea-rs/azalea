@@ -51,13 +51,14 @@ impl Plugin for PacketHandlerPlugin {
         .add_event::<RemovePlayerEvent>()
         .add_event::<UpdatePlayerEvent>()
         .add_event::<ChatReceivedEvent>()
-        .add_event::<DeathEvent>();
+        .add_event::<DeathEvent>()
+        .add_event::<KeepAliveEvent>();
     }
 }
 
 /// A player joined the game (or more specifically, was added to the tab
 /// list of a local player).
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AddPlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -65,7 +66,7 @@ pub struct AddPlayerEvent {
 }
 /// A player left the game (or maybe is still in the game and was just
 /// removed from the tab list of a local player).
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RemovePlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -73,7 +74,7 @@ pub struct RemovePlayerEvent {
 }
 /// A player was updated in the tab list of a local player (gamemode, display
 /// name, or latency changed).
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UpdatePlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -81,7 +82,7 @@ pub struct UpdatePlayerEvent {
 }
 
 /// A client received a chat message packet.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ChatReceivedEvent {
     pub entity: Entity,
     pub packet: ChatPacket,
@@ -90,9 +91,18 @@ pub struct ChatReceivedEvent {
 /// Event for when an entity dies. dies. If it's a local player and there's a
 /// reason in the death screen, the [`ClientboundPlayerCombatKillPacket`] will
 /// be included.
+#[derive(Debug, Clone)]
 pub struct DeathEvent {
     pub entity: Entity,
     pub packet: Option<ClientboundPlayerCombatKillPacket>,
+}
+
+/// A KeepAlive event is sent from the server
+/// to verify the client is still connected.
+#[derive(Debug, Clone)]
+pub struct KeepAliveEvent {
+    pub entity: Entity,
+    pub id: u64,
 }
 
 /// Something that receives packets from the server.
@@ -743,11 +753,18 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::KeepAlive(p) => {
                     debug!("Got keep alive packet {p:?} for {player_entity:?}");
 
-                    let mut system_state: SystemState<Query<&mut LocalPlayer>> =
-                        SystemState::new(ecs);
-                    let mut query = system_state.get_mut(ecs);
-                    let mut local_player = query.get_mut(player_entity).unwrap();
+                    let mut system_state: SystemState<(
+                        Query<&mut LocalPlayer>,
+                        EventWriter<KeepAliveEvent>,
+                    )> = SystemState::new(ecs);
+                    let (mut query, mut keepalive_events) = system_state.get_mut(ecs);
 
+                    keepalive_events.send(KeepAliveEvent {
+                        entity: player_entity,
+                        id: p.id,
+                    });
+
+                    let mut local_player = query.get_mut(player_entity).unwrap();
                     local_player.write_packet(ServerboundKeepAlivePacket { id: p.id }.get());
                     debug!("Sent keep alive packet {p:?} for {player_entity:?}");
                 }
