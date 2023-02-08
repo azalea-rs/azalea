@@ -950,8 +950,7 @@ impl PacketReceiver {
                     self.run_schedule_sender.send(()).await.unwrap();
                 }
                 Err(error) => {
-                    error!("Error reading packet from Client: {error:?}");
-                    return;
+                    panic!("Error reading packet from Client: {error:?}");
                 }
             }
         }
