@@ -580,8 +580,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         #[cfg(not(feature = "full-debug"))]
         impl std::fmt::Debug for BlockState {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                // having a big match statement here would take up 700kb
-                f.write_str("BlockState (enable full-debug feature to see block)")
+                write!(f, "BlockState ({})", Box::<dyn Block>::from(*self).id())
             }
         }
     };

@@ -74,4 +74,13 @@ mod tests {
         let block: Box<dyn Block> = Box::<dyn Block>::from(BlockState::FloweringAzalea);
         assert_eq!(block.id(), "flowering_azalea");
     }
+
+    #[cfg(not(feature = "full-debug"))]
+    #[test]
+    fn test_debug_blockstate() {
+        assert_eq!(
+            format!("{:?}", BlockState::FloweringAzalea),
+            "BlockState (flowering_azalea)"
+        );
+    }
 }

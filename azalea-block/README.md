@@ -8,3 +8,5 @@ There's two main things here, the `BlockState` enum and the `Block` trait.
 Every block is a struct that implements `Block`. You can freely convert between `BlockState` and `Block` with .into().
 
 If you don't want the `Block` trait, set default-features to false.
+
+Also, by default the `Debug` implementation for `BlockState` only logs the name of the block and not the name of the enum variant. If you want that, enable the `full-debug` feature (though it's not recommended).
