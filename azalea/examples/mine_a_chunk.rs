@@ -1,4 +1,4 @@
-use azalea::prelude::*;
+use azalea::{prelude::*, swarm::prelude::*};
 
 #[tokio::main]
 async fn main() {
@@ -10,7 +10,7 @@ async fn main() {
         states.push(State::default());
     }
 
-    let e = azalea::SwarmBuilder::new()
+    let e = SwarmBuilder::new()
         .add_accounts(accounts.clone())
         .set_handler(handle)
         .set_swarm_handler(swarm_handle)

@@ -73,7 +73,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 
 # Swarms
 
-Azalea lets you create "swarms", which are a group of bots in the same world that can perform actions together. See [testbot](https://github.com/mat-1/azalea/blob/main/azalea/examples/testbot.rs) for an example.
+Azalea lets you create "swarms", which are a group of bots in the same world that can perform actions together. See [testbot](https://github.com/mat-1/azalea/blob/main/azalea/examples/testbot.rs) for an example. Also, if you're using swarms, you should also have both `azalea::prelude::*` and `azalea::swarm::prelude::*`.
 
 # Plugins
 

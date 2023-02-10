@@ -29,7 +29,7 @@ use tokio::sync::mpsc;
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
 ///
-/// Swarms are created from [`azalea::SwarmBuilder`].
+/// Swarms are created from [`azalea::swarm::SwarmBuilder`].
 ///
 /// The `S` type parameter is the type of the state for individual bots.
 /// It's used to make the [`Swarm::add`] function work.
