@@ -3,7 +3,6 @@ import lib.code.entity
 import lib.code.utils
 import lib.download
 import lib.extract
-import sys
 
 version_id = lib.code.version.get_version_id()
 

@@ -2247,7 +2247,7 @@ impl Default for EndermanMetadataBundle {
                     },
                 },
             },
-            carry_state: CarryState(Empty),
+            carry_state: CarryState(None),
             creepy: Creepy(false),
             stared_at: StaredAt(false),
         }
@@ -2705,7 +2705,7 @@ impl Default for FireballMetadataBundle {
 #[derive(Component, Deref, DerefMut)]
 pub struct FireworksItem(pub Slot);
 #[derive(Component, Deref, DerefMut)]
-pub struct AttachedToTarget(pub Option<u32>);
+pub struct AttachedToTarget(pub OptionalUnsignedInt);
 #[derive(Component, Deref, DerefMut)]
 pub struct ShotAtAngle(pub bool);
 #[derive(Component)]
@@ -2956,7 +2956,7 @@ impl Default for FoxMetadataBundle {
 #[derive(Component, Deref, DerefMut)]
 pub struct FrogVariant(pub azalea_registry::FrogVariant);
 #[derive(Component, Deref, DerefMut)]
-pub struct TongueTarget(pub Option<u32>);
+pub struct TongueTarget(pub OptionalUnsignedInt);
 #[derive(Component)]
 pub struct Frog;
 impl Frog {

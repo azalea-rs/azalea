@@ -27,7 +27,7 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
         {'name': 'CompoundTag', 'type': 'azalea_nbt::Tag'},
         {'name': 'Particle', 'type': 'Particle'},
         {'name': 'VillagerData', 'type': 'VillagerData'},
-        {'name': 'OptionalUnsignedInt', 'type': 'Option<u32>'},
+        {'name': 'OptionalUnsignedInt', 'type': 'OptionalUnsignedInt'},
         {'name': 'Pose', 'type': 'Pose'},
         {'name': 'CatVariant', 'type': 'azalea_registry::CatVariant'},
         {'name': 'FrogVariant', 'type': 'azalea_registry::FrogVariant'},
@@ -365,8 +365,8 @@ impl From<EntityDataValue> for UpdateMetadataError {
                             default = f'OptionalUnsignedInt(Some({default}))' if default != 'Empty' else 'OptionalUnsignedInt(None)'
                         elif type_name == 'ItemStack':
                             default = f'Slot::Present({default})' if default != 'Empty' else 'Slot::Empty'
-                        elif type_name == 'BlockState':
-                            default = f'{default}' if default != 'Empty' else 'BlockState::AIR'
+                        elif type_name == 'OptionalBlockState':
+                            default = f'Some({default})' if default != 'Empty' else 'None'
                         elif type_name == 'OptionalFormattedText':
                             default = f'Some({default})' if default != 'Empty' else 'None'
                         elif type_name == 'CompoundTag':
