@@ -11,5 +11,4 @@ version = "0.6.0"
 azalea-ecs-macros = {path = "./azalea-ecs-macros", version = "^0.6.0"}
 bevy_app = "0.9.1"
 bevy_ecs = {version = "0.9.1", default-features = false}
-iyes_loopless = "0.9.1"
 tokio = {version = "1.25.0", features = ["time"]}

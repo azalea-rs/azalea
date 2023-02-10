@@ -180,7 +180,6 @@ dependencies = [
  "env_logger 0.10.0",
  "futures",
  "futures-lite",
- "iyes_loopless",
  "log",
  "nohash-hasher",
  "num-traits",
@@ -290,7 +289,6 @@ dependencies = [
  "derive_more",
  "env_logger 0.9.3",
  "futures",
- "iyes_loopless",
  "log",
  "nohash-hasher",
  "once_cell",
@@ -335,7 +333,6 @@ dependencies = [
  "azalea-ecs-macros",
  "bevy_app",
  "bevy_ecs",
- "iyes_loopless",
  "tokio",
 ]
 
@@ -382,7 +379,6 @@ dependencies = [
  "azalea-ecs",
  "azalea-registry",
  "azalea-world",
- "iyes_loopless",
  "once_cell",
  "parking_lot",
  "uuid",
@@ -465,7 +461,6 @@ dependencies = [
  "azalea-registry",
  "derive_more",
  "enum-as-inner",
- "iyes_loopless",
  "log",
  "nohash-hasher",
  "once_cell",
@@ -1522,18 +1517,6 @@ name = "itoa"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fad582f4b9e86b6caa621cabeb0963332d92eea04729ab12892c2533951e6440"
-
-[[package]]
-name = "iyes_loopless"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c47fd2cbdb1d7f295c25e6bfccfd78a84b6eef3055bc9f01b34ae861721b01ee"
-dependencies = [
- "bevy_app",
- "bevy_ecs",
- "bevy_time",
- "bevy_utils",
-]
 
 [[package]]
 name = "js-sys"

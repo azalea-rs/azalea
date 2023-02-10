@@ -9,12 +9,11 @@ version = "0.6.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-block = {path = "../azalea-block", version = "^0.6.0" }
-azalea-core = {path = "../azalea-core", version = "^0.6.0" }
+azalea-block = {path = "../azalea-block", version = "^0.6.0"}
+azalea-core = {path = "../azalea-core", version = "^0.6.0"}
 azalea-ecs = {version = "0.6.0", path = "../azalea-ecs"}
-azalea-registry = {path = "../azalea-registry", version = "^0.6.0" }
-azalea-world = {path = "../azalea-world", version = "^0.6.0" }
-iyes_loopless = "0.9.1"
+azalea-registry = {path = "../azalea-registry", version = "^0.6.0"}
+azalea-world = {path = "../azalea-world", version = "^0.6.0"}
 once_cell = "1.16.0"
 parking_lot = "^0.12.1"
 
