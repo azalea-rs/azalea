@@ -28,7 +28,7 @@ use crate::{
 /// You can also use the [`Local`] marker component for queries if you're only
 /// checking for a local player and don't need the contents of this component.
 ///
-/// [`Local`]: azalea_world::Local
+/// [`Local`]: azalea_world::entity::Local
 /// [`Client`]: crate::Client
 #[derive(Component)]
 pub struct LocalPlayer {

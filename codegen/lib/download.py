@@ -19,15 +19,15 @@ def get_burger():
             f'cd {get_dir_location("downloads")} && git clone https://github.com/pokechu22/Burger && cd Burger && git pull')
 
         print('\033[92mInstalling dependencies...\033[m')
-        os.system('cd downloads/Burger && pip install six jawa')
+        os.system(f'cd {get_dir_location("downloads")}/Burger && pip install six jawa')
 
 
-def get_generator_mod():
-    if not os.path.exists(get_dir_location('downloads/minecraft-data-generator-server')):
-        print('\033[92mDownloading u9g/minecraft-data-generator-server...\033[m')
+def get_pixlyzer():
+    if not os.path.exists(get_dir_location('downloads/pixlyzer')):
+        print('\033[92mDownloading bixilon/pixlyzer...\033[m')
         os.system(
-            f'cd {get_dir_location("downloads")} && git clone https://github.com/u9g/minecraft-data-generator-server && cd minecraft-data-generator-server && git pull')
-    return get_dir_location('downloads/minecraft-data-generator-server')
+            f'cd {get_dir_location("downloads")} && git clone https://gitlab.bixilon.de/bixilon/pixlyzer.git && cd pixlyzer && git pull')
+    return get_dir_location('downloads/pixlyzer')
 
 
 def get_version_manifest():
@@ -180,4 +180,4 @@ def clear_version_cache():
     os.system(
         f'cd {get_dir_location("downloads/Burger")} && git pull')
     os.system(
-        f'cd {get_dir_location("downloads/minecraft-data-generator-server")} && git pull')
+        f'cd {get_dir_location("downloads/pixlyzer")} && git pull')

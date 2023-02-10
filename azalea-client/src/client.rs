@@ -43,7 +43,10 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use azalea_world::{entity::WorldName, EntityPlugin, Local, PartialWorld, World, WorldContainer};
+use azalea_world::{
+    entity::{EntityPlugin, Local, WorldName},
+    PartialWorld, World, WorldContainer,
+};
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
 use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc};
@@ -377,7 +380,8 @@ impl Client {
     /// # Examples
     ///
     /// ```
-    /// # fn example(client: &azalea::Client) {
+    /// # use azalea_world::entity::WorldName;
+    /// # fn example(client: &azalea_client::Client) {
     /// let world_name = client.component::<WorldName>();
     /// # }
     pub fn component<T: Component + Clone>(&self) -> T {

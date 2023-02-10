@@ -7,15 +7,11 @@ async fn main() {
     let account = Account::offline("bot");
     // or let account = Account::microsoft("email").await;
 
-    azalea::start(azalea::Options {
-        account,
-        address: "localhost",
-        state: State::default(),
-        plugins: plugins![],
-        handle,
-    })
-    .await
-    .unwrap();
+    ClientBuilder::new()
+        .set_handler(handle)
+        .start(account, "localhost")
+        .await
+        .unwrap();
 }
 
 #[derive(Default, Clone, Component)]
@@ -28,7 +24,7 @@ async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> 
                 if sender == bot.profile.name {
                     return Ok(()); // ignore our own messages
                 }
-                bot.chat(&content).await?;
+                bot.chat(&content);
             };
         }
         _ => {}

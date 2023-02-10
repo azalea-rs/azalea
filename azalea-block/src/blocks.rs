@@ -1,9 +1,18 @@
+use std::any::Any;
+
 use crate::BlockBehavior;
 use azalea_block_macros::make_block_states;
+use std::fmt::Debug;
 
-pub trait Block {
+pub trait Block: Debug + Any {
     fn behavior(&self) -> BlockBehavior;
     fn id(&self) -> &'static str;
+    fn as_blockstate(&self) -> BlockState;
+}
+impl dyn Block {
+    pub fn downcast_ref<T: Block>(&self) -> Option<&T> {
+        (self as &dyn Any).downcast_ref::<T>()
+    }
 }
 
 make_block_states! {
@@ -178,7 +187,7 @@ make_block_states! {
             Down,
         },
         "triggered" => bool,
-        "instrument" => Instrument {
+        "instrument" => Sound {
             Harp,
             Basedrum,
             Snare,
@@ -588,7 +597,11 @@ make_block_states! {
             _6,
             _7,
         },
-        "berries" => bool,
+        "down" => bool,
+        "north" => bool,
+        "south" => bool,
+        "up" => bool,
+        "west" => bool,
         "in_wall" => bool,
         "age" => NetherWartAge {
             _0,
@@ -1535,6 +1548,8 @@ make_block_states! {
             Active,
             Cooldown,
         },
+        "south" => bool,
+        "west" => bool,
         "bloom" => bool,
         "can_summon" => bool,
         "shrieking" => bool,
@@ -1549,7 +1564,7 @@ make_block_states! {
             Up,
             Down,
         },
-        "age" => _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15_16_17_18_19_20_21_22_23_24_25 {
+        "age" => CaveVinesAge {
             _0,
             _1,
             _2,
@@ -1577,13 +1592,14 @@ make_block_states! {
             _24,
             _25,
         },
+        "berries" => bool,
         "tilt" => Tilt {
             None,
             Unstable,
             Partial,
             Full,
         },
-        "axis" => XYZ {
+        "axis" => CacheSize {
             X,
             Y,
             Z,
@@ -1804,7 +1820,7 @@ make_block_states! {
         chiseled_sandstone => BlockBehavior::default(), {},
         cut_sandstone => BlockBehavior::default(), {},
         note_block => BlockBehavior::default(), {
-            instrument: Instrument::Harp,
+            instrument: Sound::Harp,
             note: NoteBlockNote::_0,
             powered: false,
         },
@@ -4355,7 +4371,7 @@ make_block_states! {
         },
         dripstone_block => BlockBehavior::default(), {},
         cave_vines => BlockBehavior::default(), {
-            age: _0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15_16_17_18_19_20_21_22_23_24_25::_0,
+            age: CaveVinesAge::_0,
             berries: false,
         },
         cave_vines_plant => BlockBehavior::default(), {
@@ -4468,7 +4484,7 @@ make_block_states! {
         cracked_deepslate_bricks => BlockBehavior::default(), {},
         cracked_deepslate_tiles => BlockBehavior::default(), {},
         infested_deepslate => BlockBehavior::default(), {
-            axis: XYZ::Y,
+            axis: CacheSize::Y,
         },
         smooth_basalt => BlockBehavior::default(), {},
         raw_iron_block => BlockBehavior::default(), {},

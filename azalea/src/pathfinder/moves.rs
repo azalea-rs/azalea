@@ -165,12 +165,12 @@ mod tests {
         );
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 0, 0),
-            BlockState::Stone,
+            azalea_registry::Block::Stone.into(),
             &mut chunk_storage,
         );
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 1, 0),
-            BlockState::Air,
+            BlockState::AIR,
             &mut chunk_storage,
         );
 
@@ -190,12 +190,12 @@ mod tests {
         );
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 0, 0),
-            BlockState::Stone,
+            azalea_registry::Block::Stone.into(),
             &mut chunk_storage,
         );
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 1, 0),
-            BlockState::Air,
+            BlockState::AIR,
             &mut chunk_storage,
         );
 
@@ -215,22 +215,22 @@ mod tests {
         );
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 0, 0),
-            BlockState::Stone,
+            azalea_registry::Block::Stone.into(),
             &mut chunk_storage,
         );
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 1, 0),
-            BlockState::Air,
+            BlockState::AIR,
             &mut chunk_storage,
         );
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 2, 0),
-            BlockState::Air,
+            BlockState::AIR,
             &mut chunk_storage,
         );
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 3, 0),
-            BlockState::Air,
+            BlockState::AIR,
             &mut chunk_storage,
         );
 

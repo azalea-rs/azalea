@@ -1,9 +1,12 @@
 # Extracting data from the Minecraft jars
 
-from lib.download import get_server_jar, get_burger, get_client_jar, get_generator_mod, get_yarn_data, get_fabric_api_versions, get_fabric_loader_versions
+from lib.download import get_server_jar, get_burger, get_client_jar, get_pixlyzer, get_yarn_data, get_fabric_api_versions, get_fabric_loader_versions
 from lib.utils import get_dir_location
+from zipfile import ZipFile
 import subprocess
+import requests
 import json
+import sys
 import re
 import os
 
@@ -59,103 +62,197 @@ def determine_python_command():
         'Couldn\'t determine python command to use to run burger with!')
 
 
+def run_python_command_and_download_deps(command):
+    print('>', command)
+    for _ in range(10):
+        p = subprocess.Popen(
+            command,
+            stderr=subprocess.PIPE,
+            shell=True
+        )
+
+        stderr = b''
+        while True:
+            data = p.stderr.read()
+            if data == b'':
+                break
+            print(data.decode(), end='', flush=True)
+            stderr += data
+
+        regex_match = re.search(
+            r'ModuleNotFoundError: No module named \'(\w+?)\'', stderr.decode())
+        if not regex_match:
+            out, err = p.communicate()
+            if out:
+                print(out)
+            if err:
+                print(err)
+            break
+        missing_lib = regex_match.group(1)
+        print('Missing required lib:', missing_lib)
+        os.system(
+            f'{determine_python_command()} -m pip install {missing_lib}')
+    print('ok')
+
+
 def get_burger_data_for_version(version_id: str):
     if not os.path.exists(get_dir_location(f'downloads/burger-{version_id}.json')):
         get_burger()
         get_client_jar(version_id)
 
-        for _ in range(10):
-            r = subprocess.run(
-                f'cd {get_dir_location("downloads/Burger")} && {determine_python_command()} munch.py ../client-{version_id}.jar --output ../burger-{version_id}.json',
-                capture_output=True,
-                shell=True
-            )
-            regex_match = re.search(
-                r'ModuleNotFoundError: No module named \'(\w+?)\'', r.stderr.decode())
-            if not regex_match:
-                break
-            missing_lib = regex_match.group(1)
-            print('Missing required lib for Burger:', missing_lib)
-            os.system(
-                f'{determine_python_command()} -m pip install {missing_lib}')
+        print('\033[92mRunning Burger...\033[m')
+        run_python_command_and_download_deps(
+            f'cd {get_dir_location("downloads/Burger")} && {determine_python_command()} munch.py {get_dir_location("downloads")}/client-{version_id}.jar --output {get_dir_location("downloads")}/burger-{version_id}.json'
+        )
     with open(get_dir_location(f'downloads/burger-{version_id}.json'), 'r') as f:
         return json.load(f)
 
 
-def get_generator_mod_data(version_id: str, category: str):
+def get_pixlyzer_data(version_id: str, category: str):
     '''
-    Gets data from u9g's data generator mod. Note that this is not very stable, and it requires Yarn to release updates first.
+    Gets data from Pixlyzer. Note that this requires Yarn to release updates first.
     '''
 
-    target_dir = get_dir_location(f'downloads/generator-mod-{version_id}')
+    target_dir = get_dir_location(f'downloads/pixlyzer-{version_id}')
 
-    if not os.path.exists(get_dir_location(target_dir)):
-        generator_mod_dir = get_generator_mod()
-
-        yarn_data = get_yarn_data(version_id)
-        if not yarn_data:
-            raise Exception(
-                'Fabric/Yarn hasn\'t been updated to this version yet.')
-        # looks like 1.19+build.1
-        yarn_version = yarn_data['version']
-
-        fabric_api_version = get_fabric_api_versions()[-1]
-        fabric_loader_version = get_fabric_loader_versions()[0]
-
-        # the mod has the minecraft version hard-coded by default, so we just change the gradle.properties and fabric.mod.json
-        with open(get_dir_location(f'{generator_mod_dir}/gradle.properties'), 'r') as f:
-            lines = f.readlines()
-        with open(get_dir_location(f'{generator_mod_dir}/gradle.properties'), 'w') as f:
-            for line in lines:
-                if line.startswith('minecraft_version='):
-                    line = f'minecraft_version={version_id}\n'
-                if line.startswith('yarn_mappings='):
-                    line = f'yarn_mappings={yarn_version}\n'
-                if line.startswith('fabric_version='):
-                    line = f'fabric_version={fabric_api_version}\n'
-                if line.startswith('loader_version='):
-                    line = f'loader_version={fabric_loader_version}\n'
-                f.write(line)
-        # edit the fabric.mod.json to support this version
-        with open(get_dir_location(f'{generator_mod_dir}/src/main/resources/fabric.mod.json'), 'r') as f:
-            fabric_mod_json = json.load(f)
-        fabric_mod_json['depends']['minecraft'] = '*'
-        with open(get_dir_location(f'{generator_mod_dir}/src/main/resources/fabric.mod.json'), 'w') as f:
-            json.dump(fabric_mod_json, f, indent=2)
-
+    # TODO: right now this False is hard-coded, it should retry with this
+    # enabled if # initially getting the data fails
+    if True or (os.path.exists(target_dir) and not os.path.exists(f'{target_dir}/{category}.min.json')):
+        print('Downloading', category, 'from pixlyzer-data.')
+        data = requests.get(f'https://gitlab.com/Bixilon/pixlyzer-data/-/raw/master/version/{version_id}/{category}.min.json?inline=false').text
         try:
-            os.system(f'cd {generator_mod_dir} && chmod u+x ./gradlew')
+            os.mkdir(target_dir)
         except:
             pass
+        with open(f'{target_dir}/{category}.min.json', 'w') as f:
+            f.write(data)
+        return json.loads(data)
 
-        # set the server port to something other than 25565 so it doesn't
-        # conflict with anything else that's running
-        try:
-            os.makedirs(get_dir_location(f'{generator_mod_dir}/run'))
-        except:
-            pass
-        with open(get_dir_location(f'{generator_mod_dir}/run/server.properties'), 'w') as f:
-            f.write('server-port=56553')
+    if not os.path.exists(target_dir):
+        pixlyzer_dir = get_pixlyzer()
 
-        # make sure we have perms to run this file
-        # (on windows it fails but keeps running)
-        os.system(f'cd {generator_mod_dir} && chmod u+x ./gradlew')
-        try:
-            subprocess.run(
-                [f'cd {generator_mod_dir} && ./gradlew runServer'],
-                check=True,
-                shell=True
-            )
-        except Exception as e:
-            os.system(f'cd {generator_mod_dir} && gradlew runServer')
+        # for some reason pixlyzer doesn't work right unless the mvn clean
+        # instruction looks like that
+        # and pixlyzer.py doesn't do it right
 
+        # map jar + download dependencies
+        run_python_command_and_download_deps(
+            f'cd {pixlyzer_dir}/wrapper && {determine_python_command()} PixLyzer.py --only-version={version_id} --dont-compile --only-map'
+        )
+        # update the pom.xml <dependencies>
+        # list directories in pixlyzer/wrapper/data/data/dependencies/libraries
+        pom_xml_dependencies = '''<dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-test-junit</artifactId>
+            <version>1.7.21</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib-jdk8</artifactId>
+            <version>1.7.21</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.minecraft</groupId>
+            <artifactId>client</artifactId>
+            <version>${minecraft.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/wrapper/data/data/${minecraft.version}_yarn/${minecraft.version}-exhibitionism.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>de.bixilon</groupId>
+            <artifactId>mbf-kotlin</artifactId>
+            <version>0.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.objenesis</groupId>
+            <artifactId>objenesis</artifactId>
+            <version>3.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.14.0</version>
+        </dependency>
+        <dependency>
+            <groupId>de.bixilon</groupId>
+            <artifactId>kutil</artifactId>
+            <version>1.17.1</version>
+        </dependency>'''
+        # walk dir f'{pixlyzer_dir}/wrapper/data/data/dependencies/libraries'
+        for root, dirs, files in os.walk(f'{pixlyzer_dir}/wrapper/data/data/dependencies/libraries'):
+            for file in files:
+                full_path = os.path.join(
+                    root.replace('\\', '/').replace(
+                        f'{pixlyzer_dir}/wrapper/data/data/dependencies/libraries/'.replace('\\', '/'), ''),
+                    file
+                ).replace('\\', '/')
+                print(full_path)
+                if not full_path.endswith('.jar'):
+                    continue
+                split_path = full_path.split('/')
+                group = ''
+                for group_index in range(0, len(split_path) - 3):
+                    group += split_path[group_index] + '.'
+                if group.endswith('.'):
+                    group = group[:-1]
+                artifact = split_path[-3]
+                version = split_path[-2]
+                path = '${project.basedir}/wrapper/data/data/dependencies/libraries/' + full_path
+                pom_xml_dependencies += """
+                    <dependency>
+                        <groupId>""" + group + """</groupId>
+                        <artifactId>""" + artifact + """</artifactId>
+                        <version>""" + version + """</version>
+                        <scope>system</scope>
+                        <systemPath>""" + path + """</systemPath>
+                    </dependency>
+                    """
+        print('pom_xml_dependencies', pom_xml_dependencies)
+        assert pom_xml_dependencies != ''
+        pom_xml = open(f'{pixlyzer_dir}/pom.xml', 'r').read()
+        pom_xml = re.sub(
+            '<dependencies>.*?</dependencies>', f'<dependencies>{pom_xml_dependencies}</dependencies>', pom_xml, flags=re.DOTALL)
+        open(f'{pixlyzer_dir}/pom.xml', 'w').write(pom_xml)
+
+        # compile
+        os.system(
+            f'cd {pixlyzer_dir} && mvn clean -Dmaven.repo.local=. verify')
+        # run pixlyzer.py again lol
+        run_python_command_and_download_deps(
+            f'cd {pixlyzer_dir}/wrapper && {determine_python_command()} PixLyzer.py --only-version={version_id} --no-compile'
+        )
+
+        source_dir = get_dir_location(
+            f'{pixlyzer_dir}/wrapper/data/version/{version_id}')
+
+        if not os.path.exists(source_dir):
+            print('PixLyzer failed, no output!')
+            exit()
         if os.path.exists(target_dir):
             os.unlink(target_dir)
         os.rename(
-            get_dir_location(
-                f'{generator_mod_dir}/run/minecraft-data/{version_id}'),
+            source_dir,
             target_dir
         )
 
-    with open(f'{target_dir}/{category}.json', 'r') as f:
+    with open(f'{target_dir}/{category}.min.json', 'r') as f:
         return json.load(f)
+
+def get_file_from_jar(version_id: str, file_dir: str):
+    get_client_jar(version_id)
+    with ZipFile(get_dir_location(f'downloads/client-{version_id}.jar')) as z:
+        with z.open(file_dir) as f:
+            return f.read()
+
+
+def get_en_us_lang(version_id: str):
+    return json.loads(
+        get_file_from_jar(version_id, 'assets/minecraft/lang/en_us.json')
+    )

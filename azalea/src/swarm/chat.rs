@@ -23,7 +23,7 @@ use azalea_ecs::{
 };
 use std::collections::VecDeque;
 
-use crate::{Swarm, SwarmEvent};
+use super::{Swarm, SwarmEvent};
 
 #[derive(Clone)]
 pub struct SwarmChatPlugin;

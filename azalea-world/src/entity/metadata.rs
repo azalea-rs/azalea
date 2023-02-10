@@ -2247,7 +2247,7 @@ impl Default for EndermanMetadataBundle {
                     },
                 },
             },
-            carry_state: CarryState(BlockState::Air),
+            carry_state: CarryState(BlockState::AIR),
             creepy: Creepy(false),
             stared_at: StaredAt(false),
         }

@@ -162,7 +162,7 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
 name = "azalea"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -180,7 +180,6 @@ dependencies = [
  "env_logger 0.10.0",
  "futures",
  "futures-lite",
- "iyes_loopless",
  "log",
  "nohash-hasher",
  "num-traits",
@@ -193,7 +192,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-auth"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "azalea-buf",
  "azalea-crypto",
@@ -211,15 +210,16 @@ dependencies = [
 
 [[package]]
 name = "azalea-block"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "azalea-block-macros",
  "azalea-buf",
+ "azalea-registry",
 ]
 
 [[package]]
 name = "azalea-block-macros"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -228,7 +228,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-brigadier"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "azalea-buf",
  "azalea-chat",
@@ -236,7 +236,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-buf"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "azalea-buf-macros",
  "byteorder",
@@ -249,7 +249,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-buf-macros"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -258,7 +258,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-chat"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "azalea-buf",
  "azalea-language",
@@ -270,7 +270,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-client"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -289,7 +289,6 @@ dependencies = [
  "derive_more",
  "env_logger 0.9.3",
  "futures",
- "iyes_loopless",
  "log",
  "nohash-hasher",
  "once_cell",
@@ -303,7 +302,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-core"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "azalea-buf",
  "azalea-chat",
@@ -314,7 +313,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-crypto"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "aes",
  "azalea-buf",
@@ -329,18 +328,17 @@ dependencies = [
 
 [[package]]
 name = "azalea-ecs"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "azalea-ecs-macros",
  "bevy_app",
  "bevy_ecs",
- "iyes_loopless",
  "tokio",
 ]
 
 [[package]]
 name = "azalea-ecs-macros"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -350,7 +348,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-language"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "once_cell",
  "serde",
@@ -359,7 +357,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-nbt"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "ahash 0.8.3",
  "azalea-buf",
@@ -374,14 +372,13 @@ dependencies = [
 
 [[package]]
 name = "azalea-physics"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "azalea-block",
  "azalea-core",
  "azalea-ecs",
  "azalea-registry",
  "azalea-world",
- "iyes_loopless",
  "once_cell",
  "parking_lot",
  "uuid",
@@ -389,7 +386,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-protocol"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "async-compression",
@@ -426,7 +423,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-protocol-macros"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -435,7 +432,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-registry"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "azalea-buf",
  "azalea-registry-macros",
@@ -444,7 +441,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-registry-macros"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -453,7 +450,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-world"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "azalea-block",
  "azalea-buf",
@@ -464,7 +461,6 @@ dependencies = [
  "azalea-registry",
  "derive_more",
  "enum-as-inner",
- "iyes_loopless",
  "log",
  "nohash-hasher",
  "once_cell",
@@ -1521,18 +1517,6 @@ name = "itoa"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fad582f4b9e86b6caa621cabeb0963332d92eea04729ab12892c2533951e6440"
-
-[[package]]
-name = "iyes_loopless"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c47fd2cbdb1d7f295c25e6bfccfd78a84b6eef3055bc9f01b34ae861721b01ee"
-dependencies = [
- "bevy_app",
- "bevy_ecs",
- "bevy_time",
- "bevy_utils",
-]
 
 [[package]]
 name = "js-sys"

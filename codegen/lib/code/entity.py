@@ -366,7 +366,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                         elif type_name == 'ItemStack':
                             default = f'Slot::Present({default})' if default != 'Empty' else 'Slot::Empty'
                         elif type_name == 'BlockState':
-                            default = f'{default}' if default != 'Empty' else 'BlockState::Air'
+                            default = f'{default}' if default != 'Empty' else 'BlockState::AIR'
                         elif type_name == 'OptionalFormattedText':
                             default = f'Some({default})' if default != 'Empty' else 'None'
                         elif type_name == 'CompoundTag':

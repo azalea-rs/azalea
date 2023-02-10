@@ -5,7 +5,7 @@ use syn::{
     parse::{Parse, ParseStream, Result},
     parse_macro_input,
     punctuated::Punctuated,
-    Ident, LitStr, Token,
+    Attribute, Ident, LitStr, Token,
 };
 
 struct RegistryItem {
@@ -16,6 +16,7 @@ struct RegistryItem {
 struct Registry {
     name: Ident,
     items: Vec<RegistryItem>,
+    attributes: Vec<Attribute>,
 }
 
 impl Parse for RegistryItem {
@@ -30,12 +31,16 @@ impl Parse for RegistryItem {
 
 impl Parse for Registry {
     fn parse(input: ParseStream) -> Result<Self> {
-        // Block, {
+        // enum Block {
         //     Air => "minecraft:air",
         //     Stone => "minecraft:stone"
         // }
+
+        // this also includes docs
+        let attributes = input.call(Attribute::parse_outer).unwrap_or_default();
+
+        input.parse::<Token![enum]>()?;
         let name = input.parse()?;
-        let _ = input.parse::<Token![,]>()?;
         let content;
         braced!(content in input);
         let items: Punctuated<RegistryItem, Token![,]> =
@@ -44,6 +49,7 @@ impl Parse for Registry {
         Ok(Registry {
             name,
             items: items.into_iter().collect(),
+            attributes,
         })
     }
 }
@@ -66,7 +72,9 @@ pub fn registry(input: TokenStream) -> TokenStream {
             #name = #protocol_id,
         });
     }
+    let attributes = input.attributes;
     generated.extend(quote! {
+        #(#attributes)*
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, azalea_buf::McBuf)]
         #[repr(u32)]
         pub enum #name {
