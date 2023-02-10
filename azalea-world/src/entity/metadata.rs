@@ -213,7 +213,7 @@ impl Default for AreaEffectCloudMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(0),
             },
-            radius: Radius(3.0),
+            radius: Radius(0.5),
             area_effect_cloud_color: AreaEffectCloudColor(0),
             waiting: Waiting(false),
             particle: Particle::default(),
@@ -2166,7 +2166,7 @@ impl Default for EnderPearlMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut)]
-pub struct CarryState(pub BlockState);
+pub struct CarryState(pub Option<BlockState>);
 #[derive(Component, Deref, DerefMut)]
 pub struct Creepy(pub bool);
 #[derive(Component, Deref, DerefMut)]
@@ -2181,7 +2181,7 @@ impl Enderman {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(CarryState(d.value.into_optional_block_state()?.unwrap()));
+                entity.insert(CarryState(d.value.into_optional_block_state()?));
             }
             17 => {
                 entity.insert(Creepy(d.value.into_boolean()?));
@@ -2247,7 +2247,7 @@ impl Default for EndermanMetadataBundle {
                     },
                 },
             },
-            carry_state: CarryState(BlockState::AIR),
+            carry_state: CarryState(Empty),
             creepy: Creepy(false),
             stared_at: StaredAt(false),
         }
@@ -2705,7 +2705,7 @@ impl Default for FireballMetadataBundle {
 #[derive(Component, Deref, DerefMut)]
 pub struct FireworksItem(pub Slot);
 #[derive(Component, Deref, DerefMut)]
-pub struct AttachedToTarget(pub OptionalUnsignedInt);
+pub struct AttachedToTarget(pub Option<u32>);
 #[derive(Component, Deref, DerefMut)]
 pub struct ShotAtAngle(pub bool);
 #[derive(Component)]
@@ -2956,7 +2956,7 @@ impl Default for FoxMetadataBundle {
 #[derive(Component, Deref, DerefMut)]
 pub struct FrogVariant(pub azalea_registry::FrogVariant);
 #[derive(Component, Deref, DerefMut)]
-pub struct TongueTarget(pub OptionalUnsignedInt);
+pub struct TongueTarget(pub Option<u32>);
 #[derive(Component)]
 pub struct Frog;
 impl Frog {
@@ -5889,7 +5889,7 @@ impl Default for RabbitMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            rabbit_kind: RabbitKind(Default::default()),
+            rabbit_kind: RabbitKind(0),
         }
     }
 }
