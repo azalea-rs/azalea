@@ -41,7 +41,7 @@ let block_state: BlockState = azalea_block::CobblestoneWallBlock {
 
 ## azalea_registry::Block enum
 
-This one technically isn't from the `azalea-block` crate, but it's still very relevant. It's an enum that contains every block type as a variant *without* containing any state data (like `BlockState` and the `Block` trait). Converting this into any other block type will use the default state for that block.
+This one technically isn't from the `azalea-block` crate, but it's still very relevant. It's an enum that contains every block type as a variant *without* containing any state data (unlike `BlockState` and the `Block` trait). Converting this into any other block type will use the default state for that block.
 
 ```
 # use azalea_block::BlockState;
