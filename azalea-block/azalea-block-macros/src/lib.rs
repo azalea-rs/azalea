@@ -470,7 +470,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
         let Some(default_state_id) = default_state_id else {
             let defaults = properties_with_name.iter().map(|p| if let TokenTree::Ident(i) = p.default.clone().into_iter().last().unwrap() { i.to_string() } else { panic!() }).collect::<Vec<_>>();
-            panic!("Couldn't get default state id for {}, combinations={:?}, defaults={:?}", block_name_pascal_case.to_string(), block_properties_vec, defaults)
+            panic!("Couldn't get default state id for {block_name_pascal_case}, combinations={block_properties_vec:?}, defaults={defaults:?}")
         };
 
         // 7035..=7058 => {
@@ -583,7 +583,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         block_structs.extend(block_struct);
     }
 
-    let last_state_id = (state_id - 1) as u32;
+    let last_state_id = state_id - 1;
     let mut generated = quote! {
         #property_enums
 

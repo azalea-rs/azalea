@@ -33,7 +33,6 @@ opt-level = 1
 opt-level = 3
 ```
 
-
 # Examples
 
 ```rust,no_run
@@ -49,9 +48,9 @@ async fn main() {
     // or Account::microsoft("example@example.com").await.unwrap();
 
     loop {
-        let e = azalea::ClientBuilder::new()
+        let e = ClientBuilder::new()
             .set_handler(handle)
-            .start(account, "localhost")
+            .start(account.clone(), "localhost")
             .await;
         eprintln!("{:?}", e);
     }
@@ -71,6 +70,10 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     Ok(())
 }
 ```
+
+# Swarms
+
+Azalea lets you create "swarms", which are a group of bots in the same world that can perform actions together. See [testbot](https://github.com/mat-1/azalea/blob/main/azalea/examples/testbot.rs) for an example.
 
 # Plugins
 

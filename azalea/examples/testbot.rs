@@ -6,7 +6,7 @@ use azalea::ecs::query::With;
 use azalea::entity::metadata::Player;
 use azalea::entity::Position;
 use azalea::pathfinder::BlockPosGoal;
-use azalea::{prelude::*, BlockPos, GameProfileComponent, Swarm, SwarmEvent, WalkDirection};
+use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
 use azalea::{Account, Client, Event};
 use azalea_protocol::packets::game::serverbound_client_command_packet::ServerboundClientCommandPacket;
 use std::time::Duration;
