@@ -3,6 +3,7 @@
 mod utils;
 
 use proc_macro::TokenStream;
+use proc_macro2::TokenTree;
 use quote::quote;
 use std::collections::HashMap;
 use std::fmt::Write;
@@ -234,7 +235,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let mut properties_map = HashMap::new();
     let mut property_struct_names_to_names = HashMap::new();
 
-    let mut state_id: usize = 0;
+    let mut state_id: u32 = 0;
 
     for property in &input.property_definitions.properties {
         let property_type_name: Ident;
@@ -282,8 +283,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                         #property_enum_variants
                     }
 
-                    impl From<usize> for #property_type_name {
-                        fn from(value: usize) -> Self {
+                    impl From<u32> for #property_type_name {
+                        fn from(value: u32) -> Self {
                             match value {
                                 #property_from_number_variants
                                 _ => panic!("Invalid property value: {}", value),
@@ -305,7 +306,11 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
     let mut block_state_enum_variants = quote! {};
     let mut block_structs = quote! {};
+
     let mut from_state_to_block_match = quote! {};
+    let mut from_registry_block_to_block_match = quote! {};
+    let mut from_registry_block_to_blockstate_match = quote! {};
+
     for block in &input.block_definitions.blocks {
         let block_property_names = &block
             .properties_and_defaults
@@ -403,30 +408,18 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         let mut from_block_to_state_match_inner = quote! {};
 
         let first_state_id = state_id;
+        let mut default_state_id = None;
 
         // if there's no properties, then the block is just a single state
         if block_properties_vec.is_empty() {
             block_state_enum_variants.extend(quote! {
                 #block_name_pascal_case,
             });
+            default_state_id = Some(state_id);
             state_id += 1;
         }
         for combination in combinations_of(&block_properties_vec) {
-            state_id += 1;
-            let variant_name = Ident::new(
-                &format!(
-                    "{}_{}",
-                    block_name_pascal_case,
-                    combination
-                        .iter()
-                        .map(|v| v[0..1].to_uppercase() + &v[1..])
-                        .collect::<String>()
-                ),
-                proc_macro2::Span::call_site(),
-            );
-            block_state_enum_variants.extend(quote! {
-                #variant_name,
-            });
+            let mut is_default = true;
 
             // 	face: properties::Face::Floor,
             // 	facing: properties::Facing::North,
@@ -438,6 +431,18 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 let property_struct_name_ident = &property.property_type;
                 let variant =
                     Ident::new(&combination[i].to_string(), proc_macro2::Span::call_site());
+
+                // this terrible code just gets the property default as a string
+                let property_default_as_string = if let TokenTree::Ident(i) =
+                    property.default.clone().into_iter().last().unwrap()
+                {
+                    i.to_string()
+                } else {
+                    panic!()
+                };
+                if property_default_as_string != combination[i] {
+                    is_default = false;
+                }
 
                 let property_type = if property.is_enum {
                     quote! {#property_struct_name_ident::#variant}
@@ -453,9 +458,20 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             from_block_to_state_match_inner.extend(quote! {
                 #block_struct_name {
                     #from_block_to_state_combination_match_inner
-                } => BlockState::#variant_name,
+                } => BlockState { id: #state_id },
             });
+
+            if is_default {
+                default_state_id = Some(state_id);
+            }
+
+            state_id += 1;
         }
+
+        let Some(default_state_id) = default_state_id else {
+            let defaults = properties_with_name.iter().map(|p| if let TokenTree::Ident(i) = p.default.clone().into_iter().last().unwrap() { i.to_string() } else { panic!() }).collect::<Vec<_>>();
+            panic!("Couldn't get default state id for {}, combinations={:?}, defaults={:?}", block_name_pascal_case.to_string(), block_properties_vec, defaults)
+        };
 
         // 7035..=7058 => {
         //     let b = b - 7035;
@@ -466,7 +482,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         //     }
         // }
         let mut from_state_to_block_inner = quote! {};
-        let mut division = 1usize;
+        let mut division = 1u32;
         for i in (0..properties_with_name.len()).rev() {
             let PropertyWithNameAndDefault {
                 property_type: property_struct_name_ident,
@@ -475,11 +491,12 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             } = &properties_with_name[i];
 
             let property_variants = &block_properties_vec[i];
-            let property_variants_count = property_variants.len();
+            let property_variants_count = property_variants.len() as u32;
             let conversion_code = {
                 if &property_struct_name_ident.to_string() == "bool" {
                     assert_eq!(property_variants_count, 2);
-                    quote! {(b / #division) % #property_variants_count != 0}
+                    // this is not a mistake, it starts with true for some reason
+                    quote! {(b / #division) % #property_variants_count == 0}
                 } else {
                     quote! {#property_struct_name_ident::from((b / #division) % #property_variants_count)}
                 }
@@ -500,6 +517,12 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 })
             },
         });
+        from_registry_block_to_block_match.extend(quote! {
+            azalea_registry::Block::#block_name_pascal_case => Box::new(#block_struct_name::default()),
+        });
+        from_registry_block_to_blockstate_match.extend(quote! {
+            azalea_registry::Block::#block_name_pascal_case => BlockState { id: #default_state_id },
+        });
 
         let mut block_default_fields = quote! {};
         for PropertyWithNameAndDefault {
@@ -515,10 +538,10 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         let block_id = block.name.to_string();
 
         let from_block_to_state_match = if block.properties_and_defaults.is_empty() {
-            quote! { BlockState::#block_name_pascal_case }
+            quote! { BlockState { id: #first_state_id } }
         } else {
             quote! {
-                match b {
+                match self {
                     #from_block_to_state_match_inner
                 }
             }
@@ -537,11 +560,14 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 fn id(&self) -> &'static str {
                     #block_id
                 }
+                fn as_blockstate(&self) -> BlockState {
+                    #from_block_to_state_match
+                }
             }
 
             impl From<#block_struct_name> for BlockState {
                 fn from(b: #block_struct_name) -> Self {
-                    #from_block_to_state_match
+                    b.as_blockstate()
                 }
             }
 
@@ -561,26 +587,29 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let mut generated = quote! {
         #property_enums
 
-        #[repr(u32)]
-        #[derive(Copy, Clone, PartialEq, Eq)]
-        // the Debug impl is very large and slows down compilation
-        #[cfg_attr(feature = "full-debug", derive(Debug))]
-        pub enum BlockState {
-            #block_state_enum_variants
+        /// A representation of a state a block can be in. (for example, a stone
+        /// block only has one state but each possible stair rotation is a
+        /// different state).
+        #[derive(Copy, Clone, PartialEq, Eq, Default)]
+        pub struct BlockState {
+            /// The protocol ID for the block state. IDs may change every
+            /// version, so you shouldn't hard-code them or store them in databases.
+            pub id: u32
         }
 
         impl BlockState {
-            /// Returns the highest possible state
+            pub const AIR: BlockState = BlockState { id: 0 };
+
+            /// Returns the highest possible state ID.
             #[inline]
             pub fn max_state() -> u32 {
                 #last_state_id
             }
         }
 
-        #[cfg(not(feature = "full-debug"))]
         impl std::fmt::Debug for BlockState {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "BlockState ({})", Box::<dyn Block>::from(*self).id())
+                write!(f, "BlockState(id: {}, {:?})", self.id, Box::<dyn Block>::from(*self))
             }
         }
     };
@@ -589,11 +618,27 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         #block_structs
 
         impl From<BlockState> for Box<dyn Block> {
-            fn from(b: BlockState) -> Self {
-                let b = b as usize;
+            fn from(block_state: BlockState) -> Self {
+                let b = block_state.id;
                 match b {
                     #from_state_to_block_match
                     _ => panic!("Invalid block state: {}", b),
+                }
+            }
+        }
+        impl From<azalea_registry::Block> for Box<dyn Block> {
+            fn from(block: azalea_registry::Block) -> Self {
+                match block {
+                    #from_registry_block_to_block_match
+                    _ => unreachable!("There should always be a block struct for every azalea_registry::Block variant")
+                }
+            }
+        }
+        impl From<azalea_registry::Block> for BlockState {
+            fn from(block: azalea_registry::Block) -> Self {
+                match block {
+                    #from_registry_block_to_blockstate_match
+                    _ => unreachable!("There should always be a block state for every azalea_registry::Block variant")
                 }
             }
         }

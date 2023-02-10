@@ -215,6 +215,7 @@ version = "0.5.0"
 dependencies = [
  "azalea-block-macros",
  "azalea-buf",
+ "azalea-registry",
 ]
 
 [[package]]
