@@ -102,7 +102,7 @@ impl McBufReadable for EntityDataValue {
                 if val == 0 {
                     None
                 } else {
-                    Some(BlockState::try_from(val - 1).unwrap_or(BlockState::Air))
+                    Some(BlockState::try_from(val - 1).unwrap_or(BlockState::AIR))
                 }
             }),
             14 => EntityDataValue::CompoundTag(azalea_nbt::Tag::read_from(buf)?),

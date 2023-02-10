@@ -400,6 +400,7 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::PlayerInfo(p) => {
                     debug!("Got player info packet {p:?}");
 
+                    #[allow(clippy::type_complexity)]
                     let mut system_state: SystemState<(
                         Query<&mut LocalPlayer>,
                         EventWriter<AddPlayerEvent>,
