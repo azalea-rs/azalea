@@ -8,7 +8,7 @@ version = "0.5.0"
 
 [package.metadata.release]
 pre-release-replacements = [
-  {file = "src/lib.rs", search = "//! `azalea = \"[a-z0-9\\.-]+\"`", replace = "//! `azalea = \"{{version}}\"`"},
+  {file = "README.md", search = "`azalea = \"[a-z0-9\\.-]+\"`", replace = "`azalea = \"{{version}}\"`"},
 ]
 
 [dependencies]
@@ -18,7 +18,7 @@ azalea-block = {version = "0.5.0", path = "../azalea-block"}
 azalea-chat = {version = "0.5.0", path = "../azalea-chat"}
 azalea-client = {version = "0.5.0", path = "../azalea-client"}
 azalea-core = {version = "0.5.0", path = "../azalea-core"}
-azalea-ecs = { version = "0.5.0", path = "../azalea-ecs" }
+azalea-ecs = {version = "0.6.0", path = "../azalea-ecs"}
 azalea-physics = {version = "0.5.0", path = "../azalea-physics"}
 azalea-protocol = {version = "0.5.0", path = "../azalea-protocol"}
 azalea-registry = {version = "0.5.0", path = "../azalea-registry"}

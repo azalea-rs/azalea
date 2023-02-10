@@ -13,7 +13,7 @@ azalea-block = {path = "../azalea-block", default-features = false, version = "^
 azalea-buf = {path = "../azalea-buf", version = "^0.5.0"}
 azalea-chat = {path = "../azalea-chat", version = "^0.5.0"}
 azalea-core = {path = "../azalea-core", version = "^0.5.0", features = ["bevy_ecs"]}
-azalea-ecs = { version = "0.5.0", path = "../azalea-ecs" }
+azalea-ecs = {version = "0.6.0", path = "../azalea-ecs"}
 azalea-nbt = {path = "../azalea-nbt", version = "^0.5.0"}
 azalea-registry = {path = "../azalea-registry", version = "^0.5.0"}
 derive_more = {version = "0.99.17", features = ["deref", "deref_mut"]}

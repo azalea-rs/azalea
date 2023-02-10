@@ -330,7 +330,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-ecs"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "azalea-ecs-macros",
  "bevy_app",
@@ -341,7 +341,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-ecs-macros"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "proc-macro2",
  "quote",
