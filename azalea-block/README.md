@@ -8,8 +8,9 @@ There's three block types, used for different things. You can (mostly) freely co
 
 
 ```
-# use azalea_block::BlockState;
-let block_state: BlockState = azalea_registry::Block::Jukebox.into();
+# use azalea_block::{Block, BlockState};
+# let block_state = BlockState::from(azalea_registry::Block::Jukebox);
+let block = Box::<dyn Block>::from(block_state);
 ```
 
 ## Block trait
