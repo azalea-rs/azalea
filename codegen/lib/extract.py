@@ -4,6 +4,7 @@ from lib.download import get_server_jar, get_burger, get_client_jar, get_pixlyze
 from lib.utils import get_dir_location
 from zipfile import ZipFile
 import subprocess
+import requests
 import json
 import sys
 import re
@@ -114,7 +115,20 @@ def get_pixlyzer_data(version_id: str, category: str):
 
     target_dir = get_dir_location(f'downloads/pixlyzer-{version_id}')
 
-    if not os.path.exists(get_dir_location(target_dir)):
+    # TODO: right now this False is hard-coded, it should retry with this
+    # enabled if # initially getting the data fails
+    if False or (os.path.exists(target_dir) and not os.path.exists(f'{target_dir}/{category}.min.json')):
+        print('Downloading', category, 'from pixlyzer-data.')
+        data = requests.get(f'https://gitlab.com/Bixilon/pixlyzer-data/-/raw/master/version/{version_id}/{category}.min.json?inline=false').text
+        try:
+            os.mkdir(target_dir)
+        except:
+            pass
+        with open(f'{target_dir}/{category}.min.json', 'w') as f:
+            f.write(data)
+        return json.loads(data)
+
+    if not os.path.exists(target_dir):
         pixlyzer_dir = get_pixlyzer()
 
         # for some reason pixlyzer doesn't work right unless the mvn clean
@@ -230,7 +244,6 @@ def get_pixlyzer_data(version_id: str, category: str):
 
     with open(f'{target_dir}/{category}.min.json', 'r') as f:
         return json.load(f)
-
 
 def get_file_from_jar(version_id: str, file_dir: str):
     get_client_jar(version_id)

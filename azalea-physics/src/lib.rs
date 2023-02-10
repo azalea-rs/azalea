@@ -16,9 +16,10 @@ use azalea_ecs::{
 };
 use azalea_world::{
     entity::{
-        metadata::Sprinting, move_relative, Attributes, Jumping, Physics, Position, WorldName,
+        metadata::Sprinting, move_relative, Attributes, Jumping, Local, Physics, Position,
+        WorldName,
     },
-    Local, World, WorldContainer,
+    World, WorldContainer,
 };
 use collision::{move_colliding, MoverType};
 
@@ -74,7 +75,7 @@ fn travel(
         let block_state_below = world
             .chunks
             .get_block_state(&block_pos_below)
-            .unwrap_or(BlockState::Air);
+            .unwrap_or(BlockState::AIR);
         let block_below: Box<dyn Block> = block_state_below.into();
         let block_friction = block_below.behavior().friction;
 
@@ -310,8 +311,8 @@ mod tests {
     use azalea_core::{ChunkPos, ResourceLocation};
     use azalea_ecs::{app::App, TickPlugin};
     use azalea_world::{
-        entity::{EntityBundle, MinecraftEntityId},
-        Chunk, EntityPlugin, PartialWorld,
+        entity::{EntityBundle, EntityPlugin, MinecraftEntityId},
+        Chunk, PartialWorld,
     };
     use uuid::Uuid;
 
@@ -411,7 +412,7 @@ mod tests {
             .id();
         let block_state = partial_world.chunks.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
-            BlockState::Stone,
+            azalea_registry::Block::Stone.into(),
             &mut world_lock.write().chunks,
         );
         assert!(
@@ -468,7 +469,11 @@ mod tests {
             .id();
         let block_state = partial_world.chunks.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
-            BlockState::StoneSlab_BottomFalse,
+            azalea_block::StoneSlabBlock {
+                kind: azalea_block::Type::Bottom,
+                waterlogged: false,
+            }
+            .into(),
             &mut world_lock.write().chunks,
         );
         assert!(
@@ -517,7 +522,11 @@ mod tests {
             .id();
         let block_state = world_lock.write().chunks.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
-            BlockState::StoneSlab_TopFalse,
+            azalea_block::StoneSlabBlock {
+                kind: azalea_block::Type::Top,
+                waterlogged: false,
+            }
+            .into(),
         );
         assert!(
             block_state.is_some(),
@@ -565,7 +574,15 @@ mod tests {
             .id();
         let block_state = world_lock.write().chunks.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
-            BlockState::CobblestoneWall_LowLowLowFalseFalseLow,
+            azalea_block::CobblestoneWallBlock {
+                east: azalea_block::EastWall::Low,
+                north: azalea_block::NorthWall::Low,
+                south: azalea_block::SouthWall::Low,
+                west: azalea_block::WestWall::Low,
+                up: false,
+                waterlogged: false,
+            }
+            .into(),
         );
         assert!(
             block_state.is_some(),

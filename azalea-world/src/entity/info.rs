@@ -1,3 +1,6 @@
+//! Implement things relating to entity datas, like an index of uuids to
+//! entities.
+
 use crate::{
     deduplicate_entities, deduplicate_local_entities,
     entity::{
@@ -26,6 +29,8 @@ use std::{
     sync::Arc,
 };
 use uuid::Uuid;
+
+use super::Local;
 
 /// Plugin handling some basic entity functionality.
 pub struct EntityPlugin;
@@ -262,11 +267,6 @@ pub fn add_updates_received(
         commands.entity(entity).insert(UpdatesReceived(1));
     }
 }
-
-/// A marker component that signifies that this entity is "local" and shouldn't
-/// be updated by other clients.
-#[derive(Component)]
-pub struct Local;
 
 /// The [`UpdatesReceived`] component should never be on [`Local`] entities.
 /// This warns if an entity has both components.

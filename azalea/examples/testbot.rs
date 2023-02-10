@@ -1,4 +1,4 @@
-//! mat's bot for testing new azalea features
+//! a bot for testing new azalea features
 
 #![feature(type_alias_impl_trait)]
 
@@ -7,7 +7,7 @@ use azalea::entity::metadata::Player;
 use azalea::entity::Position;
 use azalea::inventory::InventoryComponent;
 use azalea::pathfinder::BlockPosGoal;
-use azalea::{prelude::*, BlockPos, GameProfileComponent, Swarm, SwarmEvent, WalkDirection};
+use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
 use azalea::{Account, Client, Event};
 use azalea_protocol::packets::game::serverbound_client_command_packet::ServerboundClientCommandPacket;
 use std::time::Duration;
@@ -15,7 +15,7 @@ use std::time::Duration;
 #[derive(Default, Clone, Component)]
 struct State {}
 
-#[derive(Default, Clone, Component)]
+#[derive(Default, Clone, Resource)]
 struct SwarmState {}
 
 #[tokio::main]
@@ -55,7 +55,7 @@ async fn main() -> anyhow::Result<()> {
     }
 
     loop {
-        let e = azalea::SwarmBuilder::new()
+        let e = SwarmBuilder::new()
             .add_accounts(accounts.clone())
             .set_handler(handle)
             .set_swarm_handler(swarm_handle)

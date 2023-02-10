@@ -3,6 +3,7 @@
 pub mod attributes;
 mod data;
 mod dimensions;
+mod info;
 pub mod metadata;
 
 use crate::ChunkStorage;
@@ -21,6 +22,7 @@ use azalea_ecs::{
 pub use data::*;
 use derive_more::{Deref, DerefMut};
 pub use dimensions::{update_bounding_box, EntityDimensions};
+pub use info::{EntityInfos, EntityPlugin, LoadedBy, PartialEntityInfos, RelativeEntityUpdate};
 use std::fmt::Debug;
 use uuid::Uuid;
 
@@ -92,7 +94,7 @@ pub fn on_pos(offset: f32, chunk_storage: &ChunkStorage, pos: &Position) -> Bloc
     // TODO: check if block below is a fence, wall, or fence gate
     let block_pos = pos.down(1);
     let block_state = chunk_storage.get_block_state(&block_pos);
-    if block_state == Some(BlockState::Air) {
+    if block_state == Some(BlockState::AIR) {
         let block_pos_below = block_pos.down(1);
         let block_state_below = chunk_storage.get_block_state(&block_pos_below);
         if let Some(_block_state_below) = block_state_below {
@@ -313,6 +315,11 @@ pub struct PlayerBundle {
     pub entity: EntityBundle,
     pub metadata: metadata::PlayerMetadataBundle,
 }
+
+/// A marker component that signifies that this entity is "local" and shouldn't
+/// be updated by other clients.
+#[derive(Component)]
+pub struct Local;
 
 // #[cfg(test)]
 // mod tests {

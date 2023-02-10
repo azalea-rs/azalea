@@ -1,5 +1,9 @@
-use azalea::{pathfinder, Account, Client, Event, SwarmEvent};
-use azalea::{prelude::*, Swarm};
+use std::time::Duration;
+
+use azalea::entity::metadata::Player;
+use azalea::{pathfinder, Account, Client, Event, GameProfileComponent};
+use azalea::{prelude::*, swarm::prelude::*};
+use azalea_ecs::query::With;
 
 #[tokio::main]
 async fn main() {
@@ -11,43 +15,32 @@ async fn main() {
         states.push(State::default());
     }
 
-    azalea::start_swarm(azalea::SwarmOptions {
-        accounts,
-        address: "localhost",
-
-        swarm_state: SwarmState::default(),
-        states,
-
-        swarm_plugins: swarm_plugins![pathfinder::Plugin],
-        plugins: plugins![],
-
-        handle,
-        swarm_handle,
-
-        join_delay: None,
-    })
-    .await
-    .unwrap();
+    SwarmBuilder::new()
+        .add_accounts(accounts.clone())
+        .set_handler(handle)
+        .set_swarm_handler(swarm_handle)
+        .join_delay(Duration::from_millis(1000))
+        .start("localhost")
+        .await
+        .unwrap();
 }
 
-#[derive(Default, Clone)]
+#[derive(Component, Default, Clone)]
 struct State {}
 
-#[derive(Default, Clone)]
+#[derive(Resource, Default, Clone)]
 struct SwarmState {}
 
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     Ok(())
 }
-async fn swarm_handle(
-    swarm: Swarm<State>,
-    event: SwarmEvent,
-    state: SwarmState,
-) -> anyhow::Result<()> {
+async fn swarm_handle(swarm: Swarm, event: SwarmEvent, state: SwarmState) -> anyhow::Result<()> {
     match event {
         SwarmEvent::Tick => {
             if let Some(target_entity) =
-                swarm.entity_by::<Player>(|name: &Name| name == "Herobrine")
+                swarm.entity_by::<With<Player>>(|profile: &&GameProfileComponent| {
+                    profile.name == "Herobrine"
+                })
             {
                 let target_bounding_box =
                     swarm.map_entity(target_entity, |bb: &BoundingBox| bb.clone());

@@ -2,6 +2,7 @@
 
 mod chat;
 mod events;
+pub mod prelude;
 
 use crate::{bot::DefaultBotPlugins, HandleFn};
 use azalea_client::{init_ecs_app, start_ecs, Account, ChatPacket, Client, Event, JoinError};
@@ -28,12 +29,10 @@ use tokio::sync::mpsc;
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
 ///
-/// Swarms are created from the [`azalea::start_swarm`] function.
+/// Swarms are created from [`azalea::swarm::SwarmBuilder`].
 ///
 /// The `S` type parameter is the type of the state for individual bots.
 /// It's used to make the [`Swarm::add`] function work.
-///
-/// [`azalea::start_swarm`]: fn.start_swarm.html
 #[derive(Clone, Resource)]
 pub struct Swarm {
     pub ecs_lock: Arc<Mutex<Ecs>>,
@@ -84,7 +83,7 @@ where
     Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
     SwarmFut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
     S: Default + Send + Sync + Clone + Component + 'static,
-    SS: Default + Send + Sync + Clone + Component + 'static,
+    SS: Default + Send + Sync + Clone + Resource + 'static,
 {
     /// Start creating the swarm.
     #[must_use]
@@ -138,9 +137,30 @@ where
     /// Set the function that's called every time a bot receives an [`Event`].
     /// This is the way to handle normal per-bot events.
     ///
-    /// You can only have one client handler, calling this again will replace
-    /// the old client handler function (you can have a client handler and swarm
-    /// handler separately though).
+    /// You must have exactly one client handler and one swarm handler, calling
+    /// this again will replace the old client handler function.
+    ///
+    /// ```
+    /// # use azalea::{prelude::*, swarm::prelude::*};
+    /// # let swarm_builder = SwarmBuilder::new().set_swarm_handler(swarm_handle);
+    /// swarm_builder.set_handler(handle);
+    ///
+    /// #[derive(Component, Default, Clone)]
+    /// struct State {}
+    /// async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    ///     Ok(())
+    /// }
+    ///
+    /// # #[derive(Resource, Default, Clone)]
+    /// # struct SwarmState {}
+    /// # async fn swarm_handle(
+    /// #     mut swarm: Swarm,
+    /// #     event: SwarmEvent,
+    /// #     state: SwarmState,
+    /// # ) -> anyhow::Result<()> {
+    /// #     Ok(())
+    /// # }
+    /// ```
     #[must_use]
     pub fn set_handler(mut self, handler: HandleFn<Fut, S>) -> Self {
         self.handler = Some(handler);
@@ -149,9 +169,31 @@ where
     /// Set the function that's called every time the swarm receives a
     /// [`SwarmEvent`]. This is the way to handle global swarm events.
     ///
-    /// You can only have one swarm handler, calling this again will replace
-    /// the old swarm handler function (you can have a client handler and swarm
-    /// handler separately though).
+    /// You must have exactly one client handler and one swarm handler, calling
+    /// this again will replace the old swarm handler function.
+    ///
+    /// ```
+    /// # use azalea::{prelude::*, swarm::prelude::*};
+    /// # let swarm_builder = SwarmBuilder::new().set_handler(handle);
+    /// swarm_builder.set_swarm_handler(swarm_handle);
+    ///
+    /// # #[derive(Component, Default, Clone)]
+    /// # struct State {}
+    ///
+    /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    /// #     Ok(())
+    /// # }
+    ///
+    /// #[derive(Resource, Default, Clone)]
+    /// struct SwarmState {}
+    /// async fn swarm_handle(
+    ///     mut swarm: Swarm,
+    ///     event: SwarmEvent,
+    ///     state: SwarmState,
+    /// ) -> anyhow::Result<()> {
+    ///     Ok(())
+    /// }
+    /// ```
     #[must_use]
     pub fn set_swarm_handler(mut self, handler: SwarmHandleFn<SwarmFut, SS>) -> Self {
         self.swarm_handler = Some(handler);
@@ -297,7 +339,7 @@ where
     Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
     SwarmFut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
     S: Default + Send + Sync + Clone + Component + 'static,
-    SS: Default + Send + Sync + Clone + Component + 'static,
+    SS: Default + Send + Sync + Clone + Resource + 'static,
 {
     fn default() -> Self {
         Self::new()
@@ -339,14 +381,13 @@ pub enum SwarmStartError {
 ///
 /// # Examples
 /// ```rust,no_run
-/// use azalea::{prelude::*, Swarm, SwarmEvent};
-/// use azalea::{Account, Client, Event};
+/// use azalea::{prelude::*, swarm::prelude::*};
 /// use std::time::Duration;
 ///
-/// #[derive(Default, Clone)]
+/// #[derive(Default, Clone, Component)]
 /// struct State {}
 ///
-/// #[derive(Default, Clone)]
+/// #[derive(Default, Clone, Resource)]
 /// struct SwarmState {}
 ///
 /// #[tokio::main]
@@ -360,22 +401,13 @@ pub enum SwarmStartError {
 ///     }
 ///
 ///     loop {
-///         let e = azalea::start_swarm(azalea::SwarmOptions {
-///             accounts: accounts.clone(),
-///             address: "localhost",
-///
-///             states: states.clone(),
-///             swarm_state: SwarmState::default(),
-///
-///             plugins: plugins![],
-///             swarm_plugins: swarm_plugins![],
-///
-///             handle,
-///             swarm_handle,
-///
-///             join_delay: Some(Duration::from_millis(1000)),
-///         })
-///         .await;
+///         let e = SwarmBuilder::new()
+///             .add_accounts(accounts.clone())
+///             .set_handler(handle)
+///             .set_swarm_handler(swarm_handle)
+///             .join_delay(Duration::from_millis(1000))
+///             .start("localhost")
+///             .await;
 ///         println!("{e:?}");
 ///     }
 /// }
@@ -388,7 +420,7 @@ pub enum SwarmStartError {
 /// }
 ///
 /// async fn swarm_handle(
-///     mut swarm: Swarm<State>,
+///     mut swarm: Swarm,
 ///     event: SwarmEvent,
 ///     _state: SwarmState,
 /// ) -> anyhow::Result<()> {
@@ -405,16 +437,6 @@ pub enum SwarmStartError {
 ///     }
 ///     Ok(())
 /// }
-// pub async fn start_swarm<
-//     S: Send + Sync + Clone + 'static,
-//     SS: Send + Sync + Clone + 'static,
-//     A: Send + TryInto<ServerAddress>,
-//     Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
-//     SwarmFut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
-// >(
-//     options: SwarmOptions<S, SS, A, Fut, SwarmFut>,
-// ) -> Result<(), SwarmStartError> {
-// }
 
 impl Swarm {
     /// Add a new account to the swarm. You can remove it later by calling
@@ -457,7 +479,7 @@ impl Swarm {
         tokio::spawn(async move {
             while let Some(event) = rx.recv().await {
                 // we can't handle events here (since we can't copy the handler),
-                // they're handled above in start_swarm
+                // they're handled above in SwarmBuilder::start
                 if let Err(e) = cloned_bots_tx.send((Some(event), cloned_bot.clone())) {
                     error!("Error sending event to swarm: {e}");
                 }
@@ -505,10 +527,15 @@ impl IntoIterator for Swarm {
     /// Iterate over the bots in this swarm.
     ///
     /// ```rust,no_run
+    /// # use azalea::{prelude::*, swarm::prelude::*};
+    /// #[derive(Component, Clone)]
+    /// # pub struct State;
+    /// # fn example(swarm: Swarm) {
     /// for bot in swarm {
     ///     let state = bot.component::<State>();
     ///     // ...
     /// }
+    /// # }
     /// ```
     fn into_iter(self) -> Self::IntoIter {
         self.bots
