@@ -208,6 +208,9 @@ fn handle_send_chat_event(
 /// Usually setting the kind to `Message` will make it send a chat message even
 /// if it starts with a slash, but some server implementations will always do a
 /// command if it starts with a slash.
+///
+/// If you're wondering why this isn't two separate events, it's so ordering is
+/// preserved if multiple chat messages and commands are sent at the same time.
 pub struct SendChatKindEvent {
     pub entity: Entity,
     pub content: String,
