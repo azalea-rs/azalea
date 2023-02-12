@@ -1,6 +1,12 @@
 //! Implementations of chat-related features.
 
 use azalea_chat::FormattedText;
+use azalea_ecs::{
+    app::{App, Plugin},
+    entity::Entity,
+    event::{EventReader, EventWriter},
+    schedule::IntoSystemDescriptor,
+};
 use azalea_protocol::packets::game::{
     clientbound_player_chat_packet::ClientboundPlayerChatPacket,
     clientbound_system_chat_packet::ClientboundSystemChatPacket,
@@ -13,7 +19,7 @@ use std::{
 };
 use uuid::Uuid;
 
-use crate::client::Client;
+use crate::{client::Client, local_player::SendPacketEvent};
 
 /// A chat packet, either a system message or a chat message.
 #[derive(Debug, Clone, PartialEq)]
@@ -107,42 +113,23 @@ impl Client {
     /// whether the message is a command and using the proper packet for you,
     /// so you should use that instead.
     pub fn send_chat_packet(&self, message: &str) {
-        // TODO: chat signing
-        // let signature = sign_message();
-        let packet = ServerboundChatPacket {
-            message: message.to_string(),
-            timestamp: SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .expect("Time shouldn't be before epoch")
-                .as_millis()
-                .try_into()
-                .expect("Instant should fit into a u64"),
-            salt: azalea_crypto::make_salt(),
-            signature: None,
-            last_seen_messages: LastSeenMessagesUpdate::default(),
-        }
-        .get();
-        self.write_packet(packet);
+        self.ecs.lock().send_event(SendChatKindEvent {
+            entity: self.entity,
+            content: message.to_string(),
+            kind: ChatPacketKind::Message,
+        });
+        self.run_schedule_sender.send(()).unwrap();
     }
 
     /// Send a command packet to the server. The `command` argument should not
     /// include the slash at the front.
     pub fn send_command_packet(&self, command: &str) {
-        // TODO: chat signing
-        let packet = ServerboundChatCommandPacket {
-            command: command.to_string(),
-            timestamp: SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .expect("Time shouldn't be before epoch")
-                .as_millis()
-                .try_into()
-                .expect("Instant should fit into a u64"),
-            salt: azalea_crypto::make_salt(),
-            argument_signatures: vec![],
-            last_seen_messages: LastSeenMessagesUpdate::default(),
-        }
-        .get();
-        self.write_packet(packet);
+        self.ecs.lock().send_event(SendChatKindEvent {
+            entity: self.entity,
+            content: command.to_string(),
+            kind: ChatPacketKind::Command,
+        });
+        self.run_schedule_sender.send(()).unwrap();
     }
 
     /// Send a message in chat.
@@ -154,12 +141,126 @@ impl Client {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn chat(&self, message: &str) {
-        if let Some(command) = message.strip_prefix('/') {
-            self.send_command_packet(command);
+    pub fn chat(&self, content: &str) {
+        self.ecs.lock().send_event(SendChatEvent {
+            entity: self.entity,
+            content: content.to_string(),
+        });
+    }
+}
+
+pub struct ChatPlugin;
+impl Plugin for ChatPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<SendChatEvent>()
+            .add_event::<SendChatKindEvent>()
+            .add_event::<ChatReceivedEvent>()
+            .add_system(
+                handle_send_chat_event
+                    .label("handle_send_chat_event")
+                    .after("packet"),
+            )
+            .add_system(
+                handle_send_chat_kind_event
+                    .label("handle_send_chat_kind_event")
+                    .after("handle_send_chat_event"),
+            );
+    }
+}
+
+/// A client received a chat message packet.
+#[derive(Debug, Clone)]
+pub struct ChatReceivedEvent {
+    pub entity: Entity,
+    pub packet: ChatPacket,
+}
+
+/// Send a chat message (or command, if it starts with a slash) to the server.
+pub struct SendChatEvent {
+    pub entity: Entity,
+    pub content: String,
+}
+
+fn handle_send_chat_event(
+    mut events: EventReader<SendChatEvent>,
+    mut send_chat_kind_events: EventWriter<SendChatKindEvent>,
+) {
+    for event in events.iter() {
+        if event.content.starts_with('/') {
+            send_chat_kind_events.send(SendChatKindEvent {
+                entity: event.entity,
+                content: event.content[1..].to_string(),
+                kind: ChatPacketKind::Command,
+            });
         } else {
-            self.send_chat_packet(message);
+            send_chat_kind_events.send(SendChatKindEvent {
+                entity: event.entity,
+                content: event.content.clone(),
+                kind: ChatPacketKind::Message,
+            });
         }
+    }
+}
+
+/// Send a chat packet to the server of a specific kind (chat message or
+/// command). Usually you just want [`SendChatEvent`] instead.
+///
+/// Usually setting the kind to `Message` will make it send a chat message even
+/// if it starts with a slash, but some server implementations will always do a
+/// command if it starts with a slash.
+pub struct SendChatKindEvent {
+    pub entity: Entity,
+    pub content: String,
+    pub kind: ChatPacketKind,
+}
+
+/// A kind of chat packet, either a chat message or a command.
+pub enum ChatPacketKind {
+    Message,
+    Command,
+}
+
+fn handle_send_chat_kind_event(
+    mut events: EventReader<SendChatKindEvent>,
+    mut send_packet_events: EventWriter<SendPacketEvent>,
+) {
+    for event in events.iter() {
+        let packet = match event.kind {
+            ChatPacketKind::Message => ServerboundChatPacket {
+                message: event.content.clone(),
+                timestamp: SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .expect("Time shouldn't be before epoch")
+                    .as_millis()
+                    .try_into()
+                    .expect("Instant should fit into a u64"),
+                salt: azalea_crypto::make_salt(),
+                signature: None,
+                last_seen_messages: LastSeenMessagesUpdate::default(),
+            }
+            .get(),
+            ChatPacketKind::Command => {
+                // TODO: chat signing
+                ServerboundChatCommandPacket {
+                    command: event.content.clone(),
+                    timestamp: SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .expect("Time shouldn't be before epoch")
+                        .as_millis()
+                        .try_into()
+                        .expect("Instant should fit into a u64"),
+                    salt: azalea_crypto::make_salt(),
+                    argument_signatures: vec![],
+                    last_seen_messages: LastSeenMessagesUpdate::default(),
+                }
+                .get()
+            }
+        };
+
+        send_packet_events.send(SendPacketEvent {
+            entity: event.entity,
+            packet,
+        });
     }
 }
 

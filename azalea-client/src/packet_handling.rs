@@ -37,8 +37,9 @@ use parking_lot::Mutex;
 use tokio::sync::mpsc;
 
 use crate::{
+    chat::{ChatPacket, ChatReceivedEvent},
     local_player::{GameProfileComponent, LocalPlayer},
-    ChatPacket, ClientInformation, PlayerInfo,
+    ClientInformation, PlayerInfo,
 };
 
 pub struct PacketHandlerPlugin;
@@ -82,13 +83,6 @@ pub struct UpdatePlayerEvent {
     pub info: PlayerInfo,
 }
 
-/// A client received a chat message packet.
-#[derive(Debug, Clone)]
-pub struct ChatReceivedEvent {
-    pub entity: Entity,
-    pub packet: ChatPacket,
-}
-
 /// Event for when an entity dies. dies. If it's a local player and there's a
 /// reason in the death screen, the [`ClientboundPlayerCombatKillPacket`] will
 /// be included.
@@ -112,7 +106,7 @@ pub struct KeepAliveEvent {
 #[derive(Component, Clone)]
 pub struct PacketReceiver {
     pub packets: Arc<Mutex<Vec<ClientboundGamePacket>>>,
-    pub run_schedule_sender: mpsc::Sender<()>,
+    pub run_schedule_sender: mpsc::UnboundedSender<()>,
 }
 
 fn handle_packets(ecs: &mut Ecs) {
@@ -950,7 +944,7 @@ impl PacketReceiver {
                 Ok(packet) => {
                     self.packets.lock().push(packet);
                     // tell the client to run all the systems
-                    self.run_schedule_sender.send(()).await.unwrap();
+                    self.run_schedule_sender.send(()).unwrap();
                 }
                 Err(error) => {
                     if !matches!(*error, ReadPacketError::ConnectionClosed) {
