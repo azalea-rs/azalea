@@ -5,7 +5,7 @@ mod events;
 pub mod prelude;
 
 use crate::{bot::DefaultBotPlugins, HandleFn};
-use azalea_client::{init_ecs_app, start_ecs, Account, ChatPacket, Client, Event, JoinError};
+use azalea_client::{chat::ChatPacket, init_ecs_app, start_ecs, Account, Client, Event, JoinError};
 use azalea_ecs::{
     app::{App, Plugin, PluginGroup, PluginGroupBuilder},
     component::Component,
@@ -47,7 +47,7 @@ pub struct Swarm {
     bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
     swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
 
-    run_schedule_sender: mpsc::Sender<()>,
+    run_schedule_sender: mpsc::UnboundedSender<()>,
 }
 
 /// Create a new [`Swarm`].
@@ -253,7 +253,7 @@ where
         let (bots_tx, mut bots_rx) = mpsc::unbounded_channel();
         let (swarm_tx, mut swarm_rx) = mpsc::unbounded_channel();
 
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
+        let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
         let ecs_lock = start_ecs(self.app, run_schedule_receiver, run_schedule_sender.clone());
 
         let swarm = Swarm {
