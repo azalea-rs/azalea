@@ -588,7 +588,7 @@ mod tests {
             block_state.is_some(),
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
-        // do a few steps so we fall on the slab
+        // do a few steps so we fall on the wall
         for _ in 0..20 {
             app.update();
         }
@@ -649,7 +649,7 @@ mod tests {
             block_state.is_some(),
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
-        // do a few steps so we fall on the slab
+        // do a few steps so we fall on the wall
         for _ in 0..20 {
             app.update();
         }
