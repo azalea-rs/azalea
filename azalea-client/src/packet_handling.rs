@@ -38,6 +38,7 @@ use tokio::sync::mpsc;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
+    disconnect::DisconnectEvent,
     local_player::{GameProfileComponent, LocalPlayer},
     ClientInformation, PlayerInfo,
 };
@@ -286,10 +287,14 @@ fn handle_packets(ecs: &mut Ecs) {
                 }
                 ClientboundGamePacket::Disconnect(p) => {
                     debug!("Got disconnect packet {:?}", p);
-                    let mut system_state: SystemState<Query<&LocalPlayer>> = SystemState::new(ecs);
-                    let query = system_state.get(ecs);
-                    let local_player = query.get(player_entity).unwrap();
-                    local_player.disconnect();
+                    let mut system_state: SystemState<EventWriter<DisconnectEvent>> =
+                        SystemState::new(ecs);
+                    let mut disconnect_events = system_state.get_mut(ecs);
+                    disconnect_events.send(DisconnectEvent {
+                        entity: player_entity,
+                    });
+                    // bye
+                    return;
                 }
                 ClientboundGamePacket::UpdateRecipes(_p) => {
                     debug!("Got update recipes packet");
@@ -950,10 +955,14 @@ impl PacketReceiver {
                     if !matches!(*error, ReadPacketError::ConnectionClosed) {
                         error!("Error reading packet from Client: {error:?}");
                     }
-                    return;
+                    break;
                 }
             }
         }
+        // TODO: it should send a DisconnectEvent here somehow
+        // maybe use a tokio::sync::oneshot that tells it to close and have the
+        // receiver in localplayer and have a system that watches that or
+        // something?
     }
 
     /// Consume the [`ServerboundGamePacket`] queue and actually write the
@@ -970,6 +979,7 @@ impl PacketReceiver {
                 break;
             };
         }
+        println!("Write task finished");
         // receiver is automatically closed when it's dropped
     }
 }

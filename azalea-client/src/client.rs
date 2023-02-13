@@ -1,12 +1,13 @@
 use crate::{
     chat::ChatPlugin,
+    disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
     local_player::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
         LocalPlayer, PhysicsState, SendPacketEvent,
     },
     movement::{local_player_ai_step, send_position, sprint_listener, walk_listener},
-    packet_handling::{self, PacketHandlerPlugin},
+    packet_handling::{self, PacketHandlerPlugin, PacketReceiver},
     player::retroactively_add_game_profile_component,
     task_pool::TaskPoolPlugin,
     Account, PlayerInfo, StartSprintEvent, StartWalkEvent,
@@ -16,6 +17,7 @@ use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerE
 use azalea_chat::FormattedText;
 use azalea_ecs::{
     app::{App, Plugin, PluginGroup, PluginGroupBuilder},
+    bundle::Bundle,
     component::Component,
     entity::Entity,
     schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
@@ -225,14 +227,14 @@ impl Client {
         local_player.tasks.push(read_packets_task);
         local_player.tasks.push(write_packets_task);
 
-        ecs.entity_mut(entity).insert((
+        ecs.entity_mut(entity).insert(JoinedClientBundle {
             local_player,
             packet_receiver,
-            GameProfileComponent(game_profile),
-            PhysicsState::default(),
-            Local,
-            LocalPlayerEvents(tx),
-        ));
+            game_profile: GameProfileComponent(game_profile),
+            physics_state: PhysicsState::default(),
+            local_player_events: LocalPlayerEvents(tx),
+            _local: Local,
+        });
 
         Ok((client, rx))
     }
@@ -371,7 +373,9 @@ impl Client {
     /// The OwnedReadHalf for the TCP connection is in one of the tasks, so it
     /// automatically closes the connection when that's dropped.
     pub fn disconnect(&self) {
-        self.local_player_mut(&mut self.ecs.lock()).disconnect();
+        self.ecs.lock().send_event(DisconnectEvent {
+            entity: self.entity,
+        });
     }
 
     pub fn local_player<'a>(&'a self, ecs: &'a mut Ecs) -> &'a LocalPlayer {
@@ -466,6 +470,18 @@ impl Client {
     pub fn players(&mut self) -> HashMap<Uuid, PlayerInfo> {
         self.local_player(&mut self.ecs.lock()).players.clone()
     }
+}
+
+/// A bundle for the components that are present on a local player that received
+/// a login packet. If you want to filter for this, just use [`Local`].
+#[derive(Bundle)]
+pub struct JoinedClientBundle {
+    pub local_player: LocalPlayer,
+    pub packet_receiver: PacketReceiver,
+    pub game_profile: GameProfileComponent,
+    pub physics_state: PhysicsState,
+    pub local_player_events: LocalPlayerEvents,
+    pub _local: Local,
 }
 
 pub struct AzaleaPlugin;
@@ -596,5 +612,6 @@ impl PluginGroup for DefaultPlugins {
             .add(EventPlugin)
             .add(TaskPoolPlugin::default())
             .add(ChatPlugin)
+            .add(DisconnectPlugin)
     }
 }
