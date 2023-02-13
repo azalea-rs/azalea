@@ -20,13 +20,13 @@ pub struct BlockCollisions<'a> {
 
 impl<'a> BlockCollisions<'a> {
     pub fn new(world: &'a World, aabb: AABB) -> Self {
-        let origin_x = (aabb.min_x - EPSILON) as i32 - 1;
-        let origin_y = (aabb.min_y - EPSILON) as i32 - 1;
-        let origin_z = (aabb.min_z - EPSILON) as i32 - 1;
+        let origin_x = (aabb.min_x - EPSILON).floor() as i32 - 1;
+        let origin_y = (aabb.min_y - EPSILON).floor() as i32 - 1;
+        let origin_z = (aabb.min_z - EPSILON).floor() as i32 - 1;
 
-        let end_x = (aabb.max_x + EPSILON) as i32 + 1;
-        let end_y = (aabb.max_y + EPSILON) as i32 + 1;
-        let end_z = (aabb.max_z + EPSILON) as i32 + 1;
+        let end_x = (aabb.max_x + EPSILON).floor() as i32 + 1;
+        let end_y = (aabb.max_y + EPSILON).floor() as i32 + 1;
+        let end_z = (aabb.max_z + EPSILON).floor() as i32 + 1;
 
         let cursor = Cursor3d::new(origin_x, origin_y, origin_z, end_x, end_y, end_z);
 
