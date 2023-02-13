@@ -4,7 +4,7 @@
 mod bot;
 pub mod pathfinder;
 pub mod prelude;
-mod swarm;
+pub mod swarm;
 
 pub use azalea_block as blocks;
 pub use azalea_client::*;
@@ -23,7 +23,6 @@ use protocol::{
     resolver::{self, ResolverError},
     ServerAddress,
 };
-pub use swarm::*;
 use thiserror::Error;
 use tokio::sync::mpsc;
 
@@ -43,10 +42,19 @@ pub enum StartError {
 /// making Azalea bots.
 ///
 /// ```no_run
-/// azalea::ClientBuilder::new()
+/// # use azalea::prelude::*;
+/// # #[tokio::main]
+/// # async fn main() {
+/// ClientBuilder::new()
 ///     .set_handler(handle)
 ///     .start(Account::offline("bot"), "localhost")
 ///     .await;
+/// # }
+/// # #[derive(Component, Clone, Default)]
+/// # pub struct State;
+/// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+/// #     Ok(())
+/// # }
 /// ```
 pub struct ClientBuilder<S, Fut>
 where
@@ -79,9 +87,20 @@ where
     /// Set the function that's called every time a bot receives an [`Event`].
     /// This is the way to handle normal per-bot events.
     ///
-    /// You can only have one client handler, calling this again will replace
-    /// the old client handler function (you can have a client handler and swarm
-    /// handler separately though).
+    /// You must have exactly one client handler, calling this again will
+    /// replace the old client handler function.
+    ///
+    /// ```
+    /// # use azalea::prelude::*;
+    /// # let client_builder = azalea::ClientBuilder::new();
+    /// client_builder.set_handler(handle);
+    ///
+    /// # #[derive(Component, Clone, Default)]
+    /// # pub struct State;
+    /// async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    ///     Ok(())
+    /// }
+    /// ```
     #[must_use]
     pub fn set_handler(mut self, handler: HandleFn<Fut, S>) -> Self {
         self.handler = Some(handler);

@@ -378,7 +378,8 @@ impl Client {
     /// # Examples
     ///
     /// ```
-    /// # fn example(client: &azalea::Client) {
+    /// # use azalea_world::entity::WorldName;
+    /// # fn example(client: &azalea_client::Client) {
     /// let world_name = client.component::<WorldName>();
     /// # }
     pub fn component<T: Component + Clone>(&self) -> T {

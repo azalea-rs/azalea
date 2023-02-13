@@ -15,6 +15,7 @@ impl Client {
     ///
     /// # Examples
     /// ```
+    /// # use azalea_world::entity::WorldName;
     /// # fn example(mut client: azalea_client::Client) {
     /// let is_logged_in = client
     ///     .query::<Option<&WorldName>>(&mut client.ecs.lock())

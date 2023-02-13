@@ -343,20 +343,20 @@ impl Section {
             .states
             .get(pos.x as usize, pos.y as usize, pos.z as usize);
         // if there's an unknown block assume it's air
-        BlockState::try_from(state).unwrap_or(BlockState::Air)
+        BlockState::try_from(state).unwrap_or(BlockState::AIR)
     }
 
     fn get_and_set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) -> BlockState {
         let previous_state =
             self.states
-                .get_and_set(pos.x as usize, pos.y as usize, pos.z as usize, state as u32);
+                .get_and_set(pos.x as usize, pos.y as usize, pos.z as usize, state.id);
         // if there's an unknown block assume it's air
-        BlockState::try_from(previous_state).unwrap_or(BlockState::Air)
+        BlockState::try_from(previous_state).unwrap_or(BlockState::AIR)
     }
 
     fn set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) {
         self.states
-            .set(pos.x as usize, pos.y as usize, pos.z as usize, state as u32);
+            .set(pos.x as usize, pos.y as usize, pos.z as usize, state.id);
     }
 }
 

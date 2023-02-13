@@ -1,4 +1,6 @@
 from lib.utils import to_camel_case, to_snake_case, get_dir_location, upper_first_letter
+from lib.code.packet import burger_instruction_to_code
+from lib.code.utils import burger_type_to_rust_type
 from lib.mappings import Mappings
 from typing import Optional
 import re
@@ -6,8 +8,43 @@ import re
 METADATA_RS_DIR = get_dir_location(
     '../azalea-world/src/entity/metadata.rs')
 
+def generate_metadata_types(burger_dataserializers: dict, mappings: Mappings):
+    serializers = [None] * len(burger_dataserializers)
+    for burger_serializer in burger_dataserializers.values():
+        print(burger_serializer)
 
-def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
+        # burger gives us the wrong class, so we do this instead
+        data_serializers_class = mappings.get_class_from_deobfuscated_name('net.minecraft.network.syncher.EntityDataSerializers')
+        mojmap_name = mappings.get_field(data_serializers_class, burger_serializer['field']).lower()
+
+        print(mojmap_name)
+        
+        instructions = burger_serializer['instructions']
+        rust_type = []
+        uses = set()
+        extra_code = []
+        burger_instruction_to_code(instructions, 0, rust_type, mappings, burger_serializer['type'], uses, extra_code, {
+            'value': burger_serializer['type']
+        })
+        try:
+            mojmap_class_name = mappings.get_class(burger_serializer['type'])
+        except:
+            mojmap_class_name = None
+        burger_name = burger_serializer.get('name')
+        
+        print(mojmap_name, mojmap_class_name, burger_name)
+        serializer = {
+            'name': mojmap_name,
+            'type': rust_type,
+        }
+        serializers[burger_serializer['id']] = serializer
+    return serializers
+
+def generate_entity_metadata(burger_entities_data: dict, mappings: Mappings):
+    burger_entity_metadata = burger_entities_data['entity']
+
+    print(generate_metadata_types(burger_entities_data['dataserializers'], mappings))
+
     # TODO: auto generate this and use it for generating the EntityDataValue enum
     metadata_types = [
         {'name': 'Byte', 'type': 'u8'},
@@ -74,9 +111,9 @@ impl From<EntityDataValue> for UpdateMetadataError {
     # build the duplicate_field_names set
     previous_field_names = set()
     duplicate_field_names = set()
-    for entity_id in burger_entity_data.keys():
+    for entity_id in burger_entity_metadata.keys():
         field_name_map[entity_id] = {}
-        for field_name_or_bitfield in get_entity_metadata_names(entity_id, burger_entity_data, mappings).values():
+        for field_name_or_bitfield in get_entity_metadata_names(entity_id, burger_entity_metadata, mappings).values():
             if isinstance(field_name_or_bitfield, str):
                 if field_name_or_bitfield in previous_field_names:
                     duplicate_field_names.add(field_name_or_bitfield)
@@ -99,8 +136,8 @@ impl From<EntityDataValue> for UpdateMetadataError {
             raise Exception(f'{name} should only exist once')
 
     # and now figure out what to rename them to
-    for entity_id in burger_entity_data.keys():
-        for index, field_name_or_bitfield in get_entity_metadata_names(entity_id, burger_entity_data, mappings).items():
+    for entity_id in burger_entity_metadata.keys():
+        for index, field_name_or_bitfield in get_entity_metadata_names(entity_id, burger_entity_metadata, mappings).items():
             if isinstance(field_name_or_bitfield, str):
                 new_field_name = field_name_or_bitfield
                 if new_field_name == 'type':
@@ -129,14 +166,14 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 return field_name_map[entity_ids_for_all_field_names_or_bitfields[index]][name]
             return name
 
-        parents = get_entity_parents(entity_id, burger_entity_data)
+        parents = get_entity_parents(entity_id, burger_entity_metadata)
         for parent_id in list(reversed(parents)):
-            for index, name_or_bitfield in get_entity_metadata_names(parent_id, burger_entity_data, mappings).items():
+            for index, name_or_bitfield in get_entity_metadata_names(parent_id, burger_entity_metadata, mappings).items():
                 assert index == len(all_field_names_or_bitfields)
                 all_field_names_or_bitfields.append(name_or_bitfield)
                 entity_ids_for_all_field_names_or_bitfields.append(parent_id)
             entity_metadatas.extend(get_entity_metadata(
-                parent_id, burger_entity_data))
+                parent_id, burger_entity_metadata))
         parent_id = parents[1] if len(parents) > 1 else None
 
         # now add all the fields/component structs
@@ -264,7 +301,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
         if parent_struct_name:
             code.append(
                 f'    parent: {parent_struct_name}MetadataBundle,')
-        for index, name_or_bitfield in get_entity_metadata_names(entity_id, burger_entity_data, mappings).items():
+        for index, name_or_bitfield in get_entity_metadata_names(entity_id, burger_entity_metadata, mappings).items():
             if isinstance(name_or_bitfield, str):
                 name_or_bitfield = maybe_rename_field(
                     name_or_bitfield, index)
@@ -310,7 +347,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
             # if it has a parent, put it (do recursion)
             # parent: AbstractCreatureBundle { ... },
             this_entity_parent_ids = get_entity_parents(
-                this_entity_id, burger_entity_data)
+                this_entity_id, burger_entity_metadata)
             this_entity_parent_id = this_entity_parent_ids[1] if len(
                 this_entity_parent_ids) > 1 else None
             if this_entity_parent_id:
@@ -322,7 +359,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 code.append(
                     '            },')
 
-            for index, name_or_bitfield in get_entity_metadata_names(this_entity_id, burger_entity_data, mappings).items():
+            for index, name_or_bitfield in get_entity_metadata_names(this_entity_id, burger_entity_metadata, mappings).items():
                 default = next(filter(lambda i: i['index'] == index, entity_metadatas)).get(
                     'default', 'Default::default()')
                 if isinstance(name_or_bitfield, str):
@@ -367,7 +404,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                         elif type_name == 'ItemStack':
                             default = f'Slot::Present({default})' if default != 'Empty' else 'Slot::Empty'
                         elif type_name == 'BlockState':
-                            default = f'{default}' if default != 'Empty' else 'BlockState::Air'
+                            default = f'{default}' if default != 'Empty' else 'BlockState::AIR'
                         elif type_name == 'OptionalFormattedText':
                             default = f'Some({default})' if default != 'Empty' else 'None'
                         elif type_name == 'CompoundTag':
@@ -395,7 +432,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
         code.append('')
 
     # parent_field_name = None
-    for entity_id in burger_entity_data:
+    for entity_id in burger_entity_metadata:
         new_entity(entity_id)
 
     # and now make the main apply_metadata
@@ -419,7 +456,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     items: Vec<EntityDataItem>,
 ) -> Result<(), UpdateMetadataError> {{
     match entity_kind {{''')
-    for entity_id in burger_entity_data:
+    for entity_id in burger_entity_metadata:
         if entity_id.startswith('~'):
             # not actually an entity
             continue
@@ -446,7 +483,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     code.append(
         'pub fn apply_default_metadata(entity: &mut azalea_ecs::system::EntityCommands, kind: azalea_registry::EntityKind) {')
     code.append('    match kind {')
-    for entity_id in burger_entity_data:
+    for entity_id in burger_entity_metadata:
         if entity_id.startswith('~'):
             # not actually an entity
             continue
@@ -464,22 +501,22 @@ impl From<EntityDataValue> for UpdateMetadataError {
         f.write('\n'.join(code))
 
 
-def get_entity_parents(entity_id: str, burger_entity_data: dict):
+def get_entity_parents(entity_id: str, burger_entity_metadata: dict):
     parents = []
     while entity_id:
         parents.append(entity_id)
-        entity_id = get_entity_parent(entity_id, burger_entity_data)
+        entity_id = get_entity_parent(entity_id, burger_entity_metadata)
     return parents
 
 
-def get_entity_parent(entity_id: str, burger_entity_data: dict):
-    entity_metadata = burger_entity_data[entity_id]['metadata']
+def get_entity_parent(entity_id: str, burger_entity_metadata: dict):
+    entity_metadata = burger_entity_metadata[entity_id]['metadata']
     first_metadata = entity_metadata[0]
     return first_metadata.get('entity')
 
 
-def get_entity_metadata(entity_id: str, burger_entity_data: dict):
-    entity_metadata = burger_entity_data[entity_id]['metadata']
+def get_entity_metadata(entity_id: str, burger_entity_metadata: dict):
+    entity_metadata = burger_entity_metadata[entity_id]['metadata']
     entity_useful_metadata = []
     for metadata_item in entity_metadata:
         if 'data' in metadata_item:
@@ -494,8 +531,8 @@ def get_entity_metadata(entity_id: str, burger_entity_data: dict):
 # returns a dict of {index: (name or bitfield)}
 
 
-def get_entity_metadata_names(entity_id: str, burger_entity_data: dict, mappings: Mappings):
-    entity_metadata = burger_entity_data[entity_id]['metadata']
+def get_entity_metadata_names(entity_id: str, burger_entity_metadata: dict, mappings: Mappings):
+    entity_metadata = burger_entity_metadata[entity_id]['metadata']
     mapped_metadata_names = {}
 
     for metadata_item in entity_metadata:

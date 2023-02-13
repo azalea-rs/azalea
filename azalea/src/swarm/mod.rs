@@ -2,6 +2,7 @@
 
 mod chat;
 mod events;
+pub mod prelude;
 
 use crate::{bot::DefaultBotPlugins, HandleFn};
 use azalea_client::{init_ecs_app, start_ecs, Account, ChatPacket, Client, Event, JoinError};
@@ -28,7 +29,7 @@ use tokio::sync::mpsc;
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
 ///
-/// Swarms are created from [`azalea::SwarmBuilder`].
+/// Swarms are created from [`azalea::swarm::SwarmBuilder`].
 ///
 /// The `S` type parameter is the type of the state for individual bots.
 /// It's used to make the [`Swarm::add`] function work.
@@ -136,9 +137,30 @@ where
     /// Set the function that's called every time a bot receives an [`Event`].
     /// This is the way to handle normal per-bot events.
     ///
-    /// You can only have one client handler, calling this again will replace
-    /// the old client handler function (you can have a client handler and swarm
-    /// handler separately though).
+    /// You must have exactly one client handler and one swarm handler, calling
+    /// this again will replace the old client handler function.
+    ///
+    /// ```
+    /// # use azalea::{prelude::*, swarm::prelude::*};
+    /// # let swarm_builder = SwarmBuilder::new().set_swarm_handler(swarm_handle);
+    /// swarm_builder.set_handler(handle);
+    ///
+    /// #[derive(Component, Default, Clone)]
+    /// struct State {}
+    /// async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    ///     Ok(())
+    /// }
+    ///
+    /// # #[derive(Resource, Default, Clone)]
+    /// # struct SwarmState {}
+    /// # async fn swarm_handle(
+    /// #     mut swarm: Swarm,
+    /// #     event: SwarmEvent,
+    /// #     state: SwarmState,
+    /// # ) -> anyhow::Result<()> {
+    /// #     Ok(())
+    /// # }
+    /// ```
     #[must_use]
     pub fn set_handler(mut self, handler: HandleFn<Fut, S>) -> Self {
         self.handler = Some(handler);
@@ -147,9 +169,31 @@ where
     /// Set the function that's called every time the swarm receives a
     /// [`SwarmEvent`]. This is the way to handle global swarm events.
     ///
-    /// You can only have one swarm handler, calling this again will replace
-    /// the old swarm handler function (you can have a client handler and swarm
-    /// handler separately though).
+    /// You must have exactly one client handler and one swarm handler, calling
+    /// this again will replace the old swarm handler function.
+    ///
+    /// ```
+    /// # use azalea::{prelude::*, swarm::prelude::*};
+    /// # let swarm_builder = SwarmBuilder::new().set_handler(handle);
+    /// swarm_builder.set_swarm_handler(swarm_handle);
+    ///
+    /// # #[derive(Component, Default, Clone)]
+    /// # struct State {}
+    ///
+    /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    /// #     Ok(())
+    /// # }
+    ///
+    /// #[derive(Resource, Default, Clone)]
+    /// struct SwarmState {}
+    /// async fn swarm_handle(
+    ///     mut swarm: Swarm,
+    ///     event: SwarmEvent,
+    ///     state: SwarmState,
+    /// ) -> anyhow::Result<()> {
+    ///     Ok(())
+    /// }
+    /// ```
     #[must_use]
     pub fn set_swarm_handler(mut self, handler: SwarmHandleFn<SwarmFut, SS>) -> Self {
         self.swarm_handler = Some(handler);
@@ -337,7 +381,7 @@ pub enum SwarmStartError {
 ///
 /// # Examples
 /// ```rust,no_run
-/// use azalea::{prelude::*, Swarm, SwarmEvent};
+/// use azalea::{prelude::*, swarm::prelude::*};
 /// use std::time::Duration;
 ///
 /// #[derive(Default, Clone, Component)]
@@ -376,7 +420,7 @@ pub enum SwarmStartError {
 /// }
 ///
 /// async fn swarm_handle(
-///     mut swarm: Swarm<State>,
+///     mut swarm: Swarm,
 ///     event: SwarmEvent,
 ///     _state: SwarmState,
 /// ) -> anyhow::Result<()> {
@@ -483,10 +527,15 @@ impl IntoIterator for Swarm {
     /// Iterate over the bots in this swarm.
     ///
     /// ```rust,no_run
+    /// # use azalea::{prelude::*, swarm::prelude::*};
+    /// #[derive(Component, Clone)]
+    /// # pub struct State;
+    /// # fn example(swarm: Swarm) {
     /// for bot in swarm {
     ///     let state = bot.component::<State>();
     ///     // ...
     /// }
+    /// # }
     /// ```
     fn into_iter(self) -> Self::IntoIter {
         self.bots

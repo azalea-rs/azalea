@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use azalea::entity::metadata::Player;
-use azalea::{pathfinder, Account, Client, Event, GameProfileComponent, SwarmEvent};
-use azalea::{prelude::*, Swarm};
+use azalea::{pathfinder, Account, Client, Event, GameProfileComponent};
+use azalea::{prelude::*, swarm::prelude::*};
 use azalea_ecs::query::With;
 
 #[tokio::main]
@@ -25,10 +25,10 @@ async fn main() {
         .unwrap();
 }
 
-#[derive(Default, Clone)]
+#[derive(Component, Default, Clone)]
 struct State {}
 
-#[derive(Default, Clone)]
+#[derive(Resource, Default, Clone)]
 struct SwarmState {}
 
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
