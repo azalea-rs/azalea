@@ -135,7 +135,7 @@ where
         let resolved_address = resolver::resolve_address(&address).await?;
 
         // An event that causes the schedule to run. This is only used internally.
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
+        let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
         let ecs_lock = start_ecs(self.app, run_schedule_receiver, run_schedule_sender.clone());
 
         let (bot, mut rx) = Client::start_client(
