@@ -112,12 +112,11 @@ impl LocalPlayer {
             .send(packet)
             .expect("write_packet shouldn't be able to be called if the connection is closed");
     }
+}
 
-    /// Disconnect this client from the server by ending all tasks.
-    ///
-    /// The OwnedReadHalf for the TCP connection is in one of the tasks, so it
-    /// automatically closes the connection when that's dropped.
-    pub fn disconnect(&self) {
+impl Drop for LocalPlayer {
+    /// Stop every active task when the `LocalPlayer` is dropped.
+    fn drop(&mut self) {
         for task in &self.tasks {
             task.abort();
         }

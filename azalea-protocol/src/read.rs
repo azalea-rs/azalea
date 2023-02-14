@@ -163,7 +163,7 @@ pub enum DecompressionError {
 
 /// Get the decompressed bytes from a packet. It must have been decrypted
 /// first.
-fn compression_decoder(
+pub fn compression_decoder(
     stream: &mut Cursor<&[u8]>,
     compression_threshold: u32,
 ) -> Result<Vec<u8>, DecompressionError> {

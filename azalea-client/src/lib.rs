@@ -14,6 +14,7 @@
 mod account;
 pub mod chat;
 mod client;
+pub mod disconnect;
 mod entity_query;
 mod events;
 mod get_mc_dir;
