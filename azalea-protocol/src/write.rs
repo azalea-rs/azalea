@@ -29,7 +29,7 @@ pub enum PacketEncodeError {
     },
 }
 
-fn packet_encoder<P: ProtocolPacket + std::fmt::Debug>(
+pub fn packet_encoder<P: ProtocolPacket + std::fmt::Debug>(
     packet: &P,
 ) -> Result<Vec<u8>, PacketEncodeError> {
     let mut buf = Vec::new();
@@ -51,7 +51,7 @@ pub enum PacketCompressError {
     Io(#[from] std::io::Error),
 }
 
-async fn compression_encoder(
+pub async fn compression_encoder(
     data: &[u8],
     compression_threshold: u32,
 ) -> Result<Vec<u8>, PacketCompressError> {
@@ -60,15 +60,18 @@ async fn compression_encoder(
     if n < compression_threshold as usize {
         let mut buf = Vec::new();
         0.var_write_into(&mut buf)?;
-        buf.write_all(data).await?;
+        std::io::Write::write_all(&mut buf, data)?;
         Ok(buf)
     } else {
         // otherwise, compress
         let mut deflater = ZlibEncoder::new(data);
         // write deflated data to buf
-        let mut buf = Vec::new();
-        deflater.read_to_end(&mut buf).await?;
-        Ok(buf)
+        let mut data = Vec::new();
+        deflater.read_to_end(&mut data).await?;
+        let mut len_prepended_buf = Vec::new();
+        (len_prepended_buf.len() as u32).var_write_into(&mut len_prepended_buf)?;
+        len_prepended_buf.append(&mut data);
+        Ok(len_prepended_buf)
     }
 }
 
@@ -82,7 +85,7 @@ where
     P: ProtocolPacket + Debug,
     W: AsyncWrite + Unpin + Send,
 {
-    trace!("Sending packet: {:?}", packet);
+    trace!("Sending packet: {:?}", packet,);
     let mut buf = packet_encoder(packet).unwrap();
     if let Some(threshold) = compression_threshold {
         buf = compression_encoder(&buf, threshold).await.unwrap();

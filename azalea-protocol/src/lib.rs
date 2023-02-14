@@ -79,14 +79,18 @@ impl Display for ServerAddress {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
+    use std::{
+        io::Cursor,
+        time::{SystemTime, UNIX_EPOCH},
+    };
 
     use crate::{
-        packets::login::{
-            serverbound_hello_packet::ServerboundHelloPacket, ServerboundLoginPacket,
+        packets::{
+            game::serverbound_chat_packet::{LastSeenMessagesUpdate, ServerboundChatPacket},
+            login::{serverbound_hello_packet::ServerboundHelloPacket, ServerboundLoginPacket},
         },
-        read::read_packet,
-        write::write_packet,
+        read::{compression_decoder, read_packet},
+        write::{compression_encoder, packet_encoder, write_packet},
     };
     use bytes::BytesMut;
     use uuid::Uuid;
@@ -139,5 +143,30 @@ mod tests {
         let _ = read_packet::<ServerboundLoginPacket, _>(&mut stream, &mut buffer, None, &mut None)
             .await
             .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_read_long_compressed_chat() {
+        let compression_threshold = 256;
+
+        let buf = packet_encoder(
+            &ServerboundChatPacket {
+                message: "a".repeat(256),
+                timestamp: 0,
+                salt: 0,
+                signature: None,
+                last_seen_messages: LastSeenMessagesUpdate::default(),
+            }
+            .get(),
+        )
+        .unwrap();
+
+        let buf = compression_encoder(&buf, compression_threshold)
+            .await
+            .unwrap();
+
+        println!("{:?}", buf);
+
+        compression_decoder(&mut Cursor::new(&buf), compression_threshold).unwrap();
     }
 }
