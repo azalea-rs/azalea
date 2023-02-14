@@ -938,6 +938,7 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::ContainerClose(_) => {}
                 ClientboundGamePacket::Bundle(_) => {}
                 ClientboundGamePacket::HurtAnimation(_) => {}
+                ClientboundGamePacket::DamageEvent(_) => {}
             }
         }
     }

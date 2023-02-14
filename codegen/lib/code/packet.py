@@ -241,10 +241,10 @@ def burger_instruction_to_code(instructions: list[dict], index: int, generated_p
 
     # iterators
     if instruction['operation'] == 'write' and instruction['field'].endswith('.size()') and next_instruction and next_instruction['type'] == 'Iterator' and next_next_instruction and next_next_instruction['operation'] == 'loop':
-        field_obfuscated_name = instruction['field'].split('.')[
+        obfuscated_field_name = instruction['field'].split('.')[
             0]
         field_name = mappings.get_field(
-            obfuscated_class_name, field_obfuscated_name)
+            obfuscated_class_name, obfuscated_field_name)
 
         # figure out what kind of iterator it is
         loop_instructions = next_next_instruction['instructions']
@@ -284,10 +284,21 @@ def burger_instruction_to_code(instructions: list[dict], index: int, generated_p
 
     # Option<T>
     elif instruction['operation'] == 'write' and (instruction['field'].endswith('.isPresent()') or instruction['field'].endswith(' != null')) and next_instruction and (next_instruction.get('condition', '').endswith('.isPresent()') or next_instruction.get('condition', '').endswith(' != null')):
-        field_obfuscated_name = instruction['field'].split('.')[
+        print('ok is option')
+        obfuscated_field_name = instruction['field'].split('.')[
             0].split(' ')[0]
+    
+        if obfuscated_field_name in known_variable_types:
+            # just use the known name since it's not gonna be in the mappings
+            obfuscated_field_name = known_variable_types[obfuscated_field_name]
+    
         field_name = mappings.get_field(
-            obfuscated_class_name, field_obfuscated_name)
+            obfuscated_class_name, obfuscated_field_name)
+
+        if field_name is None: field_name = obfuscated_field_name.split('/')[-1]
+        if '<' in field_name:
+            field_name = 'value'
+
         condition_instructions = next_instruction['instructions']
 
         condition_types_rs = []
@@ -314,23 +325,34 @@ def burger_instruction_to_code(instructions: list[dict], index: int, generated_p
         field_type_rs, is_var, instruction_uses, instruction_extra_code = burger_type_to_rust_type(
             field_type, field_name, instruction, mappings, obfuscated_class_name)
 
-        if '.' in obfuscated_field_name or ' ' in obfuscated_field_name or '(' in obfuscated_field_name:
+        if obfuscated_field_name in known_variable_types:
+            # just use the known name since it's not gonna be in the mappings
+            field_name = obfuscated_field_name
+
+        elif '.' in obfuscated_field_name or ' ' in obfuscated_field_name or '(' in obfuscated_field_name:
             field_type_rs2, obfuscated_field_name, field_comment = burger_field_to_type(
                 obfuscated_field_name, mappings, obfuscated_class_name, known_variable_types)
             if not field_type_rs2:
                 generated_packet_code.append(f'// TODO: {instruction}')
                 return
+            if obfuscated_field_name in known_variable_types:
+                # just use the known name since it's not gonna be in the mappings
+                obfuscated_field_name = known_variable_types[obfuscated_field_name]
+                print('got obfuscated_field_name', obfuscated_field_name)
+
             # try to get the field name again with the new stuff we know
             field_name = mappings.get_field(
                 obfuscated_class_name, obfuscated_field_name) or mappings.get_field(
                 obfuscated_class_name.split('$')[0], obfuscated_field_name)
+            if field_name is None:
+                field_name = obfuscated_field_name.split('/')[-1]
         uses.update(instruction_uses)
         extra_code.extend(instruction_extra_code)
 
     if not field_name:
         generated_packet_code.append(
             f'// TODO: unknown field {instruction}')
-        return
+        return skip
 
     if is_var:
         generated_packet_code.append('#[var]')
@@ -373,6 +395,8 @@ def burger_field_to_type(field, mappings: Mappings, obfuscated_class_name: str, 
         else:
             second = obfuscated_second
         first_type_short = first_type.split('.')[-1]
+        if second in {'byteValue'}:
+            return (first_type_short, obfuscated_first, None)
         return (first_type_short, obfuscated_first, f'TODO: Does {first_type_short}::{second}, may not be implemented')
     return None, field, None
 

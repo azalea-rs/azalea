@@ -8,8 +8,11 @@ import re
 METADATA_RS_DIR = get_dir_location(
     '../azalea-world/src/entity/metadata.rs')
 
-def generate_metadata_types(burger_dataserializers: dict, mappings: Mappings):
-    serializers = [None] * len(burger_dataserializers)
+DATA_RS_DIR = get_dir_location(
+    '../azalea-world/src/entity/data.rs')
+
+def generate_metadata_names(burger_dataserializers: dict, mappings: Mappings):
+    serializer_names = [None] * len(burger_dataserializers)
     for burger_serializer in burger_dataserializers.values():
         print(burger_serializer)
 
@@ -17,61 +20,78 @@ def generate_metadata_types(burger_dataserializers: dict, mappings: Mappings):
         data_serializers_class = mappings.get_class_from_deobfuscated_name('net.minecraft.network.syncher.EntityDataSerializers')
         mojmap_name = mappings.get_field(data_serializers_class, burger_serializer['field']).lower()
 
-        print(mojmap_name)
-        
-        instructions = burger_serializer['instructions']
-        rust_type = []
-        uses = set()
-        extra_code = []
-        burger_instruction_to_code(instructions, 0, rust_type, mappings, burger_serializer['type'], uses, extra_code, {
-            'value': burger_serializer['type']
-        })
-        try:
-            mojmap_class_name = mappings.get_class(burger_serializer['type'])
-        except:
-            mojmap_class_name = None
-        burger_name = burger_serializer.get('name')
-        
-        print(mojmap_name, mojmap_class_name, burger_name)
-        serializer = {
-            'name': mojmap_name,
-            'type': rust_type,
-        }
-        serializers[burger_serializer['id']] = serializer
-    return serializers
+        if mojmap_name == 'component':
+            mojmap_name = 'formatted_text'
+        elif mojmap_name == 'optional_component':
+            mojmap_name = 'optional_formatted_text'
+
+        serializer_names[burger_serializer['id']] = upper_first_letter(to_camel_case(mojmap_name))
+    return serializer_names
+
+def parse_metadata_types_from_code():
+    with open(DATA_RS_DIR, 'r') as f:
+        lines = f.read().splitlines()
+    
+    data = []
+
+    in_enum = False
+    for line in lines:
+        if line == 'pub enum EntityDataValue {':
+            in_enum = True
+        elif line == '}':
+            in_enum = False
+        elif in_enum:
+            line = line.strip()
+            if line.startswith('//'): continue
+            name, type = line.rstrip('),').split('(')
+            is_var = False
+            if type.startswith('#[var] '):
+                is_var = True
+                type = type[len('#[var] '):]
+            data.append({
+                'name': name,
+                'type': type,
+                'var': is_var
+            })
+    print(data)
+    return data
 
 def generate_entity_metadata(burger_entities_data: dict, mappings: Mappings):
     burger_entity_metadata = burger_entities_data['entity']
 
-    print(generate_metadata_types(burger_entities_data['dataserializers'], mappings))
+    new_metadata_names = generate_metadata_names(burger_entities_data['dataserializers'], mappings)
+    parsed_metadata_types = parse_metadata_types_from_code()
 
-    # TODO: auto generate this and use it for generating the EntityDataValue enum
-    metadata_types = [
-        {'name': 'Byte', 'type': 'u8'},
-        {'name': 'Int', 'type': 'i32', 'var': True},
-        {'name': 'Long', 'type': 'i64'},
-        {'name': 'Float', 'type': 'f32'},
-        {'name': 'String', 'type': 'String'},
-        {'name': 'FormattedText', 'type': 'FormattedText'},
-        {'name': 'OptionalFormattedText', 'type': 'Option<FormattedText>'},
-        {'name': 'ItemStack', 'type': 'Slot'},
-        {'name': 'Boolean', 'type': 'bool'},
-        {'name': 'Rotations', 'type': 'Rotations'},
-        {'name': 'BlockPos', 'type': 'BlockPos'},
-        {'name': 'OptionalBlockPos', 'type': 'Option<BlockPos>'},
-        {'name': 'Direction', 'type': 'Direction'},
-        {'name': 'OptionalUuid', 'type': 'Option<Uuid>'},
-        {'name': 'BlockState', 'type': 'BlockState'},
-        {'name': 'CompoundTag', 'type': 'azalea_nbt::Tag'},
-        {'name': 'Particle', 'type': 'Particle'},
-        {'name': 'VillagerData', 'type': 'VillagerData'},
-        {'name': 'OptionalUnsignedInt', 'type': 'OptionalUnsignedInt'},
-        {'name': 'Pose', 'type': 'Pose'},
-        {'name': 'CatVariant', 'type': 'azalea_registry::CatVariant'},
-        {'name': 'FrogVariant', 'type': 'azalea_registry::FrogVariant'},
-        {'name': 'GlobalPos', 'type': 'GlobalPos'},
-        {'name': 'PaintingVariant', 'type': 'azalea_registry::PaintingVariant'}
-    ]
+    parsed_metadata_names = []
+    for t in parsed_metadata_types:
+        parsed_metadata_names.append(t['name'])
+
+    with open(DATA_RS_DIR, 'r') as f:
+        lines = f.read().splitlines()
+    # add the metadata names that weren't there before to the end of the enum.
+    # this technically might cause them to be in the wrong order but i decided
+    # making it correct while preserving comments was too annoying so i didn't
+    added_metadata_names = []
+    for n in new_metadata_names:
+        if n not in parsed_metadata_names:
+            added_metadata_names.append(n)
+    if added_metadata_names != []:
+        in_enum = False
+        for i, line in enumerate(list(lines)):
+            if line == 'pub enum EntityDataValue {':
+                in_enum = True
+            elif in_enum and line == '}':
+                in_enum = False
+                for n in added_metadata_names:
+                    lines.insert(i, f'{n}(TODO),')
+                    i += 1
+        print(lines)
+        with open(DATA_RS_DIR, 'w') as f:
+            f.write('\n'.join(lines))
+        print('Expected metadata types:\n' + '\n'.join(new_metadata_names))
+        raise Exception('Updated metadata types in azalea-world/src/entity/data.rs, go make sure they\'re correct then run the codegen again.')
+    
+    metadata_types = parse_metadata_types_from_code()
 
     code = []
     code.append('''#![allow(clippy::single_match)]
@@ -79,10 +99,9 @@ def generate_entity_metadata(burger_entities_data: dict, mappings: Mappings):
 // This file is generated from codegen/lib/code/entity.py.
 // Don't change it manually!
 
-use super::{EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Rotations, VillagerData};
-use azalea_block::BlockState;
+use super::{EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Rotations, VillagerData, Quaternion};
 use azalea_chat::FormattedText;
-use azalea_core::{BlockPos, Direction, Particle, Slot};
+use azalea_core::{BlockPos, Direction, Particle, Slot, Vec3};
 use azalea_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
@@ -404,11 +423,21 @@ impl From<EntityDataValue> for UpdateMetadataError {
                         elif type_name == 'ItemStack':
                             default = f'Slot::Present({default})' if default != 'Empty' else 'Slot::Empty'
                         elif type_name == 'BlockState':
-                            default = f'{default}' if default != 'Empty' else 'BlockState::AIR'
+                            default = f'{default}' if default != 'Empty' else 'azalea_block::BlockState::AIR'
+                        elif type_name == 'OptionalBlockState':
+                            default = f'{default}' if default != 'Empty' else 'azalea_block::BlockState::AIR'
                         elif type_name == 'OptionalFormattedText':
                             default = f'Some({default})' if default != 'Empty' else 'None'
                         elif type_name == 'CompoundTag':
                             default = f'azalea_nbt::Tag::Compound({default})' if default != 'Empty' else 'azalea_nbt::Tag::Compound(Default::default())'
+                        elif type_name == 'Quaternion':
+                            default = f'Quaternion {{ x: {float(default["x"])}, y: {float(default["y"])}, z: {float(default["z"])}, w: {float(default["w"])} }}'
+                        elif type_name == 'Vector3':
+                            default = f'Vec3 {{ x: {float(default["x"])}, y: {float(default["y"])}, z: {float(default["z"])} }}'
+                        elif type_name == 'Byte':
+                            # in 1.19.4 TextOpacity is a -1 by default
+                            if default < 0:
+                                default += 128
                     if name in single_use_imported_types:
                         code.append(f'            {name}: {default},')
                     else:
