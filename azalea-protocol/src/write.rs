@@ -66,12 +66,15 @@ pub async fn compression_encoder(
         // otherwise, compress
         let mut deflater = ZlibEncoder::new(data);
         // write deflated data to buf
-        let mut data = Vec::new();
-        deflater.read_to_end(&mut data).await?;
-        let mut len_prepended_buf = Vec::new();
-        (len_prepended_buf.len() as u32).var_write_into(&mut len_prepended_buf)?;
-        len_prepended_buf.append(&mut data);
-        Ok(len_prepended_buf)
+        let mut compressed_data = Vec::new();
+        deflater.read_to_end(&mut compressed_data).await?;
+
+        // prepend the length
+        let mut len_prepended_compressed_data = Vec::new();
+        (data.len() as u32).var_write_into(&mut len_prepended_compressed_data)?;
+        len_prepended_compressed_data.append(&mut compressed_data);
+
+        Ok(len_prepended_compressed_data)
     }
 }
 
