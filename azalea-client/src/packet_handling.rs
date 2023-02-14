@@ -853,7 +853,9 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::BlockChangedAck(_) => {}
                 ClientboundGamePacket::BlockDestruction(_) => {}
                 ClientboundGamePacket::BlockEntityData(_) => {}
-                ClientboundGamePacket::BlockEvent(_) => {}
+                ClientboundGamePacket::BlockEvent(p) => {
+                    debug!("Got block event packet {:?}", p);
+                }
                 ClientboundGamePacket::BossEvent(_) => {}
                 ClientboundGamePacket::CommandSuggestions(_) => {}
                 ClientboundGamePacket::ContainerSetData(_) => {}
