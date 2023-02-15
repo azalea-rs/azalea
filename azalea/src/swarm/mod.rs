@@ -510,7 +510,7 @@ impl Swarm {
                 Err(e) => {
                     disconnects += 1;
                     let delay = (Duration::from_secs(5) * 2u32.pow(disconnects))
-                        .min(Duration::from_secs(120));
+                        .min(Duration::from_secs(15));
                     let username = account.username.clone();
                     error!("Error joining as {username}: {e}. Waiting {delay:?} and trying again.");
                     tokio::time::sleep(delay).await;
