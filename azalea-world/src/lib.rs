@@ -7,13 +7,13 @@ mod bit_storage;
 mod chunk_storage;
 mod container;
 pub mod entity;
-mod palette;
+pub mod palette;
 mod world;
 
 use std::backtrace::Backtrace;
 
 pub use bit_storage::BitStorage;
-pub use chunk_storage::{Chunk, ChunkStorage, PartialChunkStorage};
+pub use chunk_storage::{Chunk, ChunkStorage, PartialChunkStorage, Section};
 pub use container::*;
 use thiserror::Error;
 pub use world::*;

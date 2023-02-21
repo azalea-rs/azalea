@@ -588,7 +588,68 @@ mod tests {
             block_state.is_some(),
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
-        // do a few steps so we fall on the slab
+        // do a few steps so we fall on the wall
+        for _ in 0..20 {
+            app.update();
+        }
+
+        let entity_pos = app.world.get::<Position>(entity).unwrap();
+        assert_eq!(entity_pos.y, 70.5);
+    }
+
+    #[test]
+    fn test_negative_coordinates_weird_wall_collision() {
+        let mut app = make_test_app();
+        let world_lock = app.world.resource_mut::<WorldContainer>().insert(
+            ResourceLocation::new("minecraft:overworld").unwrap(),
+            384,
+            -64,
+        );
+        let mut partial_world = PartialWorld::default();
+
+        partial_world.chunks.set(
+            &ChunkPos { x: -1, z: -1 },
+            Some(Chunk::default()),
+            &mut world_lock.write().chunks,
+        );
+        let entity = app
+            .world
+            .spawn((
+                EntityBundle::new(
+                    Uuid::nil(),
+                    Vec3 {
+                        x: -7.5,
+                        y: 73.,
+                        z: -7.5,
+                    },
+                    azalea_registry::EntityKind::Player,
+                    ResourceLocation::new("minecraft:overworld").unwrap(),
+                ),
+                MinecraftEntityId(0),
+                Local,
+            ))
+            .id();
+        let block_state = world_lock.write().chunks.set_block_state(
+            &BlockPos {
+                x: -8,
+                y: 69,
+                z: -8,
+            },
+            azalea_block::CobblestoneWallBlock {
+                east: azalea_block::EastWall::Low,
+                north: azalea_block::NorthWall::Low,
+                south: azalea_block::SouthWall::Low,
+                west: azalea_block::WestWall::Low,
+                up: false,
+                waterlogged: false,
+            }
+            .into(),
+        );
+        assert!(
+            block_state.is_some(),
+            "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
+        );
+        // do a few steps so we fall on the wall
         for _ in 0..20 {
             app.update();
         }

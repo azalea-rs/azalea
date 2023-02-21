@@ -163,7 +163,7 @@ pub enum DecompressionError {
 
 /// Get the decompressed bytes from a packet. It must have been decrypted
 /// first.
-fn compression_decoder(
+pub fn compression_decoder(
     stream: &mut Cursor<&[u8]>,
     compression_threshold: u32,
 ) -> Result<Vec<u8>, DecompressionError> {
@@ -264,8 +264,7 @@ mod tests {
     use crate::packets::game::ClientboundGamePacket;
     use std::io::Cursor;
 
-    #[tokio::test]
-    async fn test_read_packet() {
+    fn test_read_packet() {
         let mut buf: Cursor<&[u8]> = Cursor::new(&[
             56, 64, 85, 58, 141, 138, 71, 146, 193, 64, 88, 0, 0, 0, 0, 0, 0, 64, 60, 224, 105, 34,
             119, 8, 228, 67, 50, 51, 68, 194, 177, 230, 101, 0, 17, 0,

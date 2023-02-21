@@ -37,9 +37,11 @@ use parking_lot::Mutex;
 use tokio::sync::mpsc;
 
 use crate::{
+    chat::{ChatPacket, ChatReceivedEvent},
+    disconnect::DisconnectEvent,
     inventory::{ClientSideCloseContainerEvent, InventoryComponent},
     local_player::{GameProfileComponent, LocalPlayer},
-    ChatPacket, ClientInformation, PlayerInfo,
+    ClientInformation, PlayerInfo,
 };
 
 pub struct PacketHandlerPlugin;
@@ -83,13 +85,6 @@ pub struct UpdatePlayerEvent {
     pub info: PlayerInfo,
 }
 
-/// A client received a chat message packet.
-#[derive(Debug, Clone)]
-pub struct ChatReceivedEvent {
-    pub entity: Entity,
-    pub packet: ChatPacket,
-}
-
 /// Event for when an entity dies. dies. If it's a local player and there's a
 /// reason in the death screen, the [`ClientboundPlayerCombatKillPacket`] will
 /// be included.
@@ -113,7 +108,7 @@ pub struct KeepAliveEvent {
 #[derive(Component, Clone)]
 pub struct PacketReceiver {
     pub packets: Arc<Mutex<Vec<ClientboundGamePacket>>>,
-    pub run_schedule_sender: mpsc::Sender<()>,
+    pub run_schedule_sender: mpsc::UnboundedSender<()>,
 }
 
 fn handle_packets(ecs: &mut Ecs) {
@@ -293,10 +288,14 @@ fn handle_packets(ecs: &mut Ecs) {
                 }
                 ClientboundGamePacket::Disconnect(p) => {
                     debug!("Got disconnect packet {:?}", p);
-                    let mut system_state: SystemState<Query<&LocalPlayer>> = SystemState::new(ecs);
-                    let query = system_state.get(ecs);
-                    let local_player = query.get(player_entity).unwrap();
-                    local_player.disconnect();
+                    let mut system_state: SystemState<EventWriter<DisconnectEvent>> =
+                        SystemState::new(ecs);
+                    let mut disconnect_events = system_state.get_mut(ecs);
+                    disconnect_events.send(DisconnectEvent {
+                        entity: player_entity,
+                    });
+                    // bye
+                    return;
                 }
                 ClientboundGamePacket::UpdateRecipes(_p) => {
                     debug!("Got update recipes packet");
@@ -938,7 +937,9 @@ fn handle_packets(ecs: &mut Ecs) {
                 ClientboundGamePacket::BlockChangedAck(_) => {}
                 ClientboundGamePacket::BlockDestruction(_) => {}
                 ClientboundGamePacket::BlockEntityData(_) => {}
-                ClientboundGamePacket::BlockEvent(_) => {}
+                ClientboundGamePacket::BlockEvent(p) => {
+                    debug!("Got block event packet {:?}", p);
+                }
                 ClientboundGamePacket::BossEvent(_) => {}
                 ClientboundGamePacket::CommandSuggestions(_) => {}
                 ClientboundGamePacket::Cooldown(_) => {}
@@ -1031,16 +1032,20 @@ impl PacketReceiver {
                 Ok(packet) => {
                     self.packets.lock().push(packet);
                     // tell the client to run all the systems
-                    self.run_schedule_sender.send(()).await.unwrap();
+                    self.run_schedule_sender.send(()).unwrap();
                 }
                 Err(error) => {
                     if !matches!(*error, ReadPacketError::ConnectionClosed) {
                         error!("Error reading packet from Client: {error:?}");
                     }
-                    return;
+                    break;
                 }
             }
         }
+        // TODO: it should send a DisconnectEvent here somehow
+        // maybe use a tokio::sync::oneshot that tells it to close and have the
+        // receiver in localplayer and have a system that watches that or
+        // something?
     }
 
     /// Consume the [`ServerboundGamePacket`] queue and actually write the
@@ -1057,6 +1062,7 @@ impl PacketReceiver {
                 break;
             };
         }
+        println!("Write task finished");
         // receiver is automatically closed when it's dropped
     }
 }
