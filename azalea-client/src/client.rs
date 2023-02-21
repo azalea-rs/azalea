@@ -64,6 +64,9 @@ pub type ClientInformation = ServerboundClientInformationPacket;
 /// To make a new client, use either [`azalea::ClientBuilder`] or
 /// [`Client::join`].
 ///
+/// Note that `Client` is inaccessible from systems (i.e. plugins), but you can
+/// achieve everything that client can do with events.
+///
 /// [`azalea::ClientBuilder`]: https://docs.rs/azalea/latest/azalea/struct.ClientBuilder.html
 #[derive(Clone)]
 pub struct Client {
@@ -467,6 +470,8 @@ impl Client {
     }
 
     /// Get a HashMap of all the players in the tab list.
+    ///
+    /// Internally, this fetches the `players` field in [`LocalPlayer`].
     pub fn players(&mut self) -> HashMap<Uuid, PlayerInfo> {
         self.local_player(&mut self.ecs.lock()).players.clone()
     }
