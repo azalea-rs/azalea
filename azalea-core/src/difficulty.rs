@@ -5,7 +5,7 @@ use std::{
 
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 
-#[derive(Hash, Clone, Debug, PartialEq, Eq)]
+#[derive(Hash, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Difficulty {
     PEACEFUL = 0,
     EASY = 1,

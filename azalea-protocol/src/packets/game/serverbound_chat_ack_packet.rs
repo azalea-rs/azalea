@@ -4,5 +4,5 @@ use azalea_protocol_macros::ServerboundGamePacket;
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundChatAckPacket {
     #[var]
-    pub offset: u32,
+    pub messages: u32,
 }
