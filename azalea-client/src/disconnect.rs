@@ -2,11 +2,15 @@
 
 use azalea_ecs::{
     app::{App, CoreStage, Plugin},
+    component::{BevyComponent, Component},
     entity::Entity,
     event::{EventReader, EventWriter},
+    query::Changed,
+    schedule::IntoSystemDescriptor,
     system::{Commands, Query},
     AppTickExt,
 };
+use derive_more::Deref;
 
 use crate::{client::JoinedClientBundle, LocalPlayer};
 
@@ -15,6 +19,9 @@ impl Plugin for DisconnectPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<DisconnectEvent>()
             .add_system_to_stage(CoreStage::PostUpdate, handle_disconnect)
+            .add_tick_system(
+                update_read_packets_task_running_component.before(disconnect_on_read_packets_ended),
+            )
             .add_tick_system(disconnect_on_read_packets_ended);
     }
 }
@@ -32,12 +39,26 @@ pub fn handle_disconnect(mut commands: Commands, mut events: EventReader<Disconn
     }
 }
 
-fn disconnect_on_read_packets_ended(
+#[derive(Component, Clone, Copy, Debug, Deref)]
+pub struct ReadPacketsTaskRunning(bool);
+
+fn update_read_packets_task_running_component(
+    mut commands: Commands,
     local_player: Query<(Entity, &LocalPlayer)>,
-    mut disconnect_events: EventWriter<DisconnectEvent>,
 ) {
     for (entity, local_player) in &local_player {
-        if local_player.read_packets_task.is_finished() {
+        let running = !local_player.read_packets_task.is_finished();
+        commands
+            .entity(entity)
+            .insert(ReadPacketsTaskRunning(running));
+    }
+}
+fn disconnect_on_read_packets_ended(
+    local_player: Query<(Entity, &ReadPacketsTaskRunning), Changed<ReadPacketsTaskRunning>>,
+    mut disconnect_events: EventWriter<DisconnectEvent>,
+) {
+    for (entity, &read_packets_task_running) in &local_player {
+        if *read_packets_task_running {
             disconnect_events.send(DisconnectEvent { entity });
         }
     }
