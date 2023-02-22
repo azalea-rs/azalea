@@ -58,7 +58,7 @@ fn disconnect_on_read_packets_ended(
     mut disconnect_events: EventWriter<DisconnectEvent>,
 ) {
     for (entity, &read_packets_task_running) in &local_player {
-        if *read_packets_task_running {
+        if !*read_packets_task_running {
             disconnect_events.send(DisconnectEvent { entity });
         }
     }
