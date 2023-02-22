@@ -2,7 +2,7 @@
 
 use azalea_ecs::{
     app::{App, CoreStage, Plugin},
-    component::{BevyComponent, Component},
+    component::Component,
     entity::Entity,
     event::{EventReader, EventWriter},
     query::Changed,
