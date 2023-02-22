@@ -207,14 +207,6 @@ impl Client {
 
         let (packet_writer_sender, packet_writer_receiver) = mpsc::unbounded_channel();
 
-        let mut local_player = crate::local_player::LocalPlayer::new(
-            entity,
-            packet_writer_sender,
-            // default to an empty world, it'll be set correctly later when we
-            // get the login packet
-            Arc::new(RwLock::new(World::default())),
-        );
-
         // start receiving packets
         let packet_receiver = packet_handling::PacketReceiver {
             packets: Arc::new(Mutex::new(Vec::new())),
@@ -227,8 +219,16 @@ impl Client {
                 .clone()
                 .write_task(write_conn, packet_writer_receiver),
         );
-        local_player.tasks.push(read_packets_task);
-        local_player.tasks.push(write_packets_task);
+
+        let local_player = crate::local_player::LocalPlayer::new(
+            entity,
+            packet_writer_sender,
+            // default to an empty world, it'll be set correctly later when we
+            // get the login packet
+            Arc::new(RwLock::new(World::default())),
+            read_packets_task,
+            write_packets_task,
+        );
 
         ecs.entity_mut(entity).insert(JoinedClientBundle {
             local_player,

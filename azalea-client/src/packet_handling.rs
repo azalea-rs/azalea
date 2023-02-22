@@ -961,10 +961,6 @@ impl PacketReceiver {
                 }
             }
         }
-        // TODO: it should send a DisconnectEvent here somehow
-        // maybe use a tokio::sync::oneshot that tells it to close and have the
-        // receiver in localplayer and have a system that watches that or
-        // something?
     }
 
     /// Consume the [`ServerboundGamePacket`] queue and actually write the

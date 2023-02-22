@@ -46,9 +46,11 @@ pub struct LocalPlayer {
     /// world. (Only relevant if you're using a shared world, i.e. a swarm)
     pub world: Arc<RwLock<World>>,
 
-    /// A list of async tasks that are running and will stop running when this
-    /// LocalPlayer is dropped or disconnected with [`Self::disconnect`]
-    pub(crate) tasks: Vec<JoinHandle<()>>,
+    /// A task that reads packets from the server. The client is disconnected
+    /// when this task ends.
+    pub(crate) read_packets_task: JoinHandle<()>,
+    /// A task that writes packets from the server.
+    pub(crate) write_packets_task: JoinHandle<()>,
 }
 
 /// Component for entities that can move and sprint. Usually only in
@@ -87,6 +89,8 @@ impl LocalPlayer {
         entity: Entity,
         packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
         world: Arc<RwLock<World>>,
+        read_packets_task: JoinHandle<()>,
+        write_packets_task: JoinHandle<()>,
     ) -> Self {
         let client_information = ClientInformation::default();
 
@@ -102,7 +106,8 @@ impl LocalPlayer {
                 Some(entity),
             ))),
 
-            tasks: Vec::new(),
+            read_packets_task,
+            write_packets_task,
         }
     }
 
@@ -117,9 +122,8 @@ impl LocalPlayer {
 impl Drop for LocalPlayer {
     /// Stop every active task when the `LocalPlayer` is dropped.
     fn drop(&mut self) {
-        for task in &self.tasks {
-            task.abort();
-        }
+        self.read_packets_task.abort();
+        self.write_packets_task.abort();
     }
 }
 
