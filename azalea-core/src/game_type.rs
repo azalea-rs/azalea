@@ -96,7 +96,7 @@ impl McBufWritable for GameType {
 /// Rust doesn't let us `impl McBufReadable for Option<GameType>` so we have to
 /// make a new type :(
 #[derive(Hash, Copy, Clone, Debug)]
-pub struct OptionalGameType(Option<GameType>);
+pub struct OptionalGameType(pub Option<GameType>);
 
 impl From<Option<GameType>> for OptionalGameType {
     fn from(game_type: Option<GameType>) -> Self {

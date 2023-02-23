@@ -65,6 +65,9 @@ pub type ClientInformation = ServerboundClientInformationPacket;
 /// To make a new client, use either [`azalea::ClientBuilder`] or
 /// [`Client::join`].
 ///
+/// Note that `Client` is inaccessible from systems (i.e. plugins), but you can
+/// achieve everything that client can do with events.
+///
 /// [`azalea::ClientBuilder`]: https://docs.rs/azalea/latest/azalea/struct.ClientBuilder.html
 #[derive(Clone)]
 pub struct Client {
@@ -205,14 +208,6 @@ impl Client {
 
         let (packet_writer_sender, packet_writer_receiver) = mpsc::unbounded_channel();
 
-        let mut local_player = crate::local_player::LocalPlayer::new(
-            entity,
-            packet_writer_sender,
-            // default to an empty world, it'll be set correctly later when we
-            // get the login packet
-            Arc::new(RwLock::new(World::default())),
-        );
-
         // start receiving packets
         let packet_receiver = packet_handling::PacketReceiver {
             packets: Arc::new(Mutex::new(Vec::new())),
@@ -225,8 +220,16 @@ impl Client {
                 .clone()
                 .write_task(write_conn, packet_writer_receiver),
         );
-        local_player.tasks.push(read_packets_task);
-        local_player.tasks.push(write_packets_task);
+
+        let local_player = crate::local_player::LocalPlayer::new(
+            entity,
+            packet_writer_sender,
+            // default to an empty world, it'll be set correctly later when we
+            // get the login packet
+            Arc::new(RwLock::new(World::default())),
+            read_packets_task,
+            write_packets_task,
+        );
 
         ecs.entity_mut(entity).insert(JoinedClientBundle {
             local_player,
@@ -469,6 +472,8 @@ impl Client {
     }
 
     /// Get a HashMap of all the players in the tab list.
+    ///
+    /// Internally, this fetches the `players` field in [`LocalPlayer`].
     pub fn players(&mut self) -> HashMap<Uuid, PlayerInfo> {
         self.local_player(&mut self.ecs.lock()).players.clone()
     }

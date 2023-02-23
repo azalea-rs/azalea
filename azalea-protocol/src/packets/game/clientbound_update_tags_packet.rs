@@ -18,7 +18,7 @@ pub struct Tags {
 }
 
 #[derive(Clone, Debug)]
-pub struct TagMap(HashMap<ResourceLocation, Vec<Tags>>);
+pub struct TagMap(pub HashMap<ResourceLocation, Vec<Tags>>);
 
 impl McBufReadable for TagMap {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
