@@ -2,7 +2,7 @@ use std::{collections::HashSet, io::Cursor, sync::Arc};
 
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_ecs::{
-    app::{App, Plugin},
+    app::{App, CoreStage, Plugin},
     component::Component,
     ecs::Ecs,
     entity::Entity,
@@ -46,7 +46,7 @@ pub struct PacketHandlerPlugin;
 
 impl Plugin for PacketHandlerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(handle_packets)
+        app.add_system_to_stage(CoreStage::PreUpdate, handle_packets)
             .add_event::<AddPlayerEvent>()
             .add_event::<RemovePlayerEvent>()
             .add_event::<UpdatePlayerEvent>()

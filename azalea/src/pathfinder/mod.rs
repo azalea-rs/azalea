@@ -38,8 +38,8 @@ impl Plugin for PathfinderPlugin {
             .add_event::<PathFoundEvent>()
             .add_tick_system(tick_execute_path.before("ai_step"))
             .add_system(goto_listener)
-            .add_system(add_default_pathfinder.after("deduplicate_entities"))
-            .add_system(handle_tasks)
+            .add_system(add_default_pathfinder)
+            .add_system(handle_tasks.before(path_found_listener))
             .add_system(path_found_listener);
     }
 }

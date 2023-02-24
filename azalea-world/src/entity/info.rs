@@ -48,7 +48,7 @@ impl Plugin for EntityPlugin {
                 .after(deduplicate_entities)
                 .after(deduplicate_local_entities)
                 .with_system(update_entity_chunk_positions)
-                .with_system(remove_despawned_entities_from_indexes)
+                .with_system(remove_despawned_entities_from_indexes.after(update_uuid_index))
                 .with_system(update_bounding_box)
                 .with_system(add_dead)
                 .with_system(add_updates_received.label("add_updates_received"))

@@ -7,7 +7,7 @@ use crate::{
         LocalPlayer, PhysicsState, SendPacketEvent,
     },
     movement::{local_player_ai_step, send_position, sprint_listener, walk_listener},
-    packet_handling::{self, handle_packets, PacketHandlerPlugin, PacketReceiver},
+    packet_handling::{self, PacketHandlerPlugin, PacketReceiver},
     player::retroactively_add_game_profile_component,
     task_pool::TaskPoolPlugin,
     Account, PlayerInfo, StartSprintEvent, StartWalkEvent,
@@ -499,7 +499,7 @@ impl Plugin for AzaleaPlugin {
         app.add_tick_system_set(
             SystemSet::new()
                 .with_system(send_position.after("ai_step"))
-                .with_system(update_in_loaded_chunk.before(send_position))
+                .with_system(update_in_loaded_chunk.before(send_position).after("travel"))
                 .with_system(
                     local_player_ai_step
                         .before(azalea_physics::ai_step)
@@ -508,22 +508,21 @@ impl Plugin for AzaleaPlugin {
         );
 
         // fire the Death event when the player dies.
-        app.add_system(death_event.after(handle_packets));
+        app.add_system(death_event);
 
         // walk and sprint event listeners
-        app.add_system(walk_listener.label("walk_listener").before("travel"))
+        app.add_system(walk_listener.label("walk_listener"))
             .add_system(
                 sprint_listener
                     .label("sprint_listener")
-                    .before("travel")
                     .before("walk_listener"),
             );
 
         // add GameProfileComponent when we get an AddPlayerEvent
-        app.add_system(retroactively_add_game_profile_component.after(handle_packets));
+        app.add_system(retroactively_add_game_profile_component);
 
         app.add_event::<SendPacketEvent>()
-            .add_system(handle_send_packet_event.after(handle_packets));
+            .add_system(handle_send_packet_event);
 
         app.init_resource::<WorldContainer>();
     }

@@ -30,14 +30,10 @@ impl Plugin for PhysicsPlugin {
             .add_system(
                 force_jump_listener
                     .label("force_jump_listener")
-                    .after("ai_step"),
+                    .after("walk_listener")
+                    .after("sprint_listener"),
             )
-            .add_system(
-                travel
-                    .label("travel")
-                    .after("ai_step")
-                    .after("force_jump_listener"),
-            )
+            .add_tick_system(travel.label("travel").after(ai_step))
             .add_tick_system(ai_step.label("ai_step"));
     }
 }
