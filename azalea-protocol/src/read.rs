@@ -264,6 +264,7 @@ mod tests {
     use crate::packets::game::ClientboundGamePacket;
     use std::io::Cursor;
 
+    #[test]
     fn test_read_packet() {
         let mut buf: Cursor<&[u8]> = Cursor::new(&[
             56, 64, 85, 58, 141, 138, 71, 146, 193, 64, 88, 0, 0, 0, 0, 0, 0, 64, 60, 224, 105, 34,
