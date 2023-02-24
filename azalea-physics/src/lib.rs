@@ -32,16 +32,13 @@ impl Plugin for PhysicsPlugin {
                     .label("force_jump_listener")
                     .after("ai_step"),
             )
-            .add_tick_system_set(
-                SystemSet::new()
-                    .with_system(ai_step.label("ai_step"))
-                    .with_system(
-                        travel
-                            .label("travel")
-                            .after("ai_step")
-                            .after("force_jump_listener"),
-                    ),
-            );
+            .add_system(
+                travel
+                    .label("travel")
+                    .after("ai_step")
+                    .after("force_jump_listener"),
+            )
+            .add_tick_system(ai_step.label("ai_step"));
     }
 }
 
