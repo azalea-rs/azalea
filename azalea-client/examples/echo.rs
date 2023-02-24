@@ -4,7 +4,6 @@ use azalea_client::{Account, Client, Event};
 
 #[tokio::main]
 async fn main() {
-    env_logger::init();
     // deadlock detection, you can safely delete this block if you're not trying to
     // debug deadlocks in azalea
     {

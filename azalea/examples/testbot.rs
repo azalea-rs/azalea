@@ -23,7 +23,6 @@ async fn main() -> anyhow::Result<()> {
         use parking_lot::deadlock;
         use std::thread;
         use std::time::Duration;
-
         // Create a background thread which checks for deadlocks every 10s
         thread::spawn(move || loop {
             thread::sleep(Duration::from_secs(10));

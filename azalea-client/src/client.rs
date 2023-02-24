@@ -544,8 +544,6 @@ pub fn init_ecs_app() -> App {
 
     let mut app = App::new();
 
-    app.add_plugin(LogPlugin::default());
-
     app.insert_resource(ReportExecutionOrderAmbiguities);
 
     app.add_plugins(DefaultPlugins);
@@ -610,6 +608,7 @@ pub struct DefaultPlugins;
 impl PluginGroup for DefaultPlugins {
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
+            .add(LogPlugin::default())
             .add(TickPlugin::default())
             .add(PacketHandlerPlugin)
             .add(AzaleaPlugin)
