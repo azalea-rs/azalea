@@ -36,9 +36,9 @@ pub fn retroactively_add_game_profile_component(
 ) {
     for event in events.iter() {
         if let Some(entity) = entity_infos.get_entity_by_uuid(&event.info.uuid) {
-            if let Some(mut entity_commands) = commands.get_entity(entity) {
-                entity_commands.insert(GameProfileComponent(event.info.profile.clone()));
-            }
+            commands
+                .entity(entity)
+                .insert(GameProfileComponent(event.info.profile.clone()));
         }
     }
 }

@@ -12,7 +12,7 @@ use azalea_ecs::{
 };
 use derive_more::Deref;
 
-use crate::{client::JoinedClientBundle, LocalPlayer};
+use crate::{client::JoinedClientBundle, movement::send_position, LocalPlayer};
 
 pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {
@@ -20,7 +20,9 @@ impl Plugin for DisconnectPlugin {
         app.add_event::<DisconnectEvent>()
             .add_system_to_stage(CoreStage::PostUpdate, handle_disconnect)
             .add_tick_system(
-                update_read_packets_task_running_component.before(disconnect_on_read_packets_ended),
+                update_read_packets_task_running_component
+                    .before(disconnect_on_read_packets_ended)
+                    .before(send_position),
             )
             .add_tick_system(disconnect_on_read_packets_ended);
     }

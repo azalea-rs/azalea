@@ -19,8 +19,6 @@ struct SwarmState {}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    env_logger::init();
-
     {
         use parking_lot::deadlock;
         use std::thread;
@@ -48,7 +46,7 @@ async fn main() -> anyhow::Result<()> {
     let mut accounts = Vec::new();
     let mut states = Vec::new();
 
-    for i in 0..1 {
+    for i in 0..5 {
         accounts.push(Account::offline(&format!("bot{i}")));
         states.push(State::default());
     }

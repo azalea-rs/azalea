@@ -10,7 +10,7 @@ use azalea_ecs::{
     entity::Entity,
     event::{EventReader, EventWriter},
     query::With,
-    schedule::{IntoSystemDescriptor, SystemSet},
+    schedule::IntoSystemDescriptor,
     system::{Query, Res},
     AppTickExt,
 };

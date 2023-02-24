@@ -7,7 +7,7 @@ use crate::{
         LocalPlayer, PhysicsState, SendPacketEvent,
     },
     movement::{local_player_ai_step, send_position, sprint_listener, walk_listener},
-    packet_handling::{self, PacketHandlerPlugin, PacketReceiver},
+    packet_handling::{self, handle_packets, PacketHandlerPlugin, PacketReceiver},
     player::retroactively_add_game_profile_component,
     task_pool::TaskPoolPlugin,
     Account, PlayerInfo, StartSprintEvent, StartWalkEvent,
@@ -20,7 +20,7 @@ use azalea_ecs::{
     bundle::Bundle,
     component::Component,
     entity::Entity,
-    schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
+    schedule::{IntoSystemDescriptor, ReportExecutionOrderAmbiguities, Schedule, Stage, SystemSet},
     AppTickExt,
 };
 use azalea_ecs::{ecs::Ecs, TickPlugin};
@@ -49,6 +49,7 @@ use azalea_world::{
     entity::{EntityPlugin, Local, WorldName},
     PartialWorld, World, WorldContainer,
 };
+use bevy_log::LogPlugin;
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
 use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc};
@@ -497,17 +498,17 @@ impl Plugin for AzaleaPlugin {
 
         app.add_tick_system_set(
             SystemSet::new()
-                .with_system(send_position)
-                .with_system(update_in_loaded_chunk)
+                .with_system(send_position.after("ai_step"))
+                .with_system(update_in_loaded_chunk.before(send_position))
                 .with_system(
                     local_player_ai_step
-                        .before("ai_step")
-                        .after("sprint_listener"),
+                        .before(azalea_physics::ai_step)
+                        .label("ai_step"),
                 ),
         );
 
         // fire the Death event when the player dies.
-        app.add_system(death_event.after("tick").after("packet"));
+        app.add_system(death_event.after(handle_packets));
 
         // walk and sprint event listeners
         app.add_system(walk_listener.label("walk_listener").before("travel"))
@@ -519,14 +520,10 @@ impl Plugin for AzaleaPlugin {
             );
 
         // add GameProfileComponent when we get an AddPlayerEvent
-        app.add_system(
-            retroactively_add_game_profile_component
-                .after("tick")
-                .after("packet"),
-        );
+        app.add_system(retroactively_add_game_profile_component.after(handle_packets));
 
         app.add_event::<SendPacketEvent>()
-            .add_system(handle_send_packet_event.after("tick").after("packet"));
+            .add_system(handle_send_packet_event.after(handle_packets));
 
         app.init_resource::<WorldContainer>();
     }
@@ -547,6 +544,11 @@ pub fn init_ecs_app() -> App {
     // you might be able to just drop the lock or put it in its own scope to fix
 
     let mut app = App::new();
+
+    app.add_plugin(LogPlugin::default());
+
+    app.insert_resource(ReportExecutionOrderAmbiguities);
+
     app.add_plugins(DefaultPlugins);
     app
 }
@@ -610,8 +612,8 @@ impl PluginGroup for DefaultPlugins {
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
             .add(TickPlugin::default())
-            .add(AzaleaPlugin)
             .add(PacketHandlerPlugin)
+            .add(AzaleaPlugin)
             .add(EntityPlugin)
             .add(PhysicsPlugin)
             .add(EventPlugin)
