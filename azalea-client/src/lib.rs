@@ -18,6 +18,7 @@ pub mod disconnect;
 mod entity_query;
 mod events;
 mod get_mc_dir;
+pub mod interact;
 pub mod inventory;
 mod local_player;
 mod movement;

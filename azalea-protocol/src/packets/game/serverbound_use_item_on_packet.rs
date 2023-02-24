@@ -14,9 +14,15 @@ pub struct ServerboundUseItemOnPacket {
 
 #[derive(Clone, Debug)]
 pub struct BlockHitResult {
+    /// The block that we clicked.
     pub block_pos: BlockPos,
+    /// The face of the block that was clicked.
     pub direction: Direction,
+    /// The exact coordinates of the world where the block was clicked. In the
+    /// network, this is transmitted as the difference between the location and
+    /// block position.
     pub location: Vec3,
+    /// Whether the player's head is inside of a block.
     pub inside: bool,
 }
 

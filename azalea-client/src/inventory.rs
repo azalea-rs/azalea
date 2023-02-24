@@ -63,6 +63,7 @@ impl InventoryComponent {
         }
     }
 }
+
 impl Default for InventoryComponent {
     fn default() -> Self {
         InventoryComponent {
