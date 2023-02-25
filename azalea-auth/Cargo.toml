@@ -14,7 +14,10 @@ azalea-crypto = { path = "../azalea-crypto", version = "^0.6.0" }
 chrono = { version = "0.4.22", default-features = false }
 log = "0.4.17"
 num-bigint = "0.4.3"
-reqwest = { version = "0.11.12", features = ["json"] }
+reqwest = { version = "0.11.12", default-features = false, features = [
+    "json",
+    "rustls-tls",
+] }
 serde = { version = "1.0.145", features = ["derive"] }
 serde_json = "1.0.86"
 thiserror = "1.0.37"
