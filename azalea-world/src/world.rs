@@ -82,8 +82,8 @@ pub fn deduplicate_entities(
                 }
                 commands.entity(new_entity).despawn();
                 info!(
-                        "Entity with id {id:?} / {new_entity:?} already existed in the world, merging it with {old_entity:?}"
-                    );
+                    "Entity with id {id:?} / {new_entity:?} already existed in the world, merging it with {old_entity:?}"
+                );
                 break;
             }
         } else {
@@ -127,15 +127,20 @@ pub fn deduplicate_local_entities(
 
 pub fn update_uuid_index(
     mut entity_infos: ResMut<EntityInfos>,
-    query: Query<(Entity, &EntityUuid), Changed<EntityUuid>>,
+    query: Query<(Entity, &EntityUuid, Option<&Local>), Changed<EntityUuid>>,
 ) {
-    for (entity, &uuid) in query.iter() {
+    for (entity, &uuid, local) in query.iter() {
         // only add it if it doesn't already exist in
         // entity_infos.entity_by_uuid
-        // if entity_infos.entity_by_uuid.contains_key(&uuid) {
-        //     warn!("Entity with UUID {uuid:?} already existed in the world, not adding
-        // to index (ecs id: {entity:?})", uuid=*uuid);     continue;
-        // }
+        if local.is_none() {
+            if let Some(old_entity) = entity_infos.entity_by_uuid.get(&uuid) {
+                debug!(
+                    "Entity with UUID {uuid:?} already existed in the world, not adding to
+        index (old ecs id: {old_entity:?} / new ecs id: {entity:?})"
+                );
+                continue;
+            }
+        }
         entity_infos.entity_by_uuid.insert(*uuid, entity);
     }
 }
@@ -208,18 +213,24 @@ impl Default for PartialWorld {
 
 /// System to keep the entity_by_id index up-to-date.
 pub fn update_entity_by_id_index(
-    mut query: Query<(Entity, &MinecraftEntityId, &WorldName), Changed<MinecraftEntityId>>,
+    mut query: Query<
+        (Entity, &MinecraftEntityId, &WorldName, Option<&Local>),
+        Changed<MinecraftEntityId>,
+    >,
     world_container: Res<WorldContainer>,
 ) {
-    for (entity, id, world_name) in query.iter_mut() {
+    for (entity, id, world_name, local) in query.iter_mut() {
         let world_lock = world_container.get(world_name).unwrap();
         let mut world = world_lock.write();
-        // if let Some(old_entity) = world.entity_by_id.get(id) {
-        //     warn!(
-        //         "Entity with ID {id:?} already existed in the world, not adding to
-        // index (old ecs id: {old_entity:?} / new ecs id: {entity:?})"     );
-        //     continue;
-        // }
+        if local.is_none() {
+            if let Some(old_entity) = world.entity_by_id.get(id) {
+                debug!(
+                    "Entity with ID {id:?} already existed in the world, not adding to
+        index (old ecs id: {old_entity:?} / new ecs id: {entity:?})"
+                );
+                continue;
+            }
+        }
         world.entity_by_id.insert(*id, entity);
         debug!("Added {entity:?} to {world_name:?} with {id:?}.");
     }

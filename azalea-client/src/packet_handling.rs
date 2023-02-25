@@ -2,13 +2,12 @@ use std::{collections::HashSet, io::Cursor, sync::Arc};
 
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_ecs::{
-    app::{App, Plugin},
+    app::{App, CoreStage, Plugin},
     component::Component,
     ecs::Ecs,
     entity::Entity,
     event::EventWriter,
     query::Changed,
-    schedule::{IntoSystemDescriptor, SystemSet},
     system::{Commands, Query, ResMut, SystemState},
 };
 use azalea_protocol::{
@@ -47,15 +46,13 @@ pub struct PacketHandlerPlugin;
 
 impl Plugin for PacketHandlerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::new().with_system(handle_packets.label("packet").before("tick")),
-        )
-        .add_event::<AddPlayerEvent>()
-        .add_event::<RemovePlayerEvent>()
-        .add_event::<UpdatePlayerEvent>()
-        .add_event::<ChatReceivedEvent>()
-        .add_event::<DeathEvent>()
-        .add_event::<KeepAliveEvent>();
+        app.add_system_to_stage(CoreStage::PreUpdate, handle_packets)
+            .add_event::<AddPlayerEvent>()
+            .add_event::<RemovePlayerEvent>()
+            .add_event::<UpdatePlayerEvent>()
+            .add_event::<ChatReceivedEvent>()
+            .add_event::<DeathEvent>()
+            .add_event::<KeepAliveEvent>();
     }
 }
 
@@ -110,7 +107,7 @@ pub struct PacketReceiver {
     pub run_schedule_sender: mpsc::UnboundedSender<()>,
 }
 
-fn handle_packets(ecs: &mut Ecs) {
+pub fn handle_packets(ecs: &mut Ecs) {
     let mut events_owned = Vec::new();
 
     {

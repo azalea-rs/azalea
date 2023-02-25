@@ -36,52 +36,45 @@ use super::Local;
 pub struct EntityPlugin;
 impl Plugin for EntityPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::new()
-                .after("tick")
-                .after("packet")
-                .with_system(update_entity_chunk_positions)
-                .with_system(remove_despawned_entities_from_indexes)
-                .with_system(update_bounding_box)
-                .with_system(add_dead)
-                .with_system(
-                    add_updates_received
-                        .after("deduplicate_entities")
-                        .after("deduplicate_local_entities")
-                        .label("add_updates_received"),
-                )
-                .with_system(
-                    update_uuid_index
-                        .label("update_uuid_index")
-                        .after("deduplicate_local_entities")
-                        .after("deduplicate_entities"),
-                )
-                .with_system(debug_detect_updates_received_on_local_entities)
-                .with_system(
-                    update_entity_by_id_index
-                        .label("update_entity_by_id_index")
-                        .after("deduplicate_entities"),
-                )
-                .with_system(debug_new_entity),
+        // entities get added pre-update
+        // added to indexes during update (done by this plugin)
+        // modified during update
+        // despawned post-update (done by this plugin)
+        app.add_system_set_to_stage(
+            CoreStage::PreUpdate,
+            SystemSet::new().with_system(remove_despawned_entities_from_indexes),
         )
         .add_system_set_to_stage(
             CoreStage::PostUpdate,
             SystemSet::new()
                 .with_system(deduplicate_entities.label("deduplicate_entities"))
-                .with_system(
-                    deduplicate_local_entities
-                        .label("deduplicate_local_entities")
-                        .before("update_uuid_index")
-                        .before("update_entity_by_id_index"),
-                ),
+                .with_system(deduplicate_local_entities.label("deduplicate_entities")),
+        )
+        .add_system_set(
+            SystemSet::new()
+                .with_system(update_entity_chunk_positions)
+                .with_system(update_uuid_index.label("update_indexes"))
+                .with_system(update_entity_by_id_index.label("update_indexes")),
+        )
+        .add_system_set(
+            SystemSet::new()
+                .with_system(add_updates_received.label("add_updates_received"))
+                .with_system(debug_new_entity)
+                .with_system(debug_detect_updates_received_on_local_entities)
+                .with_system(add_dead)
+                .with_system(update_bounding_box),
         )
         .init_resource::<EntityInfos>();
     }
 }
 
-fn debug_new_entity(query: Query<Entity, Added<MinecraftEntityId>>) {
-    for entity in query.iter() {
-        debug!("new entity: {:?}", entity);
+fn debug_new_entity(query: Query<(Entity, Option<&Local>), Added<MinecraftEntityId>>) {
+    for (entity, local) in query.iter() {
+        if local.is_some() {
+            debug!("new local entity: {:?}", entity);
+        } else {
+            debug!("new entity: {:?}", entity);
+        }
     }
 }
 
