@@ -47,7 +47,7 @@ use azalea_protocol::{
 };
 use azalea_world::{
     entity::{EntityPlugin, Local, WorldName},
-    PartialWorld, World, WorldContainer,
+    update_uuid_index, PartialWorld, World, WorldContainer,
 };
 use bevy_log::LogPlugin;
 use log::{debug, error};
@@ -519,7 +519,7 @@ impl Plugin for AzaleaPlugin {
             );
 
         // add GameProfileComponent when we get an AddPlayerEvent
-        app.add_system(retroactively_add_game_profile_component);
+        app.add_system(retroactively_add_game_profile_component.after("update_indexes"));
 
         app.add_event::<SendPacketEvent>()
             .add_system(handle_send_packet_event);
