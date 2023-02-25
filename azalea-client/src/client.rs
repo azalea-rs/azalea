@@ -47,7 +47,7 @@ use azalea_protocol::{
 };
 use azalea_world::{
     entity::{EntityPlugin, Local, WorldName},
-    update_uuid_index, PartialWorld, World, WorldContainer,
+    PartialWorld, World, WorldContainer,
 };
 use bevy_log::LogPlugin;
 use log::{debug, error};

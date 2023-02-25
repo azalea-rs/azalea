@@ -31,7 +31,8 @@ impl Plugin for PhysicsPlugin {
                 force_jump_listener
                     .label("force_jump_listener")
                     .after("walk_listener")
-                    .after("sprint_listener"),
+                    .after("sprint_listener")
+                    .before(azalea_world::entity::update_bounding_box),
             )
             .add_tick_system(travel.label("travel").after(ai_step))
             .add_tick_system(ai_step.label("ai_step"));
