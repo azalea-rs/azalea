@@ -29,14 +29,14 @@ pub mod component {
     // we do this because re-exporting Component would re-export the macro as well,
     // which is bad (since we have our own Component macro)
     // instead, we have to do this so Component is a trait alias and the original
-    // impl-able trait is still available as BevyComponent
+    // impl-able trait is still available as _BevyComponent
     pub trait Component = bevy_ecs::component::Component;
-    pub use bevy_ecs::component::Component as BevyComponent;
+    pub use bevy_ecs::component::Component as _BevyComponent;
 }
 pub mod bundle {
     pub use azalea_ecs_macros::Bundle;
     pub trait Bundle = bevy_ecs::bundle::Bundle;
-    pub use bevy_ecs::bundle::Bundle as BevyBundle;
+    pub use bevy_ecs::bundle::Bundle as _BevyBundle;
 }
 pub mod system {
     pub use azalea_ecs_macros::Resource;
@@ -44,10 +44,19 @@ pub mod system {
         Command, Commands, EntityCommands, Query, Res, ResMut, SystemState,
     };
     pub trait Resource = bevy_ecs::system::Resource;
-    pub use bevy_ecs::system::Resource as BevyResource;
+    pub use bevy_ecs::system::Resource as _BevyResource;
+}
+pub mod schedule {
+    pub use azalea_ecs_macros::StageLabel;
+    pub use bevy_ecs::schedule::{
+        IntoRunCriteria, IntoSystemDescriptor, ReportExecutionOrderAmbiguities, Schedule, Stage,
+        SystemSet, SystemStage,
+    };
+    pub trait StageLabel = bevy_ecs::schedule::StageLabel;
+    pub use bevy_ecs::schedule::StageLabel as _BevyStageLabel;
 }
 pub use bevy_app as app;
-pub use bevy_ecs::{entity, event, ptr, query, schedule, storage};
+pub use bevy_ecs::{entity, event, ptr, query, storage};
 
 use app::{App, CoreStage, Plugin};
 use bevy_ecs::schedule::*;
