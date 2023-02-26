@@ -7,7 +7,6 @@ use azalea_ecs::{
     ecs::Ecs,
     entity::Entity,
     event::{EventReader, EventWriter, Events},
-    query::Changed,
     schedule::{StageLabel, SystemStage},
     system::{Commands, Query, ResMut, SystemState},
 };
@@ -147,7 +146,7 @@ pub struct PacketReceiver {
 }
 
 pub fn send_packet_events(
-    query: Query<(Entity, &PacketReceiver), Changed<PacketReceiver>>,
+    query: Query<(Entity, &PacketReceiver)>,
     mut packet_events: ResMut<Events<PacketEvent>>,
 ) {
     // we manually clear and send the events at the beginning of each update
@@ -1020,7 +1019,6 @@ impl PacketReceiver {
                 break;
             };
         }
-        println!("Write task finished");
         // receiver is automatically closed when it's dropped
     }
 }
