@@ -45,24 +45,30 @@ use crate::{
 
 /// An event that's sent when we receive a packet.
 /// ```
-/// for PacketEvent {
-///     entity,
-///     packet,
-/// } in events.iter()
-///     match packet {
-///         ClientboundGamePacket::LevelParticles(p) => {
-///             // ...
+/// # use azalea_client::packet_handling::PacketEvent;
+/// # use azalea_protocol::packets::game::ClientboundGamePacket;
+/// # use azalea_ecs::event::EventReader;
+///
+/// fn handle_packets(mut events: EventReader<PacketEvent>) {
+///     for PacketEvent {
+///         entity,
+///         packet,
+///     } in events.iter() {
+///         match packet {
+///             ClientboundGamePacket::LevelParticles(p) => {
+///                 // ...
+///             }
+///             _ => {}
 ///         }
-///         _ => {}
 ///     }
 /// }
 /// ```
 #[derive(Debug, Clone)]
 pub struct PacketEvent {
     /// The client entity that received the packet.
-    entity: Entity,
+    pub entity: Entity,
     /// The packet that was actually received.
-    packet: ClientboundGamePacket,
+    pub packet: ClientboundGamePacket,
 }
 
 pub struct PacketHandlerPlugin;
@@ -141,7 +147,7 @@ pub struct PacketReceiver {
 }
 
 pub fn send_packet_events(
-    query: Query<(Entity, &PacketReceiver)>,
+    query: Query<(Entity, &PacketReceiver), Changed<PacketReceiver>>,
     mut packet_events: ResMut<Events<PacketEvent>>,
 ) {
     // we manually clear and send the events at the beginning of each update
@@ -173,7 +179,7 @@ fn process_packet_events(ecs: &mut Ecs) {
     } in events.iter()
     {
         // we do this so `ecs` isn't borrowed for the whole loop
-        events_owned.push((player_entity.clone(), packet.clone()));
+        events_owned.push((*player_entity, packet.clone()));
     }
     for (player_entity, packet) in events_owned {
         match packet {
