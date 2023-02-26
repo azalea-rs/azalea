@@ -38,6 +38,7 @@ impl Default for BevyManifest {
 impl BevyManifest {
     pub fn maybe_get_path(&self, name: &str) -> Option<syn::Path> {
         const AZALEA: &str = "azalea";
+        const AZALEA_ECS: &str = "azalea_ecs";
         const BEVY_ECS: &str = "bevy_ecs";
         const BEVY: &str = "bevy";
 
@@ -57,6 +58,8 @@ impl BevyManifest {
                 return Some(Self::parse_str(dep_package(dep).unwrap_or(name)));
             } else if let Some(dep) = deps.get(AZALEA) {
                 dep_package(dep).unwrap_or(AZALEA)
+            } else if let Some(dep) = deps.get(AZALEA_ECS) {
+                dep_package(dep).unwrap_or(AZALEA_ECS)
             } else if let Some(dep) = deps.get(BEVY_ECS) {
                 dep_package(dep).unwrap_or(BEVY_ECS)
             } else if let Some(dep) = deps.get(BEVY) {

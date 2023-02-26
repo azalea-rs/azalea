@@ -4,8 +4,6 @@ use azalea::prelude::*;
 
 #[tokio::main]
 async fn main() {
-    env_logger::init();
-
     let account = Account::offline("bot");
     // or let account = Account::microsoft("email").await;
 

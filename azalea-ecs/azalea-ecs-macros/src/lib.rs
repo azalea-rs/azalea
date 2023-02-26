@@ -151,13 +151,13 @@ pub fn derive_bundle(input: TokenStream) -> TokenStream {
         match field_kind {
             BundleFieldKind::Component => {
                 field_component_ids.push(quote! {
-                <#field_type as #ecs_path::bundle::BevyBundle>::component_ids(components, storages, &mut *ids);
+                <#field_type as #ecs_path::bundle::_BevyBundle>::component_ids(components, storages, &mut *ids);
                 });
                 field_get_components.push(quote! {
                     self.#field.get_components(&mut *func);
                 });
                 field_from_components.push(quote! {
-                    #field: <#field_type as #ecs_path::bundle::BevyBundle>::from_components(ctx, &mut *func),
+                    #field: <#field_type as #ecs_path::bundle::_BevyBundle>::from_components(ctx, &mut *func),
                 });
             }
 
@@ -174,7 +174,7 @@ pub fn derive_bundle(input: TokenStream) -> TokenStream {
 
     TokenStream::from(quote! {
         /// SAFETY: ComponentId is returned in field-definition-order. [from_components] and [get_components] use field-definition-order
-        unsafe impl #impl_generics #ecs_path::bundle::BevyBundle for #struct_name #ty_generics #where_clause {
+        unsafe impl #impl_generics #ecs_path::bundle::_BevyBundle for #struct_name #ty_generics #where_clause {
             fn component_ids(
                 components: &mut #ecs_path::component::Components,
                 storages: &mut #ecs_path::storage::Storages,
@@ -488,7 +488,9 @@ pub fn derive_stage_label(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let mut trait_path = azalea_ecs_path();
     trait_path.segments.push(format_ident!("schedule").into());
-    trait_path.segments.push(format_ident!("StageLabel").into());
+    trait_path
+        .segments
+        .push(format_ident!("_BevyStageLabel").into());
     derive_label(input, &trait_path, "stage_label")
 }
 

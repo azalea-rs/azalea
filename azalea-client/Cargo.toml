@@ -22,6 +22,8 @@ azalea-protocol = { path = "../azalea-protocol", version = "0.6.0" }
 azalea-registry = { path = "../azalea-registry", version = "0.6.0" }
 azalea-world = { path = "../azalea-world", version = "0.6.0" }
 azalea-inventory = { path = "../azalea-inventory", version = "0.1.0" }
+bevy_log = "0.9.1"
+bevy_tasks = "0.9.1"
 bevy_time = "0.9.1"
 derive_more = { version = "0.99.17", features = ["deref", "deref_mut"] }
 futures = "0.3.25"
@@ -34,7 +36,3 @@ thiserror = "^1.0.34"
 tokio = { version = "^1.24.2", features = ["sync"] }
 typemap_rev = "0.3.0"
 uuid = "^1.1.2"
-bevy_tasks = "0.9.1"
-
-[dev-dependencies]
-env_logger = "0.9.1"

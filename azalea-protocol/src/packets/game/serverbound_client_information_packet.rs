@@ -15,7 +15,7 @@ pub struct ServerboundClientInformationPacket {
     /// Whether the messages sent from the server should have colors. Note that
     /// many servers ignore this and always send colored messages.
     pub chat_colors: bool,
-    pub model_customisation: ModelCustomization,
+    pub model_customization: ModelCustomization,
     pub main_hand: HumanoidArm,
     pub text_filtering_enabled: bool,
     /// Whether the client should show up as "Anonymous Player" in the server
@@ -30,7 +30,7 @@ impl Default for ServerboundClientInformationPacket {
             view_distance: 8,
             chat_visibility: ChatVisibility::default(),
             chat_colors: true,
-            model_customisation: ModelCustomization::default(),
+            model_customization: ModelCustomization::default(),
             main_hand: HumanoidArm::Right,
             text_filtering_enabled: false,
             allows_listing: false,
@@ -149,7 +149,7 @@ mod tests {
                 view_distance: 24,
                 chat_visibility: ChatVisibility::Hidden,
                 chat_colors: false,
-                model_customisation: ModelCustomization {
+                model_customization: ModelCustomization {
                     cape: false,
                     jacket: false,
                     left_sleeve: true,

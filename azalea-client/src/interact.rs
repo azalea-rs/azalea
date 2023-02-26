@@ -1,4 +1,4 @@
-use azalea_core::BlockPos;
+use azalea_core::{BlockPos, Direction};
 use azalea_ecs::{
     app::{App, Plugin},
     entity::Entity,
@@ -7,7 +7,7 @@ use azalea_ecs::{
 };
 use azalea_protocol::packets::game::{
     serverbound_interact_packet::InteractionHand,
-    serverbound_use_item_on_packet::ServerboundUseItemOnPacket,
+    serverbound_use_item_on_packet::{BlockHitResult, ServerboundUseItemOnPacket},
 };
 use log::warn;
 
@@ -52,17 +52,25 @@ fn handle_block_interact_event(
     query: Query<&LocalPlayer>,
 ) {
     for event in events.iter() {
-        let Ok(local_player) = query.get(event.entity) else {
+        let Ok( local_player) = query.get(event.entity) else {
             warn!("Sent BlockInteractEvent for entity that isn't LocalPlayer");
             continue;
         };
 
         // TODO: check to make sure we're within the world border
 
-        local_player.write_packet(ServerboundUseItemOnPacket {
-            hand: InteractionHand::MainHand,
-            block_hit: BlockHitResult,
-            sequence: 0,
-        })
+        local_player.write_packet(
+            ServerboundUseItemOnPacket {
+                hand: InteractionHand::MainHand,
+                block_hit: BlockHitResult {
+                    block_pos: event.position,
+                    direction: Direction::Up,
+                    location: event.position.center(),
+                    inside: false,
+                },
+                sequence: 0,
+            }
+            .get(),
+        )
     }
 }

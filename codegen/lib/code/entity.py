@@ -162,14 +162,14 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 metadata_type_data = metadata_types[type_id]
                 rust_type = metadata_type_data['type']
 
-                code.append(f'#[derive(Component, Deref, DerefMut)]')
+                code.append(f'#[derive(Component, Deref, DerefMut, Clone)]')
                 code.append(f'pub struct {struct_name}(pub {rust_type});')
             else:
                 # if it's a bitfield just make a struct for each bit
                 for mask, name in name_or_bitfield.items():
                     name = maybe_rename_field(name, index)
                     struct_name = upper_first_letter(to_camel_case(name))
-                    code.append(f'#[derive(Component, Deref, DerefMut)]')
+                    code.append(f'#[derive(Component, Deref, DerefMut, Clone, Copy)]')
                     code.append(f'pub struct {struct_name}(pub bool);')
 
         # add the entity struct and Bundle struct

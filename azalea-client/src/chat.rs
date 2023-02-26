@@ -19,7 +19,10 @@ use std::{
 };
 use uuid::Uuid;
 
-use crate::{client::Client, local_player::SendPacketEvent};
+use crate::{
+    client::Client,
+    local_player::{handle_send_packet_event, SendPacketEvent},
+};
 
 /// A chat packet, either a system message or a chat message.
 #[derive(Debug, Clone, PartialEq)]
@@ -155,15 +158,12 @@ impl Plugin for ChatPlugin {
         app.add_event::<SendChatEvent>()
             .add_event::<SendChatKindEvent>()
             .add_event::<ChatReceivedEvent>()
-            .add_system(
-                handle_send_chat_event
-                    .label("handle_send_chat_event")
-                    .after("packet"),
-            )
+            .add_system(handle_send_chat_event.label("handle_send_chat_event"))
             .add_system(
                 handle_send_chat_kind_event
                     .label("handle_send_chat_kind_event")
-                    .after("handle_send_chat_event"),
+                    .after(handle_send_chat_event)
+                    .after(handle_send_packet_event),
             );
     }
 }

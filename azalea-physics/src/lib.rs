@@ -10,7 +10,7 @@ use azalea_ecs::{
     entity::Entity,
     event::{EventReader, EventWriter},
     query::With,
-    schedule::{IntoSystemDescriptor, SystemSet},
+    schedule::IntoSystemDescriptor,
     system::{Query, Res},
     AppTickExt,
 };
@@ -30,18 +30,12 @@ impl Plugin for PhysicsPlugin {
             .add_system(
                 force_jump_listener
                     .label("force_jump_listener")
-                    .after("ai_step"),
+                    .after("walk_listener")
+                    .after("sprint_listener")
+                    .before(azalea_world::entity::update_bounding_box),
             )
-            .add_tick_system_set(
-                SystemSet::new()
-                    .with_system(ai_step.label("ai_step"))
-                    .with_system(
-                        travel
-                            .label("travel")
-                            .after("ai_step")
-                            .after("force_jump_listener"),
-                    ),
-            );
+            .add_tick_system(travel.label("travel").after(ai_step))
+            .add_tick_system(ai_step.label("ai_step"));
     }
 }
 
