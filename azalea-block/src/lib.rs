@@ -2,14 +2,47 @@
 #![feature(trait_upcasting)]
 
 mod behavior;
-mod blocks;
+pub mod blocks;
+mod range;
 
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 pub use behavior::BlockBehavior;
-pub use blocks::*;
-use std::io::{Cursor, Write};
+use core::fmt::Debug;
+pub use range::BlockStateRange;
+use std::{
+    any::Any,
+    io::{Cursor, Write},
+};
+
+pub trait Block: Debug + Any {
+    fn behavior(&self) -> BlockBehavior;
+    /// Get the Minecraft ID for this block. For example `stone` or
+    /// `grass_block`.
+    fn id(&self) -> &'static str;
+    /// Convert the block to a block state. This is lossless, as the block
+    /// contains all the state data.
+    fn as_block_state(&self) -> BlockState;
+}
+impl dyn Block {
+    pub fn downcast_ref<T: Block>(&self) -> Option<&T> {
+        (self as &dyn Any).downcast_ref::<T>()
+    }
+}
+
+/// A representation of a state a block can be in.
+///
+/// For example, a stone block only has one state but each possible stair
+/// rotation is a different state.
+#[derive(Copy, Clone, PartialEq, Eq, Default, Hash)]
+pub struct BlockState {
+    /// The protocol ID for the block state. IDs may change every
+    /// version, so you shouldn't hard-code them or store them in databases.
+    pub id: u32,
+}
 
 impl BlockState {
+    pub const AIR: BlockState = BlockState { id: 0 };
+
     /// Transmutes a u32 to a block state.
     ///
     /// # Safety
@@ -49,6 +82,17 @@ impl McBufReadable for BlockState {
 impl McBufWritable for BlockState {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         u32::var_write_into(&self.id, buf)
+    }
+}
+
+impl std::fmt::Debug for BlockState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "BlockState(id: {}, {:?})",
+            self.id,
+            Box::<dyn Block>::from(*self)
+        )
     }
 }
 

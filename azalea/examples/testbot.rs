@@ -140,6 +140,13 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     "lag" => {
                         std::thread::sleep(Duration::from_millis(1000));
                     }
+                    "findblock" => {
+                        let target_pos = bot.world().read().find_block(
+                            bot.component::<Position>(),
+                            azalea_registry::Block::DiamondBlock.into(),
+                        );
+                        bot.chat(&format!("target_pos: {target_pos:?}",));
+                    }
                     _ => {}
                 }
             }

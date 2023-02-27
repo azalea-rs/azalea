@@ -2,9 +2,12 @@ use crate::{
     entity::{
         EntityInfos, EntityUuid, LoadedBy, Local, MinecraftEntityId, PartialEntityInfos, WorldName,
     },
+    iterators::{BlockIterator, ChunkIterator},
+    palette::Palette,
     ChunkStorage, PartialChunkStorage, WorldContainer,
 };
-use azalea_core::ChunkPos;
+use azalea_block::BlockState;
+use azalea_core::{BlockPos, ChunkPos};
 use azalea_ecs::{
     entity::Entity,
     query::{Changed, With, Without},
@@ -186,6 +189,32 @@ impl World {
     /// Get an ECS [`Entity`] from a Minecraft entity ID.
     pub fn entity_by_id(&self, entity_id: &MinecraftEntityId) -> Option<Entity> {
         self.entity_by_id.get(entity_id).copied()
+    }
+
+    pub fn find_block(&self, nearest_to: impl Into<BlockPos>, block_states: HashSet<BlockState>) {
+        // iterate over every chunk in a 3d spiral pattern
+        // and then check the palette for the block state
+        // borrowed from https://github.com/PrismarineJS/prismarine-world/blob/master/src/iterators.js#L65
+
+        let nearest_to: BlockPos = nearest_to.into();
+        let start_chunk: ChunkPos = (&nearest_to).into();
+        let iter = ChunkIterator::new(start_chunk, 32);
+
+        for chunk_pos in iter {
+            let chunk = self.chunks.get(&chunk_pos).unwrap();
+            for section in &chunk.read().sections {
+                let maybe_has_block = match section.states.palette {
+                    Palette::SingleValue(id) => block_states.contains(&BlockState { id }),
+                    Palette::Linear(ids) => ids
+                        .iter()
+                        .any(|id| block_states.contains(&BlockState { id })),
+                    Palette::Hashmap(ids) => ids
+                        .iter()
+                        .any(|id| block_states.contains(&BlockState { id })),
+                    Palette::Global => true,
+                };
+            }
+        }
     }
 }
 

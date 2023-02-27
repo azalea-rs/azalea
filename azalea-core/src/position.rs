@@ -148,10 +148,19 @@ pub struct ChunkPos {
     pub x: i32,
     pub z: i32,
 }
-
 impl ChunkPos {
     pub fn new(x: i32, z: i32) -> Self {
         ChunkPos { x, z }
+    }
+}
+impl Add for ChunkPos {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            z: self.z + rhs.z,
+        }
     }
 }
 

@@ -310,6 +310,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let mut from_state_to_block_match = quote! {};
     let mut from_registry_block_to_block_match = quote! {};
     let mut from_registry_block_to_blockstate_match = quote! {};
+    let mut from_registry_block_to_blockstate_range_match = quote! {};
 
     for block in &input.block_definitions.blocks {
         let block_property_names = &block
@@ -523,6 +524,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         from_registry_block_to_blockstate_match.extend(quote! {
             azalea_registry::Block::#block_name_pascal_case => BlockState { id: #default_state_id },
         });
+        from_registry_block_to_blockstate_range_match.extend(quote! {
+            azalea_registry::Block::#block_name_pascal_case => BlockStateRange { id: #first_state_id..=#last_state_id },
+        });
 
         let mut block_default_fields = quote! {};
         for PropertyWithNameAndDefault {
@@ -560,14 +564,14 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 fn id(&self) -> &'static str {
                     #block_id
                 }
-                fn as_blockstate(&self) -> BlockState {
+                fn as_block_state(&self) -> BlockState {
                     #from_block_to_state_match
                 }
             }
 
             impl From<#block_struct_name> for BlockState {
                 fn from(b: #block_struct_name) -> Self {
-                    b.as_blockstate()
+                    b.as_block_state()
                 }
             }
 
@@ -585,21 +589,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
     let last_state_id = state_id - 1;
     let mut generated = quote! {
-        #property_enums
-
-        /// A representation of a state a block can be in. (for example, a stone
-        /// block only has one state but each possible stair rotation is a
-        /// different state).
-        #[derive(Copy, Clone, PartialEq, Eq, Default)]
-        pub struct BlockState {
-            /// The protocol ID for the block state. IDs may change every
-            /// version, so you shouldn't hard-code them or store them in databases.
-            pub id: u32
-        }
-
         impl BlockState {
-            pub const AIR: BlockState = BlockState { id: 0 };
-
             /// Returns the highest possible state ID.
             #[inline]
             pub fn max_state() -> u32 {
@@ -607,11 +597,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl std::fmt::Debug for BlockState {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "BlockState(id: {}, {:?})", self.id, Box::<dyn Block>::from(*self))
-            }
-        }
+        #property_enums
+
     };
 
     generated.extend(quote! {
@@ -638,6 +625,14 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             fn from(block: azalea_registry::Block) -> Self {
                 match block {
                     #from_registry_block_to_blockstate_match
+                    _ => unreachable!("There should always be a block state for every azalea_registry::Block variant")
+                }
+            }
+        }
+        impl From<azalea_registry::Block> for BlockStateRange {
+            fn from(block: azalea_registry::Block) -> Self {
+                match block {
+                    #from_registry_block_to_blockstate_range_match
                     _ => unreachable!("There should always be a block state for every azalea_registry::Block variant")
                 }
             }
