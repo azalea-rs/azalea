@@ -106,6 +106,11 @@ where
         self.handler = Some(handler);
         self
     }
+    /// Set the client state instead of initializing defaults.
+    pub fn set_state(mut self, state: S) -> Self {
+        self.state = state;
+        self
+    }
     /// Add a plugin to the client.
     #[must_use]
     pub fn add_plugin<T: Plugin>(mut self, plugin: T) -> Self {

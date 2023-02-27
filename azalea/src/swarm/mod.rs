@@ -166,6 +166,11 @@ where
         self.handler = Some(handler);
         self
     }
+    /// Set the client state instead of initializing defaults.
+    pub fn set_state(mut self, state: S) -> Self {
+        self.state = state;
+        self
+    }
     /// Set the function that's called every time the swarm receives a
     /// [`SwarmEvent`]. This is the way to handle global swarm events.
     ///
@@ -197,6 +202,11 @@ where
     #[must_use]
     pub fn set_swarm_handler(mut self, handler: SwarmHandleFn<SwarmFut, SS>) -> Self {
         self.swarm_handler = Some(handler);
+        self
+    }
+    /// Set the swarm state instead of initializing defaults.
+    pub fn set_swarm_state(mut self, state: SS) -> Self {
+        self.state = state;
         self
     }
 
