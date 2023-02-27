@@ -107,6 +107,7 @@ where
         self
     }
     /// Set the client state instead of initializing defaults.
+    #[must_use]
     pub fn set_state(mut self, state: S) -> Self {
         self.state = state;
         self
