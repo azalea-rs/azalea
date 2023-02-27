@@ -202,7 +202,7 @@ where
     /// Set the swarm state instead of initializing defaults.
     #[must_use]
     pub fn set_swarm_state(mut self, swarm_state: SS) -> Self {
-        self.swarm_state = state;
+        self.swarm_state = swarm_state;
         self
     }
 
