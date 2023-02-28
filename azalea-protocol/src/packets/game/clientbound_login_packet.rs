@@ -1,5 +1,6 @@
 use azalea_buf::McBuf;
 use azalea_core::{GameType, GlobalPos, OptionalGameType, ResourceLocation};
+use azalea_nbt::registry::RegistryHolder;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
@@ -9,7 +10,7 @@ pub struct ClientboundLoginPacket {
     pub game_type: GameType,
     pub previous_game_type: OptionalGameType,
     pub levels: Vec<ResourceLocation>,
-    pub registry_holder: azalea_nbt::Tag,
+    pub registry_holder: RegistryHolder,
     pub dimension_type: ResourceLocation,
     pub dimension: ResourceLocation,
     pub seed: i64,

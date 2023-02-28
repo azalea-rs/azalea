@@ -3,6 +3,8 @@
 mod decode;
 mod encode;
 mod error;
+#[cfg(feature = "registry")]
+pub mod registry;
 mod tag;
 
 pub use error::Error;
