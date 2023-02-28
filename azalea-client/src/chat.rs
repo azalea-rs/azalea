@@ -13,13 +13,10 @@ use azalea_protocol::packets::game::{
     serverbound_chat_command_packet::ServerboundChatCommandPacket,
     serverbound_chat_packet::{LastSeenMessagesUpdate, ServerboundChatPacket},
 };
-use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
 use std::{
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
 };
-use uuid::Uuid;
 use uuid::Uuid;
 
 use crate::{
