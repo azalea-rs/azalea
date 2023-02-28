@@ -200,58 +200,18 @@ fn process_packet_events(ecs: &mut Ecs) {
                     query.get_mut(player_entity).unwrap();
 
                 {
-                    // TODO: have registry_holder be a struct because this sucks rn
-                    // best way would be to add serde support to azalea-nbt
-
-                    let registry_holder = p
+                    let dimension = p
                         .registry_holder
-                        .as_compound()
-                        .expect("Registry holder is not a compound")
-                        .get("")
-                        .expect("No \"\" tag")
-                        .as_compound()
-                        .expect("\"\" tag is not a compound");
-                    let dimension_types = registry_holder
-                        .get("minecraft:dimension_type")
-                        .expect("No dimension_type tag")
-                        .as_compound()
-                        .expect("dimension_type is not a compound")
-                        .get("value")
-                        .expect("No dimension_type value")
-                        .as_list()
-                        .expect("dimension_type value is not a list");
-                    let dimension_type = dimension_types
+                        .root
+                        .dimension_type
+                        .value
                         .iter()
-                        .find(|t| {
-                            t.as_compound()
-                                .expect("dimension_type value is not a compound")
-                                .get("name")
-                                .expect("No name tag")
-                                .as_string()
-                                .expect("name is not a string")
-                                == p.dimension_type.to_string()
-                        })
+                        .find(|t| t.name == p.dimension_type.to_string())
                         .unwrap_or_else(|| {
                             panic!("No dimension_type with name {}", p.dimension_type)
                         })
-                        .as_compound()
-                        .unwrap()
-                        .get("element")
-                        .expect("No element tag")
-                        .as_compound()
-                        .expect("element is not a compound");
-                    let height = (*dimension_type
-                        .get("height")
-                        .expect("No height tag")
-                        .as_int()
-                        .expect("height tag is not an int"))
-                    .try_into()
-                    .expect("height is not a u32");
-                    let min_y = *dimension_type
-                        .get("min_y")
-                        .expect("No min_y tag")
-                        .as_int()
-                        .expect("min_y tag is not an int");
+                        .element
+                        .clone();
 
                     let new_world_name = p.dimension.clone();
 
@@ -264,7 +224,11 @@ fn process_packet_events(ecs: &mut Ecs) {
                     }
                     // add this world to the world_container (or don't if it's already
                     // there)
-                    let weak_world = world_container.insert(new_world_name.clone(), height, min_y);
+                    let weak_world = world_container.insert(
+                        new_world_name.clone(),
+                        dimension.height,
+                        dimension.min_y,
+                    );
                     // set the partial_world to an empty world
                     // (when we add chunks or entities those will be in the
                     // world_container)
