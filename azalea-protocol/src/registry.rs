@@ -84,28 +84,28 @@ pub struct ChatTypeStyle {
     pub color: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "some_u8_to_bool")]
-    #[serde(serialize_with = "Convert::convert")]
+    #[serde(deserialize_with = "Convert::from_u8")]
+    #[serde(serialize_with = "Convert::to_u8")]
     pub bold: Option<bool>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "some_u8_to_bool")]
-    #[serde(serialize_with = "Convert::convert")]
+    #[serde(deserialize_with = "Convert::from_u8")]
+    #[serde(serialize_with = "Convert::to_u8")]
     pub italic: Option<bool>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "some_u8_to_bool")]
-    #[serde(serialize_with = "Convert::convert")]
+    #[serde(deserialize_with = "Convert::from_u8")]
+    #[serde(serialize_with = "Convert::to_u8")]
     pub underlined: Option<bool>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "some_u8_to_bool")]
-    #[serde(serialize_with = "Convert::convert")]
+    #[serde(deserialize_with = "Convert::from_u8")]
+    #[serde(serialize_with = "Convert::to_u8")]
     pub strikethrough: Option<bool>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "some_u8_to_bool")]
-    #[serde(serialize_with = "Convert::convert")]
+    #[serde(deserialize_with = "Convert::from_u8")]
+    #[serde(serialize_with = "Convert::to_u8")]
     pub obfuscated: Option<bool>,
 }
 
@@ -125,39 +125,39 @@ pub struct DimensionTypeValue {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DimensionTypeElement {
-    #[serde(deserialize_with = "u8_to_bool")]
-    #[serde(serialize_with = "Convert::convert")]
-    pub piglin_safe: bool,
-    #[serde(deserialize_with = "u8_to_bool")]
-    #[serde(serialize_with = "Convert::convert")]
-    pub natural: bool,
     pub ambient_light: f32,
-    pub infiniburn: String,
-    #[serde(deserialize_with = "u8_to_bool")]
-    #[serde(serialize_with = "Convert::convert")]
-    pub respawn_anchor_works: bool,
-    #[serde(deserialize_with = "u8_to_bool")]
-    #[serde(serialize_with = "Convert::convert")]
-    pub has_skylight: bool,
-    #[serde(deserialize_with = "u8_to_bool")]
-    #[serde(serialize_with = "Convert::convert")]
+    #[serde(deserialize_with = "Convert::from_u8")]
+    #[serde(serialize_with = "Convert::to_u8")]
     pub bed_works: bool,
-    pub effects: String,
-    #[serde(deserialize_with = "u8_to_bool")]
-    #[serde(serialize_with = "Convert::convert")]
-    pub has_raids: bool,
-    pub height: u32,
-    pub logical_height: u32,
     pub coordinate_scale: f32,
-    #[serde(deserialize_with = "u8_to_bool")]
-    #[serde(serialize_with = "Convert::convert")]
-    pub ultrawarm: bool,
-    #[serde(deserialize_with = "u8_to_bool")]
-    #[serde(serialize_with = "Convert::convert")]
+    pub effects: String,
+    #[serde(deserialize_with = "Convert::from_u8")]
+    #[serde(serialize_with = "Convert::to_u8")]
     pub has_ceiling: bool,
+    #[serde(deserialize_with = "Convert::from_u8")]
+    #[serde(serialize_with = "Convert::to_u8")]
+    pub has_raids: bool,
+    #[serde(deserialize_with = "Convert::from_u8")]
+    #[serde(serialize_with = "Convert::to_u8")]
+    pub has_skylight: bool,
+    pub height: u32,
+    pub infiniburn: String,
+    pub logical_height: u32,
     pub min_y: i32,
     pub monster_spawn_block_light_limit: u32,
     pub monster_spawn_light_level: MonsterSpawnLightLevel,
+    #[serde(deserialize_with = "Convert::from_u8")]
+    #[serde(serialize_with = "Convert::to_u8")]
+    pub natural: bool,
+    #[serde(deserialize_with = "Convert::from_u8")]
+    #[serde(serialize_with = "Convert::to_u8")]
+    pub piglin_safe: bool,
+    #[serde(deserialize_with = "Convert::from_u8")]
+    #[serde(serialize_with = "Convert::to_u8")]
+    pub respawn_anchor_works: bool,
+    #[serde(deserialize_with = "Convert::from_u8")]
+    #[serde(serialize_with = "Convert::to_u8")]
+    pub ultrawarm: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -231,8 +231,8 @@ pub struct BiomeEffects {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BiomeMusic {
-    #[serde(deserialize_with = "u8_to_bool")]
-    #[serde(serialize_with = "Convert::convert")]
+    #[serde(deserialize_with = "Convert::from_u8")]
+    #[serde(serialize_with = "Convert::to_u8")]
     pub replace_current_music: bool,
     pub max_delay: u32,
     pub min_delay: u32,
@@ -252,55 +252,61 @@ pub struct MusicId {
     pub sound_id: String,
 }
 
-// Trait because you can't implement methods for
-// types you don't own, in this case Option and u8.
-
-// Deserialize u8 to bool, and serialize bool to u8
-trait Convert {
-    fn convert<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+// Using a trait because you can't implement methods for
+// types you don't own, in this case Option<bool> and bool.
+trait Convert: Sized {
+    fn to_u8<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer;
+
+    fn from_u8<'de, D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>;
 }
 
+// Convert between bool and u8
 impl Convert for bool {
-    fn convert<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn to_u8<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         serializer.serialize_u8(if *self { 1 } else { 0 })
     }
+
+    fn from_u8<'de, D>(deserializer: D) -> Result<bool, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        convert::<D>(u8::deserialize(deserializer)?)
+    }
 }
 
+// Convert between Option<bool> and u8
 impl Convert for Option<bool> {
-    fn convert<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn to_u8<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        match self {
-            Some(value) => value.convert(serializer),
-            None => serializer.serialize_none(),
+        if let Some(value) = self {
+            value.to_u8(serializer)
+        } else {
+            serializer.serialize_none()
+        }
+    }
+
+    fn from_u8<'de, D>(deserializer: D) -> Result<Option<bool>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        if let Some(value) = Option::<u8>::deserialize(deserializer)? {
+            Ok(Some(convert::<D>(value)?))
+        } else {
+            Ok(None)
         }
     }
 }
 
-fn u8_to_bool<'de, D>(deserializer: D) -> Result<bool, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    convert::<D>(u8::deserialize(deserializer)?)
-}
-
-fn some_u8_to_bool<'de, D>(deserializer: D) -> Result<Option<bool>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    if let Some(value) = Option::<u8>::deserialize(deserializer)? {
-        Ok(Some(convert::<D>(value)?))
-    } else {
-        Ok(None)
-    }
-}
-
+// Deserializing logic here for deduplicating the code
 fn convert<'de, D>(val: u8) -> Result<bool, D::Error>
 where
     D: Deserializer<'de>,
