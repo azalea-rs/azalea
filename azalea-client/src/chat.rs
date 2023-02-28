@@ -231,9 +231,8 @@ fn handle_send_chat_kind_event(
     for event in events.iter() {
         let content = event
             .content
-            .to_owned()
             .chars()
-            .filter(|&chr| chr != '§' && chr >= ' ' && chr != '\x7F')
+            .filter(|c| !matches!(c, '\x00'..='\x1F' | '\x7F' | '§'))
             .take(256)
             .collect::<String>();
         let packet = match event.kind {
