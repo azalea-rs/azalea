@@ -25,12 +25,12 @@ azalea-world = {path = "../azalea-world", version = "^0.6.0" }
 bevy_ecs = { version = "0.9.1", default-features = false }
 byteorder = "^1.4.3"
 bytes = "^1.1.0"
-flate2 = "1.0.23"
+flate2 = "1.0.25"
 futures = "0.3.24"
 futures-util = "0.3.24"
 log = "0.4.17"
-serde = {version = "1.0.130", features = ["serde_derive"]}
-serde_json = "^1.0.72"
+serde = {version = "1.0.152", features = ["serde_derive"]}
+serde_json = "^1.0.93"
 thiserror = "1.0.37"
 tokio = {version = "^1.24.2", features = ["io-util", "net", "macros"]}
 tokio-util = {version = "0.7.4", features = ["codec"]}
