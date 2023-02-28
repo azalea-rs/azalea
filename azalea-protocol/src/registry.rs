@@ -1,6 +1,6 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_nbt::Tag;
-use serde::{de, ser, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::io::Cursor;
 
 impl TryFrom<Tag> for RegistryHolder {
@@ -84,28 +84,28 @@ pub struct ChatTypeStyle {
     pub color: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "some_bool_from_int")]
-    #[serde(serialize_with = "Reserialize::reserialize")]
+    #[serde(deserialize_with = "some_u8_to_bool")]
+    #[serde(serialize_with = "Convert::convert")]
     pub bold: Option<bool>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "some_bool_from_int")]
-    #[serde(serialize_with = "Reserialize::reserialize")]
+    #[serde(deserialize_with = "some_u8_to_bool")]
+    #[serde(serialize_with = "Convert::convert")]
     pub italic: Option<bool>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "some_bool_from_int")]
-    #[serde(serialize_with = "Reserialize::reserialize")]
+    #[serde(deserialize_with = "some_u8_to_bool")]
+    #[serde(serialize_with = "Convert::convert")]
     pub underlined: Option<bool>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "some_bool_from_int")]
-    #[serde(serialize_with = "Reserialize::reserialize")]
+    #[serde(deserialize_with = "some_u8_to_bool")]
+    #[serde(serialize_with = "Convert::convert")]
     pub strikethrough: Option<bool>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "some_bool_from_int")]
-    #[serde(serialize_with = "Reserialize::reserialize")]
+    #[serde(deserialize_with = "some_u8_to_bool")]
+    #[serde(serialize_with = "Convert::convert")]
     pub obfuscated: Option<bool>,
 }
 
@@ -125,35 +125,35 @@ pub struct DimensionTypeValue {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DimensionTypeElement {
-    #[serde(deserialize_with = "bool_from_int")]
-    #[serde(serialize_with = "Reserialize::reserialize")]
+    #[serde(deserialize_with = "u8_to_bool")]
+    #[serde(serialize_with = "Convert::convert")]
     pub piglin_safe: bool,
-    #[serde(deserialize_with = "bool_from_int")]
-    #[serde(serialize_with = "Reserialize::reserialize")]
+    #[serde(deserialize_with = "u8_to_bool")]
+    #[serde(serialize_with = "Convert::convert")]
     pub natural: bool,
     pub ambient_light: f32,
     pub infiniburn: String,
-    #[serde(deserialize_with = "bool_from_int")]
-    #[serde(serialize_with = "Reserialize::reserialize")]
+    #[serde(deserialize_with = "u8_to_bool")]
+    #[serde(serialize_with = "Convert::convert")]
     pub respawn_anchor_works: bool,
-    #[serde(deserialize_with = "bool_from_int")]
-    #[serde(serialize_with = "Reserialize::reserialize")]
+    #[serde(deserialize_with = "u8_to_bool")]
+    #[serde(serialize_with = "Convert::convert")]
     pub has_skylight: bool,
-    #[serde(deserialize_with = "bool_from_int")]
-    #[serde(serialize_with = "Reserialize::reserialize")]
+    #[serde(deserialize_with = "u8_to_bool")]
+    #[serde(serialize_with = "Convert::convert")]
     pub bed_works: bool,
     pub effects: String,
-    #[serde(deserialize_with = "bool_from_int")]
-    #[serde(serialize_with = "Reserialize::reserialize")]
+    #[serde(deserialize_with = "u8_to_bool")]
+    #[serde(serialize_with = "Convert::convert")]
     pub has_raids: bool,
     pub height: u32,
     pub logical_height: u32,
     pub coordinate_scale: f32,
-    #[serde(deserialize_with = "bool_from_int")]
-    #[serde(serialize_with = "Reserialize::reserialize")]
+    #[serde(deserialize_with = "u8_to_bool")]
+    #[serde(serialize_with = "Convert::convert")]
     pub ultrawarm: bool,
-    #[serde(deserialize_with = "bool_from_int")]
-    #[serde(serialize_with = "Reserialize::reserialize")]
+    #[serde(deserialize_with = "u8_to_bool")]
+    #[serde(serialize_with = "Convert::convert")]
     pub has_ceiling: bool,
     pub min_y: i32,
     pub monster_spawn_block_light_limit: u32,
@@ -231,8 +231,8 @@ pub struct BiomeEffects {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BiomeMusic {
-    #[serde(deserialize_with = "bool_from_int")]
-    #[serde(serialize_with = "Reserialize::reserialize")]
+    #[serde(deserialize_with = "u8_to_bool")]
+    #[serde(serialize_with = "Convert::convert")]
     pub replace_current_music: bool,
     pub max_delay: u32,
     pub min_delay: u32,
@@ -252,16 +252,18 @@ pub struct MusicId {
     pub sound_id: String,
 }
 
-// Trait because you can't implement a trait for a type you don't own.
-// Converts between bool and u8.
-trait Reserialize {
-    fn reserialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+// Trait because you can't implement methods for
+// types you don't own, in this case Option and u8.
+
+// Deserialize u8 to bool, and serialize bool to u8
+trait Convert {
+    fn convert<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer;
 }
 
-impl Reserialize for bool {
-    fn reserialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+impl Convert for bool {
+    fn convert<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -269,45 +271,46 @@ impl Reserialize for bool {
     }
 }
 
-impl Reserialize for Option<bool> {
-    fn reserialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+impl Convert for Option<bool> {
+    fn convert<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         match self {
-            Some(value) => value.reserialize(serializer),
+            Some(value) => value.convert(serializer),
             None => serializer.serialize_none(),
         }
     }
 }
 
-fn bool_from_int<'de, D>(deserializer: D) -> Result<bool, D::Error>
+fn u8_to_bool<'de, D>(deserializer: D) -> Result<bool, D::Error>
 where
     D: Deserializer<'de>,
 {
-    match u8::deserialize(deserializer)? {
+    convert::<D>(u8::deserialize(deserializer)?)
+}
+
+fn some_u8_to_bool<'de, D>(deserializer: D) -> Result<Option<bool>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    if let Some(value) = Option::<u8>::deserialize(deserializer)? {
+        Ok(Some(convert::<D>(value)?))
+    } else {
+        Ok(None)
+    }
+}
+
+fn convert<'de, D>(val: u8) -> Result<bool, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    match val {
         0 => Ok(false),
         1 => Ok(true),
         other => Err(de::Error::invalid_value(
             de::Unexpected::Unsigned(other as u64),
             &"zero or one",
         )),
-    }
-}
-
-fn some_bool_from_int<'de, D>(deserializer: D) -> Result<Option<bool>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    match Option::<u8>::deserialize(deserializer)? {
-        Some(0) => Ok(Some(false)),
-        Some(1) => Ok(Some(true)),
-        other => match other {
-            Some(other) => Err(de::Error::invalid_value(
-                de::Unexpected::Unsigned(other as u64),
-                &"zero or one",
-            )),
-            None => Ok(None),
-        },
     }
 }
