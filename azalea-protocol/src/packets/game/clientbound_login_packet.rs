@@ -1,6 +1,6 @@
+use crate::registry::RegistryHolder;
 use azalea_buf::McBuf;
 use azalea_core::{GameType, GlobalPos, OptionalGameType, ResourceLocation};
-use azalea_nbt::registry::RegistryHolder;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]

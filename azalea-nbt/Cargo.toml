@@ -17,11 +17,6 @@ log = "0.4.17"
 num-derive = "^0.3.3"
 num-traits = "^0.2.15"
 serde = { version = "1.0.152", features = ["derive"] }
-serde_json = { version = "1.0.93", optional = true }
-
-[features]
-default = []
-registry = ["dep:serde_json"]
 
 [dev-dependencies]
 criterion = {version = "^0.4.0", features = ["html_reports"]}
