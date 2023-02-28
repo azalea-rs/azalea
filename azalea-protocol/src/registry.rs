@@ -1,6 +1,6 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_nbt::Tag;
-use serde::{Deserialize, Serialize};
+use serde::{de, ser, Deserialize, Deserializer, Serialize, Serializer};
 use std::io::Cursor;
 
 impl TryFrom<Tag> for RegistryHolder {
@@ -72,24 +72,41 @@ pub struct ChatTypeList {
 pub struct ChatTypeElement {
     pub translation_key: String,
     pub parameters: Vec<String>,
+    #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub style: Option<ChatTypeStyle>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatTypeStyle {
+    #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<String>,
+    #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bold: Option<u8>,
+    #[serde(deserialize_with = "some_bool_from_int")]
+    #[serde(serialize_with = "Reserialize::reserialize")]
+    pub bold: Option<bool>,
+    #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub italic: Option<u8>,
+    #[serde(deserialize_with = "some_bool_from_int")]
+    #[serde(serialize_with = "Reserialize::reserialize")]
+    pub italic: Option<bool>,
+    #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub underlined: Option<u8>,
+    #[serde(deserialize_with = "some_bool_from_int")]
+    #[serde(serialize_with = "Reserialize::reserialize")]
+    pub underlined: Option<bool>,
+    #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub strikethrough: Option<u8>,
+    #[serde(deserialize_with = "some_bool_from_int")]
+    #[serde(serialize_with = "Reserialize::reserialize")]
+    pub strikethrough: Option<bool>,
+    #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub obfuscated: Option<u8>,
+    #[serde(deserialize_with = "some_bool_from_int")]
+    #[serde(serialize_with = "Reserialize::reserialize")]
+    pub obfuscated: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -108,20 +125,36 @@ pub struct DimensionTypeValue {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DimensionTypeElement {
-    pub piglin_safe: u8,
-    pub natural: u8,
+    #[serde(deserialize_with = "bool_from_int")]
+    #[serde(serialize_with = "Reserialize::reserialize")]
+    pub piglin_safe: bool,
+    #[serde(deserialize_with = "bool_from_int")]
+    #[serde(serialize_with = "Reserialize::reserialize")]
+    pub natural: bool,
     pub ambient_light: f32,
     pub infiniburn: String,
-    pub respawn_anchor_works: u8,
-    pub has_skylight: u8,
-    pub bed_works: u8,
+    #[serde(deserialize_with = "bool_from_int")]
+    #[serde(serialize_with = "Reserialize::reserialize")]
+    pub respawn_anchor_works: bool,
+    #[serde(deserialize_with = "bool_from_int")]
+    #[serde(serialize_with = "Reserialize::reserialize")]
+    pub has_skylight: bool,
+    #[serde(deserialize_with = "bool_from_int")]
+    #[serde(serialize_with = "Reserialize::reserialize")]
+    pub bed_works: bool,
     pub effects: String,
-    pub has_raids: u8,
+    #[serde(deserialize_with = "bool_from_int")]
+    #[serde(serialize_with = "Reserialize::reserialize")]
+    pub has_raids: bool,
     pub height: u32,
     pub logical_height: u32,
     pub coordinate_scale: f32,
-    pub ultrawarm: u8,
-    pub has_ceiling: u8,
+    #[serde(deserialize_with = "bool_from_int")]
+    #[serde(serialize_with = "Reserialize::reserialize")]
+    pub ultrawarm: bool,
+    #[serde(deserialize_with = "bool_from_int")]
+    #[serde(serialize_with = "Reserialize::reserialize")]
+    pub has_ceiling: bool,
     pub min_y: i32,
     pub monster_spawn_block_light_limit: u32,
     pub monster_spawn_light_level: MonsterSpawnLightLevel,
@@ -184,10 +217,13 @@ pub struct BiomeEffects {
     pub fog_color: u32,
     pub water_color: u32,
     pub water_fog_color: u32,
+    #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub foliage_color: Option<u32>,
+    #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub grass_color: Option<u32>,
+    #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub music: Option<BiomeMusic>,
     pub mood_sound: BiomeMoodSound,
@@ -195,7 +231,9 @@ pub struct BiomeEffects {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BiomeMusic {
-    pub replace_current_music: u8,
+    #[serde(deserialize_with = "bool_from_int")]
+    #[serde(serialize_with = "Reserialize::reserialize")]
+    pub replace_current_music: bool,
     pub max_delay: u32,
     pub min_delay: u32,
     pub sound: MusicId,
@@ -212,4 +250,64 @@ pub struct BiomeMoodSound {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MusicId {
     pub sound_id: String,
+}
+
+// Trait because you can't implement a trait for a type you don't own.
+// Converts between bool and u8.
+trait Reserialize {
+    fn reserialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer;
+}
+
+impl Reserialize for bool {
+    fn reserialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_u8(if *self { 1 } else { 0 })
+    }
+}
+
+impl Reserialize for Option<bool> {
+    fn reserialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            Some(value) => value.reserialize(serializer),
+            None => serializer.serialize_none(),
+        }
+    }
+}
+
+fn bool_from_int<'de, D>(deserializer: D) -> Result<bool, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    match u8::deserialize(deserializer)? {
+        0 => Ok(false),
+        1 => Ok(true),
+        other => Err(de::Error::invalid_value(
+            de::Unexpected::Unsigned(other as u64),
+            &"zero or one",
+        )),
+    }
+}
+
+fn some_bool_from_int<'de, D>(deserializer: D) -> Result<Option<bool>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    match Option::<u8>::deserialize(deserializer)? {
+        Some(0) => Ok(Some(false)),
+        Some(1) => Ok(Some(true)),
+        other => match other {
+            Some(other) => Err(de::Error::invalid_value(
+                de::Unexpected::Unsigned(other as u64),
+                &"zero or one",
+            )),
+            None => Ok(None),
+        },
+    }
 }
