@@ -171,7 +171,7 @@ pub enum MonsterSpawnLightLevel {
     },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct MonsterSpawnLightLevelValues {
     #[serde(rename = "min_inclusive")]
     pub min: u32,
@@ -201,7 +201,7 @@ pub struct WorldgenBiomesElement {
     pub effects: BiomeEffects,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Serialize, Deserialize)]
 pub enum BiomePrecipitation {
     #[serde(rename = "none")]
     None,
@@ -247,7 +247,7 @@ pub struct BiomeMoodSound {
     pub sound: MusicId,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MusicId {
     pub sound_id: String,
 }
