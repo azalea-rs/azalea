@@ -1,4 +1,7 @@
-use azalea_buf::McBuf;
+use std::io::{Cursor, Write};
+
+use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+use azalea_core::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
@@ -37,7 +40,7 @@ impl McBufReadable for RelativeMovements {
 
 impl McBufWritable for RelativeMovements {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut set = FixedBitSet::<5>::new()?;
+        let mut set = FixedBitSet::<5>::new();
         if self.x {
             set.set(0);
         }

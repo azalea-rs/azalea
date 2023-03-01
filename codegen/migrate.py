@@ -134,6 +134,10 @@ print('Generating registries...')
 registries = lib.extract.get_registries_report(new_version_id)
 lib.code.registry.generate_registries(registries)
 
+print('Generating entity metadata...')
+burger_entities_data = new_burger_data[0]['entities']
+lib.code.entity.generate_entity_metadata(burger_entities_data, mappings)
+
 print('Finishing touches, setting version in README and formatting code...')
 lib.code.version.set_version_id(new_version_id)
 

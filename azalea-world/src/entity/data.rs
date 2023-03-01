@@ -80,6 +80,7 @@ pub enum EntityDataValue {
     FrogVariant(azalea_registry::FrogVariant),
     OptionalGlobalPos(Option<GlobalPos>),
     PaintingVariant(azalea_registry::PaintingVariant),
+    SnifferState(SnifferState),
     Vector3(Vec3),
     Quaternion(Quaternion),
 }
@@ -170,4 +171,16 @@ impl TryFrom<EntityMetadataItems> for Vec<EntityDataValue> {
 
         Ok(data)
     }
+}
+
+#[derive(Debug, Copy, Clone, McBuf, Default)]
+pub enum SnifferState {
+    #[default]
+    Idling,
+    FeelingHappy,
+    Scenting,
+    Sniffing,
+    Searching,
+    Digging,
+    Rising,
 }

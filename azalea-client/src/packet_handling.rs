@@ -526,6 +526,7 @@ fn handle_packets(ecs: &mut Ecs) {
                         error!("Couldn't set chunk data: {}", e);
                     }
                 }
+                ClientboundGamePacket::ChunksBiomes(_) => {}
                 ClientboundGamePacket::LightUpdate(_p) => {
                     // debug!("Got light update packet {:?}", p);
                 }

@@ -4,7 +4,8 @@
 // Don't change it manually!
 
 use super::{
-    EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion, Rotations, VillagerData,
+    EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion, Rotations,
+    SnifferState, VillagerData,
 };
 use azalea_chat::FormattedText;
 use azalea_core::{BlockPos, Direction, Particle, Slot, Vec3};
@@ -922,7 +923,7 @@ impl Default for BlockDisplayMetadataBundle {
             block_display_shadow_strength: BlockDisplayShadowStrength(1.0),
             block_display_width: BlockDisplayWidth(0.0),
             block_display_height: BlockDisplayHeight(0.0),
-            block_display_glow_color_override: BlockDisplayGlowColorOverride(0),
+            block_display_glow_color_override: BlockDisplayGlowColorOverride(-1),
             block_state: BlockState(Default::default()),
         }
     }
@@ -4212,6 +4213,72 @@ impl Default for IllusionerMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut)]
+pub struct InteractionWidth(pub f32);
+#[derive(Component, Deref, DerefMut)]
+pub struct InteractionHeight(pub f32);
+#[derive(Component, Deref, DerefMut)]
+pub struct Response(pub bool);
+#[derive(Component)]
+pub struct Interaction;
+impl Interaction {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(InteractionWidth(d.value.into_float()?));
+            }
+            9 => {
+                entity.insert(InteractionHeight(d.value.into_float()?));
+            }
+            10 => {
+                entity.insert(Response(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct InteractionMetadataBundle {
+    _marker: Interaction,
+    parent: AbstractEntityMetadataBundle,
+    interaction_width: InteractionWidth,
+    interaction_height: InteractionHeight,
+    response: Response,
+}
+impl Default for InteractionMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Interaction,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            interaction_width: InteractionWidth(1.0),
+            interaction_height: InteractionHeight(1.0),
+            response: Response(false),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
 pub struct PlayerCreated(pub bool);
 #[derive(Component)]
 pub struct IronGolem;
@@ -4506,7 +4573,7 @@ impl Default for ItemDisplayMetadataBundle {
             item_display_shadow_strength: ItemDisplayShadowStrength(1.0),
             item_display_width: ItemDisplayWidth(0.0),
             item_display_height: ItemDisplayHeight(0.0),
-            item_display_glow_color_override: ItemDisplayGlowColorOverride(0),
+            item_display_glow_color_override: ItemDisplayGlowColorOverride(-1),
             item_display_item_stack: ItemDisplayItemStack(Slot::Empty),
             item_display_item_display: ItemDisplayItemDisplay(Default::default()),
         }
@@ -7049,6 +7116,92 @@ impl Default for SmallFireballMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut)]
+pub struct State(pub SnifferState);
+#[derive(Component, Deref, DerefMut)]
+pub struct DropSeedAtTick(pub i32);
+#[derive(Component)]
+pub struct Sniffer;
+impl Sniffer {
+    pub fn apply_metadata(
+        entity: &mut azalea_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(State(d.value.into_sniffer_state()?));
+            }
+            18 => {
+                entity.insert(DropSeedAtTick(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SnifferMetadataBundle {
+    _marker: Sniffer,
+    parent: AbstractAnimalMetadataBundle,
+    state: State,
+    drop_seed_at_tick: DropSeedAtTick,
+}
+impl Default for SnifferMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Sniffer,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            state: State(Default::default()),
+            drop_seed_at_tick: DropSeedAtTick(Default::default()),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
 pub struct HasPumpkin(pub bool);
 #[derive(Component)]
 pub struct SnowGolem;
@@ -7857,7 +8010,7 @@ impl Default for TextDisplayMetadataBundle {
             text_display_shadow_strength: TextDisplayShadowStrength(1.0),
             text_display_width: TextDisplayWidth(0.0),
             text_display_height: TextDisplayHeight(0.0),
-            text_display_glow_color_override: TextDisplayGlowColorOverride(0),
+            text_display_glow_color_override: TextDisplayGlowColorOverride(-1),
             text: Text(Default::default()),
             line_width: LineWidth(200),
             background_color: BackgroundColor(1073741824),
@@ -10483,6 +10636,11 @@ pub fn apply_metadata(
                 Illusioner::apply_metadata(entity, d)?;
             }
         }
+        azalea_registry::EntityKind::Interaction => {
+            for d in items {
+                Interaction::apply_metadata(entity, d)?;
+            }
+        }
         azalea_registry::EntityKind::IronGolem => {
             for d in items {
                 IronGolem::apply_metadata(entity, d)?;
@@ -10666,6 +10824,11 @@ pub fn apply_metadata(
         azalea_registry::EntityKind::SmallFireball => {
             for d in items {
                 SmallFireball::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::Sniffer => {
+            for d in items {
+                Sniffer::apply_metadata(entity, d)?;
             }
         }
         azalea_registry::EntityKind::SnowGolem => {
@@ -10994,6 +11157,9 @@ pub fn apply_default_metadata(
         azalea_registry::EntityKind::Illusioner => {
             entity.insert(IllusionerMetadataBundle::default());
         }
+        azalea_registry::EntityKind::Interaction => {
+            entity.insert(InteractionMetadataBundle::default());
+        }
         azalea_registry::EntityKind::IronGolem => {
             entity.insert(IronGolemMetadataBundle::default());
         }
@@ -11104,6 +11270,9 @@ pub fn apply_default_metadata(
         }
         azalea_registry::EntityKind::SmallFireball => {
             entity.insert(SmallFireballMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Sniffer => {
+            entity.insert(SnifferMetadataBundle::default());
         }
         azalea_registry::EntityKind::SnowGolem => {
             entity.insert(SnowGolemMetadataBundle::default());
