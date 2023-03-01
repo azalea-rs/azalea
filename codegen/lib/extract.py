@@ -117,7 +117,7 @@ def get_pixlyzer_data(version_id: str, category: str):
 
     # TODO: right now this False is hard-coded, it should retry with this
     # enabled if # initially getting the data fails
-    if False or (os.path.exists(target_dir) and not os.path.exists(f'{target_dir}/{category}.min.json')):
+    if True or (os.path.exists(target_dir) and not os.path.exists(f'{target_dir}/{category}.min.json')):
         print('Downloading', category, 'from pixlyzer-data.')
         data = requests.get(f'https://gitlab.com/Bixilon/pixlyzer-data/-/raw/master/version/{version_id}/{category}.min.json?inline=false').text
         try:
