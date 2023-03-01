@@ -42,35 +42,35 @@ pub struct RegistryHolder {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegistryRoot {
     #[serde(rename = "minecraft:chat_type")]
-    pub chat_type: ChatType,
+    pub chat_type: RegistryType<ChatTypeElement>,
     #[serde(rename = "minecraft:dimension_type")]
-    pub dimension_type: DimensionType,
+    pub dimension_type: RegistryType<DimensionTypeElement>,
     #[serde(rename = "minecraft:worldgen/biome")]
-    pub worldgen: WorldgenBiomes,
+    pub worldgen: RegistryType<WorldTypeElement>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChatType {
+pub struct RegistryType<T> {
     #[serde(rename = "type")]
     pub type_: String,
-    pub value: Vec<ChatTypeValue>,
+    pub value: Vec<TypeValue<T>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChatTypeValue {
+pub struct TypeValue<T> {
     pub id: u32,
     pub name: ResourceLocation,
-    pub element: ChatTypeList,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChatTypeList {
-    pub chat: ChatTypeElement,
-    pub narration: ChatTypeElement,
+    pub element: T,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatTypeElement {
+    pub chat: ChatTypeData,
+    pub narration: ChatTypeData,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChatTypeData {
     pub translation_key: String,
     pub parameters: Vec<String>,
     #[serde(default)]
@@ -108,20 +108,6 @@ pub struct ChatTypeStyle {
     #[serde(deserialize_with = "Convert::from_u8")]
     #[serde(serialize_with = "Convert::to_u8")]
     pub obfuscated: Option<bool>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DimensionType {
-    #[serde(rename = "type")]
-    pub type_: ResourceLocation,
-    pub value: Vec<DimensionTypeValue>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DimensionTypeValue {
-    pub id: u32,
-    pub name: ResourceLocation,
-    pub element: DimensionTypeElement,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -181,21 +167,7 @@ pub struct MonsterSpawnLightLevelValues {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WorldgenBiomes {
-    #[serde(rename = "type")]
-    pub type_: String,
-    pub value: Vec<WorldgenBiomesValue>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WorldgenBiomesValue {
-    pub id: u32,
-    pub name: ResourceLocation,
-    pub element: WorldgenBiomesElement,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WorldgenBiomesElement {
+pub struct WorldTypeElement {
     pub temperature: f32,
     pub downfall: f32,
     pub precipitation: BiomePrecipitation,
