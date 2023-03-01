@@ -3,7 +3,10 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use std::io::{Cursor, Write};
 
-// TODO: make a `resourcelocation!("minecraft:overwolrd")` macro that checks if
+#[cfg(feature = "serde")]
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+
+// TODO: make a `resourcelocation!("minecraft:overworld")` macro that checks if
 // it's correct at compile-time.
 
 #[derive(Hash, Clone, PartialEq, Eq)]
@@ -57,6 +60,37 @@ impl McBufReadable for ResourceLocation {
 impl McBufWritable for ResourceLocation {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self.to_string().write_into(buf)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl Serialize for ResourceLocation {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for ResourceLocation {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        if s.contains(':') {
+            match ResourceLocation::new(&s) {
+                Ok(r) => Ok(r),
+                Err(e) => Err(de::Error::custom(e)),
+            }
+        } else {
+            Err(de::Error::invalid_value(
+                de::Unexpected::Str(&s),
+                &"a string with a colon",
+            ))
+        }
     }
 }
 

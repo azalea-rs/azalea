@@ -1,4 +1,5 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use azalea_core::ResourceLocation;
 use azalea_nbt::Tag;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::io::Cursor;
@@ -58,7 +59,7 @@ pub struct ChatType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatTypeValue {
     pub id: u32,
-    pub name: String,
+    pub name: ResourceLocation,
     pub element: ChatTypeList,
 }
 
@@ -112,14 +113,14 @@ pub struct ChatTypeStyle {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DimensionType {
     #[serde(rename = "type")]
-    pub type_: String,
+    pub type_: ResourceLocation,
     pub value: Vec<DimensionTypeValue>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DimensionTypeValue {
     pub id: u32,
-    pub name: String,
+    pub name: ResourceLocation,
     pub element: DimensionTypeElement,
 }
 
@@ -130,7 +131,7 @@ pub struct DimensionTypeElement {
     #[serde(serialize_with = "Convert::to_u8")]
     pub bed_works: bool,
     pub coordinate_scale: f32,
-    pub effects: String,
+    pub effects: ResourceLocation,
     #[serde(deserialize_with = "Convert::from_u8")]
     #[serde(serialize_with = "Convert::to_u8")]
     pub has_ceiling: bool,
@@ -141,7 +142,7 @@ pub struct DimensionTypeElement {
     #[serde(serialize_with = "Convert::to_u8")]
     pub has_skylight: bool,
     pub height: u32,
-    pub infiniburn: String,
+    pub infiniburn: ResourceLocation,
     pub logical_height: u32,
     pub min_y: i32,
     pub monster_spawn_block_light_limit: u32,
@@ -189,7 +190,7 @@ pub struct WorldgenBiomes {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorldgenBiomesValue {
     pub id: u32,
-    pub name: String,
+    pub name: ResourceLocation,
     pub element: WorldgenBiomesElement,
 }
 
@@ -249,7 +250,7 @@ pub struct BiomeMoodSound {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MusicId {
-    pub sound_id: String,
+    pub sound_id: ResourceLocation,
 }
 
 // Using a trait because you can't implement methods for

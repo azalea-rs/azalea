@@ -200,18 +200,17 @@ fn process_packet_events(ecs: &mut Ecs) {
                     query.get_mut(player_entity).unwrap();
 
                 {
-                    let dimension = p
+                    let dimension = &p
                         .registry_holder
                         .root
                         .dimension_type
                         .value
                         .iter()
-                        .find(|t| t.name == p.dimension_type.to_string())
+                        .find(|t| t.name == p.dimension_type)
                         .unwrap_or_else(|| {
                             panic!("No dimension_type with name {}", p.dimension_type)
                         })
-                        .element
-                        .clone();
+                        .element;
 
                     let new_world_name = p.dimension.clone();
 
