@@ -172,7 +172,7 @@ async fn swarm_handle(
             tokio::time::sleep(Duration::from_secs(5)).await;
             swarm
                 .add_with_exponential_backoff(account, State::default())
-                .await?;
+                .await;
         }
         SwarmEvent::Chat(m) => {
             println!("swarm chat message: {}", m.message().to_ansi());
