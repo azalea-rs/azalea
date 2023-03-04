@@ -2,7 +2,7 @@ use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
 use azalea_nbt::Tag;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
-use std::io::Cursor;
+use std::{collections::HashMap, io::Cursor};
 
 impl TryFrom<Tag> for RegistryHolder {
     type Error = serde_json::Error;
@@ -34,12 +34,14 @@ impl McBufWritable for RegistryHolder {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub struct RegistryHolder {
     #[serde(rename = "")]
     pub root: RegistryRoot,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub struct RegistryRoot {
     #[serde(rename = "minecraft:chat_type")]
     pub chat_type: RegistryType<ChatTypeElement>,
@@ -50,6 +52,7 @@ pub struct RegistryRoot {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub struct RegistryType<T> {
     #[serde(rename = "type")]
     pub type_: String,
@@ -57,6 +60,7 @@ pub struct RegistryType<T> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub struct TypeValue<T> {
     pub id: u32,
     pub name: ResourceLocation,
@@ -64,12 +68,14 @@ pub struct TypeValue<T> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub struct ChatTypeElement {
     pub chat: ChatTypeData,
     pub narration: ChatTypeData,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub struct ChatTypeData {
     pub translation_key: String,
     pub parameters: Vec<String>,
@@ -79,53 +85,49 @@ pub struct ChatTypeData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub struct ChatTypeStyle {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "Convert::from_u8")]
-    #[serde(serialize_with = "Convert::to_u8")]
+    #[serde(with = "Convert")]
     pub bold: Option<bool>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "Convert::from_u8")]
-    #[serde(serialize_with = "Convert::to_u8")]
+    #[serde(with = "Convert")]
     pub italic: Option<bool>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "Convert::from_u8")]
-    #[serde(serialize_with = "Convert::to_u8")]
+    #[serde(with = "Convert")]
     pub underlined: Option<bool>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "Convert::from_u8")]
-    #[serde(serialize_with = "Convert::to_u8")]
+    #[serde(with = "Convert")]
     pub strikethrough: Option<bool>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(deserialize_with = "Convert::from_u8")]
-    #[serde(serialize_with = "Convert::to_u8")]
+    #[serde(with = "Convert")]
     pub obfuscated: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub struct DimensionTypeElement {
     pub ambient_light: f32,
-    #[serde(deserialize_with = "Convert::from_u8")]
-    #[serde(serialize_with = "Convert::to_u8")]
+    #[serde(with = "Convert")]
     pub bed_works: bool,
     pub coordinate_scale: f32,
     pub effects: ResourceLocation,
-    #[serde(deserialize_with = "Convert::from_u8")]
-    #[serde(serialize_with = "Convert::to_u8")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fixed_time: Option<u32>,
+    #[serde(with = "Convert")]
     pub has_ceiling: bool,
-    #[serde(deserialize_with = "Convert::from_u8")]
-    #[serde(serialize_with = "Convert::to_u8")]
+    #[serde(with = "Convert")]
     pub has_raids: bool,
-    #[serde(deserialize_with = "Convert::from_u8")]
-    #[serde(serialize_with = "Convert::to_u8")]
+    #[serde(with = "Convert")]
     pub has_skylight: bool,
     pub height: u32,
     pub infiniburn: ResourceLocation,
@@ -133,22 +135,19 @@ pub struct DimensionTypeElement {
     pub min_y: i32,
     pub monster_spawn_block_light_limit: u32,
     pub monster_spawn_light_level: MonsterSpawnLightLevel,
-    #[serde(deserialize_with = "Convert::from_u8")]
-    #[serde(serialize_with = "Convert::to_u8")]
+    #[serde(with = "Convert")]
     pub natural: bool,
-    #[serde(deserialize_with = "Convert::from_u8")]
-    #[serde(serialize_with = "Convert::to_u8")]
+    #[serde(with = "Convert")]
     pub piglin_safe: bool,
-    #[serde(deserialize_with = "Convert::from_u8")]
-    #[serde(serialize_with = "Convert::to_u8")]
+    #[serde(with = "Convert")]
     pub respawn_anchor_works: bool,
-    #[serde(deserialize_with = "Convert::from_u8")]
-    #[serde(serialize_with = "Convert::to_u8")]
+    #[serde(with = "Convert")]
     pub ultrawarm: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub enum MonsterSpawnLightLevel {
     Simple(u32),
     Complex {
@@ -159,6 +158,7 @@ pub enum MonsterSpawnLightLevel {
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub struct MonsterSpawnLightLevelValues {
     #[serde(rename = "min_inclusive")]
     pub min: u32,
@@ -167,14 +167,19 @@ pub struct MonsterSpawnLightLevelValues {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub struct WorldTypeElement {
     pub temperature: f32,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub temperature_modifier: Option<String>,
     pub downfall: f32,
     pub precipitation: BiomePrecipitation,
     pub effects: BiomeEffects,
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub enum BiomePrecipitation {
     #[serde(rename = "none")]
     None,
@@ -185,6 +190,7 @@ pub enum BiomePrecipitation {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub struct BiomeEffects {
     pub sky_color: u32,
     pub fog_color: u32,
@@ -198,14 +204,26 @@ pub struct BiomeEffects {
     pub grass_color: Option<u32>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub grass_color_modifier: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub music: Option<BiomeMusic>,
     pub mood_sound: BiomeMoodSound,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub additions_sound: Option<AdditionsSound>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ambient_sound: Option<MusicId>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub particle: Option<BiomeParticle>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub struct BiomeMusic {
-    #[serde(deserialize_with = "Convert::from_u8")]
-    #[serde(serialize_with = "Convert::to_u8")]
+    #[serde(with = "Convert")]
     pub replace_current_music: bool,
     pub max_delay: u32,
     pub min_delay: u32,
@@ -213,6 +231,7 @@ pub struct BiomeMusic {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub struct BiomeMoodSound {
     pub tick_delay: u32,
     pub block_search_extent: u32,
@@ -220,33 +239,48 @@ pub struct BiomeMoodSound {
     pub sound: MusicId,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+pub struct AdditionsSound {
+    pub tick_chance: f32,
+    pub sound: MusicId,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
 pub struct MusicId {
     pub sound_id: ResourceLocation,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+pub struct BiomeParticle {
+    pub probability: f32,
+    pub options: HashMap<String, String>,
 }
 
 // Using a trait because you can't implement methods for
 // types you don't own, in this case Option<bool> and bool.
 trait Convert: Sized {
-    fn to_u8<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer;
 
-    fn from_u8<'de, D>(deserializer: D) -> Result<Self, D::Error>
+    fn deserialize<'de, D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>;
 }
 
 // Convert between bool and u8
 impl Convert for bool {
-    fn to_u8<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         serializer.serialize_u8(if *self { 1 } else { 0 })
     }
 
-    fn from_u8<'de, D>(deserializer: D) -> Result<bool, D::Error>
+    fn deserialize<'de, D>(deserializer: D) -> Result<bool, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -256,18 +290,18 @@ impl Convert for bool {
 
 // Convert between Option<bool> and u8
 impl Convert for Option<bool> {
-    fn to_u8<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         if let Some(value) = self {
-            value.to_u8(serializer)
+            Convert::serialize(value, serializer)
         } else {
             serializer.serialize_none()
         }
     }
 
-    fn from_u8<'de, D>(deserializer: D) -> Result<Option<bool>, D::Error>
+    fn deserialize<'de, D>(deserializer: D) -> Result<Option<bool>, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -280,11 +314,11 @@ impl Convert for Option<bool> {
 }
 
 // Deserializing logic here for deduplicating the code
-fn convert<'de, D>(val: u8) -> Result<bool, D::Error>
+fn convert<'de, D>(value: u8) -> Result<bool, D::Error>
 where
     D: Deserializer<'de>,
 {
-    match val {
+    match value {
         0 => Ok(false),
         1 => Ok(true),
         other => Err(de::Error::invalid_value(
