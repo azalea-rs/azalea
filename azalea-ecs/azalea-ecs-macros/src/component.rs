@@ -4,11 +4,9 @@ use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::{quote, ToTokens};
 use syn::{parse_macro_input, parse_quote, DeriveInput, Error, Ident, Path, Result};
 
-use crate::utils;
-
 pub fn derive_resource(input: TokenStream) -> TokenStream {
     let mut ast = parse_macro_input!(input as DeriveInput);
-    let azalea_ecs_path: Path = crate::azalea_ecs_path();
+    let bevy_ecs_path: Path = crate::bevy_ecs_path();
 
     ast.generics
         .make_where_clause()
@@ -19,21 +17,21 @@ pub fn derive_resource(input: TokenStream) -> TokenStream {
     let (impl_generics, type_generics, where_clause) = &ast.generics.split_for_impl();
 
     TokenStream::from(quote! {
-        impl #impl_generics #azalea_ecs_path::system::_BevyResource for #struct_name #type_generics #where_clause {
+        impl #impl_generics #bevy_ecs_path::system::_BevyResource for #struct_name #type_generics #where_clause {
         }
     })
 }
 
 pub fn derive_component(input: TokenStream) -> TokenStream {
     let mut ast = parse_macro_input!(input as DeriveInput);
-    let azalea_ecs_path: Path = crate::azalea_ecs_path();
+    let bevy_ecs_path: Path = crate::bevy_ecs_path();
 
     let attrs = match parse_component_attr(&ast) {
         Ok(attrs) => attrs,
         Err(e) => return e.into_compile_error().into(),
     };
 
-    let storage = storage_path(&azalea_ecs_path, attrs.storage);
+    let storage = storage_path(&bevy_ecs_path, attrs.storage);
 
     ast.generics
         .make_where_clause()
@@ -44,7 +42,7 @@ pub fn derive_component(input: TokenStream) -> TokenStream {
     let (impl_generics, type_generics, where_clause) = &ast.generics.split_for_impl();
 
     TokenStream::from(quote! {
-        impl #impl_generics #azalea_ecs_path::component::_BevyComponent for #struct_name #type_generics #where_clause {
+        impl #impl_generics #bevy_ecs_path::component::_BevyComponent for #struct_name #type_generics #where_clause {
             type Storage = #storage;
         }
     })
@@ -68,7 +66,7 @@ const TABLE: &str = "Table";
 const SPARSE_SET: &str = "SparseSet";
 
 fn parse_component_attr(ast: &DeriveInput) -> Result<Attrs> {
-    let meta_items = utils::parse_attrs(ast, COMPONENT)?;
+    let meta_items = crate::utils::parse_attrs(ast, COMPONENT)?;
 
     let mut attrs = Attrs {
         storage: StorageTy::Table,
@@ -88,7 +86,7 @@ fn parse_component_attr(ast: &DeriveInput) -> Result<Attrs> {
                         return Err(Error::new_spanned(
                             m.lit,
                             format!(
-                                "Invalid storage type `{s}`, expected '{TABLE}' or '{SPARSE_SET}'."
+                                "Invalid storage type `{s}`, expected '{TABLE}' or '{SPARSE_SET}'.",
                             ),
                         ))
                     }
@@ -115,11 +113,11 @@ fn parse_component_attr(ast: &DeriveInput) -> Result<Attrs> {
     Ok(attrs)
 }
 
-fn storage_path(azalea_ecs_path: &Path, ty: StorageTy) -> TokenStream2 {
+fn storage_path(bevy_ecs_path: &Path, ty: StorageTy) -> TokenStream2 {
     let typename = match ty {
         StorageTy::Table => Ident::new("TableStorage", Span::call_site()),
         StorageTy::SparseSet => Ident::new("SparseStorage", Span::call_site()),
     };
 
-    quote! { #azalea_ecs_path::component::#typename }
+    quote! { #bevy_ecs_path::component::#typename }
 }

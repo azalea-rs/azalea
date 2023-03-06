@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use syn::DeriveInput;
 
 use super::symbol::Symbol;
@@ -37,9 +35,7 @@ pub fn get_lit_bool(attr_name: Symbol, lit: &syn::Lit) -> syn::Result<bool> {
     } else {
         Err(syn::Error::new_spanned(
             lit,
-            format!(
-                "expected {attr_name} attribute to be a bool value, `true` or `false`: `{attr_name} = ...`"
-            ),
+            format!("expected {attr_name} attribute to be a bool value, `true` or `false`: `{attr_name} = ...`"),
         ))
     }
 }

@@ -10,13 +10,13 @@ use crate::{
 };
 use azalea_core::ChunkPos;
 use azalea_ecs::{
-    app::{App, CoreStage, Plugin},
+    app::{App, CoreSet, Plugin},
     component::Component,
     ecs::Ecs,
     ecs::EntityMut,
     entity::Entity,
     query::{Added, Changed, With, Without},
-    schedule::{IntoSystemDescriptor, SystemSet},
+    schedule::{IntoSystemConfig, IntoSystemConfigs, SystemSet},
     system::{Command, Commands, Query, Res, ResMut, Resource},
 };
 use derive_more::{Deref, DerefMut};
@@ -32,6 +32,16 @@ use uuid::Uuid;
 
 use super::Local;
 
+/// A Bevy [`SystemSet`] for various types of entity updates.
+#[derive(SystemSet, Debug, Hash, Eq, PartialEq, Clone)]
+pub enum EntityUpdateSet {
+    /// Remove ECS entities that refer to an entity that was already in the ECS
+    /// before.
+    Deduplicate,
+    /// Create search indexes for entities.
+    Index,
+}
+
 /// Plugin handling some basic entity functionality.
 pub struct EntityPlugin;
 impl Plugin for EntityPlugin {
@@ -40,31 +50,28 @@ impl Plugin for EntityPlugin {
         // added to indexes during update (done by this plugin)
         // modified during update
         // despawned post-update (done by this plugin)
-        app.add_system_set_to_stage(
-            CoreStage::PreUpdate,
-            SystemSet::new().with_system(remove_despawned_entities_from_indexes),
-        )
-        .add_system_set_to_stage(
-            CoreStage::PostUpdate,
-            SystemSet::new()
-                .with_system(deduplicate_entities.label("deduplicate_entities"))
-                .with_system(deduplicate_local_entities.label("deduplicate_entities")),
-        )
-        .add_system_set(
-            SystemSet::new()
-                .with_system(update_entity_chunk_positions)
-                .with_system(update_uuid_index.label("update_indexes"))
-                .with_system(update_entity_by_id_index.label("update_indexes")),
-        )
-        .add_system_set(
-            SystemSet::new()
-                .with_system(add_updates_received.label("add_updates_received"))
-                .with_system(debug_new_entity)
-                .with_system(debug_detect_updates_received_on_local_entities)
-                .with_system(add_dead)
-                .with_system(update_bounding_box),
-        )
-        .init_resource::<EntityInfos>();
+        app.add_system(remove_despawned_entities_from_indexes.in_base_set(CoreSet::PreUpdate))
+            .add_systems(
+                (deduplicate_entities, deduplicate_local_entities)
+                    .in_base_set(CoreSet::PostUpdate)
+                    .in_set(EntityUpdateSet::Deduplicate),
+            )
+            .add_systems(
+                (
+                    update_entity_chunk_positions,
+                    update_uuid_index,
+                    update_entity_by_id_index,
+                )
+                    .in_set(EntityUpdateSet::Index),
+            )
+            .add_systems((
+                add_updates_received,
+                debug_new_entity,
+                debug_detect_updates_received_on_local_entities,
+                add_dead,
+                update_bounding_box,
+            ))
+            .init_resource::<EntityInfos>();
     }
 }
 

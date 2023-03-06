@@ -8,7 +8,7 @@ use syn::{
     Attribute, Data, DataStruct, DeriveInput, Field, Fields,
 };
 
-use crate::azalea_ecs_path;
+use crate::bevy_ecs_path;
 
 #[derive(Default)]
 struct FetchStructAttributes {
@@ -52,7 +52,7 @@ pub fn derive_world_query_impl(ast: DeriveInput) -> TokenStream {
                         fetch_struct_attributes.is_mutable = true;
                     } else {
                         panic!(
-                            "The `{MUTABLE_ATTRIBUTE_NAME}` attribute is expected to have no value or arguments"
+                            "The `{MUTABLE_ATTRIBUTE_NAME}` attribute is expected to have no value or arguments",
                         );
                     }
                 } else if ident == DERIVE_ATTRIBUTE_NAME {
@@ -62,7 +62,7 @@ pub fn derive_world_query_impl(ast: DeriveInput) -> TokenStream {
                             .extend(meta_list.nested.iter().cloned());
                     } else {
                         panic!(
-                            "Expected a structured list within the `{DERIVE_ATTRIBUTE_NAME}` attribute"
+                            "Expected a structured list within the `{DERIVE_ATTRIBUTE_NAME}` attribute",
                         );
                     }
                 } else {
@@ -77,7 +77,7 @@ pub fn derive_world_query_impl(ast: DeriveInput) -> TokenStream {
         .unwrap_or_else(|_| panic!("Invalid `{WORLD_QUERY_ATTRIBUTE_NAME}` attribute format"));
     }
 
-    let path = azalea_ecs_path();
+    let path = bevy_ecs_path();
 
     let user_generics = ast.generics.clone();
     let (user_impl_generics, user_ty_generics, user_where_clauses) = user_generics.split_for_impl();
@@ -280,8 +280,8 @@ pub fn derive_world_query_impl(ast: DeriveInput) -> TokenStream {
                 #[inline(always)]
                 unsafe fn fetch<'__w>(
                     _fetch: &mut <Self as #path::query::WorldQuery>::Fetch<'__w>,
-                    _entity: Entity,
-                    _table_row: usize
+                    _entity: #path::entity::Entity,
+                    _table_row: #path::storage::TableRow,
                 ) -> <Self as #path::query::WorldQuery>::Item<'__w> {
                     Self::Item {
                         #(#field_idents: <#field_types>::fetch(&mut _fetch.#field_idents, _entity, _table_row),)*
@@ -293,8 +293,8 @@ pub fn derive_world_query_impl(ast: DeriveInput) -> TokenStream {
                 #[inline(always)]
                 unsafe fn filter_fetch<'__w>(
                     _fetch: &mut <Self as #path::query::WorldQuery>::Fetch<'__w>,
-                    _entity: Entity,
-                    _table_row: usize
+                    _entity: #path::entity::Entity,
+                    _table_row: #path::storage::TableRow,
                 ) -> bool {
                     true #(&& <#field_types>::filter_fetch(&mut _fetch.#field_idents, _entity, _table_row))*
                 }
@@ -331,10 +331,9 @@ pub fn derive_world_query_impl(ast: DeriveInput) -> TokenStream {
     let readonly_impl = if fetch_struct_attributes.is_mutable {
         let world_query_impl = impl_fetch(true);
         quote! {
-            #[doc(hidden)]
-            #[doc = "Automatically generated internal [`WorldQuery`] type for [`"]
+            #[doc = "Automatically generated [`WorldQuery`] type for a read-only variant of [`"]
             #[doc = stringify!(#struct_name)]
-            #[doc = "`], used for read-only access."]
+            #[doc = "`]."]
             #[automatically_derived]
             #visibility struct #read_only_struct_name #user_impl_generics #user_where_clauses {
                 #( #field_idents: #read_only_field_types, )*

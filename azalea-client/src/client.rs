@@ -493,19 +493,19 @@ pub struct JoinedClientBundle {
 pub struct AzaleaPlugin;
 impl Plugin for AzaleaPlugin {
     fn build(&self, app: &mut App) {
+        // Minecraft ticks happen every 50ms
+        app.insert_resource(FixedTime::new_from_millis(50));
+
         app.add_event::<StartWalkEvent>()
             .add_event::<StartSprintEvent>();
 
-        app.add_tick_system_set(
-            SystemSet::new()
-                .with_system(send_position.after("ai_step"))
-                .with_system(update_in_loaded_chunk.before(send_position).after("travel"))
-                .with_system(
-                    local_player_ai_step
-                        .before(azalea_physics::ai_step)
-                        .label("ai_step"),
-                ),
-        );
+        app.add_systems((
+            send_position.after("ai_step"),
+            update_in_loaded_chunk.before(send_position).after("travel"),
+            local_player_ai_step
+                .before(azalea_physics::ai_step)
+                .label("ai_step"),
+        ));
 
         // fire the Death event when the player dies.
         app.add_system(death_event);

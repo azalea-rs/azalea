@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 extern crate proc_macro;
 
 mod attrs;
@@ -14,10 +12,10 @@ use proc_macro::TokenStream;
 use quote::{quote, quote_spanned};
 use std::{env, path::PathBuf};
 use syn::spanned::Spanned;
-use toml::{map::Map, Value};
+use toml_edit::{Document, Item};
 
 pub struct BevyManifest {
-    manifest: Map<String, Value>,
+    manifest: Document,
 }
 
 impl Default for BevyManifest {
@@ -28,61 +26,42 @@ impl Default for BevyManifest {
                 .map(|mut path| {
                     path.push("Cargo.toml");
                     let manifest = std::fs::read_to_string(path).unwrap();
-                    toml::from_str(&manifest).unwrap()
+                    manifest.parse::<Document>().unwrap()
                 })
                 .unwrap(),
         }
     }
 }
+const AZALEA: &str = "azalea";
 
 impl BevyManifest {
     pub fn maybe_get_path(&self, name: &str) -> Option<syn::Path> {
-        const AZALEA: &str = "azalea";
-        const AZALEA_ECS: &str = "azalea_ecs";
-        const BEVY_ECS: &str = "bevy_ecs";
-        const BEVY: &str = "bevy";
-
-        fn dep_package(dep: &Value) -> Option<&str> {
+        fn dep_package(dep: &Item) -> Option<&str> {
             if dep.as_str().is_some() {
                 None
             } else {
-                dep.as_table()
-                    .unwrap()
-                    .get("package")
-                    .map(|name| name.as_str().unwrap())
+                dep.get("package").map(|name| name.as_str().unwrap())
             }
         }
 
-        let find_in_deps = |deps: &Map<String, Value>| -> Option<syn::Path> {
+        let find_in_deps = |deps: &Item| -> Option<syn::Path> {
             let package = if let Some(dep) = deps.get(name) {
                 return Some(Self::parse_str(dep_package(dep).unwrap_or(name)));
             } else if let Some(dep) = deps.get(AZALEA) {
                 dep_package(dep).unwrap_or(AZALEA)
-            } else if let Some(dep) = deps.get(AZALEA_ECS) {
-                dep_package(dep).unwrap_or(AZALEA_ECS)
-            } else if let Some(dep) = deps.get(BEVY_ECS) {
-                dep_package(dep).unwrap_or(BEVY_ECS)
-            } else if let Some(dep) = deps.get(BEVY) {
-                dep_package(dep).unwrap_or(BEVY)
             } else {
                 return None;
             };
 
             let mut path = Self::parse_str::<syn::Path>(package);
-            if let Some(module) = name.strip_prefix("azalea_") {
+            if let Some(module) = name.strip_prefix("bevy_") {
                 path.segments.push(Self::parse_str(module));
             }
             Some(path)
         };
 
-        let deps = self
-            .manifest
-            .get("dependencies")
-            .map(|deps| deps.as_table().unwrap());
-        let deps_dev = self
-            .manifest
-            .get("dev-dependencies")
-            .map(|deps| deps.as_table().unwrap());
+        let deps = self.manifest.get("dependencies");
+        let deps_dev = self.manifest.get("dev-dependencies");
 
         deps.and_then(find_in_deps)
             .or_else(|| deps_dev.and_then(find_in_deps))
@@ -111,6 +90,37 @@ impl BevyManifest {
     pub fn parse_str<T: syn::parse::Parse>(path: &str) -> T {
         syn::parse(path.parse::<TokenStream>().unwrap()).unwrap()
     }
+}
+
+/// Derive a label trait
+///
+/// # Args
+///
+/// - `input`: The [`syn::DeriveInput`] for struct that is deriving the label
+///   trait
+/// - `trait_path`: The path [`syn::Path`] to the label trait
+pub fn derive_boxed_label(input: syn::DeriveInput, trait_path: &syn::Path) -> TokenStream {
+    let ident = input.ident;
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+    let mut where_clause = where_clause.cloned().unwrap_or_else(|| syn::WhereClause {
+        where_token: Default::default(),
+        predicates: Default::default(),
+    });
+    where_clause.predicates.push(
+        syn::parse2(quote! {
+            Self: 'static + Send + Sync + Clone + Eq + ::std::fmt::Debug + ::std::hash::Hash
+        })
+        .unwrap(),
+    );
+
+    (quote! {
+        impl #impl_generics #trait_path for #ident #ty_generics #where_clause {
+            fn dyn_clone(&self) -> std::boxed::Box<dyn #trait_path> {
+                std::boxed::Box::new(std::clone::Clone::clone(self))
+            }
+        }
+    })
+    .into()
 }
 
 /// Derive a label trait
