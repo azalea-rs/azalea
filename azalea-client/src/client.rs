@@ -6,6 +6,7 @@ use crate::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
         LocalPlayer, PhysicsState, SendPacketEvent,
     },
+    movement::PlayerMovePlugin,
     packet_handling::{self, PacketHandlerPlugin, PacketReceiver},
     player::retroactively_add_game_profile_component,
     task_pool::TaskPoolPlugin,
@@ -499,7 +500,11 @@ impl Plugin for AzaleaPlugin {
         // Minecraft ticks happen every 50ms
         app.insert_resource(FixedTime::new(Duration::from_millis(50)));
 
-        app.add_system(update_in_loaded_chunk.after(PhysicsSet));
+        app.add_system(
+            update_in_loaded_chunk
+                .after(PhysicsSet)
+                .after(handle_send_packet_event),
+        );
 
         // fire the Death event when the player dies.
         app.add_system(death_event);
@@ -613,5 +618,6 @@ impl PluginGroup for DefaultPlugins {
             .add(TaskPoolPlugin::default())
             .add(ChatPlugin)
             .add(DisconnectPlugin)
+            .add(PlayerMovePlugin)
     }
 }

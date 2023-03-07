@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use azalea_ecs::{
-    app::{App, CoreSet, Plugin},
+    app::{App, CoreSchedule, CoreSet, IntoSystemAppConfig, Plugin},
     component::Component,
     event::EventReader,
     query::Added,
@@ -115,7 +115,7 @@ impl Plugin for EventPlugin {
             .add_system(remove_player_listener)
             .add_system(death_listener)
             .add_system(keepalive_listener)
-            .add_system(tick_listener.in_base_set(CoreSet::FixedUpdate));
+            .add_system(tick_listener.in_schedule(CoreSchedule::FixedUpdate));
     }
 }
 

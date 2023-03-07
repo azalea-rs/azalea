@@ -6,7 +6,7 @@ use crate::{SprintDirection, WalkDirection};
 
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::{BlockPos, CardinalDirection};
-use azalea_ecs::app::CoreSet;
+use azalea_ecs::app::{CoreSchedule, CoreSet, IntoSystemAppConfig};
 use azalea_ecs::schedule::IntoSystemConfig;
 use azalea_ecs::{
     app::{App, Plugin},
@@ -39,7 +39,7 @@ impl Plugin for PathfinderPlugin {
             .add_event::<PathFoundEvent>()
             .add_system(
                 tick_execute_path
-                    .in_base_set(CoreSet::FixedUpdate)
+                    .in_schedule(CoreSchedule::FixedUpdate)
                     .before(PhysicsSet),
             )
             .add_system(goto_listener)

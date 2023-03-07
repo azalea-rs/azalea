@@ -16,18 +16,15 @@ use crate::{client::JoinedClientBundle, LocalPlayer};
 pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<DisconnectEvent>()
-            .add_system(
-                remove_components_from_disconnected_players.in_base_set(CoreSet::PostUpdate),
+        app.add_event::<DisconnectEvent>().add_systems(
+            (
+                update_read_packets_task_running_component,
+                disconnect_on_read_packets_ended,
+                remove_components_from_disconnected_players,
             )
-            .add_systems(
-                (
-                    update_read_packets_task_running_component,
-                    disconnect_on_read_packets_ended,
-                )
-                    .in_base_set(CoreSet::PostUpdate)
-                    .chain(),
-            );
+                .in_base_set(CoreSet::PostUpdate)
+                .chain(),
+        );
     }
 }
 

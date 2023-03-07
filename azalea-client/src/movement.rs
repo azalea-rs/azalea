@@ -2,7 +2,9 @@ use crate::client::Client;
 use crate::local_player::{
     update_in_loaded_chunk, LocalPlayer, LocalPlayerInLoadedChunk, PhysicsState,
 };
-use azalea_ecs::app::{App, CoreSet, Plugin};
+use azalea_ecs::app::{
+    App, CoreSchedule, CoreSet, IntoSystemAppConfig, IntoSystemAppConfigs, Plugin,
+};
 use azalea_ecs::entity::Entity;
 use azalea_ecs::schedule::{IntoSystemConfig, IntoSystemConfigs};
 use azalea_ecs::{event::EventReader, query::With, system::Query};
@@ -52,12 +54,11 @@ impl Plugin for PlayerMovePlugin {
             )
             .add_systems(
                 (
-                    local_player_ai_step
-                        .in_base_set(CoreSet::FixedUpdate)
-                        .in_set(PhysicsSet),
+                    local_player_ai_step.in_set(PhysicsSet),
                     send_position.after(update_in_loaded_chunk),
                 )
-                    .chain(),
+                    .chain()
+                    .in_schedule(CoreSchedule::FixedUpdate),
             );
     }
 }

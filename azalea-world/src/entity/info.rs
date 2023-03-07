@@ -40,6 +40,8 @@ pub enum EntityUpdateSet {
     Deduplicate,
     /// Create search indexes for entities.
     Index,
+    /// Remove despawned entities from search indexes.
+    Deindex,
 }
 
 /// Plugin handling some basic entity functionality.
@@ -50,28 +52,32 @@ impl Plugin for EntityPlugin {
         // added to indexes during update (done by this plugin)
         // modified during update
         // despawned post-update (done by this plugin)
-        app.add_system(remove_despawned_entities_from_indexes.in_base_set(CoreSet::PreUpdate))
-            .add_systems(
-                (deduplicate_entities, deduplicate_local_entities)
-                    .in_base_set(CoreSet::PostUpdate)
-                    .in_set(EntityUpdateSet::Deduplicate),
+        app.add_system(
+            remove_despawned_entities_from_indexes
+                .in_base_set(CoreSet::PreUpdate)
+                .in_set(EntityUpdateSet::Deindex),
+        )
+        .add_systems(
+            (deduplicate_entities, deduplicate_local_entities)
+                .in_base_set(CoreSet::PostUpdate)
+                .in_set(EntityUpdateSet::Deduplicate),
+        )
+        .add_systems(
+            (
+                update_entity_chunk_positions,
+                update_uuid_index,
+                update_entity_by_id_index,
             )
-            .add_systems(
-                (
-                    update_entity_chunk_positions,
-                    update_uuid_index,
-                    update_entity_by_id_index,
-                )
-                    .in_set(EntityUpdateSet::Index),
-            )
-            .add_systems((
-                add_updates_received,
-                debug_new_entity,
-                debug_detect_updates_received_on_local_entities,
-                add_dead,
-                update_bounding_box,
-            ))
-            .init_resource::<EntityInfos>();
+                .in_set(EntityUpdateSet::Index),
+        )
+        .add_systems((
+            add_updates_received,
+            debug_new_entity,
+            debug_detect_updates_received_on_local_entities,
+            add_dead,
+            update_bounding_box,
+        ))
+        .init_resource::<EntityInfos>();
     }
 }
 

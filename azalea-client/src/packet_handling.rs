@@ -7,7 +7,7 @@ use azalea_ecs::{
     ecs::Ecs,
     entity::Entity,
     event::{EventReader, EventWriter, Events},
-    schedule::{IntoSystemConfig, IntoSystemSetConfig, SystemSet},
+    schedule::IntoSystemConfig,
     system::{Commands, Query, ResMut, SystemState},
 };
 use azalea_protocol::{
@@ -25,8 +25,8 @@ use azalea_protocol::{
 use azalea_world::{
     entity::{
         metadata::{apply_metadata, Health, PlayerMetadataBundle},
-        set_rotation, Dead, EntityBundle, EntityKind, LastSentPosition, MinecraftEntityId, Physics,
-        PlayerBundle, Position, WorldName,
+        set_rotation, Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition,
+        MinecraftEntityId, Physics, PlayerBundle, Position, WorldName,
     },
     entity::{LoadedBy, RelativeEntityUpdate},
     PartialWorld, WorldContainer,
@@ -72,15 +72,15 @@ pub struct PacketEvent {
 
 pub struct PacketHandlerPlugin;
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
-#[system_set(base)]
-pub struct SendPacketEventsBaseSet;
-
 impl Plugin for PacketHandlerPlugin {
     fn build(&self, app: &mut App) {
-        app.configure_set(SendPacketEventsBaseSet.before(CoreSet::PreUpdate))
-            .add_system(send_packet_events.in_base_set(SendPacketEventsBaseSet))
-            .add_system(process_packet_events.in_base_set(CoreSet::PreUpdate))
+        app.add_system(send_packet_events.in_base_set(CoreSet::First))
+            .add_system(
+                process_packet_events
+                    .in_base_set(CoreSet::PreUpdate)
+                    // we want to index and deindex right after
+                    .before(EntityUpdateSet::Deindex),
+            )
             .init_resource::<Events<PacketEvent>>()
             .add_event::<AddPlayerEvent>()
             .add_event::<RemovePlayerEvent>()

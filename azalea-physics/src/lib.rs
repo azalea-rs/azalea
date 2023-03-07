@@ -6,7 +6,7 @@ pub mod collision;
 use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
 use azalea_ecs::{
-    app::{App, CoreSet, Plugin},
+    app::{App, CoreSchedule, CoreSet, IntoSystemAppConfigs, Plugin},
     entity::Entity,
     event::{EventReader, EventWriter},
     query::With,
@@ -34,8 +34,8 @@ impl Plugin for PhysicsPlugin {
             .add_systems(
                 (ai_step, travel)
                     .chain()
-                    .in_base_set(CoreSet::FixedUpdate)
-                    .in_set(PhysicsSet),
+                    .in_set(PhysicsSet)
+                    .in_schedule(CoreSchedule::FixedUpdate),
             );
     }
 }

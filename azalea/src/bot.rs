@@ -1,6 +1,8 @@
 use azalea_core::Vec3;
 use azalea_ecs::{
-    app::{App, CoreSet, Plugin, PluginGroup, PluginGroupBuilder},
+    app::{
+        App, CoreSchedule, CoreSet, IntoSystemAppConfig, Plugin, PluginGroup, PluginGroupBuilder,
+    },
     component::Component,
     entity::Entity,
     event::EventReader,
@@ -25,7 +27,7 @@ impl Plugin for BotPlugin {
                 look_at_listener.before(force_jump_listener),
                 jump_listener,
                 stop_jumping
-                    .in_base_set(CoreSet::FixedUpdate)
+                    .in_schedule(CoreSchedule::FixedUpdate)
                     .after(PhysicsSet),
             ));
     }
