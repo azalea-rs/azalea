@@ -88,7 +88,7 @@ impl<'de> Deserialize<'de> for ResourceLocation {
         } else {
             Err(de::Error::invalid_value(
                 de::Unexpected::Str(&s),
-                &"a string with a colon",
+                &"a valid ResourceLocation",
             ))
         }
     }

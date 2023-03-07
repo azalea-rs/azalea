@@ -1,4 +1,9 @@
-//! ClientboundLoginPacket Registry Structure
+//! `ClientboundLoginPacket` Registry Structures
+//!
+//! This module contains the structures used to represent the registry
+//! sent to the client upon login. This contains a lot of data about the game,
+//! including the types and formats of different chat messages, the types of
+//! dimensions, and data about the many different biomes.
 
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
@@ -6,6 +11,11 @@ use azalea_nbt::Tag;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::{collections::HashMap, io::Cursor};
 
+/// The base of the registry.
+///
+/// This is the registry that is sent to the client upon login.
+///
+/// As a tag, it is a compound tag that only contains a single compound tag.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct RegistryHolder {
@@ -42,6 +52,10 @@ impl McBufWritable for RegistryHolder {
     }
 }
 
+/// The main part of the registry.
+///
+/// Contains data from the server about chat, the dimension,
+/// and the world generation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct RegistryRoot {
@@ -53,6 +67,7 @@ pub struct RegistryRoot {
     pub world_type: RegistryType<WorldTypeElement>,
 }
 
+/// A collection of values for a certain type of registry data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct RegistryType<T> {
@@ -61,6 +76,7 @@ pub struct RegistryType<T> {
     pub value: Vec<TypeValue<T>>,
 }
 
+/// A value for a certain type of registry data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct TypeValue<T> {
@@ -69,6 +85,7 @@ pub struct TypeValue<T> {
     pub element: T,
 }
 
+/// Data about a kind of chat message
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct ChatTypeElement {
@@ -76,6 +93,7 @@ pub struct ChatTypeElement {
     pub narration: ChatTypeData,
 }
 
+/// Data about a chat message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct ChatTypeData {
@@ -86,6 +104,7 @@ pub struct ChatTypeData {
     pub style: Option<ChatTypeStyle>,
 }
 
+/// The style of a chat message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct ChatTypeStyle {
@@ -114,6 +133,7 @@ pub struct ChatTypeStyle {
     pub obfuscated: Option<bool>,
 }
 
+/// Data about a dimension.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct DimensionTypeElement {
@@ -147,18 +167,27 @@ pub struct DimensionTypeElement {
     pub ultrawarm: bool,
 }
 
+/// The light level at which monsters can spawn.
+///
+/// This can be either a single minimum value, or a formula with a min and max.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub enum MonsterSpawnLightLevel {
+    /// A simple minimum value.
     Simple(u32),
+    /// A complex value with a type, minimum, and maximum.
+    /// Vanilla minecraft only uses one type, "minecraft:uniform".
     Complex {
         #[serde(rename = "type")]
-        type_: String,
+        type_: ResourceLocation,
         value: MonsterSpawnLightLevelValues,
     },
 }
 
+/// The min and max light levels at which monsters can spawn.
+///
+/// Values are inclusive.
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct MonsterSpawnLightLevelValues {
@@ -168,6 +197,7 @@ pub struct MonsterSpawnLightLevelValues {
     pub max: u32,
 }
 
+/// Data about a biome.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct WorldTypeElement {
@@ -180,6 +210,7 @@ pub struct WorldTypeElement {
     pub effects: BiomeEffects,
 }
 
+/// The precipitation of a biome.
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub enum BiomePrecipitation {
@@ -191,6 +222,10 @@ pub enum BiomePrecipitation {
     Snow,
 }
 
+/// The effects of a biome.
+///
+/// This includes the sky, fog, water, foliage, and grass color,
+/// as well as music and other sound effects.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct BiomeEffects {
@@ -222,6 +257,9 @@ pub struct BiomeEffects {
     pub particle: Option<BiomeParticle>,
 }
 
+/// The music of the biome.
+///
+/// Some biomes have unique music that only play when inside them.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct BiomeMusic {
@@ -248,12 +286,16 @@ pub struct AdditionsSound {
     pub sound: MusicId,
 }
 
+/// The ID of a sound.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct MusicId {
     pub sound_id: ResourceLocation,
 }
 
+/// Optional biome particles.
+///
+/// Some biomes have particles that spawn in the air.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct BiomeParticle {
@@ -315,7 +357,7 @@ impl Convert for Option<bool> {
     }
 }
 
-// Deserializing logic here for deduplicating the code
+// Deserializing logic here to deduplicate code
 fn convert<'de, D>(value: u8) -> Result<bool, D::Error>
 where
     D: Deserializer<'de>,
