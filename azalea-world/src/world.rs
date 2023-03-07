@@ -5,7 +5,7 @@ use crate::{
     ChunkStorage, PartialChunkStorage, WorldContainer,
 };
 use azalea_core::ChunkPos;
-use azalea_ecs::{
+use bevy_ecs::{
     entity::Entity,
     query::{Changed, With, Without},
     system::{Commands, Query, Res, ResMut},
@@ -172,7 +172,7 @@ pub fn update_uuid_index(
 /// A world where the chunks are stored as weak pointers. This is used for
 /// shared worlds.
 #[derive(Default, Debug)]
-pub struct World {
+pub struct Instance {
     pub chunks: ChunkStorage,
 
     /// An index of all the entities we know are in the chunks of the world
@@ -182,7 +182,7 @@ pub struct World {
     pub entity_by_id: IntMap<MinecraftEntityId, Entity>,
 }
 
-impl World {
+impl Instance {
     /// Get an ECS [`Entity`] from a Minecraft entity ID.
     pub fn entity_by_id(&self, entity_id: &MinecraftEntityId) -> Option<Entity> {
         self.entity_by_id.get(entity_id).copied()
@@ -236,7 +236,7 @@ pub fn update_entity_by_id_index(
     }
 }
 
-impl From<ChunkStorage> for World {
+impl From<ChunkStorage> for Instance {
     /// Make an empty world from this `ChunkStorage`. This is meant to be a
     /// convenience function for tests.
     fn from(chunks: ChunkStorage) -> Self {

@@ -1,15 +1,6 @@
 use std::{collections::HashSet, io::Cursor, sync::Arc};
 
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
-use azalea_ecs::{
-    app::{App, CoreStage, Plugin},
-    component::Component,
-    ecs::Ecs,
-    entity::Entity,
-    event::{EventReader, EventWriter, Events},
-    schedule::{StageLabel, SystemStage},
-    system::{Commands, Query, ResMut, SystemState},
-};
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
     packets::game::{
@@ -25,11 +16,20 @@ use azalea_protocol::{
 use azalea_world::{
     entity::{
         metadata::{apply_metadata, Health, PlayerMetadataBundle},
-        set_rotation, Dead, EntityBundle, EntityKind, LastSentPosition, MinecraftEntityId, Physics,
-        PlayerBundle, Position, WorldName,
+        set_rotation, Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition,
+        MinecraftEntityId, Physics, PlayerBundle, Position, WorldName,
     },
     entity::{LoadedBy, RelativeEntityUpdate},
     PartialWorld, WorldContainer,
+};
+use bevy_app::{App, CoreSet, Plugin};
+use bevy_ecs::{
+    component::Component,
+    entity::Entity,
+    event::{EventReader, EventWriter, Events},
+    schedule::IntoSystemConfig,
+    system::{Commands, Query, ResMut, SystemState},
+    world::World,
 };
 use log::{debug, error, trace, warn};
 use parking_lot::Mutex;
@@ -46,7 +46,7 @@ use crate::{
 /// ```
 /// # use azalea_client::packet_handling::PacketEvent;
 /// # use azalea_protocol::packets::game::ClientboundGamePacket;
-/// # use azalea_ecs::event::EventReader;
+/// # use bevy_ecs::event::EventReader;
 ///
 /// fn handle_packets(mut events: EventReader<PacketEvent>) {
 ///     for PacketEvent {
@@ -72,25 +72,22 @@ pub struct PacketEvent {
 
 pub struct PacketHandlerPlugin;
 
-#[derive(StageLabel)]
-pub struct SendPacketEventsStage;
-
 impl Plugin for PacketHandlerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_stage_before(
-            CoreStage::PreUpdate,
-            SendPacketEventsStage,
-            SystemStage::parallel(),
-        )
-        .add_system_to_stage(SendPacketEventsStage, send_packet_events)
-        .add_system_to_stage(CoreStage::PreUpdate, process_packet_events)
-        .init_resource::<Events<PacketEvent>>()
-        .add_event::<AddPlayerEvent>()
-        .add_event::<RemovePlayerEvent>()
-        .add_event::<UpdatePlayerEvent>()
-        .add_event::<ChatReceivedEvent>()
-        .add_event::<DeathEvent>()
-        .add_event::<KeepAliveEvent>();
+        app.add_system(send_packet_events.in_base_set(CoreSet::First))
+            .add_system(
+                process_packet_events
+                    .in_base_set(CoreSet::PreUpdate)
+                    // we want to index and deindex right after
+                    .before(EntityUpdateSet::Deindex),
+            )
+            .init_resource::<Events<PacketEvent>>()
+            .add_event::<AddPlayerEvent>()
+            .add_event::<RemovePlayerEvent>()
+            .add_event::<UpdatePlayerEvent>()
+            .add_event::<ChatReceivedEvent>()
+            .add_event::<DeathEvent>()
+            .add_event::<KeepAliveEvent>();
     }
 }
 
@@ -168,7 +165,7 @@ pub fn send_packet_events(
     }
 }
 
-fn process_packet_events(ecs: &mut Ecs) {
+fn process_packet_events(ecs: &mut World) {
     let mut events_owned = Vec::new();
     let mut system_state: SystemState<EventReader<PacketEvent>> = SystemState::new(ecs);
     let mut events = system_state.get_mut(ecs);
@@ -715,8 +712,7 @@ fn process_packet_events(ecs: &mut Ecs) {
 
                 if let Some(entity) = entity {
                     let new_position = p.position;
-                    commands.add(RelativeEntityUpdate {
-                        entity,
+                    commands.entity(entity).add(RelativeEntityUpdate {
                         partial_world: local_player.partial_world.clone(),
                         update: Box::new(move |entity| {
                             let mut position = entity.get_mut::<Position>().unwrap();
@@ -747,8 +743,7 @@ fn process_packet_events(ecs: &mut Ecs) {
 
                 if let Some(entity) = entity {
                     let delta = p.delta.clone();
-                    commands.add(RelativeEntityUpdate {
-                        entity,
+                    commands.entity(entity).add(RelativeEntityUpdate {
                         partial_world: local_player.partial_world.clone(),
                         update: Box::new(move |entity_mut| {
                             let mut position = entity_mut.get_mut::<Position>().unwrap();
@@ -776,8 +771,7 @@ fn process_packet_events(ecs: &mut Ecs) {
 
                 if let Some(entity) = entity {
                     let delta = p.delta.clone();
-                    commands.add(RelativeEntityUpdate {
-                        entity,
+                    commands.entity(entity).add(RelativeEntityUpdate {
                         partial_world: local_player.partial_world.clone(),
                         update: Box::new(move |entity_mut| {
                             let mut position = entity_mut.get_mut::<Position>().unwrap();

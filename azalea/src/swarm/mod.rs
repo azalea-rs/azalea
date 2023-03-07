@@ -6,19 +6,14 @@ pub mod prelude;
 
 use crate::{bot::DefaultBotPlugins, HandleFn};
 use azalea_client::{chat::ChatPacket, init_ecs_app, start_ecs, Account, Client, Event, JoinError};
-use azalea_ecs::{
-    app::{App, Plugin, PluginGroup, PluginGroupBuilder},
-    component::Component,
-    ecs::Ecs,
-    entity::Entity,
-    system::Resource,
-};
 use azalea_protocol::{
     connect::ConnectionError,
     resolver::{self, ResolverError},
     ServerAddress,
 };
 use azalea_world::WorldContainer;
+use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder};
+use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
 use futures::future::join_all;
 use log::error;
 use parking_lot::{Mutex, RwLock};
@@ -35,7 +30,7 @@ use tokio::sync::mpsc;
 /// It's used to make the [`Swarm::add`] function work.
 #[derive(Clone, Resource)]
 pub struct Swarm {
-    pub ecs_lock: Arc<Mutex<Ecs>>,
+    pub ecs_lock: Arc<Mutex<World>>,
 
     bots: Arc<Mutex<HashMap<Entity, Client>>>,
 

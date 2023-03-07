@@ -6,7 +6,7 @@ use azalea_buf::{
 };
 use azalea_chat::FormattedText;
 use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot};
-use azalea_ecs::component::Component;
+use bevy_ecs::component::Component;
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
 use nohash_hasher::IntSet;

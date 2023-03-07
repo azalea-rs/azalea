@@ -1,11 +1,7 @@
 use azalea_client::LocalPlayer;
-use azalea_ecs::{
-    app::{App, Plugin},
-    event::EventWriter,
-    query::With,
-    system::{Query, ResMut, Resource},
-};
 use azalea_world::entity::MinecraftEntityId;
+use bevy_app::{App, Plugin};
+use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 
 pub struct SwarmPlugin;
