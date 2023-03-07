@@ -37,6 +37,8 @@ impl Plugin for PathfinderPlugin {
         app.add_event::<GotoEvent>()
             .add_event::<PathFoundEvent>()
             .add_system(
+                // Adding `.in_schedule(CoreSchedule::FixedUpdate)` makes a system run every
+                // Minecraft tick (every 50 milliseconds).
                 tick_execute_path
                     .in_schedule(CoreSchedule::FixedUpdate)
                     .before(PhysicsSet),
