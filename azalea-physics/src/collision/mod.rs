@@ -7,7 +7,7 @@ mod world_collisions;
 use azalea_core::{Axis, Vec3, AABB, EPSILON};
 use azalea_world::{
     entity::{self},
-    MoveEntityError, Instance,
+    Instance, MoveEntityError,
 };
 pub use blocks::BlockWithShape;
 pub use discrete_voxel_shape::*;

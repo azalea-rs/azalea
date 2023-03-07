@@ -22,7 +22,7 @@ use azalea_world::{
     entity::{LoadedBy, RelativeEntityUpdate},
     PartialWorld, WorldContainer,
 };
-use bevy_app::{Plugin, CoreSet, App};
+use bevy_app::{App, CoreSet, Plugin};
 use bevy_ecs::{
     component::Component,
     entity::Entity,
@@ -712,8 +712,7 @@ fn process_packet_events(ecs: &mut World) {
 
                 if let Some(entity) = entity {
                     let new_position = p.position;
-                    commands.add(RelativeEntityUpdate {
-                        entity,
+                    commands.entity(entity).add(RelativeEntityUpdate {
                         partial_world: local_player.partial_world.clone(),
                         update: Box::new(move |entity| {
                             let mut position = entity.get_mut::<Position>().unwrap();
@@ -744,8 +743,7 @@ fn process_packet_events(ecs: &mut World) {
 
                 if let Some(entity) = entity {
                     let delta = p.delta.clone();
-                    commands.add(RelativeEntityUpdate {
-                        entity,
+                    commands.entity(entity).add(RelativeEntityUpdate {
                         partial_world: local_player.partial_world.clone(),
                         update: Box::new(move |entity_mut| {
                             let mut position = entity_mut.get_mut::<Position>().unwrap();
@@ -773,8 +771,7 @@ fn process_packet_events(ecs: &mut World) {
 
                 if let Some(entity) = entity {
                     let delta = p.delta.clone();
-                    commands.add(RelativeEntityUpdate {
-                        entity,
+                    commands.entity(entity).add(RelativeEntityUpdate {
                         partial_world: local_player.partial_world.clone(),
                         update: Box::new(move |entity_mut| {
                             let mut position = entity_mut.get_mut::<Position>().unwrap();

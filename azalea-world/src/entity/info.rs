@@ -15,7 +15,7 @@ use bevy_ecs::{
     entity::Entity,
     query::{Added, Changed, With, Without},
     schedule::{IntoSystemConfig, IntoSystemConfigs, SystemSet},
-    system::{Command, Commands, Query, Res, ResMut, Resource},
+    system::{Commands, EntityCommand, Query, Res, ResMut, Resource},
     world::{EntityMut, World},
 };
 use derive_more::{Deref, DerefMut};
@@ -146,26 +146,24 @@ impl PartialEntityInfos {
 /// other clients within render distance will get too. You usually don't need
 /// this when the change isn't relative either.
 pub struct RelativeEntityUpdate {
-    pub entity: Entity,
     pub partial_world: Arc<RwLock<PartialWorld>>,
     // a function that takes the entity and updates it
     pub update: Box<dyn FnOnce(&mut EntityMut) + Send + Sync>,
 }
-impl Command for RelativeEntityUpdate {
-    fn write(self, world: &mut World) {
+impl EntityCommand for RelativeEntityUpdate {
+    fn write(self, entity: Entity, world: &mut World) {
         let partial_entity_infos = &mut self.partial_world.write().entity_infos;
 
-        let mut entity = world.entity_mut(self.entity);
+        let mut entity_mut = world.entity_mut(entity);
 
-        if Some(self.entity) == partial_entity_infos.owner_entity {
+        if Some(entity) == partial_entity_infos.owner_entity {
             // if the entity owns this partial world, it's always allowed to update itself
-            (self.update)(&mut entity);
+            (self.update)(&mut entity_mut);
             return;
         };
 
-        let entity_id = *entity.get::<MinecraftEntityId>().unwrap();
-
-        let Some(updates_received) = entity.get_mut::<UpdatesReceived>() else {
+        let entity_id = *entity_mut.get::<MinecraftEntityId>().unwrap();
+        let Some(updates_received) = entity_mut.get_mut::<UpdatesReceived>() else {
             // a client tried to update another client, which isn't allowed
             return;
         };
@@ -182,9 +180,9 @@ impl Command for RelativeEntityUpdate {
                 .updates_received
                 .insert(entity_id, new_updates_received);
 
-            **entity.get_mut::<UpdatesReceived>().unwrap() = new_updates_received;
+            **entity_mut.get_mut::<UpdatesReceived>().unwrap() = new_updates_received;
 
-            let mut entity = world.entity_mut(self.entity);
+            let mut entity = world.entity_mut(entity);
             (self.update)(&mut entity);
         }
     }

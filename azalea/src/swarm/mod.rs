@@ -12,7 +12,7 @@ use azalea_protocol::{
     ServerAddress,
 };
 use azalea_world::WorldContainer;
-use bevy_app::{PluginGroup, PluginGroupBuilder, Plugin, App};
+use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder};
 use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
 use futures::future::join_all;
 use log::error;

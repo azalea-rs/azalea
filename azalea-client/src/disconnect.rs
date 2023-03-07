@@ -1,6 +1,6 @@
 //! Disconnect a client from the server.
 
-use bevy_app::{App, Plugin, CoreSet};
+use bevy_app::{App, CoreSet, Plugin};
 use bevy_ecs::{
     component::Component,
     entity::Entity,
