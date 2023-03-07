@@ -1,4 +1,4 @@
-use crate::registry::RegistryHolder;
+use crate::packets::registry::RegistryHolder;
 use azalea_buf::McBuf;
 use azalea_core::{GameType, GlobalPos, OptionalGameType, ResourceLocation};
 use azalea_protocol_macros::ClientboundGamePacket;

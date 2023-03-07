@@ -1,6 +1,7 @@
 pub mod game;
 pub mod handshake;
 pub mod login;
+pub mod registry;
 pub mod status;
 
 use crate::read::ReadPacketError;

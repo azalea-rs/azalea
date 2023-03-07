@@ -1,8 +1,17 @@
+//! ClientboundLoginPacket Registry Structure
+
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
 use azalea_nbt::Tag;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::{collections::HashMap, io::Cursor};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+pub struct RegistryHolder {
+    #[serde(rename = "")]
+    pub root: RegistryRoot,
+}
 
 impl TryFrom<Tag> for RegistryHolder {
     type Error = serde_json::Error;
@@ -31,13 +40,6 @@ impl McBufWritable for RegistryHolder {
     fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         TryInto::<Tag>::try_into(self.clone())?.write_into(buf)
     }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
-pub struct RegistryHolder {
-    #[serde(rename = "")]
-    pub root: RegistryRoot,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
