@@ -20,6 +20,7 @@ pub mod connect;
 #[cfg(feature = "packets")]
 pub mod packets;
 pub mod read;
+#[cfg(feature = "packets")]
 pub mod registry;
 pub mod resolver;
 pub mod write;

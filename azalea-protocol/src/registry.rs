@@ -34,33 +34,33 @@ impl McBufWritable for RegistryHolder {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct RegistryHolder {
     #[serde(rename = "")]
     pub root: RegistryRoot,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct RegistryRoot {
     #[serde(rename = "minecraft:chat_type")]
     pub chat_type: RegistryType<ChatTypeElement>,
     #[serde(rename = "minecraft:dimension_type")]
     pub dimension_type: RegistryType<DimensionTypeElement>,
     #[serde(rename = "minecraft:worldgen/biome")]
-    pub worldgen: RegistryType<WorldTypeElement>,
+    pub world_type: RegistryType<WorldTypeElement>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct RegistryType<T> {
     #[serde(rename = "type")]
-    pub type_: String,
+    pub type_: ResourceLocation,
     pub value: Vec<TypeValue<T>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct TypeValue<T> {
     pub id: u32,
     pub name: ResourceLocation,
@@ -68,14 +68,14 @@ pub struct TypeValue<T> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct ChatTypeElement {
     pub chat: ChatTypeData,
     pub narration: ChatTypeData,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct ChatTypeData {
     pub translation_key: String,
     pub parameters: Vec<String>,
@@ -85,7 +85,7 @@ pub struct ChatTypeData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct ChatTypeStyle {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -113,7 +113,7 @@ pub struct ChatTypeStyle {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct DimensionTypeElement {
     pub ambient_light: f32,
     #[serde(with = "Convert")]
@@ -147,7 +147,7 @@ pub struct DimensionTypeElement {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub enum MonsterSpawnLightLevel {
     Simple(u32),
     Complex {
@@ -158,7 +158,7 @@ pub enum MonsterSpawnLightLevel {
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct MonsterSpawnLightLevelValues {
     #[serde(rename = "min_inclusive")]
     pub min: u32,
@@ -167,7 +167,7 @@ pub struct MonsterSpawnLightLevelValues {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct WorldTypeElement {
     pub temperature: f32,
     #[serde(default)]
@@ -179,7 +179,7 @@ pub struct WorldTypeElement {
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub enum BiomePrecipitation {
     #[serde(rename = "none")]
     None,
@@ -190,7 +190,7 @@ pub enum BiomePrecipitation {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct BiomeEffects {
     pub sky_color: u32,
     pub fog_color: u32,
@@ -221,7 +221,7 @@ pub struct BiomeEffects {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct BiomeMusic {
     #[serde(with = "Convert")]
     pub replace_current_music: bool,
@@ -231,7 +231,7 @@ pub struct BiomeMusic {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct BiomeMoodSound {
     pub tick_delay: u32,
     pub block_search_extent: u32,
@@ -240,20 +240,20 @@ pub struct BiomeMoodSound {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct AdditionsSound {
     pub tick_chance: f32,
     pub sound: MusicId,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct MusicId {
     pub sound_id: ResourceLocation,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(debug_assertions, serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct BiomeParticle {
     pub probability: f32,
     pub options: HashMap<String, String>,
