@@ -7,7 +7,7 @@ mod world_collisions;
 use azalea_core::{Axis, Vec3, AABB, EPSILON};
 use azalea_world::{
     entity::{self},
-    MoveEntityError, World,
+    Instance, MoveEntityError,
 };
 pub use blocks::BlockWithShape;
 pub use discrete_voxel_shape::*;
@@ -52,7 +52,7 @@ pub enum MoverType {
 
 //     return var4;
 // }
-fn collide(movement: &Vec3, world: &World, physics: &entity::Physics) -> Vec3 {
+fn collide(movement: &Vec3, world: &Instance, physics: &entity::Physics) -> Vec3 {
     let entity_bounding_box = physics.bounding_box;
     // TODO: get_entity_collisions
     // let entity_collisions = world.get_entity_collisions(self,
@@ -73,7 +73,7 @@ fn collide(movement: &Vec3, world: &World, physics: &entity::Physics) -> Vec3 {
 pub fn move_colliding(
     _mover_type: &MoverType,
     movement: &Vec3,
-    world: &World,
+    world: &Instance,
     position: &mut entity::Position,
     physics: &mut entity::Physics,
 ) -> Result<(), MoveEntityError> {
@@ -186,7 +186,7 @@ pub fn move_colliding(
 fn collide_bounding_box(
     movement: &Vec3,
     entity_bounding_box: &AABB,
-    world: &World,
+    world: &Instance,
     entity_collisions: Vec<VoxelShape>,
 ) -> Vec3 {
     let mut collision_boxes: Vec<VoxelShape> = Vec::with_capacity(entity_collisions.len() + 1);

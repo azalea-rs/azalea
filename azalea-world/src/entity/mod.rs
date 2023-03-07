@@ -12,7 +12,7 @@ use self::{attributes::AttributeInstance, metadata::Health};
 pub use attributes::Attributes;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3, AABB};
-use azalea_ecs::{
+use bevy_ecs::{
     bundle::Bundle,
     component::Component,
     entity::Entity,
@@ -22,7 +22,9 @@ use azalea_ecs::{
 pub use data::*;
 use derive_more::{Deref, DerefMut};
 pub use dimensions::{update_bounding_box, EntityDimensions};
-pub use info::{EntityInfos, EntityPlugin, LoadedBy, PartialEntityInfos, RelativeEntityUpdate};
+pub use info::{
+    EntityInfos, EntityPlugin, EntityUpdateSet, LoadedBy, PartialEntityInfos, RelativeEntityUpdate,
+};
 use std::fmt::Debug;
 use uuid::Uuid;
 

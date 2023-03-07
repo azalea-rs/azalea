@@ -1,5 +1,5 @@
 use azalea_core::ResourceLocation;
-use azalea_ecs::system::Resource;
+use bevy_ecs::system::Resource;
 use log::error;
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
@@ -8,7 +8,7 @@ use std::{
     sync::{Arc, Weak},
 };
 
-use crate::{ChunkStorage, World};
+use crate::{ChunkStorage, Instance};
 
 /// A container of [`World`]s. Worlds are stored as a Weak pointer here, so
 /// if no clients are using a world it will be forgotten.
@@ -26,7 +26,7 @@ pub struct WorldContainer {
     // telling them apart. We hope most servers are nice and don't do that though. It's only an
     // issue when there's multiple clients with the same WorldContainer in different worlds
     // anyways.
-    pub worlds: HashMap<ResourceLocation, Weak<RwLock<World>>>,
+    pub worlds: HashMap<ResourceLocation, Weak<RwLock<Instance>>>,
 }
 
 impl WorldContainer {
@@ -37,7 +37,7 @@ impl WorldContainer {
     }
 
     /// Get a world from the container.
-    pub fn get(&self, name: &ResourceLocation) -> Option<Arc<RwLock<World>>> {
+    pub fn get(&self, name: &ResourceLocation) -> Option<Arc<RwLock<Instance>>> {
         self.worlds.get(name).and_then(|world| world.upgrade())
     }
 
@@ -49,7 +49,7 @@ impl WorldContainer {
         name: ResourceLocation,
         height: u32,
         min_y: i32,
-    ) -> Arc<RwLock<World>> {
+    ) -> Arc<RwLock<Instance>> {
         if let Some(existing_lock) = self.worlds.get(&name).and_then(|world| world.upgrade()) {
             let existing = existing_lock.read();
             if existing.chunks.height != height {
@@ -66,7 +66,7 @@ impl WorldContainer {
             }
             existing_lock.clone()
         } else {
-            let world = Arc::new(RwLock::new(World {
+            let world = Arc::new(RwLock::new(Instance {
                 chunks: ChunkStorage::new(height, min_y),
                 entities_by_chunk: HashMap::new(),
                 entity_by_id: IntMap::default(),

@@ -1,11 +1,11 @@
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::FormattedText;
 use azalea_core::GameType;
-use azalea_ecs::{
+use azalea_world::entity::EntityInfos;
+use bevy_ecs::{
     event::EventReader,
     system::{Commands, Res},
 };
-use azalea_world::entity::EntityInfos;
 use uuid::Uuid;
 
 use crate::{packet_handling::AddPlayerEvent, GameProfileComponent};
