@@ -327,3 +327,67 @@ where
         )),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use azalea_core::ResourceLocation;
+    use azalea_nbt::Tag;
+
+    use super::{
+        ChatTypeElement, DimensionTypeElement, RegistryHolder, RegistryRoot, RegistryType,
+        WorldTypeElement,
+    };
+
+    #[test]
+    fn test_convert() {
+        let registry = RegistryHolder {
+            root: RegistryRoot {
+                chat_type: RegistryType::<ChatTypeElement> {
+                    type_: ResourceLocation::new("minecraft:chat_type").unwrap(),
+                    value: Vec::new(),
+                },
+                dimension_type: RegistryType::<DimensionTypeElement> {
+                    type_: ResourceLocation::new("minecraft:dimension_type").unwrap(),
+                    value: Vec::new(),
+                },
+                world_type: RegistryType::<WorldTypeElement> {
+                    type_: ResourceLocation::new("minecraft:worldgen/biome").unwrap(),
+                    value: Vec::new(),
+                },
+            },
+        };
+
+        let tag: Tag = registry.try_into().unwrap();
+        let root = tag
+            .as_compound()
+            .unwrap()
+            .get("")
+            .unwrap()
+            .as_compound()
+            .unwrap();
+
+        let chat = root
+            .get("minecraft:chat_type")
+            .unwrap()
+            .as_compound()
+            .unwrap();
+        let chat_type = chat.get("type").unwrap().as_string().unwrap();
+        assert!(chat_type == "minecraft:chat_type");
+
+        let dimension = root
+            .get("minecraft:dimension_type")
+            .unwrap()
+            .as_compound()
+            .unwrap();
+        let dimension_type = dimension.get("type").unwrap().as_string().unwrap();
+        assert!(dimension_type == "minecraft:dimension_type");
+
+        let world = root
+            .get("minecraft:worldgen/biome")
+            .unwrap()
+            .as_compound()
+            .unwrap();
+        let world_type = world.get("type").unwrap().as_string().unwrap();
+        assert!(world_type == "minecraft:worldgen/biome");
+    }
+}
