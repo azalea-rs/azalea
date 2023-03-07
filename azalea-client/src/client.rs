@@ -18,7 +18,7 @@ use azalea_chat::FormattedText;
 use azalea_ecs::{
     app::CoreSchedule,
     ecs::Ecs,
-    schedule::{LogLevel, ScheduleBuildSettings, Schedules},
+    schedule::{LogLevel, ScheduleBuildSettings},
 };
 use azalea_ecs::{
     app::{App, Plugin, PluginGroup, PluginGroupBuilder},

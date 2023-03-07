@@ -6,7 +6,7 @@ pub mod collision;
 use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
 use azalea_ecs::{
-    app::{App, CoreSchedule, CoreSet, IntoSystemAppConfigs, Plugin},
+    app::{App, CoreSchedule, IntoSystemAppConfigs, Plugin},
     entity::Entity,
     event::{EventReader, EventWriter},
     query::With,

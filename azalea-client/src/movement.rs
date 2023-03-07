@@ -2,9 +2,7 @@ use crate::client::Client;
 use crate::local_player::{
     update_in_loaded_chunk, LocalPlayer, LocalPlayerInLoadedChunk, PhysicsState,
 };
-use azalea_ecs::app::{
-    App, CoreSchedule, CoreSet, IntoSystemAppConfig, IntoSystemAppConfigs, Plugin,
-};
+use azalea_ecs::app::{App, CoreSchedule, IntoSystemAppConfigs, Plugin};
 use azalea_ecs::entity::Entity;
 use azalea_ecs::schedule::{IntoSystemConfig, IntoSystemConfigs};
 use azalea_ecs::{event::EventReader, query::With, system::Query};

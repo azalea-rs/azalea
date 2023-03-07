@@ -6,7 +6,7 @@ use azalea_ecs::{
     entity::Entity,
     event::{EventReader, EventWriter},
     query::Changed,
-    schedule::{IntoSystemConfig, IntoSystemConfigs},
+    schedule::IntoSystemConfigs,
     system::{Commands, Query},
 };
 use derive_more::Deref;

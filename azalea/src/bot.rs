@@ -1,8 +1,6 @@
 use azalea_core::Vec3;
 use azalea_ecs::{
-    app::{
-        App, CoreSchedule, CoreSet, IntoSystemAppConfig, Plugin, PluginGroup, PluginGroupBuilder,
-    },
+    app::{App, CoreSchedule, IntoSystemAppConfig, Plugin, PluginGroup, PluginGroupBuilder},
     component::Component,
     entity::Entity,
     event::EventReader,

@@ -4,11 +4,10 @@
 use std::sync::Arc;
 
 use azalea_ecs::{
-    app::{App, CoreSchedule, CoreSet, IntoSystemAppConfig, Plugin},
+    app::{App, CoreSchedule, IntoSystemAppConfig, Plugin},
     component::Component,
     event::EventReader,
     query::Added,
-    schedule::IntoSystemConfig,
     system::Query,
 };
 use azalea_protocol::packets::game::{
