@@ -28,4 +28,3 @@ pub fn get_lit_str(attr_name: Symbol, lit: &syn::Lit) -> syn::Result<&syn::LitSt
         ))
     }
 }
-

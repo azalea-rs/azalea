@@ -6,7 +6,7 @@ use crate::{SprintDirection, WalkDirection};
 
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::{BlockPos, CardinalDirection};
-use azalea_ecs::app::{CoreSchedule,  IntoSystemAppConfig};
+use azalea_ecs::app::{CoreSchedule, IntoSystemAppConfig};
 use azalea_ecs::schedule::IntoSystemConfig;
 use azalea_ecs::{
     app::{App, Plugin},
