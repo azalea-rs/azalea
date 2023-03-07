@@ -6,13 +6,12 @@ pub mod collision;
 use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
 use azalea_ecs::{
-    app::{App, Plugin},
+    app::{App, CoreSet, Plugin},
     entity::Entity,
     event::{EventReader, EventWriter},
     query::With,
-    schedule::IntoSystemDescriptor,
+    schedule::{IntoSystemConfig, IntoSystemConfigs, SystemSet},
     system::{Query, Res},
-    AppTickExt,
 };
 use azalea_world::{
     entity::{
@@ -23,19 +22,21 @@ use azalea_world::{
 };
 use collision::{move_colliding, MoverType};
 
+/// A Bevy [`SystemSet`] for running physics that makes entities do things.
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+pub struct PhysicsSet;
+
 pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ForceJumpEvent>()
-            .add_system(
-                force_jump_listener
-                    .label("force_jump_listener")
-                    .after("walk_listener")
-                    .after("sprint_listener")
-                    .before(azalea_world::entity::update_bounding_box),
-            )
-            .add_tick_system(travel.label("travel").after(ai_step))
-            .add_tick_system(ai_step.label("ai_step"));
+            .add_system(force_jump_listener.before(azalea_world::entity::update_bounding_box))
+            .add_systems(
+                (ai_step, travel)
+                    .chain()
+                    .in_base_set(CoreSet::FixedUpdate)
+                    .in_set(PhysicsSet),
+            );
     }
 }
 
@@ -156,7 +157,7 @@ pub fn ai_step(
 /// Jump even if we aren't on the ground.
 pub struct ForceJumpEvent(pub Entity);
 
-fn force_jump_listener(
+pub fn force_jump_listener(
     mut query: Query<(&mut Physics, &Position, &Sprinting, &WorldName)>,
     world_container: Res<WorldContainer>,
     mut events: EventReader<ForceJumpEvent>,

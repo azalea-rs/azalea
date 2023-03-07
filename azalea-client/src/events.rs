@@ -4,12 +4,12 @@
 use std::sync::Arc;
 
 use azalea_ecs::{
-    app::{App, Plugin},
+    app::{App, CoreSet, Plugin},
     component::Component,
     event::EventReader,
     query::Added,
+    schedule::IntoSystemConfig,
     system::Query,
-    AppTickExt,
 };
 use azalea_protocol::packets::game::{
     clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
@@ -115,7 +115,7 @@ impl Plugin for EventPlugin {
             .add_system(remove_player_listener)
             .add_system(death_listener)
             .add_system(keepalive_listener)
-            .add_tick_system(tick_listener);
+            .add_system(tick_listener.in_base_set(CoreSet::FixedUpdate));
     }
 }
 

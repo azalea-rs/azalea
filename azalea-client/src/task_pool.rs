@@ -1,11 +1,16 @@
 //! Borrowed from `bevy_core`.
 
+use std::marker::PhantomData;
+
 use azalea_ecs::{
-    app::{App, Plugin},
-    schedule::IntoSystemDescriptor,
-    system::Resource,
+    app::{App, CoreSet, Plugin},
+    schedule::IntoSystemConfig,
+    system::{NonSend, Resource},
 };
-use bevy_tasks::{AsyncComputeTaskPool, ComputeTaskPool, IoTaskPool, TaskPoolBuilder};
+use bevy_tasks::{
+    tick_global_task_pools_on_main_thread, AsyncComputeTaskPool, ComputeTaskPool, IoTaskPool,
+    TaskPoolBuilder,
+};
 
 /// Setup of default task pools: `AsyncComputeTaskPool`, `ComputeTaskPool`,
 /// `IoTaskPool`.
@@ -22,11 +27,14 @@ impl Plugin for TaskPoolPlugin {
         self.task_pool_options.create_default_pools();
 
         #[cfg(not(target_arch = "wasm32"))]
-        app.add_system_to_stage(
-            azalea_ecs::app::CoreStage::Last,
-            bevy_tasks::tick_global_task_pools_on_main_thread.at_end(),
-        );
+        app.add_system(tick_global_task_pools.in_base_set(CoreSet::Last));
     }
+}
+
+pub struct NonSendMarker(PhantomData<*mut ()>);
+#[cfg(not(target_arch = "wasm32"))]
+fn tick_global_task_pools(_main_thread_marker: Option<NonSend<NonSendMarker>>) {
+    tick_global_task_pools_on_main_thread();
 }
 
 /// Helper for configuring and creating the default task pools. For end-users

@@ -41,7 +41,7 @@ pub mod bundle {
 pub mod system {
     pub use azalea_ecs_macros::Resource;
     pub use bevy_ecs::system::{
-        Command, Commands, EntityCommands, Query, Res, ResMut, SystemState,
+        Command, Commands, EntityCommands, NonSend, NonSendMut, Query, Res, ResMut, SystemState,
     };
     pub trait Resource = bevy_ecs::system::Resource;
     pub use bevy_ecs::system::Resource as _BevyResource;
@@ -50,7 +50,7 @@ pub mod schedule {
     pub use azalea_ecs_macros::SystemSet;
     pub use bevy_ecs::schedule::{
         BaseSystemSet, Condition, FreeSystemSet, IntoSystemConfig, IntoSystemConfigs,
-        IntoSystemSet, IntoSystemSetConfig, IntoSystemSetConfigs, ScheduleLabel, States,
+        IntoSystemSet, IntoSystemSetConfig, IntoSystemSetConfigs, LogLevel, ScheduleLabel, States,
     };
     pub use bevy_ecs::schedule::{
         Dag, MainThreadExecutor, MultiThreadedExecutor, NextState, OnEnter, OnExit, OnUpdate,

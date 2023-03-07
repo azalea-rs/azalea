@@ -6,25 +6,27 @@ use crate::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
         LocalPlayer, PhysicsState, SendPacketEvent,
     },
-    movement::{local_player_ai_step, send_position, sprint_listener, walk_listener},
     packet_handling::{self, PacketHandlerPlugin, PacketReceiver},
     player::retroactively_add_game_profile_component,
     task_pool::TaskPoolPlugin,
-    Account, PlayerInfo, StartSprintEvent, StartWalkEvent,
+    Account, PlayerInfo,
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
 use azalea_ecs::{
+    app::CoreSchedule,
+    ecs::Ecs,
+    schedule::{LogLevel, ScheduleBuildSettings, Schedules},
+};
+use azalea_ecs::{
     app::{App, Plugin, PluginGroup, PluginGroupBuilder},
     bundle::Bundle,
     component::Component,
     entity::Entity,
-    schedule::{IntoSystemDescriptor, ReportExecutionOrderAmbiguities, Schedule, Stage, SystemSet},
-    AppTickExt,
+    schedule::{IntoSystemConfig, ScheduleLabel},
 };
-use azalea_ecs::{ecs::Ecs, TickPlugin};
-use azalea_physics::PhysicsPlugin;
+use azalea_physics::{PhysicsPlugin, PhysicsSet};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
@@ -46,13 +48,14 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{
-    entity::{EntityPlugin, Local, WorldName},
+    entity::{EntityPlugin, EntityUpdateSet, Local, WorldName},
     PartialWorld, World, WorldContainer,
 };
 use bevy_log::LogPlugin;
+use bevy_time::{prelude::FixedTime, TimePlugin};
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
-use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc};
+use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::{sync::mpsc, time};
 use uuid::Uuid;
@@ -494,32 +497,15 @@ pub struct AzaleaPlugin;
 impl Plugin for AzaleaPlugin {
     fn build(&self, app: &mut App) {
         // Minecraft ticks happen every 50ms
-        app.insert_resource(FixedTime::new_from_millis(50));
+        app.insert_resource(FixedTime::new(Duration::from_millis(50)));
 
-        app.add_event::<StartWalkEvent>()
-            .add_event::<StartSprintEvent>();
-
-        app.add_systems((
-            send_position.after("ai_step"),
-            update_in_loaded_chunk.before(send_position).after("travel"),
-            local_player_ai_step
-                .before(azalea_physics::ai_step)
-                .label("ai_step"),
-        ));
+        app.add_system(update_in_loaded_chunk.after(PhysicsSet));
 
         // fire the Death event when the player dies.
         app.add_system(death_event);
 
-        // walk and sprint event listeners
-        app.add_system(walk_listener.label("walk_listener"))
-            .add_system(
-                sprint_listener
-                    .label("sprint_listener")
-                    .before("walk_listener"),
-            );
-
         // add GameProfileComponent when we get an AddPlayerEvent
-        app.add_system(retroactively_add_game_profile_component.after("update_indexes"));
+        app.add_system(retroactively_add_game_profile_component.after(EntityUpdateSet::Index));
 
         app.add_event::<SendPacketEvent>()
             .add_system(handle_send_packet_event);
@@ -544,7 +530,12 @@ pub fn init_ecs_app() -> App {
 
     let mut app = App::new();
 
-    app.insert_resource(ReportExecutionOrderAmbiguities);
+    app.edit_schedule(CoreSchedule::Main, |schedule| {
+        schedule.set_build_settings(ScheduleBuildSettings {
+            ambiguity_detection: LogLevel::Warn,
+            ..Default::default()
+        });
+    });
 
     app.add_plugins(DefaultPlugins);
     app
@@ -554,17 +545,19 @@ pub fn init_ecs_app() -> App {
 /// first.
 #[doc(hidden)]
 pub fn start_ecs(
-    app: App,
+    mut app: App,
     run_schedule_receiver: mpsc::UnboundedReceiver<()>,
     run_schedule_sender: mpsc::UnboundedSender<()>,
 ) -> Arc<Mutex<Ecs>> {
+    app.setup();
+
     // all resources should have been added by now so we can take the ecs from the
     // app
     let ecs = Arc::new(Mutex::new(app.world));
 
     tokio::spawn(run_schedule_loop(
         ecs.clone(),
-        app.schedule,
+        app.outer_schedule_label,
         run_schedule_receiver,
     ));
     tokio::spawn(tick_run_schedule_loop(run_schedule_sender));
@@ -574,13 +567,15 @@ pub fn start_ecs(
 
 async fn run_schedule_loop(
     ecs: Arc<Mutex<Ecs>>,
-    mut schedule: Schedule,
+    outer_schedule_label: Box<dyn ScheduleLabel>,
     mut run_schedule_receiver: mpsc::UnboundedReceiver<()>,
 ) {
     loop {
         // whenever we get an event from run_schedule_receiver, run the schedule
         run_schedule_receiver.recv().await;
-        schedule.run(&mut ecs.lock());
+        let mut ecs = ecs.lock();
+        ecs.run_schedule_ref(&*outer_schedule_label);
+        ecs.clear_trackers();
     }
 }
 
@@ -609,7 +604,7 @@ impl PluginGroup for DefaultPlugins {
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
             .add(LogPlugin::default())
-            .add(TickPlugin::default())
+            .add(TimePlugin::default())
             .add(PacketHandlerPlugin)
             .add(AzaleaPlugin)
             .add(EntityPlugin)

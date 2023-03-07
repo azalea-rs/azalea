@@ -18,7 +18,7 @@ use azalea_ecs::{
     app::{App, Plugin},
     component::Component,
     event::{EventReader, EventWriter},
-    schedule::IntoSystemDescriptor,
+    schedule::IntoSystemConfigs,
     system::{Commands, Query, Res, ResMut, Resource},
 };
 use std::collections::VecDeque;
@@ -30,8 +30,7 @@ pub struct SwarmChatPlugin;
 impl Plugin for SwarmChatPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<NewChatMessageEvent>()
-            .add_system(chat_listener.label("chat_listener"))
-            .add_system(update_min_index_and_shrink_queue.after("chat_listener"))
+            .add_systems((chat_listener, update_min_index_and_shrink_queue).chain())
             .insert_resource(GlobalChatState {
                 chat_queue: VecDeque::new(),
                 chat_min_index: 0,
@@ -161,8 +160,7 @@ mod tests {
         // event mangement in drain_events
         app.init_resource::<Events<ChatReceivedEvent>>()
             .init_resource::<Events<NewChatMessageEvent>>()
-            .add_system(chat_listener.label("chat_listener"))
-            .add_system(update_min_index_and_shrink_queue.after("chat_listener"))
+            .add_system((chat_listener, update_min_index_and_shrink_queue).chain())
             .insert_resource(GlobalChatState {
                 chat_queue: VecDeque::new(),
                 chat_min_index: 0,

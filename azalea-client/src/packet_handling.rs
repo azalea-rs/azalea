@@ -2,12 +2,12 @@ use std::{collections::HashSet, io::Cursor, sync::Arc};
 
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
 use azalea_ecs::{
-    app::{App, CoreStage, Plugin},
+    app::{App, CoreSet, Plugin},
     component::Component,
     ecs::Ecs,
     entity::Entity,
     event::{EventReader, EventWriter, Events},
-    schedule::{StageLabel, SystemStage},
+    schedule::{IntoSystemConfig, IntoSystemSetConfig, SystemSet},
     system::{Commands, Query, ResMut, SystemState},
 };
 use azalea_protocol::{
@@ -72,25 +72,22 @@ pub struct PacketEvent {
 
 pub struct PacketHandlerPlugin;
 
-#[derive(StageLabel)]
-pub struct SendPacketEventsStage;
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
+#[system_set(base)]
+pub struct SendPacketEventsBaseSet;
 
 impl Plugin for PacketHandlerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_stage_before(
-            CoreStage::PreUpdate,
-            SendPacketEventsStage,
-            SystemStage::parallel(),
-        )
-        .add_system_to_stage(SendPacketEventsStage, send_packet_events)
-        .add_system_to_stage(CoreStage::PreUpdate, process_packet_events)
-        .init_resource::<Events<PacketEvent>>()
-        .add_event::<AddPlayerEvent>()
-        .add_event::<RemovePlayerEvent>()
-        .add_event::<UpdatePlayerEvent>()
-        .add_event::<ChatReceivedEvent>()
-        .add_event::<DeathEvent>()
-        .add_event::<KeepAliveEvent>();
+        app.configure_set(SendPacketEventsBaseSet.before(CoreSet::PreUpdate))
+            .add_system(send_packet_events.in_base_set(SendPacketEventsBaseSet))
+            .add_system(process_packet_events.in_base_set(CoreSet::PreUpdate))
+            .init_resource::<Events<PacketEvent>>()
+            .add_event::<AddPlayerEvent>()
+            .add_event::<RemovePlayerEvent>()
+            .add_event::<UpdatePlayerEvent>()
+            .add_event::<ChatReceivedEvent>()
+            .add_event::<DeathEvent>()
+            .add_event::<KeepAliveEvent>();
     }
 }
 
