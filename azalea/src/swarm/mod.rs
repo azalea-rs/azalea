@@ -199,6 +199,12 @@ where
         self.swarm_handler = Some(handler);
         self
     }
+    /// Set the swarm state instead of initializing defaults.
+    #[must_use]
+    pub fn set_swarm_state(mut self, swarm_state: SS) -> Self {
+        self.swarm_state = swarm_state;
+        self
+    }
 
     /// Add a plugin to the swarm.
     #[must_use]
