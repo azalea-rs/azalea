@@ -5,20 +5,20 @@ pub mod collision;
 
 use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
-use azalea_ecs::{
-    app::{App, CoreSchedule, IntoSystemAppConfigs, Plugin},
-    entity::Entity,
-    event::{EventReader, EventWriter},
-    query::With,
-    schedule::{IntoSystemConfig, IntoSystemConfigs, SystemSet},
-    system::{Query, Res},
-};
 use azalea_world::{
     entity::{
         metadata::Sprinting, move_relative, Attributes, Jumping, Local, Physics, Position,
         WorldName,
     },
-    World, WorldContainer,
+    Instance, WorldContainer,
+};
+use bevy_app::{App, CoreSchedule, IntoSystemAppConfigs, Plugin};
+use bevy_ecs::{
+    entity::Entity,
+    event::{EventReader, EventWriter},
+    query::With,
+    schedule::{IntoSystemConfig, IntoSystemConfigs, SystemSet},
+    system::{Query, Res},
 };
 use collision::{move_colliding, MoverType};
 
@@ -202,7 +202,7 @@ fn get_block_pos_below_that_affects_movement(position: &Position) -> BlockPos {
 
 fn handle_relative_friction_and_calculate_movement(
     block_friction: f32,
-    world: &World,
+    world: &Instance,
     physics: &mut Physics,
     position: &mut Position,
     attributes: &Attributes,
@@ -252,7 +252,7 @@ fn get_friction_influenced_speed(physics: &Physics, attributes: &Attributes, fri
 
 /// Returns the what the entity's jump should be multiplied by based on the
 /// block they're standing on.
-fn block_jump_factor(world: &World, position: &Position) -> f32 {
+fn block_jump_factor(world: &Instance, position: &Position) -> f32 {
     let block_at_pos = world.chunks.get_block_state(&position.into());
     let block_below = world
         .chunks
@@ -280,7 +280,7 @@ fn block_jump_factor(world: &World, position: &Position) -> f32 {
 // public double getJumpBoostPower() {
 //     return this.hasEffect(MobEffects.JUMP) ? (double)(0.1F *
 // (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1)) : 0.0D; }
-fn jump_power(world: &World, position: &Position) -> f32 {
+fn jump_power(world: &Instance, position: &Position) -> f32 {
     0.42 * block_jump_factor(world, position)
 }
 
@@ -304,22 +304,21 @@ mod tests {
 
     use super::*;
     use azalea_core::{ChunkPos, ResourceLocation};
-    use azalea_ecs::{app::App, TickPlugin};
     use azalea_world::{
         entity::{EntityBundle, EntityPlugin, MinecraftEntityId},
         Chunk, PartialWorld,
     };
+    use bevy_app::App;
+    use bevy_time::fixed_timestep::FixedTime;
     use uuid::Uuid;
 
     /// You need an app to spawn entities in the world and do updates.
     fn make_test_app() -> App {
         let mut app = App::new();
-        app.add_plugin(TickPlugin {
-            tick_interval: Duration::ZERO,
-        })
-        .add_plugin(PhysicsPlugin)
-        .add_plugin(EntityPlugin)
-        .init_resource::<WorldContainer>();
+        app.add_plugin(PhysicsPlugin)
+            .add_plugin(EntityPlugin)
+            .insert_resource(FixedTime::new(Duration::from_millis(50)))
+            .init_resource::<WorldContainer>();
         app
     }
 
@@ -354,6 +353,7 @@ mod tests {
             // y should start at 70
             assert_eq!(entity_pos.y, 70.);
         }
+        app.world.run_schedule(CoreSchedule::FixedUpdate);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -362,6 +362,7 @@ mod tests {
             let entity_physics = app.world.get::<Physics>(entity).unwrap().clone();
             assert!(entity_physics.delta.y < 0.);
         }
+        app.world.run_schedule(CoreSchedule::FixedUpdate);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -414,6 +415,7 @@ mod tests {
             block_state.is_some(),
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
+        app.world.run_schedule(CoreSchedule::FixedUpdate);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -422,6 +424,7 @@ mod tests {
             let entity_physics = app.world.get::<Physics>(entity).unwrap().clone();
             assert!(entity_physics.delta.y < 0.);
         }
+        app.world.run_schedule(CoreSchedule::FixedUpdate);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -477,6 +480,7 @@ mod tests {
         );
         // do a few steps so we fall on the slab
         for _ in 0..20 {
+            app.world.run_schedule(CoreSchedule::FixedUpdate);
             app.update();
         }
         let entity_pos = app.world.get::<Position>(entity).unwrap();
@@ -529,6 +533,7 @@ mod tests {
         );
         // do a few steps so we fall on the slab
         for _ in 0..20 {
+            app.world.run_schedule(CoreSchedule::FixedUpdate);
             app.update();
         }
         let entity_pos = app.world.get::<Position>(entity).unwrap();
@@ -585,6 +590,7 @@ mod tests {
         );
         // do a few steps so we fall on the wall
         for _ in 0..20 {
+            app.world.run_schedule(CoreSchedule::FixedUpdate);
             app.update();
         }
 
@@ -646,6 +652,7 @@ mod tests {
         );
         // do a few steps so we fall on the wall
         for _ in 0..20 {
+            app.world.run_schedule(CoreSchedule::FixedUpdate);
             app.update();
         }
 

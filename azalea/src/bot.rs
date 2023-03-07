@@ -1,6 +1,5 @@
-use azalea_core::Vec3;
-use azalea_ecs::{
-    app::{App, CoreSchedule, IntoSystemAppConfig, Plugin, PluginGroup, PluginGroupBuilder},
+use crate::app::{App, CoreSchedule, IntoSystemAppConfig, Plugin, PluginGroup, PluginGroupBuilder};
+use crate::ecs::{
     component::Component,
     entity::Entity,
     event::EventReader,
@@ -8,6 +7,7 @@ use azalea_ecs::{
     schedule::IntoSystemConfig,
     system::{Commands, Query},
 };
+use azalea_core::Vec3;
 use azalea_physics::{force_jump_listener, PhysicsSet};
 use azalea_world::entity::{metadata::Player, set_rotation, Jumping, Local, Physics, Position};
 use std::f64::consts::PI;

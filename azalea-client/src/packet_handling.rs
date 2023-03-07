@@ -1,15 +1,6 @@
 use std::{collections::HashSet, io::Cursor, sync::Arc};
 
 use azalea_core::{ChunkPos, ResourceLocation, Vec3};
-use azalea_ecs::{
-    app::{App, CoreSet, Plugin},
-    component::Component,
-    ecs::Ecs,
-    entity::Entity,
-    event::{EventReader, EventWriter, Events},
-    schedule::IntoSystemConfig,
-    system::{Commands, Query, ResMut, SystemState},
-};
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
     packets::game::{
@@ -31,6 +22,15 @@ use azalea_world::{
     entity::{LoadedBy, RelativeEntityUpdate},
     PartialWorld, WorldContainer,
 };
+use bevy_app::{Plugin, CoreSet, App};
+use bevy_ecs::{
+    component::Component,
+    entity::Entity,
+    event::{EventReader, EventWriter, Events},
+    schedule::IntoSystemConfig,
+    system::{Commands, Query, ResMut, SystemState},
+    world::World,
+};
 use log::{debug, error, trace, warn};
 use parking_lot::Mutex;
 use tokio::sync::mpsc;
@@ -46,7 +46,7 @@ use crate::{
 /// ```
 /// # use azalea_client::packet_handling::PacketEvent;
 /// # use azalea_protocol::packets::game::ClientboundGamePacket;
-/// # use azalea_ecs::event::EventReader;
+/// # use azalea_client::ecs::event::EventReader;
 ///
 /// fn handle_packets(mut events: EventReader<PacketEvent>) {
 ///     for PacketEvent {
@@ -165,7 +165,7 @@ pub fn send_packet_events(
     }
 }
 
-fn process_packet_events(ecs: &mut Ecs) {
+fn process_packet_events(ecs: &mut World) {
     let mut events_owned = Vec::new();
     let mut system_state: SystemState<EventReader<PacketEvent>> = SystemState::new(ecs);
     let mut events = system_state.get_mut(ecs);

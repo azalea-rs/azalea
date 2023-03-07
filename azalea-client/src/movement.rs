@@ -2,10 +2,6 @@ use crate::client::Client;
 use crate::local_player::{
     update_in_loaded_chunk, LocalPlayer, LocalPlayerInLoadedChunk, PhysicsState,
 };
-use azalea_ecs::app::{App, CoreSchedule, IntoSystemAppConfigs, Plugin};
-use azalea_ecs::entity::Entity;
-use azalea_ecs::schedule::{IntoSystemConfig, IntoSystemConfigs};
-use azalea_ecs::{event::EventReader, query::With, system::Query};
 use azalea_physics::{force_jump_listener, PhysicsSet};
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
@@ -17,6 +13,14 @@ use azalea_protocol::packets::game::{
 use azalea_world::{
     entity::{self, metadata::Sprinting, Attributes, Jumping, MinecraftEntityId},
     MoveEntityError,
+};
+use bevy_app::{App, CoreSchedule, IntoSystemAppConfigs, Plugin};
+use bevy_ecs::{
+    entity::Entity,
+    event::EventReader,
+    query::With,
+    schedule::{IntoSystemConfig, IntoSystemConfigs},
+    system::Query,
 };
 use std::backtrace::Backtrace;
 use thiserror::Error;

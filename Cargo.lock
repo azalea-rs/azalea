@@ -176,11 +176,12 @@ dependencies = [
  "azalea-chat",
  "azalea-client",
  "azalea-core",
- "azalea-ecs",
  "azalea-physics",
  "azalea-protocol",
  "azalea-registry",
  "azalea-world",
+ "bevy_app",
+ "bevy_ecs",
  "bevy_tasks",
  "derive_more",
  "futures",
@@ -284,11 +285,12 @@ dependencies = [
  "azalea-chat",
  "azalea-core",
  "azalea-crypto",
- "azalea-ecs",
  "azalea-physics",
  "azalea-protocol",
  "azalea-registry",
  "azalea-world",
+ "bevy_app",
+ "bevy_ecs",
  "bevy_log",
  "bevy_tasks",
  "bevy_time",
@@ -332,26 +334,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "azalea-ecs"
-version = "0.6.0"
-dependencies = [
- "azalea-ecs-macros",
- "bevy_app",
- "bevy_ecs",
- "tokio",
-]
-
-[[package]]
-name = "azalea-ecs-macros"
-version = "0.6.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
- "toml_edit",
-]
-
-[[package]]
 name = "azalea-language"
 version = "0.6.0"
 dependencies = [
@@ -381,9 +363,11 @@ version = "0.6.0"
 dependencies = [
  "azalea-block",
  "azalea-core",
- "azalea-ecs",
  "azalea-registry",
  "azalea-world",
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_time",
  "once_cell",
  "parking_lot",
  "uuid",
@@ -461,9 +445,10 @@ dependencies = [
  "azalea-buf",
  "azalea-chat",
  "azalea-core",
- "azalea-ecs",
  "azalea-nbt",
  "azalea-registry",
+ "bevy_app",
+ "bevy_ecs",
  "derive_more",
  "enum-as-inner",
  "log",

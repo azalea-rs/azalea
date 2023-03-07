@@ -1,17 +1,17 @@
 //! Implementations of chat-related features.
 
 use azalea_chat::FormattedText;
-use azalea_ecs::{
-    app::{App, Plugin},
-    entity::Entity,
-    event::{EventReader, EventWriter},
-    schedule::{IntoSystemConfig, IntoSystemConfigs},
-};
 use azalea_protocol::packets::game::{
     clientbound_player_chat_packet::ClientboundPlayerChatPacket,
     clientbound_system_chat_packet::ClientboundSystemChatPacket,
     serverbound_chat_command_packet::ServerboundChatCommandPacket,
     serverbound_chat_packet::{LastSeenMessagesUpdate, ServerboundChatPacket},
+};
+use bevy_app::{App, Plugin};
+use bevy_ecs::{
+    entity::Entity,
+    event::{EventReader, EventWriter},
+    schedule::{IntoSystemConfig, IntoSystemConfigs},
 };
 use std::{
     sync::Arc,

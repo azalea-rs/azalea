@@ -6,18 +6,15 @@ pub mod pathfinder;
 pub mod prelude;
 pub mod swarm;
 
+use app::{App, Plugin, PluginGroup};
 pub use azalea_block as blocks;
 pub use azalea_client::*;
 pub use azalea_core::{BlockPos, Vec3};
-use azalea_ecs::{
-    app::{App, Plugin},
-    component::Component,
-};
 pub use azalea_protocol as protocol;
 pub use azalea_registry::EntityKind;
-pub use azalea_world::{entity, World};
+pub use azalea_world::{entity, Instance};
 use bot::DefaultBotPlugins;
-use ecs::app::PluginGroup;
+use ecs::component::Component;
 use futures::Future;
 use protocol::{
     resolver::{self, ResolverError},
@@ -26,7 +23,10 @@ use protocol::{
 use thiserror::Error;
 use tokio::sync::mpsc;
 
-pub type HandleFn<Fut, S> = fn(Client, Event, S) -> Fut;
+pub use bevy_app as app;
+pub use bevy_ecs as ecs;
+
+pub type HandleFn<Fut, S> = fn(Client, azalea_client::Event, S) -> Fut;
 
 #[derive(Error, Debug)]
 pub enum StartError {

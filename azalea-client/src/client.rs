@@ -15,18 +15,6 @@ use crate::{
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
-use azalea_ecs::{
-    app::CoreSchedule,
-    ecs::Ecs,
-    schedule::{LogLevel, ScheduleBuildSettings},
-};
-use azalea_ecs::{
-    app::{App, Plugin, PluginGroup, PluginGroupBuilder},
-    bundle::Bundle,
-    component::Component,
-    entity::Entity,
-    schedule::{IntoSystemConfig, ScheduleLabel},
-};
 use azalea_physics::{PhysicsPlugin, PhysicsSet};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
@@ -50,7 +38,16 @@ use azalea_protocol::{
 };
 use azalea_world::{
     entity::{EntityPlugin, EntityUpdateSet, Local, WorldName},
-    PartialWorld, World, WorldContainer,
+    Instance, PartialWorld, WorldContainer,
+};
+use bevy_app::{App, CoreSchedule, Plugin, PluginGroup, PluginGroupBuilder};
+use bevy_ecs::{
+    bundle::Bundle,
+    component::Component,
+    entity::Entity,
+    schedule::IntoSystemConfig,
+    schedule::{LogLevel, ScheduleBuildSettings, ScheduleLabel},
+    world::World,
 };
 use bevy_log::LogPlugin;
 use bevy_time::{prelude::FixedTime, TimePlugin};
@@ -90,7 +87,7 @@ pub struct Client {
     /// The entity component system. You probably don't need to access this
     /// directly. Note that if you're using a shared world (i.e. a swarm), this
     /// will contain all entities in all worlds.
-    pub ecs: Arc<Mutex<Ecs>>,
+    pub ecs: Arc<Mutex<World>>,
 
     /// Use this to force the client to run the schedule outside of a tick.
     pub run_schedule_sender: mpsc::UnboundedSender<()>,
@@ -124,7 +121,7 @@ impl Client {
     pub fn new(
         profile: GameProfile,
         entity: Entity,
-        ecs: Arc<Mutex<Ecs>>,
+        ecs: Arc<Mutex<World>>,
         run_schedule_sender: mpsc::UnboundedSender<()>,
     ) -> Self {
         Self {
@@ -184,7 +181,7 @@ impl Client {
     /// Create a [`Client`] when you already have the ECS made with
     /// [`start_ecs`]. You'd usually want to use [`Self::join`] instead.
     pub async fn start_client(
-        ecs_lock: Arc<Mutex<Ecs>>,
+        ecs_lock: Arc<Mutex<World>>,
         account: &Account,
         address: &ServerAddress,
         resolved_address: &SocketAddr,
@@ -230,7 +227,7 @@ impl Client {
             packet_writer_sender,
             // default to an empty world, it'll be set correctly later when we
             // get the login packet
-            Arc::new(RwLock::new(World::default())),
+            Arc::new(RwLock::new(Instance::default())),
             read_packets_task,
             write_packets_task,
         );
@@ -386,13 +383,13 @@ impl Client {
         });
     }
 
-    pub fn local_player<'a>(&'a self, ecs: &'a mut Ecs) -> &'a LocalPlayer {
+    pub fn local_player<'a>(&'a self, ecs: &'a mut World) -> &'a LocalPlayer {
         self.query::<&LocalPlayer>(ecs)
     }
     pub fn local_player_mut<'a>(
         &'a self,
-        ecs: &'a mut Ecs,
-    ) -> azalea_ecs::ecs::Mut<'a, LocalPlayer> {
+        ecs: &'a mut World,
+    ) -> bevy_ecs::world::Mut<'a, LocalPlayer> {
         self.query::<&mut LocalPlayer>(ecs)
     }
 
@@ -420,7 +417,7 @@ impl Client {
     /// client, then it'll be the same as the world the client has loaded.
     /// If the client using a shared world, then the shared world will be a
     /// superset of the client's world.
-    pub fn world(&self) -> Arc<RwLock<World>> {
+    pub fn world(&self) -> Arc<RwLock<Instance>> {
         let world_name = self.component::<WorldName>();
         let ecs = self.ecs.lock();
         let world_container = ecs.resource::<WorldContainer>();
@@ -553,7 +550,7 @@ pub fn start_ecs(
     mut app: App,
     run_schedule_receiver: mpsc::UnboundedReceiver<()>,
     run_schedule_sender: mpsc::UnboundedSender<()>,
-) -> Arc<Mutex<Ecs>> {
+) -> Arc<Mutex<World>> {
     app.setup();
 
     // all resources should have been added by now so we can take the ecs from the
@@ -571,7 +568,7 @@ pub fn start_ecs(
 }
 
 async fn run_schedule_loop(
-    ecs: Arc<Mutex<Ecs>>,
+    ecs: Arc<Mutex<World>>,
     outer_schedule_label: Box<dyn ScheduleLabel>,
     mut run_schedule_receiver: mpsc::UnboundedReceiver<()>,
 ) {

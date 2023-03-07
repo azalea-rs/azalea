@@ -4,18 +4,17 @@ mod mtdstarlite;
 use crate::bot::{JumpEvent, LookAtEvent};
 use crate::{SprintDirection, WalkDirection};
 
-use azalea_client::{StartSprintEvent, StartWalkEvent};
-use azalea_core::{BlockPos, CardinalDirection};
-use azalea_ecs::app::{CoreSchedule, IntoSystemAppConfig};
-use azalea_ecs::schedule::IntoSystemConfig;
-use azalea_ecs::{
-    app::{App, Plugin},
+use crate::app::{App, CoreSchedule, IntoSystemAppConfig, Plugin};
+use crate::ecs::{
     component::Component,
     entity::Entity,
     event::{EventReader, EventWriter},
     query::{With, Without},
+    schedule::IntoSystemConfig,
     system::{Commands, Query, Res},
 };
+use azalea_client::{StartSprintEvent, StartWalkEvent};
+use azalea_core::{BlockPos, CardinalDirection};
 use azalea_physics::PhysicsSet;
 use azalea_world::entity::metadata::Player;
 use azalea_world::entity::Local;

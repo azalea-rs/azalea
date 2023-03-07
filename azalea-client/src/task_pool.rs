@@ -2,8 +2,8 @@
 
 use std::marker::PhantomData;
 
-use azalea_ecs::{
-    app::{App, CoreSet, Plugin},
+use bevy_app::{App, CoreSet, Plugin};
+use bevy_ecs::{
     schedule::IntoSystemConfig,
     system::{NonSend, Resource},
 };

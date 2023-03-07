@@ -9,15 +9,14 @@ use crate::{
     update_entity_by_id_index, update_uuid_index, PartialWorld, WorldContainer,
 };
 use azalea_core::ChunkPos;
-use azalea_ecs::{
-    app::{App, CoreSet, Plugin},
+use bevy_app::{App, CoreSet, Plugin};
+use bevy_ecs::{
     component::Component,
-    ecs::Ecs,
-    ecs::EntityMut,
     entity::Entity,
     query::{Added, Changed, With, Without},
     schedule::{IntoSystemConfig, IntoSystemConfigs, SystemSet},
     system::{Command, Commands, Query, Res, ResMut, Resource},
+    world::{EntityMut, World},
 };
 use derive_more::{Deref, DerefMut};
 use log::{debug, warn};
@@ -153,7 +152,7 @@ pub struct RelativeEntityUpdate {
     pub update: Box<dyn FnOnce(&mut EntityMut) + Send + Sync>,
 }
 impl Command for RelativeEntityUpdate {
-    fn write(self, world: &mut Ecs) {
+    fn write(self, world: &mut World) {
         let partial_entity_infos = &mut self.partial_world.write().entity_infos;
 
         let mut entity = world.entity_mut(self.entity);

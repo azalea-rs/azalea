@@ -12,7 +12,7 @@ use self::{attributes::AttributeInstance, metadata::Health};
 pub use attributes::Attributes;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3, AABB};
-use azalea_ecs::{
+use bevy_ecs::{
     bundle::Bundle,
     component::Component,
     entity::Entity,

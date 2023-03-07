@@ -1,7 +1,7 @@
 //! Disconnect a client from the server.
 
-use azalea_ecs::{
-    app::{App, CoreSet, Plugin},
+use bevy_app::{App, Plugin, CoreSet};
+use bevy_ecs::{
     component::Component,
     entity::Entity,
     event::{EventReader, EventWriter},
