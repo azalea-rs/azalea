@@ -1,9 +1,8 @@
 //! `ClientboundLoginPacket` Registry Structures
 //!
 //! This module contains the structures used to represent the registry
-//! sent to the client upon login. This contains a lot of data about the game,
-//! including the types and formats of different chat messages, the types of
-//! dimensions, and data about the many different biomes.
+//! sent to the client upon login. This contains a lot of information about the
+//! game, including the types of chat messages, dimensions, and biomes.
 
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_core::ResourceLocation;
@@ -54,8 +53,8 @@ impl McBufWritable for RegistryHolder {
 
 /// The main part of the registry.
 ///
-/// Contains data from the server about chat, the dimension,
-/// and the world generation.
+/// Contains information from the server about chat, dimensions,
+/// and world generation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct RegistryRoot {
@@ -133,7 +132,7 @@ pub struct ChatTypeStyle {
     pub obfuscated: Option<bool>,
 }
 
-/// Data about a dimension.
+/// Dimension attributes.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct DimensionTypeElement {
@@ -197,7 +196,7 @@ pub struct MonsterSpawnLightLevelValues {
     pub max: u32,
 }
 
-/// Data about a biome.
+/// Biome attributes.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
 pub struct WorldTypeElement {
@@ -224,7 +223,7 @@ pub enum BiomePrecipitation {
 
 /// The effects of a biome.
 ///
-/// This includes the sky, fog, water, foliage, and grass color,
+/// This includes the sky, fog, water, and grass color,
 /// as well as music and other sound effects.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
@@ -293,7 +292,7 @@ pub struct MusicId {
     pub sound_id: ResourceLocation,
 }
 
-/// Optional biome particles.
+/// Biome particles.
 ///
 /// Some biomes have particles that spawn in the air.
 #[derive(Debug, Clone, Serialize, Deserialize)]
