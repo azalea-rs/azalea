@@ -46,7 +46,7 @@ use crate::{
 /// ```
 /// # use azalea_client::packet_handling::PacketEvent;
 /// # use azalea_protocol::packets::game::ClientboundGamePacket;
-/// # use azalea_client::ecs::event::EventReader;
+/// # use bevy_ecs::event::EventReader;
 ///
 /// fn handle_packets(mut events: EventReader<PacketEvent>) {
 ///     for PacketEvent {
