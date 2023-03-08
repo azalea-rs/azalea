@@ -37,6 +37,7 @@ use tokio::sync::mpsc;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
+    client::TabList,
     disconnect::DisconnectEvent,
     local_player::{GameProfileComponent, LocalPlayer},
     ClientInformation, PlayerInfo,
@@ -189,11 +190,12 @@ fn process_packet_events(ecs: &mut World) {
                         &mut LocalPlayer,
                         Option<&mut WorldName>,
                         &GameProfileComponent,
+                        &ClientInformation,
                     )>,
                     ResMut<WorldContainer>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query, mut world_container) = system_state.get_mut(ecs);
-                let (mut local_player, world_name, game_profile) =
+                let (mut local_player, world_name, game_profile, client_information) =
                     query.get_mut(player_entity).unwrap();
 
                 {
@@ -267,7 +269,7 @@ fn process_packet_events(ecs: &mut World) {
                     // world_container)
 
                     *local_player.partial_world.write() = PartialWorld::new(
-                        local_player.client_information.view_distance.into(),
+                        client_information.view_distance.into(),
                         // this argument makes it so other clients don't update this
                         // player entity
                         // in a shared world
@@ -291,13 +293,12 @@ fn process_packet_events(ecs: &mut World) {
                 }
 
                 // send the client information that we have set
-                let client_information_packet: ClientInformation =
-                    local_player.client_information.clone();
                 log::debug!(
                     "Sending client information because login: {:?}",
-                    client_information_packet
+                    client_information
                 );
-                local_player.write_packet(client_information_packet.get());
+                let client_information: ClientInformation = client_information.clone();
+                local_player.write_packet((*client_information).clone().get());
 
                 // brand
                 local_player.write_packet(
@@ -444,13 +445,13 @@ fn process_packet_events(ecs: &mut World) {
                 debug!("Got player info packet {:?}", p);
 
                 let mut system_state: SystemState<(
-                    Query<&mut LocalPlayer>,
+                    Query<&mut TabList>,
                     EventWriter<AddPlayerEvent>,
                     EventWriter<UpdatePlayerEvent>,
                 )> = SystemState::new(ecs);
                 let (mut query, mut add_player_events, mut update_player_events) =
                     system_state.get_mut(ecs);
-                let mut local_player = query.get_mut(player_entity).unwrap();
+                let mut tab_list = query.get_mut(player_entity).unwrap();
 
                 for updated_info in &p.entries {
                     // add the new player maybe
@@ -462,16 +463,12 @@ fn process_packet_events(ecs: &mut World) {
                             latency: updated_info.latency,
                             display_name: updated_info.display_name.clone(),
                         };
-                        local_player
-                            .players
-                            .insert(updated_info.profile.uuid, info.clone());
+                        tab_list.insert(updated_info.profile.uuid, info.clone());
                         add_player_events.send(AddPlayerEvent {
                             entity: player_entity,
                             info: info.clone(),
                         });
-                    } else if let Some(info) =
-                        local_player.players.get_mut(&updated_info.profile.uuid)
-                    {
+                    } else if let Some(info) = tab_list.get_mut(&updated_info.profile.uuid) {
                         // `else if` because the block for add_player above
                         // already sets all the fields
                         if p.actions.update_game_mode {
@@ -497,14 +494,14 @@ fn process_packet_events(ecs: &mut World) {
             }
             ClientboundGamePacket::PlayerInfoRemove(p) => {
                 let mut system_state: SystemState<(
-                    Query<&mut LocalPlayer>,
+                    Query<&mut TabList>,
                     EventWriter<RemovePlayerEvent>,
                 )> = SystemState::new(ecs);
                 let (mut query, mut remove_player_events) = system_state.get_mut(ecs);
-                let mut local_player = query.get_mut(player_entity).unwrap();
+                let mut tab_list = query.get_mut(player_entity).unwrap();
 
                 for uuid in &p.profile_ids {
-                    if let Some(info) = local_player.players.remove(uuid) {
+                    if let Some(info) = tab_list.remove(uuid) {
                         remove_player_events.send(RemovePlayerEvent {
                             entity: player_entity,
                             info,
@@ -642,10 +639,10 @@ fn process_packet_events(ecs: &mut World) {
                 #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<(
                     Commands,
-                    Query<(&mut LocalPlayer, Option<&WorldName>)>,
+                    Query<(&TabList, Option<&WorldName>)>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
-                let (local_player, world_name) = query.get_mut(player_entity).unwrap();
+                let (tab_list, world_name) = query.get_mut(player_entity).unwrap();
 
                 if let Some(WorldName(world_name)) = world_name {
                     let bundle = p.as_player_bundle(world_name.clone());
@@ -655,7 +652,7 @@ fn process_packet_events(ecs: &mut World) {
                         bundle,
                     ));
 
-                    if let Some(player_info) = local_player.players.get(&p.uuid) {
+                    if let Some(player_info) = tab_list.get(&p.uuid) {
                         spawned.insert(GameProfileComponent(player_info.profile.clone()));
                     }
                 } else {

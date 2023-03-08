@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io, sync::Arc};
+use std::{io, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::ChunkPos;
@@ -14,11 +14,10 @@ use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
 use thiserror::Error;
 use tokio::{sync::mpsc, task::JoinHandle};
-use uuid::Uuid;
 
 use crate::{
     events::{Event, LocalPlayerEvents},
-    ClientInformation, PlayerInfo, WalkDirection,
+    ClientInformation, WalkDirection,
 };
 
 /// This is a component for our local player entities that are probably in a
@@ -33,11 +32,7 @@ use crate::{
 #[derive(Component)]
 pub struct LocalPlayer {
     packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
-    /// Some of the "settings" for this client that are sent to the server, such
-    /// as render distance.
-    pub client_information: ClientInformation,
-    /// A map of player UUIDs to their information in the tab list
-    pub players: HashMap<Uuid, PlayerInfo>,
+
     /// The partial world is the world this client currently has loaded. It has
     /// a limited render distance.
     pub partial_world: Arc<RwLock<PartialWorld>>,
@@ -95,9 +90,6 @@ impl LocalPlayer {
 
         LocalPlayer {
             packet_writer,
-
-            client_information: ClientInformation::default(),
-            players: HashMap::new(),
 
             world,
             partial_world: Arc::new(RwLock::new(PartialWorld::new(
