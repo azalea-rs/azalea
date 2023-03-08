@@ -12,6 +12,11 @@ pub enum PalettedContainerType {
 #[derive(Clone, Debug)]
 pub struct PalettedContainer {
     pub bits_per_entry: u8,
+    /// This is usually a list of unique values that appear in the container so
+    /// they can be indexed by the bit storage.
+    ///
+    /// Sometimes it doesn't contain anything if there's too many unique items
+    /// in the bit storage, though.
     pub palette: Palette,
     /// Compacted list of indices pointing to entry IDs in the Palette.
     pub storage: BitStorage,
@@ -37,7 +42,7 @@ impl PalettedContainer {
         container_type: &'static PalettedContainerType,
     ) -> Result<Self, BufReadError> {
         let bits_per_entry = u8::read_from(buf)?;
-        let palette_type = PaletteType::from_bits_and_type(bits_per_entry, container_type);
+        let palette_type = PaletteKind::from_bits_and_type(bits_per_entry, container_type);
         let palette = palette_type.read(buf)?;
         let size = container_type.size();
 
@@ -57,15 +62,33 @@ impl PalettedContainer {
     }
 
     /// Calculates the index of the given coordinates.
-    pub fn get_index(&self, x: usize, y: usize, z: usize) -> usize {
+    pub fn index_from_coords(&self, x: usize, y: usize, z: usize) -> usize {
         let size_bits = self.container_type.size_bits();
 
         (((y << size_bits) | z) << size_bits) | x
     }
 
+    pub fn coords_from_index(&self, index: usize) -> (usize, usize, usize) {
+        let size_bits = self.container_type.size_bits();
+        let mask = (1 << size_bits) - 1;
+        (
+            index & mask,
+            (index >> size_bits >> size_bits) & mask,
+            (index >> size_bits) & mask,
+        )
+    }
+
     /// Returns the value at the given index.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the index is greater than or equal to the number
+    /// of things in the storage. (So for block states, it must be less than
+    /// 4096).
     pub fn get_at_index(&self, index: usize) -> u32 {
+        // first get the pallete id
         let paletted_value = self.storage.get(index);
+        // and then get the value from that id
         self.palette.value_for(paletted_value as usize)
     }
 
@@ -73,14 +96,14 @@ impl PalettedContainer {
     pub fn get(&self, x: usize, y: usize, z: usize) -> u32 {
         // let paletted_value = self.storage.get(self.get_index(x, y, z));
         // self.palette.value_for(paletted_value as usize)
-        self.get_at_index(self.get_index(x, y, z))
+        self.get_at_index(self.index_from_coords(x, y, z))
     }
 
     /// Sets the id at the given coordinates and return the previous id
     pub fn get_and_set(&mut self, x: usize, y: usize, z: usize, value: u32) -> u32 {
         let paletted_value = self.id_for(value);
         self.storage
-            .get_and_set(self.get_index(x, y, z), paletted_value as u64) as u32
+            .get_and_set(self.index_from_coords(x, y, z), paletted_value as u64) as u32
     }
 
     /// Sets the id at the given index and return the previous id. You probably
@@ -92,12 +115,12 @@ impl PalettedContainer {
 
     /// Sets the id at the given coordinates and return the previous id
     pub fn set(&mut self, x: usize, y: usize, z: usize, value: u32) {
-        self.set_at_index(self.get_index(x, y, z), value);
+        self.set_at_index(self.index_from_coords(x, y, z), value);
     }
 
     fn create_or_reuse_data(&self, bits_per_entry: u8) -> PalettedContainer {
         let new_palette_type =
-            PaletteType::from_bits_and_type(bits_per_entry, &self.container_type);
+            PaletteKind::from_bits_and_type(bits_per_entry, &self.container_type);
         // note for whoever is trying to optimize this: vanilla has this
         // but it causes a stack overflow since it's not changing the bits per entry
         // i don't know how to fix this properly so glhf
@@ -188,13 +211,14 @@ impl McBufWritable for PalettedContainer {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum PaletteType {
+pub enum PaletteKind {
     SingleValue,
     Linear,
     Hashmap,
     Global,
 }
 
+/// A representation of the different types of chunk palettes Minecraft uses.
 #[derive(Clone, Debug)]
 pub enum Palette {
     /// ID of the corresponding entry in its global palette
@@ -211,13 +235,7 @@ impl Palette {
         match self {
             Palette::SingleValue(v) => *v,
             Palette::Linear(v) => v[id],
-            Palette::Hashmap(v) => {
-                if id >= v.len() {
-                    0
-                } else {
-                    v[id]
-                }
-            }
+            Palette::Hashmap(v) => v.get(id).copied().unwrap_or_default(),
             Palette::Global => id as u32,
         }
     }
@@ -241,49 +259,49 @@ impl McBufWritable for Palette {
     }
 }
 
-impl PaletteType {
+impl PaletteKind {
     pub fn from_bits_and_type(bits_per_entry: u8, container_type: &PalettedContainerType) -> Self {
         match container_type {
             PalettedContainerType::BlockStates => match bits_per_entry {
-                0 => PaletteType::SingleValue,
-                1..=4 => PaletteType::Linear,
-                5..=8 => PaletteType::Hashmap,
-                _ => PaletteType::Global,
+                0 => PaletteKind::SingleValue,
+                1..=4 => PaletteKind::Linear,
+                5..=8 => PaletteKind::Hashmap,
+                _ => PaletteKind::Global,
             },
             PalettedContainerType::Biomes => match bits_per_entry {
-                0 => PaletteType::SingleValue,
-                1..=3 => PaletteType::Linear,
-                _ => PaletteType::Global,
+                0 => PaletteKind::SingleValue,
+                1..=3 => PaletteKind::Linear,
+                _ => PaletteKind::Global,
             },
         }
     }
 
     pub fn read(&self, buf: &mut Cursor<&[u8]>) -> Result<Palette, BufReadError> {
         Ok(match self {
-            PaletteType::SingleValue => Palette::SingleValue(u32::var_read_from(buf)?),
-            PaletteType::Linear => Palette::Linear(Vec::<u32>::var_read_from(buf)?),
-            PaletteType::Hashmap => Palette::Hashmap(Vec::<u32>::var_read_from(buf)?),
-            PaletteType::Global => Palette::Global,
+            PaletteKind::SingleValue => Palette::SingleValue(u32::var_read_from(buf)?),
+            PaletteKind::Linear => Palette::Linear(Vec::<u32>::var_read_from(buf)?),
+            PaletteKind::Hashmap => Palette::Hashmap(Vec::<u32>::var_read_from(buf)?),
+            PaletteKind::Global => Palette::Global,
         })
     }
 
     pub fn as_empty_palette(&self) -> Palette {
         match self {
-            PaletteType::SingleValue => Palette::SingleValue(0),
-            PaletteType::Linear => Palette::Linear(Vec::new()),
-            PaletteType::Hashmap => Palette::Hashmap(Vec::new()),
-            PaletteType::Global => Palette::Global,
+            PaletteKind::SingleValue => Palette::SingleValue(0),
+            PaletteKind::Linear => Palette::Linear(Vec::new()),
+            PaletteKind::Hashmap => Palette::Hashmap(Vec::new()),
+            PaletteKind::Global => Palette::Global,
         }
     }
 }
 
-impl From<&Palette> for PaletteType {
+impl From<&Palette> for PaletteKind {
     fn from(palette: &Palette) -> Self {
         match palette {
-            Palette::SingleValue(_) => PaletteType::SingleValue,
-            Palette::Linear(_) => PaletteType::Linear,
-            Palette::Hashmap(_) => PaletteType::Hashmap,
-            Palette::Global => PaletteType::Global,
+            Palette::SingleValue(_) => PaletteKind::SingleValue,
+            Palette::Linear(_) => PaletteKind::Linear,
+            Palette::Hashmap(_) => PaletteKind::Hashmap,
+            Palette::Global => PaletteKind::Global,
         }
     }
 }
@@ -313,14 +331,14 @@ mod tests {
         assert_eq!(palette_container.bits_per_entry, 0);
         assert_eq!(palette_container.get_at_index(0), 0);
         assert_eq!(
-            PaletteType::from(&palette_container.palette),
-            PaletteType::SingleValue
+            PaletteKind::from(&palette_container.palette),
+            PaletteKind::SingleValue
         );
         palette_container.set_at_index(0, 1);
         assert_eq!(palette_container.get_at_index(0), 1);
         assert_eq!(
-            PaletteType::from(&palette_container.palette),
-            PaletteType::Linear
+            PaletteKind::from(&palette_container.palette),
+            PaletteKind::Linear
         );
     }
 
@@ -358,5 +376,23 @@ mod tests {
 
         palette_container.set_at_index(16, 16); // 5 bits
         assert_eq!(palette_container.bits_per_entry, 5);
+    }
+
+    #[test]
+    fn test_coords_from_index() {
+        let palette_container =
+            PalettedContainer::new(&PalettedContainerType::BlockStates).unwrap();
+
+        for x in 0..15 {
+            for y in 0..15 {
+                for z in 0..15 {
+                    assert_eq!(
+                        palette_container
+                            .coords_from_index(palette_container.index_from_coords(x, y, z)),
+                        (x, y, z)
+                    );
+                }
+            }
+        }
     }
 }

@@ -467,8 +467,8 @@ mod tests {
             .id();
         let block_state = partial_world.chunks.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
-            azalea_block::StoneSlabBlock {
-                kind: azalea_block::Type::Bottom,
+            azalea_block::blocks::StoneSlab {
+                kind: azalea_block::properties::Type::Bottom,
                 waterlogged: false,
             }
             .into(),
@@ -521,8 +521,8 @@ mod tests {
             .id();
         let block_state = world_lock.write().chunks.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
-            azalea_block::StoneSlabBlock {
-                kind: azalea_block::Type::Top,
+            azalea_block::blocks::StoneSlab {
+                kind: azalea_block::properties::Type::Top,
                 waterlogged: false,
             }
             .into(),
@@ -574,11 +574,11 @@ mod tests {
             .id();
         let block_state = world_lock.write().chunks.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
-            azalea_block::CobblestoneWallBlock {
-                east: azalea_block::EastWall::Low,
-                north: azalea_block::NorthWall::Low,
-                south: azalea_block::SouthWall::Low,
-                west: azalea_block::WestWall::Low,
+            azalea_block::blocks::CobblestoneWall {
+                east: azalea_block::properties::EastWall::Low,
+                north: azalea_block::properties::NorthWall::Low,
+                south: azalea_block::properties::SouthWall::Low,
+                west: azalea_block::properties::WestWall::Low,
                 up: false,
                 waterlogged: false,
             }
@@ -636,11 +636,11 @@ mod tests {
                 y: 69,
                 z: -8,
             },
-            azalea_block::CobblestoneWallBlock {
-                east: azalea_block::EastWall::Low,
-                north: azalea_block::NorthWall::Low,
-                south: azalea_block::SouthWall::Low,
-                west: azalea_block::WestWall::Low,
+            azalea_block::blocks::CobblestoneWall {
+                east: azalea_block::properties::EastWall::Low,
+                north: azalea_block::properties::NorthWall::Low,
+                south: azalea_block::properties::SouthWall::Low,
+                west: azalea_block::properties::WestWall::Low,
                 up: false,
                 waterlogged: false,
             }

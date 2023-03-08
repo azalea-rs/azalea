@@ -1,19 +1,6 @@
-use std::any::Any;
-
-use crate::BlockBehavior;
+use crate::{Block, BlockBehavior, BlockState, BlockStates};
 use azalea_block_macros::make_block_states;
 use std::fmt::Debug;
-
-pub trait Block: Debug + Any {
-    fn behavior(&self) -> BlockBehavior;
-    fn id(&self) -> &'static str;
-    fn as_blockstate(&self) -> BlockState;
-}
-impl dyn Block {
-    pub fn downcast_ref<T: Block>(&self) -> Option<&T> {
-        (self as &dyn Any).downcast_ref::<T>()
-    }
-}
 
 make_block_states! {
     Properties => {
