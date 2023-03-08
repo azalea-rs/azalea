@@ -126,18 +126,14 @@ mod tests {
             "{:?}",
             BlockState::from(azalea_registry::Block::FloweringAzalea)
         );
-        assert!(
-            formatted.ends_with(", FloweringAzaleaBlock)"),
-            "{}",
-            formatted
-        );
+        assert!(formatted.ends_with(", FloweringAzalea)"), "{}", formatted);
 
         let formatted = format!(
             "{:?}",
             BlockState::from(azalea_registry::Block::BigDripleafStem)
         );
         assert!(
-            formatted.ends_with(", BigDripleafStemBlock { facing: North, waterlogged: false })"),
+            formatted.ends_with(", BigDripleafStem { facing: North, waterlogged: false })"),
             "{}",
             formatted
         );

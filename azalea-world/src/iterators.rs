@@ -119,14 +119,14 @@ impl SquareChunkIterator {
     ///
     /// ```
     /// # use azalea_core::ChunkPos;
-    /// # use azalea_world::iterators::ChunkIterator;
+    /// # use azalea_world::iterators::SquareChunkIterator;
     ///
-    /// let mut iter = ChunkIterator::new(ChunkPos::default(), 2);
-    /// for chunk_pos in iter {
+    /// let mut iter = SquareChunkIterator::new(ChunkPos::default(), 2);
+    /// while let Some(chunk_pos) = iter.next() {
     ///   println!("{:?}", chunk_pos);
     /// }
     /// iter.set_max_distance(4);
-    /// for chunk_pos in iter {
+    /// while let Some(chunk_pos) = iter.next() {
     ///   println!("{:?}", chunk_pos);
     /// }
     /// ```
