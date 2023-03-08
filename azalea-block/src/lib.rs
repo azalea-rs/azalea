@@ -2,8 +2,10 @@
 #![feature(trait_upcasting)]
 
 mod behavior;
-pub mod blocks;
+mod generated;
 mod range;
+
+pub use generated::{blocks, properties};
 
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 pub use behavior::BlockBehavior;

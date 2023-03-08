@@ -38,7 +38,7 @@ struct PropertyDefinitions {
     properties: Vec<PropertyDefinition>,
 }
 
-/// `snowy: false` or `axis: Axis::Y`
+/// `snowy: false` or `axis: properties::Axis::Y`
 #[derive(Debug)]
 struct PropertyWithNameAndDefault {
     name: Ident,
@@ -59,7 +59,7 @@ struct BlockDefinition {
 }
 impl Parse for PropertyWithNameAndDefault {
     fn parse(input: ParseStream) -> Result<Self> {
-        // `snowy: false` or `axis: Axis::Y`
+        // `snowy: false` or `axis: properties::Axis::Y`
         let property_name = input.parse()?;
         input.parse::<Token![:]>()?;
 
@@ -74,7 +74,7 @@ impl Parse for PropertyWithNameAndDefault {
             is_enum = true;
             property_type = first_ident;
             let variant = input.parse::<Ident>()?;
-            property_default.extend(quote! { ::#variant });
+            property_default = quote! { properties::#property_default::#variant };
         } else if first_ident_string == "true" || first_ident_string == "false" {
             property_type = Ident::new("bool", first_ident.span());
         } else {
@@ -387,13 +387,16 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         for PropertyWithNameAndDefault {
             property_type: struct_name,
             name,
+            is_enum,
             ..
         } in &properties_with_name
         {
             // let property_name_snake =
             //     Ident::new(&property.to_string(), proc_macro2::Span::call_site());
-            block_struct_fields.extend(quote! {
-                pub #name: #struct_name,
+            block_struct_fields.extend(if *is_enum {
+                quote! { pub #name: properties::#struct_name, }
+            } else {
+                quote! { pub #name: #struct_name, }
             });
         }
 
@@ -446,7 +449,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 }
 
                 let property_type = if property.is_enum {
-                    quote! {#property_struct_name_ident::#variant}
+                    quote! {properties::#property_struct_name_ident::#variant}
                 } else {
                     quote! {#variant}
                 };
@@ -477,9 +480,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         // 7035..=7058 => {
         //     let b = b - 7035;
         //     &AcaciaButtonBlock {
-        //         powered: Powered::from((b / 1) % 2),
-        //         facing: Facing::from((b / 2) % 4),
-        //         face: Face::from((b / 8) % 3),
+        //         powered: properties::Powered::from((b / 1) % 2),
+        //         facing: properties::Facing::from((b / 2) % 4),
+        //         face: properties::Face::from((b / 8) % 3),
         //     }
         // }
         let mut from_state_to_block_inner = quote! {};
@@ -499,7 +502,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     // this is not a mistake, it starts with true for some reason
                     quote! {(b / #division) % #property_variants_count == 0}
                 } else {
-                    quote! {#property_struct_name_ident::from((b / #division) % #property_variants_count)}
+                    quote! {properties::#property_struct_name_ident::from((b / #division) % #property_variants_count)}
                 }
             };
             from_state_to_block_inner.extend(quote! {
@@ -597,43 +600,50 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             }
         }
 
-        #property_enums
+        pub mod properties {
+            use super::*;
 
+            #property_enums
+        }
     };
 
     generated.extend(quote! {
-        #block_structs
+        pub mod blocks {
+            use super::*;
 
-        impl From<BlockState> for Box<dyn Block> {
-            fn from(block_state: BlockState) -> Self {
-                let b = block_state.id;
-                match b {
-                    #from_state_to_block_match
-                    _ => panic!("Invalid block state: {}", b),
+            #block_structs
+
+            impl From<BlockState> for Box<dyn Block> {
+                fn from(block_state: BlockState) -> Self {
+                    let b = block_state.id;
+                    match b {
+                        #from_state_to_block_match
+                        _ => panic!("Invalid block state: {}", b),
+                    }
                 }
             }
-        }
-        impl From<azalea_registry::Block> for Box<dyn Block> {
-            fn from(block: azalea_registry::Block) -> Self {
-                match block {
-                    #from_registry_block_to_block_match
-                    _ => unreachable!("There should always be a block struct for every azalea_registry::Block variant")
+            impl From<azalea_registry::Block> for Box<dyn Block> {
+                fn from(block: azalea_registry::Block) -> Self {
+                    match block {
+                        #from_registry_block_to_block_match
+                        _ => unreachable!("There should always be a block struct for every azalea_registry::Block variant")
+                    }
                 }
             }
-        }
-        impl From<azalea_registry::Block> for BlockState {
-            fn from(block: azalea_registry::Block) -> Self {
-                match block {
-                    #from_registry_block_to_blockstate_match
-                    _ => unreachable!("There should always be a block state for every azalea_registry::Block variant")
+            impl From<azalea_registry::Block> for BlockState {
+                fn from(block: azalea_registry::Block) -> Self {
+                    match block {
+                        #from_registry_block_to_blockstate_match
+                        _ => unreachable!("There should always be a block state for every azalea_registry::Block variant")
+                    }
                 }
             }
-        }
-        impl From<azalea_registry::Block> for BlockStates {
-            fn from(block: azalea_registry::Block) -> Self {
-                match block {
-                    #from_registry_block_to_blockstates_match
-                    _ => unreachable!("There should always be a block state for every azalea_registry::Block variant")
+            impl From<azalea_registry::Block> for BlockStates {
+                fn from(block: azalea_registry::Block) -> Self {
+                    match block {
+                        #from_registry_block_to_blockstates_match
+                        _ => unreachable!("There should always be a block state for every azalea_registry::Block variant")
+                    }
                 }
             }
         }
