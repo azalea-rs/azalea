@@ -242,7 +242,7 @@ impl Instance {
                         let this_block_pos = BlockPos { x, y, z };
                         let this_block_distance = (nearest_to - this_block_pos).length_manhattan();
                         // only update if it's closer
-                        if !nearest_found_pos.is_some()
+                        if nearest_found_pos.is_none()
                             || this_block_distance < nearest_found_distance
                         {
                             nearest_found_pos = Some(this_block_pos);
