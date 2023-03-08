@@ -1,12 +1,7 @@
 use azalea_core::Slot;
-use azalea_ecs::{
-    app::{App, Plugin},
-    component::Component,
-    entity::Entity,
-    event::EventReader,
-    system::Query,
-};
 use azalea_inventory::Menu;
+use bevy_app::{App, Plugin};
+use bevy_ecs::{component::Component, entity::Entity, event::EventReader, system::Query};
 
 pub struct InventoryPlugin;
 impl Plugin for InventoryPlugin {

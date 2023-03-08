@@ -9,15 +9,14 @@ use crate::{
     update_entity_by_id_index, update_uuid_index, PartialWorld, WorldContainer,
 };
 use azalea_core::ChunkPos;
-use azalea_ecs::{
-    app::{App, CoreStage, Plugin},
+use bevy_app::{App, CoreSet, Plugin};
+use bevy_ecs::{
     component::Component,
-    ecs::Ecs,
-    ecs::EntityMut,
     entity::Entity,
     query::{Added, Changed, With, Without},
-    schedule::{IntoSystemDescriptor, SystemSet},
-    system::{Command, Commands, Query, Res, ResMut, Resource},
+    schedule::{IntoSystemConfig, IntoSystemConfigs, SystemSet},
+    system::{Commands, EntityCommand, Query, Res, ResMut, Resource},
+    world::{EntityMut, World},
 };
 use derive_more::{Deref, DerefMut};
 use log::{debug, warn};
@@ -32,6 +31,18 @@ use uuid::Uuid;
 
 use super::Local;
 
+/// A Bevy [`SystemSet`] for various types of entity updates.
+#[derive(SystemSet, Debug, Hash, Eq, PartialEq, Clone)]
+pub enum EntityUpdateSet {
+    /// Remove ECS entities that refer to an entity that was already in the ECS
+    /// before.
+    Deduplicate,
+    /// Create search indexes for entities.
+    Index,
+    /// Remove despawned entities from search indexes.
+    Deindex,
+}
+
 /// Plugin handling some basic entity functionality.
 pub struct EntityPlugin;
 impl Plugin for EntityPlugin {
@@ -40,30 +51,31 @@ impl Plugin for EntityPlugin {
         // added to indexes during update (done by this plugin)
         // modified during update
         // despawned post-update (done by this plugin)
-        app.add_system_set_to_stage(
-            CoreStage::PreUpdate,
-            SystemSet::new().with_system(remove_despawned_entities_from_indexes),
+        app.add_system(
+            remove_despawned_entities_from_indexes
+                .in_base_set(CoreSet::PreUpdate)
+                .in_set(EntityUpdateSet::Deindex),
         )
-        .add_system_set_to_stage(
-            CoreStage::PostUpdate,
-            SystemSet::new()
-                .with_system(deduplicate_entities.label("deduplicate_entities"))
-                .with_system(deduplicate_local_entities.label("deduplicate_entities")),
+        .add_systems(
+            (deduplicate_entities, deduplicate_local_entities)
+                .in_base_set(CoreSet::PostUpdate)
+                .in_set(EntityUpdateSet::Deduplicate),
         )
-        .add_system_set(
-            SystemSet::new()
-                .with_system(update_entity_chunk_positions)
-                .with_system(update_uuid_index.label("update_indexes"))
-                .with_system(update_entity_by_id_index.label("update_indexes")),
+        .add_systems(
+            (
+                update_entity_chunk_positions,
+                update_uuid_index,
+                update_entity_by_id_index,
+            )
+                .in_set(EntityUpdateSet::Index),
         )
-        .add_system_set(
-            SystemSet::new()
-                .with_system(add_updates_received.label("add_updates_received"))
-                .with_system(debug_new_entity)
-                .with_system(debug_detect_updates_received_on_local_entities)
-                .with_system(add_dead)
-                .with_system(update_bounding_box),
-        )
+        .add_systems((
+            add_updates_received,
+            debug_new_entity,
+            debug_detect_updates_received_on_local_entities,
+            add_dead,
+            update_bounding_box,
+        ))
         .init_resource::<EntityInfos>();
     }
 }
@@ -134,26 +146,24 @@ impl PartialEntityInfos {
 /// other clients within render distance will get too. You usually don't need
 /// this when the change isn't relative either.
 pub struct RelativeEntityUpdate {
-    pub entity: Entity,
     pub partial_world: Arc<RwLock<PartialWorld>>,
     // a function that takes the entity and updates it
     pub update: Box<dyn FnOnce(&mut EntityMut) + Send + Sync>,
 }
-impl Command for RelativeEntityUpdate {
-    fn write(self, world: &mut Ecs) {
+impl EntityCommand for RelativeEntityUpdate {
+    fn write(self, entity: Entity, world: &mut World) {
         let partial_entity_infos = &mut self.partial_world.write().entity_infos;
 
-        let mut entity = world.entity_mut(self.entity);
+        let mut entity_mut = world.entity_mut(entity);
 
-        if Some(self.entity) == partial_entity_infos.owner_entity {
+        if Some(entity) == partial_entity_infos.owner_entity {
             // if the entity owns this partial world, it's always allowed to update itself
-            (self.update)(&mut entity);
+            (self.update)(&mut entity_mut);
             return;
         };
 
-        let entity_id = *entity.get::<MinecraftEntityId>().unwrap();
-
-        let Some(updates_received) = entity.get_mut::<UpdatesReceived>() else {
+        let entity_id = *entity_mut.get::<MinecraftEntityId>().unwrap();
+        let Some(updates_received) = entity_mut.get_mut::<UpdatesReceived>() else {
             // a client tried to update another client, which isn't allowed
             return;
         };
@@ -170,9 +180,9 @@ impl Command for RelativeEntityUpdate {
                 .updates_received
                 .insert(entity_id, new_updates_received);
 
-            **entity.get_mut::<UpdatesReceived>().unwrap() = new_updates_received;
+            **entity_mut.get_mut::<UpdatesReceived>().unwrap() = new_updates_received;
 
-            let mut entity = world.entity_mut(self.entity);
+            let mut entity = world.entity_mut(entity);
             (self.update)(&mut entity);
         }
     }

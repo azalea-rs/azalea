@@ -1,14 +1,10 @@
 use azalea_core::{BlockPos, Direction};
-use azalea_ecs::{
-    app::{App, Plugin},
-    entity::Entity,
-    event::EventReader,
-    system::Query,
-};
 use azalea_protocol::packets::game::{
     serverbound_interact_packet::InteractionHand,
     serverbound_use_item_on_packet::{BlockHitResult, ServerboundUseItemOnPacket},
 };
+use bevy_app::{App, Plugin};
+use bevy_ecs::{entity::Entity, event::EventReader, system::Query};
 use log::warn;
 
 use crate::{Client, LocalPlayer};

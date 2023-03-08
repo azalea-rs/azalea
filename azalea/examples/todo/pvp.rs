@@ -1,9 +1,9 @@
 use std::time::Duration;
 
+use azalea::ecs::query::With;
 use azalea::entity::metadata::Player;
 use azalea::{pathfinder, Account, Client, Event, GameProfileComponent};
 use azalea::{prelude::*, swarm::prelude::*};
-use azalea_ecs::query::With;
 
 #[tokio::main]
 async fn main() {

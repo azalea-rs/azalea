@@ -1,10 +1,10 @@
 use super::{Node, VerticalVel};
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_physics::collision::{self, BlockWithShape};
-use azalea_world::World;
+use azalea_world::Instance;
 
 /// whether this block is passable
-fn is_block_passable(pos: &BlockPos, world: &World) -> bool {
+fn is_block_passable(pos: &BlockPos, world: &Instance) -> bool {
     if let Some(block) = world.chunks.get_block_state(pos) {
         block.shape() == &collision::empty_shape()
     } else {
@@ -13,7 +13,7 @@ fn is_block_passable(pos: &BlockPos, world: &World) -> bool {
 }
 
 /// whether this block has a solid hitbox (i.e. we can stand on it)
-fn is_block_solid(pos: &BlockPos, world: &World) -> bool {
+fn is_block_solid(pos: &BlockPos, world: &Instance) -> bool {
     if let Some(block) = world.chunks.get_block_state(pos) {
         block.shape() == &collision::block_shape()
     } else {
@@ -22,14 +22,14 @@ fn is_block_solid(pos: &BlockPos, world: &World) -> bool {
 }
 
 /// Whether this block and the block above are passable
-fn is_passable(pos: &BlockPos, world: &World) -> bool {
+fn is_passable(pos: &BlockPos, world: &Instance) -> bool {
     is_block_passable(pos, world) && is_block_passable(&pos.up(1), world)
 }
 
 /// Whether we can stand in this position. Checks if the block below is solid,
 /// and that the two blocks above that are passable.
 
-fn is_standable(pos: &BlockPos, world: &World) -> bool {
+fn is_standable(pos: &BlockPos, world: &Instance) -> bool {
     is_block_solid(&pos.down(1), world) && is_passable(pos, world)
 }
 
@@ -37,7 +37,7 @@ const JUMP_COST: f32 = 0.5;
 const WALK_ONE_BLOCK_COST: f32 = 1.0;
 
 pub trait Move: Send + Sync {
-    fn cost(&self, world: &World, node: &Node) -> f32;
+    fn cost(&self, world: &Instance, node: &Node) -> f32;
     /// Returns by how much the entity's position should be changed when this
     /// move is executed.
     fn offset(&self) -> BlockPos;
@@ -51,7 +51,7 @@ pub trait Move: Send + Sync {
 
 pub struct ForwardMove(pub CardinalDirection);
 impl Move for ForwardMove {
-    fn cost(&self, world: &World, node: &Node) -> f32 {
+    fn cost(&self, world: &Instance, node: &Node) -> f32 {
         if is_standable(&(node.pos + self.offset()), world)
             && node.vertical_vel == VerticalVel::None
         {
@@ -67,7 +67,7 @@ impl Move for ForwardMove {
 
 pub struct AscendMove(pub CardinalDirection);
 impl Move for AscendMove {
-    fn cost(&self, world: &World, node: &Node) -> f32 {
+    fn cost(&self, world: &Instance, node: &Node) -> f32 {
         if node.vertical_vel == VerticalVel::None
             && is_block_passable(&node.pos.up(2), world)
             && is_standable(&(node.pos + self.offset()), world)
@@ -89,7 +89,7 @@ impl Move for AscendMove {
 }
 pub struct DescendMove(pub CardinalDirection);
 impl Move for DescendMove {
-    fn cost(&self, world: &World, node: &Node) -> f32 {
+    fn cost(&self, world: &Instance, node: &Node) -> f32 {
         // check whether 3 blocks vertically forward are passable
         if node.vertical_vel == VerticalVel::None
             && is_standable(&(node.pos + self.offset()), world)
@@ -112,7 +112,7 @@ impl Move for DescendMove {
 }
 pub struct DiagonalMove(pub CardinalDirection);
 impl Move for DiagonalMove {
-    fn cost(&self, world: &World, node: &Node) -> f32 {
+    fn cost(&self, world: &Instance, node: &Node) -> f32 {
         if node.vertical_vel != VerticalVel::None {
             return f32::INFINITY;
         }

@@ -12,6 +12,8 @@ macro_rules! vec3_impl {
                 Self { x, y, z }
             }
 
+            /// Get the distance of this vector to the origin by doing `x^2 + y^2 +
+            /// z^2`.
             pub fn length_sqr(&self) -> $type {
                 self.x * self.x + self.y * self.y + self.z * self.z
             }
@@ -139,6 +141,11 @@ impl BlockPos {
             z: self.z as f64 + 0.5,
         }
     }
+
+    /// Get the distance of this vector from the origin by doing `x + y + z`.
+    pub fn length_manhattan(&self) -> u32 {
+        (self.x.abs() + self.y.abs() + self.z.abs()) as u32
+    }
 }
 
 /// Chunk coordinates are used to represent where a chunk is in the world. You
@@ -148,10 +155,19 @@ pub struct ChunkPos {
     pub x: i32,
     pub z: i32,
 }
-
 impl ChunkPos {
     pub fn new(x: i32, z: i32) -> Self {
         ChunkPos { x, z }
+    }
+}
+impl Add<ChunkPos> for ChunkPos {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            z: self.z + rhs.z,
+        }
     }
 }
 

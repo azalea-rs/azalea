@@ -1,7 +1,8 @@
 use crate::client::Client;
-use crate::local_player::{LocalPlayer, LocalPlayerInLoadedChunk, PhysicsState};
-use azalea_ecs::entity::Entity;
-use azalea_ecs::{event::EventReader, query::With, system::Query};
+use crate::local_player::{
+    update_in_loaded_chunk, LocalPlayer, LocalPlayerInLoadedChunk, PhysicsState,
+};
+use azalea_physics::{force_jump_listener, PhysicsSet};
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
@@ -12,6 +13,14 @@ use azalea_protocol::packets::game::{
 use azalea_world::{
     entity::{self, metadata::Sprinting, Attributes, Jumping, MinecraftEntityId},
     MoveEntityError,
+};
+use bevy_app::{App, CoreSchedule, IntoSystemAppConfigs, Plugin};
+use bevy_ecs::{
+    entity::Entity,
+    event::EventReader,
+    query::With,
+    schedule::{IntoSystemConfig, IntoSystemConfigs},
+    system::Query,
 };
 use std::backtrace::Backtrace;
 use thiserror::Error;
@@ -31,6 +40,28 @@ impl From<MoveEntityError> for MovePlayerError {
                 MovePlayerError::PlayerNotInWorld(backtrace)
             }
         }
+    }
+}
+
+pub struct PlayerMovePlugin;
+
+impl Plugin for PlayerMovePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<StartWalkEvent>()
+            .add_event::<StartSprintEvent>()
+            .add_systems(
+                (sprint_listener, walk_listener)
+                    .chain()
+                    .before(force_jump_listener),
+            )
+            .add_systems(
+                (
+                    local_player_ai_step.in_set(PhysicsSet),
+                    send_position.after(update_in_loaded_chunk),
+                )
+                    .chain()
+                    .in_schedule(CoreSchedule::FixedUpdate),
+            );
     }
 }
 

@@ -3,4 +3,6 @@
 
 pub use crate::{bot::BotClientExt, pathfinder::PathfinderClientExt, ClientBuilder};
 pub use azalea_client::{Account, Client, Event};
-pub use azalea_ecs::{component::Component, system::Resource};
+// this is necessary to make the macros that reference bevy_ecs work
+pub use crate::ecs as bevy_ecs;
+pub use crate::ecs::{component::Component, system::Resource};

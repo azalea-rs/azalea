@@ -16,7 +16,6 @@ members = [
   "azalea-physics",
   "azalea-registry",
   "azalea-inventory",
-  "azalea-ecs",
 ]
 
 [profile.release]
