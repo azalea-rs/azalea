@@ -5,6 +5,7 @@ use azalea_buf::{McBufReadable, McBufVarWritable, McBufWritable};
 use azalea_core::FixedBitSet;
 use azalea_core::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::CommandArgumentKind;
 use log::warn;
 use std::io::Cursor;
 use std::io::Write;
@@ -137,13 +138,14 @@ pub enum BrigadierParser {
     FloatRange,
     Dimension,
     GameMode,
-    Time,
+    Time { min: i32 },
     ResourceOrTag { registry_key: ResourceLocation },
     ResourceOrTagKey { registry_key: ResourceLocation },
     Resource { registry_key: ResourceLocation },
     ResourceKey { registry_key: ResourceLocation },
     TemplateMirror,
     TemplateRotation,
+    Heightmap,
     Uuid,
 }
 

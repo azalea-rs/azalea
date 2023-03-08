@@ -153,5 +153,27 @@ pub fn registry(input: TokenStream) -> TokenStream {
         }
     });
 
+    // generate the FromStr
+    let mut from_str_items = quote! {};
+    for item in &input.items {
+        let name = &item.name;
+        let id = &item.id;
+        from_str_items.extend(quote! {
+            #id => Ok(Self::#name),
+        });
+    }
+    generated.extend(quote! {
+        impl std::str::FromStr for #name {
+            type Err = ();
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match s {
+                    #from_str_items
+                    _ => Err(()),
+                }
+            }
+        }
+    });
+
     generated.into()
 }
