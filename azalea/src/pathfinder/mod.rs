@@ -4,18 +4,18 @@ mod mtdstarlite;
 use crate::bot::{JumpEvent, LookAtEvent};
 use crate::{SprintDirection, WalkDirection};
 
-use azalea_client::{StartSprintEvent, StartWalkEvent};
-use azalea_core::{BlockPos, CardinalDirection};
-use azalea_ecs::{
-    app::{App, Plugin},
+use crate::app::{App, CoreSchedule, IntoSystemAppConfig, Plugin};
+use crate::ecs::{
     component::Component,
     entity::Entity,
     event::{EventReader, EventWriter},
     query::{With, Without},
-    schedule::IntoSystemDescriptor,
+    schedule::IntoSystemConfig,
     system::{Commands, Query, Res},
-    AppTickExt,
 };
+use azalea_client::{StartSprintEvent, StartWalkEvent};
+use azalea_core::{BlockPos, CardinalDirection};
+use azalea_physics::PhysicsSet;
 use azalea_world::entity::metadata::Player;
 use azalea_world::entity::Local;
 use azalea_world::{
@@ -36,7 +36,13 @@ impl Plugin for PathfinderPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<GotoEvent>()
             .add_event::<PathFoundEvent>()
-            .add_tick_system(tick_execute_path.before("ai_step"))
+            .add_system(
+                // Adding `.in_schedule(CoreSchedule::FixedUpdate)` makes a system run every
+                // Minecraft tick (every 50 milliseconds).
+                tick_execute_path
+                    .in_schedule(CoreSchedule::FixedUpdate)
+                    .before(PhysicsSet),
+            )
             .add_system(goto_listener)
             .add_system(add_default_pathfinder)
             .add_system(handle_tasks.before(path_found_listener))

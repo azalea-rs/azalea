@@ -2,10 +2,13 @@ use crate::{
     entity::{
         EntityInfos, EntityUuid, LoadedBy, Local, MinecraftEntityId, PartialEntityInfos, WorldName,
     },
+    iterators::ChunkIterator,
+    palette::Palette,
     ChunkStorage, PartialChunkStorage, WorldContainer,
 };
-use azalea_core::ChunkPos;
-use azalea_ecs::{
+use azalea_block::{BlockState, BlockStates};
+use azalea_core::{BlockPos, ChunkPos};
+use bevy_ecs::{
     entity::Entity,
     query::{Changed, With, Without},
     system::{Commands, Query, Res, ResMut},
@@ -172,7 +175,7 @@ pub fn update_uuid_index(
 /// A world where the chunks are stored as weak pointers. This is used for
 /// shared worlds.
 #[derive(Default, Debug)]
-pub struct World {
+pub struct Instance {
     pub chunks: ChunkStorage,
 
     /// An index of all the entities we know are in the chunks of the world
@@ -182,10 +185,80 @@ pub struct World {
     pub entity_by_id: IntMap<MinecraftEntityId, Entity>,
 }
 
-impl World {
+impl Instance {
     /// Get an ECS [`Entity`] from a Minecraft entity ID.
     pub fn entity_by_id(&self, entity_id: &MinecraftEntityId) -> Option<Entity> {
         self.entity_by_id.get(entity_id).copied()
+    }
+
+    /// Find the coordinates of a block in the world.
+    ///
+    /// Note that this is sorted by `x+y+z` and not `x^2+y^2+z^2`, for
+    /// optimization purposes.
+    pub fn find_block(
+        &self,
+        nearest_to: impl Into<BlockPos>,
+        block_states: &BlockStates,
+    ) -> Option<BlockPos> {
+        // iterate over every chunk in a 3d spiral pattern
+        // and then check the palette for the block state
+
+        let nearest_to: BlockPos = nearest_to.into();
+        let start_chunk: ChunkPos = (&nearest_to).into();
+        let iter = ChunkIterator::new(start_chunk, 32);
+
+        for chunk_pos in iter {
+            let chunk = self.chunks.get(&chunk_pos).unwrap();
+
+            let mut nearest_found_pos: Option<BlockPos> = None;
+            let mut nearest_found_distance = 0;
+
+            for (section_index, section) in chunk.read().sections.iter().enumerate() {
+                let maybe_has_block = match &section.states.palette {
+                    Palette::SingleValue(id) => block_states.contains(&BlockState { id: *id }),
+                    Palette::Linear(ids) => ids
+                        .iter()
+                        .any(|&id| block_states.contains(&BlockState { id })),
+                    Palette::Hashmap(ids) => ids
+                        .iter()
+                        .any(|&id| block_states.contains(&BlockState { id })),
+                    Palette::Global => true,
+                };
+                if !maybe_has_block {
+                    continue;
+                }
+
+                for i in 0..4096 {
+                    let block_state = section.states.get_at_index(i);
+                    let block_state = BlockState { id: block_state };
+
+                    if block_states.contains(&block_state) {
+                        let (section_x, section_y, section_z) = section.states.coords_from_index(i);
+                        let (x, y, z) = (
+                            chunk_pos.x * 16 + (section_x as i32),
+                            self.chunks.min_y + (section_index * 16) as i32 + section_y as i32,
+                            chunk_pos.z * 16 + (section_z as i32),
+                        );
+                        let this_block_pos = BlockPos { x, y, z };
+                        let this_block_distance = (nearest_to - this_block_pos).length_manhattan();
+                        // only update if it's closer
+                        if !nearest_found_pos.is_some()
+                            || this_block_distance < nearest_found_distance
+                        {
+                            nearest_found_pos = Some(this_block_pos);
+                            nearest_found_distance = this_block_distance;
+                        }
+                    }
+                }
+            }
+
+            // if we found the position, return it
+            if nearest_found_pos.is_some() {
+                return nearest_found_pos;
+            }
+        }
+
+        None
     }
 }
 
@@ -236,7 +309,7 @@ pub fn update_entity_by_id_index(
     }
 }
 
-impl From<ChunkStorage> for World {
+impl From<ChunkStorage> for Instance {
     /// Make an empty world from this `ChunkStorage`. This is meant to be a
     /// convenience function for tests.
     fn from(chunks: ChunkStorage) -> Self {

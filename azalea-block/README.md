@@ -8,11 +8,11 @@ There's three block types, used for different things. You can (mostly) convert b
 
 ```
 # use azalea_block::BlockState;
-let block_state: BlockState = azalea_block::CobblestoneWallBlock {
-    east: azalea_block::EastWall::Low,
-    north: azalea_block::NorthWall::Low,
-    south: azalea_block::SouthWall::Low,
-    west: azalea_block::WestWall::Low,
+let block_state: BlockState = azalea_block::blocks::CobblestoneWall {
+    east: azalea_block::properties::EastWall::Low,
+    north: azalea_block::properties::NorthWall::Low,
+    south: azalea_block::properties::SouthWall::Low,
+    west: azalea_block::properties::WestWall::Low,
     up: false,
     waterlogged: false,
 }
@@ -36,7 +36,7 @@ let block = Box::<dyn Block>::from(block_state);
 ```
 # use azalea_block::{Block, BlockState};
 # let block_state: BlockState = azalea_registry::Block::Jukebox.into();
-if let Some(jukebox) = Box::<dyn Block>::from(block_state).downcast_ref::<azalea_block::JukeboxBlock>() {
+if let Some(jukebox) = Box::<dyn Block>::from(block_state).downcast_ref::<azalea_block::blocks::Jukebox>() {
     // ...
 }
 ```
