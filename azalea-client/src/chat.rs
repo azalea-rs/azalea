@@ -149,6 +149,7 @@ impl Client {
             entity: self.entity,
             content: content.to_string(),
         });
+        self.run_schedule_sender.send(()).unwrap();
     }
 }
 
@@ -228,9 +229,15 @@ fn handle_send_chat_kind_event(
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
     for event in events.iter() {
+        let content = event
+            .content
+            .chars()
+            .filter(|c| !matches!(c, '\x00'..='\x1F' | '\x7F' | '§'))
+            .take(256)
+            .collect::<String>();
         let packet = match event.kind {
             ChatPacketKind::Message => ServerboundChatPacket {
-                message: event.content.clone(),
+                message: content,
                 timestamp: SystemTime::now()
                     .duration_since(UNIX_EPOCH)
                     .expect("Time shouldn't be before epoch")
@@ -245,7 +252,7 @@ fn handle_send_chat_kind_event(
             ChatPacketKind::Command => {
                 // TODO: chat signing
                 ServerboundChatCommandPacket {
-                    command: event.content.clone(),
+                    command: content,
                     timestamp: SystemTime::now()
                         .duration_since(UNIX_EPOCH)
                         .expect("Time shouldn't be before epoch")
