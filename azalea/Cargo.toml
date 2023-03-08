@@ -36,5 +36,3 @@ thiserror = "^1.0.37"
 tokio = "^1.24.2"
 uuid = "1.2.2"
 
-[dev-dependencies]
-env_logger = "^0.10.0"

@@ -4,6 +4,7 @@ use azalea_auth::game_profile::GameProfile;
 use azalea_core::ChunkPos;
 use azalea_ecs::component::Component;
 use azalea_ecs::entity::Entity;
+use azalea_ecs::event::EventReader;
 use azalea_ecs::{query::Added, system::Query};
 use azalea_protocol::packets::game::ServerboundGamePacket;
 use azalea_world::{
@@ -45,9 +46,11 @@ pub struct LocalPlayer {
     /// world. (Only relevant if you're using a shared world, i.e. a swarm)
     pub world: Arc<RwLock<World>>,
 
-    /// A list of async tasks that are running and will stop running when this
-    /// LocalPlayer is dropped or disconnected with [`Self::disconnect`]
-    pub(crate) tasks: Vec<JoinHandle<()>>,
+    /// A task that reads packets from the server. The client is disconnected
+    /// when this task ends.
+    pub(crate) read_packets_task: JoinHandle<()>,
+    /// A task that writes packets from the server.
+    pub(crate) write_packets_task: JoinHandle<()>,
 }
 
 /// Component for entities that can move and sprint. Usually only in
@@ -86,6 +89,8 @@ impl LocalPlayer {
         entity: Entity,
         packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
         world: Arc<RwLock<World>>,
+        read_packets_task: JoinHandle<()>,
+        write_packets_task: JoinHandle<()>,
     ) -> Self {
         let client_information = ClientInformation::default();
 
@@ -101,7 +106,8 @@ impl LocalPlayer {
                 Some(entity),
             ))),
 
-            tasks: Vec::new(),
+            read_packets_task,
+            write_packets_task,
         }
     }
 
@@ -111,15 +117,13 @@ impl LocalPlayer {
             .send(packet)
             .expect("write_packet shouldn't be able to be called if the connection is closed");
     }
+}
 
-    /// Disconnect this client from the server by ending all tasks.
-    ///
-    /// The OwnedReadHalf for the TCP connection is in one of the tasks, so it
-    /// automatically closes the connection when that's dropped.
-    pub fn disconnect(&self) {
-        for task in &self.tasks {
-            task.abort();
-        }
+impl Drop for LocalPlayer {
+    /// Stop every active task when the `LocalPlayer` is dropped.
+    fn drop(&mut self) {
+        self.read_packets_task.abort();
+        self.write_packets_task.abort();
     }
 }
 
@@ -166,5 +170,22 @@ pub enum HandlePacketError {
 impl<T> From<std::sync::PoisonError<T>> for HandlePacketError {
     fn from(e: std::sync::PoisonError<T>) -> Self {
         HandlePacketError::Poison(e.to_string())
+    }
+}
+
+/// Event for sending a packet to the server.
+pub struct SendPacketEvent {
+    pub entity: Entity,
+    pub packet: ServerboundGamePacket,
+}
+
+pub fn handle_send_packet_event(
+    mut send_packet_events: EventReader<SendPacketEvent>,
+    mut query: Query<&mut LocalPlayer>,
+) {
+    for event in send_packet_events.iter() {
+        if let Ok(mut local_player) = query.get_mut(event.entity) {
+            local_player.write_packet(event.packet.clone());
+        }
     }
 }

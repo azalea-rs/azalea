@@ -1,11 +1,13 @@
-pub use crate::chat::ChatPacket;
 use crate::{
+    chat::ChatPlugin,
+    disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
     local_player::{
-        death_event, update_in_loaded_chunk, GameProfileComponent, LocalPlayer, PhysicsState,
+        death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
+        LocalPlayer, PhysicsState, SendPacketEvent,
     },
     movement::{local_player_ai_step, send_position, sprint_listener, walk_listener},
-    packet_handling::{self, PacketHandlerPlugin},
+    packet_handling::{self, PacketHandlerPlugin, PacketReceiver},
     player::retroactively_add_game_profile_component,
     task_pool::TaskPoolPlugin,
     Account, PlayerInfo, StartSprintEvent, StartWalkEvent,
@@ -15,9 +17,10 @@ use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerE
 use azalea_chat::FormattedText;
 use azalea_ecs::{
     app::{App, Plugin, PluginGroup, PluginGroupBuilder},
+    bundle::Bundle,
     component::Component,
     entity::Entity,
-    schedule::{IntoSystemDescriptor, Schedule, Stage, SystemSet},
+    schedule::{IntoSystemDescriptor, ReportExecutionOrderAmbiguities, Schedule, Stage, SystemSet},
     AppTickExt,
 };
 use azalea_ecs::{ecs::Ecs, TickPlugin};
@@ -46,6 +49,7 @@ use azalea_world::{
     entity::{EntityPlugin, Local, WorldName},
     PartialWorld, World, WorldContainer,
 };
+use bevy_log::LogPlugin;
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
 use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc};
@@ -60,6 +64,9 @@ pub type ClientInformation = ServerboundClientInformationPacket;
 ///
 /// To make a new client, use either [`azalea::ClientBuilder`] or
 /// [`Client::join`].
+///
+/// Note that `Client` is inaccessible from systems (i.e. plugins), but you can
+/// achieve everything that client can do with events.
 ///
 /// [`azalea::ClientBuilder`]: https://docs.rs/azalea/latest/azalea/struct.ClientBuilder.html
 #[derive(Clone)]
@@ -80,6 +87,9 @@ pub struct Client {
     /// directly. Note that if you're using a shared world (i.e. a swarm), this
     /// will contain all entities in all worlds.
     pub ecs: Arc<Mutex<Ecs>>,
+
+    /// Use this to force the client to run the schedule outside of a tick.
+    pub run_schedule_sender: mpsc::UnboundedSender<()>,
 }
 
 /// An error that happened while joining the server.
@@ -107,7 +117,12 @@ impl Client {
     /// Create a new client from the given GameProfile, Connection, and World.
     /// You should only use this if you want to change these fields from the
     /// defaults, otherwise use [`Client::join`].
-    pub fn new(profile: GameProfile, entity: Entity, ecs: Arc<Mutex<Ecs>>) -> Self {
+    pub fn new(
+        profile: GameProfile,
+        entity: Entity,
+        ecs: Arc<Mutex<Ecs>>,
+        run_schedule_sender: mpsc::UnboundedSender<()>,
+    ) -> Self {
         Self {
             profile,
             // default our id to 0, it'll be set later
@@ -115,6 +130,8 @@ impl Client {
             world: Arc::new(RwLock::new(PartialWorld::default())),
 
             ecs,
+
+            run_schedule_sender,
         }
     }
 
@@ -146,7 +163,7 @@ impl Client {
         let resolved_address = resolver::resolve_address(&address).await?;
 
         // An event that causes the schedule to run. This is only used internally.
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
+        let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
         let app = init_ecs_app();
         let ecs_lock = start_ecs(app, run_schedule_receiver, run_schedule_sender.clone());
 
@@ -167,7 +184,7 @@ impl Client {
         account: &Account,
         address: &ServerAddress,
         resolved_address: &SocketAddr,
-        run_schedule_sender: mpsc::Sender<()>,
+        run_schedule_sender: mpsc::UnboundedSender<()>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let conn = Connection::new(resolved_address).await?;
         let (conn, game_profile) = Self::handshake(conn, account, address).await?;
@@ -182,17 +199,14 @@ impl Client {
         let entity = entity_mut.id();
 
         // we got the GameConnection, so the server is now connected :)
-        let client = Client::new(game_profile.clone(), entity, ecs_lock.clone());
+        let client = Client::new(
+            game_profile.clone(),
+            entity,
+            ecs_lock.clone(),
+            run_schedule_sender.clone(),
+        );
 
         let (packet_writer_sender, packet_writer_receiver) = mpsc::unbounded_channel();
-
-        let mut local_player = crate::local_player::LocalPlayer::new(
-            entity,
-            packet_writer_sender,
-            // default to an empty world, it'll be set correctly later when we
-            // get the login packet
-            Arc::new(RwLock::new(World::default())),
-        );
 
         // start receiving packets
         let packet_receiver = packet_handling::PacketReceiver {
@@ -206,17 +220,25 @@ impl Client {
                 .clone()
                 .write_task(write_conn, packet_writer_receiver),
         );
-        local_player.tasks.push(read_packets_task);
-        local_player.tasks.push(write_packets_task);
 
-        ecs.entity_mut(entity).insert((
+        let local_player = crate::local_player::LocalPlayer::new(
+            entity,
+            packet_writer_sender,
+            // default to an empty world, it'll be set correctly later when we
+            // get the login packet
+            Arc::new(RwLock::new(World::default())),
+            read_packets_task,
+            write_packets_task,
+        );
+
+        ecs.entity_mut(entity).insert(JoinedClientBundle {
             local_player,
             packet_receiver,
-            GameProfileComponent(game_profile),
-            PhysicsState::default(),
-            Local,
-            LocalPlayerEvents(tx),
-        ));
+            game_profile: GameProfileComponent(game_profile),
+            physics_state: PhysicsState::default(),
+            local_player_events: LocalPlayerEvents(tx),
+            _local: Local,
+        });
 
         Ok((client, rx))
     }
@@ -355,7 +377,9 @@ impl Client {
     /// The OwnedReadHalf for the TCP connection is in one of the tasks, so it
     /// automatically closes the connection when that's dropped.
     pub fn disconnect(&self) {
-        self.local_player_mut(&mut self.ecs.lock()).disconnect();
+        self.ecs.lock().send_event(DisconnectEvent {
+            entity: self.entity,
+        });
     }
 
     pub fn local_player<'a>(&'a self, ecs: &'a mut Ecs) -> &'a LocalPlayer {
@@ -447,9 +471,23 @@ impl Client {
     }
 
     /// Get a HashMap of all the players in the tab list.
+    ///
+    /// Internally, this fetches the `players` field in [`LocalPlayer`].
     pub fn players(&mut self) -> HashMap<Uuid, PlayerInfo> {
         self.local_player(&mut self.ecs.lock()).players.clone()
     }
+}
+
+/// A bundle for the components that are present on a local player that received
+/// a login packet. If you want to filter for this, just use [`Local`].
+#[derive(Bundle)]
+pub struct JoinedClientBundle {
+    pub local_player: LocalPlayer,
+    pub packet_receiver: PacketReceiver,
+    pub game_profile: GameProfileComponent,
+    pub physics_state: PhysicsState,
+    pub local_player_events: LocalPlayerEvents,
+    pub _local: Local,
 }
 
 pub struct AzaleaPlugin;
@@ -458,37 +496,33 @@ impl Plugin for AzaleaPlugin {
         app.add_event::<StartWalkEvent>()
             .add_event::<StartSprintEvent>();
 
-        app.add_plugins(DefaultPlugins);
-
         app.add_tick_system_set(
             SystemSet::new()
-                .with_system(send_position)
-                .with_system(update_in_loaded_chunk)
+                .with_system(send_position.after("ai_step"))
+                .with_system(update_in_loaded_chunk.before(send_position).after("travel"))
                 .with_system(
                     local_player_ai_step
-                        .before("ai_step")
-                        .after("sprint_listener"),
+                        .before(azalea_physics::ai_step)
+                        .label("ai_step"),
                 ),
         );
 
         // fire the Death event when the player dies.
-        app.add_system(death_event.after("tick").after("packet"));
+        app.add_system(death_event);
 
         // walk and sprint event listeners
-        app.add_system(walk_listener.label("walk_listener").before("travel"))
+        app.add_system(walk_listener.label("walk_listener"))
             .add_system(
                 sprint_listener
                     .label("sprint_listener")
-                    .before("travel")
                     .before("walk_listener"),
             );
 
         // add GameProfileComponent when we get an AddPlayerEvent
-        app.add_system(
-            retroactively_add_game_profile_component
-                .after("tick")
-                .after("packet"),
-        );
+        app.add_system(retroactively_add_game_profile_component.after("update_indexes"));
+
+        app.add_event::<SendPacketEvent>()
+            .add_system(handle_send_packet_event);
 
         app.init_resource::<WorldContainer>();
     }
@@ -509,7 +543,10 @@ pub fn init_ecs_app() -> App {
     // you might be able to just drop the lock or put it in its own scope to fix
 
     let mut app = App::new();
-    app.add_plugin(AzaleaPlugin);
+
+    app.insert_resource(ReportExecutionOrderAmbiguities);
+
+    app.add_plugins(DefaultPlugins);
     app
 }
 
@@ -518,8 +555,8 @@ pub fn init_ecs_app() -> App {
 #[doc(hidden)]
 pub fn start_ecs(
     app: App,
-    run_schedule_receiver: mpsc::Receiver<()>,
-    run_schedule_sender: mpsc::Sender<()>,
+    run_schedule_receiver: mpsc::UnboundedReceiver<()>,
+    run_schedule_sender: mpsc::UnboundedSender<()>,
 ) -> Arc<Mutex<Ecs>> {
     // all resources should have been added by now so we can take the ecs from the
     // app
@@ -538,7 +575,7 @@ pub fn start_ecs(
 async fn run_schedule_loop(
     ecs: Arc<Mutex<Ecs>>,
     mut schedule: Schedule,
-    mut run_schedule_receiver: mpsc::Receiver<()>,
+    mut run_schedule_receiver: mpsc::UnboundedReceiver<()>,
 ) {
     loop {
         // whenever we get an event from run_schedule_receiver, run the schedule
@@ -549,14 +586,14 @@ async fn run_schedule_loop(
 
 /// Send an event to run the schedule every 50 milliseconds. It will stop when
 /// the receiver is dropped.
-pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::Sender<()>) {
+pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::UnboundedSender<()>) {
     let mut game_tick_interval = time::interval(time::Duration::from_millis(50));
     // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
     game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
 
     loop {
         game_tick_interval.tick().await;
-        if let Err(e) = run_schedule_sender.send(()).await {
+        if let Err(e) = run_schedule_sender.send(()) {
             println!("tick_run_schedule_loop error: {e}");
             // the sender is closed so end the task
             return;
@@ -571,11 +608,15 @@ pub struct DefaultPlugins;
 impl PluginGroup for DefaultPlugins {
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
+            .add(LogPlugin::default())
             .add(TickPlugin::default())
             .add(PacketHandlerPlugin)
+            .add(AzaleaPlugin)
             .add(EntityPlugin)
             .add(PhysicsPlugin)
             .add(EventPlugin)
             .add(TaskPoolPlugin::default())
+            .add(ChatPlugin)
+            .add(DisconnectPlugin)
     }
 }

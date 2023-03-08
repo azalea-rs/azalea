@@ -23,7 +23,7 @@ pub fn minecraft_dir() -> Option<PathBuf> {
 pub fn home_env_var() -> &'static str {
     #[cfg(target_os = "windows")]
     {
-        "USERPROFILE"
+        "APPDATA"
     }
     #[cfg(target_os = "macos")]
     {

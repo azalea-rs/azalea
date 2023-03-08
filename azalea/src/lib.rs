@@ -106,6 +106,12 @@ where
         self.handler = Some(handler);
         self
     }
+    /// Set the client state instead of initializing defaults.
+    #[must_use]
+    pub fn set_state(mut self, state: S) -> Self {
+        self.state = state;
+        self
+    }
     /// Add a plugin to the client.
     #[must_use]
     pub fn add_plugin<T: Plugin>(mut self, plugin: T) -> Self {
@@ -135,7 +141,7 @@ where
         let resolved_address = resolver::resolve_address(&address).await?;
 
         // An event that causes the schedule to run. This is only used internally.
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
+        let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
         let ecs_lock = start_ecs(self.app, run_schedule_receiver, run_schedule_sender.clone());
 
         let (bot, mut rx) = Client::start_client(

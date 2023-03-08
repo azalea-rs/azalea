@@ -5,7 +5,7 @@ mod events;
 pub mod prelude;
 
 use crate::{bot::DefaultBotPlugins, HandleFn};
-use azalea_client::{init_ecs_app, start_ecs, Account, ChatPacket, Client, Event, JoinError};
+use azalea_client::{chat::ChatPacket, init_ecs_app, start_ecs, Account, Client, Event, JoinError};
 use azalea_ecs::{
     app::{App, Plugin, PluginGroup, PluginGroupBuilder},
     component::Component,
@@ -47,7 +47,7 @@ pub struct Swarm {
     bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
     swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
 
-    run_schedule_sender: mpsc::Sender<()>,
+    run_schedule_sender: mpsc::UnboundedSender<()>,
 }
 
 /// Create a new [`Swarm`].
@@ -199,6 +199,12 @@ where
         self.swarm_handler = Some(handler);
         self
     }
+    /// Set the swarm state instead of initializing defaults.
+    #[must_use]
+    pub fn set_swarm_state(mut self, swarm_state: SS) -> Self {
+        self.swarm_state = swarm_state;
+        self
+    }
 
     /// Add a plugin to the swarm.
     #[must_use]
@@ -253,7 +259,7 @@ where
         let (bots_tx, mut bots_rx) = mpsc::unbounded_channel();
         let (swarm_tx, mut swarm_rx) = mpsc::unbounded_channel();
 
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
+        let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
         let ecs_lock = start_ecs(self.app, run_schedule_receiver, run_schedule_sender.clone());
 
         let swarm = Swarm {
@@ -509,8 +515,8 @@ impl Swarm {
                 Ok(bot) => return bot,
                 Err(e) => {
                     disconnects += 1;
-                    let delay = (Duration::from_secs(5) * 2u32.pow(disconnects))
-                        .min(Duration::from_secs(120));
+                    let delay = (Duration::from_secs(5) * 2u32.pow(disconnects.min(16)))
+                        .min(Duration::from_secs(15));
                     let username = account.username.clone();
                     error!("Error joining as {username}: {e}. Waiting {delay:?} and trying again.");
                     tokio::time::sleep(delay).await;

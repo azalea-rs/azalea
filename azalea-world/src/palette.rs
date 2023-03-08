@@ -1,4 +1,4 @@
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use std::io::{Cursor, Write};
 
 use crate::BitStorage;
@@ -227,13 +227,13 @@ impl McBufWritable for Palette {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             Palette::SingleValue(value) => {
-                value.write_into(buf)?;
+                value.var_write_into(buf)?;
             }
             Palette::Linear(values) => {
-                values.write_into(buf)?;
+                values.var_write_into(buf)?;
             }
             Palette::Hashmap(values) => {
-                values.write_into(buf)?;
+                values.var_write_into(buf)?;
             }
             Palette::Global => {}
         }
