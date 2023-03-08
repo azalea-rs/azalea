@@ -205,15 +205,13 @@ impl World {
 
         let nearest_to: BlockPos = nearest_to.into();
         let start_chunk: ChunkPos = (&nearest_to).into();
-        // todo (correctness): rename this to something like SquareChunkIterator and
-        // also have another one that iterates in a diagonal shape and use that
-        // here
         let iter = ChunkIterator::new(start_chunk, 32);
 
         for chunk_pos in iter {
             let chunk = self.chunks.get(&chunk_pos).unwrap();
 
             let mut nearest_found_pos: Option<BlockPos> = None;
+            let mut nearest_found_distance = 0;
 
             for (section_index, section) in chunk.read().sections.iter().enumerate() {
                 let maybe_has_block = match &section.states.palette {
@@ -242,15 +240,14 @@ impl World {
                             chunk_pos.z * 16 + (section_z as i32),
                         );
                         let this_block_pos = BlockPos { x, y, z };
+                        let this_block_distance = (nearest_to - this_block_pos).length_manhattan();
                         // only update if it's closer
-                        if let Some(nearest_found_pos) = nearest_found_pos {
-                            if this_block_pos.x + this_block_pos.y + this_block_pos.z
-                                >= nearest_found_pos.x + nearest_found_pos.y + nearest_found_pos.z
-                            {
-                                continue;
-                            }
+                        if !nearest_found_pos.is_some()
+                            || this_block_distance < nearest_found_distance
+                        {
+                            nearest_found_pos = Some(this_block_pos);
+                            nearest_found_distance = this_block_distance;
                         }
-                        nearest_found_pos = Some(this_block_pos);
                     }
                 }
             }

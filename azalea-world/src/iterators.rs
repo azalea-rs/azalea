@@ -77,18 +77,19 @@ impl Iterator for BlockIterator {
     }
 }
 
-/// A spiral iterator, useful for iterating over chunks in a world.
+/// A spiral iterator, useful for iterating over chunks in a world. Use
+/// `ChunkIterator` to sort by x+y+z (Manhattan) distance.
 ///
 /// ```
 /// # use azalea_core::ChunkPos;
-/// # use azalea_world::iterators::ChunkIterator;
+/// # use azalea_world::iterators::SquareChunkIterator;
 ///
-/// let mut iter = ChunkIterator::new(ChunkPos::default(), 4);
+/// let mut iter = SquareChunkIterator::new(ChunkPos::default(), 4);
 /// for chunk_pos in iter {
 ///   println!("{:?}", chunk_pos);
 /// }
 /// ```
-pub struct ChunkIterator {
+pub struct SquareChunkIterator {
     start: ChunkPos,
     number_of_points: u32,
 
@@ -99,7 +100,7 @@ pub struct ChunkIterator {
     segment_passed: u32,
     current_iter: u32,
 }
-impl ChunkIterator {
+impl SquareChunkIterator {
     pub fn new(start: ChunkPos, max_distance: u32) -> Self {
         Self {
             start,
@@ -133,7 +134,7 @@ impl ChunkIterator {
         self.number_of_points = u32::pow(max_distance * 2 - 1, 2);
     }
 }
-impl Iterator for ChunkIterator {
+impl Iterator for SquareChunkIterator {
     type Item = ChunkPos;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -162,5 +163,85 @@ impl Iterator for ChunkIterator {
         }
         self.current_iter += 1;
         Some(output)
+    }
+}
+
+/// A diagonal spiral iterator, useful for iterating over chunks in a world.
+///
+/// ```
+/// # use azalea_core::ChunkPos;
+/// # use azalea_world::iterators::ChunkIterator;
+///
+/// let mut iter = ChunkIterator::new(ChunkPos::default(), 4);
+/// for chunk_pos in iter {
+///   println!("{:?}", chunk_pos);
+/// }
+/// ```
+pub struct ChunkIterator {
+    pub max_distance: u32,
+    pub start: ChunkPos,
+    pub pos: ChunkPos,
+    pub layer: i32,
+    pub leg: i32,
+}
+impl ChunkIterator {
+    pub fn new(start: ChunkPos, max_distance: u32) -> Self {
+        Self {
+            max_distance,
+            start,
+            pos: ChunkPos { x: 2, z: -1 },
+            layer: 1,
+            leg: -1,
+        }
+    }
+}
+impl Iterator for ChunkIterator {
+    type Item = ChunkPos;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.leg {
+            -1 => {
+                self.leg = 0;
+                return Some(self.start);
+            }
+            0 => {
+                if self.max_distance == 1 {
+                    return None;
+                }
+                self.pos.x -= 1;
+                self.pos.z += 1;
+                if self.pos.x == 0 {
+                    self.leg = 1;
+                }
+            }
+            1 => {
+                self.pos.x -= 1;
+                self.pos.z -= 1;
+                if self.pos.z == 0 {
+                    self.leg = 2;
+                }
+            }
+            2 => {
+                self.pos.x += 1;
+                self.pos.z -= 1;
+                if self.pos.x == 0 {
+                    self.leg = 3;
+                }
+            }
+            3 => {
+                self.pos.x += 1;
+                self.pos.z += 1;
+                if self.pos.z == 0 {
+                    self.pos.x += 1;
+                    self.leg = 0;
+                    self.layer += 1;
+                    if self.layer == self.max_distance as i32 {
+                        return None;
+                    }
+                }
+            }
+            _ => unreachable!(),
+        }
+        Some(self.start + self.pos)
     }
 }
