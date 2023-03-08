@@ -6,7 +6,7 @@ use crate::{
     palette::Palette,
     ChunkStorage, PartialChunkStorage, WorldContainer,
 };
-use azalea_block::BlockState;
+use azalea_block::{BlockState, BlockStates};
 use azalea_core::{BlockPos, ChunkPos};
 use azalea_ecs::{
     entity::Entity,
@@ -198,12 +198,11 @@ impl World {
     pub fn find_block(
         &self,
         nearest_to: impl Into<BlockPos>,
-        block_states: impl Into<HashSet<BlockState>>,
+        block_states: &BlockStates,
     ) -> Option<BlockPos> {
         // iterate over every chunk in a 3d spiral pattern
         // and then check the palette for the block state
 
-        let block_states = block_states.into();
         let nearest_to: BlockPos = nearest_to.into();
         let start_chunk: ChunkPos = (&nearest_to).into();
         // todo (correctness): rename this to something like SquareChunkIterator and

@@ -8,7 +8,7 @@ mod range;
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 pub use behavior::BlockBehavior;
 use core::fmt::Debug;
-pub use range::BlockStateRange;
+pub use range::BlockStates;
 use std::{
     any::Any,
     io::{Cursor, Write},

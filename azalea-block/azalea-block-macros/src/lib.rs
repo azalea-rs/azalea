@@ -310,7 +310,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let mut from_state_to_block_match = quote! {};
     let mut from_registry_block_to_block_match = quote! {};
     let mut from_registry_block_to_blockstate_match = quote! {};
-    let mut from_registry_block_to_blockstate_range_match = quote! {};
+    let mut from_registry_block_to_blockstates_match = quote! {};
 
     for block in &input.block_definitions.blocks {
         let block_property_names = &block
@@ -524,8 +524,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         from_registry_block_to_blockstate_match.extend(quote! {
             azalea_registry::Block::#block_name_pascal_case => BlockState { id: #default_state_id },
         });
-        from_registry_block_to_blockstate_range_match.extend(quote! {
-            azalea_registry::Block::#block_name_pascal_case => BlockStateRange { id: #first_state_id..=#last_state_id },
+        from_registry_block_to_blockstates_match.extend(quote! {
+            azalea_registry::Block::#block_name_pascal_case => BlockStates::from(#first_state_id..=#last_state_id),
         });
 
         let mut block_default_fields = quote! {};
@@ -629,10 +629,10 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 }
             }
         }
-        impl From<azalea_registry::Block> for BlockStateRange {
+        impl From<azalea_registry::Block> for BlockStates {
             fn from(block: azalea_registry::Block) -> Self {
                 match block {
-                    #from_registry_block_to_blockstate_range_match
+                    #from_registry_block_to_blockstates_match
                     _ => unreachable!("There should always be a block state for every azalea_registry::Block variant")
                 }
             }
