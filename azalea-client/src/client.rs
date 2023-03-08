@@ -2,6 +2,7 @@ use crate::{
     chat::ChatPlugin,
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
+    interact::CurrentSequenceNumber,
     inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
@@ -251,6 +252,7 @@ impl Client {
             inventory: InventoryComponent::default(),
             client_information: ClientInformation::default(),
             tab_list: TabList::default(),
+            current_sequence_number: CurrentSequenceNumber::default(),
             _local: Local,
         });
 
@@ -493,6 +495,7 @@ pub struct JoinedClientBundle {
     pub inventory: InventoryComponent,
     pub client_information: ClientInformation,
     pub tab_list: TabList,
+    pub current_sequence_number: CurrentSequenceNumber,
     pub _local: Local,
 }
 

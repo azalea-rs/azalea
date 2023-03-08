@@ -4,7 +4,8 @@ use azalea_protocol::packets::game::{
     serverbound_use_item_on_packet::{BlockHitResult, ServerboundUseItemOnPacket},
 };
 use bevy_app::{App, Plugin};
-use bevy_ecs::{entity::Entity, event::EventReader, system::Query};
+use bevy_ecs::{component::Component, entity::Entity, event::EventReader, system::Query};
+use derive_more::{Deref, DerefMut};
 use log::warn;
 
 use crate::{Client, LocalPlayer};
@@ -43,17 +44,26 @@ pub struct BlockInteractEvent {
     pub position: BlockPos,
 }
 
+/// The number of changes this client has made to blocks.
+#[derive(Component, Copy, Clone, Debug, Default, Deref, DerefMut)]
+pub struct CurrentSequenceNumber(u32);
+
 fn handle_block_interact_event(
     mut events: EventReader<BlockInteractEvent>,
-    query: Query<&LocalPlayer>,
+    mut query: Query<(&LocalPlayer, &mut CurrentSequenceNumber)>,
 ) {
     for event in events.iter() {
-        let Ok( local_player) = query.get(event.entity) else {
+        let Ok((local_player, mut sequence_number)) = query.get_mut(event.entity) else {
             warn!("Sent BlockInteractEvent for entity that isn't LocalPlayer");
             continue;
         };
 
         // TODO: check to make sure we're within the world border
+
+        **sequence_number += 1;
+
+        // minecraft also does the interaction client-side (so it looks like clicking a
+        // button is instant) but we don't really need that
 
         local_player.write_packet(
             ServerboundUseItemOnPacket {
@@ -64,7 +74,7 @@ fn handle_block_interact_event(
                     location: event.position.center(),
                     inside: false,
                 },
-                sequence: 0,
+                sequence: sequence_number.0,
             }
             .get(),
         )
