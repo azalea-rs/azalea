@@ -153,7 +153,7 @@ impl ChunkPos {
         ChunkPos { x, z }
     }
 }
-impl Add for ChunkPos {
+impl Add<ChunkPos> for ChunkPos {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {

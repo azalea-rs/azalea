@@ -2,7 +2,7 @@ use crate::{
     entity::{
         EntityInfos, EntityUuid, LoadedBy, Local, MinecraftEntityId, PartialEntityInfos, WorldName,
     },
-    iterators::{BlockIterator, ChunkIterator},
+    iterators::ChunkIterator,
     palette::Palette,
     ChunkStorage, PartialChunkStorage, WorldContainer,
 };
@@ -191,30 +191,78 @@ impl World {
         self.entity_by_id.get(entity_id).copied()
     }
 
-    pub fn find_block(&self, nearest_to: impl Into<BlockPos>, block_states: HashSet<BlockState>) {
+    /// Find the coordinates of a block in the world.
+    ///
+    /// Note that this is sorted by `x+y+z` and not `x^2+y^2+z^2`, for
+    /// optimization purposes.
+    pub fn find_block(
+        &self,
+        nearest_to: impl Into<BlockPos>,
+        block_states: impl Into<HashSet<BlockState>>,
+    ) -> Option<BlockPos> {
         // iterate over every chunk in a 3d spiral pattern
         // and then check the palette for the block state
-        // borrowed from https://github.com/PrismarineJS/prismarine-world/blob/master/src/iterators.js#L65
 
+        let block_states = block_states.into();
         let nearest_to: BlockPos = nearest_to.into();
         let start_chunk: ChunkPos = (&nearest_to).into();
+        // todo (correctness): rename this to something like SquareChunkIterator and
+        // also have another one that iterates in a diagonal shape and use that
+        // here
         let iter = ChunkIterator::new(start_chunk, 32);
 
         for chunk_pos in iter {
             let chunk = self.chunks.get(&chunk_pos).unwrap();
-            for section in &chunk.read().sections {
-                let maybe_has_block = match section.states.palette {
-                    Palette::SingleValue(id) => block_states.contains(&BlockState { id }),
+
+            let mut nearest_found_pos: Option<BlockPos> = None;
+
+            for (section_index, section) in chunk.read().sections.iter().enumerate() {
+                let maybe_has_block = match &section.states.palette {
+                    Palette::SingleValue(id) => block_states.contains(&BlockState { id: *id }),
                     Palette::Linear(ids) => ids
                         .iter()
-                        .any(|id| block_states.contains(&BlockState { id })),
+                        .any(|&id| block_states.contains(&BlockState { id })),
                     Palette::Hashmap(ids) => ids
                         .iter()
-                        .any(|id| block_states.contains(&BlockState { id })),
+                        .any(|&id| block_states.contains(&BlockState { id })),
                     Palette::Global => true,
                 };
+                if !maybe_has_block {
+                    continue;
+                }
+
+                for i in 0..4096 {
+                    let block_state = section.states.get_at_index(i);
+                    let block_state = BlockState { id: block_state };
+
+                    if block_states.contains(&block_state) {
+                        let (section_x, section_y, section_z) = section.states.coords_from_index(i);
+                        let (x, y, z) = (
+                            chunk_pos.x * 16 + (section_x as i32),
+                            self.chunks.min_y + (section_index * 16) as i32 + section_y as i32,
+                            chunk_pos.z * 16 + (section_z as i32),
+                        );
+                        let this_block_pos = BlockPos { x, y, z };
+                        // only update if it's closer
+                        if let Some(nearest_found_pos) = nearest_found_pos {
+                            if this_block_pos.x + this_block_pos.y + this_block_pos.z
+                                >= nearest_found_pos.x + nearest_found_pos.y + nearest_found_pos.z
+                            {
+                                continue;
+                            }
+                        }
+                        nearest_found_pos = Some(this_block_pos);
+                    }
+                }
+            }
+
+            // if we found the position, return it
+            if nearest_found_pos.is_some() {
+                return nearest_found_pos;
             }
         }
+
+        None
     }
 }
 

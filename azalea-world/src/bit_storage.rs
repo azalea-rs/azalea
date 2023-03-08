@@ -158,13 +158,13 @@ impl BitStorage {
             .unwrap()
     }
 
+    /// Get the data at the given index.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if the given index is greater than or equal to
+    /// the size of this storage.
     pub fn get(&self, index: usize) -> u64 {
-        // Validate.inclusiveBetween(0L, (long)(this.size - 1), (long)var1);
-        // int var2 = this.cellIndex(var1);
-        // long var3 = this.data[var2];
-        // int var5 = (var1 - var2 * this.valuesPerLong) * this.bits;
-        // return (int)(var3 >> var5 & this.mask);
-
         assert!(
             index < self.size,
             "Index {} out of bounds (must be less than {})",

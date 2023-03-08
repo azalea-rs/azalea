@@ -12,6 +12,11 @@ pub enum PalettedContainerType {
 #[derive(Clone, Debug)]
 pub struct PalettedContainer {
     pub bits_per_entry: u8,
+    /// This is usually a list of unique values that appear in the container so
+    /// they can be indexed by the bit storage.
+    ///
+    /// Sometimes it doesn't contain anything if there's too many unique items
+    /// in the bit storage, though.
     pub palette: Palette,
     /// Compacted list of indices pointing to entry IDs in the Palette.
     pub storage: BitStorage,
@@ -57,15 +62,33 @@ impl PalettedContainer {
     }
 
     /// Calculates the index of the given coordinates.
-    pub fn get_index(&self, x: usize, y: usize, z: usize) -> usize {
+    pub fn index_from_coords(&self, x: usize, y: usize, z: usize) -> usize {
         let size_bits = self.container_type.size_bits();
 
         (((y << size_bits) | z) << size_bits) | x
     }
 
+    pub fn coords_from_index(&self, index: usize) -> (usize, usize, usize) {
+        let size_bits = self.container_type.size_bits();
+        let mask = (1 << size_bits) - 1;
+        (
+            index & mask,
+            (index >> size_bits >> size_bits) & mask,
+            (index >> size_bits) & mask,
+        )
+    }
+
     /// Returns the value at the given index.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the index is greater than or equal to the number
+    /// of things in the storage. (So for block states, it must be less than
+    /// 4096).
     pub fn get_at_index(&self, index: usize) -> u32 {
+        // first get the pallete id
         let paletted_value = self.storage.get(index);
+        // and then get the value from that id
         self.palette.value_for(paletted_value as usize)
     }
 
@@ -73,14 +96,14 @@ impl PalettedContainer {
     pub fn get(&self, x: usize, y: usize, z: usize) -> u32 {
         // let paletted_value = self.storage.get(self.get_index(x, y, z));
         // self.palette.value_for(paletted_value as usize)
-        self.get_at_index(self.get_index(x, y, z))
+        self.get_at_index(self.index_from_coords(x, y, z))
     }
 
     /// Sets the id at the given coordinates and return the previous id
     pub fn get_and_set(&mut self, x: usize, y: usize, z: usize, value: u32) -> u32 {
         let paletted_value = self.id_for(value);
         self.storage
-            .get_and_set(self.get_index(x, y, z), paletted_value as u64) as u32
+            .get_and_set(self.index_from_coords(x, y, z), paletted_value as u64) as u32
     }
 
     /// Sets the id at the given index and return the previous id. You probably
@@ -92,7 +115,7 @@ impl PalettedContainer {
 
     /// Sets the id at the given coordinates and return the previous id
     pub fn set(&mut self, x: usize, y: usize, z: usize, value: u32) {
-        self.set_at_index(self.get_index(x, y, z), value);
+        self.set_at_index(self.index_from_coords(x, y, z), value);
     }
 
     fn create_or_reuse_data(&self, bits_per_entry: u8) -> PalettedContainer {
@@ -353,5 +376,23 @@ mod tests {
 
         palette_container.set_at_index(16, 16); // 5 bits
         assert_eq!(palette_container.bits_per_entry, 5);
+    }
+
+    #[test]
+    fn test_coords_from_index() {
+        let palette_container =
+            PalettedContainer::new(&PalettedContainerType::BlockStates).unwrap();
+
+        for x in 0..15 {
+            for y in 0..15 {
+                for z in 0..15 {
+                    assert_eq!(
+                        palette_container
+                            .coords_from_index(palette_container.index_from_coords(x, y, z)),
+                        (x, y, z)
+                    );
+                }
+            }
+        }
     }
 }

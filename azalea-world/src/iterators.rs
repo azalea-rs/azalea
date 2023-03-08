@@ -1,11 +1,15 @@
-//! Iterators, based on [prismarine-world's iterators](https://github.com/PrismarineJS/prismarine-world/blob/master/src/iterators.js).
+//! Iterators for iterating over Minecraft blocks and chunks, based on
+//! [prismarine-world's iterators](https://github.com/PrismarineJS/prismarine-world/blob/master/src/iterators.js).
 
 use azalea_core::{BlockPos, ChunkPos};
 
 /// An octahedron iterator, useful for iterating over blocks in a world.
 ///
 /// ```
-/// let mut iter = OctahedronIterator::new(BlockPos::default(), 4);
+/// # use azalea_core::BlockPos;
+/// # use azalea_world::iterators::BlockIterator;
+///
+/// let mut iter = BlockIterator::new(BlockPos::default(), 4);
 /// for block_pos in iter {
 ///    println!("{:?}", block_pos);
 /// }
@@ -76,6 +80,9 @@ impl Iterator for BlockIterator {
 /// A spiral iterator, useful for iterating over chunks in a world.
 ///
 /// ```
+/// # use azalea_core::ChunkPos;
+/// # use azalea_world::iterators::ChunkIterator;
+///
 /// let mut iter = ChunkIterator::new(ChunkPos::default(), 4);
 /// for chunk_pos in iter {
 ///   println!("{:?}", chunk_pos);
@@ -105,6 +112,25 @@ impl ChunkIterator {
             segment_passed: 0,
             current_iter: 0,
         }
+    }
+
+    /// Change the distance that this iterator won't go past.
+    ///
+    /// ```
+    /// # use azalea_core::ChunkPos;
+    /// # use azalea_world::iterators::ChunkIterator;
+    ///
+    /// let mut iter = ChunkIterator::new(ChunkPos::default(), 2);
+    /// for chunk_pos in iter {
+    ///   println!("{:?}", chunk_pos);
+    /// }
+    /// iter.set_max_distance(4);
+    /// for chunk_pos in iter {
+    ///   println!("{:?}", chunk_pos);
+    /// }
+    /// ```
+    pub fn set_max_distance(&mut self, max_distance: u32) {
+        self.number_of_points = u32::pow(max_distance * 2 - 1, 2);
     }
 }
 impl Iterator for ChunkIterator {
