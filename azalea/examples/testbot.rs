@@ -147,6 +147,18 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         );
                         bot.chat(&format!("target_pos: {target_pos:?}",));
                     }
+                    "gotoblock" => {
+                        let target_pos = bot.world().read().find_block(
+                            bot.component::<Position>(),
+                            &azalea_registry::Block::DiamondBlock.into(),
+                        );
+                        if let Some(target_pos) = target_pos {
+                            // +1 to stand on top of the block
+                            bot.goto(BlockPosGoal::from(target_pos.up(1)));
+                        } else {
+                            bot.chat("no diamond block found");
+                        }
+                    }
                     _ => {}
                 }
             }
